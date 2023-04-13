@@ -1,8 +1,11 @@
 package com.xebia.functional.prompt
 
 import java.nio.file.Paths
+import java.time.LocalDate
+import java.time.temporal.ChronoUnit.YEARS
 
 import cats.effect.*
+import cats.syntax.all._
 
 import com.xebia.functional.prompt.models.*
 import munit.CatsEffectSuite
@@ -105,4 +108,20 @@ class PromptTemplateSpec extends CatsEffectSuite:
       yield str
 
     assertIO(io, "My name is Angela and I'm 18 years old")
+  }
+
+  test("format should return the expected result for variables with functions") {
+
+    val template = "My name is {name} and I'm {age} years old"
+    def getAge() = YEARS.between(LocalDate.of(2000, 9, 25), LocalDate.now()).show
+
+    val variables = Map("name" -> "Charles", "age" -> getAge())
+    val io =
+      for
+        config <- Config.make[IO](template, List("name", "age"))
+        prompt = PromptTemplate[IO](config)
+        str <- prompt.format(variables)
+      yield str
+
+    assertIO(io, s"My name is Charles and I'm ${getAge()} years old")
   }
