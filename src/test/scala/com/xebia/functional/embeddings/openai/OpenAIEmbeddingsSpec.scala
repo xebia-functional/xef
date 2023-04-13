@@ -6,7 +6,6 @@ import scala.util.Try
 import cats.data.NonEmptyChain
 import cats.effect.IO
 import cats.syntax.all.*
-import cats.syntax.all.*
 
 import com.xebia.functional.config.OpenAIConfig
 import com.xebia.functional.embeddings.models.*
