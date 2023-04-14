@@ -11,12 +11,14 @@ import cats.syntax.all.*
 import com.xebia.functional.prompt.models.*
 
 sealed trait PromptTemplate[F[_]]:
+  def inputKeys: List[String]
   def format(variables: Map[String, String]): F[String]
 
 object PromptTemplate:
 
   def apply[F[_]: Sync](config: Config): PromptTemplate[F] =
     new PromptTemplate[F]:
+      def inputKeys: List[String] = config.inputVariables
 
       def format(variables: Map[String, String]): F[String] =
         for
