@@ -3,8 +3,6 @@ package com.xebia.functional.chains.models
 import cats.ApplicativeThrow
 import cats.syntax.all.*
 
-import com.xebia.functional.chains.models.InvalidChainInputsError
-
 final case class Config(
     inputKeys: Set[String],
     outputKeys: Set[String],

@@ -19,7 +19,7 @@ class LLMChain[F[_]: Sync](
     temperature: Double,
     onlyOutput: Boolean
 ) extends BaseChain[F]:
-  val config = Config(promptTemplate.inputKeys.toSet, Set("text"), onlyOutput)
+  val config = Config(promptTemplate.inputKeys.toSet, Set("answer"), onlyOutput)
   val completionRequest =
     CompletionRequest
       .builder(llmModel, user)
@@ -37,22 +37,10 @@ class LLMChain[F[_]: Sync](
 
   def run(inputs: Map[String, String] | String): F[Map[String, String]] =
     for
-      is <- prepareInputs(inputs)
+      is <- prepareInputs(inputs)(config)
       os <- call(is)
-      output <- prepareOutputs(is, os)
+      output <- prepareOutputs(is, os)(config)
     yield output
-
-  def prepareInputs(inputs: Map[String, String] | String): F[Map[String, String]] =
-    inputs match
-      case e: String => config.genInputsFromString(e)
-      case e: Map[String, String] => config.genInputs(e)
-
-  def prepareOutputs(inputs: Map[String, String], outputs: Map[String, String]): F[Map[String, String]] =
-    Sync[F].pure(
-      config.onlyOutputs match
-        case true => outputs
-        case false => inputs ++ outputs
-    )
 
   def preparePrompt(inputs: Map[String, String]): F[String] = promptTemplate.format(inputs)
   def formatOutput(completions: List[CompletionChoice]): Map[String, String] =
