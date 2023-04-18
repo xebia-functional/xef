@@ -8,8 +8,6 @@ import com.xebia.functional.chains.models.Config
 trait BaseChain[F[_]: MonadThrow]:
 
   val config: Config
-  val inputVariables: Set[String] = config.inputKeys
-  val outputVariables: Set[String] = config.outputKeys
 
   def call(inputs: Map[String, String]): F[Map[String, String]]
 
