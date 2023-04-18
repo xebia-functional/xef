@@ -24,6 +24,6 @@ trait BaseChain[F[_]: MonadThrow]:
         case true => outputs
         case false => inputs ++ outputs
     )
-  
-  def run(inputs: Map[String, String] | String): F[Map[String, String]] = 
-    prepareInputs(inputs).flatMap( is => call(is) >>= prepareOutputs(is))
+
+  def run(inputs: Map[String, String] | String): F[Map[String, String]] =
+    prepareInputs(inputs).flatMap(is => call(is) >>= prepareOutputs(is))
