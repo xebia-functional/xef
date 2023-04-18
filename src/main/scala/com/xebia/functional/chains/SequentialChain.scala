@@ -4,7 +4,7 @@ import cats.MonadThrow
 import cats.implicits.*
 import cats.data.NonEmptySeq
 
-class SequentialChain[F[_]: MonadThrow](
+class SequentialChain[F[_]: MonadThrow] private (
     chains: NonEmptySeq[BaseChain[F]],
     outputVariables: NonEmptySeq[String]
 ):
@@ -12,3 +12,7 @@ class SequentialChain[F[_]: MonadThrow](
     chains
       .foldLeft(MonadThrow[F].pure(inputs))((fi, c) => fi.flatMap(i => c.run(i).map(_ ++ i)))
       .map(_.filterKeys(outputVariables.contains_(_)).toMap)
+
+object SequentialChain:
+  def make[F[_]: MonadThrow](chains: NonEmptySeq[BaseChain[F]], outputVariables: NonEmptySeq[String]): SequentialChain[F] =
+    SequentialChain[F](chains, outputVariables)
