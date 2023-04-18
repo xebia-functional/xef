@@ -52,13 +52,6 @@ class VectorQAChain[F[_]: Sync](
       output <- combineChain.run(inputs)
     yield output
 
-  def run(inputs: Map[String, String] | String): F[Map[String, String]] =
-    for
-      is <- prepareInputs(inputs)(config)
-      os <- call(is)
-      output <- prepareOutputs(is, os)(config)
-    yield output
-
 object VectorQAChain:
   def make[F[_]: Sync](
       llm: OpenAIClient[F],

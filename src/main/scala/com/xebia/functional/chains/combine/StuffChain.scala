@@ -40,13 +40,6 @@ class StuffChain[F[_]: Sync](
       result <- llmChain.run(totalInputs)
     yield result
 
-  def run(inputs: Map[String, String] | String): F[Map[String, String]] =
-    for
-      inputs <- prepareInputs(inputs)(config)
-      result <- call(inputs)
-      output <- prepareOutputs(inputs, result)(config)
-    yield output
-
 object StuffChain:
   def make[F[_]: Sync](
       documents: List[Document],
@@ -59,4 +52,5 @@ object StuffChain:
       n: Int,
       temperature: Double,
       onlyOutput: Boolean
-  ): StuffChain[F] = new StuffChain[F](documents, llm, promptTemplate, documentVariableName, llmModel, user, echo, n, temperature, onlyOutput)
+  ): StuffChain[F] =
+    new StuffChain[F](documents, llm, promptTemplate, documentVariableName, llmModel, user, echo, n, temperature, onlyOutput)

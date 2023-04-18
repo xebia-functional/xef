@@ -35,13 +35,6 @@ class LLMChain[F[_]: Sync](
       out = formatOutput(cmp)
     yield out
 
-  def run(inputs: Map[String, String] | String): F[Map[String, String]] =
-    for
-      is <- prepareInputs(inputs)(config)
-      os <- call(is)
-      output <- prepareOutputs(is, os)(config)
-    yield output
-
   def preparePrompt(inputs: Map[String, String]): F[String] = promptTemplate.format(inputs)
   def formatOutput(completions: List[CompletionChoice]): Map[String, String] =
     config.outputKeys.map((_, completions.map(_.text).mkString(", "))).toMap
