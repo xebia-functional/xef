@@ -1,9 +1,7 @@
 package com.xebia.functional.chains
 
 import cats.MonadThrow
-import cats.Foldable
 import cats.implicits.*
-import com.xebia.functional.llm.openai.OpenAIClient
 import cats.data.NonEmptySeq
 
 class SimpleSequentialChain[F[_]: MonadThrow] private (chains: NonEmptySeq[BaseChain[F]]):
