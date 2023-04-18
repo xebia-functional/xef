@@ -10,7 +10,7 @@ final case class Config(
 ) {
   def genInputs[F[_]: ApplicativeThrow](inputs: Map[String, String]): F[Map[String, String]] =
     (
-      if ((inputKeys diff inputs.keySet).isEmpty) Some(inputs) else None
+      if ((inputKeys diff inputs.keySet).isEmpty && (inputs.keySet diff inputKeys).isEmpty) Some(inputs) else None
     ).liftTo[F](InvalidChainInputsError(inputKeys, inputs))
 
   def genInputsFromString[F[_]: ApplicativeThrow](input: String): F[Map[String, String]] =

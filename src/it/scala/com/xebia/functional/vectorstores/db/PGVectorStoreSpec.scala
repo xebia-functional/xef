@@ -27,80 +27,91 @@ class PGVectorStoreSpec extends DatabaseSuite:
     None
   )
 
-  test("PGVectorStore - initialDbSetup") {
+  test("initialDbSetup should configure the DB properly") {
     val result: IO[Unit] = pg.initialDbSetup()
     assertIO(result, ())
   }
 
-  test("PGVectorStore - addTexts should fail - collection not found".fail) {
+  test("addTexts should fail with a CollectionNotFoundError if collection isn't present in the DB") {
     val result: IO[List[DocumentVectorId]] = pg.addTexts(TestData.texts)
-    assertIO(result, List.empty[DocumentVectorId])
+    interceptMessageIO[PGErrors.CollectionNotFoundError](
+      "Collection 'test_collection' not found"
+    )(result)
   }
 
-  test("PGVectorStore - createCollection") {
+  test("similaritySearch shoul fail with a CollectionNotFoundError if collection isn't present in the DB") {
+    val result: IO[List[Document]] = pg.similaritySearch("foo", 2)
+    interceptMessageIO[PGErrors.CollectionNotFoundError](
+      "Collection 'test_collection' not found"
+    )(result)
+  }
+
+  test("createCollection should create collection") {
     val result: IO[Int] = pg.createCollection
     assertIO(result, 1)
   }
 
-  test("PGVectorStore - addTexts should return a list of 2 elements") {
+  test("addTexts should return a list of 2 elements") {
     val result: IO[List[DocumentVectorId]] = pg.addTexts(TestData.texts)
     assertIO(result.map(_.length), 2)
   }
 
-  test("PGVectorStore - similaritySearchByVector should return both documents") {
+  test("similaritySearchByVector should return both documents") {
     val result: IO[List[Document]] = pg.similaritySearchByVector(TestData.barEmbedding, 2)
     assertIO(result.map(_.map(_.content)), List("bar", "foo"))
   }
 
-  test("PGVectorStore - addDocuments should return a list of 2 elements") {
+  test("addDocuments should return a list of 2 elements") {
     val result: IO[List[DocumentVectorId]] = pg.addDocuments(TestData.texts.map(Document.apply(_)))
     assertIO(result.map(_.length), 2)
   }
 
-  test("PGVectorStore - similaritySearch should return 2 documents") {
+  test("similaritySearch should return 2 documents") {
     val result: IO[List[Document]] = pg.similaritySearch("foo", 2)
     assertIO(result.map(_.length), 2)
   }
 
-  test("PGVectorStore - similaritySearch should fail when embedding vector is empty".fail) {
+  test("similaritySearch should fail when embedding vector is empty") {
     val result: IO[List[Document]] = pg.similaritySearch("baz", 2)
-    assertIO(result.map(_.length), 2)
+    interceptMessageIO[PGErrors.EmbeddingNotGeneratedError](
+      "Embedding for text: 'baz', has not been properly generated"
+    )(result)
   }
 
-  test("PGVectorStore - similaritySearchByVector should return document for 'foo'") {
+  test("similaritySearchByVector should return document") {
     val result: IO[List[Document]] = pg.similaritySearchByVector(TestData.fooEmbedding, 1)
     assertIO(result.map(_.map(_.content)), List("foo"))
   }
 
-  test("PGVectorStore check query - addVectorExtension") {
+  test("check query - addVectorExtension") {
     check(PGSql.addVectorExtension)
   }
 
-  test("PGVectorStore check query - createCollectionsTable") {
+  test("check query - createCollectionsTable") {
     check(PGSql.createCollectionsTable)
   }
 
-  test("PGVectorStore check query - createEmbeddingTable") {
+  test("check query - createEmbeddingTable") {
     check(PGSql.createEmbeddingTable(3))
   }
 
-  test("PGVectorStore check query - addNewCollection") {
+  test("check query - addNewCollection") {
     check(PGSql.addNewCollection(TestData.collectionUUID.id, TestData.collectionName))
   }
 
-  test("PGVectorStore check query - getCollection") {
+  test("check query - getCollection") {
     check(PGSql.getCollection(TestData.collectionName))
   }
 
-  test("PGVectorStore check query - getCollectionById") {
+  test("check query - getCollectionById") {
     check(PGSql.getCollectionById(TestData.collectionUUID.id))
   }
 
-  test("PGVectorStore check query - deleteCollectionDocs") {
+  test("check query - deleteCollectionDocs") {
     check(PGSql.deleteCollectionDocs(TestData.collectionUUID.id))
   }
 
-  test("PGVectorStore check query - deleteCollection") {
+  test("check query - deleteCollection") {
     check(PGSql.deleteCollection(TestData.collectionUUID.id))
   }
 

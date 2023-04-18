@@ -36,12 +36,22 @@ class VectorQAChainSpec extends CatsEffectSuite:
     assertIO(result, TestData.outputIDK)
   }
 
-  test("run should fail with a InvalidChainInputsError if the inputs don't match the expected") {
+  test("run should fail with an InvalidChainInputsError if the inputs don't match the expected") {
     val vectorStore = VectorStoreMock.make
     val qa = VectorQAChain.makeWithDefaults[IO](OpenAIClientMock.make, vectorStore, "testing")
     val result = qa.run(Map("foo" -> "What do you think?"))
 
     interceptMessageIO[InvalidChainInputsError](
       "The provided inputs (foo) do not match with chain's inputs (question)"
+    )(result)
+  }
+
+  test("run should fail with an InvalidChainInputsError if the input is more than one") {
+    val vectorStore = VectorStoreMock.make
+    val qa = VectorQAChain.makeWithDefaults[IO](OpenAIClientMock.make, vectorStore, "testing")
+    val result = qa.run(Map("question" -> "bla bla bla", "foo" -> "What do you think?"))
+
+    interceptMessageIO[InvalidChainInputsError](
+      "The provided inputs (question, foo) do not match with chain's inputs (question)"
     )(result)
   }

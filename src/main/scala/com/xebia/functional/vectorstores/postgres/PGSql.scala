@@ -29,9 +29,10 @@ object PGSql:
     """.update
 
   def createEmbeddingTable(vectorSize: Int): Update0 =
-    (fr"CREATE TABLE IF NOT EXISTS langchain4s_embeddings (uuid UUID PRIMARY KEY, collection_id UUID, embedding vector(" ++ Fragment.const(
-      vectorSize.show
-    ) ++ fr"), content VARCHAR)").update
+    (fr"CREATE TABLE IF NOT EXISTS langchain4s_embeddings (uuid UUID PRIMARY KEY, collection_id UUID references langchain4s_collections(uuid), embedding vector(" ++ Fragment
+      .const(
+        vectorSize.show
+      ) ++ fr"), content VARCHAR)").update
 
   def addNewCollection(uuid: UUID, collectionName: String): Update0 =
     sql"""
@@ -76,7 +77,7 @@ object PGSql:
       VALUES ($uuid, $collectionId, ${embedding.data}::vector, $text)
     """.update
 
-  def searchSimilarDocument(e: Embedding, strategy: PGDistanceStrategy, k: Int): Query0[domain.Document] =
-    (fr"SELECT content FROM langchain4s_embeddings ORDER BY embedding " ++ Fragment
+  def searchSimilarDocument(e: Embedding, strategy: PGDistanceStrategy, collection: PGCollection, k: Int): Query0[domain.Document] =
+    (fr"SELECT content FROM langchain4s_embeddings WHERE collection_id = ${collection.uuid} ORDER BY embedding " ++ Fragment
       .const(strategy.strategy) ++ fr" ${e.data.map(_.toFloat)}::vector limit $k")
       .query[domain.Document]

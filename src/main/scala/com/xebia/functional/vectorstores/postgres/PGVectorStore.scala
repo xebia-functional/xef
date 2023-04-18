@@ -35,7 +35,7 @@ class PGVectorStore[F[_]: Sync](
       case true =>
         for
           collection <- getCollection(collectionName).option
-          c <- collection.liftTo[ConnectionIO](PGErrors.CollectionNotFound(collectionName))
+          c <- collection.liftTo[ConnectionIO](PGErrors.CollectionNotFoundError(collectionName))
           _ <- deleteCollectionDocs(c.uuid).run
           _ <- deleteCollection(c.uuid).run
         yield ()
@@ -68,7 +68,7 @@ class PGVectorStore[F[_]: Sync](
         us <-
           (for
             collection <- getCollection(collectionName).option
-            c <- collection.liftTo[ConnectionIO](PGErrors.CollectionNotFound(collectionName))
+            c <- collection.liftTo[ConnectionIO](PGErrors.CollectionNotFoundError(collectionName))
             uuids <-
               pairs.traverse((t, e) =>
                 memeid4s.UUID.V1.next
@@ -88,14 +88,23 @@ class PGVectorStore[F[_]: Sync](
       for
         qEmb <- embeddings.embedQuery(query, requestConfig)
         docs <- qEmb match
-          case e +: es => searchSimilarDocument(e, distanceStrategy, k).to[List].transact(xa)
-          case _ => Sync[F].raiseError(PGErrors.EmbeddingNotGenerated(query))
+          case e +: es =>
+            getCollection(collectionName).option
+              .flatMap {
+                case Some(col) => searchSimilarDocument(e, distanceStrategy, col, k).to[List]
+                case None => Sync[ConnectionIO].raiseError(PGErrors.CollectionNotFoundError(collectionName))
+              }.transact(xa)
+          case _ => Sync[F].raiseError(PGErrors.EmbeddingNotGeneratedError(query))
       yield docs
     }
 
   def similaritySearchByVector(embedding: Embedding, k: Int): F[List[Document]] =
     transactor.use { xa =>
-      searchSimilarDocument(embedding, distanceStrategy, k).to[List].transact(xa)
+      getCollection(collectionName).option
+        .flatMap {
+          case Some(col) => searchSimilarDocument(embedding, distanceStrategy, col, k).to[List]
+          case None => Sync[ConnectionIO].raiseError(PGErrors.CollectionNotFoundError(collectionName))
+        }.transact(xa)
     }
 
 object PGVectorStore:
