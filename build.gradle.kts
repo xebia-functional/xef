@@ -12,10 +12,15 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
 }
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
 kotlin {
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = "1.8"
+            kotlinOptions.jvmTarget = JavaVersion.VERSION_11.majorVersion
         }
         withJava()
         testRuns["test"].executionTask.configure {
