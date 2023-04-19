@@ -17,11 +17,7 @@ trait BaseChain[F[_]: MonadThrow]:
       case e: Map[String, String] => config.genInputs(e)
 
   private def prepareOutputs(inputs: Map[String, String])(outputs: Map[String, String]): F[Map[String, String]] =
-    MonadThrow[F].pure(
-      config.onlyOutputs match
-        case true => outputs
-        case false => inputs ++ outputs
-    )
+    MonadThrow[F].pure(if config.onlyOutputs then outputs else inputs ++ outputs)
 
   def run(inputs: Map[String, String] | String): F[Map[String, String]] =
     prepareInputs(inputs).flatMap(is => call(is) >>= prepareOutputs(is))

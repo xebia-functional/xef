@@ -1,12 +1,55 @@
 package com.xebia.functional.chains
 
 import cats.MonadThrow
+import cats.effect.Resource
 import cats.implicits.*
 import cats.data.NonEmptySeq
+import eu.timepit.refined.types.string.NonEmptyString
+import com.xebia.functional.chains.models.*
+import com.xebia.functional.chains.models.Config
 
-class SimpleSequentialChain[F[_]: MonadThrow] private (chains: NonEmptySeq[BaseChain[F]]):
-  def run(inputs: Map[String, String]): F[Map[String, String]] =
-    chains.foldLeft(MonadThrow[F].pure(inputs))((i, c) => i >>= c.run)
+class SimpleSequentialChain[F[_]: MonadThrow] private (
+    chains: NonEmptySeq[BaseChain[F]],
+    inputKey: NonEmptyString,
+    outputKey: NonEmptyString,
+    onlyOutputs: Boolean
+) extends BaseChain[F]:
+  val config: Config = Config(
+    inputKeys = Set(inputKey.toString()),
+    outputKeys = Set(outputKey.toString()),
+    onlyOutputs = onlyOutputs
+  )
+
+  def call(inputs: Map[String, String]): F[Map[String, String]] =
+    def inner(chains: Seq[BaseChain[F]])(input: Map[String, String] | String): F[Map[String, String]] =
+      chains match
+        case h :: Nil =>
+          h.run(input).map(response =>
+              h.config.outputKeys.foldLeft(response)((resp, output) =>
+                val respValue = response(output) // TODO: Unpure! but should never fail. Temporal! Change it.
+                response - output + (outputKey.toString -> respValue)
+              )
+            )
+        case h :: t => h.run(input) >>= inner(t)
+    inputs.get(inputKey.toString).liftTo[F](InvalidChainInputError(inputs.keySet)).flatMap(inner(chains.toSeq))
 
 object SimpleSequentialChain:
-  def make[F[_]: MonadThrow](chains: NonEmptySeq[BaseChain[F]]): SimpleSequentialChain[F] = SimpleSequentialChain(chains)
+  def validateChains[F[_]: MonadThrow](
+      chains: NonEmptySeq[BaseChain[F]],
+      inputKey: NonEmptyString,
+      outputKey: NonEmptyString,
+      onlyOutputs: Boolean = false
+  ): F[SimpleSequentialChain[F]] =
+    chains
+      .traverse_(c =>
+        if c.config.inputKeys.size > 1 then MonadThrow[F].raiseError(InvalidChainInputError(c.config.inputKeys))
+        else if c.config.outputKeys.size > 1 then MonadThrow[F].raiseError(InvalidChainOutputError(c.config.outputKeys))
+        else MonadThrow[F].unit
+      ).as(SimpleSequentialChain(chains, inputKey, outputKey, onlyOutputs))
+
+  def resource[F[_]: MonadThrow](
+      chains: NonEmptySeq[BaseChain[F]],
+      inputKey: NonEmptyString,
+      outputKey: NonEmptyString,
+      onlyOutputs: Boolean = false
+  ): Resource[F, SimpleSequentialChain[F]] = Resource.eval(validateChains(chains, inputKey, outputKey, onlyOutputs))
