@@ -14,8 +14,8 @@ class SimpleSequentialChainSpec extends CatsEffectSuite:
     val chain2 = FakeChain(inputVariables = Set("bar"), outputVariables = Set("baz"))
     val chains = NonEmptySeq(chain1, Seq(chain2))
 
-    val inputKey = NonEmptyString.from("input").toOption.get
-    val outputKey = NonEmptyString.from("output").toOption.get
+    val inputKey = NonEmptyString.unsafeFrom("input")
+    val outputKey = NonEmptyString.unsafeFrom("output")
 
     val ssc = SimpleSequentialChain.resource[IO](chains, inputKey, outputKey)
 
@@ -29,8 +29,8 @@ class SimpleSequentialChainSpec extends CatsEffectSuite:
     val chain2 = FakeChain(inputVariables = Set("bar", "foo"), outputVariables = Set("baz"))
     val chains = NonEmptySeq(chain1, Seq(chain2))
 
-    val inputKey = NonEmptyString.from("input").toOption.get
-    val outputKey = NonEmptyString.from("output").toOption.get
+    val inputKey = NonEmptyString.unsafeFrom("input")
+    val outputKey = NonEmptyString.unsafeFrom("output")
 
     val ssc = SimpleSequentialChain.resource[IO](chains, inputKey, outputKey)
 
@@ -44,8 +44,8 @@ class SimpleSequentialChainSpec extends CatsEffectSuite:
     val chain2 = FakeChain(inputVariables = Set("bar"), outputVariables = Set("baz"))
     val chains = NonEmptySeq(chain1, Seq(chain2))
 
-    val inputKey = NonEmptyString.from("input").toOption.get
-    val outputKey = NonEmptyString.from("output").toOption.get
+    val inputKey = NonEmptyString.unsafeFrom("input")
+    val outputKey = NonEmptyString.unsafeFrom("output")
 
     val ssc = SimpleSequentialChain.resource[IO](chains, inputKey, outputKey)
 

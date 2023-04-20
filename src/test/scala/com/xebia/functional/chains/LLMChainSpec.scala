@@ -7,7 +7,10 @@ import com.xebia.functional.chains.models.InvalidChainInputError
 import com.xebia.functional.chains.models.InvalidChainInputsError
 import com.xebia.functional.prompt.PromptTemplate
 import munit.CatsEffectSuite
+import eu.timepit.refined.types.string.NonEmptyString
 class LLMChainSpec extends CatsEffectSuite:
+
+  val outputVariable = NonEmptyString.unsafeFrom("answer")
 
   test("run should return a prediction with just the output") {
     val llm = OpenAIClientMock.make
@@ -16,7 +19,7 @@ class LLMChainSpec extends CatsEffectSuite:
     val result =
       for
         prompt <- promptTemplate
-        chain = LLMChain.make[IO](llm, prompt, "davinci", "testing", false, 1, 0.0, true)
+        chain = LLMChain.make[IO](llm, prompt, "davinci", "testing", false, 1, 0.0, outputVariable, true)
         res <- chain.run("a joke")
       yield res
 
@@ -30,7 +33,7 @@ class LLMChainSpec extends CatsEffectSuite:
     val result =
       for
         prompt <- promptTemplate
-        chain = LLMChain.make[IO](llm, prompt, "davinci", "testing", false, 1, 0.0, false)
+        chain = LLMChain.make[IO](llm, prompt, "davinci", "testing", false, 1, 0.0, outputVariable, false)
         res <- chain.run("a joke")
       yield res
 
@@ -44,7 +47,7 @@ class LLMChainSpec extends CatsEffectSuite:
     val result =
       for
         prompt <- promptTemplate
-        chain = LLMChain.make[IO](llm, prompt, "davinci", "testing", false, 1, 0.0, false)
+        chain = LLMChain.make[IO](llm, prompt, "davinci", "testing", false, 1, 0.0, outputVariable, false)
         res <- chain.run(Map("age" -> "28", "name" -> "foo"))
       yield res
 
@@ -58,7 +61,7 @@ class LLMChainSpec extends CatsEffectSuite:
     val result =
       for
         prompt <- promptTemplate
-        chain = LLMChain.make[IO](llm, prompt, "davinci", "testing", false, 1, 0.0, false)
+        chain = LLMChain.make[IO](llm, prompt, "davinci", "testing", false, 1, 0.0, outputVariable, false)
         res <- chain.run(Map("age" -> "28", "brand" -> "foo"))
       yield res
 
@@ -74,7 +77,7 @@ class LLMChainSpec extends CatsEffectSuite:
     val result =
       for
         prompt <- promptTemplate
-        chain = LLMChain.make[IO](llm, prompt, "davinci", "testing", false, 1, 0.0, false)
+        chain = LLMChain.make[IO](llm, prompt, "davinci", "testing", false, 1, 0.0, outputVariable, false)
         res <- chain.run("foo")
       yield res
 

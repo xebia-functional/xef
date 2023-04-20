@@ -8,6 +8,7 @@ import com.xebia.functional.chains.models.Config
 import com.xebia.functional.domain.Document
 import com.xebia.functional.llm.openai.OpenAIClient
 import com.xebia.functional.prompt.PromptTemplate
+import eu.timepit.refined.types.string.NonEmptyString
 
 class StuffChain[F[_]: Sync](
     documents: List[Document],
@@ -19,6 +20,7 @@ class StuffChain[F[_]: Sync](
     echo: Boolean,
     n: Int,
     temperature: Double,
+    outputVariable: NonEmptyString,
     onlyOutput: Boolean
 ) extends CombineDocumentsChain[F]:
   val config = Config(promptTemplate.inputKeys.toSet -- Set(documentVariableName), Set("answer"), onlyOutput)
@@ -33,7 +35,7 @@ class StuffChain[F[_]: Sync](
     }
 
   def call(inputs: Map[String, String]): F[Map[String, String]] =
-    val llmChain = LLMChain.make[F](llm, promptTemplate, llmModel, user, echo, n, temperature, onlyOutput)
+    val llmChain = LLMChain.make[F](llm, promptTemplate, llmModel, user, echo, n, temperature, outputVariable, onlyOutput)
     for
       documentInput <- combineDocs(documents)
       totalInputs = documentInput ++ inputs
@@ -51,6 +53,7 @@ object StuffChain:
       echo: Boolean,
       n: Int,
       temperature: Double,
+      outputVariable: NonEmptyString,
       onlyOutput: Boolean
   ): StuffChain[F] =
-    new StuffChain[F](documents, llm, promptTemplate, documentVariableName, llmModel, user, echo, n, temperature, onlyOutput)
+    new StuffChain[F](documents, llm, promptTemplate, documentVariableName, llmModel, user, echo, n, temperature, outputVariable, onlyOutput)

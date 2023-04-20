@@ -8,6 +8,7 @@ import com.xebia.functional.llm.openai.OpenAIClient
 import com.xebia.functional.llm.openai.models.CompletionChoice
 import com.xebia.functional.llm.openai.models.CompletionRequest
 import com.xebia.functional.prompt.PromptTemplate
+import eu.timepit.refined.types.string.NonEmptyString
 
 class LLMChain[F[_]: Sync](
     llm: OpenAIClient[F],
@@ -17,10 +18,10 @@ class LLMChain[F[_]: Sync](
     echo: Boolean,
     n: Int,
     temperature: Double,
+    outputVariable: NonEmptyString,
     onlyOutput: Boolean
 ) extends BaseChain[F]:
-  private val output = "answer"
-  val config = Config(promptTemplate.inputKeys.toSet, Set(output), onlyOutput)
+  val config = Config(promptTemplate.inputKeys.toSet, Set(outputVariable.value), onlyOutput)
   val completionRequest =
     CompletionRequest
       .builder(llmModel, user)
@@ -38,7 +39,7 @@ class LLMChain[F[_]: Sync](
 
   def preparePrompt(inputs: Map[String, String]): F[String] = promptTemplate.format(inputs)
   def formatOutput(completions: List[CompletionChoice]): Map[String, String] =
-    Map(output -> completions.map(_.text).mkString(", "))
+    Map(outputVariable.value -> completions.map(_.text).mkString(", "))
 
 object LLMChain:
   def make[F[_]: Sync](
@@ -49,6 +50,7 @@ object LLMChain:
       echo: Boolean,
       n: Int,
       temperature: Double,
+      outputVariable: NonEmptyString,
       onlyOutput: Boolean
   ): LLMChain[F] =
-    new LLMChain[F](llm: OpenAIClient[F], promptTemplate, llmModel, user, echo, n, temperature, onlyOutput)
+    new LLMChain[F](llm: OpenAIClient[F], promptTemplate, llmModel, user, echo, n, temperature, outputVariable, onlyOutput)

@@ -10,18 +10,25 @@ import com.xebia.functional.chains.models.*
 class SequentialChain[F[_]: MonadThrow] private (
     chains: NonEmptySeq[BaseChain[F]],
     inputVariables: NonEmptySet[NonEmptyString],
-    outputVariables: NonEmptySet[NonEmptyString]
-):
-  def run(inputs: Map[String, String]): F[Map[String, String]] =
+    outputVariables: NonEmptySet[NonEmptyString],
+    onlyOutputs: Boolean
+) extends BaseChain[F]:
+  val config: Config = Config(
+    inputKeys = inputVariables.toSortedSet.map(_.value),
+    outputKeys = outputVariables.toSortedSet.map(_.value),
+    onlyOutputs = onlyOutputs
+  )
+  def call(inputs: Map[String, String]): F[Map[String, String]] =
     chains
       .foldLeft(MonadThrow[F].pure(inputs))((fi, c) => fi.flatMap(i => c.run(i).map(_ ++ i)))
       .map(_.filterKeys(outputVariables.map(_.toString()).contains_(_)).toMap)
 
 object SequentialChain:
-  private def make[F[_]: MonadThrow](
+  def make[F[_]: MonadThrow](
       chains: NonEmptySeq[BaseChain[F]],
       inputVariables: NonEmptySet[NonEmptyString],
-      outputVariables: NonEmptySet[NonEmptyString]
+      outputVariables: NonEmptySet[NonEmptyString],
+      onlyOutputs: Boolean = false
   ): F[SequentialChain[F]] =
     // known vars are, initially, the input vars + memory vars
     val knownVars0 = inputVariables.toSortedSet.map(_.toString) // TODO Add memory vars in the future
@@ -49,7 +56,7 @@ object SequentialChain:
     // Having all the knowing vars, search for missing output vars
     knownVars.map(outputVariables.toSortedSet.map(_.toString).diff(_)).flatMap { missingVars =>
       // No missing vars, then return the chains
-      if missingVars.isEmpty then MonadThrow[F].pure(SequentialChain(chains, inputVariables, outputVariables))
+      if missingVars.isEmpty then MonadThrow[F].pure(SequentialChain(chains, inputVariables, outputVariables, onlyOutputs))
       // If there are missing output vars, then error
       else MonadThrow[F].raiseError(MissingOutputVariablesError(missingVars))
     }
@@ -57,5 +64,6 @@ object SequentialChain:
   def resource[F[_]: MonadThrow](
       chains: NonEmptySeq[BaseChain[F]],
       inputVariables: NonEmptySet[NonEmptyString],
-      outputVariables: NonEmptySet[NonEmptyString]
-  ): Resource[F, SequentialChain[F]] = Resource.eval(make(chains, inputVariables, outputVariables))
+      outputVariables: NonEmptySet[NonEmptyString],
+      onlyOutputs: Boolean = false
+  ): Resource[F, SequentialChain[F]] = Resource.eval(make(chains, inputVariables, outputVariables, onlyOutputs))

@@ -13,6 +13,7 @@ import com.xebia.functional.domain.Document
 import com.xebia.functional.llm.openai.OpenAIClient
 import com.xebia.functional.prompt.PromptTemplate
 import com.xebia.functional.vectorstores.VectorStore
+import eu.timepit.refined.types.string.NonEmptyString
 
 class VectorQAChain[F[_]: Sync](
     llm: OpenAIClient[F],
@@ -24,11 +25,12 @@ class VectorQAChain[F[_]: Sync](
     echo: Boolean,
     n: Int,
     temperature: Double,
+    outputVariable: NonEmptyString,
     onlyOutput: Boolean
 ) extends RetrievalQAChain[F]:
   val documentVariableName: String = "context"
   val inputVariable: String = "question"
-  val config = Config(Set(inputVariable), Set("answer"), onlyOutput)
+  val config = Config(Set(inputVariable), Set(outputVariable.value), onlyOutput)
   val promptTemplate: F[PromptTemplate[F]] = QAPrompt.promptTemplate[F]
 
   def loadCombineDocsChain(
@@ -37,7 +39,7 @@ class VectorQAChain[F[_]: Sync](
       prompt: PromptTemplate[F]
   ): CombineDocumentsChain[F] =
     chain match
-      case Stuff => StuffChain.make[F](documents, llm, prompt, documentVariableName, llmModel, user, echo, n, temperature, onlyOutput)
+      case Stuff => StuffChain.make[F](documents, llm, prompt, documentVariableName, llmModel, user, echo, n, temperature, outputVariable, onlyOutput)
 
   def getDocs(question: String): F[List[Document]] =
     vectorStore.similaritySearch(question, numberOfDocs)
@@ -63,11 +65,17 @@ object VectorQAChain:
       echo: Boolean,
       n: Int,
       temperature: Double,
+      outputVariable: NonEmptyString,
       onlyOutput: Boolean
   ): VectorQAChain[F] =
-    new VectorQAChain[F](llm, vectorStore, chainType, numberOfDocs, llmModel, user, echo, n, temperature, onlyOutput)
+    new VectorQAChain[F](llm, vectorStore, chainType, numberOfDocs, llmModel, user, echo, n, temperature, outputVariable, onlyOutput)
 
-  def makeWithDefaults[F[_]: Sync](llm: OpenAIClient[F], vectorStore: VectorStore[F], user: String): VectorQAChain[F] =
+  def makeWithDefaults[F[_]: Sync](
+      llm: OpenAIClient[F],
+      vectorStore: VectorStore[F],
+      user: String,
+      outputVariable: NonEmptyString
+  ): VectorQAChain[F] =
     new VectorQAChain[F](
       llm,
       vectorStore,
@@ -78,5 +86,6 @@ object VectorQAChain:
       echo = false,
       n = 1,
       temperature = 0.0,
+      outputVariable = outputVariable,
       onlyOutput = true
     )
