@@ -32,9 +32,9 @@ object QASimpleSequentialChain extends IOApp.Simple:
     Review from a New York Times play critic of the above play:
     """
 
-    val result = for
-      promptTemplateS <- Resource.eval(PromptTemplate.fromTemplate[IO](template = sinopsisTempl, inputVariables = List("title")))
-      promptTemplateR <- Resource.eval(PromptTemplate.fromTemplate[IO](template = reviewTempl, inputVariables = List("synopsis")))
+    for
+      promptTemplateS <- PromptTemplate.fromTemplate[IO](template = sinopsisTempl, inputVariables = List("title"))
+      promptTemplateR <- PromptTemplate.fromTemplate[IO](template = reviewTempl, inputVariables = List("synopsis"))
 
       synopsisChain = LLMChain.make(
         llm = openAIClient,
@@ -63,11 +63,7 @@ object QASimpleSequentialChain extends IOApp.Simple:
       inputKey = NonEmptyString.from("input").toOption.get
       outputKey = NonEmptyString.from("output").toOption.get
 
-      ssc <- SimpleSequentialChain.resource[IO](chains, inputKey, outputKey)
-      response <- Resource.eval(ssc.run("A beautiful day in the mountains ends up turning into a nightmare for a group of friends."))
-    yield (response)
-
-    result.use(response =>
-      println(response)
-      IO.unit
-    )
+      ssc <- SimpleSequentialChain.make[IO](chains, inputKey, outputKey)
+      response <- ssc.run("A beautiful day in the mountains ends up turning into a nightmare for a group of friends.")
+      _ = println(response)
+    yield ()
