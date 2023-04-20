@@ -10,6 +10,7 @@ repositories {
 plugins {
     base
     alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.spotless)
     alias(libs.plugins.kotlinx.serialization)
 }
 
@@ -60,5 +61,11 @@ kotlin {
                 implementation(kotlin("test"))
             }
         }
+    }
+}
+
+spotless {
+    kotlin {
+        ktfmt().googleStyle()
     }
 }
