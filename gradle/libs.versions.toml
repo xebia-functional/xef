@@ -4,6 +4,7 @@ kotlin = "1.8.20"
 openai = "0.12.0"
 kotlinx-json = "1.5.0"
 ktor = "2.2.2"
+spotless = "6.18.0"
 
 [libraries]
 arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
@@ -24,3 +25,4 @@ ktor-client = [
 [plugins]
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinx-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
