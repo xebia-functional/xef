@@ -10,6 +10,7 @@ repositories {
 plugins {
     base
     alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.spotless)
 }
 
 java {
@@ -64,5 +65,11 @@ kotlin {
         val jsTest by getting
         val nativeMain by getting
         val nativeTest by getting
+    }
+}
+
+spotless {
+    kotlin {
+        ktfmt().googleStyle()
     }
 }
