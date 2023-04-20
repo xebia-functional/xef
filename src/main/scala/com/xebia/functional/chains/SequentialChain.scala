@@ -18,7 +18,7 @@ class SequentialChain[F[_]: MonadThrow] private (
       .map(_.filterKeys(outputVariables.map(_.toString()).contains_(_)).toMap)
 
 object SequentialChain:
-  private def validateChains[F[_]: MonadThrow](
+  private def make[F[_]: MonadThrow](
       chains: NonEmptySeq[BaseChain[F]],
       inputVariables: NonEmptySet[NonEmptyString],
       outputVariables: NonEmptySet[NonEmptyString]
@@ -58,4 +58,4 @@ object SequentialChain:
       chains: NonEmptySeq[BaseChain[F]],
       inputVariables: NonEmptySet[NonEmptyString],
       outputVariables: NonEmptySet[NonEmptyString]
-  ): Resource[F, SequentialChain[F]] = Resource.eval(validateChains(chains, inputVariables, outputVariables))
+  ): Resource[F, SequentialChain[F]] = Resource.eval(make(chains, inputVariables, outputVariables))

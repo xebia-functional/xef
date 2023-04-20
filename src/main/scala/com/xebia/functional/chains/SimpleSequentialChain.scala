@@ -34,7 +34,7 @@ class SimpleSequentialChain[F[_]: MonadThrow] private (
     inputs.get(inputKey.toString).liftTo[F](InvalidChainInputError(inputs.keySet)).flatMap(inner(chains.toSeq))
 
 object SimpleSequentialChain:
-  def validateChains[F[_]: MonadThrow](
+  def make[F[_]: MonadThrow](
       chains: NonEmptySeq[BaseChain[F]],
       inputKey: NonEmptyString,
       outputKey: NonEmptyString,
@@ -52,4 +52,4 @@ object SimpleSequentialChain:
       inputKey: NonEmptyString,
       outputKey: NonEmptyString,
       onlyOutputs: Boolean = false
-  ): Resource[F, SimpleSequentialChain[F]] = Resource.eval(validateChains(chains, inputKey, outputKey, onlyOutputs))
+  ): Resource[F, SimpleSequentialChain[F]] = Resource.eval(make(chains, inputKey, outputKey, onlyOutputs))
