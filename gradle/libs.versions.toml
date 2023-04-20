@@ -7,7 +7,6 @@ ktor = "2.2.2"
 spotless = "6.18.0"
 
 [libraries]
-arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
 arrow-fx = { module = "io.arrow-kt:arrow-fx-coroutines", version.ref = "arrow" }
 open-ai = { module = "com.theokanning.openai-gpt3-java:service", version.ref = "openai" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-json" }
