@@ -14,7 +14,7 @@ import com.xebia.functional.prompt.PromptTemplate
 
 object QASimpleSequentialChain extends IOApp.Simple:
   override def run: IO[Unit] =
-    val OPENAI_TOKEN = "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"
+    val OPENAI_TOKEN = ""
     val openAIConfig = OpenAIConfig(OPENAI_TOKEN, 5.seconds, 5, 1000)
     lazy val openAIClient = OpenAIClient[IO](openAIConfig)
 
