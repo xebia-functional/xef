@@ -28,13 +28,15 @@ object SynopsisReviewSSC extends IOApp.Simple:
     val reviewTempl = """
     You are a play critic from the New York Times. Given the sinopsis of play, it is you job to write a review for that play.
 
-    Play Sinopsis: {answer}
+    Play Sinopsis: {synopsis}
     Review from a New York Times play critic of the above play:
     """.replace("\n", " ")
 
     for
       promptTemplateS <- PromptTemplate.fromTemplate[IO](template = sinopsisTempl, inputVariables = List("title"))
-      promptTemplateR <- PromptTemplate.fromTemplate[IO](template = reviewTempl, inputVariables = List("answer"))
+      promptTemplateR <- PromptTemplate.fromTemplate[IO](template = reviewTempl, inputVariables = List("synopsis"))
+
+      ouptuVariableS = NonEmptyString.unsafeFrom("synopsis")
 
       synopsisChain = LLMChain.make(
         llm = openAIClient,
@@ -44,8 +46,11 @@ object SynopsisReviewSSC extends IOApp.Simple:
         echo = false,
         n = 1,
         temperature = 0.8,
+        outputVariable = ouptuVariableS,
         onlyOutput = true
       )
+
+      ouptuVariableR = NonEmptyString.unsafeFrom("review")
 
       reviewChain = LLMChain.make(
         llm = openAIClient,
@@ -55,13 +60,14 @@ object SynopsisReviewSSC extends IOApp.Simple:
         echo = false,
         n = 1,
         temperature = 0.8,
+        outputVariable = ouptuVariableR,
         onlyOutput = true
       )
 
       chains = NonEmptySeq(synopsisChain, Seq(reviewChain))
 
-      inputKey = NonEmptyString.from("input").toOption.get
-      outputKey = NonEmptyString.from("output").toOption.get
+      inputKey = NonEmptyString.unsafeFrom("input")
+      outputKey = NonEmptyString.unsafeFrom("output")
 
       ssc <- SimpleSequentialChain.make[IO](chains, inputKey, outputKey)
       response <- ssc.run("Terror at White Mountain Peak")

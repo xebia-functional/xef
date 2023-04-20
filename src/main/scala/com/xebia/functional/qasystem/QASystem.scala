@@ -22,6 +22,7 @@ import com.xebia.functional.vectorstores.db.DoobieTransactor
 import com.xebia.functional.vectorstores.postgres.PGDistanceStrategy
 import com.xebia.functional.vectorstores.postgres.PGVectorStore
 import org.typelevel.log4cats.slf4j.Slf4jLogger
+import eu.timepit.refined.types.string.NonEmptyString
 
 object QASystem extends IOApp.Simple {
 
@@ -60,7 +61,8 @@ object QASystem extends IOApp.Simple {
         None
       )
 
-      qa = VectorQAChain.makeWithDefaults[IO](openAIClient, pg, "testing")
+      outputVariable = NonEmptyString.unsafeFrom("answer")
+      qa = VectorQAChain.makeWithDefaults[IO](openAIClient, pg, "testing", outputVariable)
       response <- qa.run("How could I have saved money in december 2022?")
 
       _ = println(response)
