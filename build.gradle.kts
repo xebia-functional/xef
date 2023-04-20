@@ -4,7 +4,7 @@ group = "com.xebia.functional"
 version = "1.0-SNAPSHOT"
 
 repositories {
-    mavenCentral()
+  mavenCentral()
 }
 
 plugins {
@@ -15,32 +15,32 @@ plugins {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+  sourceCompatibility = JavaVersion.VERSION_11
+  targetCompatibility = JavaVersion.VERSION_11
 }
 
 kotlin {
-    jvm {
-        compilations.all {
-            kotlinOptions.jvmTarget = JavaVersion.VERSION_11.majorVersion
-        }
-        withJava()
-        testRuns["test"].executionTask.configure {
-            useJUnitPlatform()
-        }
+  jvm {
+    compilations.all {
+      kotlinOptions.jvmTarget = JavaVersion.VERSION_11.majorVersion
     }
-    js(IR) {
-        browser {
-            commonWebpackConfig {
-                cssSupport {
-                    enabled.set(true)
-                }
-            }
-        }
+    withJava()
+    testRuns["test"].executionTask.configure {
+      useJUnitPlatform()
     }
-    val hostOs = System.getProperty("os.name")
-    val isMingwX64 = hostOs.startsWith("Windows")
-    when {
+  }
+  js(IR) {
+    browser {
+      commonWebpackConfig {
+        cssSupport {
+          enabled.set(true)
+        }
+      }
+    }
+  }
+  val hostOs = System.getProperty("os.name")
+  val isMingwX64 = hostOs.startsWith("Windows")
+  when {
         hostOs == "Mac OS X" -> macosX64("native")
         hostOs == "Linux" -> linuxX64("native")
         isMingwX64 -> mingwX64("native")
