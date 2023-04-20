@@ -8,10 +8,10 @@ repositories {
 }
 
 plugins {
-    base
-    alias(libs.plugins.kotlin.multiplatform)
-    alias(libs.plugins.spotless)
-    alias(libs.plugins.kotlinx.serialization)
+  base
+  alias(libs.plugins.kotlin.multiplatform)
+  alias(libs.plugins.spotless)
+  alias(libs.plugins.kotlinx.serialization)
 }
 
 java {
@@ -41,31 +41,33 @@ kotlin {
   val hostOs = System.getProperty("os.name")
   val isMingwX64 = hostOs.startsWith("Windows")
   when {
-        hostOs == "Mac OS X" -> macosX64("native")
-        hostOs == "Linux" -> linuxX64("native")
-        isMingwX64 -> mingwX64("native")
-        else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
-    }
+    hostOs == "Mac OS X" -> macosX64("native")
+    hostOs == "Linux" -> linuxX64("native")
+    isMingwX64 -> mingwX64("native")
+    else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
+  }
 
-    
+
     sourceSets {
         commonMain {
             dependencies {
                 implementation(libs.arrow.fx)
                 implementation(libs.kotlinx.serialization.json)
                 implementation(libs.bundles.ktor.client)
-            }
-        }
-        commonTest {
-            dependencies {
-                implementation(kotlin("test"))
-            }
-        }
+
+        implementation("com.squareup.okio:okio:3.3.0")
+      }
     }
+    commonTest {
+      dependencies {
+        implementation(kotlin("test"))
+      }
+    }
+  }
 }
 
 spotless {
-    kotlin {
-        ktfmt().googleStyle()
-    }
+  kotlin {
+    ktfmt().googleStyle()
+  }
 }
