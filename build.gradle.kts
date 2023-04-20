@@ -10,6 +10,7 @@ repositories {
 plugins {
     base
     alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.kotlinx.serialization)
 }
 
 java {
@@ -38,7 +39,7 @@ kotlin {
     }
     val hostOs = System.getProperty("os.name")
     val isMingwX64 = hostOs.startsWith("Windows")
-    val nativeTarget = when {
+    when {
         hostOs == "Mac OS X" -> macosX64("native")
         hostOs == "Linux" -> linuxX64("native")
         isMingwX64 -> mingwX64("native")
@@ -47,22 +48,17 @@ kotlin {
 
     
     sourceSets {
-        val commonMain by getting {
+        commonMain {
             dependencies {
-                implementation(libs.arrow.core)
-                implementation(libs.open.ai)
+                implementation(libs.arrow.fx)
+                implementation(libs.kotlinx.serialization.json)
+                implementation(libs.bundles.ktor.client)
             }
         }
-        val commonTest by getting {
+        commonTest {
             dependencies {
                 implementation(kotlin("test"))
             }
         }
-        val jvmMain by getting
-        val jvmTest by getting
-        val jsMain by getting
-        val jsTest by getting
-        val nativeMain by getting
-        val nativeTest by getting
     }
 }
