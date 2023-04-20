@@ -1,4 +1,4 @@
-package com.xebia.functional.sinopsisreviewssc
+package com.xebia.functional.synopsisreviewssc
 
 import cats.effect.{IO, IOApp}
 import com.xebia.functional.config.*
@@ -12,7 +12,7 @@ import eu.timepit.refined.types.string.NonEmptyString
 import cats.data.NonEmptySeq
 import com.xebia.functional.prompt.PromptTemplate
 
-object QASimpleSequentialChain extends IOApp.Simple:
+object SynopsisReviewSSC extends IOApp.Simple:
   override def run: IO[Unit] =
     val OPENAI_TOKEN = ""
     val openAIConfig = OpenAIConfig(OPENAI_TOKEN, 5.seconds, 5, 1000)
