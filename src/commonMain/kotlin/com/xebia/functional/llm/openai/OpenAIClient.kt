@@ -1,17 +1,16 @@
 package llm.openai
 
 import arrow.fx.coroutines.ResourceScope
+import com.xebia.functional.configure
+import com.xebia.functional.httpClient
+import com.xebia.functional.llm.openai.CompletionChoice
+import com.xebia.functional.llm.openai.CompletionRequest
+import com.xebia.functional.llm.openai.EmbeddingRequest
+import com.xebia.functional.llm.openai.EmbeddingResult
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.request.HttpRequestBuilder
-import io.ktor.client.request.header
 import io.ktor.client.request.post
-import io.ktor.client.request.setBody
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
-import io.ktor.serialization.kotlinx.json.json
 
 interface OpenAIClient {
   suspend fun createCompletion(request: CompletionRequest): List<CompletionChoice>
@@ -31,25 +30,12 @@ private class KtorOpenAIClient(
   private val baseUrl = "https://api.openai.com/v1"
 
   override suspend fun createCompletion(request: CompletionRequest): List<CompletionChoice> {
-    val response = httpClient.post("$baseUrl/completions") { configure(request) }
+    val response = httpClient.post("$baseUrl/completions") { configure(token, request) }
     return response.body()
   }
 
   override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult {
-    val response = httpClient.post("$baseUrl/embeddings") { configure(request) }
+    val response = httpClient.post("$baseUrl/embeddings") { configure(token, request) }
     return response.body()
   }
-
-  private inline fun <reified A> HttpRequestBuilder.configure(request: A): Unit {
-    header("Authorization", "Bearer $token")
-    contentType(ContentType.Application.Json)
-    setBody(request)
-  }
 }
-
-private suspend fun ResourceScope.httpClient(engine: HttpClientEngine): HttpClient =
-  install({
-    HttpClient(engine) {
-      install(ContentNegotiation) { json() }
-    }
-  }) { client, _ -> client.close() }

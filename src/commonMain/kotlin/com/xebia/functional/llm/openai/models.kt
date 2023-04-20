@@ -1,6 +1,6 @@
-package llm.openai
+package com.xebia.functional.llm.openai
 
-import kotlin.js.JsName
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -12,18 +12,18 @@ data class CompletionRequest(
   val user: String,
   val prompt: String? = null,
   val suffix: String? = null,
-  @JsName("max_tokens") val maxTokens: Int? = null,
+  @SerialName("max_tokens") val maxTokens: Int? = null,
   val temperature: Double? = null,
-  @JsName("top_p") val topP: Double? = null,
+  @SerialName("top_p") val topP: Double? = null,
   val n: Int? = null,
   val stream: Boolean? = null,
   val logprobs: Int? = null,
   val echo: Boolean? = null,
   val stop: List<String>? = null,
-  @JsName("presence_penalty") val presencePenalty: Double? = null,
-  @JsName("frequency_penalty") val frequencyPenalty: Double? = null,
-  @JsName("best_of") val bestOf: Int? = null,
-  @JsName("logit_bias") val logitBias: Map<String, Int>? = null,
+  @SerialName("presence_penalty") val presencePenalty: Double? = null,
+  @SerialName("frequency_penalty") val frequencyPenalty: Double? = null,
+  @SerialName("best_of") val bestOf: Int? = null,
+  @SerialName("logit_bias") val logitBias: Map<String, Int>? = null,
 )
 
 @Serializable
@@ -32,7 +32,7 @@ data class EmbeddingRequest(val model: String, val input: List<String>, val user
 @Serializable
 data class EmbeddingResult(
   val model: String,
-  @JsName("object") val `object`: String,
+  @SerialName("object") val `object`: String,
   val data: List<Embedding>,
   val usage: Usage
 )
@@ -42,7 +42,7 @@ class Embedding(val `object`: String, val embedding: List<Double>, val index: In
 
 @Serializable
 data class Usage(
-  @JsName("prompt_tokens") val promptTokens: Long,
-  @JsName("completion_tokens") val completionTokens: Long,
-  @JsName("total_tokens") val totalTokens: Long
+  @SerialName("prompt_tokens") val promptTokens: Long,
+  @SerialName("completion_tokens") val completionTokens: Long,
+  @SerialName("total_tokens") val totalTokens: Long
 )
