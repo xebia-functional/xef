@@ -61,6 +61,7 @@ kotlin {
         implementation(libs.kotest.assertions)
         implementation(libs.kotest.assertions.arrow)
       }
+
     }
     val jvmTest by getting {
       dependencies {
