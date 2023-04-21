@@ -19,6 +19,7 @@ class LLMChain[F[_]: Sync](
     n: Int,
     temperature: Double,
     outputVariable: NonEmptyString,
+    maxTokens: Int,
     onlyOutput: Boolean
 ) extends BaseChain[F]:
   val config = Config(promptTemplate.inputKeys.toSet, Set(outputVariable.value), onlyOutput)
@@ -28,6 +29,7 @@ class LLMChain[F[_]: Sync](
       .withEcho(echo)
       .withN(n)
       .withTemperature(temperature)
+      .withMaxTokens(maxTokens)
 
   def call(inputs: Map[String, String]): F[Map[String, String]] =
     for
@@ -51,6 +53,7 @@ object LLMChain:
       n: Int,
       temperature: Double,
       outputVariable: NonEmptyString,
+      maxTokens: Int,
       onlyOutput: Boolean
   ): LLMChain[F] =
-    new LLMChain[F](llm: OpenAIClient[F], promptTemplate, llmModel, user, echo, n, temperature, outputVariable, onlyOutput)
+    new LLMChain[F](llm: OpenAIClient[F], promptTemplate, llmModel, user, echo, n, temperature, outputVariable, maxTokens, onlyOutput)

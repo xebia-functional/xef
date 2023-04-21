@@ -26,6 +26,7 @@ class VectorQAChain[F[_]: Sync](
     n: Int,
     temperature: Double,
     outputVariable: NonEmptyString,
+    maxTokens: Int,
     onlyOutput: Boolean
 ) extends RetrievalQAChain[F]:
   val documentVariableName: String = "context"
@@ -39,7 +40,8 @@ class VectorQAChain[F[_]: Sync](
       prompt: PromptTemplate[F]
   ): CombineDocumentsChain[F] =
     chain match
-      case Stuff => StuffChain.make[F](documents, llm, prompt, documentVariableName, llmModel, user, echo, n, temperature, outputVariable, onlyOutput)
+      case Stuff =>
+        StuffChain.make[F](documents, llm, prompt, documentVariableName, llmModel, user, echo, n, temperature, outputVariable, maxTokens, onlyOutput)
 
   def getDocs(question: String): F[List[Document]] =
     vectorStore.similaritySearch(question, numberOfDocs)
@@ -66,9 +68,10 @@ object VectorQAChain:
       n: Int,
       temperature: Double,
       outputVariable: NonEmptyString,
+      maxTokens: Int,
       onlyOutput: Boolean
   ): VectorQAChain[F] =
-    new VectorQAChain[F](llm, vectorStore, chainType, numberOfDocs, llmModel, user, echo, n, temperature, outputVariable, onlyOutput)
+    new VectorQAChain[F](llm, vectorStore, chainType, numberOfDocs, llmModel, user, echo, n, temperature, outputVariable, maxTokens, onlyOutput)
 
   def makeWithDefaults[F[_]: Sync](
       llm: OpenAIClient[F],
@@ -87,5 +90,6 @@ object VectorQAChain:
       n = 1,
       temperature = 0.0,
       outputVariable = outputVariable,
+      maxTokens = 100,
       onlyOutput = true
     )

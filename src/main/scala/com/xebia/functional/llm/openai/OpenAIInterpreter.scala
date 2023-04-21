@@ -8,10 +8,11 @@ import cats.syntax.all.*
 import com.theokanning.openai.service.OpenAiService
 import com.xebia.functional.config.OpenAIConfig
 import com.xebia.functional.llm.openai.models.*
+import java.time.Duration
 
 class OpenAIClientInterpreter[F[_]: Sync](config: OpenAIConfig) extends OpenAIClient[F]:
 
-  private val service = new OpenAiService(config.token)
+  private val service = new OpenAiService(config.token, Duration.ofSeconds(30))
 
   def createCompletion(request: CompletionRequest): F[List[CompletionChoice]] =
     Sync[F]

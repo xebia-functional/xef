@@ -21,6 +21,7 @@ class StuffChain[F[_]: Sync](
     n: Int,
     temperature: Double,
     outputVariable: NonEmptyString,
+    maxTokens: Int,
     onlyOutput: Boolean
 ) extends CombineDocumentsChain[F]:
   val config = Config(promptTemplate.inputKeys.toSet -- Set(documentVariableName), Set("answer"), onlyOutput)
@@ -35,7 +36,7 @@ class StuffChain[F[_]: Sync](
     }
 
   def call(inputs: Map[String, String]): F[Map[String, String]] =
-    val llmChain = LLMChain.make[F](llm, promptTemplate, llmModel, user, echo, n, temperature, outputVariable, onlyOutput)
+    val llmChain = LLMChain.make[F](llm, promptTemplate, llmModel, user, echo, n, temperature, outputVariable, maxTokens, onlyOutput)
     for
       documentInput <- combineDocs(documents)
       totalInputs = documentInput ++ inputs
@@ -54,6 +55,20 @@ object StuffChain:
       n: Int,
       temperature: Double,
       outputVariable: NonEmptyString,
+      maxTokens: Int,
       onlyOutput: Boolean
   ): StuffChain[F] =
-    new StuffChain[F](documents, llm, promptTemplate, documentVariableName, llmModel, user, echo, n, temperature, outputVariable, onlyOutput)
+    new StuffChain[F](
+      documents,
+      llm,
+      promptTemplate,
+      documentVariableName,
+      llmModel,
+      user,
+      echo,
+      n,
+      temperature,
+      outputVariable,
+      maxTokens,
+      onlyOutput
+    )

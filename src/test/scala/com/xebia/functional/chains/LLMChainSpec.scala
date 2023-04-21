@@ -11,6 +11,7 @@ import eu.timepit.refined.types.string.NonEmptyString
 class LLMChainSpec extends CatsEffectSuite:
 
   val outputVariable = NonEmptyString.unsafeFrom("answer")
+  val maxTokens = 500
 
   test("run should return a prediction with just the output") {
     val llm = OpenAIClientMock.make
@@ -19,7 +20,7 @@ class LLMChainSpec extends CatsEffectSuite:
     val result =
       for
         prompt <- promptTemplate
-        chain = LLMChain.make[IO](llm, prompt, "davinci", "testing", false, 1, 0.0, outputVariable, true)
+        chain = LLMChain.make[IO](llm, prompt, "davinci", "testing", false, 1, 0.0, outputVariable, maxTokens, true)
         res <- chain.run("a joke")
       yield res
 
@@ -33,7 +34,7 @@ class LLMChainSpec extends CatsEffectSuite:
     val result =
       for
         prompt <- promptTemplate
-        chain = LLMChain.make[IO](llm, prompt, "davinci", "testing", false, 1, 0.0, outputVariable, false)
+        chain = LLMChain.make[IO](llm, prompt, "davinci", "testing", false, 1, 0.0, outputVariable, maxTokens, false)
         res <- chain.run("a joke")
       yield res
 
@@ -47,7 +48,7 @@ class LLMChainSpec extends CatsEffectSuite:
     val result =
       for
         prompt <- promptTemplate
-        chain = LLMChain.make[IO](llm, prompt, "davinci", "testing", false, 1, 0.0, outputVariable, false)
+        chain = LLMChain.make[IO](llm, prompt, "davinci", "testing", false, 1, 0.0, outputVariable, maxTokens, false)
         res <- chain.run(Map("age" -> "28", "name" -> "foo"))
       yield res
 
@@ -61,7 +62,7 @@ class LLMChainSpec extends CatsEffectSuite:
     val result =
       for
         prompt <- promptTemplate
-        chain = LLMChain.make[IO](llm, prompt, "davinci", "testing", false, 1, 0.0, outputVariable, false)
+        chain = LLMChain.make[IO](llm, prompt, "davinci", "testing", false, 1, 0.0, outputVariable, maxTokens, false)
         res <- chain.run(Map("age" -> "28", "brand" -> "foo"))
       yield res
 
@@ -77,7 +78,7 @@ class LLMChainSpec extends CatsEffectSuite:
     val result =
       for
         prompt <- promptTemplate
-        chain = LLMChain.make[IO](llm, prompt, "davinci", "testing", false, 1, 0.0, outputVariable, false)
+        chain = LLMChain.make[IO](llm, prompt, "davinci", "testing", false, 1, 0.0, outputVariable, maxTokens, false)
         res <- chain.run("foo")
       yield res
 
