@@ -12,8 +12,10 @@ import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.request.url
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import io.ktor.http.path
 import io.ktor.serialization.kotlinx.json.json
 
 interface HuggingFaceClient {
@@ -30,11 +32,9 @@ private class KtorHuggingFaceClient(
   private val config: HuggingFaceConfig
 ) : HuggingFaceClient {
 
-  // TODO move to config
-  private val baseUrl = "https://api-inference.huggingface.co"
-
   override suspend fun generate(request: InferenceRequest, model: Model): List<Generation> {
-    val response = httpClient.post("$baseUrl/models/${model.name}") {
+    val response = httpClient.post(config.baseUrl) {
+      url { path("models", model.name) }
       configure(config.token, request)
     }
     return response.body()
