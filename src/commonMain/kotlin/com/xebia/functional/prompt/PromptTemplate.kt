@@ -1,9 +1,49 @@
 package com.xebia.functional.prompt
 
+import arrow.core.raise.Raise
 import okio.FileSystem
 import okio.Path
 import okio.buffer
 import okio.use
+
+fun Raise<InvalidTemplate>.PromptTemplate(
+  examples: List<String>,
+  suffix: String,
+  variables: List<String>,
+  prefix: String
+): PromptTemplate {
+  val template = """|$prefix
+      |
+      |${examples.joinToString(separator = "\n")}
+      |$suffix""".trimMargin()
+  return PromptTemplate(Config(template, variables))
+}
+
+fun Raise<InvalidTemplate>.PromptTemplate(template: String, variables: List<String>): PromptTemplate =
+  PromptTemplate(Config(template, variables))
+
+/**
+ * Creates a PromptTemplate based on a Path
+ * JVM & Native have overloads for FileSystem.SYSTEM,
+ * on NodeJs you need to manually pass FileSystem.SYSTEM.
+ *
+ * This function can currently not be used on the browser.
+ *
+ * https://github.com/square/okio/issues/1070
+ * https://youtrack.jetbrains.com/issue/KT-47038
+ */
+suspend fun Raise<InvalidTemplate>.PromptTemplate(
+  path: Path,
+  variables: List<String>,
+  fileSystem: FileSystem
+): PromptTemplate =
+  fileSystem.source(path).use { source ->
+    source.buffer().use { buffer ->
+      val template = buffer.readUtf8()
+      val config = Config(template, variables)
+      PromptTemplate(config)
+    }
+  }
 
 interface PromptTemplate {
   val inputKeys: List<String>
@@ -16,7 +56,6 @@ interface PromptTemplate {
       override suspend fun format(variables: Map<String, String>): String {
         val mergedArgs = mergePartialAndUserVariables(variables, config.inputVariables)
         return when (config.templateFormat) {
-          TemplateFormat.Jinja2 -> TODO()
           TemplateFormat.FString -> {
             val sortedArgs = mergedArgs.toList().sortedBy { it.first }
             sortedArgs.fold(config.template) { acc, (k, v) -> acc.replace("{$k}", v) }
@@ -32,35 +71,5 @@ interface PromptTemplate {
           if (!acc.containsKey(k)) acc + (k to "{$k}") else acc
         }
     }
-
-    suspend fun fromExamples(
-      examples: List<String>,
-      suffix: String,
-      inputVariables: List<String>,
-      prefix: String
-    ): PromptTemplate {
-      val template = """|$prefix
-      |
-      |${examples.joinToString(separator = "\n")}
-      |$suffix""".trimMargin()
-      return PromptTemplate(Config.orThrow(template, inputVariables))
-    }
-
-    suspend fun fromTemplate(template: String, inputVariables: List<String>): PromptTemplate =
-      PromptTemplate(Config.orThrow(template, inputVariables))
-
-    // TODO IO Dispatcher KMP ??
-    suspend fun fromFile(
-      templateFile: Path,
-      inputVariables: List<String>,
-      fileSystem: FileSystem
-    ): PromptTemplate =
-      fileSystem.source(templateFile).use { source ->
-        source.buffer().use { buffer ->
-          val template = buffer.readUtf8()
-          val config = Config.orThrow(template, inputVariables)
-          PromptTemplate(config)
-        }
-      }
   }
 }

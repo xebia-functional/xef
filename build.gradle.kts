@@ -30,13 +30,8 @@ kotlin {
     }
   }
   js(IR) {
-    browser {
-      commonWebpackConfig {
-        cssSupport {
-          enabled.set(true)
-        }
-      }
-    }
+    browser()
+    nodejs()
   }
   val hostOs = System.getProperty("os.name")
   val isMingwX64 = hostOs.startsWith("Windows")
