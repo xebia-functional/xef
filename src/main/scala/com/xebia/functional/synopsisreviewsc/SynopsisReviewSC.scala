@@ -73,10 +73,10 @@ object SynopsisReviewSC extends IOApp.Simple:
 
       chains = NonEmptySeq(synopsisChain, Seq(reviewChain))
 
-      inputKey0 = NonEmptyString.unsafeFrom("title")
-      inputKey1 = NonEmptyString.unsafeFrom("era")
-      outputKey0 = NonEmptyString.unsafeFrom("synopsis")
-      outputKey1 = NonEmptyString.unsafeFrom("review")
+      inputKey0 = NonEmptyString.from("title").toOption.liftTo[IO](new RuntimeException("title variable is empty"))
+      inputKey1 = NonEmptyString.from("era").toOption.liftTo[IO](new RuntimeException("era variable is empty"))
+      outputKey0 = NonEmptyString.from("synopsis").toOption.liftTo[IO](new RuntimeException("synopsis variable is empty"))
+      outputKey1 = NonEmptyString.from("review").toOption.liftTo[IO](new RuntimeException("review variable is empty"))
 
       ssc <- SequentialChain.make[IO](chains, NonEmptySet.of(inputKey0, inputKey1), NonEmptySet.of(outputKey0, outputKey1))
       response <- ssc.run(Map("title" -> "The power of Zuluastral", "era" -> "Modern Era"))
