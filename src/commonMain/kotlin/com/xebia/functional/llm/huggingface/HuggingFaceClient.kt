@@ -2,6 +2,7 @@ package com.xebia.functional.llm.huggingface
 
 import arrow.fx.coroutines.ResourceScope
 import com.xebia.functional.configure
+import com.xebia.functional.env.HuggingFaceConfig
 import com.xebia.functional.httpClient
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -21,12 +22,12 @@ interface HuggingFaceClient {
 
 suspend fun ResourceScope.KtorHuggingFaceClient(
   engine: HttpClientEngine,
-  token: String
-): HuggingFaceClient = KtorHuggingFaceClient(httpClient(engine), token)
+  config: HuggingFaceConfig
+): HuggingFaceClient = KtorHuggingFaceClient(httpClient(engine), config)
 
 private class KtorHuggingFaceClient(
   private val httpClient: HttpClient,
-  private val token: String
+  private val config: HuggingFaceConfig
 ) : HuggingFaceClient {
 
   // TODO move to config
@@ -34,7 +35,7 @@ private class KtorHuggingFaceClient(
 
   override suspend fun generate(request: InferenceRequest, model: Model): List<Generation> {
     val response = httpClient.post("$baseUrl/models/${model.name}") {
-      configure(token, request)
+      configure(config.token, request)
     }
     return response.body()
   }
