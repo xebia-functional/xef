@@ -1,6 +1,7 @@
 package com.xebia.functional.synopsisreviewssc
 
 import cats.effect.{IO, IOApp}
+import cats.implicits.*
 import com.xebia.functional.config.*
 
 import scala.concurrent.duration._
@@ -36,7 +37,7 @@ object SynopsisReviewSSC extends IOApp.Simple:
       promptTemplateS <- PromptTemplate.fromTemplate[IO](template = sinopsisTempl, inputVariables = List("title"))
       promptTemplateR <- PromptTemplate.fromTemplate[IO](template = reviewTempl, inputVariables = List("synopsis"))
 
-      ouptuVariableS = NonEmptyString.unsafeFrom("synopsis")
+      ouptuVariableS <- NonEmptyString.from("synopsis").toOption.liftTo[IO](new RuntimeException("synopsis variable is empty"))
 
       synopsisChain = LLMChain.make(
         llm = openAIClient,
@@ -47,10 +48,11 @@ object SynopsisReviewSSC extends IOApp.Simple:
         n = 1,
         temperature = 0.8,
         outputVariable = ouptuVariableS,
+        maxTokens = 500,
         onlyOutput = true
       )
 
-      ouptuVariableR = NonEmptyString.unsafeFrom("review")
+      ouptuVariableR <- NonEmptyString.from("review").toOption.liftTo[IO](new RuntimeException("review variable is empty"))
 
       reviewChain = LLMChain.make(
         llm = openAIClient,
@@ -61,13 +63,14 @@ object SynopsisReviewSSC extends IOApp.Simple:
         n = 1,
         temperature = 0.8,
         outputVariable = ouptuVariableR,
+        maxTokens = 500,
         onlyOutput = true
       )
 
       chains = NonEmptySeq(synopsisChain, Seq(reviewChain))
 
-      inputKey = NonEmptyString.unsafeFrom("input")
-      outputKey = NonEmptyString.unsafeFrom("output")
+      inputKey <- NonEmptyString.from("input").toOption.liftTo[IO](new RuntimeException("input variable is empty"))
+      outputKey <- NonEmptyString.from("output").toOption.liftTo[IO](new RuntimeException("output variable is empty"))
 
       ssc <- SimpleSequentialChain.make[IO](chains, inputKey, outputKey)
       response <- ssc.run("Terror at White Mountain Peak")

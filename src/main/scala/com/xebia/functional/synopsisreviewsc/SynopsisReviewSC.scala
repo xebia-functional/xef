@@ -25,15 +25,15 @@ object SynopsisReviewSC extends IOApp.Simple:
     val sinopsisTempl = """
     |You are a playwright. Given the title of play and the era it is set in, it is your job to write a synopsis for that title.
     |
-    |Title: {title}
-    |Era: {era}
+    |Title: {title}.
+    |Era: {era}.
     |Playwright: This is a synopsis for the above play:
     """.stripMargin.replace("\n", " ")
 
     val reviewTempl = """
     |You are a play critic from the New York Times. Given the synopsis of play, it is your job to write a review for that play.
     |
-    |Play Sinopsis: {synopsis}
+    |Play Sinopsis: {synopsis}.
     |Review from a New York Times play critic of the above play:
     """.stripMargin.replace("\n", " ")
 
@@ -41,7 +41,7 @@ object SynopsisReviewSC extends IOApp.Simple:
       promptTemplateS <- PromptTemplate.fromTemplate[IO](template = sinopsisTempl, inputVariables = List("title", "era"))
       promptTemplateR <- PromptTemplate.fromTemplate[IO](template = reviewTempl, inputVariables = List("synopsis"))
 
-      outputVariableS = NonEmptyString.unsafeFrom("synopsis")
+      outputVariableS <- NonEmptyString.from("synopsis").toOption.liftTo[IO](new RuntimeException("synopsis variable is empty"))
 
       synopsisChain = LLMChain.make(
         llm = openAIClient,
@@ -52,10 +52,11 @@ object SynopsisReviewSC extends IOApp.Simple:
         n = 1,
         temperature = 0.8,
         outputVariable = outputVariableS,
-        onlyOutput = true
+        maxTokens = 500,
+        onlyOutput = false
       )
 
-      outputVariableR = NonEmptyString.unsafeFrom("review")
+      outputVariableR <- NonEmptyString.from("review").toOption.liftTo[IO](new RuntimeException("review variable is empty"))
 
       reviewChain = LLMChain.make(
         llm = openAIClient,
@@ -66,18 +67,21 @@ object SynopsisReviewSC extends IOApp.Simple:
         n = 1,
         temperature = 0.8,
         outputVariable = outputVariableR,
-        onlyOutput = true
+        maxTokens = 500,
+        onlyOutput = false
       )
 
       chains = NonEmptySeq(synopsisChain, Seq(reviewChain))
 
       inputKey0 = NonEmptyString.unsafeFrom("title")
       inputKey1 = NonEmptyString.unsafeFrom("era")
-      outputKey = NonEmptyString.unsafeFrom("review")
+      outputKey0 = NonEmptyString.unsafeFrom("synopsis")
+      outputKey1 = NonEmptyString.unsafeFrom("review")
 
-      ssc <- SequentialChain.make[IO](chains, NonEmptySet.of(inputKey0, inputKey1), NonEmptySet.of(outputKey))
-      response <- ssc.run(Map("title" -> "Coward Heart", "era" -> "middle age"))
-      _ = println(s"title: ${response(inputKey0.toString)}")
-      _ = println(s"era: ${response(inputKey1.toString)}")
-      _ = println(s"review: ${response(outputKey.toString)}")
+      ssc <- SequentialChain.make[IO](chains, NonEmptySet.of(inputKey0, inputKey1), NonEmptySet.of(outputKey0, outputKey1))
+      response <- ssc.run(Map("title" -> "The power of Zuluastral", "era" -> "Modern Era"))
+      _ = println(s"Title: ${response(inputKey0.toString)}\n")
+      _ = println(s"Era: ${response(inputKey1.toString)}\n")
+      _ = println(s"Synopsis: ${response(outputKey0.toString)}\n")
+      _ = println(s"Review: ${response(outputKey1.toString)}\n")
     yield ()
