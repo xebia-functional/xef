@@ -15,6 +15,7 @@ fun Raise<InvalidTemplate>.PromptTemplate(
   val template = """|$prefix
       |
       |${examples.joinToString(separator = "\n")}
+      |
       |$suffix""".trimMargin()
   return PromptTemplate(Config(template, variables))
 }

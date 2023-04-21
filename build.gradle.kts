@@ -43,19 +43,28 @@ kotlin {
   }
 
 
-    sourceSets {
-        commonMain {
-            dependencies {
-                implementation(libs.arrow.fx)
-                implementation(libs.kotlinx.serialization.json)
-                implementation(libs.bundles.ktor.client)
-
-        implementation("com.squareup.okio:okio:3.3.0")
+  sourceSets {
+    commonMain {
+      dependencies {
+        implementation(libs.arrow.fx)
+        implementation(libs.kotlinx.serialization.json)
+        implementation(libs.bundles.ktor.client)
+        implementation(libs.okio)
       }
     }
+
     commonTest {
       dependencies {
-        implementation(kotlin("test"))
+        implementation(libs.okio.fakefilesystem)
+        implementation(libs.kotest.property)
+        implementation(libs.kotest.framework)
+        implementation(libs.kotest.assertions)
+        implementation(libs.kotest.assertions.arrow)
+      }
+    }
+    val jvmTest by getting {
+      dependencies {
+        implementation(libs.kotest.junit5)
       }
     }
   }

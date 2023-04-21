@@ -25,33 +25,33 @@ class Config private constructor(
     // We cannot define `operator fun invoke` with `Raise` without context receivers,
     // so we define an intermediate `Either` based function.
     // This is because adding `Raise<InvalidTemplate>` results in 2 receivers.
-    fun either(template: String, inputVariables: List<String>): Either<InvalidTemplate, Config> =
+    fun either(template: String, variables: List<String>): Either<InvalidTemplate, Config> =
       either<NonEmptyList<InvalidTemplate>, Config> {
         val placeholders = placeholderValues(template)
 
         zipOrAccumulate(
-          { validate(template, inputVariables.toSet() - placeholders.toSet(), "unused") },
-          { validate(template, placeholders.toSet() - inputVariables.toSet(), "missing") },
+          { validate(template, variables.toSet() - placeholders.toSet(), "unused") },
+          { validate(template, placeholders.toSet() - variables.toSet(), "missing") },
           { validateDuplicated(template, placeholders) }
-        ) { _, _, _ -> Config(inputVariables, template) }
+        ) { _, _, _ -> Config(variables, template) }
       }.mapLeft { InvalidTemplate(it.joinToString(transform = InvalidTemplate::reason)) }
   }
 }
 
 private fun Raise<InvalidTemplate>.validate(template: String, diffSet: Set<String>, msg: String): Unit =
   ensure(diffSet.isEmpty()) {
-    InvalidTemplate("Template '$template' has $msg arguments: ${diffSet.joinToString(", ")}")
+    InvalidTemplate("Template '$template' has $msg arguments: ${diffSet.joinToString(", ") { "{$it}" }}")
   }
 
 private fun Raise<InvalidTemplate>.validateDuplicated(template: String, placeholders: List<String>) {
   val args = placeholders.groupBy { it }.filter { it.value.size > 1 }.keys
   ensure(args.isEmpty()) {
-    InvalidTemplate("Template '$template' has duplicate arguments: ${args.joinToString(", ")}")
+    InvalidTemplate("Template '$template' has duplicate arguments: ${args.joinToString(", ") { "{$it}" }}")
   }
 }
 
 private fun placeholderValues(template: String): List<String> {
   @Suppress("RegExpRedundantEscape")
   val regex = Regex("""\{([^\{\}]+)\}""")
-  return regex.findAll(template).toList().mapNotNull { it.groupValues.firstOrNull() }
+  return regex.findAll(template).toList().mapNotNull { it.groupValues.getOrNull(1) }
 }
