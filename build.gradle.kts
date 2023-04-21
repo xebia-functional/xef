@@ -8,10 +8,10 @@ repositories {
 }
 
 plugins {
-    base
-    alias(libs.plugins.kotlin.multiplatform)
-    alias(libs.plugins.spotless)
-    alias(libs.plugins.kotlinx.serialization)
+  base
+  alias(libs.plugins.kotlin.multiplatform)
+  alias(libs.plugins.spotless)
+  alias(libs.plugins.kotlinx.serialization)
 }
 
 java {
@@ -30,42 +30,48 @@ kotlin {
     }
   }
   js(IR) {
-    browser {
-      commonWebpackConfig {
-        cssSupport {
-          enabled.set(true)
-        }
-      }
-    }
+    browser()
+    nodejs()
   }
   val hostOs = System.getProperty("os.name")
   val isMingwX64 = hostOs.startsWith("Windows")
   when {
-        hostOs == "Mac OS X" -> macosX64("native")
-        hostOs == "Linux" -> linuxX64("native")
-        isMingwX64 -> mingwX64("native")
-        else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
+    hostOs == "Mac OS X" -> macosX64("native")
+    hostOs == "Linux" -> linuxX64("native")
+    isMingwX64 -> mingwX64("native")
+    else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
+  }
+
+
+  sourceSets {
+    commonMain {
+      dependencies {
+        implementation(libs.arrow.fx)
+        implementation(libs.kotlinx.serialization.json)
+        implementation(libs.bundles.ktor.client)
+        implementation(libs.okio)
+      }
     }
 
-    
-    sourceSets {
-        commonMain {
-            dependencies {
-                implementation(libs.arrow.fx)
-                implementation(libs.kotlinx.serialization.json)
-                implementation(libs.bundles.ktor.client)
-            }
-        }
-        commonTest {
-            dependencies {
-                implementation(kotlin("test"))
-            }
-        }
+    commonTest {
+      dependencies {
+        implementation(libs.okio.fakefilesystem)
+        implementation(libs.kotest.property)
+        implementation(libs.kotest.framework)
+        implementation(libs.kotest.assertions)
+        implementation(libs.kotest.assertions.arrow)
+      }
     }
+    val jvmTest by getting {
+      dependencies {
+        implementation(libs.kotest.junit5)
+      }
+    }
+  }
 }
 
 spotless {
-    kotlin {
-        ktfmt().googleStyle()
-    }
+  kotlin {
+    ktfmt().googleStyle()
+  }
 }
