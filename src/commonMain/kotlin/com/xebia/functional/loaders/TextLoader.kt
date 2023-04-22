@@ -4,8 +4,6 @@ import com.xebia.functional.domain.Document
 import com.xebia.functional.textsplitters.BaseTextSplitter
 import okio.FileSystem
 import okio.Path
-import okio.buffer
-import okio.use
 
 /**
  * Creates a TextLoader based on a Path
@@ -24,16 +22,14 @@ suspend fun TextLoader(
 
     override suspend fun load(): List<Document> =
         buildList {
-            fileSystem.source(filePath).use { source ->
-              source.buffer().use { source ->
+            fileSystem.read(filePath) {
                 while (true) {
-                    val line = source.readUtf8Line() ?: break
+                    val line = readUtf8Line() ?: break
                     val document = Document(line)
                     add(document)
                 }
             }
           }
-        }
 
     override suspend fun loadAndSplit(textSplitter: BaseTextSplitter): List<Document> =
         textSplitter.splitDocuments(documents = load())
