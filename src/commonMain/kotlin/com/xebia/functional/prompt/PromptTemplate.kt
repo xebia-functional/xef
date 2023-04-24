@@ -3,8 +3,6 @@ package com.xebia.functional.prompt
 import arrow.core.raise.Raise
 import okio.FileSystem
 import okio.Path
-import okio.buffer
-import okio.use
 
 fun Raise<InvalidTemplate>.PromptTemplate(
   examples: List<String>,
@@ -38,12 +36,10 @@ suspend fun Raise<InvalidTemplate>.PromptTemplate(
   variables: List<String>,
   fileSystem: FileSystem
 ): PromptTemplate =
-  fileSystem.source(path).use { source ->
-    source.buffer().use { buffer ->
-      val template = buffer.readUtf8()
-      val config = Config(template, variables)
-      PromptTemplate(config)
-    }
+  fileSystem.read(path) {
+    val template = readUtf8()
+    val config = Config(template, variables)
+    PromptTemplate(config)
   }
 
 interface PromptTemplate {
