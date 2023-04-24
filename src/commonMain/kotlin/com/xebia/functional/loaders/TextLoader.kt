@@ -24,13 +24,15 @@ suspend fun TextLoader(
 
     override suspend fun load(): List<Document> =
         buildList {
-            fileSystem.source(filePath).buffer().use { source ->
+            fileSystem.source(filePath).use { source ->
+              source.buffer().use { source ->
                 while (true) {
                     val line = source.readUtf8Line() ?: break
                     val document = Document(line)
                     add(document)
                 }
             }
+          }
         }
 
     override suspend fun loadAndSplit(textSplitter: BaseTextSplitter): List<Document> =
