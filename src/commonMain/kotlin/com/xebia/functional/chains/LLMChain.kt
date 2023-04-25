@@ -1,6 +1,5 @@
 package com.xebia.functional.chains
 
-import arrow.core.raise.Raise
 import com.xebia.functional.llm.openai.CompletionChoice
 import com.xebia.functional.llm.openai.CompletionRequest
 import com.xebia.functional.llm.openai.OpenAIClient
@@ -15,10 +14,10 @@ suspend fun LLMChain(
     echo: Boolean,
     n: Int,
     temperature: Double,
-    onlyOutput: Boolean
-): BaseChain = object : BaseChain {
+    onlyOutputs: Boolean
+): Chain = object : Chain {
 
-    override val config = Config(promptTemplate.inputKeys.toSet(), setOf("answer"), onlyOutput)
+    override val config: Chain.Config = Chain.Config(promptTemplate.inputKeys.toSet(), setOf("answer"), onlyOutputs)
 
     override suspend fun call(inputs: Map<String, String>): Map<String, String> {
         val prompt = promptTemplate.format(inputs)

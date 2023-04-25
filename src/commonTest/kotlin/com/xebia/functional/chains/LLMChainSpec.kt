@@ -52,7 +52,7 @@ class LLMChainSpec : StringSpec({
             val chain = LLMChain(llm, prompt, "davinci", "testing", false, 1, 0.0, false)
             chain.run(mapOf("age" to "28", "brand" to "foo")).bind()
         } shouldBe Either.Left(
-            InvalidChainInputs("The provided inputs: {age}, {brand} do not match with chain's inputs: {name}, {age}")
+            Chain.InvalidInputs("The provided inputs: {age}, {brand} do not match with chain's inputs: {name}, {age}")
         )
     }
 
@@ -63,7 +63,7 @@ class LLMChainSpec : StringSpec({
             val chain = LLMChain(llm, prompt, "davinci", "testing", false, 1, 0.0, false)
             chain.run("foo").bind()
         } shouldBe Either.Left(
-            InvalidChainInputs("The expected inputs are more than one: {name}, {age}")
+            Chain.InvalidInputs("The expected inputs are more than one: {name}, {age}")
         )
     }
 })
