@@ -6,11 +6,12 @@ import cats.effect.IO
 import cats.effect.IOApp
 
 import com.xebia.functional.config.OpenAIConfig
+import com.xebia.functional.config.OpenAIConfigLLM
 import com.xebia.functional.embeddings.openai.models.EmbeddingModel
 import com.xebia.functional.embeddings.openai.models.RequestConfig
 import com.xebia.functional.embeddings.openai.models.RequestConfig.User
+import com.xebia.functional.llm.models.OpenAIRequest
 import com.xebia.functional.llm.openai.OpenAIClient
-import com.xebia.functional.llm.openai.models.CompletionRequest
 import com.xebia.functional.llm.openai.models.EmbeddingRequest
 import org.http4s.ember.client.EmberClientBuilder
 
@@ -18,7 +19,13 @@ object GenerateCompletionAndEmbedding extends IOApp.Simple {
 
   override def run: IO[Unit] =
     val OPENAI_TOKEN = "<place-your-openai-token-here>"
-    val openAIConfig = OpenAIConfig(OPENAI_TOKEN, 5.seconds, 5, 1000)
+    val openAIConfig = OpenAIConfig(
+      OPENAI_TOKEN,
+      5.seconds,
+      5,
+      1000,
+      OpenAIConfigLLM()
+    )
     val openAIClient = OpenAIClient[IO](openAIConfig)
 
     for
@@ -30,8 +37,8 @@ object GenerateCompletionAndEmbedding extends IOApp.Simple {
 
   def openAIExample(client: OpenAIClient[IO]) =
     client
-      .createCompletion(
-        CompletionRequest
+      .generate(
+        OpenAIRequest
           .builder(model = "ada", user = "testing")
           .withPrompt("Write a tagline for an ice cream shop.")
           .withEcho(true)

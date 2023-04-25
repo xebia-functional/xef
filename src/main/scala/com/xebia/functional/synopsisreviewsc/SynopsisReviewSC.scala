@@ -1,25 +1,29 @@
 package com.xebia.functional.synopsisreviewsc
 
-import cats.effect.{IO, IOApp}
-import cats.implicits.*
-import com.xebia.functional.config.*
-
 import scala.concurrent.duration._
+
+import cats.data.NonEmptySeq
+import cats.data.NonEmptySet
+import cats.effect.IO
+import cats.effect.IOApp
+import cats.implicits.*
+import cats.kernel.Order
+
 import com.xebia.functional.chains.*
+import com.xebia.functional.config.*
 import com.xebia.functional.embeddings.openai.models.*
+import com.xebia.functional.llm.LLM
 import com.xebia.functional.llm.openai.OpenAIClient
+import com.xebia.functional.prompt.PromptTemplate
 import com.xebia.functional.vectorstores.postgres.*
 import eu.timepit.refined.types.string.NonEmptyString
-import cats.data.{NonEmptySeq, NonEmptySet}
-import com.xebia.functional.prompt.PromptTemplate
-import cats.kernel.Order
 
 object SynopsisReviewSC extends IOApp.Simple:
 
   given Order[NonEmptyString] = Order.fromComparable[String].contramap(_.value)
   override def run: IO[Unit] =
     val OPENAI_TOKEN = ""
-    val openAIConfig = OpenAIConfig(OPENAI_TOKEN, 5.seconds, 5, 1000)
+    val openAIConfig = OpenAIConfig(OPENAI_TOKEN, 5.seconds, 5, 1000, OpenAIConfigLLM(maxTokens = Some(500), temperature = Some(0.8)))
     lazy val openAIClient = OpenAIClient[IO](openAIConfig)
 
     val sinopsisTempl = """
@@ -44,30 +48,18 @@ object SynopsisReviewSC extends IOApp.Simple:
       outputVariableS <- NonEmptyString.from("synopsis").toOption.liftTo[IO](new RuntimeException("synopsis variable is empty"))
 
       synopsisChain = LLMChain.make(
-        llm = openAIClient,
+        llm = LLM.openAI[IO](openAIClient),
         promptTemplate = promptTemplateS,
-        llmModel = "davinci",
-        user = "testing",
-        echo = false,
-        n = 1,
-        temperature = 0.8,
         outputVariable = outputVariableS,
-        maxTokens = 500,
         onlyOutput = false
       )
 
       outputVariableR <- NonEmptyString.from("review").toOption.liftTo[IO](new RuntimeException("review variable is empty"))
 
       reviewChain = LLMChain.make(
-        llm = openAIClient,
+        llm = LLM.openAI[IO](openAIClient),
         promptTemplate = promptTemplateR,
-        llmModel = "davinci",
-        user = "testing",
-        echo = false,
-        n = 1,
-        temperature = 0.8,
         outputVariable = outputVariableR,
-        maxTokens = 500,
         onlyOutput = false
       )
 

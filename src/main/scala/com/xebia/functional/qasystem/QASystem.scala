@@ -11,25 +11,28 @@ import com.xebia.functional.chains.retrievalqa.QAPrompt
 import com.xebia.functional.chains.retrievalqa.VectorQAChain
 import com.xebia.functional.config.DBConfig
 import com.xebia.functional.config.OpenAIConfig
+import com.xebia.functional.config.OpenAIConfigLLM
 import com.xebia.functional.domain.Document
 import com.xebia.functional.embeddings.openai.OpenAIEmbeddings
 import com.xebia.functional.embeddings.openai.models.EmbeddingModel
 import com.xebia.functional.embeddings.openai.models.RequestConfig
 import com.xebia.functional.embeddings.openai.models.RequestConfig.User
+import com.xebia.functional.llm.*
+import com.xebia.functional.llm.models.OpenAIRequest
 import com.xebia.functional.llm.openai.OpenAIClient
 import com.xebia.functional.loaders.TextLoader
 import com.xebia.functional.vectorstores.db.DoobieTransactor
 import com.xebia.functional.vectorstores.postgres.PGDistanceStrategy
 import com.xebia.functional.vectorstores.postgres.PGVectorStore
-import org.typelevel.log4cats.slf4j.Slf4jLogger
 import eu.timepit.refined.types.string.NonEmptyString
+import org.typelevel.log4cats.slf4j.Slf4jLogger
 
 object QASystem extends IOApp.Simple {
 
   override def run: IO[Unit] =
     val OPENAI_TOKEN = "<place-your-openai-token-here>"
 
-    val openAIConfig = OpenAIConfig(OPENAI_TOKEN, 5.seconds, 5, 1000)
+    val openAIConfig = OpenAIConfig(OPENAI_TOKEN, 5.seconds, 5, 1000, OpenAIConfigLLM())
     val requestConfig = RequestConfig(EmbeddingModel.TextEmbeddingAda002, User("testing"))
     val dbConfig = DBConfig(
       "jdbc:postgresql://localhost:5432/postgres",
@@ -62,7 +65,7 @@ object QASystem extends IOApp.Simple {
       )
 
       outputVariable = NonEmptyString.unsafeFrom("answer")
-      qa = VectorQAChain.makeWithDefaults[IO](openAIClient, pg, "testing", outputVariable)
+      qa = VectorQAChain.make[IO](LLM.openAI[IO](openAIClient), pg, "stuff", 10, outputVariable, true)
       response <- qa.run("How could I have saved money in december 2022?")
 
       _ = println(response)

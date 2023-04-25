@@ -12,6 +12,7 @@ import cats.syntax.all.*
 import com.xebia.functional.config.Config
 import com.xebia.functional.config.DBConfig
 import com.xebia.functional.config.OpenAIConfig
+import com.xebia.functional.config.OpenAIConfigLLM
 import com.xebia.functional.embeddings.openai.OpenAIEmbeddings
 import com.xebia.functional.embeddings.openai.models.EmbeddingModel
 import com.xebia.functional.embeddings.openai.models.RequestConfig
@@ -30,7 +31,7 @@ object SearchSimilarDocs extends IOApp.Simple {
   def run: IO[Unit] =
     val OPENAI_TOKEN = "<place-your-openai-token-here>"
 
-    val openAIConfig = OpenAIConfig(OPENAI_TOKEN, 5.seconds, 5, 1000)
+    val openAIConfig = OpenAIConfig(OPENAI_TOKEN, 5.seconds, 5, 1000, OpenAIConfigLLM())
     val requestConfig = RequestConfig(EmbeddingModel.TextEmbeddingAda002, User("testing"))
     val dbConfig = DBConfig(
       "jdbc:postgresql://localhost:5432/postgres",
