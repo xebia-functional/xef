@@ -15,21 +15,20 @@ abstract class BaseTool[F[_]: MonadThrow](
     verbose: Boolean = false,
     callbackManager: BaseCallbackManager[F]
 ):
-  def run(input: NonEmptyMap[String, String] | NonEmptyString): F[String]
+  def run(input: Map[String, String] | String): F[String]
 
-  def _run(input: NonEmptyMap[String, String] | NonEmptyString): F[String] =
+  def _run(input: Map[String, String] | String): F[String] =
     run(input).onError(e => callbackManager.onToolError(e)).flatTap(ob => callbackManager.onToolEnd(ob))
 
   def call(
-      toolInput: NonEmptyMap[String, String] | NonEmptyString,
+      toolInput: Map[String, String] | String,
       verbose: Option[Boolean] = None,
       startColor: Option[String] = Some("green"),
       color: Option[String] = Some("green")
   ): F[String] =
     val input0 = toolInput match
-      case s: NonEmptyString => MonadThrow[F].pure(s)
-      case m: NonEmptyMap[String, String] =>
-        MonadThrow[F].fromEither(NonEmptyString.from(m.head._2).leftMap(_ => new RuntimeException("Tool Map Empty")))
+      case s: String => MonadThrow[F].pure(s)
+      case m: Map[String, String] => MonadThrow[F].fromOption(m.headOption.map(_._2), new RuntimeException("Agent Input Map was empty"))
 
     for
       input <- input0

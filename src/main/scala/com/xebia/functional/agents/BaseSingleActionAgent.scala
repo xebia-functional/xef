@@ -5,6 +5,10 @@ import cats.syntax.all.*
 import cats.data.NonEmptySeq
 import eu.timepit.refined.types.string.NonEmptyString
 import com.xebia.functional.agents.models.*
+import com.xebia.functional.llm.LLM
+import com.xebia.functional.tools.BaseTool
+import com.xebia.functional.callbacks.BaseCallbackManager
+import java.nio.file.Path
 
 abstract class BaseSingleActionAgent[F[_]: MonadThrow](
     inputKeys: NonEmptySeq[NonEmptyString]
@@ -19,7 +23,9 @@ abstract class BaseSingleActionAgent[F[_]: MonadThrow](
     else MonadThrow[F].raiseError(UnsupportedEarlyStoppingMethodError(earlyStoppingMethod))
 
   def plan(intermediateSteps: List[LLMAgentHistory]): AgentAction | AgentFinish
-  // def fromLLMAndTools(
-  //     llm: LLM[F],
-  //     tools: NonEmptySeq[BaseTool]
-  // )
+
+  def fromLLMAndTools(
+      llm: LLM[F],
+      tools: NonEmptySeq[BaseTool[F]],
+      callbackManager: Option[BaseCallbackManager[F]] = None
+  ): F[BaseSingleActionAgent[F]]

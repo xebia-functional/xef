@@ -1,7 +1,7 @@
 package com.xebia.functional.callbacks
 
 import cats.data.NonEmptySeq
-import eu.timepit.refined.types.string.NonEmptyString
+import com.xebia.functional.llm.models.LLMResult
 import com.xebia.functional.agents.models.{AgentAction, AgentFinish}
 
 abstract class BaseCallbackHandler[F[_]](
@@ -15,7 +15,7 @@ abstract class BaseCallbackHandler[F[_]](
       prompts: NonEmptySeq[String]
   ): F[Unit]
 
-  def onLlmNewToken(token: NonEmptyString): F[Unit]
+  def onLlmNewToken(token: String): F[Unit]
 
   def onLlmEnd(response: LLMResult): F[Unit]
 
@@ -27,7 +27,7 @@ abstract class BaseCallbackHandler[F[_]](
 
   def onChainError(error: Throwable): F[Unit]
 
-  def onToolStart(serialized: Map[String, String], inputValue: NonEmptyString): F[Unit]
+  def onToolStart(serialized: Map[String, String], inputValue: String): F[Unit]
 
   def onToolEnd(output: String): F[Unit]
 
