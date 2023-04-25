@@ -21,7 +21,7 @@ suspend fun LLMChain(
     override val config = Config(promptTemplate.inputKeys.toSet(), setOf("answer"), onlyOutput)
 
     override suspend fun call(inputs: Map<String, String>): Map<String, String> {
-        val prompt = preparePrompt(inputs)
+        val prompt = promptTemplate.format(inputs)
 
         val request = CompletionRequest(
             model = llmModel,
@@ -35,8 +35,6 @@ suspend fun LLMChain(
         val completions = llm.createCompletion(request)
         return formatOutput(completions)
     }
-
-    private suspend fun preparePrompt(inputs: Map<String, String>): String = promptTemplate.format(inputs)
 
     private fun formatOutput(completions: List<CompletionChoice>): Map<String, String> =
         config.outputKeys.associateWith {
