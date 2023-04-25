@@ -1,5 +1,6 @@
 package com.xebia.functional.chains
 
+import arrow.core.raise.Raise
 import com.xebia.functional.llm.openai.CompletionChoice
 import com.xebia.functional.llm.openai.CompletionRequest
 import com.xebia.functional.llm.openai.OpenAIClient
