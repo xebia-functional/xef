@@ -11,21 +11,25 @@ data class Config(
     val outputKeys: Set<String>,
     val onlyOutputs: Boolean
 ) {
-    fun genInputs(inputs: Map<String, String>): Either<InvalidChainInputs, Map<String, String>> =
+    fun genInputs(
+        inputs: Map<String, String>
+    ): Either<InvalidChainInputs, Map<String, String>> =
         either {
-            ensure((inputKeys subtract inputs.keys).isNotEmpty()) {
-                InvalidChainInputs("The expected inputs are more than one: " +
+            ensure((inputKeys subtract inputs.keys).isEmpty()) {
+                InvalidChainInputs("The provided inputs: " +
+                        inputs.keys.joinToString(", ") { "{$it}" } +
+                        " do not match with chain's inputs: " +
                         inputKeys.joinToString(", ") { "{$it}" })
             }
             inputs
         }
 
-    fun genInputsFromString(inputs: String): Either<InvalidChainInputs, Map<String, String>> =
-        either { 
-            ensure(inputKeys.size != 1) {
-                InvalidChainInputs("The provided inputs: " +
-                        inputs.toSet().joinToString(", ") { "{$it}" } +
-                        " do not match with chain's inputs: " +
+    fun genInputsFromString(
+        inputs: String
+    ): Either<InvalidChainInputs, Map<String, String>> =
+        either {
+            ensure(inputKeys.size == 1) {
+                InvalidChainInputs("The expected inputs are more than one: " +
                         inputKeys.joinToString(", ") { "{$it}" })
             }
             inputKeys.associateWith { inputs }
