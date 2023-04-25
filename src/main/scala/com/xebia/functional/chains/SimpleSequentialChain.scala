@@ -1,12 +1,13 @@
 package com.xebia.functional.chains
 
 import cats.MonadThrow
+import cats.data.NonEmptySeq
 import cats.effect.Resource
 import cats.implicits.*
-import cats.data.NonEmptySeq
-import eu.timepit.refined.types.string.NonEmptyString
-import com.xebia.functional.chains.models.*
+
 import com.xebia.functional.chains.models.Config
+import com.xebia.functional.chains.models.*
+import eu.timepit.refined.types.string.NonEmptyString
 
 class SimpleSequentialChain[F[_]: MonadThrow] private (
     chains: NonEmptySeq[BaseChain[F]],

@@ -4,56 +4,39 @@ import cats.effect.Sync
 import cats.syntax.all.*
 
 import com.xebia.functional.chains.models.Config
+import com.xebia.functional.config.OpenAIConfig
+import com.xebia.functional.config.*
+import com.xebia.functional.llm.*
+import com.xebia.functional.llm.models.OpenAIRequest
+import com.xebia.functional.llm.models.*
 import com.xebia.functional.llm.openai.OpenAIClient
-import com.xebia.functional.llm.openai.models.CompletionChoice
-import com.xebia.functional.llm.openai.models.CompletionRequest
 import com.xebia.functional.prompt.PromptTemplate
 import eu.timepit.refined.types.string.NonEmptyString
 
 class LLMChain[F[_]: Sync](
-    llm: OpenAIClient[F],
+    llm: LLM[F],
     promptTemplate: PromptTemplate[F],
-    llmModel: String,
-    user: String,
-    echo: Boolean,
-    n: Int,
-    temperature: Double,
     outputVariable: NonEmptyString,
-    maxTokens: Int,
     onlyOutput: Boolean
 ) extends BaseChain[F]:
   val config = Config(promptTemplate.inputKeys.toSet, Set(outputVariable.value), onlyOutput)
-  val completionRequest =
-    CompletionRequest
-      .builder(llmModel, user)
-      .withEcho(echo)
-      .withN(n)
-      .withTemperature(temperature)
-      .withMaxTokens(maxTokens)
 
   def call(inputs: Map[String, String]): F[Map[String, String]] =
     for
       prp <- preparePrompt(inputs)
-      req = completionRequest.withPrompt(prp).build()
-      cmp <- llm.createCompletion(req)
+      cmp <- llm.generateFromPrompt(prp)
       out = formatOutput(cmp)
     yield out
 
   def preparePrompt(inputs: Map[String, String]): F[String] = promptTemplate.format(inputs)
-  def formatOutput(completions: List[CompletionChoice]): Map[String, String] =
-    Map(outputVariable.value -> completions.map(_.text).mkString(", "))
+  def formatOutput(completions: List[LLMResult]): Map[String, String] =
+    Map(outputVariable.value -> completions.map(_.generatedText).mkString(", "))
 
 object LLMChain:
   def make[F[_]: Sync](
-      llm: OpenAIClient[F],
+      llm: LLM[F],
       promptTemplate: PromptTemplate[F],
-      llmModel: String,
-      user: String,
-      echo: Boolean,
-      n: Int,
-      temperature: Double,
       outputVariable: NonEmptyString,
-      maxTokens: Int,
       onlyOutput: Boolean
   ): LLMChain[F] =
-    new LLMChain[F](llm: OpenAIClient[F], promptTemplate, llmModel, user, echo, n, temperature, outputVariable, maxTokens, onlyOutput)
+    new LLMChain[F](llm, promptTemplate, outputVariable, onlyOutput)

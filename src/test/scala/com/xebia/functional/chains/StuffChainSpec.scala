@@ -6,12 +6,15 @@ import com.xebia.functional.chains.combine.StuffChain
 import com.xebia.functional.chains.mock.OpenAIClientMock
 import com.xebia.functional.chains.models.InvalidChainInputsError
 import com.xebia.functional.domain.Document
+import com.xebia.functional.llm.LLM
+import com.xebia.functional.llm.models.OpenAIRequest
 import com.xebia.functional.prompt.PromptTemplate
-import munit.CatsEffectSuite
 import eu.timepit.refined.types.string.NonEmptyString
+import munit.CatsEffectSuite
 
 class StuffChainSpec extends CatsEffectSuite:
 
+  val llm = LLM.openAI[IO](OpenAIClientMock.make)
   val outputVariable = NonEmptyString.unsafeFrom("answer")
   val maxTokens = 500
 
@@ -21,7 +24,7 @@ class StuffChainSpec extends CatsEffectSuite:
     val result =
       for
         prompt <- promptTemplate
-        stuff = StuffChain.make[IO](docs, OpenAIClientMock.make, prompt, "context", "foo", "user", false, 1, 0.0, outputVariable, maxTokens, true)
+        stuff = StuffChain.make[IO](docs, llm, prompt, "context", outputVariable, true)
         res <- stuff.combineDocs(docs)
       yield res
 
@@ -34,7 +37,7 @@ class StuffChainSpec extends CatsEffectSuite:
     val result =
       for
         prompt <- promptTemplate
-        stuff = StuffChain.make[IO](docs, OpenAIClientMock.make, prompt, "context", "foo", "user", false, 1, 0.0, outputVariable, maxTokens, true)
+        stuff = StuffChain.make[IO](docs, llm, prompt, "context", outputVariable, true)
         res <- stuff.run("What do you think?")
       yield res
 
@@ -47,7 +50,7 @@ class StuffChainSpec extends CatsEffectSuite:
     val result =
       for
         prompt <- promptTemplate
-        stuff = StuffChain.make[IO](docs, OpenAIClientMock.make, prompt, "context", "foo", "user", false, 1, 0.0, outputVariable, maxTokens, false)
+        stuff = StuffChain.make[IO](docs, llm, prompt, "context", outputVariable, false)
         res <- stuff.run(Map("name" -> "Scala", "age" -> "28"))
       yield res
 
@@ -60,7 +63,7 @@ class StuffChainSpec extends CatsEffectSuite:
     val result =
       for
         prompt <- promptTemplate
-        stuff = StuffChain.make[IO](docs, OpenAIClientMock.make, prompt, "context", "foo", "user", false, 1, 0.0, outputVariable, maxTokens, false)
+        stuff = StuffChain.make[IO](docs, llm, prompt, "context", outputVariable, false)
         res <- stuff.run(Map("name" -> "Scala", "city" -> "Seattle"))
       yield res
 

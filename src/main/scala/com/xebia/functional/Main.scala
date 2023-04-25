@@ -8,10 +8,10 @@ import cats.syntax.all.*
 
 import com.xebia.functional.config.Config
 import com.xebia.functional.llm.huggingface.*
-import com.xebia.functional.llm.huggingface.models.InferenceRequest
 import com.xebia.functional.llm.huggingface.models.Model
+import com.xebia.functional.llm.models.HFRequest
+import com.xebia.functional.llm.models.OpenAIRequest
 import com.xebia.functional.llm.openai.OpenAIClient
-import com.xebia.functional.llm.openai.models.CompletionRequest
 import com.xebia.functional.llm.openai.models.EmbeddingRequest
 import org.http4s.client.Client
 import org.http4s.ember.client.EmberClientBuilder
@@ -46,8 +46,8 @@ object Main extends IOApp.Simple {
 
   def openAIExample(client: OpenAIClient[IO]) =
     client
-      .createCompletion(
-        CompletionRequest
+      .generate(
+        OpenAIRequest
           .builder(model = "ada", user = "testing")
           .withPrompt("Write a tagline for an ice cream shop.")
           .withEcho(true)
@@ -58,7 +58,6 @@ object Main extends IOApp.Simple {
   def hfExample(client: HuggingFaceClient[IO]) =
     client
       .generate(
-        InferenceRequest("Write a tagline for an ice cream shop."),
-        Model("google/flan-t5-xl")
+        HFRequest("Write a tagline for an ice cream shop.")
       )
 }

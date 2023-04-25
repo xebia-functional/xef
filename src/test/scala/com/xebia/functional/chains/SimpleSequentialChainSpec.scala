@@ -1,12 +1,13 @@
 package com.xebia.functional.chains
 
+import cats.data.NonEmptySeq
 import cats.effect.IO
 import cats.implicits.*
-import munit.CatsEffectSuite
+
 import com.xebia.functional.chains.mock.FakeChain
-import cats.data.NonEmptySeq
-import eu.timepit.refined.types.string.NonEmptyString
 import com.xebia.functional.chains.models.*
+import eu.timepit.refined.types.string.NonEmptyString
+import munit.CatsEffectSuite
 
 class SimpleSequentialChainSpec extends CatsEffectSuite:
   test("SimpleSequentialChain functionality") {

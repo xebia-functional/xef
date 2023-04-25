@@ -1,13 +1,33 @@
-package com.xebia.functional.llm.openai.models
+package com.xebia.functional.llm.models
 
 import java.util.{List => JList}
 import java.util.{Map => JMap}
 
 import scala.jdk.CollectionConverters._
 
-import com.theokanning.openai.completion.{CompletionRequest => JCompletionRequest}
+import cats.ApplicativeThrow
+import cats.syntax.all.*
 
-final case class CompletionRequest private (
+import com.theokanning.openai.completion.{CompletionRequest => JCompletionRequest}
+import com.xebia.functional.config.HuggingFaceConfig
+import com.xebia.functional.config.OpenAIConfig
+import com.xebia.functional.llm.LLM
+import com.xebia.functional.llm.huggingface.HuggingFaceClient
+import com.xebia.functional.llm.openai.OpenAIClient
+import com.xebia.functional.llm.openai.models.OpenAIError
+import io.circe.Encoder
+
+final case class HFRequest(inputs: String, maxLength: Int = 1000) derives Encoder.AsObject
+
+object HFRequest:
+  def fromPrompt[F[_]: ApplicativeThrow](prompt: String, config: HuggingFaceConfig): F[HFRequest] =
+    ApplicativeThrow[F]
+      .catchNonFatal(HFRequest(prompt, config.maxLength))
+      .adaptErr { case e: Throwable =>
+        PromptGenerationError(Option(e.getMessage).getOrElse("<null>"))
+      }
+
+final case class OpenAIRequest private (
     model: String,
     user: String,
     prompt: Option[String],
@@ -26,7 +46,7 @@ final case class CompletionRequest private (
     logitBias: Option[Map[String, Int]]
 )
 
-object CompletionRequest:
+object OpenAIRequest:
 
   def builder(model: String, user: String): Builder = Builder(model, user)
 
@@ -63,8 +83,8 @@ object CompletionRequest:
     def withBestOf(bestOf: Int): Builder = copy(bestOf = Some(bestOf))
     def withLogitBias(logitBias: Map[String, Int]): Builder = copy(logitBias = Some(logitBias))
 
-    def build(): CompletionRequest =
-      CompletionRequest(
+    def build(): OpenAIRequest =
+      OpenAIRequest(
         model,
         user,
         prompt,
@@ -84,7 +104,7 @@ object CompletionRequest:
       )
   }
 
-  extension (e: CompletionRequest)
+  extension (e: OpenAIRequest)
     def asJava: JCompletionRequest =
       val javaStop: JList[String] = e.stop.map(_.asJava).orNull
       val javaLogitBias: JMap[String, Integer] = e.logitBias.map(_.map { case (k, v) => k -> int2Integer(v) }.asJava).orNull
@@ -107,4 +127,31 @@ object CompletionRequest:
         e.user
       )
 
-end CompletionRequest
+  def fromPrompt[F[_]: ApplicativeThrow](prompt: String, config: OpenAIConfig): F[OpenAIRequest] =
+    ApplicativeThrow[F]
+      .catchNonFatal {
+        OpenAIRequest
+          .Builder(
+            config.llmConfig.model,
+            config.llmConfig.user,
+            Some(prompt),
+            config.llmConfig.suffix,
+            config.llmConfig.maxTokens,
+            config.llmConfig.temperature,
+            config.llmConfig.topP,
+            config.llmConfig.n,
+            config.llmConfig.stream,
+            config.llmConfig.logprobs,
+            config.llmConfig.echo,
+            None,
+            config.llmConfig.presencePenalty,
+            config.llmConfig.frequencyPenalty,
+            config.llmConfig.bestOf,
+            None
+          ).build()
+      }
+      .adaptErr { case e: Throwable =>
+        PromptGenerationError(Option(e.getMessage).getOrElse("<null>"))
+      }
+
+end OpenAIRequest

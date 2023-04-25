@@ -6,22 +6,18 @@ import cats.syntax.all.*
 import com.xebia.functional.chains.LLMChain
 import com.xebia.functional.chains.models.Config
 import com.xebia.functional.domain.Document
+import com.xebia.functional.llm.LLM
+import com.xebia.functional.llm.models.LLMResult
 import com.xebia.functional.llm.openai.OpenAIClient
 import com.xebia.functional.prompt.PromptTemplate
 import eu.timepit.refined.types.string.NonEmptyString
 
 class StuffChain[F[_]: Sync](
     documents: List[Document],
-    llm: OpenAIClient[F],
+    llm: LLM[F],
     promptTemplate: PromptTemplate[F],
     documentVariableName: String,
-    llmModel: String,
-    user: String,
-    echo: Boolean,
-    n: Int,
-    temperature: Double,
     outputVariable: NonEmptyString,
-    maxTokens: Int,
     onlyOutput: Boolean
 ) extends CombineDocumentsChain[F]:
   val config = Config(promptTemplate.inputKeys.toSet -- Set(documentVariableName), Set("answer"), onlyOutput)
@@ -36,7 +32,7 @@ class StuffChain[F[_]: Sync](
     }
 
   def call(inputs: Map[String, String]): F[Map[String, String]] =
-    val llmChain = LLMChain.make[F](llm, promptTemplate, llmModel, user, echo, n, temperature, outputVariable, maxTokens, onlyOutput)
+    val llmChain = LLMChain.make[F](llm, promptTemplate, outputVariable, onlyOutput)
     for
       documentInput <- combineDocs(documents)
       totalInputs = documentInput ++ inputs
@@ -46,16 +42,10 @@ class StuffChain[F[_]: Sync](
 object StuffChain:
   def make[F[_]: Sync](
       documents: List[Document],
-      llm: OpenAIClient[F],
+      llm: LLM[F],
       promptTemplate: PromptTemplate[F],
       documentVariableName: String,
-      llmModel: String,
-      user: String,
-      echo: Boolean,
-      n: Int,
-      temperature: Double,
       outputVariable: NonEmptyString,
-      maxTokens: Int,
       onlyOutput: Boolean
   ): StuffChain[F] =
     new StuffChain[F](
@@ -63,12 +53,6 @@ object StuffChain:
       llm,
       promptTemplate,
       documentVariableName,
-      llmModel,
-      user,
-      echo,
-      n,
-      temperature,
       outputVariable,
-      maxTokens,
       onlyOutput
     )

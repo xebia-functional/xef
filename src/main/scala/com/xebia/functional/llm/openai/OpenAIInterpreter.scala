@@ -1,5 +1,7 @@
 package com.xebia.functional.llm.openai
 
+import java.time.Duration
+
 import scala.jdk.CollectionConverters._
 
 import cats.effect.Sync
@@ -7,14 +9,15 @@ import cats.syntax.all.*
 
 import com.theokanning.openai.service.OpenAiService
 import com.xebia.functional.config.OpenAIConfig
+import com.xebia.functional.llm.models.OpenAIRequest
+import com.xebia.functional.llm.models.*
 import com.xebia.functional.llm.openai.models.*
-import java.time.Duration
 
-class OpenAIClientInterpreter[F[_]: Sync](config: OpenAIConfig) extends OpenAIClient[F]:
+class OpenAIClientInterpreter[F[_]: Sync](val config: OpenAIConfig) extends OpenAIClient[F]:
 
   private val service = new OpenAiService(config.token, Duration.ofSeconds(30))
 
-  def createCompletion(request: CompletionRequest): F[List[CompletionChoice]] =
+  def generate(request: OpenAIRequest): F[List[LLMResult]] =
     Sync[F]
       .delay(
         service
@@ -22,7 +25,7 @@ class OpenAIClientInterpreter[F[_]: Sync](config: OpenAIConfig) extends OpenAICl
           .getChoices
           .asScala
           .toList
-          .map(CompletionChoice.fromJava)
+          .map(r => LLMResult(r.getText()))
       )
       .adaptErr(toOpenAIError)
 

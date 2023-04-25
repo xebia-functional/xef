@@ -5,6 +5,7 @@ import cats.syntax.all.*
 
 import com.xebia.functional.config.HuggingFaceConfig
 import com.xebia.functional.llm.huggingface.models.*
+import com.xebia.functional.llm.models.*
 import io.circe.Decoder
 import org.http4s.EntityDecoder
 import org.http4s.Header
@@ -17,14 +18,14 @@ import org.http4s.client.Client
 import org.http4s.headers.*
 import org.typelevel.ci.*
 
-class HuggingFaceClientInterpreter[F[_]: Concurrent](config: HuggingFaceConfig, client: Client[F]) extends HuggingFaceClient[F]:
+class HuggingFaceClientInterpreter[F[_]: Concurrent](val config: HuggingFaceConfig, client: Client[F]) extends HuggingFaceClient[F]:
 
-  def generate(request: InferenceRequest, model: Model): F[List[Generation]] =
-    send[List[Generation]](
+  def generate(request: HFRequest): F[List[LLMResult]] =
+    send[List[LLMResult]](
       baseRequest
         .withMethod(Method.POST)
         .withUri(
-          (config.baseUri / "models" / model.name)
+          (config.baseUri / "models" / config.model.name)
         ).withEntity(request)
     )
 

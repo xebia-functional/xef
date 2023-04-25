@@ -8,8 +8,11 @@ import cats.effect.IO
 import cats.syntax.all.*
 
 import com.xebia.functional.config.OpenAIConfig
+import com.xebia.functional.config.OpenAIConfigLLM
 import com.xebia.functional.embeddings.models.*
 import com.xebia.functional.embeddings.openai.models.*
+import com.xebia.functional.llm.models.LLMResult
+import com.xebia.functional.llm.models.OpenAIRequest
 import com.xebia.functional.llm.openai.OpenAIClient
 import com.xebia.functional.llm.openai.models.*
 import munit.CatsEffectSuite
@@ -23,8 +26,9 @@ import retry.*
 class OpenAIEmbeddingsSpec extends CatsEffectSuite:
 
   private val fakeClient = new OpenAIClient[IO] {
-    def createCompletion(request: CompletionRequest): IO[List[CompletionChoice]] =
-      IO.pure(List.empty[CompletionChoice])
+    val config: OpenAIConfig = OpenAIConfig("foo", 5.seconds, 1, 1, OpenAIConfigLLM())
+    def generate(request: OpenAIRequest): IO[List[LLMResult]] =
+      IO.pure(List.empty[LLMResult])
 
     def createEmbeddings(request: EmbeddingRequest): IO[EmbeddingResult] = {
       val embedding = request.input.toVector.map { i =>
