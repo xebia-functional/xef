@@ -1,0 +1,63 @@
+CREATE TABLE langchain4s_collections (
+  uuid TEXT PRIMARY KEY,
+  name TEXT UNIQUE NOT NULL
+);
+
+CREATE TABLE langchain4s_embeddings (
+  uuid TEXT PRIMARY KEY,
+  collection_id TEXT REFERENCES langchain4s_collections(uuid),
+  embedding BLOB,
+  content TEXT
+);
+
+addVectorExtension:
+CREATE EXTENSION IF NOT EXISTS vector;
+
+createCollectionsTable:
+CREATE TABLE IF NOT EXISTS langchain4s_collections (
+  uuid TEXT PRIMARY KEY,
+  name TEXT UNIQUE NOT NULL
+);
+
+createEmbeddingTable:
+CREATE TABLE IF NOT EXISTS langchain4s_embeddings (
+  uuid TEXT PRIMARY KEY,
+  collection_id TEXT REFERENCES langchain4s_collections(uuid),
+  embedding BLOB,
+  content TEXT
+);
+
+addNewCollection:
+INSERT INTO langchain4s_collections(uuid, name)
+VALUES (?, ?)
+ON CONFLICT DO NOTHING;
+
+deleteCollection:
+DELETE FROM langchain4s_collections
+WHERE uuid = ?;
+
+getCollection:
+SELECT * FROM langchain4s_collections
+WHERE name = ?;
+
+getCollectionById:
+SELECT * FROM langchain4s_collections
+WHERE uuid = ?;
+
+addNewDocument:
+INSERT INTO langchain4s_embeddings(uuid, collection_id, embedding, content)
+VALUES (?, ?, ?, ?);
+
+deleteCollectionDocs:
+DELETE FROM langchain4s_embeddings
+WHERE collection_id = ?;
+
+addNewText:
+INSERT INTO langchain4s_embeddings(uuid, collection_id, embedding, content)
+VALUES (?, ?, ?, ?);
+
+searchSimilarDocument:
+SELECT content FROM langchain4s_embeddings
+WHERE collection_id = ?
+ORDER BY embedding || ?::vector
+LIMIT ?;

@@ -12,6 +12,7 @@ plugins {
   alias(libs.plugins.kotlin.multiplatform)
   alias(libs.plugins.spotless)
   alias(libs.plugins.kotlinx.serialization)
+  alias(libs.plugins.sqldelight)
 }
 
 java {
@@ -51,6 +52,7 @@ kotlin {
         implementation(libs.kotlinx.serialization.json)
         implementation(libs.bundles.ktor.client)
         implementation(libs.okio)
+        implementation("app.softwork:kotlinx-uuid-core:0.0.18")
       }
     }
 
@@ -75,4 +77,14 @@ spotless {
   kotlin {
     ktfmt().googleStyle()
   }
+}
+
+sqldelight {
+  databases {
+    create("SqlDelightVectorStore") {
+      packageName.set("com.xebia.functional")
+      dialect(libs.postgres.get())
+    }
+  }
+  linkSqlite.set(false)
 }
