@@ -16,7 +16,8 @@ testcontainers = "1.17.6"
 hikari = "5.0.1"
 
 [libraries]
-arrow-fx = { module = "io.arrow-kt:arrow-fx-coroutines", version.ref = "arrow" }
+arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
+arrow-fx-coroutines = { module = "io.arrow-kt:arrow-fx-coroutines", version.ref = "arrow" }
 arrow-resilience = { module = "io.arrow-kt:arrow-resilience", version.ref = "arrow" }
 open-ai = { module = "com.theokanning.openai-gpt3-java:service", version.ref = "openai" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-json" }
@@ -38,6 +39,11 @@ postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" 
 testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
 
 [bundles]
+arrow = [
+    "arrow-core",
+    "arrow-fx-coroutines",
+    "arrow-resilience"
+]
 ktor-client = [
     "ktor-client",
     "ktor-client-content-negotiation",
