@@ -38,7 +38,7 @@ interface VectorStore {
    * Return the docs most similar to the embedding
    *
    * @param embedding embedding vector to use to search for similar documents
-   * @param k number of documents to return
+   * @param limit number of documents to return
    * @return list of Documents most similar to the embedding
    */
   suspend fun similaritySearchByVector(embedding: Embedding, limit: Int): List<Document>

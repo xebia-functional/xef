@@ -52,7 +52,6 @@ class JDBCSyntax(conn: Connection, resourceScope: ResourceScope) : ResourceScope
     mapper: NullableSqlCursor.() -> A?
   ): List<A> {
     val statement = prepareStatement(sql, binders)
-    println(statement.toString())
     val rs = autoCloseable { statement.executeQuery() }
     return buildList {
       while (rs.next()) {
