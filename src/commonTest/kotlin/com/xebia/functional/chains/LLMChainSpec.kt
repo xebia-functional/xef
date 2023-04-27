@@ -1,15 +1,11 @@
 package com.xebia.functional.chains
 
-import arrow.core.Either
 import arrow.core.raise.either
-import com.xebia.functional.llm.openai.CompletionChoice
-import com.xebia.functional.llm.openai.CompletionRequest
-import com.xebia.functional.llm.openai.EmbeddingRequest
-import com.xebia.functional.llm.openai.EmbeddingResult
-import com.xebia.functional.llm.openai.OpenAIClient
+import com.xebia.functional.llm.openai.*
 import com.xebia.functional.prompt.PromptTemplate
+import io.kotest.assertions.arrow.core.shouldBeLeft
+import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.core.spec.style.StringSpec
-import io.kotest.matchers.shouldBe
 
 class LLMChainSpec : StringSpec({
     "LLMChain should return a prediction with just the output" {
@@ -18,9 +14,7 @@ class LLMChainSpec : StringSpec({
             val prompt = PromptTemplate(template, listOf("foo"))
             val chain = LLMChain(llm, prompt, "davinci", "testing", false, 1, 0.0)
             chain.run("a joke").bind()
-        } shouldBe Either.Right(
-            mapOf("answer" to "I'm not good at jokes")
-        )
+        } shouldBeRight mapOf("answer" to "I'm not good at jokes")
     }
 
     "LLMChain should return a prediction with both output and inputs" {
@@ -29,9 +23,7 @@ class LLMChainSpec : StringSpec({
             val prompt = PromptTemplate(template, listOf("foo"))
             val chain = LLMChain(llm, prompt, "davinci", "testing", false, 1, 0.0, true)
             chain.run("a joke").bind()
-        } shouldBe Either.Right(
-            mapOf("foo" to "a joke", "answer" to "I'm not good at jokes")
-        )
+        } shouldBeRight mapOf("foo" to "a joke", "answer" to "I'm not good at jokes")
     }
 
     "LLMChain should return a prediction with a more complex template" {
@@ -40,9 +32,7 @@ class LLMChainSpec : StringSpec({
             val prompt = PromptTemplate(template, listOf("name", "age"))
             val chain = LLMChain(llm, prompt, "davinci", "testing", false, 1, 0.0, true)
             chain.run(mapOf("age" to "28", "name" to "foo")).bind()
-        } shouldBe Either.Right(
-            mapOf("age" to "28", "name" to "foo", "answer" to "Hello there! Nice to meet you foo")
-        )
+        } shouldBeRight mapOf("age" to "28", "name" to "foo", "answer" to "Hello there! Nice to meet you foo")
     }
 
     "LLMChain should fail when inputs are not the expected ones from the PromptTemplate" {
@@ -51,9 +41,7 @@ class LLMChainSpec : StringSpec({
             val prompt = PromptTemplate(template, listOf("name", "age"))
             val chain = LLMChain(llm, prompt, "davinci", "testing", false, 1, 0.0)
             chain.run(mapOf("age" to "28", "brand" to "foo")).bind()
-        } shouldBe Either.Left(
-            Chain.InvalidInputs("The provided inputs: {age}, {brand} do not match with chain's inputs: {name}, {age}")
-        )
+        } shouldBeLeft Chain.InvalidInputs("The provided inputs: {age}, {brand} do not match with chain's inputs: {name}, {age}")
     }
 
     "LLMChain should fail when using just one input but expecting more" {
@@ -62,9 +50,7 @@ class LLMChainSpec : StringSpec({
             val prompt = PromptTemplate(template, listOf("name", "age"))
             val chain = LLMChain(llm, prompt, "davinci", "testing", false, 1, 0.0)
             chain.run("foo").bind()
-        } shouldBe Either.Left(
-            Chain.InvalidInputs("The expected inputs are more than one: {name}, {age}")
-        )
+        } shouldBeLeft Chain.InvalidInputs("The expected inputs are more than one: {name}, {age}")
     }
 })
 

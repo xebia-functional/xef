@@ -8,15 +8,15 @@ import arrow.core.raise.ensure
 import arrow.core.raise.ensureNotNull
 
 fun Raise<Chain.Error>.SimpleSequentialChain(
-    chains: List<Chain>, inputKey: String, outputKey: String, returnAll: Boolean
+    chains: List<Chain>, inputKey: String = "input", outputKey: String = "output", returnAll: Boolean = false
 ): SimpleSequentialChain =
     SimpleSequentialChain.either(chains, inputKey, outputKey, returnAll).bind()
 
-class SimpleSequentialChain(
+class SimpleSequentialChain private constructor(
     private val chains: List<Chain>,
-    private val inputKey: String = "input",
-    private val outputKey: String = "output",
-    returnAll: Boolean = false
+    private val inputKey: String,
+    private val outputKey: String,
+    returnAll: Boolean
 ) : SequenceChain {
 
     override val config = Chain.Config(setOf(inputKey), setOf(outputKey), returnAll)
@@ -34,27 +34,27 @@ class SimpleSequentialChain(
     companion object {
         fun either(
             chains: List<Chain>, inputKey: String, outputKey: String, returnAll: Boolean
-        ): Either<SequenceChain.InvalidInputsAndOutputs, SimpleSequentialChain> {
+        ): Either<SequenceChain.InvalidKeys, SimpleSequentialChain> {
             return chains.mapOrAccumulate { chain ->
                 with(chain.config) {
                     validateInputKeys(inputKeys)
                     validateOutputKeys(outputKeys)
                 }
             }.mapLeft {
-                SequenceChain.InvalidInputsAndOutputs(it.joinToString(transform = Chain.Error::reason))
+                SequenceChain.InvalidKeys(it.joinToString(transform = Chain.Error::reason))
             }.map { SimpleSequentialChain(chains, inputKey, outputKey, returnAll) }
         }
     }
 }
 
 private fun Raise<SequenceChain.InvalidOutputs>.validateOutputKeys(outputKeys: Set<String>): Unit =
-    ensure(outputKeys.size > 1) {
+    ensure(outputKeys.size == 1) {
         SequenceChain.InvalidOutputs("The expected outputs are more than one: " +
                 outputKeys.joinToString(", ") { "{$it}" })
     }
 
 private fun Raise<Chain.InvalidInputs>.validateInputKeys(inputKeys: Set<String>): Unit =
-    ensure(inputKeys.size > 1) {
+    ensure(inputKeys.size == 1) {
         Chain.InvalidInputs("The expected inputs are more than one: " +
                 inputKeys.joinToString(", ") { "{$it}" })
     }
