@@ -1,6 +1,7 @@
 package com.xebia.functional.chains
 
 import arrow.core.Either
+import arrow.core.NonEmptySet
 import arrow.core.raise.either
 import arrow.core.raise.ensure
 
@@ -10,7 +11,7 @@ interface Chain {
     data class Config(
         val inputKeys: Set<String>,
         val outputKeys: Set<String>,
-        val onlyOutputs: Boolean
+        val returnAll: Boolean = false
     ) {
         fun createInputs(
             inputs: String
@@ -39,24 +40,24 @@ interface Chain {
 
     val config: Config
 
-    suspend fun call(inputs: Map<String, String>): Map<String, String>
+    suspend fun call(inputs: Map<String, String>): Either<InvalidInputs, Map<String, String>>
 
     suspend fun run(input: String): Either<InvalidInputs, Map<String, String>> =
         either {
             val preparedInputs = config.createInputs(input).bind()
-            val result = call(preparedInputs)
+            val result = call(preparedInputs).bind()
             prepareOutputs(preparedInputs, result)
         }
 
     suspend fun run(inputs: Map<String, String>): Either<InvalidInputs, Map<String, String>> =
         either {
             val preparedInputs = config.createInputs(inputs).bind()
-            val result = call(preparedInputs)
+            val result = call(preparedInputs).bind()
             prepareOutputs(preparedInputs, result)
         }
 
     private fun prepareOutputs(
         inputs: Map<String, String>, outputs: Map<String, String>
     ): Map<String, String> =
-        if (config.onlyOutputs) outputs else inputs + outputs
+        if (config.returnAll) inputs + outputs else outputs
 }
