@@ -14,7 +14,7 @@ data class InvalidConfig(val message: String)
 
 data class Env(val openAI: OpenAIConfig, val huggingFace: HuggingFaceConfig)
 
-data class OpenAIConfig(val token: String, val chunkSize: Int, val retryConfig: RetryConfig)
+data class OpenAIConfig(val token: String, val baseUrl: KUrl, val chunkSize: Int, val retryConfig: RetryConfig)
 
 data class RetryConfig(val backoff: Duration, val maxRetries: Long) {
   fun schedule(): Schedule<Throwable, Unit> =
@@ -37,15 +37,16 @@ fun Raise<InvalidConfig>.Env(): Env =
 fun Raise<NonEmptyList<String>>.OpenAIConfig(token: String? = null) =
   zipOrAccumulate(
     { token ?: env("OPENAI_TOKEN") },
+    { env("OPENAI_BASE_URI", default = Url("https://api.openai.com/v1/")) { Url(it) } },
     { env("OPENAI_CHUNK_SIZE", default = 1000) { it.toIntOrNull() } },
     { env("OPENAI_BACKOFF", default = 5.seconds) { it.toIntOrNull()?.seconds } },
     { env("OPENAI_MAX_RETRIES", default = 5) { it.toLongOrNull() } },
-  ) { token2, chunkSize, backoff, maxRetries -> OpenAIConfig(token2, chunkSize, RetryConfig(backoff, maxRetries)) }
+  ) { token2, baseUrl, chunkSize, backoff, maxRetries -> OpenAIConfig(token2, baseUrl, chunkSize, RetryConfig(backoff, maxRetries)) }
 
 fun Raise<NonEmptyList<String>>.HuggingFaceConfig(token: String? = null) =
   zipOrAccumulate(
     { token ?: env("HF_TOKEN") },
-    { env("HF_BASE_URI", default = Url("https://api-inference.huggingface.co")) { Url(it) } }
+    { env("HF_BASE_URI", default = Url("https://api-inference.huggingface.co/")) { Url(it) } }
   ) { token2, baseUrl -> HuggingFaceConfig(token2, baseUrl) }
 
 fun Raise<String>.Url(urlString: String): KUrl =
