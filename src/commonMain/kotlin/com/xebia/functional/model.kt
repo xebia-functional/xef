@@ -1,3 +1,3 @@
 package com.xebia.functional
 
- data class Document(val content: String)
+data class Document(val content: String)
