@@ -54,7 +54,10 @@ class PGVectorStore(
 
   suspend fun createCollection(): Unit = dataSource.connection {
     val xa = UUID.generateUUID()
-    update(addNewCollection) { bind(xa.toString()); bind(collectionName) }
+    update(addNewCollection) {
+      bind(xa.toString())
+      bind(collectionName)
+    }
   }
 
   override suspend fun addTexts(texts: List<String>): List<DocumentVectorId> = dataSource.connection {
@@ -76,7 +79,8 @@ class PGVectorStore(
     addTexts(documents.map(Document::content))
 
   override suspend fun similaritySearch(query: String, limit: Int): List<Document> = dataSource.connection {
-    val embeddings = embeddings.embedQuery(query, requestConfig).ifEmpty { throw IllegalStateException("Embedding for text: '$query', has not been properly generated") }
+    val embeddings = embeddings.embedQuery(query, requestConfig)
+      .ifEmpty { throw IllegalStateException("Embedding for text: '$query', has not been properly generated") }
     val collection = getCollection(collectionName)
     queryAsList(searchSimilarDocument(distanceStrategy), {
       bind(collection.uuid.toString())
