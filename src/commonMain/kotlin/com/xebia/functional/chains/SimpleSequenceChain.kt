@@ -2,7 +2,11 @@ package com.xebia.functional.chains
 
 import arrow.core.Either
 import arrow.core.NonEmptyList
-import arrow.core.raise.*
+import arrow.core.raise.Raise
+import arrow.core.raise.either
+import arrow.core.raise.ensure
+import arrow.core.raise.ensureNotNull
+import arrow.core.raise.zipOrAccumulate
 
 fun Raise<Chain.Error>.SimpleSequentialChain(
     chains: List<Chain>, inputKey: String = "input", outputKey: String = "output", returnAll: Boolean = false
