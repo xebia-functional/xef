@@ -50,6 +50,17 @@ class SimpleSequentialChainSpec : StringSpec({
             ssc.run(mapOf("input" to "123")).bind()
         } shouldBeLeft SequenceChain.InvalidKeys("The expected outputs are more than one: {bar}, {foo}")
     }
+
+    "SimpleSequentialChain should fail if multiple input and output variables are expected" {
+        val chain1 = FakeChain(inputVariables = setOf("foo", "bar"), outputVariables = setOf("bar", "foo"))
+        val chain2 = FakeChain(inputVariables = setOf("bar"), outputVariables = setOf("baz"))
+        val chains = listOf(chain1, chain2)
+
+        either {
+            val ssc = SimpleSequentialChain(chains = chains, returnAll = true)
+            ssc.run(mapOf("input" to "123")).bind()
+        } shouldBeLeft SequenceChain.InvalidKeys("The expected inputs are more than one: {foo}, {bar}, The expected outputs are more than one: {bar}, {foo}")
+    }
 })
 
 data class FakeChain(private val inputVariables: Set<String>, private val outputVariables: Set<String>) : Chain {

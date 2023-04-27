@@ -1,11 +1,8 @@
 package com.xebia.functional.chains
 
 import arrow.core.Either
-import arrow.core.mapOrAccumulate
-import arrow.core.raise.Raise
-import arrow.core.raise.either
-import arrow.core.raise.ensure
-import arrow.core.raise.ensureNotNull
+import arrow.core.NonEmptyList
+import arrow.core.raise.*
 
 fun Raise<Chain.Error>.SimpleSequentialChain(
     chains: List<Chain>, inputKey: String = "input", outputKey: String = "output", returnAll: Boolean = false
@@ -34,16 +31,19 @@ class SimpleSequentialChain private constructor(
     companion object {
         fun either(
             chains: List<Chain>, inputKey: String, outputKey: String, returnAll: Boolean
-        ): Either<SequenceChain.InvalidKeys, SimpleSequentialChain> {
-            return chains.mapOrAccumulate { chain ->
-                with(chain.config) {
-                    validateInputKeys(inputKeys)
-                    validateOutputKeys(outputKeys)
+        ): Either<SequenceChain.InvalidKeys, SimpleSequentialChain> =
+            either {
+                chains.map { chain ->
+                    either<NonEmptyList<Chain.Error>, Chain> {
+                        zipOrAccumulate(
+                            { validateInputKeys(chain.config.inputKeys) },
+                            { validateOutputKeys(chain.config.outputKeys) }
+                        ) { _, _ -> chain }
+                    }.bind()
                 }
             }.mapLeft {
                 SequenceChain.InvalidKeys(it.joinToString(transform = Chain.Error::reason))
             }.map { SimpleSequentialChain(chains, inputKey, outputKey, returnAll) }
-        }
     }
 }
 
