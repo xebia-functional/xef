@@ -51,6 +51,8 @@ kotlin {
         implementation(libs.kotlinx.serialization.json)
         implementation(libs.bundles.ktor.client)
         implementation(libs.okio)
+        implementation(libs.uuid)
+        implementation(libs.klogging)
       }
     }
 
@@ -63,9 +65,17 @@ kotlin {
         implementation(libs.kotest.assertions.arrow)
       }
     }
+    val jvmMain by getting {
+      dependencies {
+        implementation(libs.hikari)
+        implementation(libs.postgresql)
+      }
+    }
     val jvmTest by getting {
       dependencies {
         implementation(libs.kotest.junit5)
+        implementation(libs.kotest.testcontainers)
+        implementation(libs.testcontainers.postgresql)
       }
     }
   }
