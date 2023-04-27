@@ -7,8 +7,13 @@ ktor = "2.2.2"
 spotless = "6.18.0"
 okio = "3.3.0"
 kotest = "5.5.4"
+kotest-testcontainers = "1.3.4"
 kotest-arrow = "1.3.0"
-sqldelight="2.0.0-alpha05"
+klogging = "4.0.0-beta-22"
+uuid = "0.0.18"
+postgresql = "42.5.1"
+testcontainers = "1.17.6"
+hikari = "5.0.1"
 
 [libraries]
 arrow-fx = { module = "io.arrow-kt:arrow-fx-coroutines", version.ref = "arrow" }
@@ -24,8 +29,14 @@ kotest-assertions = { module = "io.kotest:kotest-assertions-core", version.ref =
 kotest-framework = { module = "io.kotest:kotest-framework-engine", version.ref = "kotest" }
 kotest-property = { module = "io.kotest:kotest-property", version.ref = "kotest" }
 kotest-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
+kotest-testcontainers = { module = "io.kotest.extensions:kotest-extensions-testcontainers", version.ref = "kotest-testcontainers" }
 kotest-assertions-arrow = { module = "io.kotest.extensions:kotest-assertions-arrow", version.ref = "kotest-arrow" }
-postgres = { module = "app.cash.sqldelight:postgresql-dialect", version.ref="sqldelight" }
+uuid = { module = "app.softwork:kotlinx-uuid-core", version.ref = "uuid" }
+klogging = { module = "io.github.oshai:kotlin-logging", version.ref = "klogging"  }
+
+hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
+postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
+testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
 
 [bundles]
 ktor-client = [
@@ -38,4 +49,3 @@ ktor-client = [
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinx-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
-sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }

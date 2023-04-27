@@ -1,52 +1,51 @@
 package com.xebia.functional.embeddings
 
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.toList
-import mu.KotlinLogging
+import arrow.fx.coroutines.parMap
+import arrow.resilience.retry
+import com.xebia.functional.env.OpenAIConfig
+import com.xebia.functional.llm.openai.EmbeddingRequest
+import com.xebia.functional.llm.openai.OpenAIClient
+import com.xebia.functional.llm.openai.RequestConfig
+import io.github.oshai.KLogger
 import kotlin.time.ExperimentalTime
-import kotlin.time.seconds
 
 @ExperimentalTime
-class OpenAIEmbeddings(private val config: OpenAIConfig, private val oaiClient: OpenAIClient, private val logger: KotlinLogging) : Embeddings {
+class OpenAIEmbeddings(
+  private val config: OpenAIConfig,
+  private val oaiClient: OpenAIClient,
+  private val logger: KLogger
+) : Embeddings {
 
-  override suspend fun embedQuery(text: String, rc: RequestConfig): List<Embedding> {
-    return if (text.isNotEmpty()) embedDocuments(listOf(text), null, rc)
-    else emptyList()
-  }
+  override suspend fun embedDocuments(
+    texts: List<String>,
+    chunkSize: Int?,
+    requestConfig: RequestConfig
+  ): List<Embedding> =
+    chunkedEmbedDocuments(texts, chunkSize ?: config.chunkSize, requestConfig)
 
-  override suspend fun embedDocuments(texts: List<String>, chunkSize: Int?, rc: RequestConfig): List<Embedding> {
-    return chunkedEmbedDocuments(texts, chunkSize ?: config.chunkSize, rc)
-  }
+  override suspend fun embedQuery(text: String, requestConfig: RequestConfig): List<Embedding> =
+    if (text.isNotEmpty()) embedDocuments(listOf(text), null, requestConfig) else emptyList()
 
-  private suspend fun chunkedEmbedDocuments(texts: List<String>, chunkSize: Int, rc: RequestConfig): List<Embedding> {
-    if (texts.isEmpty()) return emptyList()
+  private suspend fun chunkedEmbedDocuments(
+    texts: List<String>,
+    chunkSize: Int,
+    requestConfig: RequestConfig
+  ): List<Embedding> =
+    if (texts.isEmpty()) emptyList()
+    else texts.chunked(chunkSize)
+      .parMap { withRetry(it, requestConfig) }
+      .flatten()
 
-    val batches = texts.chunked(chunkSize)
-    val embeddings = mutableListOf<Embedding>()
-    batches.forEach { batch ->
-      val vectors = embedWithRetry(batch, rc)
-      embeddings.addAll(vectors)
+  private suspend fun withRetry(texts: List<String>, requestConfig: RequestConfig): List<Embedding> =
+    kotlin.runCatching {
+      config.retryConfig.schedule()
+        .log { retriesSoFar, _ -> logger.warn { "Open AI call failed. So far we have retried $retriesSoFar times." } }
+        .retry {
+          oaiClient.createEmbeddings(EmbeddingRequest(requestConfig.model.name, texts, requestConfig.user.id))
+            .data.map { Embedding(it.embedding) }
+        }
+    }.getOrElse {
+      logger.warn { "Open AI call failed. Giving up after ${config.retryConfig.maxRetries} retries" }
+      throw it
     }
-    return embeddings
-  }
-
-  private suspend fun embedWithRetry(texts: List<String>, rc: RequestConfig): List<Embedding> {
-    val result = retryingOnAllErrors(
-      policy = limitRetries(config.maxRetries) + exponentialBackoff(config.backoff),
-      onError = ::logError
-    ) {
-      oaiClient.createEmbeddings(EmbeddingRequest(rc.model.name, texts, rc.user.asString))
-    }
-    return result.data.map { Embedding(it.embedding) }
-  }
-
-  private suspend fun logError(err: Throwable, details: RetryDetails): Unit = when (details) {
-    is WillDelayAndRetry -> {
-      logger.warn { "Open AI call failed. So far we have retried ${details.retriesSoFar} times." }
-    }
-    is GivingUp -> {
-      logger.warn { "Open AI call failed. Giving up after ${details.totalRetries} retries" }
-    }
-  }
 }

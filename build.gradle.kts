@@ -12,18 +12,17 @@ plugins {
   alias(libs.plugins.kotlin.multiplatform)
   alias(libs.plugins.spotless)
   alias(libs.plugins.kotlinx.serialization)
-  alias(libs.plugins.sqldelight)
 }
 
 java {
-  sourceCompatibility = JavaVersion.VERSION_11
-  targetCompatibility = JavaVersion.VERSION_11
+  sourceCompatibility = JavaVersion.VERSION_17
+  targetCompatibility = JavaVersion.VERSION_17
 }
 
 kotlin {
   jvm {
     compilations.all {
-      kotlinOptions.jvmTarget = JavaVersion.VERSION_11.majorVersion
+      kotlinOptions.jvmTarget = JavaVersion.VERSION_17.majorVersion
     }
     withJava()
     testRuns["test"].executionTask.configure {
@@ -52,7 +51,8 @@ kotlin {
         implementation(libs.kotlinx.serialization.json)
         implementation(libs.bundles.ktor.client)
         implementation(libs.okio)
-        implementation("app.softwork:kotlinx-uuid-core:0.0.18")
+        implementation(libs.uuid)
+        implementation(libs.klogging)
       }
     }
 
@@ -65,9 +65,17 @@ kotlin {
         implementation(libs.kotest.assertions.arrow)
       }
     }
+    val jvmMain by getting {
+      dependencies {
+        implementation(libs.hikari)
+        implementation(libs.postgresql)
+      }
+    }
     val jvmTest by getting {
       dependencies {
         implementation(libs.kotest.junit5)
+        implementation(libs.kotest.testcontainers)
+        implementation(libs.testcontainers.postgresql)
       }
     }
   }
@@ -77,14 +85,4 @@ spotless {
   kotlin {
     ktfmt().googleStyle()
   }
-}
-
-sqldelight {
-  databases {
-    create("SqlDelightVectorStore") {
-      packageName.set("com.xebia.functional")
-      dialect(libs.postgres.get())
-    }
-  }
-  linkSqlite.set(false)
 }

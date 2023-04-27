@@ -51,7 +51,7 @@ data class EmbeddingResult(
 )
 
 @Serializable
-class Embedding(val `object`: String, val embedding: List<Double>, val index: Int)
+class Embedding(val `object`: String, val embedding: List<Float>, val index: Int)
 
 @Serializable
 data class Usage(

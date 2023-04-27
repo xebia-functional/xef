@@ -17,11 +17,9 @@ data class Env(val openAI: OpenAIConfig, val huggingFace: HuggingFaceConfig)
 data class OpenAIConfig(val token: String, val chunkSize: Int, val retryConfig: RetryConfig)
 
 data class RetryConfig(val backoff: Duration, val maxRetries: Long) {
-  fun schedule(): Schedule<Throwable, Unit> =
+  fun schedule(): Schedule<Throwable, Long> =
     Schedule.recurs<Throwable>(maxRetries)
-      .and(Schedule.exponential(backoff))
-      .jittered(0.75, 1.25)
-      .map { }
+      .zipLeft(Schedule.exponential<Throwable>(backoff).jittered(0.75, 1.25))
 }
 
 data class HuggingFaceConfig(val token: String, val baseUrl: KUrl)

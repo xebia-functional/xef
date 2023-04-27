@@ -2,9 +2,11 @@ package com.xebia.functional.embeddings
 
 import com.xebia.functional.llm.openai.RequestConfig
 
-data class Embedding(val data: List<Double>)
+data class Embedding(val data: List<Float>)
 
 interface Embeddings {
-  fun embedDocuments(texts: List<String>, chunkSize: Int?, config: RequestConfig): List<Embedding>
-  fun embedQuery(text: String, config: RequestConfig): List<Embedding>
+  suspend fun embedDocuments(texts: List<String>, chunkSize: Int?, requestConfig: RequestConfig): List<Embedding>
+  suspend fun embedQuery(text: String, requestConfig: RequestConfig): List<Embedding>
+
+  companion object
 }

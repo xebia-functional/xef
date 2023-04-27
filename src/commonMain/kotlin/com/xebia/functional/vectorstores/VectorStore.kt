@@ -15,7 +15,7 @@ interface VectorStore {
    * @param texts list of text to add to the vector store
    * @return a list of IDs from adding the texts to the vector store
    */
-  fun addTexts(texts: List<String>): List<DocumentVectorId>
+  suspend fun addTexts(texts: List<String>): List<DocumentVectorId>
 
   /**
    * Add documents to the vector store after running them through the embeddings
@@ -23,7 +23,7 @@ interface VectorStore {
    * @param documents list of Documents to add to the vector store
    * @return a list of IDs from adding the documents to the vector store
    */
-  fun addDocuments(documents: List<Document>): List<DocumentVectorId>
+  suspend fun addDocuments(documents: List<Document>): List<DocumentVectorId>
 
   /**
    * Return the docs most similar to the query
@@ -32,7 +32,7 @@ interface VectorStore {
    * @param limit number of documents to return
    * @return a list of Documents most similar to query
    */
-  fun similaritySearch(query: String, limit: Int): List<Document>
+  suspend fun similaritySearch(query: String, limit: Int): List<Document>
 
   /**
    * Return the docs most similar to the embedding
@@ -41,5 +41,5 @@ interface VectorStore {
    * @param k number of documents to return
    * @return list of Documents most similar to the embedding
    */
-  fun similaritySearchByVector(embedding: Embedding, k: Int): List<Document>
+  suspend fun similaritySearchByVector(embedding: Embedding, limit: Int): List<Document>
 }
