@@ -33,10 +33,10 @@ class OpenAIEmbeddings(
   ): List<Embedding> =
     if (texts.isEmpty()) emptyList()
     else texts.chunked(chunkSize)
-      .parMap { withRetry(it, requestConfig) }
+      .parMap { createEmbeddingWithRetry(it, requestConfig) }
       .flatten()
 
-  private suspend fun withRetry(texts: List<String>, requestConfig: RequestConfig): List<Embedding> =
+  private suspend fun createEmbeddingWithRetry(texts: List<String>, requestConfig: RequestConfig): List<Embedding> =
     kotlin.runCatching {
       config.retryConfig.schedule()
         .log { retriesSoFar, _ -> logger.warn { "Open AI call failed. So far we have retried $retriesSoFar times." } }
