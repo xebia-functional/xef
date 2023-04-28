@@ -1,5 +1,7 @@
 @file:Suppress("DSL_SCOPE_VIOLATION")
 
+import org.jetbrains.dokka.gradle.DokkaTask
+
 group = "com.xebia.functional"
 version = "1.0-SNAPSHOT"
 
@@ -12,6 +14,11 @@ plugins {
   alias(libs.plugins.kotlin.multiplatform)
   alias(libs.plugins.spotless)
   alias(libs.plugins.kotlinx.serialization)
+  alias(libs.plugins.dokka)
+}
+
+allprojects {
+  group = property("projects.group").toString()
 }
 
 java {
@@ -84,5 +91,27 @@ kotlin {
 spotless {
   kotlin {
     ktfmt().googleStyle()
+  }
+}
+
+tasks.withType<DokkaTask>().configureEach {
+  kotlin.sourceSets.forEach { kotlinSourceSet ->
+    dokkaSourceSets.named(kotlinSourceSet.name) {
+      perPackageOption {
+        matchingRegex.set(".*\\.internal.*")
+        suppress.set(true)
+      }
+      skipDeprecated.set(true)
+      reportUndocumented.set(false)
+      val baseUrl: String = checkNotNull(properties["pom.smc.url"]?.toString())
+
+      kotlinSourceSet.kotlin.srcDirs.filter { it.exists() }.forEach { srcDir ->
+        sourceLink {
+          localDirectory.set(srcDir)
+          remoteUrl.set(uri("$baseUrl/blob/main/${srcDir.relativeTo(rootProject.rootDir)}").toURL())
+          remoteLineSuffix.set("#L")
+        }
+      }
+    }
   }
 }
