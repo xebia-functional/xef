@@ -9,10 +9,13 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.request.post
+import io.ktor.client.statement.*
 import io.ktor.http.path
+import kotlinx.serialization.json.Json
 
 interface OpenAIClient {
   suspend fun createCompletion(request: CompletionRequest): List<CompletionChoice>
+  suspend fun createChatCompletion(request: ChatCompletionRequest): ChatCompletionResponse
   suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult
 }
 
@@ -30,6 +33,16 @@ private class KtorOpenAIClient(
     val response = config.retryConfig.schedule().retry {
       httpClient.post {
         url { path("completions") }
+        configure(config.token, request)
+      }
+    }
+    return response.body()
+  }
+
+  override suspend fun createChatCompletion(request: ChatCompletionRequest): ChatCompletionResponse {
+    val response = config.retryConfig.schedule().retry {
+      httpClient.post {
+        url { path("chat/completions") }
         configure(config.token, request)
       }
     }

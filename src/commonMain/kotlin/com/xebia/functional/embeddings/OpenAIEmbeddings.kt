@@ -39,9 +39,13 @@ class OpenAIEmbeddings(
   private suspend fun createEmbeddingWithRetry(texts: List<String>, requestConfig: RequestConfig): List<Embedding> =
     kotlin.runCatching {
       config.retryConfig.schedule()
-        .log { retriesSoFar, _ -> logger.warn { "Open AI call failed. So far we have retried $retriesSoFar times." } }
+        .log { error, retriesSoFar ->
+          error.printStackTrace()
+          println("Open AI call failed. So far we have retried $retriesSoFar times.")
+          logger.warn { "Open AI call failed. So far we have retried $retriesSoFar times." }
+        }
         .retry {
-          oaiClient.createEmbeddings(EmbeddingRequest(requestConfig.model.name, texts, requestConfig.user.id))
+          oaiClient.createEmbeddings(EmbeddingRequest(requestConfig.model.modelName, texts, requestConfig.user.id))
             .data.map { Embedding(it.embedding) }
         }
     }.getOrElse {
