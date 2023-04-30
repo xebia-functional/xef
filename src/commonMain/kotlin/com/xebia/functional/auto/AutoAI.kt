@@ -59,15 +59,16 @@ class AutoAI(
     firstMessage?.split("\n") ?: listOf(firstMessage ?: "")
 
   private suspend fun prioritizationAgent() {
-    val taskIds = tasksStorage.getTasksIds()
+    val tasks = tasksStorage.getTasks().joinToString("\n") { "${it.id.id}. ${it.objective.value}" }
     val nextTaskId = tasksStorage.nextTaskId()
     val prompt = """
-            You are a task prioritization AI tasked with cleaning the formatting of and re-prioritizing the following tasks: $taskIds.
-            Consider the ultimate objective of your team: ${objective.value}.
-            Do not remove any tasks. Return the result as a numbered list, like:
-            #. First task
-            #. Second task
-            Start the task list with number $nextTaskId.""".trimIndent()
+            |You are a task prioritization AI tasked with cleaning the formatting of and re-prioritizing the following tasks:
+            |$tasks
+            |Consider the ultimate objective of your team: ${objective.value}.
+            |Do not remove any tasks. Return the result as a numbered list, like:
+            |#. First task
+            |#. Second task
+            |Start the task list with number $nextTaskId.""".trimMargin()
     val response = chatCompletionResponse(prompt)
     val firstMessage = getFirstMessage(response)
     val newTasks = messageToTaskAsStrings(firstMessage)
