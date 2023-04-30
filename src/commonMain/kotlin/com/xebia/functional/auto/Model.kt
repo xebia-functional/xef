@@ -6,7 +6,6 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.jvm.JvmInline
 
-
 @JvmInline
 @Serializable
 value class Objective(val value: String)

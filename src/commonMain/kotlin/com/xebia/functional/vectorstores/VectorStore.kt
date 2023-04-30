@@ -5,7 +5,6 @@ import com.xebia.functional.embeddings.Embedding
 import kotlinx.uuid.UUID
 import kotlin.jvm.JvmInline
 
-
 @JvmInline
 value class DocumentVectorId(val id: UUID)
 
@@ -44,5 +43,3 @@ interface VectorStore {
    */
   suspend fun similaritySearchByVector(embedding: Embedding, limit: Int): List<Document>
 }
-
-

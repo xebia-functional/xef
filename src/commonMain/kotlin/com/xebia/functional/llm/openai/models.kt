@@ -33,10 +33,10 @@ data class CompletionRequest(
   val logprobs: Int? = null,
   val echo: Boolean? = null,
   val stop: List<String>? = null,
-  @SerialName("presence_penalty") val presencePenalty: Double? = 0.0,
-  @SerialName("frequency_penalty") val frequencyPenalty: Double? = 0.0,
-  @SerialName("best_of") val bestOf: Int? = 1,
-  @SerialName("logit_bias") val logitBias: Map<String, Int>? = emptyMap(),
+  @SerialName("presence_penalty") val presencePenalty: Double = 0.0,
+  @SerialName("frequency_penalty") val frequencyPenalty: Double = 0.0,
+  @SerialName("best_of") val bestOf: Int = 1,
+  @SerialName("logit_bias") val logitBias: Map<String, Int> = emptyMap(),
 )
 
 @Serializable
@@ -74,7 +74,7 @@ data class Choice(
 
 
 enum class Role {
-    system, user, assistant
+  system, user, assistant
 }
 
 @Serializable

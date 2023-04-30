@@ -69,6 +69,7 @@ kotlin {
       dependencies {
         implementation(libs.hikari)
         implementation(libs.postgresql)
+        implementation(libs.ktor.client.cio)
       }
     }
     val jvmTest by getting {
@@ -76,6 +77,16 @@ kotlin {
         implementation(libs.kotest.junit5)
         implementation(libs.kotest.testcontainers)
         implementation(libs.testcontainers.postgresql)
+      }
+    }
+    val jsMain by getting {
+      dependencies {
+        implementation(libs.ktor.client.js)
+      }
+    }
+    val nativeMain by getting {
+      dependencies {
+        implementation(libs.ktor.client.cio)
       }
     }
   }
