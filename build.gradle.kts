@@ -44,15 +44,9 @@ kotlin {
     browser()
     nodejs()
   }
-  val hostOs = System.getProperty("os.name")
-  val isMingwX64 = hostOs.startsWith("Windows")
-  when {
-    hostOs == "Mac OS X" -> macosX64("native")
-    hostOs == "Linux" -> linuxX64("native")
-    isMingwX64 -> mingwX64("native")
-    else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
-  }
-
+  linuxX64()
+  macosX64()
+  mingwX64()
 
   sourceSets {
     commonMain {
@@ -88,6 +82,28 @@ kotlin {
         implementation(libs.kotest.testcontainers)
         implementation(libs.testcontainers.postgresql)
       }
+    }
+
+    val commonMain by getting
+    val linuxX64Main by getting
+    val macosX64Main by getting
+    val mingwX64Main by getting
+    create("nativeMain") {
+      dependsOn(commonMain)
+      linuxX64Main.dependsOn(this)
+      macosX64Main.dependsOn(this)
+      mingwX64Main.dependsOn(this)
+    }
+
+    val commonTest by getting
+    val linuxX64Test by getting
+    val macosX64Test by getting
+    val mingwX64Test by getting
+    create("nativeTest") {
+      dependsOn(commonTest)
+      linuxX64Test.dependsOn(this)
+      macosX64Test.dependsOn(this)
+      mingwX64Test.dependsOn(this)
     }
   }
 }
