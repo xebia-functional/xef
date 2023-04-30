@@ -13,6 +13,9 @@ import com.xebia.functional.llm.openai.OpenAIClient
 import com.xebia.functional.llm.openai.Role
 import com.xebia.functional.vectorstores.VectorStore
 
+private const val COMPLETED = "%COMPLETED%"
+private const val FAILED = "%FAILED%"
+
 class AutoAI(
   private val model: LLM,
   private val user: User,
@@ -49,8 +52,8 @@ class AutoAI(
     }
   }
 
-  private fun List<Task>.print(): String =
-    joinToString("; ") { "${it.id.id}. ${it.objective.value} -> result: ${it.result}" }
+  private fun List<TaskWithResult>.print(): String =
+    joinToString("; ") { "${it.task.id.id}. ${it.task.objective.value} -> result: ${it.result.value}" }
 
   /**
    * The execution agent is the AI that performs the task
@@ -62,7 +65,7 @@ class AutoAI(
       |Task: $task
       """.trimMargin()
     }
-    val context = vectorStore.similaritySearch(objective.value, 5).map { Task.fromJson(it.content) }
+    val context = vectorStore.similaritySearch(objective.value, 5).map { TaskWithResult.fromJson(it.content) }
     val prompt = """
             |You are an AI who performs one task based on the following objective: 
             |${objective.value}
@@ -94,12 +97,12 @@ class AutoAI(
 
   tailrec suspend operator fun invoke(objective: Objective, tasks: NonEmptyList<Task>): TaskResult? {
     logger.debug { tasks.joinToString(separator = "\n") { "${it.id.id}. ${it.objective.value}" } }
-    val (resultMessage, task, taskResult) = executeAndStoreTask(objective, tasks.head)
-    return if (taskHasCompleted(resultMessage)) taskResult
+    val (resultMessage, task) = executeAndStoreTask(objective, tasks.head)
+    return if (taskHasCompleted(resultMessage)) task.result
     // Otherwise, send the result to the task creation agent to create new tasks
     else when (val newPrompts = getNewTasksOrComplete(objective, tasks.tail, task)) {
       // If the task creation agent determines the objective has been completed, return the results
-      is Either.Left -> taskResult
+      is Either.Left -> task.result
       // Otherwise, add the new tasks to the storage and send to the prioritization agent
       is Either.Right -> {
         var taskCounter = tasks.last().id.id
@@ -111,17 +114,18 @@ class AutoAI(
   }
 
   /**
-   * If the task has been completed, return the results. Otherwise, send the result to the task creation agent to create new tasks
+   * If the task has been completed, return the results.
+   * Otherwise, send the result to the task creation agent to create new tasks
    */
   private suspend fun getNewTasksOrComplete(
     objective: Objective,
     tasks: List<Task>,
-    taskWithResult: Task
+    taskWithResult: TaskWithResult
   ): Either<TaskCompleted, List<String>> = either {
     val prompt = """
             You are a task creation AI that uses the result of an execution agent to create new tasks with the following objective: ${objective.value},
-            The last completed task has the result: ${taskWithResult.result}.
-            This result was based on this task description: ${taskWithResult.objective.value}.
+            The last completed task has the result: ${taskWithResult.result.value}.
+            This result was based on this task description: ${taskWithResult.task.objective}.
             These are incomplete tasks:
             ${tasks.joinToString(separator = "\n")}.
             Based on the result, create new tasks to be completed by the AI system that do not overlap with incomplete tasks.
@@ -133,22 +137,18 @@ class AutoAI(
     messageToTaskAsStrings(resultMessage)
   }
 
-  /**
-   * Check if the task has been completed
-   */
+  /** Check if the task has been completed */
   private fun taskHasCompleted(result: String?): Boolean =
     result?.endsWith(COMPLETED) == true
 
-  /**
-   * Execute the task and store the result
-   */
-  private suspend fun executeAndStoreTask(objective: Objective, task: Task): Triple<String, Task, TaskResult> {
+  /** Execute the task and store the result */
+  private suspend fun executeAndStoreTask(objective: Objective, task: Task): Pair<String, TaskWithResult> {
     val result = executionAgent(objective = objective, task = task)
     val firstMessage = requireNotNull(getFirstMessage(result)) { "No message returned" }
     val cleanedMessage = cleanResultMessage(firstMessage)
-    val taskWithResult = task.copy(result = cleanedMessage, resultId = TaskId(task.id.id))
-    vectorStore.addText(task.toJson())
-    return Triple(firstMessage, taskWithResult, TaskResult(cleanedMessage))
+    val taskWithResult = TaskWithResult(task, TaskResult(cleanedMessage))
+    vectorStore.addText(taskWithResult.toJson())
+    return Pair(firstMessage, taskWithResult)
   }
 
   private fun getFirstMessage(response: ChatCompletionResponse): String? =
@@ -159,8 +159,4 @@ class AutoAI(
     .replace(COMPLETED, "")
     .replace(FAILED, "")
     .trim()
-
-  private val COMPLETED = "%COMPLETED%"
-  private val FAILED = "%FAILED%"
 }
-
