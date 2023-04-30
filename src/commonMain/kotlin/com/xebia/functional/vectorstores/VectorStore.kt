@@ -17,6 +17,9 @@ interface VectorStore {
    */
   suspend fun addTexts(texts: List<String>): List<DocumentVectorId>
 
+  suspend fun addText(texts: String): List<DocumentVectorId> =
+    addTexts(listOf(texts))
+
   /**
    * Add documents to the vector store after running them through the embeddings
    *

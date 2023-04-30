@@ -1,16 +1,15 @@
 package com.xebia.functional.auto
 
-import arrow.core.Either
-import arrow.core.NonEmptyList
 import arrow.core.getOrElse
 import arrow.core.raise.catch
 import arrow.core.raise.either
-import arrow.fx.coroutines.continuations.ResourceScope
 import arrow.fx.coroutines.resourceScope
 import com.xebia.functional.embeddings.OpenAIEmbeddings
 import com.xebia.functional.env.OpenAIConfig
 import com.xebia.functional.llm.openai.KtorOpenAIClient
+import com.xebia.functional.llm.openai.OpenAIClient
 import com.xebia.functional.vectorstores.LocalVectorStore
+import com.xebia.functional.vectorstores.VectorStore
 import io.github.oshai.KotlinLogging
 import io.ktor.client.engine.HttpClientEngine
 import kotlinx.serialization.DeserializationStrategy
@@ -21,15 +20,30 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.serializer
 import kotlin.time.ExperimentalTime
 
-private val logger = KotlinLogging.logger("AutoAI")
+@PublishedApi
+internal val logger = KotlinLogging.logger("AutoAI")
 
+val json = Json {
+  ignoreUnknownKeys = true
+  isLenient = true
+}
+
+@OptIn(ExperimentalTime::class)
 suspend inline fun <reified A> ai(
   prompt: String,
   engine: HttpClientEngine? = null,
 ): A {
   val descriptor = serialDescriptor<A>()
   val jsonSchema = buildJsonSchema(descriptor)
-  return ai(prompt, descriptor, serializer(), jsonSchema, engine)
+  return resourceScope {
+    either {
+      val openAIConfig = OpenAIConfig()
+      val openAiClient = KtorOpenAIClient(openAIConfig, engine)
+      val embeddings = OpenAIEmbeddings(openAIConfig, openAiClient, logger)
+      val vectorStore = LocalVectorStore(embeddings)
+      ai(prompt, descriptor, serializer<A>(), jsonSchema, openAiClient, vectorStore)
+    }.getOrElse { throw IllegalStateException(it.joinToString()) }
+  }
 }
 
 suspend fun <A> ai(
@@ -37,8 +51,9 @@ suspend fun <A> ai(
   descriptor: SerialDescriptor,
   deserializationStrategy: DeserializationStrategy<A>,
   jsonSchema: JsonObject,
-  engine: HttpClientEngine? = null,
-): A = resourceScope {
+  openAIClient: OpenAIClient,
+  vectorStore: VectorStore
+): A {
   val augmentedPrompt = """
                 |Objective: $prompt
                 |Instructions: Use the following JSON schema to produce the result on json format
@@ -46,50 +61,17 @@ suspend fun <A> ai(
                 |If you complete the objective return exactly the JSON response finished by the delimiter %COMPLETED%
                 |If you can't complete the tasks do not return the JSON but instead information with the delimiter %FAILED%
             """.trimMargin()
-  either {
-    val ai = autoAI(augmentedPrompt, engine).bind()
-    val result = ai()
-    handleResultAndJson(result, prompt, descriptor, deserializationStrategy, jsonSchema)
-  }.getOrElse { throw IllegalStateException(it.joinToString()) }
-}
-
-@OptIn(ExperimentalTime::class)
-suspend fun ResourceScope.autoAI(
-  augmentedPrompt: String,
-  engine: HttpClientEngine? = null,
-): Either<NonEmptyList<String>, AutoAI> =
-  either {
-    val openAIConfig = OpenAIConfig()
-    val openAiClient = KtorOpenAIClient(openAIConfig, engine)
-    val embeddings = OpenAIEmbeddings(
-      openAIConfig,
-      openAiClient,
-      logger
-    )
-    val vectorStore = LocalVectorStore(embeddings)
-    val ai = AutoAI(
-      LLM("gpt-3.5-turbo"),
-      User("AI_Value_Generator"),
-      openAiClient,
-      Objective(augmentedPrompt),
-      vectorStore
-    )
-    ai
-  }
-
-private suspend fun <A> handleResultAndJson(
-  result: List<Task>,
-  prompt: String,
-  descriptor: SerialDescriptor,
-  deserializationStrategy: DeserializationStrategy<A>,
-  jsonSchema: JsonObject
-): A {
-  val res = result.firstOrNull()?.result
-  require(res != null) { "No result found" }
-  return catch({ Json.decodeFromString(deserializationStrategy, res) }) { e ->
-    val augmentedPrompt = """
+  val result = AutoAI(
+    LLM("gpt-3.5-turbo"),
+    User("AI_Value_Generator"),
+    openAIClient,
+    vectorStore
+  ).invoke(Objective(augmentedPrompt))
+  require(result != null) { "No result found" }
+  return catch({ json.decodeFromString(deserializationStrategy, result.value) }) { e ->
+    val fixJsonPrompt = """
                     |RESULT: 
-                    |$res
+                    |$result
                     |Exception: 
                     |${e.message}
                     |${e.printStackTrace()}
@@ -100,7 +82,7 @@ private suspend fun <A> handleResultAndJson(
                     |If you can't complete the tasks do not return the JSON but instead information with the delimiter %FAILED%
                     """.trimMargin()
     logger.debug { "Attempting to Fix JSON due to error: ${e.message}" }
-    ai(augmentedPrompt, descriptor, deserializationStrategy, jsonSchema)
+    ai(fixJsonPrompt, descriptor, deserializationStrategy, jsonSchema, openAIClient, vectorStore)
       .also { logger.debug { "Fixed JSON: $it" } }
   }
 }

@@ -27,11 +27,14 @@ data class Task(
     val resultId: TaskId? = null,
     val result: String? = null,
 ) {
-    companion object {
-        fun toJson(task: Task): String =
-            Json.encodeToString(task)
+    fun toJson(): String =
+        Json.encodeToString(this)
 
+    companion object {
         fun fromJson(json: String): Task =
             Json.decodeFromString(json)
     }
 }
+
+@JvmInline
+value class TaskResult(val value: String)

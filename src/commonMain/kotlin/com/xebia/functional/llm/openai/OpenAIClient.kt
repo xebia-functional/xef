@@ -2,6 +2,7 @@ package com.xebia.functional.llm.openai
 
 import arrow.fx.coroutines.ResourceScope
 import arrow.resilience.retry
+import com.xebia.functional.auto.logger
 import com.xebia.functional.configure
 import com.xebia.functional.env.OpenAIConfig
 import com.xebia.functional.httpClient
@@ -9,6 +10,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.request.post
+import io.ktor.client.statement.HttpResponse
 import io.ktor.http.path
 
 interface OpenAIClient {
@@ -48,7 +50,7 @@ private class KtorOpenAIClient(
   }
 
   override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult {
-    val response = config.retryConfig.schedule().retry {
+    val response: HttpResponse = config.retryConfig.schedule().retry {
       httpClient.post {
         url { path("embeddings") }
         configure(config.token, request)
