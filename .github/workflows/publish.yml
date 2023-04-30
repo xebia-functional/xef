@@ -22,7 +22,7 @@ env:
 jobs:
   publish:
     timeout-minutes: 30
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
         with:
