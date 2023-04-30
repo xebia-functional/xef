@@ -1,5 +1,6 @@
 [versions]
 arrow = "1.2.0-RC"
+arrowGradle = "0.11.0-alpha.1"
 kotlin = "1.8.20"
 openai = "0.12.0"
 kotlinx-json = "1.5.0"
@@ -14,6 +15,7 @@ uuid = "0.0.18"
 postgresql = "42.5.1"
 testcontainers = "1.17.6"
 hikari = "5.0.1"
+dokka = "1.8.10"
 
 [libraries]
 arrow-fx = { module = "io.arrow-kt:arrow-fx-coroutines", version.ref = "arrow" }
@@ -48,3 +50,6 @@ ktor-client = [
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinx-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+arrow-gradle-nexus = { id = "io.arrow-kt.arrow-gradle-config-nexus", version.ref = "arrowGradle" }
+arrow-gradle-publish = { id = "io.arrow-kt.arrow-gradle-config-publish", version.ref = "arrowGradle" }
