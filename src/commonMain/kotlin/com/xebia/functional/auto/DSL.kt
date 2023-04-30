@@ -12,7 +12,7 @@ import com.xebia.functional.env.OpenAIConfig
 import com.xebia.functional.llm.openai.KtorOpenAIClient
 import com.xebia.functional.vectorstores.LocalVectorStore
 import io.github.oshai.KotlinLogging
-import io.ktor.client.HttpClient
+import io.ktor.client.engine.HttpClientEngine
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.serialDescriptor
@@ -21,17 +21,23 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.serializer
 import kotlin.time.ExperimentalTime
 
-suspend inline fun <reified A> ai(prompt: String): A {
+private val logger = KotlinLogging.logger("AutoAI")
+
+suspend inline fun <reified A> ai(
+  prompt: String,
+  engine: HttpClientEngine? = null,
+): A {
   val descriptor = serialDescriptor<A>()
   val jsonSchema = buildJsonSchema(descriptor)
-  return ai(prompt, descriptor, serializer(), jsonSchema)
+  return ai(prompt, descriptor, serializer(), jsonSchema, engine)
 }
 
 suspend fun <A> ai(
   prompt: String,
   descriptor: SerialDescriptor,
   deserializationStrategy: DeserializationStrategy<A>,
-  jsonSchema: JsonObject
+  jsonSchema: JsonObject,
+  engine: HttpClientEngine? = null,
 ): A = resourceScope {
   val augmentedPrompt = """
                 |Objective: $prompt
@@ -41,22 +47,20 @@ suspend fun <A> ai(
                 |If you can't complete the tasks do not return the JSON but instead information with the delimiter %FAILED%
             """.trimMargin()
   either {
-    val ai = autoAI(augmentedPrompt).bind()
+    val ai = autoAI(augmentedPrompt, engine).bind()
     val result = ai()
     handleResultAndJson(result, prompt, descriptor, deserializationStrategy, jsonSchema)
   }.getOrElse { throw IllegalStateException(it.joinToString()) }
 }
 
 @OptIn(ExperimentalTime::class)
-suspend fun ResourceScope.autoAI(augmentedPrompt: String): Either<NonEmptyList<String>, AutoAI> =
+suspend fun ResourceScope.autoAI(
+  augmentedPrompt: String,
+  engine: HttpClientEngine? = null,
+): Either<NonEmptyList<String>, AutoAI> =
   either {
     val openAIConfig = OpenAIConfig()
-    val client = HttpClient()
-    val openAiClient = KtorOpenAIClient(
-      engine = client.engine,
-      config = openAIConfig,
-    )
-    val logger = KotlinLogging.logger("Main")
+    val openAiClient = KtorOpenAIClient(openAIConfig, engine)
     val embeddings = OpenAIEmbeddings(
       openAIConfig,
       openAiClient,
@@ -95,9 +99,8 @@ private suspend fun <A> handleResultAndJson(
                     |If you complete the objective return exactly the JSON response finished by the delimiter %COMPLETED%
                     |If you can't complete the tasks do not return the JSON but instead information with the delimiter %FAILED%
                     """.trimMargin()
-    println("Attempting to Fix JSON due to error: ${e.message}")
-    ai(augmentedPrompt, descriptor, deserializationStrategy, jsonSchema).also {
-      println("Fixed JSON: $it")
-    }
+    logger.debug { "Attempting to Fix JSON due to error: ${e.message}" }
+    ai(augmentedPrompt, descriptor, deserializationStrategy, jsonSchema)
+      .also { logger.debug { "Fixed JSON: $it" } }
   }
 }

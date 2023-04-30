@@ -9,9 +9,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.request.post
-import io.ktor.client.statement.*
 import io.ktor.http.path
-import kotlinx.serialization.json.Json
 
 interface OpenAIClient {
   suspend fun createCompletion(request: CompletionRequest): List<CompletionChoice>
@@ -20,8 +18,8 @@ interface OpenAIClient {
 }
 
 suspend fun ResourceScope.KtorOpenAIClient(
-  engine: HttpClientEngine,
-  config: OpenAIConfig
+  config: OpenAIConfig,
+  engine: HttpClientEngine? = null
 ): OpenAIClient = KtorOpenAIClient(httpClient(engine, config.baseUrl), config)
 
 private class KtorOpenAIClient(

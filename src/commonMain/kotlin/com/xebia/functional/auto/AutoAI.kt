@@ -215,9 +215,7 @@ class AutoAI(
   private fun getFirstMessage(response: ChatCompletionResponse): String? =
     response.choices.firstOrNull()?.message?.content
 
-  /**
-   * Clean the result message
-   */
+  /** Clean the result message */
   private fun cleanResultMessage(firstMessage: String): String = firstMessage
     .replace(COMPLETED, "")
     .replace(FAILED, "")
