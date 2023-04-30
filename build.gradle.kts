@@ -2,7 +2,6 @@
 
 import org.jetbrains.dokka.gradle.DokkaTask
 
-group = "com.xebia.functional"
 version = "1.0-SNAPSHOT"
 
 repositories {
@@ -20,7 +19,7 @@ plugins {
 }
 
 allprojects {
-  group = property("projects.group").toString()
+  group = property("project.group").toString()
 }
 
 java {
