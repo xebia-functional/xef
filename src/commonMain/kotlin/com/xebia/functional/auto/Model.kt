@@ -21,17 +21,18 @@ value class TaskId(val id: Int)
 value class User(val name: String)
 
 @Serializable
-data class Task(
-    val id: TaskId,
-    val objective: Objective,
-    val resultId: TaskId? = null,
-    val result: String? = null,
-) {
-    companion object {
-        fun toJson(task: Task): String =
-            Json.encodeToString(task)
+data class Task(val id: TaskId, val objective: Objective)
 
-        fun fromJson(json: String): Task =
-            Json.decodeFromString(json)
-    }
+@Serializable
+data class TaskWithResult(val task: Task, val result: TaskResult) {
+  fun toJson(): String = Json.encodeToString(this)
+
+  companion object {
+    fun fromJson(json: String): TaskWithResult =
+      Json.decodeFromString(json)
+  }
 }
+
+@JvmInline
+@Serializable
+value class TaskResult(val value: String)

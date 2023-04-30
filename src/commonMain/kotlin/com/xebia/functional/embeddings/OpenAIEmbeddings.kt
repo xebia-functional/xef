@@ -41,7 +41,6 @@ class OpenAIEmbeddings(
       config.retryConfig.schedule()
         .log { error, retriesSoFar ->
           error.printStackTrace()
-          println("Open AI call failed. So far we have retried $retriesSoFar times.")
           logger.warn { "Open AI call failed. So far we have retried $retriesSoFar times." }
         }
         .retry {

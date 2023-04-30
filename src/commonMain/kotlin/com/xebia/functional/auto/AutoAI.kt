@@ -1,9 +1,11 @@
 package com.xebia.functional.auto
 
 import arrow.core.Either
-import arrow.core.raise.Raise
+import arrow.core.NonEmptyList
+import arrow.core.nonEmptyListOf
 import arrow.core.raise.either
 import arrow.core.raise.ensure
+import arrow.core.toNonEmptyListOrNull
 import com.xebia.functional.llm.openai.ChatCompletionRequest
 import com.xebia.functional.llm.openai.ChatCompletionResponse
 import com.xebia.functional.llm.openai.Message
@@ -11,88 +13,59 @@ import com.xebia.functional.llm.openai.OpenAIClient
 import com.xebia.functional.llm.openai.Role
 import com.xebia.functional.vectorstores.VectorStore
 
+private const val COMPLETED = "%COMPLETED%"
+private const val FAILED = "%FAILED%"
+
 class AutoAI(
   private val model: LLM,
   private val user: User,
   private val openAIClient: OpenAIClient,
-  private val objective: Objective,
-  private val vectorStore: VectorStore,
-  private val resultsStorage: DefaultResultsStorage = DefaultResultsStorage(vectorStore),
-  private val tasksStorage: SingleTaskListStorage = SingleTaskListStorage()
+  private val vectorStore: VectorStore
 ) {
-
-  init {
-    setupInitialTask()
-  }
-
-  private fun setupInitialTask() {
-    val initialTask = Task(
-      id = TaskId(tasksStorage.nextTaskId()),
-      objective = objective
-    )
-    tasksStorage.append(initialTask)
-  }
 
   private object TaskCompleted
 
-  private suspend fun Raise<TaskCompleted>.taskCreationAgent(
-    objective: Objective,
-    result: String,
-    taskDescription: String,
-    taskList: List<TaskId>
-  ): List<String> {
-    val ids = taskList.joinToString(", ") { it.id.toString() }
-    val prompt = """
-            You are a task creation AI that uses the result of an execution agent to create new tasks with the following objective: ${objective.value},
-            The last completed task has the result: $result.
-            This result was based on this task description: $taskDescription. These are incomplete tasks: $ids.
-            Based on the result, create new tasks to be completed by the AI system that do not overlap with incomplete tasks.
-            Return the tasks as an array.
-            IMPORTANT!!! : If there are no new tasks to complete and you determine the original objective:[${objective.value}] has been accomplished simply return:$COMPLETED""".trimIndent()
-    val response = chatCompletionResponse(prompt)
-    val resultMessage = getFirstMessage(response)
-    ensure(!taskHasCompleted(resultMessage)) { TaskCompleted }
-    return messageToTaskAsStrings(resultMessage)
-  }
-
   private fun messageToTaskAsStrings(firstMessage: String?): List<String> =
-    firstMessage?.split("\n") ?: listOf(firstMessage ?: "")
+    firstMessage?.split("\n") ?: emptyList()
 
-  private suspend fun prioritizationAgent() {
-    val tasks = tasksStorage.getTasks().joinToString("\n") { "${it.id.id}. ${it.objective.value}" }
-    val nextTaskId = tasksStorage.nextTaskId()
+  private suspend fun prioritizationAgent(objective: Objective, tasks: List<Task>): List<Task> {
+    val tasksString = tasks.joinToString("\n") { "${it.id.id}. ${it.objective.value}" }
     val prompt = """
             |You are a task prioritization AI tasked with cleaning the formatting of and re-prioritizing the following tasks:
-            |$tasks
+            |$tasksString
             |Consider the ultimate objective of your team: ${objective.value}.
             |Do not remove any tasks. Return the result as a numbered list, like:
             |#. First task
-            |#. Second task
-            |Start the task list with number $nextTaskId.""".trimMargin()
+            |#. Second task""".trimMargin()
+
     val response = chatCompletionResponse(prompt)
     val firstMessage = getFirstMessage(response)
     val newTasks = messageToTaskAsStrings(firstMessage)
-    val newTasksList = mutableListOf<Task>()
 
-    for (taskString in newTasks) {
-      val taskParts = taskString.trim().split(".", limit = 2)
+    return newTasks.mapNotNull {
+      val taskParts = it.trim().split(".", limit = 2)
       if (taskParts.size == 2) {
         val taskId = taskParts[0].trim()
         val taskName = taskParts[1].trim()
-        newTasksList.add(Task(TaskId(taskId.toInt()), Objective(taskName)))
-      }
+        Task(TaskId(taskId.toInt()), Objective(taskName))
+      } else null
     }
-    tasksStorage.replace(newTasksList)
   }
 
-  private fun List<Task>.print(): String =
-    joinToString("; ") { "${it.id.id}. ${it.objective.value} -> result: ${it.result}" }
+  private fun List<TaskWithResult>.print(): String =
+    joinToString("; ") { "${it.task.id.id}. ${it.task.objective.value} -> result: ${it.result.value}" }
 
   /**
    * The execution agent is the AI that performs the task
    */
   private suspend fun executionAgent(objective: Objective, task: Task): ChatCompletionResponse {
-    val context = contextAgent(query = objective, topResultsNum = 5)
+    logger.debug {
+      """
+      |Objective: ${objective.value}
+      |Task: $task
+      """.trimMargin()
+    }
+    val context = vectorStore.similaritySearch(objective.value, 5).map { TaskWithResult.fromJson(it.content) }
     val prompt = """
             |You are an AI who performs one task based on the following objective: 
             |${objective.value}
@@ -112,104 +85,69 @@ class AutoAI(
    */
   private suspend fun chatCompletionResponse(prompt: String): ChatCompletionResponse {
     val completionRequest = ChatCompletionRequest(
-      model = model.value, listOf(
-        Message(Role.system.name, prompt, user.name)
-      ), user = user.name
+      model = model.value,
+      messages = listOf(Message(Role.system.name, prompt, user.name)),
+      user = user.name
     )
     return openAIClient.createChatCompletion(completionRequest)
   }
 
-  /**
-   * Print the current tasks
-   */
-  private fun printCurrentTasks() {
-    val allTasks = tasksStorage.getTasks().joinToString(separator = "\n") { "${it.id.id}. ${it.objective.value}" }
-    println(allTasks)
-  }
+  suspend operator fun invoke(objective: Objective): TaskResult? =
+    invoke(objective, nonEmptyListOf(Task(TaskId(1), objective)))
 
-  /**
-   * Get tasks from the result storage providing context
-   * to the execution agent
-   */
-  private suspend fun contextAgent(query: Objective, topResultsNum: Int): List<Task> =
-    resultsStorage.query(query, topResultsNum)
-
-  /**
-   * Execute the task through the AI and return the result
-   */
-  suspend operator fun invoke(): List<Task> {
-    while (true) {
-      // As long as there are tasks in the storage...
-      if (!tasksStorage.isEmpty()) {
-        // Print the task list
-        printCurrentTasks()
-        // Pull the first incomplete task
-        val task = tasksStorage.popleft()
-        // Send to execution function to complete the task based on the context
-        val (resultMessage, taskWithResult) = executeAndStoreTask(task)
-        // If the task has been completed, return the results
-        if (taskHasCompleted(resultMessage)) {
-          return resultsStorage.query(objective, Int.MAX_VALUE)
-        }
-        // Otherwise, send the result to the task creation agent to create new tasks
-        when (val newTasks = getNewTasksOrComplete(resultMessage, taskWithResult)) {
-          // If the task creation agent determines the objective has been completed, return the results
-          is Either.Left -> {
-            return resultsStorage.query(objective, Int.MAX_VALUE)
-          }
-          // Otherwise, add the new tasks to the storage and send to the prioritization agent
-          is Either.Right -> {
-            addTasksToStorage(newTasks.value)
-            prioritizationAgent()
-          }
-        }
+  tailrec suspend operator fun invoke(objective: Objective, tasks: NonEmptyList<Task>): TaskResult? {
+    logger.debug { tasks.joinToString(separator = "\n") { "${it.id.id}. ${it.objective.value}" } }
+    val (resultMessage, task) = executeAndStoreTask(objective, tasks.head)
+    return if (taskHasCompleted(resultMessage)) task.result
+    // Otherwise, send the result to the task creation agent to create new tasks
+    else when (val newPrompts = getNewTasksOrComplete(objective, tasks.tail, task)) {
+      // If the task creation agent determines the objective has been completed, return the results
+      is Either.Left -> task.result
+      // Otherwise, add the new tasks to the storage and send to the prioritization agent
+      is Either.Right -> {
+        var taskCounter = tasks.last().id.id
+        val newTasks = newPrompts.value.map { content -> Task(TaskId(taskCounter++), Objective(content)) }
+        val nel = prioritizationAgent(objective, newTasks).toNonEmptyListOrNull()
+        if (nel != null) invoke(objective, nel) else null
       }
     }
   }
 
   /**
-   * Add new tasks to the storage
-   */
-  private fun addTasksToStorage(newTasks: List<String>) {
-    for (newTask in newTasks) {
-      val new = Task(
-        id = TaskId(tasksStorage.nextTaskId()),
-        objective = Objective(newTask)
-      )
-      tasksStorage.append(new)
-    }
-  }
-
-  /**
-   * If the task has been completed, return the results. Otherwise, send the result to the task creation agent to create new tasks
+   * If the task has been completed, return the results.
+   * Otherwise, send the result to the task creation agent to create new tasks
    */
   private suspend fun getNewTasksOrComplete(
-    firstMessage: String,
-    taskWithResult: Task
+    objective: Objective,
+    tasks: List<Task>,
+    taskWithResult: TaskWithResult
   ): Either<TaskCompleted, List<String>> = either {
-    taskCreationAgent(
-      objective = objective,
-      result = firstMessage,
-      taskDescription = taskWithResult.objective.value,
-      taskList = tasksStorage.getTasksIds(),
-    )
+    val prompt = """
+            You are a task creation AI that uses the result of an execution agent to create new tasks with the following objective: ${objective.value},
+            The last completed task has the result: ${taskWithResult.result.value}.
+            This result was based on this task description: ${taskWithResult.task.objective}.
+            These are incomplete tasks:
+            ${tasks.joinToString(separator = "\n")}.
+            Based on the result, create new tasks to be completed by the AI system that do not overlap with incomplete tasks.
+            Return the tasks as an array.
+            IMPORTANT!!! : If there are no new tasks to complete and you determine the original objective:[${objective.value}] has been accomplished simply return:$COMPLETED""".trimIndent()
+    val response = chatCompletionResponse(prompt)
+    val resultMessage = getFirstMessage(response)
+    ensure(!taskHasCompleted(resultMessage)) { TaskCompleted }
+    messageToTaskAsStrings(resultMessage)
   }
 
-  /**
-   * Check if the task has been completed
-   */
+  /** Check if the task has been completed */
   private fun taskHasCompleted(result: String?): Boolean =
     result?.endsWith(COMPLETED) == true
 
-  /**
-   * Execute the task and store the result
-   */
-  private suspend fun executeAndStoreTask(task: Task): Pair<String, Task> {
+  /** Execute the task and store the result */
+  private suspend fun executeAndStoreTask(objective: Objective, task: Task): Pair<String, TaskWithResult> {
     val result = executionAgent(objective = objective, task = task)
     val firstMessage = requireNotNull(getFirstMessage(result)) { "No message returned" }
     val cleanedMessage = cleanResultMessage(firstMessage)
-    val taskWithResult = task.copy(result = cleanedMessage, resultId = TaskId(task.id.id))
-    resultsStorage.add(taskWithResult)
+    val taskWithResult = TaskWithResult(task, TaskResult(cleanedMessage))
+    vectorStore.addText(taskWithResult.toJson())
     return Pair(firstMessage, taskWithResult)
   }
 
@@ -221,8 +159,4 @@ class AutoAI(
     .replace(COMPLETED, "")
     .replace(FAILED, "")
     .trim()
-
-  private val COMPLETED = "%COMPLETED%"
-  private val FAILED = "%FAILED%"
 }
-
