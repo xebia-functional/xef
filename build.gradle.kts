@@ -1,7 +1,8 @@
 @file:Suppress("DSL_SCOPE_VIOLATION")
 
-group = "com.xebia.functional"
-version = "1.0-SNAPSHOT"
+import org.jetbrains.dokka.gradle.DokkaTask
+
+version = "0.0.1-SNAPSHOT"
 
 repositories {
   mavenCentral()
@@ -10,13 +11,23 @@ repositories {
 plugins {
   base
   alias(libs.plugins.kotlin.multiplatform)
-  alias(libs.plugins.spotless)
   alias(libs.plugins.kotlinx.serialization)
+  alias(libs.plugins.spotless)
+  alias(libs.plugins.dokka)
+  alias(libs.plugins.arrow.gradle.nexus)
+  alias(libs.plugins.arrow.gradle.publish)
+}
+
+allprojects {
+  group = property("project.group").toString()
 }
 
 java {
   sourceCompatibility = JavaVersion.VERSION_11
   targetCompatibility = JavaVersion.VERSION_11
+  toolchain {
+    languageVersion = JavaLanguageVersion.of(11)
+  }
 }
 
 kotlin {
@@ -33,18 +44,12 @@ kotlin {
     browser()
     nodejs()
   }
-  val hostOs = System.getProperty("os.name")
-  val isMingwX64 = hostOs.startsWith("Windows")
-  when {
-    hostOs == "Mac OS X" -> macosX64("native")
-    hostOs == "Linux" -> linuxX64("native")
-    isMingwX64 -> mingwX64("native")
-    else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
-  }
-
+  linuxX64()
+  macosX64()
+  mingwX64()
 
   sourceSets {
-    commonMain {
+    val commonMain by getting {
       dependencies {
         implementation(libs.arrow.fx)
         implementation(libs.arrow.resilience)
@@ -79,15 +84,46 @@ kotlin {
         implementation(libs.testcontainers.postgresql)
       }
     }
+
     val jsMain by getting {
       dependencies {
         implementation(libs.ktor.client.js)
       }
     }
-    val nativeMain by getting {
+
+    val linuxX64Main by getting {
       dependencies {
         implementation(libs.ktor.client.cio)
       }
+    }
+
+    val macosX64Main by getting {
+      dependencies {
+        implementation(libs.ktor.client.cio)
+      }
+    }
+    val mingwX64Main by getting {
+      dependencies {
+        implementation(libs.ktor.client.winhttp)
+      }
+    }
+
+    create("nativeMain") {
+      dependsOn(commonMain)
+      linuxX64Main.dependsOn(this)
+      macosX64Main.dependsOn(this)
+      mingwX64Main.dependsOn(this)
+    }
+
+    val commonTest by getting
+    val linuxX64Test by getting
+    val macosX64Test by getting
+    val mingwX64Test by getting
+    create("nativeTest") {
+      dependsOn(commonTest)
+      linuxX64Test.dependsOn(this)
+      macosX64Test.dependsOn(this)
+      mingwX64Test.dependsOn(this)
     }
   }
 }
@@ -95,5 +131,38 @@ kotlin {
 spotless {
   kotlin {
     ktfmt().googleStyle()
+  }
+}
+
+tasks {
+  withType<Test>().configureEach {
+    maxParallelForks = Runtime.getRuntime().availableProcessors()
+    useJUnitPlatform()
+    testLogging {
+      setExceptionFormat("full")
+      setEvents(listOf("passed", "skipped", "failed", "standardOut", "standardError"))
+    }
+  }
+
+  withType<DokkaTask>().configureEach {
+    kotlin.sourceSets.forEach { kotlinSourceSet ->
+      dokkaSourceSets.named(kotlinSourceSet.name) {
+        perPackageOption {
+          matchingRegex.set(".*\\.internal.*")
+          suppress.set(true)
+        }
+        skipDeprecated.set(true)
+        reportUndocumented.set(false)
+        val baseUrl: String = checkNotNull(project.properties["pom.smc.url"]?.toString())
+
+        kotlinSourceSet.kotlin.srcDirs.filter { it.exists() }.forEach { srcDir ->
+          sourceLink {
+            localDirectory.set(srcDir)
+            remoteUrl.set(uri("$baseUrl/blob/main/${srcDir.relativeTo(rootProject.rootDir)}").toURL())
+            remoteLineSuffix.set("#L")
+          }
+        }
+      }
+    }
   }
 }

@@ -15,8 +15,8 @@ interface HuggingFaceClient {
 }
 
 suspend fun ResourceScope.KtorHuggingFaceClient(
-  engine: HttpClientEngine,
-  config: HuggingFaceConfig
+  config: HuggingFaceConfig,
+  engine: HttpClientEngine? = null
 ): HuggingFaceClient = KtorHuggingFaceClient(httpClient(engine, config.baseUrl), config)
 
 private class KtorHuggingFaceClient(
