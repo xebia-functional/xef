@@ -96,7 +96,10 @@ class AutoAI(
 
   tailrec suspend operator fun invoke(objective: Objective, tasks: NonEmptyList<Task>): TaskResult? {
     logger.debug { tasks.joinToString(separator = "\n") { "${it.id.id}. ${it.objective.value}" } }
-    val task = executeAndStoreTask(objective, tasks.head)
+    val result = executionAgent(objective = objective, task = tasks.head)
+    val taskResult = requireNotNull(result.toTaskResultOrNull()) { "No message returned" }
+    val task = TaskWithResult(tasks.head, taskResult)
+    vectorStore.addText(task.toJson())
     return if (task.isCompleted()) task.result
     // Otherwise, send the result to the task creation agent to create new tasks
     else when (val newPrompts = getNewTasksOrComplete(objective, tasks.tail, task)) {
@@ -133,12 +136,5 @@ class AutoAI(
     val response = chatCompletionResponse(prompt)
     ensure(!response.isCompleted()) { TaskCompleted }
     messageToTaskAsStrings(response.firstChoiceOrNull())
-  }
-
-  /** Execute the task and store the result */
-  private suspend fun executeAndStoreTask(objective: Objective, task: Task): TaskWithResult {
-    val result = executionAgent(objective = objective, task = task)
-    val taskResult = requireNotNull(result.toTaskResultOrNull()) { "No message returned" }
-    return TaskWithResult(task, taskResult).also { vectorStore.addText(it.toJson()) }
   }
 }

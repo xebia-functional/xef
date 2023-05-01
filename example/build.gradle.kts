@@ -18,5 +18,5 @@ java {
 dependencies {
     implementation(rootProject)
     implementation(libs.kotlinx.serialization.json)
-    implementation("ch.qos.logback:logback-classic:1.0.13")
+    implementation(libs.logback)
 }
