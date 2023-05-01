@@ -75,6 +75,8 @@ kotlin {
         implementation(libs.hikari)
         implementation(libs.postgresql)
         implementation(libs.ktor.client.cio)
+        implementation(libs.slf4j.api)
+        implementation(libs.slf4j.log4j12)
       }
     }
     val jvmTest by getting {

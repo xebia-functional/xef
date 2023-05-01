@@ -16,6 +16,7 @@ postgresql = "42.5.1"
 testcontainers = "1.17.6"
 hikari = "5.0.1"
 dokka = "1.8.10"
+slf4j = "2.0.3"
 
 [libraries]
 arrow-fx = { module = "io.arrow-kt:arrow-fx-coroutines", version.ref = "arrow" }
@@ -41,6 +42,9 @@ klogging = { module = "io.github.oshai:kotlin-logging", version.ref = "klogging"
 hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
 postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
 testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+slf4j-log4j12 = { module = "org.slf4j:slf4j-log4j12", version.ref = "slf4j" }
+
 
 [bundles]
 ktor-client = [
