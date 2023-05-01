@@ -18,5 +18,5 @@ suspend fun AIContext.refineTask(): Task = ai(
        |${additionalContext()}
        |
        |Please refine the following task: ${currentTask.objective} to make it more specific, so that it can be solved.
-    """.trimIndent()
+    """.trimMargin()
 )

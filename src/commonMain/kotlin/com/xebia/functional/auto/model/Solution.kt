@@ -17,6 +17,8 @@ suspend fun AIContext.solution(): Solution =
        |If you can't solve the objective, use `false` for `accomplishesObjective` in the returned response. 
     """.trimMargin())
 
-internal fun AIContext.previousSolutionsContext(): String = """|Take into account these previously attempted tasks:
+internal fun AIContext.previousSolutionsContext(): String =
+    if (previousSolutions.isEmpty()) "" else
+    """|Take into account these previously attempted tasks:
        |${previousSolutions.joinToString("\n") { "- ${it.task.objective}\n\tresult:${it.result}\n\tAccomplishes Objective: ${it.accomplishesObjective}" }}.
       """.trimMargin()
