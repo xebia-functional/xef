@@ -26,6 +26,9 @@ data class Task(val id: TaskId, val objective: Objective)
 @Serializable
 data class TaskWithResult(val task: Task, val result: TaskResult) {
   fun toJson(): String = Json.encodeToString(this)
+  fun value(): String = result.value()
+  fun isCompleted(): Boolean = result.isCompleted()
+  fun isFailed(): Boolean = result.isFailed()
 
   companion object {
     fun fromJson(json: String): TaskWithResult =
@@ -35,4 +38,13 @@ data class TaskWithResult(val task: Task, val result: TaskResult) {
 
 @JvmInline
 @Serializable
-value class TaskResult(val value: String)
+value class TaskResult(private val value: String) {
+  fun value(): String =
+    value.replace(COMPLETED, "").replace(FAILED, "").trim()
+
+  fun isCompleted(): Boolean =
+    value.endsWith(COMPLETED)
+
+  fun isFailed(): Boolean =
+    value.endsWith(FAILED)
+}

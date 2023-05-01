@@ -70,13 +70,15 @@ kotlin {
         implementation(libs.kotest.assertions.arrow)
       }
     }
+
     val jvmMain by getting {
       dependencies {
         implementation(libs.hikari)
         implementation(libs.postgresql)
-        implementation(libs.ktor.client.cio)
+        api(libs.ktor.client.cio)
       }
     }
+
     val jvmTest by getting {
       dependencies {
         implementation(libs.kotest.junit5)
@@ -87,24 +89,25 @@ kotlin {
 
     val jsMain by getting {
       dependencies {
-        implementation(libs.ktor.client.js)
+        api(libs.ktor.client.js)
       }
     }
 
     val linuxX64Main by getting {
       dependencies {
-        implementation(libs.ktor.client.cio)
+        api(libs.ktor.client.cio)
       }
     }
 
     val macosX64Main by getting {
       dependencies {
-        implementation(libs.ktor.client.cio)
+        api(libs.ktor.client.cio)
       }
     }
+
     val mingwX64Main by getting {
       dependencies {
-        implementation(libs.ktor.client.winhttp)
+        api(libs.ktor.client.winhttp)
       }
     }
 

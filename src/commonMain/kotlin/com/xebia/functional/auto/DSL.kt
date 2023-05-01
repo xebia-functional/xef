@@ -68,7 +68,7 @@ suspend fun <A> ai(
     vectorStore
   ).invoke(Objective(augmentedPrompt))
   require(result != null) { "No result found" }
-  return catch({ json.decodeFromString(deserializationStrategy, result.value) }) { e ->
+  return catch({ json.decodeFromString(deserializationStrategy, result.value()) }) { e ->
     val fixJsonPrompt = """
                     |RESULT: 
                     |$result
