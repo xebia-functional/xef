@@ -13,8 +13,8 @@ import com.xebia.functional.llm.openai.OpenAIClient
 import com.xebia.functional.llm.openai.Role
 import com.xebia.functional.vectorstores.VectorStore
 
-private const val COMPLETED = "%COMPLETED%"
-private const val FAILED = "%FAILED%"
+const val COMPLETED = "%COMPLETED%"
+const val FAILED = "%FAILED%"
 
 class AutoAI(
   private val model: LLM,
@@ -39,8 +39,7 @@ class AutoAI(
             |#. Second task""".trimMargin()
 
     val response = chatCompletionResponse(prompt)
-    val firstMessage = getFirstMessage(response)
-    val newTasks = messageToTaskAsStrings(firstMessage)
+    val newTasks = messageToTaskAsStrings(response.firstChoiceOrNull())
 
     return newTasks.mapNotNull {
       val taskParts = it.trim().split(".", limit = 2)
@@ -53,18 +52,12 @@ class AutoAI(
   }
 
   private fun List<TaskWithResult>.print(): String =
-    joinToString("; ") { "${it.task.id.id}. ${it.task.objective.value} -> result: ${it.result.value}" }
+    joinToString("; ") { "${it.task.id.id}. ${it.task.objective.value} -> result: ${it.result.value()}" }
 
   /**
    * The execution agent is the AI that performs the task
    */
   private suspend fun executionAgent(objective: Objective, task: Task): ChatCompletionResponse {
-    logger.debug {
-      """
-      |Objective: ${objective.value}
-      |Task: $task
-      """.trimMargin()
-    }
     val context = vectorStore.similaritySearch(objective.value, 5).map { TaskWithResult.fromJson(it.content) }
     val prompt = """
             |You are an AI who performs one task based on the following objective: 
@@ -80,16 +73,22 @@ class AutoAI(
     return chatCompletionResponse(prompt)
   }
 
-  /**
-   * Call the remote Open AI API to complete the task
-   */
+  /** Call the remote Open AI API to complete the task */
   private suspend fun chatCompletionResponse(prompt: String): ChatCompletionResponse {
     val completionRequest = ChatCompletionRequest(
       model = model.value,
       messages = listOf(Message(Role.system.name, prompt, user.name)),
       user = user.name
     )
-    return openAIClient.createChatCompletion(completionRequest)
+    return openAIClient.createChatCompletion(completionRequest).also {
+      logger.debug {
+        when {
+          it.isCompleted() -> "CreateChatCompletion SUCCESS ${it.firstChoiceOrNull()}"
+          it.isFailed() -> "CreateChatCompletion FAILED ${it.firstChoiceOrNull()}"
+          else -> "CreateChatCompletion No choices $it"
+        }
+      }
+    }
   }
 
   suspend operator fun invoke(objective: Objective): TaskResult? =
@@ -97,8 +96,8 @@ class AutoAI(
 
   tailrec suspend operator fun invoke(objective: Objective, tasks: NonEmptyList<Task>): TaskResult? {
     logger.debug { tasks.joinToString(separator = "\n") { "${it.id.id}. ${it.objective.value}" } }
-    val (resultMessage, task) = executeAndStoreTask(objective, tasks.head)
-    return if (taskHasCompleted(resultMessage)) task.result
+    val task = executeAndStoreTask(objective, tasks.head)
+    return if (task.isCompleted()) task.result
     // Otherwise, send the result to the task creation agent to create new tasks
     else when (val newPrompts = getNewTasksOrComplete(objective, tasks.tail, task)) {
       // If the task creation agent determines the objective has been completed, return the results
@@ -107,8 +106,8 @@ class AutoAI(
       is Either.Right -> {
         var taskCounter = tasks.last().id.id
         val newTasks = newPrompts.value.map { content -> Task(TaskId(taskCounter++), Objective(content)) }
-        val nel = prioritizationAgent(objective, newTasks).toNonEmptyListOrNull()
-        if (nel != null) invoke(objective, nel) else null
+        val tasksOrNull = prioritizationAgent(objective, newTasks).toNonEmptyListOrNull()
+        if (tasksOrNull != null) invoke(objective, tasksOrNull) else null
       }
     }
   }
@@ -124,7 +123,7 @@ class AutoAI(
   ): Either<TaskCompleted, List<String>> = either {
     val prompt = """
             You are a task creation AI that uses the result of an execution agent to create new tasks with the following objective: ${objective.value},
-            The last completed task has the result: ${taskWithResult.result.value}.
+            The last completed task has the result: ${taskWithResult.value()}.
             This result was based on this task description: ${taskWithResult.task.objective}.
             These are incomplete tasks:
             ${tasks.joinToString(separator = "\n")}.
@@ -132,31 +131,14 @@ class AutoAI(
             Return the tasks as an array.
             IMPORTANT!!! : If there are no new tasks to complete and you determine the original objective:[${objective.value}] has been accomplished simply return:$COMPLETED""".trimIndent()
     val response = chatCompletionResponse(prompt)
-    val resultMessage = getFirstMessage(response)
-    ensure(!taskHasCompleted(resultMessage)) { TaskCompleted }
-    messageToTaskAsStrings(resultMessage)
+    ensure(!response.isCompleted()) { TaskCompleted }
+    messageToTaskAsStrings(response.firstChoiceOrNull())
   }
-
-  /** Check if the task has been completed */
-  private fun taskHasCompleted(result: String?): Boolean =
-    result?.endsWith(COMPLETED) == true
 
   /** Execute the task and store the result */
-  private suspend fun executeAndStoreTask(objective: Objective, task: Task): Pair<String, TaskWithResult> {
+  private suspend fun executeAndStoreTask(objective: Objective, task: Task): TaskWithResult {
     val result = executionAgent(objective = objective, task = task)
-    val firstMessage = requireNotNull(getFirstMessage(result)) { "No message returned" }
-    val cleanedMessage = cleanResultMessage(firstMessage)
-    val taskWithResult = TaskWithResult(task, TaskResult(cleanedMessage))
-    vectorStore.addText(taskWithResult.toJson())
-    return Pair(firstMessage, taskWithResult)
+    val taskResult = requireNotNull(result.toTaskResultOrNull()) { "No message returned" }
+    return TaskWithResult(task, taskResult).also { vectorStore.addText(it.toJson()) }
   }
-
-  private fun getFirstMessage(response: ChatCompletionResponse): String? =
-    response.choices.firstOrNull()?.message?.content
-
-  /** Clean the result message */
-  private fun cleanResultMessage(firstMessage: String): String = firstMessage
-    .replace(COMPLETED, "")
-    .replace(FAILED, "")
-    .trim()
 }
