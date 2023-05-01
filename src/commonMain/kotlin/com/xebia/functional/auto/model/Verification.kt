@@ -17,5 +17,5 @@ suspend fun AIContext.verify(result: Solution): Verification = ai(
        |
        |${additionalContext()}
        |
-    """.trimIndent()
+    """.trimMargin()
 )

@@ -16,7 +16,7 @@ tailrec suspend fun solveObjective(
     logger.debug { "Contexts: $contexts" }
     val ctx = AIContext(task, previousSolutions, contexts)
     val result: Solution = ctx.solution()
-    logger.debug { "Result: $result" }
+    logger.debug { "Solved: ${result.accomplishesObjective}" }
     if (result.accomplishesObjective) {
         logger.debug { "Solution accomplishes objective, proceeding to verification" }
         val verification: Verification = ctx.verify(result)

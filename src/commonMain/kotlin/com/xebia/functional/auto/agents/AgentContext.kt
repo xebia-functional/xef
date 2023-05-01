@@ -10,12 +10,12 @@ data class AgentContext<out A>(
 )
 
 internal fun AIContext.additionalContext(): String =
-    """|Additional context provided by other agents for this context is shown below and delimited
+    if (agentContexts.isEmpty()) previousSolutionsContext() else
+    """|${previousSolutionsContext()}
+       |
+       |Additional context provided by other agents for this context is shown below and delimited
        |by a line of dashes
-       |
-       |${previousSolutionsContext()}
-       |
        |-----------------------------------------------------------------------
        |${agentContexts.joinToString("\n") { "- ${it.task.objective}\n\tresult:${it.output}\n\t" }}.
        |-----------------------------------------------------------------------
-       |"""
+       |""".trimMargin()

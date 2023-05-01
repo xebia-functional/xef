@@ -26,97 +26,100 @@ import kotlin.time.ExperimentalTime
 internal val logger = KotlinLogging.logger("AutoAI")
 
 val json = Json {
-  ignoreUnknownKeys = true
-  isLenient = true
+    ignoreUnknownKeys = true
+    isLenient = true
 }
 
 @OptIn(ExperimentalTime::class)
 suspend inline fun <reified A> ai(
-  prompt: String,
-  engine: HttpClientEngine? = null,
-  agents: List<Agent<*>> = emptyList()
+    prompt: String,
+    engine: HttpClientEngine? = null,
+    agents: List<Agent<*>> = emptyList(),
+    auto: Boolean = false,
 ): A {
-  val descriptor = serialDescriptor<A>()
-  val jsonSchema = buildJsonSchema(descriptor)
-  return resourceScope {
-    either {
-      val openAIConfig = OpenAIConfig()
-      val openAiClient = KtorOpenAIClient(openAIConfig, engine)
-      val embeddings = OpenAIEmbeddings(openAIConfig, openAiClient, logger)
-      val vectorStore = LocalVectorStore(embeddings)
-      ai(prompt, descriptor, serializer<A>(), jsonSchema, openAiClient, vectorStore, agents)
-    }.getOrElse { throw IllegalStateException(it.joinToString()) }
-  }
+    val descriptor = serialDescriptor<A>()
+    val jsonSchema = buildJsonSchema(descriptor)
+    return resourceScope {
+        either {
+            val openAIConfig = OpenAIConfig()
+            val openAiClient = KtorOpenAIClient(openAIConfig, engine)
+            val embeddings = OpenAIEmbeddings(openAIConfig, openAiClient, logger)
+            val vectorStore = LocalVectorStore(embeddings)
+            ai(prompt, descriptor, serializer<A>(), jsonSchema, openAiClient, vectorStore, agents, auto)
+        }.getOrElse { throw IllegalStateException(it.joinToString()) }
+    }
 }
 
 suspend fun <A> ai(
-  prompt: String,
-  descriptor: SerialDescriptor,
-  deserializationStrategy: DeserializationStrategy<A>,
-  jsonSchema: JsonObject,
-  openAIClient: OpenAIClient,
-  vectorStore: VectorStore,
-  agents: List<Agent<*>> = emptyList()
+    prompt: String,
+    descriptor: SerialDescriptor,
+    deserializationStrategy: DeserializationStrategy<A>,
+    jsonSchema: JsonObject,
+    openAIClient: OpenAIClient,
+    vectorStore: VectorStore,
+    agents: List<Agent<*>> = emptyList(),
+    auto: Boolean = false,
 ): A {
-  val augmentedPrompt = """
-                |You are an AI who performs one task based on the following objective: 
+    val augmentedPrompt = """
                 |Objective: $prompt
-                |Instructions: Only communicate back to the user in valid JSON.
-                |IMPORTANT: Your message must be valid JSON and always finishes after the json object is closed.
-                |Use exclusively the following JSON schema to produce the result in JSON format.
-                |Ensure that your output conforms to the JSON schema specified below.
-                |number is a number without delimiters
-                |boolean is true or false
-                |strings should be properly escaped to ensure json remains readable
+                |Instructions: Use the following JSON schema to produce the result on json format
                 |JSON Schema:$jsonSchema
+                |Return exactly the JSON response and nothing else
             """.trimMargin()
-  val result = if (agents.isNotEmpty()) {
-    val resolutionContext = solveObjective(Task(-1, prompt, emptyList()), agents = agents).result
-    val promptWithContext = """
+    val result = if (auto) {
+        logger.debug { "Solving objective in auto reasoning mode: ${agents}\n$prompt" }
+        val resolutionContext = solveObjective(Task(-1, prompt, emptyList()), agents = agents).result
+        val promptWithContext = """
                     |$resolutionContext
                     |
                     |Given this information solve the objective:
                     |
                     |$augmentedPrompt
                 """.trimMargin()
-    openAIChatCall(openAIClient, promptWithContext)
-  } else {
-    openAIChatCall(openAIClient, augmentedPrompt)
-  }
-  return catch({
-    json.decodeFromString(deserializationStrategy, result)
-  }) { e ->
-    val fixJsonPrompt = """
-                    |RESULT: 
-                    |$result
-                    |Exception: 
-                    |${e.message}
-                    |${e.stackTraceToString()}
+        openAIChatCall(openAIClient, promptWithContext)
+    } else {
+        logger.debug { "Solving objective without agents\n$prompt" }
+        openAIChatCall(openAIClient, augmentedPrompt)
+    }
+    return catch({
+        json.decodeFromString(deserializationStrategy, result)
+    }) { e ->
+        val fixJsonPrompt = """
+                    |Result: $result
+                    |Exception: ${e.message}
                     |Objective: $prompt
-                    |Instructions: Use the following JSON schema to produce the result on valid json format avoiding the exception
+                    |Instructions: Use the following JSON schema to produce the result on valid json format avoiding the exception.
                     |JSON Schema:$jsonSchema
                     """.trimMargin()
-    logger.debug { "Attempting to Fix JSON due to error: ${e.message}" }
-    ai(fixJsonPrompt, descriptor, deserializationStrategy, jsonSchema, openAIClient, vectorStore)
-      .also { logger.debug { "Fixed JSON: $it" } }
-  }
+        logger.debug { "Attempting to Fix JSON due to error: ${e.message}" }
+
+        //here we should retry and handle errors, when we are executing the `ai` function again it might fail and it eventually crashes
+        //we should handle this and retry
+        ai(fixJsonPrompt, descriptor, deserializationStrategy, jsonSchema, openAIClient, vectorStore)
+            .also { logger.debug { "Fixed JSON: $it" } }
+    }
 }
 
 private suspend fun openAIChatCall(
-  openAIClient: OpenAIClient,
-  promptWithContext: String
+    openAIClient: OpenAIClient,
+    promptWithContext: String
 ): String {
-  val res = chatCompletionResponse(openAIClient, promptWithContext, "gpt-3.5-turbo", "AI_Value_Generator")
-  val msg = res.choices.firstOrNull()?.message?.content
-  requireNotNull(msg) { "No message found in result: $res" }
-  return msg
+    val res = chatCompletionResponse(openAIClient, promptWithContext, "gpt-3.5-turbo", "AI_Value_Generator")
+    val msg = res.choices.firstOrNull()?.message?.content
+    requireNotNull(msg) { "No message found in result: $res" }
+    return msg
 }
 
-private suspend fun chatCompletionResponse(openAIClient: OpenAIClient, prompt: String, model: String, user: String): ChatCompletionResponse {
-  val completionRequest = ChatCompletionRequest(
-    model = model,
-    messages = listOf(Message(Role.system.name, prompt, user)),
-    user = user
-  )
-  return openAIClient.createChatCompletion(completionRequest)
+private suspend fun chatCompletionResponse(
+    openAIClient: OpenAIClient,
+    prompt: String,
+    model: String,
+    user: String
+): ChatCompletionResponse {
+    val completionRequest = ChatCompletionRequest(
+        model = model,
+        messages = listOf(Message(Role.system.name, prompt, user)),
+        user = user
+    )
+    return openAIClient.createChatCompletion(completionRequest)
 }
