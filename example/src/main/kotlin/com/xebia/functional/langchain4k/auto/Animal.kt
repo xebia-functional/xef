@@ -9,6 +9,9 @@ data class Animal(val name: String, val habitat: String, val diet: String)
 @Serializable
 data class Invention(val name: String, val inventor: String, val year: Int, val purpose: String)
 
+@Serializable
+data class Story(val animal: Animal, val invention: Invention, val story: String)
+
 suspend fun main() {
     val animal: Animal = ai("A unique animal species.")
     val invention: Invention = ai("A groundbreaking invention from the 20th century.")
@@ -20,7 +23,7 @@ suspend fun main() {
         2. A groundbreaking invention from the 20th century called ${invention.name}, invented by ${invention.inventor} in ${invention.year}, which serves the purpose of ${invention.purpose}.
     """.trimIndent()
 
-    val story: String = ai(storyPrompt)
+    val story: Story = ai(storyPrompt)
 
-    println("Short Story:\n\n${story}")
+    println("Story about ${animal.name} and ${invention.name}: ${story.story}")
 }

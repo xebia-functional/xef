@@ -1,6 +1,8 @@
 package com.xebia.functional.langchain4k.auto
 
 import com.xebia.functional.auto.ai
+import com.xebia.functional.auto.agents.Agent
+import com.xebia.functional.auto.agents.wikipedia
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -10,8 +12,8 @@ data class Planet(val name: String, val distanceFromSun: Double, val moons: List
 data class Moon(val name: String, val distanceFromPlanet: Double)
 
 suspend fun main() {
-    val earth: Planet = ai("Information about Earth and its moon.")
-    val mars: Planet = ai("Information about Mars and its moons.")
+    val earth: Planet = ai("Information about Earth and its moon.", auto = true, agents = listOf(Agent.wikipedia()))
+    val mars: Planet = ai("Information about Mars and its moons.", auto = true, agents = listOf(Agent.wikipedia()))
 
     fun planetInfo(planet: Planet): String {
         return """${planet.name} is ${planet.distanceFromSun} million km away from the Sun.

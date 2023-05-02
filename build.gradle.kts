@@ -54,7 +54,7 @@ kotlin {
         implementation(libs.arrow.fx)
         implementation(libs.arrow.resilience)
         implementation(libs.kotlinx.serialization.json)
-        implementation(libs.bundles.ktor.client)
+        api(libs.bundles.ktor.client)
         implementation(libs.okio)
         implementation(libs.uuid)
         implementation(libs.klogging)
@@ -76,6 +76,7 @@ kotlin {
         implementation(libs.hikari)
         implementation(libs.postgresql)
         api(libs.ktor.client.cio)
+        implementation(libs.logback)
       }
     }
 
@@ -90,6 +91,7 @@ kotlin {
     val jsMain by getting {
       dependencies {
         api(libs.ktor.client.js)
+        implementation(libs.okio.nodefilesystem)
       }
     }
 

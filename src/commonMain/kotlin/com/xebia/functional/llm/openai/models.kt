@@ -1,8 +1,5 @@
 package com.xebia.functional.llm.openai
 
-import com.xebia.functional.auto.COMPLETED
-import com.xebia.functional.auto.FAILED
-import com.xebia.functional.auto.TaskResult
 import kotlin.jvm.JvmInline
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -66,19 +63,7 @@ data class ChatCompletionResponse(
   val model: String,
   val usage: Usage,
   val choices: List<Choice>
-) {
-  fun firstChoiceOrNull(): String? =
-    choices.firstOrNull()?.message?.content
-
-  fun toTaskResultOrNull(): TaskResult? =
-    firstChoiceOrNull()?.let(::TaskResult)
-
-  fun isCompleted(): Boolean =
-    firstChoiceOrNull()?.endsWith(COMPLETED) == true
-
-  fun isFailed(): Boolean =
-    firstChoiceOrNull()?.endsWith(FAILED) == true
-}
+)
 
 @Serializable
 data class Choice(

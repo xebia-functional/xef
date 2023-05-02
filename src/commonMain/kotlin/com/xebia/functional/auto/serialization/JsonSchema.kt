@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalSerializationApi::class)
 
-package com.xebia.functional.auto
+package com.xebia.functional.auto.serialization
 
 /*
 Ported over from https://github.com/Ricky12Awesome/json-schema-serialization

@@ -6,4 +6,5 @@ pluginManagement {
     
 }
 rootProject.name = "langchain4k"
+include("nodejs-commandexecutor")
 include("example")
