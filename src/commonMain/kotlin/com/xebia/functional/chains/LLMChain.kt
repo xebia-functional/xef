@@ -20,8 +20,8 @@ suspend fun LLMChain(
     chainOutput: Chain.ChainOutput = Chain.ChainOutput.OnlyOutput
 ): Chain = object : Chain {
 
-    private val inputKeys = promptTemplate.inputKeys.toSet()
-    private val outputKeys = setOf(outputVariable)
+    private val inputKeys: Set<String> = promptTemplate.inputKeys.toSet()
+    private val outputKeys: Set<String> = setOf(outputVariable)
 
     override val config: Chain.Config = Chain.Config(inputKeys, outputKeys, chainOutput)
 

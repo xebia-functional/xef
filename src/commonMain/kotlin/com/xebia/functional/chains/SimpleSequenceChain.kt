@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.raise.Raise
 import arrow.core.raise.either
 import arrow.core.raise.ensure
-import arrow.core.raise.ensureNotNull
 import arrow.core.raise.recover
 import arrow.core.raise.zipOrAccumulate
 
@@ -65,11 +64,4 @@ private fun Raise<Chain.InvalidInputs>.validateInputKeys(inputKeys: Set<String>)
     ensure(inputKeys.size == 1) {
         Chain.InvalidInputs("The expected inputs are more than one: " +
                 inputKeys.joinToString(", ") { "{$it}" })
-    }
-
-private fun Raise<Chain.InvalidInputs>.validateInput(inputs: Map<String, String>, inputKey: String): String =
-    ensureNotNull(inputs[inputKey]) {
-        Chain.InvalidInputs("The provided inputs: " +
-                inputs.keys.joinToString(", ") { "{$it}" } +
-                " do not match with chain's input: {$inputKey}")
     }

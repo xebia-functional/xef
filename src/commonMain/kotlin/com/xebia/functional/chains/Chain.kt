@@ -1,8 +1,10 @@
 package com.xebia.functional.chains
 
 import arrow.core.Either
+import arrow.core.raise.Raise
 import arrow.core.raise.either
 import arrow.core.raise.ensure
+import arrow.core.raise.ensureNotNull
 
 interface Chain {
 
@@ -68,3 +70,10 @@ interface Chain {
             ChainOutput.OnlyOutput -> outputs
         }
 }
+
+fun Raise<Chain.InvalidInputs>.validateInput(inputs: Map<String, String>, inputKey: String): String =
+    ensureNotNull(inputs[inputKey]) {
+        Chain.InvalidInputs("The provided inputs: " +
+                inputs.keys.joinToString(", ") { "{$it}" } +
+                " do not match with chain's input: {$inputKey}")
+    }

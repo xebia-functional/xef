@@ -19,8 +19,8 @@ suspend fun CombineDocsChain(
     chainOutput: Chain.ChainOutput = Chain.ChainOutput.OnlyOutput
 ): CombineDocsChain = object : CombineDocsChain {
 
-    private val inputKeys = promptTemplate.inputKeys.toSet() - setOf(documentVariableName)
-    private val outputKeys = setOf("answer")
+    private val inputKeys: Set<String> = promptTemplate.inputKeys.toSet() - setOf(documentVariableName)
+    private val outputKeys: Set<String> = setOf("answer")
 
     override val config: Chain.Config = Chain.Config(inputKeys, outputKeys, chainOutput)
 
