@@ -49,10 +49,10 @@ kotlin {
   mingwX64()
 
   sourceSets {
-    commonMain {
+    val commonMain by getting {
       dependencies {
         implementation(libs.bundles.arrow)
-        implementation(libs.bundles.ktor.client)
+        api(libs.bundles.ktor.client)
         implementation(libs.kotlinx.serialization.json)
         implementation(libs.okio)
         implementation(libs.uuid)
@@ -69,12 +69,16 @@ kotlin {
         implementation(libs.kotest.assertions.arrow)
       }
     }
+
     val jvmMain by getting {
       dependencies {
         implementation(libs.hikari)
         implementation(libs.postgresql)
+        api(libs.ktor.client.cio)
+        implementation(libs.logback)
       }
     }
+
     val jvmTest by getting {
       dependencies {
         implementation(libs.kotest.junit5)
@@ -83,10 +87,36 @@ kotlin {
       }
     }
 
-    val commonMain by getting
-    val linuxX64Main by getting
-    val macosX64Main by getting
-    val mingwX64Main by getting
+    val jsMain by getting {
+      dependencies {
+        api(libs.ktor.client.js)
+        implementation(libs.okio.nodefilesystem)
+      }
+    }
+
+    val linuxX64Main by getting {
+      dependencies {
+        api(libs.ktor.client.cio)
+      }
+    }
+
+    val macosX64Main by getting {
+      dependencies {
+        api(libs.ktor.client.cio)
+      }
+    }
+
+    val mingwX64Main by getting {
+      dependencies {
+        api(libs.ktor.client.winhttp)
+      }
+    }
+
+    val commonTest by getting
+    val linuxX64Test by getting
+    val macosX64Test by getting
+    val mingwX64Test by getting
+
     create("nativeMain") {
       dependsOn(commonMain)
       linuxX64Main.dependsOn(this)
@@ -94,10 +124,6 @@ kotlin {
       mingwX64Main.dependsOn(this)
     }
 
-    val commonTest by getting
-    val linuxX64Test by getting
-    val macosX64Test by getting
-    val mingwX64Test by getting
     create("nativeTest") {
       dependsOn(commonTest)
       linuxX64Test.dependsOn(this)

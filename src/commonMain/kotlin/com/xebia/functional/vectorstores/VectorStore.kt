@@ -2,8 +2,8 @@ package com.xebia.functional.vectorstores
 
 import com.xebia.functional.Document
 import com.xebia.functional.embeddings.Embedding
-import kotlin.jvm.JvmInline
 import kotlinx.uuid.UUID
+import kotlin.jvm.JvmInline
 
 @JvmInline
 value class DocumentVectorId(val id: UUID)
@@ -16,6 +16,9 @@ interface VectorStore {
    * @return a list of IDs from adding the texts to the vector store
    */
   suspend fun addTexts(texts: List<String>): List<DocumentVectorId>
+
+  suspend fun addText(texts: String): List<DocumentVectorId> =
+    addTexts(listOf(texts))
 
   /**
    * Add documents to the vector store after running them through the embeddings
