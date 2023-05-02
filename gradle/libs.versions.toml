@@ -19,7 +19,8 @@ dokka = "1.8.10"
 logback = "1.4.6"
 
 [libraries]
-arrow-fx = { module = "io.arrow-kt:arrow-fx-coroutines", version.ref = "arrow" }
+arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
+arrow-fx-coroutines = { module = "io.arrow-kt:arrow-fx-coroutines", version.ref = "arrow" }
 arrow-resilience = { module = "io.arrow-kt:arrow-resilience", version.ref = "arrow" }
 open-ai = { module = "com.theokanning.openai-gpt3-java:service", version.ref = "openai" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-json" }
@@ -46,6 +47,11 @@ testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 
 [bundles]
+arrow = [
+    "arrow-core",
+    "arrow-fx-coroutines",
+    "arrow-resilience"
+]
 ktor-client = [
     "ktor-client",
     "ktor-client-content-negotiation",

@@ -5,12 +5,17 @@ import arrow.core.raise.either
 import arrow.core.raise.ensure
 
 interface Chain {
-    data class InvalidInputs(val reason: String)
+
+    enum class ChainOutput { InputAndOutput, OnlyOutput }
+
+    sealed class Error(open val reason: String)
+
+    data class InvalidInputs(override val reason: String): Error(reason)
 
     data class Config(
         val inputKeys: Set<String>,
         val outputKeys: Set<String>,
-        val onlyOutputs: Boolean
+        val chainOutput: ChainOutput = ChainOutput.OnlyOutput
     ) {
         fun createInputs(
             inputs: String
@@ -28,7 +33,7 @@ interface Chain {
         ): Either<InvalidInputs, Map<String, String>> =
             either {
                 ensure((inputKeys subtract inputs.keys).isEmpty()) {
-                    InvalidInputs("The provided inputs: " +
+                     InvalidInputs("The provided inputs: " +
                             inputs.keys.joinToString(", ") { "{$it}" } +
                             " do not match with chain's inputs: " +
                             inputKeys.joinToString(", ") { "{$it}" })
@@ -39,24 +44,27 @@ interface Chain {
 
     val config: Config
 
-    suspend fun call(inputs: Map<String, String>): Map<String, String>
+    suspend fun call(inputs: Map<String, String>): Either<Error, Map<String, String>>
 
-    suspend fun run(input: String): Either<InvalidInputs, Map<String, String>> =
+    suspend fun run(input: String): Either<Error, Map<String, String>> =
         either {
             val preparedInputs = config.createInputs(input).bind()
-            val result = call(preparedInputs)
+            val result = call(preparedInputs).bind()
             prepareOutputs(preparedInputs, result)
         }
 
-    suspend fun run(inputs: Map<String, String>): Either<InvalidInputs, Map<String, String>> =
+    suspend fun run(inputs: Map<String, String>): Either<Error, Map<String, String>> =
         either {
             val preparedInputs = config.createInputs(inputs).bind()
-            val result = call(preparedInputs)
+            val result = call(preparedInputs).bind()
             prepareOutputs(preparedInputs, result)
         }
 
     private fun prepareOutputs(
         inputs: Map<String, String>, outputs: Map<String, String>
     ): Map<String, String> =
-        if (config.onlyOutputs) outputs else inputs + outputs
+        when (config.chainOutput) {
+            ChainOutput.InputAndOutput -> inputs + outputs
+            ChainOutput.OnlyOutput -> outputs
+        }
 }

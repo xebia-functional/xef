@@ -51,10 +51,9 @@ kotlin {
   sourceSets {
     val commonMain by getting {
       dependencies {
-        implementation(libs.arrow.fx)
-        implementation(libs.arrow.resilience)
-        implementation(libs.kotlinx.serialization.json)
+        implementation(libs.bundles.arrow)
         api(libs.bundles.ktor.client)
+        implementation(libs.kotlinx.serialization.json)
         implementation(libs.okio)
         implementation(libs.uuid)
         implementation(libs.klogging)
@@ -113,6 +112,11 @@ kotlin {
       }
     }
 
+    val commonTest by getting
+    val linuxX64Test by getting
+    val macosX64Test by getting
+    val mingwX64Test by getting
+
     create("nativeMain") {
       dependsOn(commonMain)
       linuxX64Main.dependsOn(this)
@@ -120,10 +124,6 @@ kotlin {
       mingwX64Main.dependsOn(this)
     }
 
-    val commonTest by getting
-    val linuxX64Test by getting
-    val macosX64Test by getting
-    val mingwX64Test by getting
     create("nativeTest") {
       dependsOn(commonTest)
       linuxX64Test.dependsOn(this)
