@@ -57,7 +57,8 @@ class LLMChainSpec : StringSpec({
         val template = "My name is {name} and I'm {age} years old"
         either {
             val prompt = PromptTemplate(template, listOf("name", "age"))
-            val chain = LLMChain(testLLM, prompt, outputVariable = "answer", chainOutput = Chain.ChainOutput.InputAndOutput)
+            val chain = LLMChain(testLLM, prompt, outputVariable = "answer",
+                chainOutput = Chain.ChainOutput.InputAndOutput)
             chain.run("foo").bind()
         } shouldBeLeft Chain.InvalidInputs("The expected inputs are more than one: {name}, {age}")
     }

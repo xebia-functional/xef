@@ -1,9 +1,7 @@
-package com.xebia.functional.chains.combine
+package com.xebia.functional.chains
 
 import arrow.core.Either
 import com.xebia.functional.Document
-import com.xebia.functional.chains.Chain
-import com.xebia.functional.chains.LLMChain
 import com.xebia.functional.llm.openai.OpenAIClient
 import com.xebia.functional.prompt.PromptTemplate
 
@@ -34,7 +32,7 @@ suspend fun CombineDocsChain(
     override suspend fun call(inputs: Map<String, String>): Either<Chain.Error, Map<String, String>> {
         val llmChain = LLMChain(
             llm,
-            promptTemplate, 
+            promptTemplate,
             outputVariable = outputVariable,
             chainOutput = chainOutput
         )

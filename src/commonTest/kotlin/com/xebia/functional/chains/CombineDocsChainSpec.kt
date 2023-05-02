@@ -1,56 +1,53 @@
 package com.xebia.functional.chains
 
 import arrow.core.raise.either
+import com.xebia.functional.Document
 import com.xebia.functional.prompt.PromptTemplate
 import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.core.spec.style.StringSpec
 
 class CombineDocsChainSpec : StringSpec({
-    "LLMChain should return a prediction with just the output" {
-        val template = "Tell me {foo}."
+    val documentVariableName = "context"
+    val outputVariable = "answer"
+
+    "Combine should return all the documents properly combined" {
         either {
-            val promptTemplate = PromptTemplate(template, listOf("foo"))
-            val chain = LLMChain(llm, promptTemplate, outputVariable = "answer")
-            chain.run("a joke").bind()
-        } shouldBeRight mapOf("answer" to "I'm not good at jokes")
+            val promptTemplate = PromptTemplate(testTemplate, listOf("context", "question"))
+            val docs = listOf(Document("foo foo foo"), Document("bar bar bar"), Document("baz baz baz"))
+            val chain = CombineDocsChain(testLLM, promptTemplate, docs, documentVariableName, outputVariable)
+            chain.combine(docs)
+        } shouldBeRight testContextOutput
     }
 
-    "LLMChain should return a prediction with both output and inputs" {
-        val template = "Tell me {foo}."
+    "Run should return the proper LLMChain response with one input" {
         either {
-            val prompt = PromptTemplate(template, listOf("foo"))
-            val chain = LLMChain(llm, prompt, outputVariable = "answer", chainOutput = Chain.ChainOutput.InputAndOutput)
-            chain.run("a joke").bind()
-        } shouldBeRight mapOf("foo" to "a joke", "answer" to "I'm not good at jokes")
+            val promptTemplate = PromptTemplate(testTemplate, listOf("context", "question"))
+            val docs = listOf(Document("foo foo foo"), Document("bar bar bar"), Document("baz baz baz"))
+            val chain = CombineDocsChain(testLLM, promptTemplate, docs, documentVariableName, outputVariable)
+            chain.run("What do you think?").bind()
+        } shouldBeRight testOutputIDK
     }
 
-    "LLMChain should return a prediction with a more complex template" {
-        val template = "My name is {name} and I'm {age} years old"
+    "Run should return the proper LLMChain response with more than one input" {
         either {
-            val prompt = PromptTemplate(template, listOf("name", "age"))
-            val chain = LLMChain(llm, prompt, outputVariable = "answer", chainOutput = Chain.ChainOutput.InputAndOutput)
-            chain.run(mapOf("age" to "28", "name" to "foo")).bind()
-        } shouldBeRight mapOf("age" to "28", "name" to "foo", "answer" to "Hello there! Nice to meet you foo")
+            val promptTemplate = PromptTemplate(testTemplateInputs, listOf("context", "name", "age"))
+            val docs = listOf(Document("foo foo foo"), Document("bar bar bar"), Document("baz baz baz"))
+            val chain = CombineDocsChain(
+                testLLM, promptTemplate, docs, documentVariableName, outputVariable, Chain.ChainOutput.InputAndOutput)
+            chain.run(mapOf("name" to "Scala", "age" to "28")).bind()
+        } shouldBeRight testOutputInputs + mapOf("context" to testContext, "name" to "Scala", "age" to "28")
     }
 
-    "LLMChain should fail when inputs are not the expected ones from the PromptTemplate" {
-        val template = "My name is {name} and I'm {age} years old"
+    "Run should fail with a InvalidCombineDocumentsChainError if the inputs don't match the expected" {
         either {
-            val prompt = PromptTemplate(template, listOf("name", "age"))
-            val chain = LLMChain(llm, prompt, outputVariable = "answer", chainOutput = Chain.ChainOutput.InputAndOutput)
-            chain.run(mapOf("age" to "28", "brand" to "foo")).bind()
+            val promptTemplate = PromptTemplate(testTemplateInputs, listOf("context", "name", "age"))
+            val docs = listOf(Document("foo foo foo"), Document("bar bar bar"), Document("baz baz baz"))
+            val chain = CombineDocsChain(
+                testLLM, promptTemplate, docs, documentVariableName, outputVariable, Chain.ChainOutput.InputAndOutput)
+            chain.run(mapOf("name" to "Scala", "city" to "Seattle")).bind()
         } shouldBeLeft
                 Chain.InvalidInputs(
-                    "The provided inputs: {age}, {brand} do not match with chain's inputs: {name}, {age}")
-    }
-
-    "LLMChain should fail when using just one input but expecting more" {
-        val template = "My name is {name} and I'm {age} years old"
-        either {
-            val prompt = PromptTemplate(template, listOf("name", "age"))
-            val chain = LLMChain(llm, prompt, outputVariable = "answer", chainOutput = Chain.ChainOutput.InputAndOutput)
-            chain.run("foo").bind()
-        } shouldBeLeft Chain.InvalidInputs("The expected inputs are more than one: {name}, {age}")
+                    "The provided inputs: {name}, {city} do not match with chain's inputs: {name}, {age}")
     }
 })
