@@ -1,22 +1,22 @@
 package com.xebia.functional.chains
 
 import arrow.core.Either
-import arrow.core.NonEmptyList
 import arrow.core.raise.Raise
 import arrow.core.raise.either
 import arrow.core.raise.ensure
 import arrow.core.raise.ensureNotNull
+import arrow.core.raise.recover
 import arrow.core.raise.zipOrAccumulate
 
-fun Raise<Chain.Error>.SimpleSequentialChain(
+fun Raise<Chain.Error>.SimpleSequenceChain(
     chains: List<Chain>,
     inputKey: String = "input",
     outputKey: String = "output",
     chainOutput: Chain.ChainOutput = Chain.ChainOutput.OnlyOutput
-): SimpleSequentialChain =
-    SimpleSequentialChain.either(chains, inputKey, outputKey, chainOutput).bind()
+): SimpleSequenceChain =
+    SimpleSequenceChain.either(chains, inputKey, outputKey, chainOutput).bind()
 
-class SimpleSequentialChain private constructor(
+class SimpleSequenceChain private constructor(
     private val chains: List<Chain>,
     private val inputKey: String,
     private val outputKey: String,
@@ -37,20 +37,21 @@ class SimpleSequentialChain private constructor(
 
     companion object {
         fun either(
-            chains: List<Chain>, inputKey: String, outputKey: String, chainOutput: Chain.ChainOutput
-        ): Either<SequenceChain.InvalidKeys, SimpleSequentialChain> =
+            chains: List<Chain>,
+            inputKey: String,
+            outputKey: String,
+            chainOutput: Chain.ChainOutput
+        ): Either<SequenceChain.InvalidKeys, SimpleSequenceChain> =
             either {
-                chains.map { chain ->
-                    either<NonEmptyList<Chain.Error>, Chain> {
+                val mappedChains: List<Chain> = chains.map { chain ->
+                    recover({
                         zipOrAccumulate(
                             { validateInputKeys(chain.config.inputKeys) },
-                            { validateOutputKeys(chain.config.outputKeys) }
-                        ) { _, _ -> chain }
-                    }.bind()
+                            { validateOutputKeys(chain.config.outputKeys) }) { _, _ -> chain }
+                    }) { raise(SequenceChain.InvalidKeys(it.joinToString(transform = Chain.Error::reason))) }
                 }
-            }.mapLeft {
-                SequenceChain.InvalidKeys(it.joinToString(transform = Chain.Error::reason))
-            }.map { SimpleSequentialChain(chains, inputKey, outputKey, chainOutput) }
+                SimpleSequenceChain(mappedChains, inputKey, outputKey, chainOutput)
+            }
     }
 }
 

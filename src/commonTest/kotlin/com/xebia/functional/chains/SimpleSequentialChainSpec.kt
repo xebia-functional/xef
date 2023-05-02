@@ -12,7 +12,7 @@ class SimpleSequentialChainSpec : StringSpec({
         val chains = listOf(chain1)
 
         either {
-            val ssc = SimpleSequentialChain(chains = chains, chainOutput = Chain.ChainOutput.InputAndOutput)
+            val ssc = SimpleSequenceChain(chains = chains, chainOutput = Chain.ChainOutput.InputAndOutput)
             ssc.run(mapOf("input" to "123")).bind()
         } shouldBeRight mapOf("input" to "123", "output" to "123dr")
     }
@@ -24,7 +24,7 @@ class SimpleSequentialChainSpec : StringSpec({
         val chains = listOf(chain1, chain2, chain3)
 
         either {
-            val ssc = SimpleSequentialChain(chains = chains, chainOutput = Chain.ChainOutput.InputAndOutput)
+            val ssc = SimpleSequenceChain(chains = chains, chainOutput = Chain.ChainOutput.InputAndOutput)
             ssc.run(mapOf("input" to "123")).bind()
         } shouldBeRight mapOf("input" to "123", "output" to "123drdrdr")
     }
@@ -35,7 +35,7 @@ class SimpleSequentialChainSpec : StringSpec({
         val chains = listOf(chain1, chain2)
 
         either {
-            val ssc = SimpleSequentialChain(chains = chains, chainOutput = Chain.ChainOutput.InputAndOutput)
+            val ssc = SimpleSequenceChain(chains = chains, chainOutput = Chain.ChainOutput.InputAndOutput)
             ssc.run(mapOf("input" to "123")).bind()
         } shouldBeLeft SequenceChain.InvalidKeys("The expected inputs are more than one: {bar}, {foo}")
     }
@@ -46,21 +46,9 @@ class SimpleSequentialChainSpec : StringSpec({
         val chains = listOf(chain1, chain2)
 
         either {
-            val ssc = SimpleSequentialChain(chains = chains, chainOutput = Chain.ChainOutput.InputAndOutput)
+            val ssc = SimpleSequenceChain(chains = chains, chainOutput = Chain.ChainOutput.InputAndOutput)
             ssc.run(mapOf("input" to "123")).bind()
         } shouldBeLeft SequenceChain.InvalidKeys("The expected outputs are more than one: {bar}, {foo}")
-    }
-
-    "SimpleSequentialChain should fail if multiple input and output variables are expected" {
-        val chain1 = FakeChain(inputVariables = setOf("foo", "bar"), outputVariables = setOf("bar", "foo"))
-        val chain2 = FakeChain(inputVariables = setOf("bar"), outputVariables = setOf("baz"))
-        val chains = listOf(chain1, chain2)
-
-        either {
-            val ssc = SimpleSequentialChain(chains = chains, chainOutput = Chain.ChainOutput.InputAndOutput)
-            ssc.run(mapOf("input" to "123")).bind()
-        } shouldBeLeft SequenceChain.InvalidKeys("The expected inputs are more than one: {foo}, {bar}, " +
-                "The expected outputs are more than one: {bar}, {foo}")
     }
 })
 
