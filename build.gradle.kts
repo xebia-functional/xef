@@ -54,7 +54,7 @@ kotlin {
         implementation(libs.arrow.fx)
         implementation(libs.arrow.resilience)
         implementation(libs.kotlinx.serialization.json)
-        implementation(libs.bundles.ktor.client)
+        api(libs.bundles.ktor.client)
         implementation(libs.okio)
         implementation(libs.uuid)
         implementation(libs.klogging)
@@ -75,8 +75,7 @@ kotlin {
         implementation(libs.hikari)
         implementation(libs.postgresql)
         implementation(libs.ktor.client.cio)
-        implementation(libs.slf4j.api)
-        implementation(libs.slf4j.log4j12)
+        implementation(libs.logback)
       }
     }
     val jvmTest by getting {
