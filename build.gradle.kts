@@ -51,10 +51,9 @@ kotlin {
   sourceSets {
     commonMain {
       dependencies {
-        implementation(libs.arrow.fx)
-        implementation(libs.arrow.resilience)
-        implementation(libs.kotlinx.serialization.json)
+        implementation(libs.bundles.arrow)
         implementation(libs.bundles.ktor.client)
+        implementation(libs.kotlinx.serialization.json)
         implementation(libs.okio)
         implementation(libs.uuid)
         implementation(libs.klogging)
