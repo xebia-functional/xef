@@ -1,4 +1,6 @@
-package com.xebia.functional.auto
+package com.xebia.functional.langchain4k.auto
+
+import com.xebia.functional.auto.ai
 
 suspend fun main() {
   val love: List<String> = ai("tell me you like me with just emojis")

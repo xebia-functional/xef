@@ -1,5 +1,6 @@
-package com.xebia.functional.auto
+package com.xebia.functional.langchain4k.auto
 
+import com.xebia.functional.auto.ai
 import kotlinx.serialization.Serializable
 
 @Serializable
