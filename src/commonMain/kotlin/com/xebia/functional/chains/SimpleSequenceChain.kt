@@ -1,4 +1,4 @@
-package com.xebia.functional.chains
+package com.xebia.functional.chains.sequence
 
 import arrow.core.Either
 import arrow.core.raise.Raise
@@ -7,6 +7,7 @@ import arrow.core.raise.ensure
 import arrow.core.raise.ensureNotNull
 import arrow.core.raise.recover
 import arrow.core.raise.zipOrAccumulate
+import com.xebia.functional.chains.Chain
 
 fun Raise<Chain.Error>.SimpleSequenceChain(
     chains: List<Chain>,

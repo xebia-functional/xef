@@ -11,15 +11,19 @@ import com.xebia.functional.prompt.PromptTemplate
 suspend fun LLMChain(
     llm: OpenAIClient,
     promptTemplate: PromptTemplate,
-    llmModel: String,
-    user: String,
-    echo: Boolean,
-    n: Int,
-    temperature: Double,
+    llmModel: String = "text-davinci-003",
+    user: String = "testing",
+    echo: Boolean = false,
+    n: Int = 1,
+    temperature: Double = 0.0,
+    outputVariable: String,
     chainOutput: Chain.ChainOutput = Chain.ChainOutput.OnlyOutput
 ): Chain = object : Chain {
 
-    override val config: Chain.Config = Chain.Config(promptTemplate.inputKeys.toSet(), setOf("answer"), chainOutput)
+    private val inputKeys = promptTemplate.inputKeys.toSet()
+    private val outputKeys = setOf(outputVariable)
+
+    override val config: Chain.Config = Chain.Config(inputKeys, outputKeys, chainOutput)
 
     override suspend fun call(inputs: Map<String, String>): Either<Chain.InvalidInputs, Map<String, String>> =
         either {

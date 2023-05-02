@@ -12,7 +12,7 @@ class LLMChainSpec : StringSpec({
         val template = "Tell me {foo}."
         either {
             val prompt = PromptTemplate(template, listOf("foo"))
-            val chain = LLMChain(llm, prompt, "davinci", "testing", false, 1, 0.0)
+            val chain = LLMChain(llm, prompt, "davinci", "testing", false, 1, 0.0, "answer")
             chain.run("a joke").bind()
         } shouldBeRight mapOf("answer" to "I'm not good at jokes")
     }
@@ -21,7 +21,7 @@ class LLMChainSpec : StringSpec({
         val template = "Tell me {foo}."
         either {
             val prompt = PromptTemplate(template, listOf("foo"))
-            val chain = LLMChain(llm, prompt, "davinci", "testing", false, 1, 0.0, Chain.ChainOutput.InputAndOutput)
+            val chain = LLMChain(llm, prompt, "davinci", "testing", false, 1, 0.0, "answer", Chain.ChainOutput.InputAndOutput)
             chain.run("a joke").bind()
         } shouldBeRight mapOf("foo" to "a joke", "answer" to "I'm not good at jokes")
     }
@@ -30,7 +30,7 @@ class LLMChainSpec : StringSpec({
         val template = "My name is {name} and I'm {age} years old"
         either {
             val prompt = PromptTemplate(template, listOf("name", "age"))
-            val chain = LLMChain(llm, prompt, "davinci", "testing", false, 1, 0.0, Chain.ChainOutput.InputAndOutput)
+            val chain = LLMChain(llm, prompt, "davinci", "testing", false, 1, 0.0, "answer", Chain.ChainOutput.InputAndOutput)
             chain.run(mapOf("age" to "28", "name" to "foo")).bind()
         } shouldBeRight mapOf("age" to "28", "name" to "foo", "answer" to "Hello there! Nice to meet you foo")
     }
@@ -39,7 +39,7 @@ class LLMChainSpec : StringSpec({
         val template = "My name is {name} and I'm {age} years old"
         either {
             val prompt = PromptTemplate(template, listOf("name", "age"))
-            val chain = LLMChain(llm, prompt, "davinci", "testing", false, 1, 0.0)
+            val chain = LLMChain(llm, prompt, "davinci", "testing", false, 1, 0.0, "answer")
             chain.run(mapOf("age" to "28", "brand" to "foo")).bind()
         } shouldBeLeft Chain.InvalidInputs("The provided inputs: {age}, {brand} do not match with chain's inputs: {name}, {age}")
     }
@@ -48,7 +48,7 @@ class LLMChainSpec : StringSpec({
         val template = "My name is {name} and I'm {age} years old"
         either {
             val prompt = PromptTemplate(template, listOf("name", "age"))
-            val chain = LLMChain(llm, prompt, "davinci", "testing", false, 1, 0.0)
+            val chain = LLMChain(llm, prompt, "davinci", "testing", false, 1, 0.0, "answer")
             chain.run("foo").bind()
         } shouldBeLeft Chain.InvalidInputs("The expected inputs are more than one: {name}, {age}")
     }
