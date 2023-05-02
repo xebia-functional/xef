@@ -5,6 +5,11 @@ plugins {
     alias(libs.plugins.scala.multiversion)
 }
 
+repositories {
+    mavenCentral()
+    maven(url = "https://oss.sonatype.org/content/repositories/snapshots/")
+}
+
 dependencies {
     implementation(libs.ciris.core)
     implementation(libs.ciris.refined)
