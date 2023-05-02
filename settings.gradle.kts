@@ -6,4 +6,4 @@ pluginManagement {
     
 }
 rootProject.name = "langchain4k"
-
+include("example")

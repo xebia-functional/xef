@@ -1,4 +1,4 @@
-package com.xebia.functional.examples.auto
+package com.xebia.functional.langchain4k.auto
 
 import com.xebia.functional.auto.ai
 

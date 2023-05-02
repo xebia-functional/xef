@@ -46,6 +46,7 @@ private class KtorOpenAIClient(
         configure(config.token, request)
       }
     }
+    // TODO error body fails to parse into ChatCompletionResponse
     return response.body()
   }
 
