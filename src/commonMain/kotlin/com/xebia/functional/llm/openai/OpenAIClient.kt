@@ -2,6 +2,7 @@ package com.xebia.functional.llm.openai
 
 import arrow.fx.coroutines.ResourceScope
 import arrow.resilience.retry
+import com.xebia.functional.auto.logger
 import com.xebia.functional.configure
 import com.xebia.functional.env.OpenAIConfig
 import com.xebia.functional.httpClient
@@ -9,16 +10,18 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.request.post
+import io.ktor.client.statement.HttpResponse
 import io.ktor.http.path
 
 interface OpenAIClient {
   suspend fun createCompletion(request: CompletionRequest): List<CompletionChoice>
+  suspend fun createChatCompletion(request: ChatCompletionRequest): ChatCompletionResponse
   suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult
 }
 
 suspend fun ResourceScope.KtorOpenAIClient(
-  engine: HttpClientEngine,
-  config: OpenAIConfig
+  config: OpenAIConfig,
+  engine: HttpClientEngine? = null
 ): OpenAIClient = KtorOpenAIClient(httpClient(engine, config.baseUrl), config)
 
 private class KtorOpenAIClient(
@@ -36,8 +39,19 @@ private class KtorOpenAIClient(
     return response.body()
   }
 
-  override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult {
+  override suspend fun createChatCompletion(request: ChatCompletionRequest): ChatCompletionResponse {
     val response = config.retryConfig.schedule().retry {
+      httpClient.post {
+        url { path("chat/completions") }
+        configure(config.token, request)
+      }
+    }
+    // TODO error body fails to parse into ChatCompletionResponse
+    return response.body()
+  }
+
+  override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult {
+    val response: HttpResponse = config.retryConfig.schedule().retry {
       httpClient.post {
         url { path("embeddings") }
         configure(config.token, request)

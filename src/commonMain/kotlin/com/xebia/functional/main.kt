@@ -16,16 +16,14 @@ import io.ktor.client.engine.HttpClientEngine
 suspend fun main(): Unit = resourceScope {
   either {
     val env = Env()
-    val openAPI = KtorOpenAIClient(engine(), env.openAI)
-    val huggingFace = KtorHuggingFaceClient(engine(), env.huggingFace)
+    val openAPI = KtorOpenAIClient(env.openAI)
+    val huggingFace = KtorHuggingFaceClient(env.huggingFace)
 
     println(openAIExample(openAPI))
     println(hfExample(huggingFace))
     println(openAIEmbeddingsExample(openAPI))
   }.onLeft { println(it) }
 }
-
-fun engine(): HttpClientEngine = TODO()
 
 suspend fun openAIEmbeddingsExample(client: OpenAIClient) =
   client.createEmbeddings(

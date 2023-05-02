@@ -1,11 +1,7 @@
 package com.xebia.functional.chains
 
 import arrow.core.raise.either
-import com.xebia.functional.llm.openai.CompletionChoice
-import com.xebia.functional.llm.openai.CompletionRequest
-import com.xebia.functional.llm.openai.EmbeddingRequest
-import com.xebia.functional.llm.openai.EmbeddingResult
-import com.xebia.functional.llm.openai.OpenAIClient
+import com.xebia.functional.llm.openai.*
 import com.xebia.functional.prompt.PromptTemplate
 import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
@@ -67,6 +63,10 @@ val llm = object : OpenAIClient {
                 listOf(CompletionChoice("Hello there! Nice to meet you foo", 1, "foo"))
             else -> listOf(CompletionChoice("foo", 1, "bar"))
         }
+
+    override suspend fun createChatCompletion(request: ChatCompletionRequest): ChatCompletionResponse {
+        TODO("Not yet implemented")
+    }
 
     override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult = TODO()
 }
