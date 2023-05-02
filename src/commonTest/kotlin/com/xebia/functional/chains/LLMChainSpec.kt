@@ -1,7 +1,11 @@
 package com.xebia.functional.chains
 
 import arrow.core.raise.either
-import com.xebia.functional.llm.openai.*
+import com.xebia.functional.llm.openai.CompletionChoice
+import com.xebia.functional.llm.openai.CompletionRequest
+import com.xebia.functional.llm.openai.EmbeddingRequest
+import com.xebia.functional.llm.openai.EmbeddingResult
+import com.xebia.functional.llm.openai.OpenAIClient
 import com.xebia.functional.prompt.PromptTemplate
 import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
@@ -21,7 +25,7 @@ class LLMChainSpec : StringSpec({
         val template = "Tell me {foo}."
         either {
             val prompt = PromptTemplate(template, listOf("foo"))
-            val chain = LLMChain(llm, prompt, "davinci", "testing", false, 1, 0.0, true)
+            val chain = LLMChain(llm, prompt, "davinci", "testing", false, 1, 0.0, Chain.ChainOutput.InputAndOutput)
             chain.run("a joke").bind()
         } shouldBeRight mapOf("foo" to "a joke", "answer" to "I'm not good at jokes")
     }
@@ -30,7 +34,7 @@ class LLMChainSpec : StringSpec({
         val template = "My name is {name} and I'm {age} years old"
         either {
             val prompt = PromptTemplate(template, listOf("name", "age"))
-            val chain = LLMChain(llm, prompt, "davinci", "testing", false, 1, 0.0, true)
+            val chain = LLMChain(llm, prompt, "davinci", "testing", false, 1, 0.0, Chain.ChainOutput.InputAndOutput)
             chain.run(mapOf("age" to "28", "name" to "foo")).bind()
         } shouldBeRight mapOf("age" to "28", "name" to "foo", "answer" to "Hello there! Nice to meet you foo")
     }

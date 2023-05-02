@@ -9,18 +9,21 @@ import arrow.core.raise.ensureNotNull
 import arrow.core.raise.zipOrAccumulate
 
 fun Raise<Chain.Error>.SimpleSequentialChain(
-    chains: List<Chain>, inputKey: String = "input", outputKey: String = "output", returnAll: Boolean = false
+    chains: List<Chain>,
+    inputKey: String = "input",
+    outputKey: String = "output",
+    chainOutput: Chain.ChainOutput = Chain.ChainOutput.OnlyOutput
 ): SimpleSequentialChain =
-    SimpleSequentialChain.either(chains, inputKey, outputKey, returnAll).bind()
+    SimpleSequentialChain.either(chains, inputKey, outputKey, chainOutput).bind()
 
 class SimpleSequentialChain private constructor(
     private val chains: List<Chain>,
     private val inputKey: String,
     private val outputKey: String,
-    returnAll: Boolean
+    chainOutput: Chain.ChainOutput
 ) : SequenceChain {
 
-    override val config = Chain.Config(setOf(inputKey), setOf(outputKey), returnAll)
+    override val config = Chain.Config(setOf(inputKey), setOf(outputKey), chainOutput)
 
     override suspend fun call(inputs: Map<String, String>): Either<Chain.Error, Map<String, String>> =
         either {
@@ -34,7 +37,7 @@ class SimpleSequentialChain private constructor(
 
     companion object {
         fun either(
-            chains: List<Chain>, inputKey: String, outputKey: String, returnAll: Boolean
+            chains: List<Chain>, inputKey: String, outputKey: String, chainOutput: Chain.ChainOutput
         ): Either<SequenceChain.InvalidKeys, SimpleSequentialChain> =
             either {
                 chains.map { chain ->
@@ -47,7 +50,7 @@ class SimpleSequentialChain private constructor(
                 }
             }.mapLeft {
                 SequenceChain.InvalidKeys(it.joinToString(transform = Chain.Error::reason))
-            }.map { SimpleSequentialChain(chains, inputKey, outputKey, returnAll) }
+            }.map { SimpleSequentialChain(chains, inputKey, outputKey, chainOutput) }
     }
 }
 

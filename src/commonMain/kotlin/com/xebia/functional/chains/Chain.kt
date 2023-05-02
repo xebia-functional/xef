@@ -6,13 +6,16 @@ import arrow.core.raise.ensure
 
 interface Chain {
 
+    enum class ChainOutput { InputAndOutput, OnlyOutput }
+
     sealed class Error(open val reason: String)
+
     data class InvalidInputs(override val reason: String): Error(reason)
 
     data class Config(
         val inputKeys: Set<String>,
         val outputKeys: Set<String>,
-        val returnAll: Boolean = false
+        val chainOutput: ChainOutput = ChainOutput.OnlyOutput
     ) {
         fun createInputs(
             inputs: String
@@ -60,5 +63,8 @@ interface Chain {
     private fun prepareOutputs(
         inputs: Map<String, String>, outputs: Map<String, String>
     ): Map<String, String> =
-        if (config.returnAll) inputs + outputs else outputs
+        when (config.chainOutput) {
+            ChainOutput.InputAndOutput -> inputs + outputs
+            ChainOutput.OnlyOutput -> outputs
+        }
 }

@@ -16,10 +16,10 @@ suspend fun LLMChain(
     echo: Boolean,
     n: Int,
     temperature: Double,
-    returnAll: Boolean = false
+    chainOutput: Chain.ChainOutput = Chain.ChainOutput.OnlyOutput
 ): Chain = object : Chain {
 
-    override val config: Chain.Config = Chain.Config(promptTemplate.inputKeys.toSet(), setOf("answer"), returnAll)
+    override val config: Chain.Config = Chain.Config(promptTemplate.inputKeys.toSet(), setOf("answer"), chainOutput)
 
     override suspend fun call(inputs: Map<String, String>): Either<Chain.InvalidInputs, Map<String, String>> =
         either {
