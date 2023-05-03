@@ -7,6 +7,7 @@ plugins {
 }
 
 dependencies {
+    implementation(libs.kotlinx.coroutines)
     implementation(libs.ciris.core)
     implementation(libs.ciris.refined)
     implementation(libs.ciris.http4s)
