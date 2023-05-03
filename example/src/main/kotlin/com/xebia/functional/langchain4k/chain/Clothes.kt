@@ -40,7 +40,7 @@ suspend fun main() {
             val embeddings = OpenAIEmbeddings(openAIConfig, openAiClient, logger)
             val vectorStore = LocalVectorStore(embeddings)
 
-            val resource: URL = javaClass.getResource("/docs/weather.txt") ?: raise(Error("Resource not found"))
+            val resource: URL = javaClass.getResource("/documents/weather.txt") ?: raise(Error("Resource not found"))
             val path: Path = File(resource.file).path.toPath()
 
             val textLoader: BaseLoader = TextLoader(path)
