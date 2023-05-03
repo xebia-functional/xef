@@ -17,7 +17,7 @@ kotlin {
   sourceSets {
     val main by getting {
       dependencies {
-        implementation(rootProject)
+        implementation(project(":langchain4k-kotlin"))
       }
     }
   }
