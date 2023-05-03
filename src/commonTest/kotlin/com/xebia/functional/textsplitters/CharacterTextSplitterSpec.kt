@@ -1,6 +1,6 @@
 package com.xebia.functional.textsplitters
 
-import com.xebia.functional.domain.Document
+import com.xebia.functional.Document
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 

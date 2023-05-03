@@ -1,6 +1,6 @@
 package com.xebia.functional.loaders
 
-import com.xebia.functional.domain.Document
+import com.xebia.functional.Document
 import com.xebia.functional.textsplitters.BaseTextSplitter
 
 interface BaseLoader {
