@@ -1,4 +1,21 @@
-# 🦜️🔗 LangChain4s examples
+# 🦜️🔗 LangChain4s
+
+Build the project locally, from the project root:
+
+```bash
+./gradlew build
+```
+
+## Scalafmt
+
+The Scala module uses the [spotless](https://github.com/diffplug/spotless/tree/main/plugin-gradle#scala) plugin. 
+Therefore, the previous command (`./gradlew build`) will fail in case there is any formatting issue. To apply format, you can run the following command:
+
+```bash
+./gradlew spotlessApply
+```
+
+## Examples
 
 The following use cases show in a simplified way different functionality of LangChain4s:
 

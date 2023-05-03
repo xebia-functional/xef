@@ -3,6 +3,7 @@
 plugins {
     scala
     alias(libs.plugins.scala.multiversion)
+    alias(libs.plugins.spotless)
 }
 
 repositories {
@@ -36,4 +37,10 @@ dependencies {
 
 tasks.withType<Test>().configureEach {
     useJUnit()
+}
+
+spotless {
+    scala {
+        scalafmt("3.7.1").configFile(".scalafmt.conf").scalaMajorVersion("2.13")
+    }
 }
