@@ -19,4 +19,8 @@ dependencies {
   implementation(rootProject)
   implementation(libs.kotlinx.serialization.json)
   implementation(libs.logback)
+  implementation(libs.klogging)
+  implementation(libs.bundles.arrow)
+  implementation(libs.okio)
+  api(libs.bundles.ktor.client)
 }
