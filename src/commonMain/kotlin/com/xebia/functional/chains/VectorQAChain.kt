@@ -1,10 +1,11 @@
 package com.xebia.functional.chains
 
 import arrow.core.Either
+import arrow.core.raise.Raise
 import arrow.core.raise.either
+import arrow.core.raise.recover
 import com.xebia.functional.Document
 import com.xebia.functional.llm.openai.OpenAIClient
-import com.xebia.functional.prompt.InvalidTemplate
 import com.xebia.functional.prompt.PromptTemplate
 import com.xebia.functional.vectorstores.VectorStore
 
@@ -34,7 +35,6 @@ suspend fun VectorQAChain(
     override suspend fun call(inputs: Map<String, String>): Either<Chain.Error, Map<String, String>> =
         either {
             val promptTemplate = promptTemplate()
-                .mapLeft { VectorQAChain.InvalidTemplate(it.reason) }.bind()
 
             val question = validateInput(inputs, inputVariable)
             val documents = getDocs(question)
@@ -51,8 +51,8 @@ suspend fun VectorQAChain(
             chain.run(inputs).bind()
         }
 
-    private fun promptTemplate(): Either<InvalidTemplate, PromptTemplate> =
-        either {
+    private fun Raise<VectorQAChain.InvalidTemplate>.promptTemplate(): PromptTemplate =
+        recover({
             val template = """
                 |Use the following pieces of context to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer.
                 |
@@ -62,5 +62,5 @@ suspend fun VectorQAChain(
                 |Helpful Answer:""".trimMargin()
 
             PromptTemplate(template, listOf("context", "question"))
-        }
+        }) { raise(VectorQAChain.InvalidTemplate(it.reason)) }
 }
