@@ -1,5 +1,7 @@
 package com.xebia.functional.chains
 
+import com.xebia.functional.llm.openai.ChatCompletionRequest
+import com.xebia.functional.llm.openai.ChatCompletionResponse
 import com.xebia.functional.llm.openai.CompletionChoice
 import com.xebia.functional.llm.openai.CompletionRequest
 import com.xebia.functional.llm.openai.EmbeddingRequest
@@ -19,7 +21,11 @@ val testLLM = object : OpenAIClient {
             else -> listOf(CompletionChoice("foo", 1, "bar"))
         }
 
-    override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult = TODO()
+    override suspend fun createChatCompletion(request: ChatCompletionRequest): ChatCompletionResponse =
+        TODO()
+
+    override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult =
+        TODO()
 }
 
 val testContext = """foo foo foo
