@@ -6,7 +6,7 @@ import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.core.spec.style.StringSpec
 
-class SimpleSequentialChainSpec : StringSpec({
+class SimpleSequenceChainSpec : StringSpec({
     "SimpleSequenceChain should return a prediction with one chain" {
         val chain1 = FakeChain(inputVariables = setOf("foo"), outputVariables = setOf("bar"))
         val chains = listOf(chain1)
@@ -29,7 +29,7 @@ class SimpleSequentialChainSpec : StringSpec({
         } shouldBeRight mapOf("input" to "123", "output" to "123drdrdr")
     }
 
-    "SimpleSequentialChain should fail if multiple input variables are expected" {
+    "SimpleSequenceChain should fail if multiple input variables are expected" {
         val chain1 = FakeChain(inputVariables = setOf("foo"), outputVariables = setOf("bar"))
         val chain2 = FakeChain(inputVariables = setOf("bar", "foo"), outputVariables = setOf("baz"))
         val chains = listOf(chain1, chain2)
@@ -40,7 +40,7 @@ class SimpleSequentialChainSpec : StringSpec({
         } shouldBeLeft SequenceChain.InvalidKeys("The expected inputs are more than one: {bar}, {foo}")
     }
 
-    "SimpleSequentialChain should fail if multiple output variables are expected" {
+    "SimpleSequenceChain should fail if multiple output variables are expected" {
         val chain1 = FakeChain(inputVariables = setOf("foo"), outputVariables = setOf("bar", "foo"))
         val chain2 = FakeChain(inputVariables = setOf("bar"), outputVariables = setOf("baz"))
         val chains = listOf(chain1, chain2)
