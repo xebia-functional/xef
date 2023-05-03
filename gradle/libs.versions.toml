@@ -17,6 +17,7 @@ testcontainers = "1.17.6"
 hikari = "5.0.1"
 dokka = "1.8.10"
 logback = "1.4.6"
+kotlinx-coroutines = "1.6.4"
 scalaMultiversion = "2.0.4"
 ciris = "3.1.0"
 http4s = "0.23.18"
@@ -36,6 +37,7 @@ arrow-fx-coroutines = { module = "io.arrow-kt:arrow-fx-coroutines", version.ref 
 arrow-resilience = { module = "io.arrow-kt:arrow-resilience", version.ref = "arrow" }
 open-ai = { module = "com.theokanning.openai-gpt3-java:service", version.ref = "openai" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-json" }
+kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref="kotlinx-coroutines" }
 ktor-client = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-js = { module = "io.ktor:ktor-client-js", version.ref = "ktor" }
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
