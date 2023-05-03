@@ -4,10 +4,6 @@ import org.jetbrains.dokka.gradle.DokkaTask
 
 version = "0.0.1-SNAPSHOT"
 
-repositories {
-  mavenCentral()
-}
-
 plugins {
   base
   alias(libs.plugins.kotlin.multiplatform)
