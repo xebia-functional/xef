@@ -14,6 +14,8 @@ interface Chain {
 
     data class InvalidInputs(override val reason: String): Error(reason)
 
+    data class InvalidOutputs(override val reason: String): Error(reason)
+
     data class Config(
         val inputKeys: Set<String>,
         val outputKeys: Set<String>,
