@@ -9,6 +9,7 @@ plugins {
 dependencies {
     implementation(project(":langchain4k-kotlin"))
     implementation(libs.kotlinx.coroutines)
+    implementation(libs.arrow.fx.coroutines)
     implementation(libs.ciris.core)
     implementation(libs.ciris.refined)
     implementation(libs.ciris.http4s)
