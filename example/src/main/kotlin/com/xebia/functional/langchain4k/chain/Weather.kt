@@ -28,9 +28,9 @@ suspend fun main() {
 
     val documentPath = "/documents/weather.csv"
     val question = "Knowing this forecast, what clothes do you recommend I should wear?"
-    val response = getQuestionAnswer(documentPath, question, logger)
+    val answer: Map<String, String> = getQuestionAnswer(documentPath, question, logger)
 
-    logger.info { response }
+    logger.info { answer }
 }
 
 @OptIn(ExperimentalTime::class)
