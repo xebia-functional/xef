@@ -18,8 +18,6 @@ import okio.Path
 import okio.Path.Companion.toPath
 import java.io.File
 import java.net.URL
-import java.text.SimpleDateFormat
-import java.util.*
 import kotlin.time.ExperimentalTime
 
 @PublishedApi
@@ -56,11 +54,10 @@ suspend fun main() {
                 outputVariable
             )
 
-            val sdf = SimpleDateFormat("dd/MM/yyyy")
-            val currentDate: String = sdf.format(Date()) ?: raise(Error("Invalid date"))
-
-            val question = "If today is $currentDate, what clothes do you recommend should I wear this week?"
+            val date = "03/05/2023"
+            val question = "If today is $date, what clothes do you recommend should I wear this week?"
             val response: Map<String, String> = chain.run(question).getOrElse { raise(Error(it.reason)) }
+
 
             println(response)
 
