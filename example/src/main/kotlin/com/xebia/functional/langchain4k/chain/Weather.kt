@@ -2,6 +2,7 @@ package com.xebia.functional.langchain4k.chain
 
 import arrow.core.getOrElse
 import arrow.core.raise.either
+import arrow.core.raise.ensureNotNull
 import arrow.core.raise.recover
 import arrow.fx.coroutines.resourceScope
 import com.xebia.functional.Document
@@ -50,8 +51,9 @@ private suspend fun getQuestionAnswer(
             val embeddings = OpenAIEmbeddings(openAIConfig, openAiClient, logger)
             val vectorStore = LocalVectorStore(embeddings)
 
-            val resource: URL = javaClass.getResource(documentPath) ?:
-                raise(WeatherExampleError("Resource not found"))
+            val resource: URL = ensureNotNull(javaClass.getResource(documentPath)) {
+                WeatherExampleError("Resource not found")
+            }
 
             val path: Path = File(resource.file).path.toPath()
 
