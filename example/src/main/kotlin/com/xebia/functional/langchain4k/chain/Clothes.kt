@@ -55,9 +55,8 @@ suspend fun main() {
             )
 
             val date = "03/05/2023"
-            val question = "If today is $date, what clothes do you recommend should I wear this week?"
+            val question = "If today is $date, what clothes do you recommend I should wear this week?"
             val response: Map<String, String> = chain.run(question).getOrElse { raise(Error(it.reason)) }
-
 
             println(response)
 
