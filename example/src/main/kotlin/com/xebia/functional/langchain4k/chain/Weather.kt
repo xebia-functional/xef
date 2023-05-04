@@ -13,6 +13,7 @@ import com.xebia.functional.llm.openai.OpenAIClient
 import com.xebia.functional.loaders.BaseLoader
 import com.xebia.functional.loaders.TextLoader
 import com.xebia.functional.vectorstores.LocalVectorStore
+import io.github.oshai.KLogger
 import io.github.oshai.KotlinLogging
 import okio.Path
 import okio.Path.Companion.toPath
@@ -20,25 +21,38 @@ import java.io.File
 import java.net.URL
 import kotlin.time.ExperimentalTime
 
-@PublishedApi
-internal val logger = KotlinLogging.logger("Clothes")
+data class WeatherExampleError(val reason: String)
 
-data class Error(val reason: String)
+suspend fun main() {
+    val logger = KotlinLogging.logger("Weather")
+
+    val documentPath = "/documents/weather.csv"
+    val question = "Knowing this forecast, what clothes do you recommend I should wear?"
+    val response = getQuestionAnswer(documentPath, question, logger)
+
+    logger.info { response }
+}
 
 @OptIn(ExperimentalTime::class)
-suspend fun main() {
+private suspend fun getQuestionAnswer(
+    documentPath: String,
+    question: String,
+    logger: KLogger
+): Map<String, String> =
     resourceScope {
         either {
+            val token = "<YOUR_OPENAI_TOKEN>"
             val openAIConfig = recover({
-                val token = "<OPENAI_TOKEN>"
                 OpenAIConfig(token)
-            }) { raise(Error(it.joinToString(", "))) }
+            }) { raise(WeatherExampleError(it.joinToString(", "))) }
 
             val openAiClient: OpenAIClient = KtorOpenAIClient(openAIConfig)
             val embeddings = OpenAIEmbeddings(openAIConfig, openAiClient, logger)
             val vectorStore = LocalVectorStore(embeddings)
 
-            val resource: URL = javaClass.getResource("/documents/weather.txt") ?: raise(Error("Resource not found"))
+            val resource: URL = javaClass.getResource(documentPath) ?:
+                raise(WeatherExampleError("Resource not found"))
+
             val path: Path = File(resource.file).path.toPath()
 
             val textLoader: BaseLoader = TextLoader(path)
@@ -54,12 +68,7 @@ suspend fun main() {
                 outputVariable
             )
 
-            val date = "03/05/2023"
-            val question = "If today is $date, what clothes do you recommend I should wear this week?"
-            val response: Map<String, String> = chain.run(question).getOrElse { raise(Error(it.reason)) }
-
-            println(response)
+            chain.run(question).getOrElse { raise(WeatherExampleError(it.reason)) }
 
         }.getOrElse { throw IllegalStateException(it.reason) }
     }
-}
