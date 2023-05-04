@@ -12,15 +12,15 @@ val testLLM = object : OpenAIClient {
     override suspend fun createCompletion(request: CompletionRequest): List<CompletionChoice> =
         when (request.prompt) {
             "Tell me a joke." ->
-                listOf(CompletionChoice("I'm not good at jokes", 1, "foo"))
+                listOf(CompletionChoice("I'm not good at jokes", 1, finishReason = "foo"))
 
             "My name is foo and I'm 28 years old" ->
-                listOf(CompletionChoice("Hello there! Nice to meet you foo", 1, "foo"))
+                listOf(CompletionChoice("Hello there! Nice to meet you foo", 1, finishReason = "foo"))
 
-            testTemplateFormatted -> listOf(CompletionChoice("I don't know", 1, "foo"))
-            testTemplateInputsFormatted -> listOf(CompletionChoice("Two inputs, right?", 1, "foo"))
-            testQATemplateFormatted -> listOf(CompletionChoice("I don't know", 1, "foo"))
-            else -> listOf(CompletionChoice("foo", 1, "bar"))
+            testTemplateFormatted -> listOf(CompletionChoice("I don't know", 1, finishReason = "foo"))
+            testTemplateInputsFormatted -> listOf(CompletionChoice("Two inputs, right?", 1, finishReason = "foo"))
+            testQATemplateFormatted -> listOf(CompletionChoice("I don't know", 1, finishReason = "foo"))
+            else -> listOf(CompletionChoice("foo", 1, finishReason = "bar"))
         }
 
     override suspend fun createChatCompletion(request: ChatCompletionRequest): ChatCompletionResponse =

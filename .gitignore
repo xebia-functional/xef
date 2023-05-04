@@ -145,3 +145,5 @@ kotlin-js-store/
 .sass-cache/
 .jekyll-cache/
 .jekyll-metadata
+
+.env

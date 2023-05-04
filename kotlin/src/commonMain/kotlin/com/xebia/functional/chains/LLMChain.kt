@@ -36,6 +36,7 @@ suspend fun LLMChain(
                 echo = echo,
                 n = n,
                 temperature = temperature,
+                maxTokens = 256
             )
 
             val completions = llm.createCompletion(request)

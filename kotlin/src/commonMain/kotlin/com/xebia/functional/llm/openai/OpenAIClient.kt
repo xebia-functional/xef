@@ -2,7 +2,6 @@ package com.xebia.functional.llm.openai
 
 import arrow.fx.coroutines.ResourceScope
 import arrow.resilience.retry
-import com.xebia.functional.auto.logger
 import com.xebia.functional.configure
 import com.xebia.functional.env.OpenAIConfig
 import com.xebia.functional.httpClient
@@ -36,7 +35,8 @@ private class KtorOpenAIClient(
         configure(config.token, request)
       }
     }
-    return response.body()
+    val body: CompletionResult = response.body()
+    return body.choices
   }
 
   override suspend fun createChatCompletion(request: ChatCompletionRequest): ChatCompletionResponse {

@@ -1,8 +1,8 @@
 package com.xebia.functional.llm.openai
 
-import kotlin.jvm.JvmInline
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlin.jvm.JvmInline
 
 enum class EmbeddingModel(val modelName: String) {
   TextEmbeddingAda002("text-embedding-ada-002")
@@ -15,9 +15,23 @@ data class RequestConfig(val model: EmbeddingModel, val user: User) {
   }
 }
 
+@Serializable
+data class CompletionChoice(
+  val text: String,
+  val index: Int,
+  val logprobs: Int? = null,
+  @SerialName("finish_reason") val finishReason: String
+)
 
 @Serializable
-data class CompletionChoice(val text: String, val index: Int, val finishReason: String)
+data class CompletionResult(
+  val id: String,
+  @SerialName("object") val `object`: String,
+  val created: Long,
+  val model: String,
+  val choices: List<CompletionChoice>,
+  val usage: Usage
+)
 
 @Serializable
 data class CompletionRequest(
