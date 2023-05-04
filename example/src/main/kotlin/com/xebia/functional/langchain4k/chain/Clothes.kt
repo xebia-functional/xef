@@ -60,9 +60,7 @@ suspend fun main() {
             val currentDate: String = sdf.format(Date()) ?: raise(Error("Invalid date"))
 
             val question = "If today is $currentDate, what clothes do you recommend should I wear this week?"
-            val response: Map<String, String> = recover({
-                chain.run(question).bind()
-            }) { raise(Error(it.reason)) }
+            val response: Map<String, String> = chain.run(question).getOrElse { raise(Error(it.reason)) }
 
             println(response)
 
