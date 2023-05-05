@@ -1,4 +1,4 @@
-package com.xebia.functional.prompt.chat
+package com.xebia.functional.prompt.message
 
 import com.xebia.functional.prompt.PromptTemplate
 

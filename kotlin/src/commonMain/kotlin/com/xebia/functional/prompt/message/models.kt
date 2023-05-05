@@ -1,4 +1,4 @@
-package com.xebia.functional.prompt.chat
+package com.xebia.functional.prompt.message
 
 import kotlinx.serialization.Serializable
 
