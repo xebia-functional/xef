@@ -1,6 +1,5 @@
 package com.xebia.functional.agents
 
-import com.xebia.functional.auto.agents.Agent
 import com.xebia.functional.auto.agents.WikipediaResult
 import com.xebia.functional.auto.agents.wikipedia
 import com.xebia.functional.io.CommandExecutor

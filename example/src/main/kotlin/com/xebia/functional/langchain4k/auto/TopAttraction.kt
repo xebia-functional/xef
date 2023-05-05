@@ -1,5 +1,6 @@
 package com.xebia.functional.langchain4k.auto
 
+import arrow.core.getOrElse
 import com.xebia.functional.auto.ai
 import kotlinx.serialization.Serializable
 
@@ -12,7 +13,7 @@ data class City(val name: String, val country: String)
 @Serializable
 data class Weather(val city: City, val temperature: Double, val description: String)
 
-suspend fun main() {
+suspend fun main() = ai {
     val nearbyTopAttraction: TopAttraction = ai("Top attraction in Cádiz, Spain.")
     println(
         """
@@ -21,4 +22,4 @@ suspend fun main() {
             |The weather in ${nearbyTopAttraction.city.name} is ${nearbyTopAttraction.weather.temperature} degrees Celsius and ${nearbyTopAttraction.weather.description}.
             |""".trimMargin()
     )
-}
+}.getOrElse { println(it) }

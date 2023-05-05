@@ -1,5 +1,6 @@
 package com.xebia.functional.langchain4k.auto
 
+import arrow.core.getOrElse
 import com.xebia.functional.auto.ai
 import kotlinx.serialization.Serializable
 
@@ -7,6 +8,8 @@ import kotlinx.serialization.Serializable
 data class Person(val name: String, val age: Int)
 
 suspend fun main() {
-    val bogus: List<Person> = ai("come up with some random data that matches the type")
-    println(bogus)
+    ai {
+        val person: Person = ai("What is your name and age?")
+        println("Hello ${person.name}, you are ${person.age} years old.")
+    }.getOrElse { println(it) }
 }
