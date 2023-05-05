@@ -16,7 +16,8 @@ java {
 }
 
 dependencies {
-  implementation(project(":langchain4k-kotlin"))
+  implementation(projects.langchain4kKotlin)
+  implementation(projects.langchain4kFilesystem)
   implementation(libs.kotlinx.serialization.json)
   implementation(libs.logback)
   implementation(libs.klogging)

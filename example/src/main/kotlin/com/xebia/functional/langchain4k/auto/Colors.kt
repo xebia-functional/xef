@@ -1,7 +1,6 @@
 package com.xebia.functional.langchain4k.auto
 
 import arrow.core.getOrElse
-import com.xebia.functional.auto.AI
 import com.xebia.functional.auto.ai
 import kotlinx.serialization.Serializable
 
@@ -9,7 +8,7 @@ import kotlinx.serialization.Serializable
 data class Colors(val colors: List<String>)
 
 suspend fun main() {
-    AI {
+    ai {
         val colors: Colors = ai("a selection of 10 beautiful colors that go well together")
         println(colors)
     }.getOrElse { println(it) }

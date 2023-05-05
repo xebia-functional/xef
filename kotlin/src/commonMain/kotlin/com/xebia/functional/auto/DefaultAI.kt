@@ -2,6 +2,7 @@ package com.xebia.functional.auto
 
 import arrow.core.raise.Raise
 import arrow.core.raise.catch
+import arrow.fx.coroutines.ResourceScope
 import com.xebia.functional.auto.serialization.JsonSchema
 import com.xebia.functional.auto.serialization.JsonType
 import com.xebia.functional.auto.serialization.jsonLiteral
@@ -13,31 +14,30 @@ import com.xebia.functional.llm.openai.Role
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.elementDescriptors
+import kotlinx.serialization.descriptors.elementNames
 import kotlinx.serialization.json.*
 
 @OptIn(ExperimentalSerializationApi::class)
 fun SerialDescriptor.sample(): JsonElement {
-    val properties = elementDescriptors.associate {
-        it.serialName to when (kind.jsonType) {
-            JsonType.ARRAY -> JsonArray(listOf(it.sample()))
+    val properties = elementNames.zip(elementDescriptors).associate { (name, descriptor) ->
+        name to when (descriptor.kind.jsonType) {
+            JsonType.ARRAY -> JsonArray(listOf(descriptor.sample()))
             JsonType.NUMBER -> JsonUnquotedLiteral("<infer number>")
             JsonType.STRING -> JsonUnquotedLiteral("<infer string>")
             JsonType.BOOLEAN -> JsonUnquotedLiteral("<infer true | false>")
-            JsonType.OBJECT -> it.sample()
-            JsonType.OBJECT_SEALED -> it.sample()
-            JsonType.OBJECT_MAP -> it.sample()
+            JsonType.OBJECT -> descriptor.sample()
+            JsonType.OBJECT_SEALED -> descriptor.sample()
+            JsonType.OBJECT_MAP -> descriptor.sample()
         }
     }
     return JsonObject(properties)
 }
 
-class DefaultAI(override val config: Config, val raise: Raise<AIError>) : AI {
+fun ResourceScope.DefaultAI(config: Config) : AI = object : AI() {
 
-    override fun raise(r: AIError): Nothing {
-        raise.raise(r)
-    }
+    override val config: Config = config
 
-    override suspend operator fun <A> invoke(
+    override suspend operator fun <A> Raise<AIError>.invoke(
         prompt: String, serializationConfig: SerializationConfig<A>
     ): A {
         val augmentedPrompt = """
@@ -85,7 +85,7 @@ class DefaultAI(override val config: Config, val raise: Raise<AIError>) : AI {
     ): Solution = if (maxAttempts <= 0) {
         raise(AIError("Exceeded maximum attempts"))
     } else {
-        val solution: Solution = AI<Solution>(this@DefaultAI, task).bind()
+        val solution: Solution = ai(task)
         if (solution.accomplishesObjective) {
             solution
         } else {

@@ -5,6 +5,7 @@ import arrow.core.getOrElse
 import arrow.core.raise.Raise
 import arrow.core.raise.either
 import arrow.core.raise.recover
+import arrow.fx.coroutines.ResourceScope
 import arrow.fx.coroutines.resourceScope
 import arrow.optics.optics
 import com.xebia.functional.auto.serialization.buildJsonSchema
@@ -13,7 +14,7 @@ import com.xebia.functional.env.OpenAIConfig
 import com.xebia.functional.llm.openai.KtorOpenAIClient
 import com.xebia.functional.llm.openai.OpenAIClient
 import com.xebia.functional.vectorstores.LocalVectorStore
-import kotlinx.serialization.descriptors.serialDescriptor
+import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.serializer
 import kotlin.experimental.ExperimentalTypeInference
 import kotlin.time.ExperimentalTime
@@ -34,47 +35,50 @@ interface Agent {
 
 @DSL
 @OptIn(ExperimentalTypeInference::class)
-suspend inline fun <reified A> ai(ai: AI? = null, @BuilderInference noinline prompt: suspend AI.() -> A): Either<AIError, A> =
-    AI(ai, prompt)
+suspend inline fun <reified A> ai(
+    @BuilderInference noinline block: suspend AI.() -> A
+): Either<AIError, A> =
+    resourceScope {
+        either {
+            try {
+                AI.run { default() }.bind().block()
+            } catch (e: AI.AIInternalException) {
+                raise(e.error)
+            }
+        }
+    }
 
-@DSL
-suspend inline fun <reified A> AI.ai(prompt: String): A =
-    AI<A>(this, prompt).getOrElse { raise(it) }
+abstract class AI {
 
-interface AI : Raise<AIError> {
-    val config: Config
+    @PublishedApi
+    internal class AIInternalException(val error: AIError): CancellationException(error.toString())
 
-    suspend operator fun <A> invoke(prompt: String, serializationConfig: SerializationConfig<A>): A
+    abstract val config: Config
+
+    abstract suspend operator fun <A> Raise<AIError>.invoke(prompt: String, serializationConfig: SerializationConfig<A>): A
+
+    @DSL
+    suspend inline fun <reified A> ai(prompt: String): A =
+        either { invoke<A>(prompt) }.getOrElse { throw AIInternalException(it) }
+
+    @PublishedApi
+    internal suspend inline operator fun <reified A> Raise<AIError>.invoke(prompt: String): A {
+        val serializer = serializer<A>()
+        val serializationConfig: SerializationConfig<A> = SerializationConfig(
+            jsonSchema = buildJsonSchema(serializer.descriptor, false),
+            descriptor = serializer.descriptor,
+            deserializationStrategy = serializer
+        )
+        return invoke(prompt, serializationConfig)
+    }
 
     companion object {
 
-        @OptIn(ExperimentalTypeInference::class)
-        suspend inline operator fun <reified A> invoke(ai: AI? = null, @BuilderInference noinline prompt: suspend AI.() -> A): Either<AIError, A> =
-            either {
-                val selected = ai ?: default().bind()
-                selected.run { prompt() }
-            }
-
-        suspend inline operator fun <reified A> invoke(ai: AI? = null, prompt: String): Either<AIError, A> =
-            either {
-                val selectedAI: AI = ai ?: default().bind()
-                val serializer = serializer<A>()
-                val serializationConfig: SerializationConfig<A> = SerializationConfig(
-                    jsonSchema = buildJsonSchema(serializer.descriptor, false),
-                    descriptor = serializer.descriptor,
-                    deserializationStrategy = serializer
-                )
-                selectedAI.run { invoke(prompt, serializationConfig) }
-            }
-
-        suspend fun fromConfig(config: Config): Either<AIError, AI> = resourceScope {
-            either {
-                DefaultAI(config, this)
-            }
-        }
+        fun ResourceScope.fromConfig(config: Config): AI =
+            DefaultAI(config)
 
         @OptIn(ExperimentalTime::class)
-        suspend fun default(): Either<AIError, AI> = resourceScope {
+        suspend fun ResourceScope.default(): Either<AIError, AI> =
             either {
                 val openAIConfig = recover({
                     OpenAIConfig()
@@ -88,9 +92,8 @@ interface AI : Raise<AIError> {
                         openAiClient,
                         vectorStore,
                     )
-                ).bind()
+                )
             }
-        }
     }
 
 }

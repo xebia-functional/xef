@@ -9,7 +9,7 @@ import kotlinx.serialization.Serializable
 data class NumberOfMedicalNeedlesInWorld(val numberOfNeedles: Long)
 
 suspend fun main() {
-    AI {
+    ai {
         val needlesInWorld: NumberOfMedicalNeedlesInWorld = ai(
             """|Provide the number of medical needles in the world.
         """.trimMargin()

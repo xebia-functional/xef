@@ -1,7 +1,6 @@
 package com.xebia.functional.langchain4k.auto
 
 import arrow.core.getOrElse
-import com.xebia.functional.auto.AI
 import com.xebia.functional.auto.ai
 import kotlinx.serialization.Serializable
 
@@ -15,7 +14,7 @@ data class Invention(val name: String, val inventor: String, val year: Int, val 
 data class Story(val animal: Animal, val invention: Invention, val story: String)
 
 suspend fun main() {
-    AI {
+    ai {
         val animal: Animal = ai("A unique animal species.")
         val invention: Invention = ai("A groundbreaking invention from the 20th century.")
 

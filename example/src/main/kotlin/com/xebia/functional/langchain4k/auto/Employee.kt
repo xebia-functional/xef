@@ -1,7 +1,6 @@
 package com.xebia.functional.langchain4k.auto
 
 import arrow.core.getOrElse
-import com.xebia.functional.auto.AI
 import com.xebia.functional.auto.ai
 import kotlinx.serialization.Serializable
 
@@ -15,7 +14,7 @@ data class Address(val street: String, val city: String, val country: String)
 data class Company(val name: String, val address: Address)
 
 suspend fun main() {
-    AI {
+    ai {
         val complexPrompt =
             "Provide information for an Employee that includes their first name, last name, age, position, and their company's name and address (street, city, and country)."
 
