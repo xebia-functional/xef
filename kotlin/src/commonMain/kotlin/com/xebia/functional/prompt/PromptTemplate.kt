@@ -1,8 +1,6 @@
 package com.xebia.functional.prompt
 
 import arrow.core.raise.Raise
-import okio.FileSystem
-import okio.Path
 
 fun Raise<InvalidTemplate>.PromptTemplate(
   examples: List<String>,
@@ -20,27 +18,6 @@ fun Raise<InvalidTemplate>.PromptTemplate(
 
 fun Raise<InvalidTemplate>.PromptTemplate(template: String, variables: List<String>): PromptTemplate =
   PromptTemplate(Config(template, variables))
-
-/**
- * Creates a PromptTemplate based on a Path
- * JVM & Native have overloads for FileSystem.SYSTEM,
- * on NodeJs you need to manually pass FileSystem.SYSTEM.
- *
- * This function can currently not be used on the browser.
- *
- * https://github.com/square/okio/issues/1070
- * https://youtrack.jetbrains.com/issue/KT-47038
- */
-suspend fun Raise<InvalidTemplate>.PromptTemplate(
-  path: Path,
-  variables: List<String>,
-  fileSystem: FileSystem
-): PromptTemplate =
-  fileSystem.read(path) {
-    val template = readUtf8()
-    val config = Config(template, variables)
-    PromptTemplate(config)
-  }
 
 interface PromptTemplate {
   val inputKeys: List<String>
