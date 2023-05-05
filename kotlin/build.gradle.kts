@@ -25,12 +25,25 @@ java {
 
 kotlin {
   jvm {
-    compilations.all {
-      kotlinOptions.jvmTarget = JavaVersion.VERSION_11.majorVersion
-    }
-    withJava()
-    testRuns["test"].executionTask.configure {
-      useJUnitPlatform()
+    compilations {
+      val main by getting
+      val integrationTest by compilations.creating {
+        // Create a test task to run the tests produced by this compilation:
+        tasks.register<Test>("integrationTest") {
+          description = "Run the integration tests"
+          group = "verification"
+          // Run the tests with the classpath containing the compile dependencies (including 'main'),
+          // runtime dependencies, and the outputs of this compilation:
+          classpath = compileDependencyFiles + runtimeDependencyFiles + output.allOutputs
+
+          // Run only the tests from this compilation's outputs:
+          testClassesDirs = output.classesDirs
+
+          testLogging {
+            events("passed")
+          }
+        }
+      }
     }
   }
   js(IR) {
@@ -44,10 +57,9 @@ kotlin {
   sourceSets {
     val commonMain by getting {
       dependencies {
-        implementation(libs.bundles.arrow)
+        api(libs.bundles.arrow)
         api(libs.bundles.ktor.client)
         implementation(libs.kotlinx.serialization.json)
-        implementation(libs.okio)
         implementation(libs.uuid)
         implementation(libs.klogging)
       }
@@ -55,7 +67,6 @@ kotlin {
 
     commonTest {
       dependencies {
-        implementation(libs.okio.fakefilesystem)
         implementation(libs.kotest.property)
         implementation(libs.kotest.framework)
         implementation(libs.kotest.assertions)
@@ -72,18 +83,9 @@ kotlin {
       }
     }
 
-    val jvmTest by getting {
-      dependencies {
-        implementation(libs.kotest.junit5)
-        implementation(libs.kotest.testcontainers)
-        implementation(libs.testcontainers.postgresql)
-      }
-    }
-
     val jsMain by getting {
       dependencies {
         api(libs.ktor.client.js)
-        implementation(libs.okio.nodefilesystem)
       }
     }
 
@@ -106,9 +108,20 @@ kotlin {
     }
 
     val commonTest by getting
+    val jvmTest by getting
     val linuxX64Test by getting
     val macosX64Test by getting
     val mingwX64Test by getting
+
+    val jvmIntegrationTest by getting {
+      dependsOn(jvmMain)
+      dependsOn(jvmTest)
+      dependencies {
+        implementation(libs.kotest.junit5)
+        implementation(libs.kotest.testcontainers)
+        implementation(libs.testcontainers.postgresql)
+      }
+    }
 
     create("nativeMain") {
       dependsOn(commonMain)
