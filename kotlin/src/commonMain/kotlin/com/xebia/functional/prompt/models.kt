@@ -6,6 +6,29 @@ import arrow.core.raise.Raise
 import arrow.core.raise.either
 import arrow.core.raise.ensure
 import arrow.core.raise.zipOrAccumulate
+import kotlinx.serialization.Serializable
+
+enum class Type {
+  human, ai, system, chat
+}
+
+@Serializable
+sealed class Message {
+  abstract val content: String
+
+  fun type(): Type =
+    when (this) {
+      is HumanMessage -> Type.human
+      is AIMessage -> Type.ai
+      is SystemMessage -> Type.system
+      is ChatMessage -> Type.chat
+    }
+}
+
+data class HumanMessage(override val content: String) : Message()
+data class AIMessage(override val content: String) : Message()
+data class SystemMessage(override val content: String) : Message()
+data class ChatMessage(override val content: String, val role: String) : Message()
 
 enum class TemplateFormat {
   FString

@@ -9,7 +9,7 @@ fun Raise<InvalidTemplate>.PromptTemplate(
   suffix: String,
   variables: List<String>,
   prefix: String
-): PromptTemplate {
+): PromptTemplate<String> {
   val template = """|$prefix
       |
       |${examples.joinToString(separator = "\n")}
@@ -18,7 +18,7 @@ fun Raise<InvalidTemplate>.PromptTemplate(
   return PromptTemplate(Config(template, variables))
 }
 
-fun Raise<InvalidTemplate>.PromptTemplate(template: String, variables: List<String>): PromptTemplate =
+fun Raise<InvalidTemplate>.PromptTemplate(template: String, variables: List<String>): PromptTemplate<String> =
   PromptTemplate(Config(template, variables))
 
 /**
@@ -35,19 +35,26 @@ suspend fun Raise<InvalidTemplate>.PromptTemplate(
   path: Path,
   variables: List<String>,
   fileSystem: FileSystem
-): PromptTemplate =
+): PromptTemplate<String> =
   fileSystem.read(path) {
     val template = readUtf8()
     val config = Config(template, variables)
     PromptTemplate(config)
   }
 
-interface PromptTemplate {
+interface PromptTemplate<A> {
   val inputKeys: List<String>
-  suspend fun format(variables: Map<String, String>): String
+  suspend fun format(variables: Map<String, String>): A
+
+  fun <B> mapK(transform: (A) -> B): PromptTemplate<B> = object : PromptTemplate<B> {
+    override val inputKeys: List<String> = this@PromptTemplate.inputKeys
+    override suspend fun format(variables: Map<String, String>): B =
+      transform(this@PromptTemplate.format(variables))
+  }
 
   companion object {
-    operator fun invoke(config: Config): PromptTemplate = object : PromptTemplate {
+
+    operator fun invoke(config: Config): PromptTemplate<String> = object : PromptTemplate<String> {
       override val inputKeys: List<String> = config.inputVariables
 
       override suspend fun format(variables: Map<String, String>): String {
@@ -68,5 +75,17 @@ interface PromptTemplate {
           if (!acc.containsKey(k)) acc + (k to "{$k}") else acc
         }
     }
+
+    fun human(promptTemplate: PromptTemplate<String>): PromptTemplate<HumanMessage> =
+      promptTemplate.mapK(::HumanMessage)
+
+    fun ai(promptTemplate: PromptTemplate<String>): PromptTemplate<AIMessage> =
+      promptTemplate.mapK(::AIMessage)
+
+    fun system(promptTemplate: PromptTemplate<String>): PromptTemplate<SystemMessage> =
+      promptTemplate.mapK(::SystemMessage)
+
+    fun chat(promptTemplate: PromptTemplate<String>, role: String): PromptTemplate<ChatMessage> =
+      promptTemplate.mapK { ChatMessage(it, role) }
   }
 }

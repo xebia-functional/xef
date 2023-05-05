@@ -7,5 +7,5 @@ import okio.Path
 suspend fun Raise<InvalidTemplate>.PromptTemplate(
   templateFile: Path,
   inputVariables: List<String>
-): PromptTemplate =
+): PromptTemplate<String> =
   PromptTemplate(templateFile, inputVariables, FileSystem.SYSTEM)
