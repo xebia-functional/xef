@@ -24,15 +24,7 @@ java {
 }
 
 kotlin {
-  jvm {
-    compilations.all {
-      kotlinOptions.jvmTarget = JavaVersion.VERSION_11.majorVersion
-    }
-    withJava()
-    testRuns["test"].executionTask.configure {
-      useJUnitPlatform()
-    }
-  }
+  jvm()
   js(IR) {
     browser()
     nodejs()
@@ -44,10 +36,9 @@ kotlin {
   sourceSets {
     val commonMain by getting {
       dependencies {
-        implementation(libs.bundles.arrow)
+        api(libs.bundles.arrow)
         api(libs.bundles.ktor.client)
         implementation(libs.kotlinx.serialization.json)
-        implementation(libs.okio)
         implementation(libs.uuid)
         implementation(libs.klogging)
       }
@@ -55,7 +46,6 @@ kotlin {
 
     commonTest {
       dependencies {
-        implementation(libs.okio.fakefilesystem)
         implementation(libs.kotest.property)
         implementation(libs.kotest.framework)
         implementation(libs.kotest.assertions)
@@ -83,7 +73,6 @@ kotlin {
     val jsMain by getting {
       dependencies {
         api(libs.ktor.client.js)
-        implementation(libs.okio.nodefilesystem)
       }
     }
 
