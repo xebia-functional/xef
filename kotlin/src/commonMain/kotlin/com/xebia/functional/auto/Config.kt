@@ -19,15 +19,11 @@ data class Config(
     val engine: HttpClientEngine? = null,
     val openAIClient: OpenAIClient,
     val vectorStore: VectorStore,
-    val auto: Boolean = false,
-    val autoModeMaxAttempts: Int = 5,
 ) {
     companion object {
         @OptIn(ExperimentalTime::class)
         suspend fun default(
             engine: HttpClientEngine? = null,
-            auto: Boolean = false,
-            autoModeMaxAttempts: Int = 5,
         ): Config = resourceScope {
             either {
                 val openAIConfig = OpenAIConfig()
@@ -38,8 +34,6 @@ data class Config(
                     engine,
                     openAiClient,
                     vectorStore,
-                    auto,
-                    autoModeMaxAttempts
                 )
             }.getOrElse { throw IllegalStateException(it.joinToString()) }
         }

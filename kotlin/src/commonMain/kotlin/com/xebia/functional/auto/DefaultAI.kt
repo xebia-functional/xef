@@ -1,16 +1,20 @@
 package com.xebia.functional.auto
 
+import arrow.core.getOrElse
 import arrow.core.raise.Raise
 import arrow.core.raise.catch
+import arrow.fx.coroutines.Atomic
 import arrow.fx.coroutines.ResourceScope
-import com.xebia.functional.auto.serialization.JsonSchema
+import arrow.fx.coroutines.parMapOrAccumulate
+import arrow.fx.coroutines.parZipOrAccumulate
 import com.xebia.functional.auto.serialization.JsonType
-import com.xebia.functional.auto.serialization.jsonLiteral
 import com.xebia.functional.auto.serialization.jsonType
+import com.xebia.functional.chains.VectorQAChain
 import com.xebia.functional.llm.openai.ChatCompletionRequest
 import com.xebia.functional.llm.openai.ChatCompletionResponse
 import com.xebia.functional.llm.openai.Message
 import com.xebia.functional.llm.openai.Role
+import kotlinx.coroutines.coroutineScope
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.elementDescriptors
@@ -22,9 +26,9 @@ fun SerialDescriptor.sample(): JsonElement {
     val properties = elementNames.zip(elementDescriptors).associate { (name, descriptor) ->
         name to when (descriptor.kind.jsonType) {
             JsonType.ARRAY -> JsonArray(listOf(descriptor.sample()))
-            JsonType.NUMBER -> JsonUnquotedLiteral("<infer number>")
-            JsonType.STRING -> JsonUnquotedLiteral("<infer string>")
-            JsonType.BOOLEAN -> JsonUnquotedLiteral("<infer true | false>")
+            JsonType.NUMBER -> JsonUnquotedLiteral("<number>")
+            JsonType.STRING -> JsonUnquotedLiteral("<string>")
+            JsonType.BOOLEAN -> JsonUnquotedLiteral("<true | false>")
             JsonType.OBJECT -> descriptor.sample()
             JsonType.OBJECT_SEALED -> descriptor.sample()
             JsonType.OBJECT_MAP -> descriptor.sample()
@@ -33,21 +37,29 @@ fun SerialDescriptor.sample(): JsonElement {
     return JsonObject(properties)
 }
 
-fun ResourceScope.DefaultAI(config: Config) : AI = object : AI() {
+fun ResourceScope.DefaultAI(config: Config): AI = object : AI() {
 
     override val config: Config = config
 
+    override val agents: Atomic<List<Agent>> = Atomic.unsafe(emptyList())
+
     override suspend operator fun <A> Raise<AIError>.invoke(
-        prompt: String, serializationConfig: SerializationConfig<A>
+        prompt: String, serializationConfig: SerializationConfig<A>, auto: Boolean,
+        maxAttempts: Int
     ): A {
+        // here we create a VectorQAChain where agents are the tools
+        // that provide additional context to the vectorStore to answer the question
         val augmentedPrompt = """
                 |Objective: $prompt
-                |Instructions: Use the following JSON schema to produce the result on json format
-                |JSON Schema:${serializationConfig.jsonSchema}
-                |Example response: ${serializationConfig.descriptor.sample()}.
-                |Return exactly the JSON response and nothing else
+                |Instructions: Use the following JSON schema to produce the result in JSON format
+                |JSON Schema:
+                |${serializationConfig.jsonSchema}
+                |Response Example:
+                |${serializationConfig.descriptor.sample()}
+                |Response:
             """.trimMargin()
-        val result = if (config.auto) {
+        val result = if (auto) {
+            // immediately reset automode because it's only for one call
             logger.debug { "Solving objective in auto reasoning mode" }
             val resolutionContext: Solution = solveObjective(prompt, 5)
             val promptWithContext = """
@@ -57,46 +69,120 @@ fun ResourceScope.DefaultAI(config: Config) : AI = object : AI() {
                     |
                     |$augmentedPrompt
                 """.trimMargin()
-            openAIChatCall(promptWithContext)
+            openAIChatCall(prompt, promptWithContext)
         } else {
-            logger.debug { "Solving objective by direct call" }
-            openAIChatCall(augmentedPrompt)
+            logger.debug { """
+                |Solving objective in manual reasoning mode
+                |```
+                |$augmentedPrompt
+                |```
+            """.trimMargin() }
+            openAIChatCall(prompt, augmentedPrompt)
         }
+        logger.debug { """|
+            |Result:
+            |```
+            |$result
+            |```
+        """.trimMargin() }
         return catch({
             json.decodeFromString(serializationConfig.deserializationStrategy, result)
         }) { e ->
-            val fixJsonPrompt = """
-                    |Result: $result
-                    |Exception: ${e.message}
-                    |Objective: $prompt
-                    |Instructions: Use the following JSON schema to produce the result on valid json format avoiding the exception.
-                    |JSON Schema:${serializationConfig.jsonSchema}
-                    """.trimMargin()
-            logger.debug { "Attempting to Fix JSON due to error: ${e.message}" }
-
-            //here we should retry and handle errors, when we are executing the `ai` function again it might fail and it eventually crashes
-            //we should handle this and retry
-            invoke(fixJsonPrompt, serializationConfig).also { logger.debug { "Fixed JSON: $it" } }
+            if (maxAttempts <= 0) raise(AIError(result))
+            else {
+                logger.debug { "Error deserializing result, trying again..." }
+                invoke(prompt, serializationConfig, false, maxAttempts - 1).also { logger.debug { "Fixed JSON: $it" } }
+            }
         }
     }
 
     tailrec suspend fun Raise<AIError>.solveObjective(
-        task: String, maxAttempts: Int
+        objective: String,
+        maxAttempts: Int
     ): Solution = if (maxAttempts <= 0) {
-        raise(AIError("Exceeded maximum attempts"))
+        raise(AIError("Max attempts reached"))
     } else {
-        val solution: Solution = ai(task)
-        if (solution.accomplishesObjective) {
-            solution
+        val solution: Solution = ai(objective)
+        if (solution.objectiveAccomplished) {
+            val additionalTasks: AdditionalTasks = ai(objective)
+            val reassurance: Reassurance = ai(
+                """
+                |Result: ${solution.result}
+                |Objective: ${additionalTasks.objective}
+                |Tasks: ${additionalTasks.tasks.joinToString("\n")}
+            """.trimIndent()
+            )
+            if (reassurance.objectiveAccomplished) solution
+            else {
+                val results: List<Solution> = reassurance.tasksWouldHelpAccomplishObjective.filter { (_, t) ->
+                    t
+                }.map { (task, _) ->
+                    ai(task)
+                }
+                results.fold(solution) { acc, s ->
+                    if (s.objectiveAccomplished && acc.objectiveAccomplished)
+                        Solution("${acc.objective}\n\n${s.objective}", acc.result + "\n\n" + s.result, true)
+                    else acc
+                }
+            }
         } else {
-            solveObjective(solution.result, maxAttempts - 1)
+            val additionalTasks: AdditionalTasks = ai(objective)
+            val solutions = processAdditionalTasks(additionalTasks, maxAttempts - 1)
+            findBestSolution(solutions)
         }
     }
 
-    private suspend fun openAIChatCall(
+    suspend fun Raise<AIError>.processAdditionalTasks(
+        additionalTasks: AdditionalTasks,
+        maxAttempts: Int
+    ): List<Solution> =
+        additionalTasks.tasks.parMapOrAccumulate {
+            solveObjective(additionalTasks.objective, maxAttempts - 1)
+        }.getOrElse { raise(AIError(it.joinToString())) }
+
+
+    fun Raise<AIError>.findBestSolution(solutions: List<Solution>): Solution {
+        // Implement a logic to select the best solution from the solutions list.
+        // Here, we simply return the first solution that accomplishes the objective or a default one.
+        return solutions.firstOrNull { it.objectiveAccomplished }
+            ?: raise(AIError("No solution found after tasks refinement for solutions: $solutions"))
+    }
+
+    private suspend fun Raise<AIError>.openAIChatCall(
+        question: String,
         promptWithContext: String
     ): String {
-        val res = chatCompletionResponse(promptWithContext, "gpt-3.5-turbo", "AI_Value_Generator")
+        //run the agents so they store context in the database
+        agents.get().forEach { agent ->
+            agent.storeResults(question, config.vectorStore)
+        }
+        //run the vectorQAChain to get the answer
+        val numOfDocs = 10
+        val outputVariable = "answer"
+        val chain = VectorQAChain(
+            config.openAIClient,
+            config.vectorStore,
+            numOfDocs,
+            outputVariable
+        )
+        val chainResults: Map<String, String> = chain.run(question).getOrElse { raise(AIError(it.reason)) }
+        logger.debug { "Chain results: $chainResults" }
+        val promptWithMemory =
+            if (chainResults.isNotEmpty())
+                """
+                |Instructions: Use the [Information] below delimited by 3 backticks to accomplish
+                |the [Objective] at the end of the prompt.
+                |Try to match the data returned in the [Objective] with this [Information] as best as you can.
+                |[Information]:
+                |```
+                |${chainResults.entries.joinToString("\n") { (k, v) -> "$k: $v" }}
+                |```
+                |[Objective]:
+                |$promptWithContext
+                """.trimMargin()
+            else promptWithContext
+        logger.debug { "Prompt with memory: \n$promptWithMemory" }
+        val res = chatCompletionResponse(promptWithMemory, "gpt-3.5-turbo", "AI_Value_Generator")
         val msg = res.choices.firstOrNull()?.message?.content
         requireNotNull(msg) { "No message found in result: $res" }
         return msg
@@ -111,3 +197,4 @@ fun ResourceScope.DefaultAI(config: Config) : AI = object : AI() {
         return config.openAIClient.createChatCompletion(completionRequest)
     }
 }
+

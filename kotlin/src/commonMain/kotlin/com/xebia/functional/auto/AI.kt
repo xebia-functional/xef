@@ -5,14 +5,15 @@ import arrow.core.getOrElse
 import arrow.core.raise.Raise
 import arrow.core.raise.either
 import arrow.core.raise.recover
+import arrow.fx.coroutines.Atomic
 import arrow.fx.coroutines.ResourceScope
 import arrow.fx.coroutines.resourceScope
-import arrow.optics.optics
 import com.xebia.functional.auto.serialization.buildJsonSchema
 import com.xebia.functional.embeddings.OpenAIEmbeddings
 import com.xebia.functional.env.OpenAIConfig
 import com.xebia.functional.llm.openai.KtorOpenAIClient
 import com.xebia.functional.llm.openai.OpenAIClient
+import com.xebia.functional.tools.Tool
 import com.xebia.functional.vectorstores.LocalVectorStore
 import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.serializer
@@ -22,16 +23,6 @@ import kotlin.time.ExperimentalTime
 @DslMarker
 annotation class DSL
 
-@optics
-data class Tool(
-    val name: String,
-    val description: String,
-    val action: suspend (prompt: String) -> String,
-)
-
-interface Agent {
-    suspend fun tool(tool: Tool): Unit
-}
 
 @DSL
 @OptIn(ExperimentalTypeInference::class)
@@ -51,25 +42,44 @@ suspend inline fun <reified A> ai(
 abstract class AI {
 
     @PublishedApi
-    internal class AIInternalException(val error: AIError): CancellationException(error.toString())
+    internal class AIInternalException(val error: AIError) : CancellationException(error.toString())
 
     abstract val config: Config
 
-    abstract suspend operator fun <A> Raise<AIError>.invoke(prompt: String, serializationConfig: SerializationConfig<A>): A
+    abstract val agents: Atomic<List<Agent>>
+
+    abstract suspend operator fun <A> Raise<AIError>.invoke(
+        prompt: String,
+        serializationConfig: SerializationConfig<A>,
+        auto: Boolean = false,
+        maxAttempts: Int = 5,
+    ): A
+
+    suspend inline fun <A> agent(vararg tool: Tool, scope: () -> A): A {
+        val scopedAgent = Agent(*tool)
+        agents.update { it + scopedAgent }
+        val result = scope()
+        agents.update { it - scopedAgent }
+        return result
+    }
 
     @DSL
     suspend inline fun <reified A> ai(prompt: String): A =
-        either { invoke<A>(prompt) }.getOrElse { throw AIInternalException(it) }
+        either { invoke<A>(prompt, auto = false) }.getOrElse { throw AIInternalException(it) }
+
+    @DSL
+    suspend inline fun <reified A> auto(prompt: String): A =
+        either { invoke<A>(prompt, auto = true) }.getOrElse { throw AIInternalException(it) }
 
     @PublishedApi
-    internal suspend inline operator fun <reified A> Raise<AIError>.invoke(prompt: String): A {
+    internal suspend inline operator fun <reified A> Raise<AIError>.invoke(prompt: String, auto: Boolean): A {
         val serializer = serializer<A>()
         val serializationConfig: SerializationConfig<A> = SerializationConfig(
             jsonSchema = buildJsonSchema(serializer.descriptor, false),
             descriptor = serializer.descriptor,
             deserializationStrategy = serializer
         )
-        return invoke(prompt, serializationConfig)
+        return invoke(prompt, serializationConfig, auto)
     }
 
     companion object {

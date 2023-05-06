@@ -16,7 +16,10 @@ data class Company(val name: String, val address: Address)
 suspend fun main() {
     ai {
         val complexPrompt =
-            "Provide information for an Employee that includes their first name, last name, age, position, and their company's name and address (street, city, and country)."
+            """|
+               |Provide made up information for an Employee that includes their first name, last name, age, position, and their company's name and address (street, city, and country).
+               |Use the information provided.
+            """.trimMargin()
 
         val employeeData: Employee = ai(complexPrompt)
 
