@@ -32,6 +32,7 @@ munit = "0.7.28"
 munitCatsEffect = "1.0.5"
 scrapeit = "1.1.5"
 jtokkit = "0.4.0"
+rssreader = "3.4.4"
 
 [libraries]
 arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
@@ -86,6 +87,7 @@ scrape-it = { module = "it.skrape:skrapeit", version.ref = "scrapeit" }
 scrape-it-browser-fetcher = { module = "it.skrape:skrapeit-browser-fetcher", version.ref = "scrapeit" }
 scrape-it-async-fetcher = { module = "it.skrape:skrapeit-asyn-fetcher", version.ref = "scrapeit" }
 jtokk-it = { module = "com.knuddels:jtokkit", version.ref = "jtokkit" }
+rss-reader = { module = "com.apptasticsoftware:rssreader", version.ref = "rssreader" }
 
 [bundles]
 arrow = [

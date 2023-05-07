@@ -27,12 +27,6 @@ kotlin {
       }
     }
 
-    val jvmMain by getting {
-      dependencies {
-        implementation(libs.scrape.it)
-      }
-    }
-
     val jsMain by getting {
       dependencies {
         implementation(libs.okio.nodefilesystem)

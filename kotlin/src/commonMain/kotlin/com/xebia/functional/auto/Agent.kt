@@ -9,11 +9,8 @@ interface Agent {
 
     suspend fun storeResults(prompt: String, vectorStore: VectorStore) {
         tools().forEach { tool ->
-            val doc = """|${tool.name}
-                         |${tool.description}
-                         |${tool.action(prompt)}
-                         |""".trimMargin()
-            vectorStore.addText(doc)
+            val docs = tool.action(prompt)
+            vectorStore.addDocuments(docs)
         }
     }
 
