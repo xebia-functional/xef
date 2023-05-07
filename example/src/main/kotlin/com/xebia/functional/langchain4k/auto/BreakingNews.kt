@@ -19,7 +19,8 @@ suspend fun main() {
         agent(
             *search("$currentDate Covid News")
         ) {
-            val news: BreakingNewsAboutCovid = ai("$currentDate Covid News")
+            val news: BreakingNewsAboutCovid =
+                ai("write a paragraph of about 300 words about: $currentDate Covid News")
             println(news)
         }
     }.getOrElse { println(it) }

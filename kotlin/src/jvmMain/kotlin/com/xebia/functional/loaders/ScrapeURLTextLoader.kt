@@ -20,28 +20,11 @@ suspend fun ScrapeURLTextLoader(
                 }
                 response {
                     htmlDocument {
-//          val titles: String = h1 {
-//            findFirst {
-//              text
-//            }
-//          }
-//          val info: String = p {
-//            findAll {
-//              text
-//            }
-//          }
-//          val links: String = a {
-//            findAll {
-//              text
-//            }
-//          }
-//
                         val cleanedText = cleanUpText(wholeText)
                         add(
-                            Document(
-                                """|
+                            Document("""|
                             |Title: $titleText
-                            |Info: ${cleanedText}
+                            |Info: $cleanedText
                             """.trimIndent()
                             )
                         )
