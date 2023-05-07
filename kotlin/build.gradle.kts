@@ -80,6 +80,7 @@ kotlin {
         implementation(libs.postgresql)
         api(libs.ktor.client.cio)
         implementation(libs.logback)
+        implementation(libs.jtokk.it)
       }
     }
 

@@ -102,14 +102,25 @@ fun ResourceScope.DefaultAI(config: Config): AI = object : AI() {
     ): Solution = if (maxAttempts <= 0) {
         raise(AIError("Max attempts reached"))
     } else {
-        val solution: Solution = ai(objective)
+        val enhancedPrompt = """
+            |You are an expert AI that can help us solve a task.
+            |Instructions: Only set `objectiveAccomplished` to `true` when you are certain that the objective is accomplished.
+            |In the event that you are not sure whether the objective is accomplished, you can set `objectiveAccomplished` to `false` and provide additional tasks and ideas in the `result` field that would help accomplish the objective.
+            |You are currently evaluated in a loop self reasoning, try to provide the best solution possible and otherwise provide 
+            |instructions as to how to accomplish further steps to achieve the task completion.
+            |
+            |Task: $objective
+        """.trimMargin()
+        val solution: Solution = ai(enhancedPrompt)
         if (solution.objectiveAccomplished) {
             val additionalTasks: AdditionalTasks = ai(objective)
             val reassurance: Reassurance = ai(
                 """
+                |You are an expert AI that can help us ensure we have a valid solution for this Objective.
                 |Result: ${solution.result}
                 |Objective: ${additionalTasks.objective}
-                |Tasks: ${additionalTasks.tasks.joinToString("\n")}
+                |Tasks if `objectiveAccomplished = false`: 
+                |${additionalTasks.tasks.joinToString("\n")}
             """.trimIndent()
             )
             if (reassurance.objectiveAccomplished) solution

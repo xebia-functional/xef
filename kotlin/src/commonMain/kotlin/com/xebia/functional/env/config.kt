@@ -36,7 +36,7 @@ fun Raise<NonEmptyList<String>>.OpenAIConfig(token: String? = null) =
   zipOrAccumulate(
     { token ?: env("OPENAI_TOKEN") },
     { env("OPENAI_BASE_URI", default = Url("https://api.openai.com/v1/")) { Url(it) } },
-    { env("OPENAI_CHUNK_SIZE", default = 1000) { it.toIntOrNull() } },
+    { env("OPENAI_CHUNK_SIZE", default = 300) { it.toIntOrNull() } },
     { env("OPENAI_BACKOFF", default = 5.seconds) { it.toIntOrNull()?.seconds } },
     { env("OPENAI_MAX_RETRIES", default = 5) { it.toLongOrNull() } },
   ) { token2, baseUrl, chunkSize, backoff, maxRetries -> OpenAIConfig(token2, baseUrl, chunkSize, RetryConfig(backoff, maxRetries)) }

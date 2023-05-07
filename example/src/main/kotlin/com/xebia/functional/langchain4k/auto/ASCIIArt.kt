@@ -13,5 +13,5 @@ suspend fun main() {
     val art: Either<AIError, ASCIIArt> = ai {
         ai("ASCII art of a cat dancing")
     }
-    println(art.getOrElse { ASCIIArt("¯\\_(ツ)_/¯") })
+    println(art.getOrElse { ASCIIArt("¯\\_(ツ)_/¯" + "\n" + it.reason) })
 }

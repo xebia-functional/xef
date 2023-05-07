@@ -2,16 +2,14 @@ package com.xebia.functional.chains
 
 import arrow.core.Either
 import arrow.core.raise.either
-import com.xebia.functional.llm.openai.CompletionChoice
-import com.xebia.functional.llm.openai.CompletionRequest
-import com.xebia.functional.llm.openai.OpenAIClient
+import com.xebia.functional.llm.openai.*
 import com.xebia.functional.prompt.PromptTemplate
 
 @Suppress("LongParameterList")
 suspend fun LLMChain(
     llm: OpenAIClient,
     promptTemplate: PromptTemplate,
-    llmModel: String = "text-davinci-003",
+    llmModel: String = "gpt-3.5-turbo",
     user: String = "testing",
     echo: Boolean = false,
     n: Int = 1,
@@ -29,22 +27,24 @@ suspend fun LLMChain(
         either {
             val prompt = promptTemplate.format(inputs)
 
-            val request = CompletionRequest(
+            val request = ChatCompletionRequest(
                 model = llmModel,
                 user = user,
-                prompt = prompt,
-                echo = echo,
+                messages = listOf(Message(
+                    role = Role.system.name,
+                    content = prompt
+                )),
                 n = n,
                 temperature = temperature,
                 maxTokens = 256
             )
 
-            val completions = llm.createCompletion(request)
-            formatOutput(completions)
+            val completions = llm.createChatCompletion(request)
+            formatOutput(completions.choices)
         }
 
-    private fun formatOutput(completions: List<CompletionChoice>): Map<String, String> =
+    private fun formatOutput(completions: List<Choice>): Map<String, String> =
         config.outputKeys.associateWith {
-            completions.joinToString(", ") { it.text }
+            completions.joinToString(", ") { it.message.content }
         }
 }

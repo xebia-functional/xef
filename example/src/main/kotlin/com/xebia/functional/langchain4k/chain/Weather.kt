@@ -12,7 +12,10 @@ import com.xebia.functional.env.OpenAIConfig
 import com.xebia.functional.llm.openai.KtorOpenAIClient
 import com.xebia.functional.llm.openai.OpenAIClient
 import com.xebia.functional.loaders.BaseLoader
+import com.xebia.functional.loaders.ScrapeURLTextLoader
 import com.xebia.functional.loaders.TextLoader
+import com.xebia.functional.textsplitters.CharacterTextSplitter
+import com.xebia.functional.textsplitters.TokenTextSplitter
 import com.xebia.functional.vectorstores.LocalVectorStore
 import io.github.oshai.KLogger
 import io.github.oshai.KotlinLogging
@@ -42,9 +45,8 @@ private suspend fun getQuestionAnswer(
 ): Map<String, String> =
     resourceScope {
         either {
-            val token = "<YOUR_OPENAI_TOKEN>"
             val openAIConfig = recover({
-                OpenAIConfig(token)
+                OpenAIConfig()
             }) { raise(WeatherExampleError(it.joinToString(", "))) }
 
             val openAiClient: OpenAIClient = KtorOpenAIClient(openAIConfig)
@@ -57,8 +59,8 @@ private suspend fun getQuestionAnswer(
 
             val path: Path = File(resource.file).path.toPath()
 
-            val textLoader: BaseLoader = TextLoader(path)
-            val docs: List<Document> = textLoader.load()
+            val textLoader: BaseLoader = ScrapeURLTextLoader("https://www.bing.com/search?q=weather+in+cadiz")
+            val docs: List<Document> = textLoader.loadAndSplit(TokenTextSplitter(modelName = "gpt-3.5-turbo", chunkSize = openAIConfig.chunkSize, chunkOverlap = 3))
             vectorStore.addDocuments(docs)
 
             val numOfDocs = 10

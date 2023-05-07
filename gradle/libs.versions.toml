@@ -30,6 +30,8 @@ doobie = "1.0.0-RC2"
 scalaTestContainers = "0.40.10"
 munit = "0.7.28"
 munitCatsEffect = "1.0.5"
+scrapeit = "1.1.5"
+jtokkit = "0.4.0"
 
 [libraries]
 arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
@@ -80,6 +82,10 @@ munit-core = { module = "org.scalameta:munit_3", version.ref = "munit" }
 munit-cats-effect = { module = "org.typelevel:munit-cats-effect-3_3", version.ref = "munitCatsEffect" }
 scala-testcontainers-munit = { module = "com.dimafeng:testcontainers-scala-munit_3", version.ref = "scalaTestContainers" }
 scala-testcontainers-postgresql = { module = "com.dimafeng:testcontainers-scala-postgresql_3", version.ref = "scalaTestContainers" }
+scrape-it = { module = "it.skrape:skrapeit", version.ref = "scrapeit" }
+scrape-it-browser-fetcher = { module = "it.skrape:skrapeit-browser-fetcher", version.ref = "scrapeit" }
+scrape-it-async-fetcher = { module = "it.skrape:skrapeit-asyn-fetcher", version.ref = "scrapeit" }
+jtokk-it = { module = "com.knuddels:jtokkit", version.ref = "jtokkit" }
 
 [bundles]
 arrow = [
