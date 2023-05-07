@@ -51,7 +51,6 @@ abstract class AI {
     abstract suspend operator fun <A> Raise<AIError>.invoke(
         prompt: String,
         serializationConfig: SerializationConfig<A>,
-        auto: Boolean = false,
         maxAttempts: Int = 5,
     ): A
 
@@ -65,21 +64,17 @@ abstract class AI {
 
     @DSL
     suspend inline fun <reified A> ai(prompt: String): A =
-        either { invoke<A>(prompt, auto = false) }.getOrElse { throw AIInternalException(it) }
-
-    @DSL
-    suspend inline fun <reified A> auto(prompt: String): A =
-        either { invoke<A>(prompt, auto = true) }.getOrElse { throw AIInternalException(it) }
+        either { invoke<A>(prompt) }.getOrElse { throw AIInternalException(it) }
 
     @PublishedApi
-    internal suspend inline operator fun <reified A> Raise<AIError>.invoke(prompt: String, auto: Boolean): A {
+    internal suspend inline operator fun <reified A> Raise<AIError>.invoke(prompt: String): A {
         val serializer = serializer<A>()
         val serializationConfig: SerializationConfig<A> = SerializationConfig(
             jsonSchema = buildJsonSchema(serializer.descriptor, false),
             descriptor = serializer.descriptor,
             deserializationStrategy = serializer
         )
-        return invoke(prompt, serializationConfig, auto)
+        return invoke(prompt, serializationConfig)
     }
 
     companion object {

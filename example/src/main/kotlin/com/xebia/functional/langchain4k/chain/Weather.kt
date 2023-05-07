@@ -6,6 +6,7 @@ import arrow.core.raise.ensureNotNull
 import arrow.core.raise.recover
 import arrow.fx.coroutines.resourceScope
 import com.xebia.functional.Document
+import com.xebia.functional.auto.Agent
 import com.xebia.functional.chains.VectorQAChain
 import com.xebia.functional.embeddings.OpenAIEmbeddings
 import com.xebia.functional.env.OpenAIConfig
@@ -16,6 +17,7 @@ import com.xebia.functional.loaders.ScrapeURLTextLoader
 import com.xebia.functional.loaders.TextLoader
 import com.xebia.functional.textsplitters.CharacterTextSplitter
 import com.xebia.functional.textsplitters.TokenTextSplitter
+import com.xebia.functional.tool.search
 import com.xebia.functional.vectorstores.LocalVectorStore
 import io.github.oshai.KLogger
 import io.github.oshai.KotlinLogging
@@ -30,16 +32,14 @@ data class WeatherExampleError(val reason: String)
 suspend fun main() {
     val logger = KotlinLogging.logger("Weather")
 
-    val documentPath = "/documents/weather.csv"
     val question = "Knowing this forecast, what clothes do you recommend I should wear?"
-    val answer: Map<String, String> = getQuestionAnswer(documentPath, question, logger)
+    val answer: Map<String, String> = getQuestionAnswer(question, logger)
 
     logger.info { answer }
 }
 
 @OptIn(ExperimentalTime::class)
 private suspend fun getQuestionAnswer(
-    documentPath: String,
     question: String,
     logger: KLogger
 ): Map<String, String> =
@@ -53,15 +53,8 @@ private suspend fun getQuestionAnswer(
             val embeddings = OpenAIEmbeddings(openAIConfig, openAiClient, logger)
             val vectorStore = LocalVectorStore(embeddings)
 
-            val resource: URL = ensureNotNull(javaClass.getResource(documentPath)) {
-                WeatherExampleError("Resource not found")
-            }
-
-            val path: Path = File(resource.file).path.toPath()
-
-            val textLoader: BaseLoader = ScrapeURLTextLoader("https://www.bing.com/search?q=weather+in+cadiz")
-            val docs: List<Document> = textLoader.loadAndSplit(TokenTextSplitter(modelName = "gpt-3.5-turbo", chunkSize = openAIConfig.chunkSize, chunkOverlap = 3))
-            vectorStore.addDocuments(docs)
+            val tools = search("Weather in Cádiz, Spain")
+            Agent(*tools).storeResults(vectorStore)
 
             val numOfDocs = 10
             val outputVariable = "answer"

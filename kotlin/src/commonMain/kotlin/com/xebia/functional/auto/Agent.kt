@@ -7,10 +7,16 @@ interface Agent {
 
     fun tools(): List<Tool>
 
-    suspend fun storeResults(prompt: String, vectorStore: VectorStore) {
+    suspend fun storeResults(vectorStore: VectorStore) {
         tools().forEach { tool ->
-            val docs = tool.action(prompt)
-            vectorStore.addDocuments(docs)
+            logger.debug { "[${tool.name}] Running" }
+            val docs = tool.action()
+            if (docs.isNotEmpty()) {
+                vectorStore.addDocuments(docs)
+                logger.debug { "[${tool.name}] Found and memorized ${docs.size} docs" }
+            } else {
+                logger.debug { "[${tool.name}] Found no docs" }
+            }
         }
     }
 
