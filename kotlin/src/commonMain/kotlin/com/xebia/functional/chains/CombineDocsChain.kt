@@ -12,7 +12,7 @@ interface CombineDocsChain : Chain {
 @Suppress("LongParameterList")
 suspend fun CombineDocsChain(
     llm: OpenAIClient,
-    promptTemplate: PromptTemplate,
+    promptTemplate: PromptTemplate<String>,
     documents: List<Document>,
     documentVariableName: String,
     outputVariable: String,

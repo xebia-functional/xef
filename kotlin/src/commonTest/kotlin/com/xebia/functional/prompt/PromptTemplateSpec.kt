@@ -79,4 +79,53 @@ class PromptTemplateSpec : StringSpec({
       PromptTemplate(config).format(variables)
     } shouldBeRight "My name is Charles and I'm ${getAge()} years old"
   }
+
+  "format for human should return a HumanMessage" {
+    val template = "My name is {name} and I'm {age} years old"
+    val variables: Map<String, String> = mapOf("name" to "Charles", "age" to "21")
+
+    either {
+      val prompt: PromptTemplate<String> = PromptTemplate(template, listOf("name", "age"))
+      val humanPrompt: PromptTemplate<HumanMessage> = PromptTemplate.human(prompt)
+      humanPrompt.format(variables)
+
+    } shouldBeRight HumanMessage("My name is Charles and I'm 21 years old")
+  }
+
+  "format for system should return a SystemMessage" {
+    val template = "{sounds}"
+    val variables: Map<String, String> = mapOf("sounds" to "Beep bep")
+
+    either {
+      val prompt: PromptTemplate<String> = PromptTemplate(template, listOf("sounds"))
+      val systemPrompt: PromptTemplate<SystemMessage> =  PromptTemplate.system(prompt)
+      systemPrompt.format(variables)
+
+    } shouldBeRight SystemMessage("Beep bep")
+  }
+
+  "format for ai should return a AIMessage" {
+    val template = "Hi, I'm an {machine}"
+    val variables: Map<String, String> = mapOf("machine" to "AI")
+
+    either {
+      val prompt: PromptTemplate<String> = PromptTemplate(template, listOf("machine"))
+      val aiPrompt: PromptTemplate<AIMessage> = PromptTemplate.ai(prompt)
+      aiPrompt.format(variables)
+
+    } shouldBeRight AIMessage("Hi, I'm an AI")
+  }
+
+  "format for chat should return a ChatMessage" {
+    val role = "Yoda"
+    val template = "Lost a {action}, master {name} has."
+    val variables: Map<String, String> = mapOf("action" to "battle", "name" to "Obi-Wan")
+
+    either {
+      val prompt: PromptTemplate<String> = PromptTemplate(template, listOf("action", "name"))
+      val chatPrompt: PromptTemplate<ChatMessage> = PromptTemplate.chat(prompt, role)
+      chatPrompt.format(variables)
+
+    } shouldBeRight ChatMessage("Lost a battle, master Obi-Wan has.", "Yoda")
+  }
 })

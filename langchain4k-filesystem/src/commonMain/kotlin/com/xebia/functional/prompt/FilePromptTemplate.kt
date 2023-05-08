@@ -12,7 +12,7 @@ suspend fun Raise<InvalidTemplate>.PromptTemplate(
   path: Path,
   variables: List<String>,
   fileSystem: FileSystem = FileSystem.DEFAULT
-): PromptTemplate =
+): PromptTemplate<String> =
   fileSystem.read(path) {
     val template = readUtf8()
     val config = Config(template, variables)
