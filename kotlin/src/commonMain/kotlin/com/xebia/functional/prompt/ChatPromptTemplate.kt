@@ -37,11 +37,8 @@ suspend fun ChatPromptTemplate(
 
     override suspend fun formatMessages(inputs: Map<String, String>): Either<InvalidInputs, List<Message>> =
         either {
-            val allInputs: Map<String, String> =
-                PromptTemplate.mergePartialAndUserVariables(inputs, inputKeys)
-
             promptMessages.map { prompt ->
-                val inputValues: Map<String, String> = createInputs(allInputs, prompt.inputKeys)
+                val inputValues: Map<String, String> = createInputs(inputs, prompt.inputKeys)
                 prompt.format(inputValues)
             }
         }
