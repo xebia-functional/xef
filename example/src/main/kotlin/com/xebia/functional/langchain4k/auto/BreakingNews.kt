@@ -9,20 +9,17 @@ import java.util.*
 
 @Serializable
 data class BreakingNewsAboutCovid(
-    val summary: String
+  val summary: String
 )
 
 suspend fun main() {
-    ai {
-        val sdf = SimpleDateFormat("dd/M/yyyy")
-        val currentDate = sdf.format(Date())
-        agent(
-            *search("$currentDate Covid News")
-        ) {
-            val news: BreakingNewsAboutCovid =
-                ai("write a paragraph of about 300 words about: $currentDate Covid News")
-            println(news)
-        }
-    }.getOrElse { println(it) }
+  ai {
+    val sdf = SimpleDateFormat("dd/M/yyyy")
+    val currentDate = sdf.format(Date())
+    agent(search("$currentDate Covid News")) {
+      val news: BreakingNewsAboutCovid =
+        ai("write a paragraph of about 300 words about: $currentDate Covid News")
+      println(news)
+    }
+  }.getOrElse { println(it) }
 }
-

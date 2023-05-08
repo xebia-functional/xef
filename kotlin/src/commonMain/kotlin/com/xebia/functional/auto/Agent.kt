@@ -2,27 +2,25 @@ package com.xebia.functional.auto
 
 import com.xebia.functional.tools.Tool
 import com.xebia.functional.vectorstores.VectorStore
+import io.github.oshai.KLogger
+import io.github.oshai.KotlinLogging
 
-interface Agent {
+class Agent(private val tools: List<Tool>) {
 
-    fun tools(): List<Tool>
+  constructor(tool: Array<out Tool>) : this(tool.toList())
 
-    suspend fun storeResults(vectorStore: VectorStore) {
-        tools().forEach { tool ->
-            logger.debug { "[${tool.name}] Running" }
-            val docs = tool.action()
-            if (docs.isNotEmpty()) {
-                vectorStore.addDocuments(docs)
-                logger.debug { "[${tool.name}] Found and memorized ${docs.size} docs" }
-            } else {
-                logger.debug { "[${tool.name}] Found no docs" }
-            }
-        }
+  val logger: KLogger = KotlinLogging.logger("Agent")
+
+  suspend fun storeResults(vectorStore: VectorStore) {
+    tools.forEach { tool ->
+      logger.debug { "[${tool.name}] Running" }
+      val docs = tool.action(tool)
+      if (docs.isNotEmpty()) {
+        vectorStore.addDocuments(docs)
+        logger.debug { "[${tool.name}] Found and memorized ${docs.size} docs" }
+      } else {
+        logger.debug { "[${tool.name}] Found no docs" }
+      }
     }
-
-    companion object {
-        operator fun invoke(vararg tool: Tool): Agent = object : Agent {
-            override fun tools(): List<Tool> = tool.toList()
-        }
-    }
+  }
 }

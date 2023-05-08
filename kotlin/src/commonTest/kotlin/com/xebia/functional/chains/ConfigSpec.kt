@@ -1,6 +1,8 @@
 package com.xebia.functional.chains
 
 import arrow.core.Either
+import com.xebia.functional.AIError
+import com.xebia.functional.AIError.Chain.InvalidInputs
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
@@ -22,7 +24,7 @@ class ConfigSpec : StringSpec({
     val config = Chain.Config(setOf("name", "age"), setOf("text"))
     val result = config.createInputs(mapOf("name" to "foo"))
     result shouldBe Either.Left(
-      Chain.InvalidInputs("The provided inputs: {name} do not match with chain's inputs: {name}, {age}")
+      InvalidInputs("The provided inputs: {name} do not match with chain's inputs: {name}, {age}")
     )
   }
 
@@ -30,7 +32,7 @@ class ConfigSpec : StringSpec({
     val config = Chain.Config(setOf("name", "age"), setOf("text"))
     val result = config.createInputs(mapOf("name" to "foo", "city" to "NY"))
     result shouldBe Either.Left(
-      Chain.InvalidInputs("The provided inputs: {name}, {city} do not match with chain's inputs: {name}, {age}")
+      InvalidInputs("The provided inputs: {name}, {city} do not match with chain's inputs: {name}, {age}")
     )
   }
 
@@ -38,7 +40,7 @@ class ConfigSpec : StringSpec({
     val config = Chain.Config(setOf("name", "age"), setOf("text"))
     val result = config.createInputs("foo")
     result shouldBe Either.Left(
-      Chain.InvalidInputs("The expected inputs are more than one: {name}, {age}")
+      InvalidInputs("The expected inputs are more than one: {name}, {age}")
     )
   }
 })

@@ -2,6 +2,9 @@ package com.xebia.functional.chains
 
 import arrow.core.Either
 import arrow.core.raise.either
+import com.xebia.functional.AIError
+import com.xebia.functional.AIError.Chain.InvalidInputs
+import com.xebia.functional.AIError.Chain.Sequence.InvalidKeys
 import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.core.spec.style.StringSpec
@@ -37,7 +40,7 @@ class SimpleSequenceChainSpec : StringSpec({
         either {
             val ssc = SimpleSequenceChain(chains = chains, chainOutput = Chain.ChainOutput.InputAndOutput)
             ssc.run(mapOf("input" to "123")).bind()
-        } shouldBeLeft SequenceChain.InvalidKeys("The expected inputs are more than one: {bar}, {foo}")
+        } shouldBeLeft InvalidKeys("The expected inputs are more than one: {bar}, {foo}")
     }
 
     "SimpleSequenceChain should fail if multiple output variables are expected" {
@@ -48,7 +51,7 @@ class SimpleSequenceChainSpec : StringSpec({
         either {
             val ssc = SimpleSequenceChain(chains = chains, chainOutput = Chain.ChainOutput.InputAndOutput)
             ssc.run(mapOf("input" to "123")).bind()
-        } shouldBeLeft SequenceChain.InvalidKeys("The expected outputs are more than one: {bar}, {foo}")
+        } shouldBeLeft InvalidKeys("The expected outputs are more than one: {bar}, {foo}")
     }
 })
 
@@ -58,7 +61,7 @@ data class FakeChain(private val inputVariables: Set<String>, private val output
         outputKeys = outputVariables
     )
 
-    override suspend fun call(inputs: Map<String, String>): Either<Chain.InvalidInputs, Map<String, String>> =
+    override suspend fun call(inputs: Map<String, String>): Either<InvalidInputs, Map<String, String>> =
         either {
             val variables = inputVariables.map { inputs[it] }.requireNoNulls()
             outputVariables.fold(emptyMap()) { outputs, outputVar ->

@@ -47,14 +47,14 @@ private suspend fun getQuestionAnswer(
         either {
             val openAIConfig = recover({
                 OpenAIConfig()
-            }) { raise(WeatherExampleError(it.joinToString(", "))) }
+            }) { raise(WeatherExampleError(it.errors.joinToString(", "))) }
 
             val openAiClient: OpenAIClient = KtorOpenAIClient(openAIConfig)
             val embeddings = OpenAIEmbeddings(openAIConfig, openAiClient, logger)
             val vectorStore = LocalVectorStore(embeddings)
 
             val tools = search("Weather in Cádiz, Spain")
-            Agent(*tools).storeResults(vectorStore)
+            Agent(tools).storeResults(vectorStore)
 
             val numOfDocs = 10
             val outputVariable = "answer"
