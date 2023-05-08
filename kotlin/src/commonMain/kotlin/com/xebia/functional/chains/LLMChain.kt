@@ -10,7 +10,7 @@ import com.xebia.functional.prompt.PromptTemplate
 @Suppress("LongParameterList")
 suspend fun LLMChain(
     llm: OpenAIClient,
-    promptTemplate: PromptTemplate,
+    promptTemplate: PromptTemplate<String>,
     llmModel: String = "text-davinci-003",
     user: String = "testing",
     echo: Boolean = false,
