@@ -6,8 +6,12 @@ import arrow.core.raise.either
 import arrow.core.raise.ensure
 import arrow.core.raise.recover
 import arrow.core.raise.zipOrAccumulate
+import com.xebia.functional.AIError
+import com.xebia.functional.AIError.Chain.InvalidInputs
+import com.xebia.functional.AIError.Chain.Sequence.InvalidKeys
+import com.xebia.functional.AIError.Chain.Sequence.InvalidOutputs
 
-fun Raise<Chain.Error>.SimpleSequenceChain(
+fun Raise<AIError.Chain.Sequence>.SimpleSequenceChain(
     chains: List<Chain>,
     inputKey: String = "input",
     outputKey: String = "output",
@@ -24,7 +28,7 @@ class SimpleSequenceChain private constructor(
 
     override val config = Chain.Config(setOf(inputKey), setOf(outputKey), chainOutput)
 
-    override suspend fun call(inputs: Map<String, String>): Either<Chain.Error, Map<String, String>> =
+    override suspend fun call(inputs: Map<String, String>): Either<AIError.Chain, Map<String, String>> =
         either {
             val input = validateInput(inputs, inputKey)
             val firstRes = chains.first().run(input).bind()
@@ -40,28 +44,28 @@ class SimpleSequenceChain private constructor(
             inputKey: String,
             outputKey: String,
             chainOutput: Chain.ChainOutput
-        ): Either<SequenceChain.InvalidKeys, SimpleSequenceChain> =
+        ): Either<InvalidKeys, SimpleSequenceChain> =
             either {
                 val mappedChains: List<Chain> = chains.map { chain ->
                     recover({
                         zipOrAccumulate(
                             { validateInputKeys(chain.config.inputKeys) },
                             { validateOutputKeys(chain.config.outputKeys) }) { _, _ -> chain }
-                    }) { raise(SequenceChain.InvalidKeys(it.joinToString(transform = Chain.Error::reason))) }
+                    }) { raise(InvalidKeys(it.joinToString(transform = AIError.Chain::reason))) }
                 }
                 SimpleSequenceChain(mappedChains, inputKey, outputKey, chainOutput)
             }
     }
 }
 
-private fun Raise<SequenceChain.InvalidOutputs>.validateOutputKeys(outputKeys: Set<String>): Unit =
+private fun Raise<InvalidOutputs>.validateOutputKeys(outputKeys: Set<String>): Unit =
     ensure(outputKeys.size == 1) {
-        SequenceChain.InvalidOutputs("The expected outputs are more than one: " +
+        InvalidOutputs("The expected outputs are more than one: " +
                 outputKeys.joinToString(", ") { "{$it}" })
     }
 
-private fun Raise<Chain.InvalidInputs>.validateInputKeys(inputKeys: Set<String>): Unit =
+private fun Raise<InvalidInputs>.validateInputKeys(inputKeys: Set<String>): Unit =
     ensure(inputKeys.size == 1) {
-        Chain.InvalidInputs("The expected inputs are more than one: " +
+        InvalidInputs("The expected inputs are more than one: " +
                 inputKeys.joinToString(", ") { "{$it}" })
     }

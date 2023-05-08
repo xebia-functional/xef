@@ -1,7 +1,7 @@
 package com.xebia.functional.langchain4k.auto
 
-import arrow.core.getOrElse
 import com.xebia.functional.auto.ai
+import com.xebia.functional.auto.getOrElse
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -12,6 +12,6 @@ suspend fun main() =
         val statueOfLiberty: TouristAttraction = ai("Statue of Liberty location and history.")
         println(
             """|${statueOfLiberty.name} is located in ${statueOfLiberty.location} and has the following history:
-               |${statueOfLiberty.history}""".trimMargin()
+                 |${statueOfLiberty.history}""".trimMargin()
         )
     }.getOrElse { println(it) }
