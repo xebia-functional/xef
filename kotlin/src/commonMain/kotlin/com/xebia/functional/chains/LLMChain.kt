@@ -8,7 +8,7 @@ import com.xebia.functional.prompt.PromptTemplate
 @Suppress("LongParameterList")
 suspend fun LLMChain(
     llm: OpenAIClient,
-    promptTemplate: PromptTemplate,
+    promptTemplate: PromptTemplate<String>,
     llmModel: String = "gpt-3.5-turbo",
     user: String = "testing",
     echo: Boolean = false,
