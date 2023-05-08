@@ -26,17 +26,12 @@ java {
 kotlin {
   jvm {
     compilations {
-      val main by getting
       val integrationTest by compilations.creating {
         // Create a test task to run the tests produced by this compilation:
         tasks.register<Test>("integrationTest") {
           description = "Run the integration tests"
           group = "verification"
-          // Run the tests with the classpath containing the compile dependencies (including 'main'),
-          // runtime dependencies, and the outputs of this compilation:
           classpath = compileDependencyFiles + runtimeDependencyFiles + output.allOutputs
-
-          // Run only the tests from this compilation's outputs:
           testClassesDirs = output.classesDirs
 
           testLogging {
@@ -44,6 +39,8 @@ kotlin {
           }
         }
       }
+      val test by compilations.getting
+      integrationTest.associateWith(test)
     }
   }
   js(IR) {
@@ -118,8 +115,6 @@ kotlin {
     val mingwX64Test by getting
 
     val jvmIntegrationTest by getting {
-      dependsOn(jvmMain)
-      dependsOn(jvmTest)
       dependencies {
         implementation(libs.kotest.testcontainers)
         implementation(libs.testcontainers.postgresql)
