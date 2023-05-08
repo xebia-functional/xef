@@ -35,7 +35,7 @@ open class SequenceChain(
     override suspend fun call(inputs: Map<String, String>): Either<Chain.Error, Map<String, String>> =
         either {
             val chainRes = chains.fold(inputs) { inputs0, chain ->
-                chain.run(inputs0).map { inputs0.plus(it) }.bind()
+                chain.run(inputs0).map { inputs0 + it }.bind()
             }
             chainRes.filter { it.key in outputs }
         }
