@@ -1,9 +1,11 @@
 package com.xebia.functional.auto
 
 import arrow.core.Either
+import arrow.core.left
 import arrow.core.raise.Raise
 import arrow.core.raise.catch
-import arrow.core.raise.either
+import arrow.core.raise.recover
+import arrow.core.right
 import arrow.fx.coroutines.Atomic
 import arrow.fx.coroutines.ResourceScope
 import arrow.fx.coroutines.resourceScope
@@ -25,6 +27,7 @@ import com.xebia.functional.vectorstores.LocalVectorStore
 import com.xebia.functional.vectorstores.VectorStore
 import io.github.oshai.KLogger
 import io.github.oshai.KotlinLogging
+import kotlin.jvm.JvmName
 import kotlinx.serialization.serializer
 import kotlin.time.ExperimentalTime
 import kotlinx.serialization.DeserializationStrategy
@@ -33,7 +36,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 
 @DslMarker
-annotation class DSL
+annotation class AIDSL
 
 data class SerializationConfig<A>(
   val jsonSchema: JsonObject,
@@ -41,21 +44,38 @@ data class SerializationConfig<A>(
   val deserializationStrategy: DeserializationStrategy<A>,
 )
 
-@DSL
+/*
+ * With context receivers this can become more generic,
+ * suspend context(Raise<AIError>, ResourceScope, AIContext) () -> A
+ */
+typealias AI<A> = suspend AIScope.() -> A
+
+inline fun <A> ai(noinline block: suspend AIScope.() -> A): AI<A> = block
+
 @OptIn(ExperimentalTime::class)
-suspend inline fun <reified A> ai(noinline block: suspend AI.() -> A): Either<AIError, A> =
+suspend inline fun <reified A> AI<A>.getOrElse(crossinline orElse: suspend (AIError) -> A): A =
   resourceScope {
-    either {
+    recover({
       val openAIConfig = OpenAIConfig()
       val openAiClient: OpenAIClient = KtorOpenAIClient(openAIConfig)
       val logger = KotlinLogging.logger("AutoAI")
       val embeddings = OpenAIEmbeddings(openAIConfig, openAiClient, logger)
       val vectorStore = LocalVectorStore(embeddings)
-      AI(openAiClient, vectorStore, Atomic(listOf()), logger, this@resourceScope, this).block()
-    }
+      val scope = AIScope(openAiClient, vectorStore, Atomic(listOf()), logger, this@resourceScope, this)
+      invoke(scope)
+    }) { orElse(it) }
   }
 
-class AI(
+suspend inline fun <reified A> AI<A>.toEither(): Either<AIError, A> =
+  ai { invoke().right() }.getOrElse { it.left() }
+
+// TODO: Allow traced transformation of Raise errors
+class AIException(message: String) : RuntimeException(message)
+
+suspend inline fun <reified A> AI<A>.getOrThrow(): A =
+  getOrElse { throw AIException(it.reason) }
+
+class AIScope(
   private val openAIClient: OpenAIClient,
   private val vectorStore: VectorStore,
   private val agents: Atomic<List<Agent>>,
@@ -68,6 +88,12 @@ class AI(
   },
 ) : ResourceScope by resourceScope, Raise<AIError> by raise {
 
+  @AIDSL
+  @JvmName("invokeAI")
+  suspend operator fun <A> AI<A>.invoke(): A =
+    invoke(this@AIScope)
+
+  @AIDSL
   suspend fun <A> ai(
     prompt: String,
     serializationConfig: SerializationConfig<A>,
@@ -87,6 +113,7 @@ class AI(
     }
   }
 
+  @AIDSL
   suspend fun <A> agent(tool: Tool, scope: suspend () -> A): A {
     val scopedAgent = Agent(listOf(tool))
     agents.update { it + scopedAgent }
@@ -95,6 +122,7 @@ class AI(
     return result
   }
 
+  @AIDSL
   suspend fun <A> agent(tool: Array<out Tool>, scope: suspend () -> A): A {
     val scopedAgent = Agent(tool)
     agents.update { it + scopedAgent }
@@ -103,7 +131,7 @@ class AI(
     return result
   }
 
-  @DSL
+  @AIDSL
   suspend inline fun <reified A> ai(prompt: String): A {
     val serializer = serializer<A>()
     val serializationConfig: SerializationConfig<A> = SerializationConfig(

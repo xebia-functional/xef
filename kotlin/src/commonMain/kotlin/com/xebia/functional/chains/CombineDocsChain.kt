@@ -3,7 +3,6 @@ package com.xebia.functional.chains
 import arrow.core.Either
 import com.xebia.functional.AIError
 import com.xebia.functional.Document
-import com.xebia.functional.auto.AI
 import com.xebia.functional.llm.openai.OpenAIClient
 import com.xebia.functional.prompt.PromptTemplate
 

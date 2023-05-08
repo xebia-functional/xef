@@ -8,7 +8,6 @@ import arrow.core.raise.zipOrAccumulate
 import io.ktor.http.Url as KUrl
 import arrow.resilience.Schedule
 import com.xebia.functional.AIError
-import com.xebia.functional.auto.AI
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 

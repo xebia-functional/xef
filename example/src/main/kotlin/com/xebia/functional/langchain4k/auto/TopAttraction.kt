@@ -1,7 +1,7 @@
 package com.xebia.functional.langchain4k.auto
 
-import arrow.core.getOrElse
 import com.xebia.functional.auto.ai
+import com.xebia.functional.auto.getOrElse
 import kotlinx.serialization.Serializable
 
 @Serializable
