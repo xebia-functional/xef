@@ -49,14 +49,14 @@ open class SequenceChain(
         ): Either<InvalidKeys, SequenceChain> =
             either {
                 val allOutputs = chains.map { it.config.outputKeys }.toSet().flatten()
-                val mappedChains: List<Chain> = chains.map { chain ->
-                    recover({
+                val mappedChains: List<Chain> = recover({
+                  chains.mapOrAccumulate { chain ->
                         zipOrAccumulate(
                             { validateSequenceOutputs(outputVariables, allOutputs) },
                             { validateInputsOverlapping(inputVariables, allOutputs) },
                         ) { _, _ -> chain }
-                    }) { raise(InvalidKeys(reason = it.joinToString(transform = Chain.Error::reason))) }
-                }
+                    }
+                }) { raise(InvalidKeys(reason = it.joinToString(transform = Chain.Error::reason))) }
                 SequenceChain(mappedChains, inputVariables, outputVariables, chainOutput)
             }
     }
