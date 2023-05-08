@@ -1,9 +1,7 @@
 plugins {
   id(libs.plugins.kotlin.multiplatform.get().pluginId)
+  alias(libs.plugins.arrow.gradle.publish)
 }
-
-group = "com.xebia.functional.langchain4k"
-version = "0.0.1-SNAPSHOT"
 
 repositories {
   mavenCentral()

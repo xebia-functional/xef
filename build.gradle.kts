@@ -1,9 +1,5 @@
 @file:Suppress("DSL_SCOPE_VIOLATION")
 
-import org.jetbrains.dokka.gradle.DokkaTask
-
-version = "0.0.1-SNAPSHOT"
-
 plugins {
   base
   alias(libs.plugins.kotlin.multiplatform) apply false
@@ -16,4 +12,5 @@ plugins {
 
 allprojects {
   group = property("project.group").toString()
+  version = "0.0.1-SNAPSHOT"
 }
