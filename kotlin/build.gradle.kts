@@ -108,7 +108,11 @@ kotlin {
     }
 
     val commonTest by getting
-    val jvmTest by getting
+    val jvmTest by getting {
+      dependencies {
+        implementation(libs.kotest.junit5)
+      }
+    }
     val linuxX64Test by getting
     val macosX64Test by getting
     val mingwX64Test by getting
@@ -117,7 +121,6 @@ kotlin {
       dependsOn(jvmMain)
       dependsOn(jvmTest)
       dependencies {
-        implementation(libs.kotest.junit5)
         implementation(libs.kotest.testcontainers)
         implementation(libs.testcontainers.postgresql)
       }
