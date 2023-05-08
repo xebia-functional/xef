@@ -3,6 +3,7 @@ package com.xebia.functional.prompt
 import arrow.core.Either
 import arrow.core.raise.Raise
 import arrow.core.raise.either
+import arrow.core.raise.ensureNotNull
 
 data class InvalidInputs(val reason: String)
 
@@ -49,12 +50,12 @@ suspend fun ChatPromptTemplate(
         inputs: Map<String, String>, inputKeys: List<String>
     ): Map<String, String> =
         inputKeys.associateWith { inputKey ->
-            inputs[inputKey] ?: raise(
+            ensureNotNull(inputs[inputKey]) {
                 InvalidInputs("The provided inputs: " +
                         inputs.keys.joinToString(", ") { "{$it}" } +
                         " do not match with prompt's inputs: " +
                         inputKeys.joinToString(", ") { "{$it}" })
-            )
+            }
         }
 }
 
