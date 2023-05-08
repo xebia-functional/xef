@@ -1,5 +1,6 @@
 plugins {
   alias(libs.plugins.kotlin.multiplatform)
+  alias(libs.plugins.kotlinx.serialization)
   alias(libs.plugins.spotless)
   alias(libs.plugins.arrow.gradle.publish)
 }
