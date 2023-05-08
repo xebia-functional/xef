@@ -7,6 +7,7 @@ import arrow.core.raise.ensure
 import arrow.core.raise.Raise
 import arrow.core.raise.recover
 import arrow.core.raise.zipOrAccumulate
+import arrow.core.raise.mapOrAccumulate
 
 fun Raise<Chain.Error>.SequenceChain(
     chains: List<Chain>,
@@ -50,13 +51,13 @@ open class SequenceChain(
             either {
                 val allOutputs = chains.map { it.config.outputKeys }.toSet().flatten()
                 val mappedChains: List<Chain> = recover({
-                  chains.mapOrAccumulate { chain ->
+                  mapOrAccumulate(chains) { chain ->
                         zipOrAccumulate(
                             { validateSequenceOutputs(outputVariables, allOutputs) },
                             { validateInputsOverlapping(inputVariables, allOutputs) },
                         ) { _, _ -> chain }
                     }
-                }) { raise(InvalidKeys(reason = it.joinToString(transform = Chain.Error::reason))) }
+                }) { raise(InvalidKeys(reason = it.flatten().joinToString(transform = Chain.Error::reason))) }
                 SequenceChain(mappedChains, inputVariables, outputVariables, chainOutput)
             }
     }
