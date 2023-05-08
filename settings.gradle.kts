@@ -13,8 +13,10 @@ pluginManagement {
     }
 }
 
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+
 rootProject.name = "langchain4k"
-include("nodejs-commandexecutor")
+include("langchain4k-filesystem")
 include("example")
 
 
