@@ -1,6 +1,6 @@
 package com.xebia.functional.langchain4k.auto
 
-import com.xebia.functional.auto.prompt
+import com.xebia.functional.auto.ai
 import com.xebia.functional.auto.getOrElse
 import kotlinx.serialization.Serializable
 
@@ -14,7 +14,7 @@ data class Invention(val name: String, val inventor: String, val year: Int, val 
 data class Story(val animal: Animal, val invention: Invention, val story: String)
 
 suspend fun main() {
-    prompt {
+    ai {
       val animal: Animal = prompt("A unique animal species.")
       val invention: Invention = prompt("A groundbreaking invention from the 20th century.")
 

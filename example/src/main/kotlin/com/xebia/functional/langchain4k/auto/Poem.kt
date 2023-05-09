@@ -1,6 +1,6 @@
 package com.xebia.functional.langchain4k.auto
 
-import com.xebia.functional.auto.prompt
+import com.xebia.functional.auto.ai
 import com.xebia.functional.auto.getOrElse
 import kotlinx.serialization.Serializable
 
@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 data class Poem(val title: String, val content: String)
 
 suspend fun main() =
-    prompt {
+    ai {
       val poem1: Poem = prompt("A short poem about the beauty of nature.")
       val poem2: Poem = prompt("A short poem about the power of technology.")
       val poem3: Poem = prompt("A short poem about the wisdom of artificial intelligence.")

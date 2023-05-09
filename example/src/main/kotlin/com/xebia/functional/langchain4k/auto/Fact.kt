@@ -1,6 +1,6 @@
 package com.xebia.functional.langchain4k.auto
 
-import com.xebia.functional.auto.prompt
+import com.xebia.functional.auto.ai
 import com.xebia.functional.auto.getOrElse
 import kotlinx.serialization.Serializable
 
@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 data class Fact(val topic: String, val content: String)
 
 suspend fun main() {
-    prompt {
+    ai {
       val fact1: Fact = prompt("A fascinating fact about you")
       val fact2: Fact = prompt("An interesting fact about me")
 

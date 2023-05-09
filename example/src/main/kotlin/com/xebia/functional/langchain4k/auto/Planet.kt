@@ -1,6 +1,6 @@
 package com.xebia.functional.langchain4k.auto
 
-import com.xebia.functional.auto.prompt
+import com.xebia.functional.auto.ai
 import com.xebia.functional.auto.getOrElse
 import kotlinx.serialization.Serializable
 
@@ -11,7 +11,7 @@ data class Planet(val name: String, val distanceFromSun: Double, val moons: List
 data class Moon(val name: String, val distanceFromPlanet: Double)
 
 suspend fun main() =
-    prompt {
+    ai {
       val earth: Planet = prompt("Information about Earth and its moon.")
       val mars: Planet = prompt("Information about Mars and its moons.")
 

@@ -1,6 +1,6 @@
 package com.xebia.functional.langchain4k.auto
 
-import com.xebia.functional.auto.prompt
+import com.xebia.functional.auto.ai
 import com.xebia.functional.auto.getOrElse
 import kotlinx.serialization.Serializable
 
@@ -12,7 +12,7 @@ data class ChessBoard(val board: String)
 data class GameState(val ended: Boolean, val winner: String)
 
 suspend fun main() {
-    prompt {
+    ai {
       val moves = mutableListOf<ChessMove>()
       var gameEnded = false
       var winner = ""
