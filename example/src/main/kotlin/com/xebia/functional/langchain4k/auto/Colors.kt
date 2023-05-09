@@ -1,6 +1,6 @@
 package com.xebia.functional.langchain4k.auto
 
-import com.xebia.functional.auto.ai
+import com.xebia.functional.auto.prompt
 import com.xebia.functional.auto.getOrElse
 import kotlinx.serialization.Serializable
 
@@ -8,8 +8,8 @@ import kotlinx.serialization.Serializable
 data class Colors(val colors: List<String>)
 
 suspend fun main() {
-    ai {
-        val colors: Colors = ai("a selection of 10 beautiful colors that go well together")
+    prompt {
+        val colors: Colors = prompt("a selection of 10 beautiful colors that go well together")
         println(colors)
     }.getOrElse { println(it) }
 }
