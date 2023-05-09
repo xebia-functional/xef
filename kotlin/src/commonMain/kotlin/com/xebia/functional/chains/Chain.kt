@@ -5,12 +5,16 @@ import arrow.core.raise.Raise
 import arrow.core.raise.either
 import arrow.core.raise.ensure
 import arrow.core.raise.ensureNotNull
-import com.xebia.functional.AIError
-import com.xebia.functional.AIError.Chain.InvalidInputs
 
 interface Chain {
 
     enum class ChainOutput { InputAndOutput, OnlyOutput }
+
+    sealed class Error(open val reason: String)
+
+    data class InvalidInputs(override val reason: String): Error(reason)
+
+    data class InvalidOutputs(override val reason: String): Error(reason)
 
     data class Config(
         val inputKeys: Set<String>,
@@ -44,16 +48,16 @@ interface Chain {
 
     val config: Config
 
-    suspend fun call(inputs: Map<String, String>): Either<AIError.Chain, Map<String, String>>
+    suspend fun call(inputs: Map<String, String>): Either<Error, Map<String, String>>
 
-    suspend fun run(input: String): Either<AIError.Chain, Map<String, String>> =
+    suspend fun run(input: String): Either<Error, Map<String, String>> =
         either {
             val preparedInputs = config.createInputs(input).bind()
             val result = call(preparedInputs).bind()
             prepareOutputs(preparedInputs, result)
         }
 
-    suspend fun run(inputs: Map<String, String>): Either<AIError.Chain, Map<String, String>> =
+    suspend fun run(inputs: Map<String, String>): Either<Error, Map<String, String>> =
         either {
             val preparedInputs = config.createInputs(inputs).bind()
             val result = call(preparedInputs).bind()
@@ -69,9 +73,9 @@ interface Chain {
         }
 }
 
-fun Raise<InvalidInputs>.validateInput(inputs: Map<String, String>, inputKey: String): String =
+fun Raise<Chain.InvalidInputs>.validateInput(inputs: Map<String, String>, inputKey: String): String =
     ensureNotNull(inputs[inputKey]) {
-        InvalidInputs("The provided inputs: " +
+        Chain.InvalidInputs("The provided inputs: " +
                 inputs.keys.joinToString(", ") { "{$it}" } +
                 " do not match with chain's input: {$inputKey}")
     }
