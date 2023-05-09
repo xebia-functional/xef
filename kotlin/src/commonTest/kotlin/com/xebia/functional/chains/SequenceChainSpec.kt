@@ -116,4 +116,23 @@ class SequenceChainSpec : StringSpec({
             sc.run(mapOf("foo" to "123")).bind()
         } shouldBeLeft SequenceChain.InvalidKeys("The provided inputs: {foo}, {test} overlap with chain's outputs: {bar}, {test}, {baz}")
     }
+
+    "SequenceChain should fail when output variables are missing and input variables are overlapping" {
+        val chain1 = FakeChain(inputVariables = setOf("foo"), outputVariables = setOf("bar"))
+        val chain2 = FakeChain(inputVariables = setOf("bar"), outputVariables = setOf("baz"))
+        val chains = listOf(chain1, chain2)
+
+        either {
+            val sc = SequenceChain.either(
+                chains = chains,
+                inputVariables = listOf("foo", "bar"),
+                outputVariables = listOf("potato"),
+                chainOutput = Chain.ChainOutput.InputAndOutput
+            ).bind()
+            sc.run(mapOf("foo" to "123")).bind()
+        } shouldBeLeft SequenceChain.InvalidKeys(
+            "The provided outputs: {potato} do not exist in chains' outputs: {bar}, {baz}, " +
+                    "The provided inputs: {foo}, {bar} overlap with chain's outputs: {bar}, {baz}"
+        )
+    }
 })
