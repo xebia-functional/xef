@@ -136,13 +136,16 @@ class AIScope(
    *
    * data class BreakingNews(val title: String, val content: String, val date: String)
    *
-   * fun AIScope.breakingNewsLastWeek(): List<BreakingNews> =
+   * fun breakingNews(date: LocalDateTime): AI<BreakingNews> = ai {
    *   agent(search("$date Breaking News")) {
-   *     val now = LocalDateTime.now()
-   *     (0..7).parMap {
-   *       prompt<BreakingNews>("Summarize all breaking news that happened on ${now.minusDays(it)} in about 300 words")
-   *     }
+   *     prompt("Summarize all breaking news that happened on ${now.minusDays(it)} in about 300 words")
    *   }
+   * }
+   *
+   * suspend fun AIScope.breakingNewsLastWeek(): List<BreakingNews> {
+   *   val now = LocalDateTime.now()
+   *   return (0..7).parMap { breakingNews(now.minusDays(it)).invoke() }
+   * }
    *
    * fun news(): AI<List<News>> = ai {
    *   val covidNews = parZip(
