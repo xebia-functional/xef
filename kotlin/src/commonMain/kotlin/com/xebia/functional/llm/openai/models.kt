@@ -119,3 +119,15 @@ data class Usage(
   @SerialName("completion_tokens") val completionTokens: Long? = null,
   @SerialName("total_tokens") val totalTokens: Long
 )
+
+data class LLMModel(
+  val name: String,
+  val kind : Kind
+) {
+  enum class Kind {
+    Completion, Chat
+  }
+  companion object {
+    val GPT_3_5_TURBO = LLMModel("gpt3.5-turbo", Kind.Chat)
+  }
+}

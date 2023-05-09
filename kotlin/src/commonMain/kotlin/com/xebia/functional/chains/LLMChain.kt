@@ -2,16 +2,15 @@ package com.xebia.functional.chains
 
 import arrow.core.Either
 import arrow.core.raise.either
-import com.xebia.functional.llm.openai.CompletionChoice
-import com.xebia.functional.llm.openai.CompletionRequest
-import com.xebia.functional.llm.openai.OpenAIClient
+import com.xebia.functional.llm.openai.*
+import com.xebia.functional.llm.openai.LLMModel.Kind.*
 import com.xebia.functional.prompt.PromptTemplate
 
 @Suppress("LongParameterList")
 suspend fun LLMChain(
     llm: OpenAIClient,
     promptTemplate: PromptTemplate<String>,
-    llmModel: String = "text-davinci-003",
+    model: LLMModel,
     user: String = "testing",
     echo: Boolean = false,
     n: Int = 1,
@@ -28,22 +27,52 @@ suspend fun LLMChain(
     override suspend fun call(inputs: Map<String, String>): Either<Chain.InvalidInputs, Map<String, String>> =
         either {
             val prompt = promptTemplate.format(inputs)
-
-            val request = CompletionRequest(
-                model = llmModel,
-                user = user,
-                prompt = prompt,
-                echo = echo,
-                n = n,
-                temperature = temperature,
-                maxTokens = 256
-            )
-
-            val completions = llm.createCompletion(request)
-            formatOutput(completions)
+            when (model.kind) {
+                Completion -> callCompletionEndpoint(prompt)
+                Chat -> callChatEndpoint(prompt)
+            }
         }
 
-    private fun formatOutput(completions: List<CompletionChoice>): Map<String, String> =
+    private suspend fun callCompletionEndpoint(prompt: String): Map<String, String> {
+        val request = CompletionRequest(
+            model = model.name,
+            user = user,
+            prompt = prompt,
+            echo = echo,
+            n = n,
+            temperature = temperature,
+            maxTokens = 256
+        )
+
+        val completions = llm.createCompletion(request)
+        return formatCompletionOutput(completions)
+    }
+
+    private suspend fun callChatEndpoint(prompt: String): Map<String, String> {
+        val request = ChatCompletionRequest(
+            model = model.name,
+            user = user,
+            messages = listOf(
+                Message(
+                    Role.system.name,
+                    prompt
+                )
+            ),
+            n = n,
+            temperature = temperature,
+            maxTokens = 256
+        )
+
+        val completions = llm.createChatCompletion(request)
+        return formatChatOutput(completions.choices)
+    }
+
+    private fun formatChatOutput(completions: List<Choice>): Map<String, String> =
+        config.outputKeys.associateWith {
+            completions.joinToString(", ") { it.message.content }
+        }
+
+    private fun formatCompletionOutput(completions: List<CompletionChoice>): Map<String, String> =
         config.outputKeys.associateWith {
             completions.joinToString(", ") { it.text }
         }
