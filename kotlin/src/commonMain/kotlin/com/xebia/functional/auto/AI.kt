@@ -12,7 +12,6 @@ import arrow.fx.coroutines.resourceScope
 import com.xebia.functional.AIError
 import com.xebia.functional.auto.serialization.buildJsonSchema
 import com.xebia.functional.auto.serialization.sample
-import com.xebia.functional.chains.Chain
 import com.xebia.functional.chains.VectorQAChain
 import com.xebia.functional.embeddings.OpenAIEmbeddings
 import com.xebia.functional.env.OpenAIConfig
@@ -51,7 +50,7 @@ data class SerializationConfig<A>(
  */
 typealias AI<A> = suspend AIScope.() -> A
 
-inline fun <A> prompt(noinline block: suspend AIScope.() -> A): AI<A> = block
+inline fun <A> ai(noinline block: suspend AIScope.() -> A): AI<A> = block
 
 @OptIn(ExperimentalTime::class)
 suspend inline fun <reified A> AI<A>.getOrElse(crossinline orElse: suspend (AIError) -> A): A =
@@ -68,7 +67,7 @@ suspend inline fun <reified A> AI<A>.getOrElse(crossinline orElse: suspend (AIEr
   }
 
 suspend inline fun <reified A> AI<A>.toEither(): Either<AIError, A> =
-  prompt { invoke().right() }.getOrElse { it.left() }
+  ai { invoke().right() }.getOrElse { it.left() }
 
 // TODO: Allow traced transformation of Raise errors
 class AIException(message: String) : RuntimeException(message)

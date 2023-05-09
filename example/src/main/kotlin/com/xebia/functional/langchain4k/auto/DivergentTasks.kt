@@ -1,6 +1,6 @@
 package com.xebia.functional.langchain4k.auto
 
-import com.xebia.functional.auto.prompt
+import com.xebia.functional.auto.ai
 import com.xebia.functional.auto.getOrElse
 import com.xebia.functional.tool.search
 import kotlinx.serialization.Serializable
@@ -10,7 +10,7 @@ data class NumberOfMedicalNeedlesInWorld(val numberOfNeedles: Long)
 
 
 suspend fun main() {
-    prompt {
+    ai {
         agent(search("Estimate amount of medical needles in the world")) {
             val needlesInWorld: NumberOfMedicalNeedlesInWorld =
                 prompt("Provide the number of medical needles in the world")
