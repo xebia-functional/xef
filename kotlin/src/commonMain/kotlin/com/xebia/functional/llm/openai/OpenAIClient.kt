@@ -40,13 +40,16 @@ private class KtorOpenAIClient(
   }
 
   override suspend fun createChatCompletion(request: ChatCompletionRequest): ChatCompletionResponse {
-    val response = config.retryConfig.schedule().retry {
+    val response = config.retryConfig.schedule()
+      .log { error, attempts ->
+        println("Retrying chat completion due to $error after $attempts attempts")
+      }
+      .retry {
       httpClient.post {
         url { path("chat/completions") }
         configure(config.token, request)
       }
     }
-    // TODO error body fails to parse into ChatCompletionResponse
     return response.body()
   }
 

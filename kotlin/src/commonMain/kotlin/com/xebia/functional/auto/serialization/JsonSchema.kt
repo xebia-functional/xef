@@ -21,11 +21,7 @@ import kotlinx.serialization.descriptors.SerialKind
 import kotlinx.serialization.descriptors.StructureKind
 import kotlinx.serialization.descriptors.elementDescriptors
 import kotlinx.serialization.descriptors.elementNames
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.*
 
 /**
  * Represents the type of json type
@@ -69,6 +65,22 @@ enum class JsonType(jsonType: String) {
   val json = JsonPrimitive(jsonType)
 
   override fun toString(): String = json.content
+}
+
+@OptIn(ExperimentalSerializationApi::class)
+fun SerialDescriptor.sample(): JsonElement {
+  val properties = elementNames.zip(elementDescriptors).associate { (name, descriptor) ->
+    name to when (descriptor.kind.jsonType) {
+      JsonType.ARRAY -> JsonArray(listOf(descriptor.sample()))
+      JsonType.NUMBER -> JsonUnquotedLiteral("<number>")
+      JsonType.STRING -> JsonUnquotedLiteral("<string>")
+      JsonType.BOOLEAN -> JsonUnquotedLiteral("<true | false>")
+      JsonType.OBJECT -> descriptor.sample()
+      JsonType.OBJECT_SEALED -> descriptor.sample()
+      JsonType.OBJECT_MAP -> descriptor.sample()
+    }
+  }
+  return JsonObject(properties)
 }
 
 @Target()
