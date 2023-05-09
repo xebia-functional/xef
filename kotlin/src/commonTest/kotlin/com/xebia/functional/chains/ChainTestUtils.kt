@@ -1,33 +1,51 @@
 package com.xebia.functional.chains
 
-import com.xebia.functional.llm.openai.ChatCompletionRequest
-import com.xebia.functional.llm.openai.ChatCompletionResponse
-import com.xebia.functional.llm.openai.CompletionChoice
-import com.xebia.functional.llm.openai.CompletionRequest
-import com.xebia.functional.llm.openai.EmbeddingRequest
-import com.xebia.functional.llm.openai.EmbeddingResult
-import com.xebia.functional.llm.openai.OpenAIClient
+import com.xebia.functional.llm.openai.*
 
 val testLLM = object : OpenAIClient {
-    override suspend fun createCompletion(request: CompletionRequest): List<CompletionChoice> =
-        when (request.prompt) {
-            "Tell me a joke." ->
-                listOf(CompletionChoice("I'm not good at jokes", 1, finishReason = "foo"))
+  override suspend fun createCompletion(request: CompletionRequest): List<CompletionChoice> =
+    when (request.prompt) {
+      "Tell me a joke." ->
+        listOf(CompletionChoice("I'm not good at jokes", 1, finishReason = "foo"))
 
-            "My name is foo and I'm 28 years old" ->
-                listOf(CompletionChoice("Hello there! Nice to meet you foo", 1, finishReason = "foo"))
+      "My name is foo and I'm 28 years old" ->
+        listOf(CompletionChoice("Hello there! Nice to meet you foo", 1, finishReason = "foo"))
 
-            testTemplateFormatted -> listOf(CompletionChoice("I don't know", 1, finishReason = "foo"))
-            testTemplateInputsFormatted -> listOf(CompletionChoice("Two inputs, right?", 1, finishReason = "foo"))
-            testQATemplateFormatted -> listOf(CompletionChoice("I don't know", 1, finishReason = "foo"))
-            else -> listOf(CompletionChoice("foo", 1, finishReason = "bar"))
-        }
+      testTemplateFormatted -> listOf(CompletionChoice("I don't know", 1, finishReason = "foo"))
+      testTemplateInputsFormatted -> listOf(CompletionChoice("Two inputs, right?", 1, finishReason = "foo"))
+      testQATemplateFormatted -> listOf(CompletionChoice("I don't know", 1, finishReason = "foo"))
+      else -> listOf(CompletionChoice("foo", 1, finishReason = "bar"))
+    }
 
-    override suspend fun createChatCompletion(request: ChatCompletionRequest): ChatCompletionResponse =
-        TODO()
+  override suspend fun createChatCompletion(request: ChatCompletionRequest): ChatCompletionResponse =
+    when (request.messages.firstOrNull()?.content) {
+      "Tell me a joke." -> fakeChatCompletion("I'm not good at jokes")
+      "My name is foo and I'm 28 years old" -> fakeChatCompletion("Hello there! Nice to meet you foo")
+      testTemplateFormatted -> fakeChatCompletion("I don't know")
+      testTemplateInputsFormatted -> fakeChatCompletion("Two inputs, right?")
+      testQATemplateFormatted -> fakeChatCompletion("I don't know")
+      else -> fakeChatCompletion("foo")
+    }
 
-    override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult =
-        TODO()
+  private fun fakeChatCompletion(message: String): ChatCompletionResponse =
+    ChatCompletionResponse(
+      id = "foo",
+      `object` = "foo",
+      created = 1,
+      model = "foo",
+      usage = Usage(1, 1, 1),
+      choices = listOf(
+        Choice(
+          Message(
+            Role.system.name,
+            message
+          ), "foo", index = 0
+        )
+      )
+    )
+
+  override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult =
+    TODO()
 }
 
 val testContext = """foo foo foo

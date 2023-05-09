@@ -2,6 +2,7 @@ package com.xebia.functional.chains
 
 import arrow.core.raise.either
 import com.xebia.functional.Document
+import com.xebia.functional.llm.openai.LLMModel
 import com.xebia.functional.prompt.PromptTemplate
 import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
@@ -10,12 +11,13 @@ import io.kotest.core.spec.style.StringSpec
 class CombineDocsChainSpec : StringSpec({
     val documentVariableName = "context"
     val outputVariable = "answer"
+    val model = LLMModel.GPT_3_5_TURBO
 
     "Combine should return all the documents properly combined" {
         either {
             val promptTemplate = PromptTemplate(testTemplate, listOf("context", "question"))
             val docs = listOf(Document("foo foo foo"), Document("bar bar bar"), Document("baz baz baz"))
-            val chain = CombineDocsChain(testLLM, promptTemplate, docs, documentVariableName, outputVariable)
+            val chain = CombineDocsChain(testLLM, promptTemplate, model, docs, documentVariableName, outputVariable)
             chain.combine(docs)
         } shouldBeRight testContextOutput
     }
@@ -24,7 +26,7 @@ class CombineDocsChainSpec : StringSpec({
         either {
             val promptTemplate = PromptTemplate(testTemplate, listOf("context", "question"))
             val docs = listOf(Document("foo foo foo"), Document("bar bar bar"), Document("baz baz baz"))
-            val chain = CombineDocsChain(testLLM, promptTemplate, docs, documentVariableName, outputVariable)
+            val chain = CombineDocsChain(testLLM, promptTemplate, model ,docs, documentVariableName, outputVariable)
             chain.run("What do you think?").bind()
         } shouldBeRight testOutputIDK
     }
@@ -34,7 +36,7 @@ class CombineDocsChainSpec : StringSpec({
             val promptTemplate = PromptTemplate(testTemplateInputs, listOf("context", "name", "age"))
             val docs = listOf(Document("foo foo foo"), Document("bar bar bar"), Document("baz baz baz"))
             val chain = CombineDocsChain(
-                testLLM, promptTemplate, docs, documentVariableName, outputVariable, Chain.ChainOutput.InputAndOutput)
+                testLLM, promptTemplate, model, docs, documentVariableName, outputVariable, Chain.ChainOutput.InputAndOutput)
             chain.run(mapOf("name" to "Scala", "age" to "28")).bind()
         } shouldBeRight testOutputInputs + mapOf("context" to testContext, "name" to "Scala", "age" to "28")
     }
@@ -44,7 +46,7 @@ class CombineDocsChainSpec : StringSpec({
             val promptTemplate = PromptTemplate(testTemplateInputs, listOf("context", "name", "age"))
             val docs = listOf(Document("foo foo foo"), Document("bar bar bar"), Document("baz baz baz"))
             val chain = CombineDocsChain(
-                testLLM, promptTemplate, docs, documentVariableName, outputVariable, Chain.ChainOutput.InputAndOutput)
+                testLLM, promptTemplate, model, docs, documentVariableName, outputVariable, Chain.ChainOutput.InputAndOutput)
             chain.run(mapOf("name" to "Scala", "city" to "Seattle")).bind()
         } shouldBeLeft
                 Chain.InvalidInputs(

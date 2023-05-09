@@ -4,6 +4,7 @@ import arrow.core.raise.either
 import arrow.fx.coroutines.resourceScope
 import com.xebia.functional.Document
 import com.xebia.functional.embeddings.Embedding
+import com.xebia.functional.llm.openai.LLMModel
 import com.xebia.functional.vectorstores.DocumentVectorId
 import com.xebia.functional.vectorstores.VectorStore
 import io.kotest.assertions.arrow.core.shouldBeLeft
@@ -15,12 +16,13 @@ import kotlinx.uuid.generateUUID
 class VectorQAChainSpec : StringSpec({
     val outputVariable = "answer"
     val numOfDocs = 10
+    val model = LLMModel.GPT_3_5_TURBO
 
     "Run should return the answer from the LLMChain" {
         resourceScope {
             either {
                 val vectorStore = testVectorStore
-                val chain = VectorQAChain(testLLM, vectorStore, numOfDocs, outputVariable)
+                val chain = VectorQAChain(testLLM, model, vectorStore, numOfDocs, outputVariable)
                 chain.run("What do you think?").bind()
             } shouldBeRight testOutputIDK
         }
@@ -30,7 +32,7 @@ class VectorQAChainSpec : StringSpec({
         resourceScope {
             either {
                 val vectorStore = testVectorStore
-                val chain = VectorQAChain(testLLM, vectorStore, numOfDocs, outputVariable)
+                val chain = VectorQAChain(testLLM, model, vectorStore, numOfDocs, outputVariable)
                 chain.run(mapOf("question" to "What do you think?")).bind()
             } shouldBeRight testOutputIDK
         }
@@ -40,7 +42,7 @@ class VectorQAChainSpec : StringSpec({
         resourceScope {
             either {
                 val vectorStore = testVectorStore
-                val chain = VectorQAChain(testLLM, vectorStore, numOfDocs, outputVariable)
+                val chain = VectorQAChain(testLLM, model, vectorStore, numOfDocs, outputVariable)
                 chain.run(mapOf("question" to "What do you think?", "foo" to "bla bla bla")).bind()
             } shouldBeRight testOutputIDK
         }
@@ -50,7 +52,7 @@ class VectorQAChainSpec : StringSpec({
         resourceScope {
             either {
                 val vectorStore = testVectorStore
-                val chain = VectorQAChain(testLLM, vectorStore, numOfDocs, outputVariable)
+                val chain = VectorQAChain(testLLM, model, vectorStore, numOfDocs, outputVariable)
                 chain.run(mapOf("foo" to "What do you think?")).bind()
             } shouldBeLeft
                     Chain.InvalidInputs(
