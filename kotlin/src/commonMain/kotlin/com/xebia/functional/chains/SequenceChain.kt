@@ -53,13 +53,11 @@ open class SequenceChain(
             either {
                 val allOutputs = chains.map { it.config.outputKeys }.toSet().flatten()
                 val mappedChains: List<Chain> = recover({
-                  mapOrAccumulate(chains) { chain ->
-                        zipOrAccumulate(
-                            { validateSequenceOutputs(outputVariables, allOutputs) },
-                            { validateInputsOverlapping(inputVariables, allOutputs) },
-                        ) { _, _ -> chain }
-                    }
-                }) { raise(InvalidKeys(reason = it.flatten().joinToString(transform = AIError.Chain::reason))) }
+                    zipOrAccumulate(
+                        { validateSequenceOutputs(outputVariables, allOutputs) },
+                        { validateInputsOverlapping(inputVariables, allOutputs) },
+                    ) { _, _ -> chains }
+                }) { raise(InvalidKeys(reason = it.joinToString(transform = AIError.Chain::reason))) }
                 SequenceChain(mappedChains, inputVariables, outputVariables, chainOutput)
             }
     }
