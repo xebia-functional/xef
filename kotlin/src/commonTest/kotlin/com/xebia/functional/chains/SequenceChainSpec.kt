@@ -1,9 +1,11 @@
 package com.xebia.functional.chains
 
 import arrow.core.raise.either
+import com.xebia.functional.AIError
 import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.core.spec.style.StringSpec
+import com.xebia.functional.AIError.Chain.Sequence.InvalidKeys
 
 class SequenceChainSpec : StringSpec({
     "SequenceChain should return a prediction with one Chain" {
@@ -82,7 +84,7 @@ class SequenceChainSpec : StringSpec({
                 chainOutput = Chain.ChainOutput.InputAndOutput
             )
             sc.run(mapOf("foo" to "123")).bind()
-        } shouldBeLeft Chain.InvalidInputs("The provided inputs: {foo}, {bar} do not match with chain's inputs: {bar}, {test}")
+        } shouldBeLeft AIError.Chain.InvalidInputs("The provided inputs: {foo}, {bar} do not match with chain's inputs: {bar}, {test}")
     }
 
     "SequenceChain should fail when output variables are missing" {
@@ -98,7 +100,7 @@ class SequenceChainSpec : StringSpec({
                 chainOutput = Chain.ChainOutput.InputAndOutput
             ).bind()
             sc.run(mapOf("foo" to "123")).bind()
-        } shouldBeLeft SequenceChain.InvalidKeys("The provided outputs: {test} do not exist in chains' outputs: {bar}, {baz}")
+        } shouldBeLeft InvalidKeys("The provided outputs: {test} do not exist in chains' outputs: {bar}, {baz}")
     }
 
     "SequenceChain should fail when input variables are overlapping" {
@@ -114,7 +116,7 @@ class SequenceChainSpec : StringSpec({
                 chainOutput = Chain.ChainOutput.InputAndOutput
             ).bind()
             sc.run(mapOf("foo" to "123")).bind()
-        } shouldBeLeft SequenceChain.InvalidKeys("The provided inputs: {foo}, {test} overlap with chain's outputs: {bar}, {test}, {baz}")
+        } shouldBeLeft InvalidKeys("The provided inputs: {foo}, {test} overlap with chain's outputs: {bar}, {test}, {baz}")
     }
 
     "SequenceChain should fail when output variables are missing and input variables are overlapping" {
@@ -130,7 +132,7 @@ class SequenceChainSpec : StringSpec({
                 chainOutput = Chain.ChainOutput.InputAndOutput
             ).bind()
             sc.run(mapOf("foo" to "123")).bind()
-        } shouldBeLeft SequenceChain.InvalidKeys(
+        } shouldBeLeft InvalidKeys(
             "The provided outputs: {potato} do not exist in chains' outputs: {bar}, {baz}, " +
                     "The provided inputs: {foo}, {bar} overlap with chain's outputs: {bar}, {baz}"
         )

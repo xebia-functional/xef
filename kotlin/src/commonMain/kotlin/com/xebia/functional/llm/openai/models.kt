@@ -57,7 +57,7 @@ data class CompletionRequest(
 data class ChatCompletionRequest(
   val model: String,
   val messages: List<Message>,
-  val temperature: Double = 1.0,
+  val temperature: Double = 0.0,
   @SerialName("top_p") val topP: Double = 1.0,
   val n: Int = 1,
   val stream: Boolean = false,
