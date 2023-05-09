@@ -1,11 +1,7 @@
 package com.xebia.functional.chains
 
 import arrow.core.Either
-import arrow.core.raise.Raise
-import arrow.core.raise.either
-import arrow.core.raise.ensure
-import arrow.core.raise.recover
-import arrow.core.raise.zipOrAccumulate
+import arrow.core.raise.*
 
 fun Raise<Chain.Error>.SimpleSequenceChain(
     chains: List<Chain>,
@@ -20,7 +16,7 @@ class SimpleSequenceChain private constructor(
     private val inputKey: String,
     private val outputKey: String,
     chainOutput: Chain.ChainOutput
-) : SequenceChain {
+) : SequenceChain(chains, listOf(inputKey), listOf(outputKey), chainOutput) {
 
     override val config = Chain.Config(setOf(inputKey), setOf(outputKey), chainOutput)
 
@@ -40,14 +36,14 @@ class SimpleSequenceChain private constructor(
             inputKey: String,
             outputKey: String,
             chainOutput: Chain.ChainOutput
-        ): Either<SequenceChain.InvalidKeys, SimpleSequenceChain> =
+        ): Either<InvalidKeys, SimpleSequenceChain> =
             either {
                 val mappedChains: List<Chain> = chains.map { chain ->
                     recover({
                         zipOrAccumulate(
                             { validateInputKeys(chain.config.inputKeys) },
                             { validateOutputKeys(chain.config.outputKeys) }) { _, _ -> chain }
-                    }) { raise(SequenceChain.InvalidKeys(it.joinToString(transform = Chain.Error::reason))) }
+                    }) { raise(InvalidKeys(reason = it.joinToString(transform = Chain.Error::reason))) }
                 }
                 SimpleSequenceChain(mappedChains, inputKey, outputKey, chainOutput)
             }
@@ -65,3 +61,4 @@ private fun Raise<Chain.InvalidInputs>.validateInputKeys(inputKeys: Set<String>)
         Chain.InvalidInputs("The expected inputs are more than one: " +
                 inputKeys.joinToString(", ") { "{$it}" })
     }
+

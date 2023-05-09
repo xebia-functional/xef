@@ -89,7 +89,7 @@ class SequentialChainSpec extends CatsEffectSuite:
     interceptIO[MissingOutputVariablesError](output)
   }
 
-  test("Test SequentialChainruns when valid outputs are specified.") {
+  test("Test SequentialChain runs when valid outputs are specified.") {
     val chain1 = FakeChain(inputVariables = Set("foo"), outputVariables = Set("bar"))
     val chain2 = FakeChain(inputVariables = Set("bar"), outputVariables = Set("baz"))
     val chains = NonEmptySeq(chain1, Seq(chain2))
@@ -105,7 +105,7 @@ class SequentialChainSpec extends CatsEffectSuite:
     assertIO(output, expectedOutput)
   }
 
-  test("Test SequentialChainruns error is raised when input variables are overlapping.") {
+  test("Test SequentialChain runs error is raised when input variables are overlapping.") {
     val chain1 = FakeChain(inputVariables = Set("foo"), outputVariables = Set("bar", "test"))
     val chain2 = FakeChain(inputVariables = Set("bar"), outputVariables = Set("baz"))
     val chains = NonEmptySeq(chain1, Seq(chain2))
