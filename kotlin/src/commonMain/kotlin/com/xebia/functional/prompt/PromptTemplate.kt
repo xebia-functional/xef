@@ -44,15 +44,15 @@ interface PromptTemplate<A> {
           }
         }
       }
-    }
 
-    fun mergePartialAndUserVariables(
-      variables: Map<String, String>,
-      inputVariables: List<String>
-    ): Map<String, String> =
-      inputVariables.fold(variables) { acc, k ->
-        if (!acc.containsKey(k)) acc + (k to "{$k}") else acc
-      }
+      private fun mergePartialAndUserVariables(
+        variables: Map<String, String>,
+        inputVariables: List<String>
+      ): Map<String, String> =
+        inputVariables.fold(variables) { acc, k ->
+          if (!acc.containsKey(k)) acc + (k to "{$k}") else acc
+        }
+    }
 
     fun human(promptTemplate: PromptTemplate<String>): PromptTemplate<HumanMessage> =
       promptTemplate.mapK(::HumanMessage)
