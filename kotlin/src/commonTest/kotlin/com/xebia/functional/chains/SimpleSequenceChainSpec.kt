@@ -2,7 +2,6 @@ package com.xebia.functional.chains
 
 import arrow.core.Either
 import arrow.core.raise.either
-import com.xebia.functional.AIError
 import com.xebia.functional.AIError.Chain.InvalidInputs
 import com.xebia.functional.AIError.Chain.Sequence.InvalidKeys
 import io.kotest.assertions.arrow.core.shouldBeLeft

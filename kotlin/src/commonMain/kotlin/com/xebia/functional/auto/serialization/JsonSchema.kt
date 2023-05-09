@@ -11,7 +11,6 @@ which states the following:
 
 // TODO: We should consider a fork and maintain it ourselves.
  */
-import com.xebia.functional.auto.serialization.JsonObjectBuilder
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialInfo
 import kotlinx.serialization.SerializationStrategy

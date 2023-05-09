@@ -1,7 +1,6 @@
 package com.xebia.functional.prompt
 
 import arrow.core.raise.either
-import com.xebia.functional.AIError
 import com.xebia.functional.AIError.Chain.InvalidInputs
 import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight

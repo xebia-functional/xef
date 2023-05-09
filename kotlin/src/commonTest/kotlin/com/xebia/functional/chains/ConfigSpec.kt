@@ -1,7 +1,6 @@
 package com.xebia.functional.chains
 
 import arrow.core.Either
-import com.xebia.functional.AIError
 import com.xebia.functional.AIError.Chain.InvalidInputs
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
