@@ -1,6 +1,7 @@
 package com.xebia.functional.chains
 
 import arrow.core.raise.either
+import com.xebia.functional.AIError
 import com.xebia.functional.Document
 import com.xebia.functional.llm.openai.LLMModel
 import com.xebia.functional.prompt.PromptTemplate
@@ -49,7 +50,8 @@ class CombineDocsChainSpec : StringSpec({
                 testLLM, promptTemplate, model, docs, documentVariableName, outputVariable, Chain.ChainOutput.InputAndOutput)
             chain.run(mapOf("name" to "Scala", "city" to "Seattle")).bind()
         } shouldBeLeft
-                Chain.InvalidInputs(
-                    "The provided inputs: {name}, {city} do not match with chain's inputs: {name}, {age}")
+          AIError.Chain.InvalidInputs(
+              "The provided inputs: {name}, {city} do not match with chain's inputs: {name}, {age}"
+          )
     }
 })

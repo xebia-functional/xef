@@ -2,6 +2,7 @@ package com.xebia.functional.chains
 
 import arrow.core.raise.either
 import arrow.fx.coroutines.resourceScope
+import com.xebia.functional.AIError
 import com.xebia.functional.Document
 import com.xebia.functional.embeddings.Embedding
 import com.xebia.functional.llm.openai.LLMModel
@@ -55,8 +56,9 @@ class VectorQAChainSpec : StringSpec({
                 val chain = VectorQAChain(testLLM, model, vectorStore, numOfDocs, outputVariable)
                 chain.run(mapOf("foo" to "What do you think?")).bind()
             } shouldBeLeft
-                    Chain.InvalidInputs(
-                        "The provided inputs: {foo} do not match with chain's inputs: {question}")
+              AIError.Chain.InvalidInputs(
+                  "The provided inputs: {foo} do not match with chain's inputs: {question}"
+              )
         }
     }
 })

@@ -1,6 +1,7 @@
 package com.xebia.functional.chains
 
 import arrow.core.raise.either
+import com.xebia.functional.AIError
 import com.xebia.functional.llm.openai.LLMModel
 import com.xebia.functional.prompt.PromptTemplate
 import io.kotest.assertions.arrow.core.shouldBeLeft
@@ -48,8 +49,9 @@ class LLMChainSpec : StringSpec({
                 chainOutput = Chain.ChainOutput.InputAndOutput)
             chain.run(mapOf("age" to "28", "brand" to "foo")).bind()
         } shouldBeLeft
-                Chain.InvalidInputs(
-                    "The provided inputs: {age}, {brand} do not match with chain's inputs: {name}, {age}")
+          AIError.Chain.InvalidInputs(
+              "The provided inputs: {age}, {brand} do not match with chain's inputs: {name}, {age}"
+          )
     }
 
     "LLMChain should fail when using just one input but expecting more" {
@@ -59,6 +61,6 @@ class LLMChainSpec : StringSpec({
             val chain = LLMChain(testLLM, prompt, model, outputVariable = "answer",
                 chainOutput = Chain.ChainOutput.InputAndOutput)
             chain.run("foo").bind()
-        } shouldBeLeft Chain.InvalidInputs("The expected inputs are more than one: {name}, {age}")
+        } shouldBeLeft AIError.Chain.InvalidInputs("The expected inputs are more than one: {name}, {age}")
     }
 })

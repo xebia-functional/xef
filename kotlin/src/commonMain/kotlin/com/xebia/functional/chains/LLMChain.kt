@@ -2,6 +2,7 @@ package com.xebia.functional.chains
 
 import arrow.core.Either
 import arrow.core.raise.either
+import com.xebia.functional.AIError
 import com.xebia.functional.llm.openai.*
 import com.xebia.functional.llm.openai.LLMModel.Kind.*
 import com.xebia.functional.prompt.PromptTemplate
@@ -24,7 +25,7 @@ suspend fun LLMChain(
 
     override val config: Chain.Config = Chain.Config(inputKeys, outputKeys, chainOutput)
 
-    override suspend fun call(inputs: Map<String, String>): Either<Chain.InvalidInputs, Map<String, String>> =
+    override suspend fun call(inputs: Map<String, String>): Either<AIError.Chain.InvalidInputs, Map<String, String>> =
         either {
             val prompt = promptTemplate.format(inputs)
             when (model.kind) {
