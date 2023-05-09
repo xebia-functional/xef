@@ -21,6 +21,7 @@ fun Raise<InvalidTemplate>.PromptTemplate(template: String, variables: List<Stri
 
 interface PromptTemplate<A> {
   val inputKeys: List<String>
+
   suspend fun format(variables: Map<String, String>): A
 
   fun <B> mapK(transform: (A) -> B): PromptTemplate<B> = object : PromptTemplate<B> {
