@@ -5,7 +5,7 @@ import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.core.spec.style.StringSpec
 
 class ChatPromptTemplateSpec : StringSpec({
-    "ChatPromptTemplate format should return the correct formatted type and content of the messages" {
+    "ChatPromptTemplate format should return the correct formatted type and content of the System and Human messages" {
         either {
             val systemPrompt: PromptTemplate<SystemMessage> = PromptTemplate.system(
                 PromptTemplate(
@@ -16,8 +16,8 @@ class ChatPromptTemplateSpec : StringSpec({
 
             val humanPrompt: PromptTemplate<HumanMessage> = PromptTemplate.human(
                 PromptTemplate(
-                    "{text}",
-                    listOf("text")
+                    "{question}",
+                    listOf("question")
                 )
             )
 
@@ -29,7 +29,7 @@ class ChatPromptTemplateSpec : StringSpec({
                 mapOf(
                     "input_language" to "English",
                     "output_language" to "Spanish",
-                    "text" to "What is your name?"
+                    "question" to "What is your name?"
                 )
             ).bind()
 
@@ -38,7 +38,56 @@ class ChatPromptTemplateSpec : StringSpec({
                 "Human: What is your name?"
     }
 
-    "ChatPromptTemplate format with chat messages should return the correct type, role and content of the messages" {
+    "ChatPromptTemplate format should return the correct formatted type and content of the AI messages" {
+        either {
+            val humanPrompt: PromptTemplate<HumanMessage> = PromptTemplate.human(
+                PromptTemplate(
+                    "{question}",
+                    listOf("question")
+                )
+            )
+
+            val aiPrompt: PromptTemplate<AIMessage> = PromptTemplate.ai(
+                PromptTemplate(
+                    "{answer}",
+                    listOf("answer")
+                )
+            )
+
+            val otherHumanPrompt: PromptTemplate<HumanMessage> = PromptTemplate.human(
+                PromptTemplate(
+                    "{otherQuestion}",
+                    listOf("otherQuestion")
+                )
+            )
+
+            val chatPrompt = ChatPromptTemplate(
+                listOf(humanPrompt, aiPrompt, otherHumanPrompt)
+            )
+
+            chatPrompt.format(
+                mapOf(
+                    "question" to "What is the best way to learn programming?",
+                    "answer" to """
+                        1. Choose a programming language: Decide on a programming language that you want to learn.
+                        2. Start with the basics: Familiarize yourself with the basic programming concepts such as variables, data types and control structures.
+                        3. Practice, practice, practice: The best way to learn programming is through hands-on experience.
+                    """.trimIndent(),
+                    "otherQuestion" to "Recommend me some resources to start."
+                )
+            ).bind()
+
+        } shouldBeRight
+                """
+                    Human: What is the best way to learn programming?
+                    AI: 1. Choose a programming language: Decide on a programming language that you want to learn.
+                    2. Start with the basics: Familiarize yourself with the basic programming concepts such as variables, data types and control structures.
+                    3. Practice, practice, practice: The best way to learn programming is through hands-on experience.
+                    Human: Recommend me some resources to start.
+                """.trimIndent()
+    }
+
+    "ChatPromptTemplate format with chat messages should return the correct role and content of the Chat Messages" {
         either {
             val systemPrompt: PromptTemplate<SystemMessage> = PromptTemplate.system(
                 PromptTemplate(
