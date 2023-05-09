@@ -5,7 +5,7 @@ import com.knuddels.jtokkit.api.Encoding
 import com.knuddels.jtokkit.api.EncodingRegistry
 import com.xebia.functional.Document
 
-class TokenTextSplitterImpl(
+private class TokenTextSplitterImpl(
     private val tokenizer: Encoding,
     private val chunkSize: Int,
     private val chunkOverlap: Int
@@ -23,19 +23,17 @@ class TokenTextSplitterImpl(
             .toList()
     }
 
-    override suspend fun splitDocuments(documents: List<Document>): List<Document> {
-        return documents.flatMap { document ->
+    override suspend fun splitDocuments(documents: List<Document>): List<Document> =
+        documents.flatMap { document ->
             splitText(document.content).map { content ->
                 Document(content)
             }
         }
-    }
 
-    override suspend fun splitTextInDocuments(text: String): List<Document> {
-        return splitText(text).map { chunk ->
+    override suspend fun splitTextInDocuments(text: String): List<Document> =
+        splitText(text).map { chunk ->
             Document(chunk)
         }
-    }
 }
 
 val encodingRegistry: EncodingRegistry by lazy {

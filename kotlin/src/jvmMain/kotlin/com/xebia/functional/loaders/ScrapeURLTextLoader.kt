@@ -37,15 +37,13 @@ suspend fun ScrapeURLTextLoader(
     override suspend fun loadAndSplit(textSplitter: BaseTextSplitter): List<Document> =
         textSplitter.splitDocuments(documents = load())
 
-    private tailrec fun cleanUpTextHelper(lines: List<String>, result: List<String> = listOf()): List<String> {
-        return if (lines.isEmpty()) {
-            result
-        } else {
+    private tailrec fun cleanUpTextHelper(lines: List<String>, result: List<String> = listOf()): List<String> =
+        if (lines.isEmpty()) result
+        else {
             val trimmedLine = lines.first().trim()
             val newResult = if (trimmedLine.isNotEmpty()) result + trimmedLine else result
             cleanUpTextHelper(lines.drop(1), newResult)
         }
-    }
 
     private fun cleanUpText(text: String): String {
         val lines = text.split("\n")
