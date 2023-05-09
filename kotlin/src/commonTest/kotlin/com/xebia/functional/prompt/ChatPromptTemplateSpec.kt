@@ -1,10 +1,46 @@
 package com.xebia.functional.prompt
 
 import arrow.core.raise.either
+import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.core.spec.style.StringSpec
 
 class ChatPromptTemplateSpec : StringSpec({
+
+    "ChatPromptTemplate should fail when not all inputs are passed" {
+        either {
+            val systemPrompt: PromptTemplate<SystemMessage> = PromptTemplate.system(
+                PromptTemplate(
+                    "You are a helpful assistant that translates {input_language} to {output_language}.",
+                    listOf("input_language", "output_language")
+                )
+            )
+
+            val humanPrompt: PromptTemplate<HumanMessage> = PromptTemplate.human(
+                PromptTemplate(
+                    "{question}",
+                    listOf("question")
+                )
+            )
+
+            val chatPrompt = ChatPromptTemplate(
+                listOf(systemPrompt, humanPrompt)
+            )
+
+            chatPrompt.format(
+                mapOf(
+                    "input_language" to "English",
+                    "question" to "What is your name?"
+                )
+            ).bind()
+
+        } shouldBeLeft InvalidInputs(
+            "The provided inputs: {input_language}, {question} do not match " +
+                    "with prompt's inputs: {input_language}, {output_language}"
+        )
+    }
+
+
     "ChatPromptTemplate format should return the correct formatted type and content of the System and Human messages" {
         either {
             val systemPrompt: PromptTemplate<SystemMessage> = PromptTemplate.system(
