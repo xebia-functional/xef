@@ -12,6 +12,7 @@ import arrow.fx.coroutines.resourceScope
 import com.xebia.functional.AIError
 import com.xebia.functional.auto.serialization.buildJsonSchema
 import com.xebia.functional.auto.serialization.sample
+import com.xebia.functional.chains.Chain
 import com.xebia.functional.chains.VectorQAChain
 import com.xebia.functional.embeddings.OpenAIEmbeddings
 import com.xebia.functional.env.OpenAIConfig

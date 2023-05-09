@@ -5,11 +5,11 @@ import arrow.core.raise.Raise
 import arrow.core.raise.either
 import arrow.core.raise.recover
 import com.xebia.functional.AIError
-import com.xebia.functional.AIError.Chain.InvalidTemplate
 import com.xebia.functional.Document
 import com.xebia.functional.llm.openai.OpenAIClient
 import com.xebia.functional.prompt.PromptTemplate
 import com.xebia.functional.vectorstores.VectorStore
+import com.xebia.functional.AIError.Chain.InvalidTemplate
 
 interface VectorQAChain : Chain {
     suspend fun getDocs(question: String): List<Document>

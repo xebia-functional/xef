@@ -30,6 +30,8 @@ sealed interface AIError {
 
     data class InvalidInputs(override val reason: String) : Chain
 
+    data class InvalidOutputs(override val reason: String) : Chain
+
     interface Sequence : Chain {
       data class InvalidOutputs(override val reason: String): Sequence
       data class InvalidKeys(override val reason: String): Sequence

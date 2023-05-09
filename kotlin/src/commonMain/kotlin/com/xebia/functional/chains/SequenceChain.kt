@@ -8,8 +8,12 @@ import arrow.core.raise.Raise
 import arrow.core.raise.recover
 import arrow.core.raise.zipOrAccumulate
 import arrow.core.raise.mapOrAccumulate
+import com.xebia.functional.AIError
+import com.xebia.functional.AIError.Chain.InvalidInputs
+import com.xebia.functional.AIError.Chain.InvalidOutputs
+import com.xebia.functional.AIError.Chain.Sequence.InvalidKeys
 
-fun Raise<Chain.Error>.SequenceChain(
+fun Raise<AIError.Chain>.SequenceChain(
     chains: List<Chain>,
     inputVariables: List<String>,
     outputVariables: List<String>,
@@ -23,8 +27,6 @@ open class SequenceChain(
     private val outputVariables: List<String>,
     chainOutput: Chain.ChainOutput = Chain.ChainOutput.OnlyOutput
 ) : Chain {
-    data class InvalidOutputs(override val reason: String) : Chain.Error(reason)
-    data class InvalidKeys(override val reason: String) : Chain.Error(reason)
 
     override val config = Chain.Config(inputVariables.toSet(), outputVariables.toSet(), chainOutput)
 
@@ -33,7 +35,7 @@ open class SequenceChain(
         Chain.ChainOutput.InputAndOutput -> outputVariables.plus(inputVariables)
     }
 
-    override suspend fun call(inputs: Map<String, String>): Either<Chain.Error, Map<String, String>> =
+    override suspend fun call(inputs: Map<String, String>): Either<AIError.Chain, Map<String, String>> =
         either {
             val chainRes = chains.fold(inputs) { inputs0, chain ->
                 chain.run(inputs0).map { inputs0 + it }.bind()
@@ -57,30 +59,30 @@ open class SequenceChain(
                             { validateInputsOverlapping(inputVariables, allOutputs) },
                         ) { _, _ -> chain }
                     }
-                }) { raise(InvalidKeys(reason = it.flatten().joinToString(transform = Chain.Error::reason))) }
+                }) { raise(InvalidKeys(reason = it.flatten().joinToString(transform = AIError.Chain::reason))) }
                 SequenceChain(mappedChains, inputVariables, outputVariables, chainOutput)
             }
     }
 }
 
-private fun Raise<Chain.InvalidOutputs>.validateSequenceOutputs(
+private fun Raise<InvalidOutputs>.validateSequenceOutputs(
     sequenceOutputs: List<String>,
     chainOutputs: List<String>
 ): Unit =
     ensure(sequenceOutputs.isNotEmpty() && sequenceOutputs.all { it in chainOutputs }) {
-        Chain.InvalidOutputs("The provided outputs: " +
+        InvalidOutputs("The provided outputs: " +
                 sequenceOutputs.joinToString(", ") { "{$it}" } +
                 " do not exist in chains' outputs: " +
                 chainOutputs.joinToString { "{$it}" }
         )
     }
 
-private fun Raise<Chain.InvalidInputs>.validateInputsOverlapping(
+private fun Raise<InvalidInputs>.validateInputsOverlapping(
     sequenceInputs: List<String>,
     chainOutputs: List<String>
 ): Unit =
     ensure(sequenceInputs.isNotEmpty() && sequenceInputs.all { it !in chainOutputs }) {
-        Chain.InvalidInputs("The provided inputs: " +
+        InvalidInputs("The provided inputs: " +
                 sequenceInputs.joinToString { "{$it}" } +
                 " overlap with chain's outputs: " +
                 chainOutputs.joinToString { "{$it}" }
