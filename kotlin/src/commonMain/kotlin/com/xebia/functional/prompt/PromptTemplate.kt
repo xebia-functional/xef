@@ -21,13 +21,11 @@ fun Raise<InvalidTemplate>.PromptTemplate(template: String, variables: List<Stri
 
 interface PromptTemplate<A> {
   val inputKeys: List<String>
-  val config: Config
 
   suspend fun format(variables: Map<String, String>): A
 
   fun <B> mapK(transform: (A) -> B): PromptTemplate<B> = object : PromptTemplate<B> {
     override val inputKeys: List<String> = this@PromptTemplate.inputKeys
-    override val config: Config = this@PromptTemplate.config
     override suspend fun format(variables: Map<String, String>): B =
       transform(this@PromptTemplate.format(variables))
   }
@@ -36,7 +34,6 @@ interface PromptTemplate<A> {
 
     operator fun invoke(config: Config): PromptTemplate<String> = object : PromptTemplate<String> {
       override val inputKeys: List<String> = config.inputVariables
-      override val config: Config = config
 
       override suspend fun format(variables: Map<String, String>): String {
         val mergedArgs = mergePartialAndUserVariables(variables, config.inputVariables)
