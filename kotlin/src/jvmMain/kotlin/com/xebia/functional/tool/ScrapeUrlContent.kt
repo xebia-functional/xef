@@ -2,13 +2,13 @@ package com.xebia.functional.tool
 
 import com.xebia.functional.loaders.ScrapeURLTextLoader
 import com.xebia.functional.textsplitters.BaseTextSplitter
-import com.xebia.functional.tools.Tool
+import com.xebia.functional.tools.Agent
 
 fun scrapeUrlContent(
     url: String,
     splitter: BaseTextSplitter
-): Tool =
-    Tool(
+): Agent =
+    Agent(
         name = "Scrape URL content",
         description = "Scrape the content of $url"
     ) {

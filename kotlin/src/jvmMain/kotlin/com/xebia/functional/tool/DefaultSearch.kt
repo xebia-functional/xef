@@ -1,9 +1,9 @@
 package com.xebia.functional.tool
 
 import com.xebia.functional.textsplitters.TokenTextSplitter
-import com.xebia.functional.tools.Tool
+import com.xebia.functional.tools.Agent
 
-suspend fun search(vararg prompt: String): Array<out Tool> =
+suspend fun search(vararg prompt: String): Array<out Agent> =
     prompt.map {
         bingSearch(
             search = it,
