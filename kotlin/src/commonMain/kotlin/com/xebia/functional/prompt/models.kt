@@ -16,6 +16,8 @@ enum class Type {
 sealed class Message {
   abstract val content: String
 
+  abstract fun format(): String
+
   fun type(): Type =
     when (this) {
       is HumanMessage -> Type.human
@@ -25,10 +27,25 @@ sealed class Message {
     }
 }
 
-data class HumanMessage(override val content: String) : Message()
-data class AIMessage(override val content: String) : Message()
-data class SystemMessage(override val content: String) : Message()
-data class ChatMessage(override val content: String, val role: String) : Message()
+data class HumanMessage(override val content: String) : Message() {
+  override fun format(): String =
+    "${type().name.capitalized()}: $content"
+}
+
+data class AIMessage(override val content: String) : Message() {
+  override fun format(): String =
+    "${type().name.uppercase()}: $content"
+}
+
+data class SystemMessage(override val content: String) : Message() {
+  override fun format(): String =
+    "${type().name.capitalized()}: $content"
+}
+
+data class ChatMessage(override val content: String, val role: String) : Message() {
+  override fun format(): String =
+    "$role: $content"
+}
 
 enum class TemplateFormat {
   FString
@@ -78,3 +95,6 @@ private fun placeholderValues(template: String): List<String> {
   val regex = Regex("""\{([^\{\}]+)\}""")
   return regex.findAll(template).toList().mapNotNull { it.groupValues.getOrNull(1) }
 }
+
+private fun String.capitalized(): String =
+  replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
