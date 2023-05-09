@@ -1,6 +1,8 @@
 package com.xebia.functional.prompt
 
 import arrow.core.raise.either
+import com.xebia.functional.AIError
+import com.xebia.functional.AIError.Chain.InvalidInputs
 import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.core.spec.style.StringSpec
@@ -36,7 +38,7 @@ class ChatPromptTemplateSpec : StringSpec({
 
         } shouldBeLeft InvalidInputs(
             "The provided inputs: {input_language}, {question} do not match " +
-                    "with prompt's inputs: {input_language}, {output_language}"
+              "with prompt's inputs: {input_language}, {output_language}"
         )
     }
 
