@@ -25,14 +25,7 @@ suspend fun ChatPromptTemplate(
     override suspend fun format(inputs: Map<String, String>): Either<InvalidInputs, String> =
         either {
             val messages: List<Message> = formatMessages(inputs).bind()
-            messages.joinToString(separator = "\n") { message ->
-                when (message) {
-                    is HumanMessage -> message.format()
-                    is AIMessage -> message.format()
-                    is SystemMessage -> message.format()
-                    is ChatMessage -> message.format()
-                }
-            }
+            messages.joinToString(separator = "\n") { it.format() }
         }
 
     override suspend fun formatMessages(inputs: Map<String, String>): Either<InvalidInputs, List<Message>> =
@@ -55,12 +48,3 @@ suspend fun ChatPromptTemplate(
             }
         }
 }
-
-private fun Message.format(): String =
-    "${type().capitalizedName()}: $content"
-
-private fun ChatMessage.format(): String =
-    "${this.role}: $content"
-
-private fun Type.capitalizedName() =
-    name.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
