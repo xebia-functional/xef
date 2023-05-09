@@ -1,6 +1,6 @@
 package com.xebia.functional.langchain4k.auto
 
-import com.xebia.functional.auto.ai
+import com.xebia.functional.auto.prompt
 import com.xebia.functional.auto.getOrElse
 import kotlinx.serialization.Serializable
 
@@ -8,10 +8,10 @@ import kotlinx.serialization.Serializable
 data class Poem(val title: String, val content: String)
 
 suspend fun main() =
-    ai {
-      val poem1: Poem = ai("A short poem about the beauty of nature.")
-      val poem2: Poem = ai("A short poem about the power of technology.")
-      val poem3: Poem = ai("A short poem about the wisdom of artificial intelligence.")
+    prompt {
+      val poem1: Poem = prompt("A short poem about the beauty of nature.")
+      val poem2: Poem = prompt("A short poem about the power of technology.")
+      val poem3: Poem = prompt("A short poem about the wisdom of artificial intelligence.")
 
       val combinedPoemContent = "${poem1.content}\n\n${poem2.content}\n\n${poem3.content}"
 
@@ -21,7 +21,7 @@ suspend fun main() =
           $combinedPoemContent
       """.trimIndent()
 
-      val newPoem: Poem = ai(newPoemPrompt)
+      val newPoem: Poem = prompt(newPoemPrompt)
 
       println("New Poem:\n\n${newPoem.content}")
     }.getOrElse { println(it) }

@@ -1,6 +1,6 @@
 package com.xebia.functional.langchain4k.auto
 
-import com.xebia.functional.auto.ai
+import com.xebia.functional.auto.prompt
 import com.xebia.functional.auto.getOrElse
 import kotlinx.serialization.Serializable
 
@@ -12,7 +12,7 @@ data class ChessBoard(val board: String)
 data class GameState(val ended: Boolean, val winner: String)
 
 suspend fun main() {
-    ai {
+    prompt {
       val moves = mutableListOf<ChessMove>()
       var gameEnded = false
       var winner = ""
@@ -25,7 +25,7 @@ suspend fun main() {
               |Make your next move:
           """.trimIndent()
 
-        val move: ChessMove = ai(prompt)
+        val move: ChessMove = prompt(prompt)
         moves.add(move)
 
         // Update boardState according to move.move
@@ -37,7 +37,7 @@ suspend fun main() {
               Add a brief description of the move and it's implications
           """.trimIndent()
 
-        val chessBoard: ChessBoard = ai(boardPrompt)
+        val chessBoard: ChessBoard = prompt(boardPrompt)
         println("Current board:\n${chessBoard.board}")
 
         val gameStatePrompt = """
@@ -45,7 +45,7 @@ suspend fun main() {
               has the game ended (win, draw, or stalemate)?
           """.trimIndent()
 
-        val gameState: GameState = ai(gameStatePrompt)
+        val gameState: GameState = prompt(gameStatePrompt)
 
         gameEnded = gameState.ended
         winner = gameState.winner

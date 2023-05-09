@@ -50,7 +50,7 @@ data class SerializationConfig<A>(
  */
 typealias AI<A> = suspend AIScope.() -> A
 
-inline fun <A> ai(noinline block: suspend AIScope.() -> A): AI<A> = block
+inline fun <A> prompt(noinline block: suspend AIScope.() -> A): AI<A> = block
 
 @OptIn(ExperimentalTime::class)
 suspend inline fun <reified A> AI<A>.getOrElse(crossinline orElse: suspend (AIError) -> A): A =
@@ -67,7 +67,7 @@ suspend inline fun <reified A> AI<A>.getOrElse(crossinline orElse: suspend (AIEr
   }
 
 suspend inline fun <reified A> AI<A>.toEither(): Either<AIError, A> =
-  ai { invoke().right() }.getOrElse { it.left() }
+  prompt { invoke().right() }.getOrElse { it.left() }
 
 // TODO: Allow traced transformation of Raise errors
 class AIException(message: String) : RuntimeException(message)
@@ -94,7 +94,7 @@ class AIScope(
     invoke(this@AIScope)
 
   @AIDSL
-  suspend fun <A> ai(
+  suspend fun <A> prompt(
     prompt: String,
     serializationConfig: SerializationConfig<A>,
     maxAttempts: Int = 5,
@@ -108,7 +108,7 @@ class AIScope(
       if (maxAttempts <= 0) raise(AIError.JsonParsing(result, maxAttempts, e))
       else {
         logger.logTruncated("System", "Error deserializing result, trying again... ${e.message}")
-        ai(prompt, serializationConfig, maxAttempts - 1).also { logger.debug { "Fixed JSON: $it" } }
+        prompt(prompt, serializationConfig, maxAttempts - 1).also { logger.debug { "Fixed JSON: $it" } }
       }
     }
   }
@@ -132,14 +132,14 @@ class AIScope(
   }
 
   @AIDSL
-  suspend inline fun <reified A> ai(prompt: String): A {
+  suspend inline fun <reified A> prompt(prompt: String): A {
     val serializer = serializer<A>()
     val serializationConfig: SerializationConfig<A> = SerializationConfig(
       jsonSchema = buildJsonSchema(serializer.descriptor, false),
       descriptor = serializer.descriptor,
       deserializationStrategy = serializer
     )
-    return ai(prompt, serializationConfig)
+    return prompt(prompt, serializationConfig)
   }
 
   private suspend fun Raise<AIError>.openAIChatCall(
