@@ -8,7 +8,6 @@ import arrow.core.raise.ensureNotNull
 data class InvalidInputs(val reason: String)
 
 interface ChatPromptTemplate {
-    val promptMessages: List<PromptTemplate<out Message>>
     val inputKeys: List<String>
 
     suspend fun format(inputs: Map<String, String>): Either<InvalidInputs, String>
@@ -19,7 +18,6 @@ interface ChatPromptTemplate {
 suspend fun ChatPromptTemplate(
     promptMessages: List<PromptTemplate<out Message>>
 ): ChatPromptTemplate = object : ChatPromptTemplate {
-    override val promptMessages: List<PromptTemplate<out Message>> = promptMessages
     override val inputKeys: List<String> = promptMessages.flatMap { it.inputKeys }
 
     override suspend fun format(inputs: Map<String, String>): Either<InvalidInputs, String> =
