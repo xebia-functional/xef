@@ -6,7 +6,7 @@ import com.apptasticsoftware.rssreader.Item
 import com.apptasticsoftware.rssreader.RssReader
 import com.xebia.functional.Document
 import com.xebia.functional.textsplitters.BaseTextSplitter
-import com.xebia.functional.tools.Tool
+import com.xebia.functional.tools.Agent
 import io.ktor.http.*
 import kotlinx.coroutines.Dispatchers
 import java.util.stream.Collectors
@@ -17,8 +17,8 @@ fun bingSearch(
   splitter: BaseTextSplitter,
   url: String = "https://www.bing.com/news/search?q=${search.encodeURLParameter()}&format=rss",
   maxLinks: Int = 10
-): Tool =
-  Tool(
+): Agent =
+  Agent(
     name = "Bing Search",
     description = "Searches Bing for $search",
   ) {
