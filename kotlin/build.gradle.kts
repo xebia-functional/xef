@@ -78,8 +78,7 @@ kotlin {
         implementation(libs.postgresql)
         api(libs.ktor.client.cio)
         implementation(libs.logback)
-        implementation(libs.jtokk.it)
-        implementation(libs.scrape.it)
+        implementation(libs.skrape)
         implementation(libs.rss.reader)
       }
     }

@@ -11,4 +11,5 @@ suspend fun search(vararg prompt: String): Array<out Agent> =
         search = it,
         TokenTextSplitter(ModelType.GPT_3_5_TURBO, chunkSize = 100, chunkOverlap = 50)
       )
-    }.toTypedArray()
+    }
+    .toTypedArray()

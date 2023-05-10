@@ -4,11 +4,7 @@ import com.xebia.functional.Document
 import com.xebia.functional.tokenizer.Encoding
 import com.xebia.functional.tokenizer.ModelType
 
-fun TokenTextSplitter(
-  modelType: ModelType,
-  chunkSize: Int,
-  chunkOverlap: Int
-): BaseTextSplitter =
+fun TokenTextSplitter(modelType: ModelType, chunkSize: Int, chunkOverlap: Int): BaseTextSplitter =
   TokenTextSplitterImpl(modelType.encodingType.encoding, chunkSize, chunkOverlap)
 
 private class TokenTextSplitterImpl(
