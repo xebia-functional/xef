@@ -1,8 +1,8 @@
 package com.xebia.functional.llm.openai
 
+import kotlin.jvm.JvmInline
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlin.jvm.JvmInline
 
 enum class EmbeddingModel(val modelName: String) {
   TextEmbeddingAda002("text-embedding-ada-002")
@@ -10,8 +10,7 @@ enum class EmbeddingModel(val modelName: String) {
 
 data class RequestConfig(val model: EmbeddingModel, val user: User) {
   companion object {
-    @JvmInline
-    value class User(val id: String)
+    @JvmInline value class User(val id: String)
   }
 }
 
@@ -86,18 +85,14 @@ data class Choice(
   val index: Int
 )
 
-
 enum class Role {
-  system, user, assistant
+  system,
+  user,
+  assistant
 }
 
 @Serializable
-data class Message(
-  val role: String,
-  val content: String,
-  val name: String? = Role.assistant.name
-)
-
+data class Message(val role: String, val content: String, val name: String? = Role.assistant.name)
 
 @Serializable
 data class EmbeddingRequest(val model: String, val input: List<String>, val user: String)
@@ -110,8 +105,7 @@ data class EmbeddingResult(
   val usage: Usage
 )
 
-@Serializable
-class Embedding(val `object`: String, val embedding: List<Float>, val index: Int)
+@Serializable class Embedding(val `object`: String, val embedding: List<Float>, val index: Int)
 
 @Serializable
 data class Usage(
@@ -120,12 +114,10 @@ data class Usage(
   @SerialName("total_tokens") val totalTokens: Long
 )
 
-data class LLMModel(
-  val name: String,
-  val kind : Kind
-) {
+data class LLMModel(val name: String, val kind: Kind) {
   enum class Kind {
-    Completion, Chat
+    Completion,
+    Chat
   }
   companion object {
     val GPT_4 = LLMModel("gpt-4", Kind.Chat)

@@ -24,5 +24,6 @@ class Agent(
   }
 }
 
-suspend fun Array<out Agent>.storeResults(vectorStore: VectorStore) =
-  forEach { it.storeResults(vectorStore) }
+suspend fun Array<out Agent>.storeResults(vectorStore: VectorStore) = forEach {
+  it.storeResults(vectorStore)
+}

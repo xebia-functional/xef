@@ -19,7 +19,7 @@ sealed interface AIError {
       override val reason: String
         get() = "OpenAI Environment not found: ${errors.all.joinToString("\n")}"
     }
-    data class HuggingFace(val errors: NonEmptyList<String>): Env {
+    data class HuggingFace(val errors: NonEmptyList<String>) : Env {
       override val reason: String
         get() = "HuggingFace Environment not found: ${errors.all.joinToString("\n")}"
     }
@@ -33,8 +33,8 @@ sealed interface AIError {
     data class InvalidOutputs(override val reason: String) : Chain
 
     interface Sequence : Chain {
-      data class InvalidOutputs(override val reason: String): Sequence
-      data class InvalidKeys(override val reason: String): Sequence
+      data class InvalidOutputs(override val reason: String) : Sequence
+      data class InvalidKeys(override val reason: String) : Sequence
     }
 
     data class InvalidTemplate(override val reason: String) : Chain

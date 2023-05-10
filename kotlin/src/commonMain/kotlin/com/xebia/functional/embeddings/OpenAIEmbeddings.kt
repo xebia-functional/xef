@@ -20,8 +20,7 @@ class OpenAIEmbeddings(
     texts: List<String>,
     chunkSize: Int?,
     requestConfig: RequestConfig
-  ): List<Embedding> =
-    chunkedEmbedDocuments(texts, chunkSize ?: config.chunkSize, requestConfig)
+  ): List<Embedding> = chunkedEmbedDocuments(texts, chunkSize ?: config.chunkSize, requestConfig)
 
   override suspend fun embedQuery(text: String, requestConfig: RequestConfig): List<Embedding> =
     if (text.isNotEmpty()) embedDocuments(listOf(text), null, requestConfig) else emptyList()
@@ -32,24 +31,33 @@ class OpenAIEmbeddings(
     requestConfig: RequestConfig
   ): List<Embedding> =
     if (texts.isEmpty()) emptyList()
-    else texts.chunked(chunkSize)
-      .parMap { createEmbeddingWithRetry(it, requestConfig) }
-      .flatten()
+    else texts.chunked(chunkSize).parMap { createEmbeddingWithRetry(it, requestConfig) }.flatten()
 
-  private suspend fun createEmbeddingWithRetry(texts: List<String>, requestConfig: RequestConfig): List<Embedding> =
-    kotlin.runCatching {
-      config.retryConfig.schedule()
-        .log { error, retriesSoFar ->
-          error.printStackTrace()
-          logger.warn { "Open AI call failed. So far we have retried $retriesSoFar times." }
+  private suspend fun createEmbeddingWithRetry(
+    texts: List<String>,
+    requestConfig: RequestConfig
+  ): List<Embedding> =
+    kotlin
+      .runCatching {
+        config.retryConfig
+          .schedule()
+          .log { error, retriesSoFar ->
+            error.printStackTrace()
+            logger.warn { "Open AI call failed. So far we have retried $retriesSoFar times." }
+          }
+          .retry {
+            oaiClient
+              .createEmbeddings(
+                EmbeddingRequest(requestConfig.model.modelName, texts, requestConfig.user.id)
+              )
+              .data
+              .map { Embedding(it.embedding) }
+          }
+      }
+      .getOrElse {
+        logger.warn {
+          "Open AI call failed. Giving up after ${config.retryConfig.maxRetries} retries"
         }
-        .retry {
-          oaiClient.createEmbeddings(EmbeddingRequest(requestConfig.model.modelName, texts, requestConfig.user.id))
-            .data.map { Embedding(it.embedding) }
-        }
-    }.getOrElse {
-      logger.warn { "Open AI call failed. Giving up after ${config.retryConfig.maxRetries} retries" }
-      throw it
-    }
+        throw it
+      }
 }
-

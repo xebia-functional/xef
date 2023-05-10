@@ -23,43 +23,27 @@ import kotlinx.serialization.descriptors.elementDescriptors
 import kotlinx.serialization.descriptors.elementNames
 import kotlinx.serialization.json.*
 
-/**
- * Represents the type of json type
- */
+/** Represents the type of json type */
 enum class JsonType(jsonType: String) {
-  /**
-   * Represents the json array type
-   */
+  /** Represents the json array type */
   ARRAY("array"),
 
-  /**
-   * Represents the json number type
-   */
+  /** Represents the json number type */
   NUMBER("number"),
 
-  /**
-   * Represents the string type
-   */
+  /** Represents the string type */
   STRING("string"),
 
-  /**
-   * Represents the boolean type
-   */
+  /** Represents the boolean type */
   BOOLEAN("boolean"),
 
-  /**
-   * Represents the object type, this is used for serializing normal classes
-   */
+  /** Represents the object type, this is used for serializing normal classes */
   OBJECT("object"),
 
-  /**
-   * Represents the object type, this is used for serializing sealed classes
-   */
+  /** Represents the object type, this is used for serializing sealed classes */
   OBJECT_SEALED("object"),
 
-  /**
-   * Represents the object type, this is used for serializing maps
-   */
+  /** Represents the object type, this is used for serializing maps */
   OBJECT_MAP("object");
 
   val json = JsonPrimitive(jsonType)
@@ -69,34 +53,32 @@ enum class JsonType(jsonType: String) {
 
 @OptIn(ExperimentalSerializationApi::class)
 fun SerialDescriptor.sample(): JsonElement {
-  val properties = elementNames.zip(elementDescriptors).associate { (name, descriptor) ->
-    name to when (descriptor.kind.jsonType) {
-      JsonType.ARRAY -> JsonArray(listOf(descriptor.sample()))
-      JsonType.NUMBER -> JsonUnquotedLiteral("<number>")
-      JsonType.STRING -> JsonUnquotedLiteral("<string>")
-      JsonType.BOOLEAN -> JsonUnquotedLiteral("<true | false>")
-      JsonType.OBJECT -> descriptor.sample()
-      JsonType.OBJECT_SEALED -> descriptor.sample()
-      JsonType.OBJECT_MAP -> descriptor.sample()
+  val properties =
+    elementNames.zip(elementDescriptors).associate { (name, descriptor) ->
+      name to
+        when (descriptor.kind.jsonType) {
+          JsonType.ARRAY -> JsonArray(listOf(descriptor.sample()))
+          JsonType.NUMBER -> JsonUnquotedLiteral("<number>")
+          JsonType.STRING -> JsonUnquotedLiteral("<string>")
+          JsonType.BOOLEAN -> JsonUnquotedLiteral("<true | false>")
+          JsonType.OBJECT -> descriptor.sample()
+          JsonType.OBJECT_SEALED -> descriptor.sample()
+          JsonType.OBJECT_MAP -> descriptor.sample()
+        }
     }
-  }
   return JsonObject(properties)
 }
 
 @Target()
 annotation class JsonSchema {
-  /**
-   * Description of this property
-   */
+  /** Description of this property */
   @SerialInfo
   @Repeatable
   @Retention(AnnotationRetention.BINARY)
   @Target(AnnotationTarget.PROPERTY, AnnotationTarget.FIELD)
   annotation class Description(val lines: Array<out String>)
 
-  /**
-   * Enum-like values for non-enum string
-   */
+  /** Enum-like values for non-enum string */
   @SerialInfo
   @Retention(AnnotationRetention.BINARY)
   @Target(AnnotationTarget.PROPERTY, AnnotationTarget.FIELD)
@@ -105,8 +87,8 @@ annotation class JsonSchema {
   /**
    * Minimum and Maximum values using whole numbers
    *
-   * Only works when [SerialKind] is any of
-   * [PrimitiveKind.BYTE], [PrimitiveKind.SHORT], [PrimitiveKind.INT], [PrimitiveKind.LONG]
+   * Only works when [SerialKind] is any of [PrimitiveKind.BYTE], [PrimitiveKind.SHORT],
+   * [PrimitiveKind.INT], [PrimitiveKind.LONG]
    */
   @SerialInfo
   @Retention(AnnotationRetention.BINARY)
@@ -143,9 +125,7 @@ annotation class JsonSchema {
   @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY, AnnotationTarget.FIELD)
   annotation class Definition(val id: String)
 
-  /**
-   * This property will not create definitions
-   */
+  /** This property will not create definitions */
   @SerialInfo
   @Retention(AnnotationRetention.BINARY)
   @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY, AnnotationTarget.FIELD)
@@ -153,10 +133,11 @@ annotation class JsonSchema {
 }
 
 /**
- * Adds a `$schema` property with the provided [url] that points to the Json Schema,
- * this can be a File location or a HTTP URL
+ * Adds a `$schema` property with the provided [url] that points to the Json Schema, this can be a
+ * File location or a HTTP URL
  *
- * This is so when you serialize your [value] it will use [url] as it's Json Schema for code completion.
+ * This is so when you serialize your [value] it will use [url] as it's Json Schema for code
+ * completion.
  */
 fun <T> Json.encodeWithSchema(serializer: SerializationStrategy<T>, value: T, url: String): String {
   val json = encodeToJsonElement(serializer, value) as JsonObject
@@ -176,12 +157,17 @@ fun Json.encodeToSchema(descriptor: SerialDescriptor, generateDefinitions: Boole
 
 /**
  * Stringifies the provided [serializer] with [buildJsonSchema], same as doing
+ *
  * ```kotlin
  * json.encodeToSchema(serializer.descriptor)
  * ```
+ *
  * @param generateDefinitions Should this generate definitions by default
  */
-fun Json.encodeToSchema(serializer: SerializationStrategy<*>, generateDefinitions: Boolean = true): String {
+fun Json.encodeToSchema(
+  serializer: SerializationStrategy<*>,
+  generateDefinitions: Boolean = true
+): String {
   return encodeToSchema(serializer.descriptor, generateDefinitions)
 }
 
@@ -200,12 +186,15 @@ fun buildJsonSchema(descriptor: SerialDescriptor, autoDefinitions: Boolean = fal
 }
 
 /**
- * Creates a Json Schema using the provided [serializer],
- * same as doing `jsonSchema(serializer.descriptor)`
+ * Creates a Json Schema using the provided [serializer], same as doing
+ * `jsonSchema(serializer.descriptor)`
  *
  * @param generateDefinitions Should this generate definitions by default
  */
-fun buildJsonSchema(serializer: SerializationStrategy<*>, generateDefinitions: Boolean = true): JsonObject {
+fun buildJsonSchema(
+  serializer: SerializationStrategy<*>,
+  generateDefinitions: Boolean = true
+): JsonObject {
   return buildJsonSchema(serializer.descriptor, generateDefinitions)
 }
 
@@ -215,16 +204,23 @@ internal inline val SerialDescriptor.jsonLiteral
 
 @PublishedApi
 internal val SerialKind.jsonType: JsonType
-  get() = when (this) {
-    StructureKind.LIST -> JsonType.ARRAY
-    StructureKind.MAP -> JsonType.OBJECT_MAP
-    PolymorphicKind.SEALED -> JsonType.OBJECT_SEALED
-    PrimitiveKind.BYTE, PrimitiveKind.SHORT, PrimitiveKind.INT, PrimitiveKind.LONG, PrimitiveKind.FLOAT, PrimitiveKind.DOUBLE -> JsonType.NUMBER
-
-    PrimitiveKind.STRING, PrimitiveKind.CHAR, SerialKind.ENUM -> JsonType.STRING
-    PrimitiveKind.BOOLEAN -> JsonType.BOOLEAN
-    else -> JsonType.OBJECT
-  }
+  get() =
+    when (this) {
+      StructureKind.LIST -> JsonType.ARRAY
+      StructureKind.MAP -> JsonType.OBJECT_MAP
+      PolymorphicKind.SEALED -> JsonType.OBJECT_SEALED
+      PrimitiveKind.BYTE,
+      PrimitiveKind.SHORT,
+      PrimitiveKind.INT,
+      PrimitiveKind.LONG,
+      PrimitiveKind.FLOAT,
+      PrimitiveKind.DOUBLE -> JsonType.NUMBER
+      PrimitiveKind.STRING,
+      PrimitiveKind.CHAR,
+      SerialKind.ENUM -> JsonType.STRING
+      PrimitiveKind.BOOLEAN -> JsonType.BOOLEAN
+      else -> JsonType.OBJECT
+    }
 
 internal inline fun <reified T> List<Annotation>.lastOfInstance(): T? {
   return filterIsInstance<T>().lastOrNull()
@@ -261,16 +257,16 @@ internal fun SerialDescriptor.jsonSchemaObjectMap(definitions: JsonSchemaDefinit
   return jsonSchemaElement(annotations, skipNullCheck = false) {
     val (key, value) = elementDescriptors.toList()
 
-    require(key.kind == PrimitiveKind.STRING) {
-      "cannot have non string keys in maps"
-    }
+    require(key.kind == PrimitiveKind.STRING) { "cannot have non string keys in maps" }
 
     it["additionalProperties"] = value.createJsonSchema(getElementAnnotations(1), definitions)
   }
 }
 
 @PublishedApi
-internal fun SerialDescriptor.jsonSchemaObjectSealed(definitions: JsonSchemaDefinitions): JsonObject {
+internal fun SerialDescriptor.jsonSchemaObjectSealed(
+  definitions: JsonSchemaDefinitions
+): JsonObject {
   val properties = mutableMapOf<String, JsonElement>()
   val required = mutableListOf<JsonPrimitive>()
   val anyOf = mutableListOf<JsonElement>()
@@ -285,26 +281,23 @@ internal fun SerialDescriptor.jsonSchemaObjectSealed(definitions: JsonSchemaDefi
   required += JsonPrimitive("type")
 
   if (isNullable) {
-    anyOf += buildJson { nullable ->
-      nullable["type"] = "null"
-    }
+    anyOf += buildJson { nullable -> nullable["type"] = "null" }
   }
 
   value.elementDescriptors.forEachIndexed { index, child ->
     val schema = child.createJsonSchema(value.getElementAnnotations(index), definitions)
-    val newSchema = schema.mapValues { (name, element) ->
-      if (element is JsonObject && name == "properties") {
-        val prependProps = mutableMapOf<String, JsonElement>()
+    val newSchema =
+      schema.mapValues { (name, element) ->
+        if (element is JsonObject && name == "properties") {
+          val prependProps = mutableMapOf<String, JsonElement>()
 
-        prependProps["type"] = buildJson {
-          it["const"] = child.serialName
+          prependProps["type"] = buildJson { it["const"] = child.serialName }
+
+          JsonObject(prependProps + element)
+        } else {
+          element
         }
-
-        JsonObject(prependProps + element)
-      } else {
-        element
       }
-    }
 
     anyOf += JsonObject(newSchema)
   }
@@ -326,7 +319,8 @@ internal fun SerialDescriptor.jsonSchemaObjectSealed(definitions: JsonSchemaDefi
 
 @PublishedApi
 internal fun SerialDescriptor.jsonSchemaArray(
-  annotations: List<Annotation> = listOf(), definitions: JsonSchemaDefinitions
+  annotations: List<Annotation> = listOf(),
+  definitions: JsonSchemaDefinitions
 ): JsonObject {
   return jsonSchemaElement(annotations) {
     val type = getElementDescriptor(0)
@@ -358,15 +352,22 @@ internal fun SerialDescriptor.jsonSchemaNumber(
   annotations: List<Annotation> = listOf()
 ): JsonObject {
   return jsonSchemaElement(annotations) {
-    val value = when (kind) {
-      PrimitiveKind.FLOAT, PrimitiveKind.DOUBLE -> annotations.lastOfInstance<JsonSchema.FloatRange>()
-        ?.let { it.min as Number to it.max as Number }
-
-      PrimitiveKind.BYTE, PrimitiveKind.SHORT, PrimitiveKind.INT, PrimitiveKind.LONG -> annotations.lastOfInstance<JsonSchema.IntRange>()
-        ?.let { it.min as Number to it.max as Number }
-
-      else -> error("$kind is not a Number")
-    }
+    val value =
+      when (kind) {
+        PrimitiveKind.FLOAT,
+        PrimitiveKind.DOUBLE ->
+          annotations.lastOfInstance<JsonSchema.FloatRange>()?.let {
+            it.min as Number to it.max as Number
+          }
+        PrimitiveKind.BYTE,
+        PrimitiveKind.SHORT,
+        PrimitiveKind.INT,
+        PrimitiveKind.LONG ->
+          annotations.lastOfInstance<JsonSchema.IntRange>()?.let {
+            it.min as Number to it.max as Number
+          }
+        else -> error("$kind is not a Number")
+      }
 
     value?.let { (min, max) ->
       it["minimum"] = min
@@ -384,7 +385,8 @@ internal fun SerialDescriptor.jsonSchemaBoolean(
 
 @PublishedApi
 internal fun SerialDescriptor.createJsonSchema(
-  annotations: List<Annotation>, definitions: JsonSchemaDefinitions
+  annotations: List<Annotation>,
+  definitions: JsonSchemaDefinitions
 ): JsonObject {
   val combinedAnnotations = annotations + this.annotations
   val key = JsonSchemaDefinitions.Key(this, combinedAnnotations)
@@ -408,12 +410,8 @@ internal fun JsonObjectBuilder.applyJsonSchemaDefaults(
   skipTypeCheck: Boolean = false
 ) {
   if (descriptor.isNullable && !skipNullCheck) {
-    this["if"] = buildJson {
-      it["type"] = descriptor.jsonLiteral
-    }
-    this["else"] = buildJson {
-      it["type"] = "null"
-    }
+    this["if"] = buildJson { it["type"] = descriptor.jsonLiteral }
+    this["else"] = buildJson { it["type"] = "null" }
   } else {
     if (!skipTypeCheck) {
       this["type"] = descriptor.jsonLiteral
@@ -425,9 +423,10 @@ internal fun JsonObjectBuilder.applyJsonSchemaDefaults(
   }
 
   if (annotations.isNotEmpty()) {
-    val description = annotations.filterIsInstance<JsonSchema.Description>().joinToString("\n") {
-      it.lines.joinToString("\n")
-    }
+    val description =
+      annotations.filterIsInstance<JsonSchema.Description>().joinToString("\n") {
+        it.lines.joinToString("\n")
+      }
 
     if (description.isNotEmpty()) {
       this["description"] = description
@@ -455,10 +454,10 @@ internal inline fun buildJson(builder: (JsonObjectBuilder) -> Unit): JsonObject 
   return JsonObject(JsonObjectBuilder().apply(builder).content)
 }
 
-internal class JsonObjectBuilder(
-  val content: MutableMap<String, JsonElement> = linkedMapOf()
-) : MutableMap<String, JsonElement> by content {
-  operator fun set(key: String, value: Iterable<String>) = set(key, JsonArray(value.map(::JsonPrimitive)))
+internal class JsonObjectBuilder(val content: MutableMap<String, JsonElement> = linkedMapOf()) :
+  MutableMap<String, JsonElement> by content {
+  operator fun set(key: String, value: Iterable<String>) =
+    set(key, JsonArray(value.map(::JsonPrimitive)))
   operator fun set(key: String, value: String?) = set(key, JsonPrimitive(value))
   operator fun set(key: String, value: Number?) = set(key, JsonPrimitive(value))
 }
@@ -471,14 +470,13 @@ internal class JsonSchemaDefinitions(private val isEnabled: Boolean = true) {
     val (descriptor, annotations) = key
 
     return annotations.lastOfInstance<JsonSchema.Definition>()?.id?.takeIf(String::isNotEmpty)
-      ?: (descriptor.hashCode().toLong() shl 32 xor annotations.hashCode().toLong()).toString(36)
+      ?: (descriptor.hashCode().toLong() shl 32 xor annotations.hashCode().toLong())
+        .toString(36)
         .replaceFirst("-", "x")
   }
 
   fun canGenerateDefinitions(key: Key): Boolean {
-    return key.annotations.any {
-      it !is JsonSchema.NoDefinition && it is JsonSchema.Definition
-    }
+    return key.annotations.any { it !is JsonSchema.NoDefinition && it is JsonSchema.Definition }
   }
 
   operator fun contains(key: Key): Boolean = getId(key) in definitions
@@ -490,7 +488,11 @@ internal class JsonSchemaDefinitions(private val isEnabled: Boolean = true) {
   operator fun get(key: Key): JsonObject {
     val id = getId(key)
 
-    return key.descriptor.jsonSchemaElement(key.annotations, skipNullCheck = true, skipTypeCheck = true) {
+    return key.descriptor.jsonSchemaElement(
+      key.annotations,
+      skipNullCheck = true,
+      skipTypeCheck = true
+    ) {
       it["\$ref"] = "#/definitions/$id"
     }
   }

@@ -9,7 +9,10 @@ import arrow.core.raise.zipOrAccumulate
 import kotlinx.serialization.Serializable
 
 enum class Type {
-  human, ai, system, chat
+  human,
+  ai,
+  system,
+  chat
 }
 
 @Serializable
@@ -28,23 +31,19 @@ sealed class Message {
 }
 
 data class HumanMessage(override val content: String) : Message() {
-  override fun format(): String =
-    "${type().name.capitalized()}: $content"
+  override fun format(): String = "${type().name.capitalized()}: $content"
 }
 
 data class AIMessage(override val content: String) : Message() {
-  override fun format(): String =
-    "${type().name.uppercase()}: $content"
+  override fun format(): String = "${type().name.uppercase()}: $content"
 }
 
 data class SystemMessage(override val content: String) : Message() {
-  override fun format(): String =
-    "${type().name.capitalized()}: $content"
+  override fun format(): String = "${type().name.capitalized()}: $content"
 }
 
 data class ChatMessage(override val content: String, val role: String) : Message() {
-  override fun format(): String =
-    "$role: $content"
+  override fun format(): String = "$role: $content"
 }
 
 enum class TemplateFormat {
@@ -56,7 +55,8 @@ data class InvalidTemplate(val reason: String)
 fun Raise<InvalidTemplate>.Config(template: String, inputVariables: List<String>): Config =
   Config.either(template, inputVariables).bind()
 
-class Config private constructor(
+class Config
+private constructor(
   val inputVariables: List<String>,
   val template: String,
   val templateFormat: TemplateFormat = TemplateFormat.FString
@@ -67,34 +67,48 @@ class Config private constructor(
     // This is because adding `Raise<InvalidTemplate>` results in 2 receivers.
     fun either(template: String, variables: List<String>): Either<InvalidTemplate, Config> =
       either<NonEmptyList<InvalidTemplate>, Config> {
-        val placeholders = placeholderValues(template)
+          val placeholders = placeholderValues(template)
 
-        zipOrAccumulate(
-          { validate(template, variables.toSet() - placeholders.toSet(), "unused") },
-          { validate(template, placeholders.toSet() - variables.toSet(), "missing") },
-          { validateDuplicated(template, placeholders) }
-        ) { _, _, _ -> Config(variables, template) }
-      }.mapLeft { InvalidTemplate(it.joinToString(transform = InvalidTemplate::reason)) }
+          zipOrAccumulate(
+            { validate(template, variables.toSet() - placeholders.toSet(), "unused") },
+            { validate(template, placeholders.toSet() - variables.toSet(), "missing") },
+            { validateDuplicated(template, placeholders) }
+          ) { _, _, _ ->
+            Config(variables, template)
+          }
+        }
+        .mapLeft { InvalidTemplate(it.joinToString(transform = InvalidTemplate::reason)) }
   }
 }
 
-private fun Raise<InvalidTemplate>.validate(template: String, diffSet: Set<String>, msg: String): Unit =
+private fun Raise<InvalidTemplate>.validate(
+  template: String,
+  diffSet: Set<String>,
+  msg: String
+): Unit =
   ensure(diffSet.isEmpty()) {
-    InvalidTemplate("Template '$template' has $msg arguments: ${diffSet.joinToString(", ") { "{$it}" }}")
+    InvalidTemplate(
+      "Template '$template' has $msg arguments: ${diffSet.joinToString(", ") { "{$it}" }}"
+    )
   }
 
-private fun Raise<InvalidTemplate>.validateDuplicated(template: String, placeholders: List<String>) {
+private fun Raise<InvalidTemplate>.validateDuplicated(
+  template: String,
+  placeholders: List<String>
+) {
   val args = placeholders.groupBy { it }.filter { it.value.size > 1 }.keys
   ensure(args.isEmpty()) {
-    InvalidTemplate("Template '$template' has duplicate arguments: ${args.joinToString(", ") { "{$it}" }}")
+    InvalidTemplate(
+      "Template '$template' has duplicate arguments: ${args.joinToString(", ") { "{$it}" }}"
+    )
   }
 }
 
 private fun placeholderValues(template: String): List<String> {
-  @Suppress("RegExpRedundantEscape")
-  val regex = Regex("""\{([^\{\}]+)\}""")
+  @Suppress("RegExpRedundantEscape") val regex = Regex("""\{([^\{\}]+)\}""")
   return regex.findAll(template).toList().mapNotNull { it.groupValues.getOrNull(1) }
 }
 
-private fun String.capitalized(): String =
-  replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+private fun String.capitalized(): String = replaceFirstChar {
+  if (it.isLowerCase()) it.titlecase() else it.toString()
+}
