@@ -3,6 +3,7 @@ package com.xebia.functional.chains
 import arrow.core.Either
 import com.xebia.functional.AIError
 import com.xebia.functional.Document
+import com.xebia.functional.llm.openai.LLMModel
 import com.xebia.functional.llm.openai.OpenAIClient
 import com.xebia.functional.prompt.PromptTemplate
 
@@ -14,6 +15,7 @@ interface CombineDocsChain : Chain {
 suspend fun CombineDocsChain(
     llm: OpenAIClient,
     promptTemplate: PromptTemplate<String>,
+    llmModel: LLMModel,
     documents: List<Document>,
     documentVariableName: String,
     outputVariable: String,
@@ -34,6 +36,7 @@ suspend fun CombineDocsChain(
         val llmChain = LLMChain(
             llm,
             promptTemplate,
+            llmModel,
             outputVariable = outputVariable,
             chainOutput = chainOutput
         )

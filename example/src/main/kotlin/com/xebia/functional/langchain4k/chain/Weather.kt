@@ -8,6 +8,7 @@ import com.xebia.functional.chains.VectorQAChain
 import com.xebia.functional.embeddings.OpenAIEmbeddings
 import com.xebia.functional.env.OpenAIConfig
 import com.xebia.functional.llm.openai.KtorOpenAIClient
+import com.xebia.functional.llm.openai.LLMModel
 import com.xebia.functional.llm.openai.OpenAIClient
 import com.xebia.functional.tool.search
 import com.xebia.functional.tools.storeResults
@@ -49,6 +50,7 @@ private suspend fun getQuestionAnswer(
             val outputVariable = "answer"
             val chain = VectorQAChain(
                 openAiClient,
+                LLMModel.GPT_3_5_TURBO,
                 vectorStore,
                 numOfDocs,
                 outputVariable

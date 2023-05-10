@@ -14,12 +14,7 @@ import com.xebia.functional.auto.serialization.sample
 import com.xebia.functional.chains.VectorQAChain
 import com.xebia.functional.embeddings.OpenAIEmbeddings
 import com.xebia.functional.env.OpenAIConfig
-import com.xebia.functional.llm.openai.ChatCompletionRequest
-import com.xebia.functional.llm.openai.ChatCompletionResponse
-import com.xebia.functional.llm.openai.KtorOpenAIClient
-import com.xebia.functional.llm.openai.Message
-import com.xebia.functional.llm.openai.OpenAIClient
-import com.xebia.functional.llm.openai.Role
+import com.xebia.functional.llm.openai.*
 import com.xebia.functional.logTruncated
 import com.xebia.functional.tools.Agent
 import com.xebia.functional.tools.storeResults
@@ -193,9 +188,10 @@ class AIScope(
     prompt: String,
     serializationConfig: SerializationConfig<A>,
     maxAttempts: Int = 5,
+    llmModel: LLMModel = LLMModel.GPT_3_5_TURBO,
   ): A {
     logger.logTruncated("AI", "Solving objective: $prompt")
-    val result = openAIChatCall(prompt, prompt, serializationConfig)
+    val result = openAIChatCall(llmModel, prompt, prompt, serializationConfig)
     logger.logTruncated("AI", "Response: $result")
     return catch({
       json.decodeFromString(serializationConfig.deserializationStrategy, result)
@@ -209,6 +205,7 @@ class AIScope(
   }
 
   private suspend fun Raise<AIError>.openAIChatCall(
+    llmModel: LLMModel,
     question: String,
     promptWithContext: String,
     serializationConfig: SerializationConfig<*>,
@@ -220,6 +217,7 @@ class AIScope(
     val outputVariable = "answer"
     val chain = VectorQAChain(
       openAIClient,
+      llmModel,
       vectorStore,
       numOfDocs,
       outputVariable

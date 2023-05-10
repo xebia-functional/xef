@@ -6,6 +6,7 @@ import arrow.core.raise.either
 import arrow.core.raise.recover
 import com.xebia.functional.AIError
 import com.xebia.functional.Document
+import com.xebia.functional.llm.openai.LLMModel
 import com.xebia.functional.llm.openai.OpenAIClient
 import com.xebia.functional.prompt.PromptTemplate
 import com.xebia.functional.vectorstores.VectorStore
@@ -18,6 +19,7 @@ interface VectorQAChain : Chain {
 @Suppress("LongParameterList")
 suspend fun VectorQAChain(
     llm: OpenAIClient,
+    llmModel: LLMModel,
     vectorStore: VectorStore,
     numOfDocs: Int,
     outputVariable: String,
@@ -42,6 +44,7 @@ suspend fun VectorQAChain(
             val chain = CombineDocsChain(
                 llm,
                 promptTemplate,
+                llmModel,
                 documents,
                 documentVariableName,
                 outputVariable,
