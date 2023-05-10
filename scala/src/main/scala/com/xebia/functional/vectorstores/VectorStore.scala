@@ -1,9 +1,9 @@
-package com.xebia.functional.vectorstores
+package com.xebia.functional.scala.vectorstores
 
-import com.xebia.functional.domain.Document
-import com.xebia.functional.embeddings.Embeddings
-import com.xebia.functional.embeddings.models.Embedding
-import com.xebia.functional.vectorstores.models.DocumentVectorId
+import com.xebia.functional.scala.domain.Document
+import com.xebia.functional.scala.embeddings.Embeddings
+import com.xebia.functional.scala.embeddings.models.Embedding
+import com.xebia.functional.scala.vectorstores.models.DocumentVectorId
 
 trait VectorStore[F[_]]:
   /**

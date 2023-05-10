@@ -1,11 +1,11 @@
-package com.xebia.functional.vectorstores.postgres
+package com.xebia.functional.scala.vectorstores.postgres
 
 import java.util.UUID
 
 import cats.syntax.all.*
 
-import com.xebia.functional.domain
-import com.xebia.functional.embeddings.models.Embedding
+import com.xebia.functional.scala.domain
+import com.xebia.functional.scala.embeddings.models.Embedding
 import doobie.ConnectionIO
 import doobie.implicits._
 import doobie.postgres.implicits._

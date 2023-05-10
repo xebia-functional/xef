@@ -1,6 +1,6 @@
-package com.xebia.functional.textsplitters
+package com.xebia.functional.scala.textsplitters
 
-import com.xebia.functional.domain.Document
+import com.xebia.functional.scala.domain.Document
 
 trait BaseTextSplitter[F[_]]:
   def splitDocuments(documents: List[Document]): F[List[Document]]

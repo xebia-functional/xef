@@ -1,9 +1,9 @@
-package com.xebia.functional.vectorstores.db
+package com.xebia.functional.scala.vectorstores.db
 
 import cats.effect.Async
 import cats.effect.kernel.Resource
 
-import com.xebia.functional.config.DBConfig
+import com.xebia.functional.scala.config.DBConfig
 import doobie.hikari.HikariTransactor
 import doobie.util.ExecutionContexts
 

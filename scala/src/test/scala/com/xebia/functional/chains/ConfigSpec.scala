@@ -1,10 +1,10 @@
-package com.xebia.functional.chains
+package com.xebia.functional.scala.chains
 
 import cats.effect.IO
 
-import com.xebia.functional.chains.models.Config
-import com.xebia.functional.chains.models.InvalidChainInputError
-import com.xebia.functional.chains.models.InvalidChainInputsError
+import com.xebia.functional.scala.chains.models.Config
+import com.xebia.functional.scala.chains.models.InvalidChainInputError
+import com.xebia.functional.scala.chains.models.InvalidChainInputsError
 import munit.CatsEffectSuite
 
 class ConfigSpec extends CatsEffectSuite:

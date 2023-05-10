@@ -1,4 +1,4 @@
-package com.xebia.functional.loaders
+package com.xebia.functional.scala.loaders
 
 import scala.io.Source
 
@@ -6,8 +6,8 @@ import cats.effect.Resource
 import cats.effect.Sync
 import cats.syntax.all.*
 
-import com.xebia.functional.domain.Document
-import com.xebia.functional.textsplitters.BaseTextSplitter
+import com.xebia.functional.scala.domain.Document
+import com.xebia.functional.scala.textsplitters.BaseTextSplitter
 
 class TextLoader[F[_]: Sync](filePath: String) extends BaseLoader[F]:
 

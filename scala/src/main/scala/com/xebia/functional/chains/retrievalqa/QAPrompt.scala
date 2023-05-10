@@ -1,8 +1,8 @@
-package com.xebia.functional.chains.retrievalqa
+package com.xebia.functional.scala.chains.retrievalqa
 
 import cats.effect.Sync
 
-import com.xebia.functional.prompt.PromptTemplate
+import com.xebia.functional.scala.prompt.PromptTemplate
 
 object QAPrompt {
 
