@@ -10,68 +10,71 @@ import com.xebia.functional.AIError.Chain.InvalidInputs
 
 interface Chain {
 
-    enum class ChainOutput { InputAndOutput, OnlyOutput }
+  enum class ChainOutput {
+    InputAndOutput,
+    OnlyOutput
+  }
 
-    data class Config(
-        val inputKeys: Set<String>,
-        val outputKeys: Set<String>,
-        val chainOutput: ChainOutput = ChainOutput.OnlyOutput
-    ) {
-        fun createInputs(
-            inputs: String
-        ): Either<InvalidInputs, Map<String, String>> =
-            either {
-                ensure(inputKeys.size == 1) {
-                    InvalidInputs("The expected inputs are more than one: " +
-                      inputKeys.joinToString(", ") { "{$it}" })
-                }
-                inputKeys.associateWith { inputs }
-            }
-
-        fun createInputs(
-            inputs: Map<String, String>
-        ): Either<InvalidInputs, Map<String, String>> =
-            either {
-                ensure((inputKeys subtract inputs.keys).isEmpty()) {
-                    InvalidInputs("The provided inputs: " +
-                            inputs.keys.joinToString(", ") { "{$it}" } +
-                            " do not match with chain's inputs: " +
-                            inputKeys.joinToString(", ") { "{$it}" })
-                }
-                inputs
-            }
+  data class Config(
+    val inputKeys: Set<String>,
+    val outputKeys: Set<String>,
+    val chainOutput: ChainOutput = ChainOutput.OnlyOutput
+  ) {
+    fun createInputs(inputs: String): Either<InvalidInputs, Map<String, String>> = either {
+      ensure(inputKeys.size == 1) {
+        InvalidInputs(
+          "The expected inputs are more than one: " + inputKeys.joinToString(", ") { "{$it}" }
+        )
+      }
+      inputKeys.associateWith { inputs }
     }
 
-    val config: Config
-
-    suspend fun call(inputs: Map<String, String>): Either<AIError.Chain, Map<String, String>>
-
-    suspend fun run(input: String): Either<AIError.Chain, Map<String, String>> =
-        either {
-            val preparedInputs = config.createInputs(input).bind()
-            val result = call(preparedInputs).bind()
-            prepareOutputs(preparedInputs, result)
+    fun createInputs(inputs: Map<String, String>): Either<InvalidInputs, Map<String, String>> =
+      either {
+        ensure((inputKeys subtract inputs.keys).isEmpty()) {
+          InvalidInputs(
+            "The provided inputs: " +
+              inputs.keys.joinToString(", ") { "{$it}" } +
+              " do not match with chain's inputs: " +
+              inputKeys.joinToString(", ") { "{$it}" }
+          )
         }
+        inputs
+      }
+  }
 
-    suspend fun run(inputs: Map<String, String>): Either<AIError.Chain, Map<String, String>> =
-        either {
-            val preparedInputs = config.createInputs(inputs).bind()
-            val result = call(preparedInputs).bind()
-            prepareOutputs(preparedInputs, result)
-        }
+  val config: Config
 
-    private fun prepareOutputs(
-        inputs: Map<String, String>, outputs: Map<String, String>
-    ): Map<String, String> =
-        when (config.chainOutput) {
-            ChainOutput.InputAndOutput -> inputs + outputs
-            ChainOutput.OnlyOutput -> outputs
-        }
+  suspend fun call(inputs: Map<String, String>): Either<AIError.Chain, Map<String, String>>
+
+  suspend fun run(input: String): Either<AIError.Chain, Map<String, String>> = either {
+    val preparedInputs = config.createInputs(input).bind()
+    val result = call(preparedInputs).bind()
+    prepareOutputs(preparedInputs, result)
+  }
+
+  suspend fun run(inputs: Map<String, String>): Either<AIError.Chain, Map<String, String>> =
+    either {
+      val preparedInputs = config.createInputs(inputs).bind()
+      val result = call(preparedInputs).bind()
+      prepareOutputs(preparedInputs, result)
+    }
+
+  private fun prepareOutputs(
+    inputs: Map<String, String>,
+    outputs: Map<String, String>
+  ): Map<String, String> =
+    when (config.chainOutput) {
+      ChainOutput.InputAndOutput -> inputs + outputs
+      ChainOutput.OnlyOutput -> outputs
+    }
 }
 
 fun Raise<InvalidInputs>.validateInput(inputs: Map<String, String>, inputKey: String): String =
-    ensureNotNull(inputs[inputKey]) {
-        InvalidInputs("The provided inputs: " +
-                inputs.keys.joinToString(", ") { "{$it}" } +
-                " do not match with chain's input: {$inputKey}")
-    }
+  ensureNotNull(inputs[inputKey]) {
+    InvalidInputs(
+      "The provided inputs: " +
+        inputs.keys.joinToString(", ") { "{$it}" } +
+        " do not match with chain's input: {$inputKey}"
+    )
+  }

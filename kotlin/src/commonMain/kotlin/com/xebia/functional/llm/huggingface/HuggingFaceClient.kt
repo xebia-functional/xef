@@ -25,10 +25,11 @@ private class KtorHuggingFaceClient(
 ) : HuggingFaceClient {
 
   override suspend fun generate(request: InferenceRequest, model: Model): List<Generation> {
-    val response = httpClient.post {
-      url { path("models", model.name) }
-      configure(config.token, request)
-    }
+    val response =
+      httpClient.post {
+        url { path("models", model.name) }
+        configure(config.token, request)
+      }
     return response.body()
   }
 }

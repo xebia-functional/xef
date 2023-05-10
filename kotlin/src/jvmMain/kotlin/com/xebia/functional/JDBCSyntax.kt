@@ -11,20 +11,19 @@ import java.sql.ResultSet
 import java.sql.Types
 import javax.sql.DataSource
 
-suspend fun <A> DataSource.connection(block: suspend JDBCSyntax.() -> A): A =
-  resourceScope {
-    val conn = autoCloseable { connection }
-    JDBCSyntax(conn, this).block()
-  }
+suspend fun <A> DataSource.connection(block: suspend JDBCSyntax.() -> A): A = resourceScope {
+  val conn = autoCloseable { connection }
+  JDBCSyntax(conn, this).block()
+}
 
-class JDBCSyntax(conn: Connection, resourceScope: ResourceScope) : ResourceScope by resourceScope, Connection by conn {
+class JDBCSyntax(conn: Connection, resourceScope: ResourceScope) :
+  ResourceScope by resourceScope, Connection by conn {
 
   suspend fun prepareStatement(
     sql: String,
     binders: (SqlPreparedStatement.() -> Unit)? = null
   ): PreparedStatement = autoCloseable {
-    prepareStatement(sql)
-      .apply { if (binders != null) SqlPreparedStatement(this).binders() }
+    prepareStatement(sql).apply { if (binders != null) SqlPreparedStatement(this).binders() }
   }
 
   suspend fun update(
@@ -42,8 +41,7 @@ class JDBCSyntax(conn: Connection, resourceScope: ResourceScope) : ResourceScope
   ): A? {
     val statement = prepareStatement(sql, binders)
     val rs = autoCloseable { statement.executeQuery() }
-    return if (rs.next()) nullable { mapper(NullableSqlCursor(rs, this)) }
-    else null
+    return if (rs.next()) nullable { mapper(NullableSqlCursor(rs, this)) } else null
   }
 
   suspend fun <A> queryAsList(
@@ -100,8 +98,10 @@ class JDBCSyntax(conn: Connection, resourceScope: ResourceScope) : ResourceScope
     fun int(): Int = long().toInt()
     fun string(): String = raise.ensureNotNull(resultSet.getString(index++))
     fun bytes(): ByteArray = raise.ensureNotNull(resultSet.getBytes(index++))
-    fun long(): Long = raise.ensureNotNull(resultSet.getLong(index++).takeUnless { resultSet.wasNull() })
-    fun double(): Double = raise.ensureNotNull(resultSet.getDouble(index++).takeUnless { resultSet.wasNull() })
+    fun long(): Long =
+      raise.ensureNotNull(resultSet.getLong(index++).takeUnless { resultSet.wasNull() })
+    fun double(): Double =
+      raise.ensureNotNull(resultSet.getDouble(index++).takeUnless { resultSet.wasNull() })
     fun nextRow(): Boolean = resultSet.next()
   }
 }

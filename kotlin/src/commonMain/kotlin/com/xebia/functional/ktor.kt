@@ -22,14 +22,12 @@ inline fun <reified A> HttpRequestBuilder.configure(token: String, request: A): 
 
 suspend fun ResourceScope.httpClient(engine: HttpClientEngine?, baseUrl: Url): HttpClient =
   install({
-    engine?.let {
-      HttpClient(engine) { configure(baseUrl) }
-    } ?: HttpClient { configure(baseUrl) }
-  }) { client, _ -> client.close() }
+    engine?.let { HttpClient(engine) { configure(baseUrl) } } ?: HttpClient { configure(baseUrl) }
+  }) { client, _ ->
+    client.close()
+  }
 
 private fun HttpClientConfig<*>.configure(baseUrl: Url): Unit {
   install(ContentNegotiation) { json() }
-  defaultRequest {
-    url(baseUrl.toString())
-  }
+  defaultRequest { url(baseUrl.toString()) }
 }

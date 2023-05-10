@@ -5,65 +5,73 @@ import arrow.core.raise.Raise
 import arrow.core.raise.either
 import arrow.core.raise.recover
 import com.xebia.functional.AIError
+import com.xebia.functional.AIError.Chain.InvalidTemplate
 import com.xebia.functional.Document
 import com.xebia.functional.llm.openai.LLMModel
 import com.xebia.functional.llm.openai.OpenAIClient
 import com.xebia.functional.prompt.PromptTemplate
 import com.xebia.functional.vectorstores.VectorStore
-import com.xebia.functional.AIError.Chain.InvalidTemplate
 
 interface VectorQAChain : Chain {
-    suspend fun getDocs(question: String): List<Document>
+  suspend fun getDocs(question: String): List<Document>
 }
 
 @Suppress("LongParameterList")
 suspend fun VectorQAChain(
-    llm: OpenAIClient,
-    llmModel: LLMModel,
-    vectorStore: VectorStore,
-    numOfDocs: Int,
-    outputVariable: String,
-    chainOutput: Chain.ChainOutput = Chain.ChainOutput.OnlyOutput
-): VectorQAChain = object : VectorQAChain {
+  llm: OpenAIClient,
+  llmModel: LLMModel,
+  vectorStore: VectorStore,
+  numOfDocs: Int,
+  outputVariable: String,
+  chainOutput: Chain.ChainOutput = Chain.ChainOutput.OnlyOutput
+): VectorQAChain =
+  object : VectorQAChain {
 
     private val documentVariableName: String = "context"
     private val inputVariable: String = "question"
 
-    override val config: Chain.Config = Chain.Config(setOf(inputVariable), setOf(outputVariable), chainOutput)
+    override val config: Chain.Config =
+      Chain.Config(setOf(inputVariable), setOf(outputVariable), chainOutput)
 
     override suspend fun getDocs(question: String): List<Document> =
-        vectorStore.similaritySearch(question, numOfDocs)
+      vectorStore.similaritySearch(question, numOfDocs)
 
-    override suspend fun call(inputs: Map<String, String>): Either<AIError.Chain, Map<String, String>> =
-        either {
-            val promptTemplate = promptTemplate()
+    override suspend fun call(
+      inputs: Map<String, String>
+    ): Either<AIError.Chain, Map<String, String>> = either {
+      val promptTemplate = promptTemplate()
 
-            val question = validateInput(inputs, inputVariable)
-            val documents = getDocs(question)
+      val question = validateInput(inputs, inputVariable)
+      val documents = getDocs(question)
 
-            val chain = CombineDocsChain(
-                llm,
-                promptTemplate,
-                llmModel,
-                documents,
-                documentVariableName,
-                outputVariable,
-                chainOutput
-            )
+      val chain =
+        CombineDocsChain(
+          llm,
+          promptTemplate,
+          llmModel,
+          documents,
+          documentVariableName,
+          outputVariable,
+          chainOutput
+        )
 
-            chain.run(inputs).bind()
-        }
+      chain.run(inputs).bind()
+    }
 
     private fun Raise<InvalidTemplate>.promptTemplate(): PromptTemplate<String> =
-        recover({
-            val template = """
+      recover({
+        val template =
+          """
                 |Use the following pieces of context to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer.
                 |
                 |{context}
                 |
                 |Question: {question}
-                |Helpful Answer:""".trimMargin()
+                |Helpful Answer:"""
+            .trimMargin()
 
-            PromptTemplate(template, listOf("context", "question"))
-        }) { raise(InvalidTemplate(it.reason)) }
-}
+        PromptTemplate(template, listOf("context", "question"))
+      }) {
+        raise(InvalidTemplate(it.reason))
+      }
+  }

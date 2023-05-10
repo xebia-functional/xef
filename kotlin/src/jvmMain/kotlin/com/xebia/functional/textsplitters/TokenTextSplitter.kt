@@ -6,51 +6,46 @@ import com.knuddels.jtokkit.api.EncodingRegistry
 import com.xebia.functional.Document
 
 private class TokenTextSplitterImpl(
-    private val tokenizer: Encoding,
-    private val chunkSize: Int,
-    private val chunkOverlap: Int
+  private val tokenizer: Encoding,
+  private val chunkSize: Int,
+  private val chunkOverlap: Int
 ) : BaseTextSplitter {
 
-    override suspend fun splitText(text: String): List<String> {
-        val inputIds = tokenizer.encode(text)
-        val stepSize = chunkSize - chunkOverlap
+  override suspend fun splitText(text: String): List<String> {
+    val inputIds = tokenizer.encode(text)
+    val stepSize = chunkSize - chunkOverlap
 
-        return inputIds.indices
-            .asSequence()
-            .filter { it % stepSize == 0 }
-            .map { startIdx -> inputIds.subList(startIdx, minOf(startIdx + chunkSize, inputIds.size)) }
-            .map { chunkIds -> tokenizer.decode(chunkIds) }
-            .toList()
+    return inputIds.indices
+      .asSequence()
+      .filter { it % stepSize == 0 }
+      .map { startIdx -> inputIds.subList(startIdx, minOf(startIdx + chunkSize, inputIds.size)) }
+      .map { chunkIds -> tokenizer.decode(chunkIds) }
+      .toList()
+  }
+
+  override suspend fun splitDocuments(documents: List<Document>): List<Document> =
+    documents.flatMap { document ->
+      splitText(document.content).map { content -> Document(content) }
     }
 
-    override suspend fun splitDocuments(documents: List<Document>): List<Document> =
-        documents.flatMap { document ->
-            splitText(document.content).map { content ->
-                Document(content)
-            }
-        }
-
-    override suspend fun splitTextInDocuments(text: String): List<Document> =
-        splitText(text).map { chunk ->
-            Document(chunk)
-        }
+  override suspend fun splitTextInDocuments(text: String): List<Document> =
+    splitText(text).map { chunk -> Document(chunk) }
 }
 
-val encodingRegistry: EncodingRegistry by lazy {
-    Encodings.newDefaultEncodingRegistry()
-}
+val encodingRegistry: EncodingRegistry by lazy { Encodings.newDefaultEncodingRegistry() }
 
 suspend fun TokenTextSplitter(
-    encodingName: String = "gpt2",
-    modelName: String? = null,
-    chunkSize: Int,
-    chunkOverlap: Int
+  encodingName: String = "gpt2",
+  modelName: String? = null,
+  chunkSize: Int,
+  chunkOverlap: Int
 ): BaseTextSplitter {
-    val tokenizer = if (modelName != null) {
-        encodingRegistry.getEncodingForModel(modelName).orElseThrow()
+  val tokenizer =
+    if (modelName != null) {
+      encodingRegistry.getEncodingForModel(modelName).orElseThrow()
     } else {
-        encodingRegistry.getEncoding(encodingName).orElseThrow()
+      encodingRegistry.getEncoding(encodingName).orElseThrow()
     }
 
-    return TokenTextSplitterImpl(tokenizer, chunkSize, chunkOverlap)
+  return TokenTextSplitterImpl(tokenizer, chunkSize, chunkOverlap)
 }

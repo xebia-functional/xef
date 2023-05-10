@@ -8,46 +8,46 @@ import it.skrape.fetcher.response
 import it.skrape.fetcher.skrape
 
 /** Creates a TextLoader based on a Path */
-suspend fun ScrapeURLTextLoader(
-    url: String
-): BaseLoader = object : BaseLoader {
+suspend fun ScrapeURLTextLoader(url: String): BaseLoader =
+  object : BaseLoader {
 
-    override suspend fun load(): List<Document> =
-        buildList {
-            skrape(BrowserFetcher) {
-                request {
-                    this.url = url
-                }
-                response {
-                    htmlDocument {
-                        val cleanedText = cleanUpText(wholeText)
-                        add(
-                            Document("""|
+    override suspend fun load(): List<Document> = buildList {
+      skrape(BrowserFetcher) {
+        request { this.url = url }
+        response {
+          htmlDocument {
+            val cleanedText = cleanUpText(wholeText)
+            add(
+              Document(
+                """|
                             |Title: $titleText
                             |Info: $cleanedText
-                            """.trimIndent()
-                            )
-                        )
-
-                    }
-                }
-            }
+                            """
+                  .trimIndent()
+              )
+            )
+          }
         }
+      }
+    }
 
     override suspend fun loadAndSplit(textSplitter: BaseTextSplitter): List<Document> =
-        textSplitter.splitDocuments(documents = load())
+      textSplitter.splitDocuments(documents = load())
 
-    private tailrec fun cleanUpTextHelper(lines: List<String>, result: List<String> = listOf()): List<String> =
-        if (lines.isEmpty()) result
-        else {
-            val trimmedLine = lines.first().trim()
-            val newResult = if (trimmedLine.isNotEmpty()) result + trimmedLine else result
-            cleanUpTextHelper(lines.drop(1), newResult)
-        }
+    private tailrec fun cleanUpTextHelper(
+      lines: List<String>,
+      result: List<String> = listOf()
+    ): List<String> =
+      if (lines.isEmpty()) result
+      else {
+        val trimmedLine = lines.first().trim()
+        val newResult = if (trimmedLine.isNotEmpty()) result + trimmedLine else result
+        cleanUpTextHelper(lines.drop(1), newResult)
+      }
 
     private fun cleanUpText(text: String): String {
-        val lines = text.split("\n")
-        val cleanedLines = cleanUpTextHelper(lines)
-        return cleanedLines.joinToString("\n")
+      val lines = text.split("\n")
+      val cleanedLines = cleanUpTextHelper(lines)
+      return cleanedLines.joinToString("\n")
     }
-}
+  }

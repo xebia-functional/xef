@@ -29,37 +29,43 @@ private class KtorOpenAIClient(
 ) : OpenAIClient {
 
   override suspend fun createCompletion(request: CompletionRequest): List<CompletionChoice> {
-    val response = config.retryConfig.schedule().retry {
-      httpClient.post {
-        url { path("completions") }
-        configure(config.token, request)
+    val response =
+      config.retryConfig.schedule().retry {
+        httpClient.post {
+          url { path("completions") }
+          configure(config.token, request)
+        }
       }
-    }
     val body: CompletionResult = response.body()
     return body.choices
   }
 
-  override suspend fun createChatCompletion(request: ChatCompletionRequest): ChatCompletionResponse {
-    val response = config.retryConfig.schedule()
-      .log { error, attempts ->
-        println("Retrying chat completion due to $error after $attempts attempts")
-      }
-      .retry {
-      httpClient.post {
-        url { path("chat/completions") }
-        configure(config.token, request)
-      }
-    }
+  override suspend fun createChatCompletion(
+    request: ChatCompletionRequest
+  ): ChatCompletionResponse {
+    val response =
+      config.retryConfig
+        .schedule()
+        .log { error, attempts ->
+          println("Retrying chat completion due to $error after $attempts attempts")
+        }
+        .retry {
+          httpClient.post {
+            url { path("chat/completions") }
+            configure(config.token, request)
+          }
+        }
     return response.body()
   }
 
   override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult {
-    val response: HttpResponse = config.retryConfig.schedule().retry {
-      httpClient.post {
-        url { path("embeddings") }
-        configure(config.token, request)
+    val response: HttpResponse =
+      config.retryConfig.schedule().retry {
+        httpClient.post {
+          url { path("embeddings") }
+          configure(config.token, request)
+        }
       }
-    }
     return response.body()
   }
 }

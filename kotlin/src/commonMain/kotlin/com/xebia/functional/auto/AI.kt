@@ -23,16 +23,15 @@ import com.xebia.functional.vectorstores.VectorStore
 import io.github.oshai.KLogger
 import io.github.oshai.KotlinLogging
 import kotlin.jvm.JvmName
-import kotlinx.serialization.serializer
 import kotlin.time.ExperimentalTime
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.serializer
 
-@DslMarker
-annotation class AiDsl
+@DslMarker annotation class AiDsl
 
 data class SerializationConfig<A>(
   val jsonSchema: JsonObject,
@@ -41,10 +40,12 @@ data class SerializationConfig<A>(
 )
 
 /**
- * An [AI] value represents an action relying on artificial intelligence that can be run to produce an [A].
- * This value is _lazy_ and can be combined with other `AI` values using [AIScope.invoke], and thus forms a monadic DSL.
+ * An [AI] value represents an action relying on artificial intelligence that can be run to produce
+ * an [A]. This value is _lazy_ and can be combined with other `AI` values using [AIScope.invoke],
+ * and thus forms a monadic DSL.
  *
- * All [AI] actions that are composed together using [AIScope.invoke] share the same [VectorStore], [OpenAIEmbeddings] and [OpenAIClient] instances.
+ * All [AI] actions that are composed together using [AIScope.invoke] share the same [VectorStore],
+ * [OpenAIEmbeddings] and [OpenAIClient] instances.
  */
 typealias AI<A> = suspend AIScope.() -> A
 
@@ -52,8 +53,8 @@ typealias AI<A> = suspend AIScope.() -> A
 inline fun <A> ai(noinline block: suspend AIScope.() -> A): AI<A> = block
 
 /**
- * Run the [AI] value to produce an [A],
- * this method initialises all the dependencies required to run the [AI] value and once it finishes it closes all the resources.
+ * Run the [AI] value to produce an [A], this method initialises all the dependencies required to
+ * run the [AI] value and once it finishes it closes all the resources.
  *
  * This operator is **terminal** meaning it runs and completes the _chain_ of `AI` actions.
  */
@@ -69,13 +70,16 @@ suspend inline fun <reified A> AI<A>.getOrElse(crossinline orElse: suspend (AIEr
       val scope = AIScope(openAiClient, vectorStore, emptyArray(), logger, this, this@recover)
       invoke(scope)
     }
-  }) { orElse(it) }
+  }) {
+    orElse(it)
+  }
 
 /**
- * Run the [AI] value to produce _either_ an [AIError], or [A].
- * this method initialises all the dependencies required to run the [AI] value and once it finishes it closes all the resources.
+ * Run the [AI] value to produce _either_ an [AIError], or [A]. this method initialises all the
+ * dependencies required to run the [AI] value and once it finishes it closes all the resources.
  *
  * This operator is **terminal** meaning it runs and completes the _chain_ of `AI` actions.
+ *
  * @see getOrElse for an operator that allow directly handling the [AIError] case.
  */
 suspend inline fun <reified A> AI<A>.toEither(): Either<AIError, A> =
@@ -85,24 +89,23 @@ suspend inline fun <reified A> AI<A>.toEither(): Either<AIError, A> =
 class AIException(message: String) : RuntimeException(message)
 
 /**
- * Run the [AI] value to produce [A].
- * this method initialises all the dependencies required to run the [AI] value and once it finishes it closes all the resources.
+ * Run the [AI] value to produce [A]. this method initialises all the dependencies required to run
+ * the [AI] value and once it finishes it closes all the resources.
  *
  * This operator is **terminal** meaning it runs and completes the _chain_ of `AI` actions.
  *
- * @see getOrElse for an operator that allow directly handling the [AIError] case instead of throwing.
  * @throws AIException in case something went wrong.
+ * @see getOrElse for an operator that allow directly handling the [AIError] case instead of
+ *   throwing.
  */
-suspend inline fun <reified A> AI<A>.getOrThrow(): A =
-  getOrElse { throw AIException(it.reason) }
+suspend inline fun <reified A> AI<A>.getOrThrow(): A = getOrElse { throw AIException(it.reason) }
 
 /**
- * The [AIScope] is the context in which [AI] values are run.
- * It encapsulates all the dependencies required to run [AI] values,
- * and provides convenient syntax for writing [AI] based programs.
+ * The [AIScope] is the context in which [AI] values are run. It encapsulates all the dependencies
+ * required to run [AI] values, and provides convenient syntax for writing [AI] based programs.
  *
- * It exposes the [ResourceScope] so you can easily add your own resources with the scope of the [AI] program,
- * and [Raise] of [AIError] in case you want to compose any [Raise] based actions.
+ * It exposes the [ResourceScope] so you can easily add your own resources with the scope of the
+ * [AI] program, and [Raise] of [AIError] in case you want to compose any [Raise] based actions.
  */
 class AIScope(
   private val openAIClient: OpenAIClient,
@@ -150,10 +153,7 @@ class AIScope(
    * }
    * ```
    */
-  @AiDsl
-  @JvmName("invokeAI")
-  suspend operator fun <A> AI<A>.invoke(): A =
-    invoke(this@AIScope)
+  @AiDsl @JvmName("invokeAI") suspend operator fun <A> AI<A>.invoke(): A = invoke(this@AIScope)
 
   /** Creates a child scope of this [AIScope] with the specified [agent]. */
   @AiDsl
@@ -166,20 +166,23 @@ class AIScope(
     scope(AIScope(openAIClient, vectorStore, agents, logger, this, this))
 
   /**
-   * Run a [prompt] describes the task you want to solve within the context of [AIScope], and any [agent] it contains.
-   * Returns a value of [A] where [A] **has to be** annotated with [kotlinx.serialization.Serializable].
+   * Run a [prompt] describes the task you want to solve within the context of [AIScope], and any
+   * [agent] it contains. Returns a value of [A] where [A] **has to be** annotated with
+   * [kotlinx.serialization.Serializable].
    *
-   * @throws SerializationException if serializer cannot be created (provided [A] or its type argument is not serializable).
+   * @throws SerializationException if serializer cannot be created (provided [A] or its type
+   *   argument is not serializable).
    * @throws IllegalArgumentException if any of [A]'s type arguments contains star projection
    */
   @AiDsl
   suspend inline fun <reified A> prompt(prompt: String): A {
     val serializer = serializer<A>()
-    val serializationConfig: SerializationConfig<A> = SerializationConfig(
-      jsonSchema = buildJsonSchema(serializer.descriptor, false),
-      descriptor = serializer.descriptor,
-      deserializationStrategy = serializer
-    )
+    val serializationConfig: SerializationConfig<A> =
+      SerializationConfig(
+        jsonSchema = buildJsonSchema(serializer.descriptor, false),
+        descriptor = serializer.descriptor,
+        deserializationStrategy = serializer
+      )
     return prompt(prompt, serializationConfig)
   }
 
@@ -193,13 +196,14 @@ class AIScope(
     logger.logTruncated("AI", "Solving objective: $prompt")
     val result = openAIChatCall(llmModel, prompt, prompt, serializationConfig)
     logger.logTruncated("AI", "Response: $result")
-    return catch({
-      json.decodeFromString(serializationConfig.deserializationStrategy, result)
-    }) { e: IllegalArgumentException ->
+    return catch({ json.decodeFromString(serializationConfig.deserializationStrategy, result) }) {
+      e: IllegalArgumentException ->
       if (maxAttempts <= 0) raise(AIError.JsonParsing(result, maxAttempts, e))
       else {
         logger.logTruncated("System", "Error deserializing result, trying again... ${e.message}")
-        prompt(prompt, serializationConfig, maxAttempts - 1).also { logger.debug { "Fixed JSON: $it" } }
+        prompt(prompt, serializationConfig, maxAttempts - 1).also {
+          logger.debug { "Fixed JSON: $it" }
+        }
       }
     }
   }
@@ -210,24 +214,20 @@ class AIScope(
     promptWithContext: String,
     serializationConfig: SerializationConfig<*>,
   ): String {
-    //run the agents so they store context in the database
+    // run the agents so they store context in the database
     agent.storeResults(vectorStore)
-    //run the vectorQAChain to get the answer
+    // run the vectorQAChain to get the answer
     val numOfDocs = 10
     val outputVariable = "answer"
-    val chain = VectorQAChain(
-      openAIClient,
-      llmModel,
-      vectorStore,
-      numOfDocs,
-      outputVariable
-    )
-    val contextQuestion = """|
+    val chain = VectorQAChain(openAIClient, llmModel, vectorStore, numOfDocs, outputVariable)
+    val contextQuestion =
+      """|
             |Provide a solution as answer to the question or objective below:
             |```
             |$question
             |```
-        """.trimMargin()
+        """
+        .trimMargin()
     val chainResults: Map<String, String> = chain.run(contextQuestion).bind()
     logger.debug { "Chain results: $chainResults" }
     val promptWithMemory =
@@ -241,9 +241,11 @@ class AIScope(
                 |${chainResults.entries.joinToString("\n") { (k, v) -> "$k: $v" }}
                 |```
                 |$promptWithContext
-                """.trimMargin()
+                """
+          .trimMargin()
       else promptWithContext
-    val augmentedPrompt = """
+    val augmentedPrompt =
+      """
                 |$promptWithMemory
                 |
                 |Response Instructions: Use the following JSON schema to produce the result exclusively in valid JSON format
@@ -252,7 +254,8 @@ class AIScope(
                 |Response Example:
                 |${serializationConfig.descriptor.sample()}
                 |Response:
-            """.trimMargin()
+            """
+        .trimMargin()
     val res = chatCompletionResponse(augmentedPrompt, "gpt-3.5-turbo", "AI_Value_Generator")
     val msg = res.choices.firstOrNull()?.message?.content
     requireNotNull(msg) { "No message found in result: $res" }
@@ -261,11 +264,16 @@ class AIScope(
   }
 
   private suspend fun chatCompletionResponse(
-    prompt: String, model: String, user: String
+    prompt: String,
+    model: String,
+    user: String
   ): ChatCompletionResponse {
-    val completionRequest = ChatCompletionRequest(
-      model = model, messages = listOf(Message(Role.system.name, prompt, user)), user = user
-    )
+    val completionRequest =
+      ChatCompletionRequest(
+        model = model,
+        messages = listOf(Message(Role.system.name, prompt, user)),
+        user = user
+      )
     return openAIClient.createChatCompletion(completionRequest)
   }
 }

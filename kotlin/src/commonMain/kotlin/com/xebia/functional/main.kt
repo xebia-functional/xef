@@ -11,18 +11,18 @@ import com.xebia.functional.llm.openai.CompletionRequest
 import com.xebia.functional.llm.openai.EmbeddingRequest
 import com.xebia.functional.llm.openai.KtorOpenAIClient
 import com.xebia.functional.llm.openai.OpenAIClient
-import io.ktor.client.engine.HttpClientEngine
 
 suspend fun main(): Unit = resourceScope {
   either {
-    val env = Env()
-    val openAPI = KtorOpenAIClient(env.openAI)
-    val huggingFace = KtorHuggingFaceClient(env.huggingFace)
+      val env = Env()
+      val openAPI = KtorOpenAIClient(env.openAI)
+      val huggingFace = KtorHuggingFaceClient(env.huggingFace)
 
-    println(openAIExample(openAPI))
-    println(hfExample(huggingFace))
-    println(openAIEmbeddingsExample(openAPI))
-  }.onLeft { println(it) }
+      println(openAIExample(openAPI))
+      println(hfExample(huggingFace))
+      println(openAIEmbeddingsExample(openAPI))
+    }
+    .onLeft { println(it) }
 }
 
 suspend fun openAIEmbeddingsExample(client: OpenAIClient) =
@@ -46,4 +46,7 @@ suspend fun openAIExample(client: OpenAIClient) =
   )
 
 suspend fun hfExample(client: HuggingFaceClient) =
-  client.generate(InferenceRequest("Write a tagline for an ice cream shop."), Model("google/flan-t5-xl"))
+  client.generate(
+    InferenceRequest("Write a tagline for an ice cream shop."),
+    Model("google/flan-t5-xl")
+  )
