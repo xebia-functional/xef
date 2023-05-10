@@ -18,7 +18,7 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 rootProject.name = "langchain4k"
 include("langchain4k-filesystem")
 include("example")
-
+include("tokenizer")
 
 include("langchain4k-scala")
 project(":langchain4k-scala").projectDir = file("scala")
