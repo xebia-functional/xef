@@ -56,6 +56,7 @@ kotlin {
       dependencies {
         api(libs.bundles.arrow)
         api(libs.bundles.ktor.client)
+        implementation(libs.arrow.fx.stm)
         implementation(libs.kotlinx.serialization.json)
         implementation(libs.uuid)
         implementation(libs.klogging)
