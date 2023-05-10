@@ -1,4 +1,4 @@
-package com.xebia.functional.chains
+package com.xebia.functional.scala.chains
 
 import cats.MonadThrow
 import cats.data.NonEmptySeq
@@ -6,7 +6,7 @@ import cats.data.NonEmptySet
 import cats.effect.kernel.Resource
 import cats.implicits.*
 
-import com.xebia.functional.chains.models.*
+import com.xebia.functional.scala.chains.models.*
 import eu.timepit.refined.types.string.NonEmptyString
 
 class SequentialChain[F[_]: MonadThrow] private (

@@ -1,9 +1,9 @@
-package com.xebia.functional.chains
+package com.xebia.functional.scala.chains
 
 import cats.effect.IO
 import cats.effect.kernel.Ref
 
-import com.xebia.functional.domain.Document
+import com.xebia.functional.scala.domain.Document
 
 object TestData {
 

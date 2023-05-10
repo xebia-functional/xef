@@ -1,4 +1,4 @@
-package com.xebia.functional.vectorstores.postgres
+package com.xebia.functional.scala.vectorstores.postgres
 
 import scala.util.control.NoStackTrace
 

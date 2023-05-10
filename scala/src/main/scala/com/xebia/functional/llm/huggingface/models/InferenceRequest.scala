@@ -1,4 +1,4 @@
-package com.xebia.functional.llm.huggingface.models
+package com.xebia.functional.scala.llm.huggingface.models
 
 import io.circe.Encoder
 

@@ -1,4 +1,4 @@
-package com.xebia.functional.config
+package com.xebia.functional.scala.config
 
 import cats.syntax.all._
 

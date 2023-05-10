@@ -1,4 +1,4 @@
-package com.xebia.functional.searchsimilardocs
+package com.xebia.functional.scala.searchsimilardocs
 
 import java.io.File
 
@@ -9,20 +9,20 @@ import cats.effect.IOApp
 import cats.effect.Resource
 import cats.syntax.all.*
 
-import com.xebia.functional.config.Config
-import com.xebia.functional.config.DBConfig
-import com.xebia.functional.config.OpenAIConfig
-import com.xebia.functional.config.OpenAIConfigLLM
-import com.xebia.functional.embeddings.openai.OpenAIEmbeddings
-import com.xebia.functional.embeddings.openai.models.EmbeddingModel
-import com.xebia.functional.embeddings.openai.models.RequestConfig
-import com.xebia.functional.embeddings.openai.models.RequestConfig.User
-import com.xebia.functional.llm.openai.OpenAIClient
-import com.xebia.functional.loaders.LoaderError
-import com.xebia.functional.loaders.TextLoader
-import com.xebia.functional.vectorstores.db.DoobieTransactor
-import com.xebia.functional.vectorstores.postgres.PGDistanceStrategy
-import com.xebia.functional.vectorstores.postgres.PGVectorStore
+import com.xebia.functional.scala.config.Config
+import com.xebia.functional.scala.config.DBConfig
+import com.xebia.functional.scala.config.OpenAIConfig
+import com.xebia.functional.scala.config.OpenAIConfigLLM
+import com.xebia.functional.scala.embeddings.openai.OpenAIEmbeddings
+import com.xebia.functional.scala.embeddings.openai.models.EmbeddingModel
+import com.xebia.functional.scala.embeddings.openai.models.RequestConfig
+import com.xebia.functional.scala.embeddings.openai.models.RequestConfig.User
+import com.xebia.functional.scala.llm.openai.OpenAIClient
+import com.xebia.functional.scala.loaders.LoaderError
+import com.xebia.functional.scala.loaders.TextLoader
+import com.xebia.functional.scala.vectorstores.db.DoobieTransactor
+import com.xebia.functional.scala.vectorstores.postgres.PGDistanceStrategy
+import com.xebia.functional.scala.vectorstores.postgres.PGVectorStore
 import org.http4s.ember.client.EmberClientBuilder
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 

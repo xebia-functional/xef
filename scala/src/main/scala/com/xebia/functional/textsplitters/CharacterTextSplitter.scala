@@ -1,10 +1,10 @@
-package com.xebia.functional.textsplitters
+package com.xebia.functional.scala.textsplitters
 
 import cats.Applicative
 import cats.ApplicativeThrow
 import cats.syntax.all.*
 
-import com.xebia.functional.domain.Document
+import com.xebia.functional.scala.domain.Document
 
 class CharacterTextSplitter[F[_]: ApplicativeThrow](separator: String) extends BaseTextSplitter[F]:
   def splitText(text: String): F[List[String]] =

@@ -1,11 +1,11 @@
-package com.xebia.functional.llm.huggingface
+package com.xebia.functional.scala.llm.huggingface
 
 import cats.effect.Concurrent
 import cats.syntax.all.*
 
-import com.xebia.functional.config.HuggingFaceConfig
-import com.xebia.functional.llm.huggingface.models.*
-import com.xebia.functional.llm.models.*
+import com.xebia.functional.scala.config.HuggingFaceConfig
+import com.xebia.functional.scala.llm.huggingface.models.*
+import com.xebia.functional.scala.llm.models.*
 import io.circe.Decoder
 import org.http4s.EntityDecoder
 import org.http4s.Header

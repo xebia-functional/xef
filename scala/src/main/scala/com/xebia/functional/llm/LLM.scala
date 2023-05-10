@@ -1,13 +1,13 @@
-package com.xebia.functional.llm
+package com.xebia.functional.scala.llm
 
 import cats.effect.Sync
 import cats.implicits.*
 
-import com.xebia.functional.config.*
-import com.xebia.functional.llm.*
-import com.xebia.functional.llm.huggingface.*
-import com.xebia.functional.llm.models.*
-import com.xebia.functional.llm.openai.*
+import com.xebia.functional.scala.config.*
+import com.xebia.functional.scala.llm.*
+import com.xebia.functional.scala.llm.huggingface.*
+import com.xebia.functional.scala.llm.models.*
+import com.xebia.functional.scala.llm.openai.*
 
 trait LLM[F[_]]:
   def generateFromPrompt(prp: String): F[List[LLMResult]]

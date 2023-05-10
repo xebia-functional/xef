@@ -1,4 +1,4 @@
-package com.xebia.functional.prompt
+package com.xebia.functional.scala.prompt
 
 import java.nio.file.Paths
 import java.time.LocalDate
@@ -7,7 +7,7 @@ import java.time.temporal.ChronoUnit.YEARS
 import cats.effect.*
 import cats.syntax.all._
 
-import com.xebia.functional.prompt.models.*
+import com.xebia.functional.scala.prompt.models.*
 import munit.CatsEffectSuite
 
 class PromptTemplateSpec extends CatsEffectSuite:

@@ -1,4 +1,4 @@
-package com.xebia.functional.embeddings.openai.models
+package com.xebia.functional.scala.embeddings.openai.models
 
 final case class RequestConfig(model: EmbeddingModel, user: RequestConfig.User)
 

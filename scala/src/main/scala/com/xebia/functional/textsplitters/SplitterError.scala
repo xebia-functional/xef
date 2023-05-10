@@ -1,4 +1,4 @@
-package com.xebia.functional.textsplitters
+package com.xebia.functional.scala.textsplitters
 
 import scala.util.control.NoStackTrace
 

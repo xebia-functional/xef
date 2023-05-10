@@ -1,12 +1,12 @@
-package com.xebia.functional.embeddings
+package com.xebia.functional.scala.embeddings
 
 import cats.*
 import cats.effect.*
 
-import com.xebia.functional.config.OpenAIConfig
-import com.xebia.functional.embeddings.models._
-import com.xebia.functional.embeddings.openai.models.RequestConfig
-import com.xebia.functional.llm.openai.OpenAIClient
+import com.xebia.functional.scala.config.OpenAIConfig
+import com.xebia.functional.scala.embeddings.models._
+import com.xebia.functional.scala.embeddings.openai.models.RequestConfig
+import com.xebia.functional.scala.llm.openai.OpenAIClient
 import org.typelevel.log4cats.Logger
 import retry.*
 

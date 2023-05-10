@@ -1,4 +1,4 @@
-package com.xebia.functional.llm.openai
+package com.xebia.functional.scala.llm.openai
 
 import java.time.Duration
 
@@ -8,10 +8,10 @@ import cats.effect.Sync
 import cats.syntax.all.*
 
 import com.theokanning.openai.service.OpenAiService
-import com.xebia.functional.config.OpenAIConfig
-import com.xebia.functional.llm.models.OpenAIRequest
-import com.xebia.functional.llm.models.*
-import com.xebia.functional.llm.openai.models.*
+import com.xebia.functional.scala.config.OpenAIConfig
+import com.xebia.functional.scala.llm.models.OpenAIRequest
+import com.xebia.functional.scala.llm.models.*
+import com.xebia.functional.scala.llm.openai.models.*
 
 class OpenAIClientInterpreter[F[_]: Sync](val config: OpenAIConfig) extends OpenAIClient[F]:
 
