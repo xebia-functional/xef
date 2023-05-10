@@ -24,7 +24,7 @@ class ImmutableByteArrayTest : StringSpec({
     byteArray shouldBe ImmutableByteArray.from(byteArrayOf(1, 2, 3))
   }
 
-  "cannot be mutated when using getRawArray" {
+  "cannot be mutated when using rawArray" {
     val byteArray = ImmutableByteArray.from("1, 2, 3")
     val bytes = byteArray.rawArray
 

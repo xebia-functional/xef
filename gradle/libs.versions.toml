@@ -110,3 +110,4 @@ dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 arrow-gradle-nexus = { id = "io.arrow-kt.arrow-gradle-config-nexus", version.ref = "arrowGradle" }
 arrow-gradle-publish = { id = "io.arrow-kt.arrow-gradle-config-publish", version.ref = "arrowGradle" }
 scala-multiversion  = { id = "com.adtran.scala-multiversion-plugin", version.ref = "scalaMultiversion" }
+kotest-multiplatform = { id = "io.kotest.multiplatform", version.ref = "kotest" }

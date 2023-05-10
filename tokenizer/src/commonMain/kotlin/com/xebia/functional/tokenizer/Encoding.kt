@@ -29,7 +29,7 @@ interface Encoding {
    * @return the list of token ids
    * @throws UnsupportedOperationException if the text contains special tokens which are not supported for now
    */
-  fun encode(text: String): List<Int>
+  fun encode(text: String?): List<Int>
 
   /**
    * Encodes the given text into a list of token ids.

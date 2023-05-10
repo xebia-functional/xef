@@ -9,6 +9,7 @@ repositories {
 plugins {
   base
   alias(libs.plugins.kotlin.multiplatform)
+  alias(libs.plugins.kotest.multiplatform)
   alias(libs.plugins.kotlinx.serialization)
   alias(libs.plugins.spotless)
   alias(libs.plugins.dokka)
@@ -49,6 +50,7 @@ kotlin {
   }
   linuxX64()
   macosX64()
+  macosArm64()
   mingwX64()
 
   sourceSets {
@@ -101,6 +103,12 @@ kotlin {
       }
     }
 
+    val macosArm64Main by getting {
+      dependencies {
+        api(libs.ktor.client.cio)
+      }
+    }
+
     val mingwX64Main by getting {
       dependencies {
         api(libs.ktor.client.winhttp)
@@ -115,6 +123,7 @@ kotlin {
     }
     val linuxX64Test by getting
     val macosX64Test by getting
+    val macosArm64Test by getting
     val mingwX64Test by getting
 
     val jvmIntegrationTest by getting {
@@ -128,6 +137,7 @@ kotlin {
       dependsOn(commonMain)
       linuxX64Main.dependsOn(this)
       macosX64Main.dependsOn(this)
+      macosArm64Main.dependsOn(this)
       mingwX64Main.dependsOn(this)
     }
 
@@ -135,6 +145,7 @@ kotlin {
       dependsOn(commonTest)
       linuxX64Test.dependsOn(this)
       macosX64Test.dependsOn(this)
+      macosArm64Test.dependsOn(this)
       mingwX64Test.dependsOn(this)
     }
   }

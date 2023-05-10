@@ -19,13 +19,13 @@ internal value class ImmutableByteArray private constructor(private val array: B
    * startIndex
    */
   fun getBytesBetween(startIndex: Int, endIndex: Int): ImmutableByteArray {
-    require(startIndex > 0 && startIndex < array.size) { "startIndex out of bounds: $startIndex ($this)" }
-    require(endIndex > 0 && endIndex <= array.size) { "endIndex out of bounds: $endIndex ($this)" }
+    if (startIndex < 0 || startIndex >= array.size) throw IndexOutOfBoundsException("startIndex out of bounds: $startIndex ($this)")
+    if (endIndex < 0 || endIndex > array.size) throw IndexOutOfBoundsException("endIndex out of bounds: $endIndex ($this)")
     require(startIndex < endIndex) { "startIndex must be less than endIndex: $startIndex >= $endIndex" }
 
     val length = endIndex - startIndex
     val result = ByteArray(length)
-    array.copyInto(result, startIndex = startIndex, endIndex = length)
+    array.copyInto(result, startIndex = startIndex, endIndex = endIndex)
     return ImmutableByteArray(result)
   }
 
@@ -43,7 +43,15 @@ internal value class ImmutableByteArray private constructor(private val array: B
   @Suppress("RESERVED_MEMBER_INSIDE_VALUE_CLASS")
   override fun hashCode(): Int = array.contentHashCode()
 
-  override fun toString(): String = TODO()
+  override fun toString(): String = buildString {
+    append("[")
+    var count = 0
+    for (i in array) {
+      if (++count > 1) append(", ")
+      append(i)
+    }
+    append("]")
+  }
 
   companion object {
     fun from(array: ByteArray): ImmutableByteArray =

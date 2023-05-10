@@ -5,7 +5,7 @@ import com.xebia.functional.tokenizer.Encoding
 import com.xebia.functional.tokenizer.ModelType
 
 fun TokenTextSplitter(modelType: ModelType, chunkSize: Int, chunkOverlap: Int): BaseTextSplitter =
-  TokenTextSplitterImpl(modelType.encodingType.encoding, chunkSize, chunkOverlap)
+  TokenTextSplitterImpl(modelType.encoding, chunkSize, chunkOverlap)
 
 private class TokenTextSplitterImpl(
   private val tokenizer: Encoding,

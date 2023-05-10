@@ -25,10 +25,11 @@ data class GptBytePairEncodingParams(
 internal class GptBytePairEncoding(params: GptBytePairEncodingParams) : Encoding {
   override val name: String = params.name
   private val pattern: Regex = params.regex
-  private val encoder: TokenEncoder<ImmutableByteArray, Int> = TokenEncoder(params.encoder, ImmutableByteArray.Companion::from)
+  private val encoder: TokenEncoder<ImmutableByteArray, Int> =
+    TokenEncoder(params.encoder, ImmutableByteArray.Companion::from)
   private val specialTokensEncoder: TokenEncoder<String, Int> = TokenEncoder(params.specialTokensEncoder)
 
-  override fun encode(text: String): List<Int> =
+  override fun encode(text: String?): List<Int> =
     encodeInternal(text, null).tokens
 
   override fun encode(text: String?, maxTokens: Int): EncodingResult =
@@ -49,20 +50,19 @@ internal class GptBytePairEncoding(params: GptBytePairEncodingParams) : Encoding
     encodeOrdinaryInternal(text, maxTokens)
 
   private fun encodeOrdinaryInternal(text: String?, maxTokens: Int?): EncodingResult {
-    if (text == null) return EncodingResult(emptyList<Int>(), false)
+    if (text == null) return EncodingResult(emptyList(), false)
     val out = buildList {
-      val matcher = pattern.matchEntire(text)
+      val matcher = pattern.findAll(text).toList()
       var tokenCount = 0
-      matcher?.groups?.forEach { group ->
-        group?.value?.encodeToByteArray()?.let {
-          val match = ImmutableByteArray.from(it)
-          if (encoder.containsDecodedToken(match)) {
-            add(encoder.encode(match))
-            tokenCount++
-          } else {
-            val tokensToAdd = bytePairMerge(match)
-            tokenCount += addTokens(this, tokensToAdd, maxTokens)
-          }
+      matcher.forEach { result ->
+        val res = result.value.encodeToByteArray()
+        val match = ImmutableByteArray.from(res)
+        if (encoder.containsDecodedToken(match)) {
+          add(encoder.encode(match))
+          tokenCount++
+        } else {
+          val tokensToAdd = bytePairMerge(match)
+          tokenCount += addTokens(this, tokensToAdd, maxTokens)
         }
       }
     }

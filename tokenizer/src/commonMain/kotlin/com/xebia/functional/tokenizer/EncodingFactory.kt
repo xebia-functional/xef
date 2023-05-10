@@ -36,8 +36,8 @@ object EncodingFactory {
    */
   fun r50kBase(): Encoding = fromPredefinedParameters(
     "r50k_base",
-    "'s|'t|'re|'ve|'m|'ll|'d| ?\\p{L}+| ?\\p{N}+| ?[^\\s\\p{L}\\p{N}]+|\\s+(?!\\S)|\\s+",
-    "/com/knuddels/jtokkit/r50k_base.tiktoken",
+    Regex("'s|'t|'re|'ve|'m|'ll|'d| ?\\p{L}+| ?\\p{N}+| ?[^\\s\\p{L}\\p{N}]+|\\s+(?!\\S)|\\s+"),
+    r50k_base,
     SPECIAL_TOKENS_X50K_BASE
   )
 
@@ -48,8 +48,8 @@ object EncodingFactory {
    */
   fun p50kBase(): Encoding = fromPredefinedParameters(
     "p50k_base",
-    "'s|'t|'re|'ve|'m|'ll|'d| ?\\p{L}+| ?\\p{N}+| ?[^\\s\\p{L}\\p{N}]+|\\s+(?!\\S)|\\s+",
-    "/com/knuddels/jtokkit/p50k_base.tiktoken",
+    Regex("'s|'t|'re|'ve|'m|'ll|'d| ?\\p{L}+| ?\\p{N}+| ?[^\\s\\p{L}\\p{N}]+|\\s+(?!\\S)|\\s+"),
+    p50k_base,
     SPECIAL_TOKENS_X50K_BASE
   )
 
@@ -60,20 +60,20 @@ object EncodingFactory {
    */
   fun p50kEdit(): Encoding = fromPredefinedParameters(
     "p50k_edit",
-    "'s|'t|'re|'ve|'m|'ll|'d| ?\\p{L}+| ?\\p{N}+| ?[^\\s\\p{L}\\p{N}]+|\\s+(?!\\S)|\\s+",
-    "/com/knuddels/jtokkit/p50k_base.tiktoken",
+    Regex("'s|'t|'re|'ve|'m|'ll|'d| ?\\p{L}+| ?\\p{N}+| ?[^\\s\\p{L}\\p{N}]+|\\s+(?!\\S)|\\s+", RegexOption.IGNORE_CASE),
+    p50k_base,
     SPECIAL_TOKENS_P50K_EDIT
   )
+  val common = """(?i:'s|'t|'re|'ve|'m|'ll|'d)|[^\r\n\p{Letter}\p{Digit}]?\p{Letter}+|\p{Digit}{1,3}| ?[^\s\p{Letter}\p{Digit}]+[\r\n]*|\s*[\r\n]+|\s+(?!\S)|\s+"""
+  val pattern = """(?i:'s|'t|'re|'ve|'m|'ll|'d)|[^\\r\\n\\p{L}\\p{N}]?\\p{L}+|\\p{N}{1,3}| ?[^\\s\\p{L}\\p{N}]+[\\r\\n]*|\\s*[\\r\\n]+|\\s+(?!\\S)|\\s+"""
 
-  /**
-   * Returns an [Encoding] instance for the cl100k_base encoding.
-   *
-   * @return an [Encoding] instance for the cl100k_base encoding
-   */
   fun cl100kBase(): Encoding = fromPredefinedParameters(
     "cl100k_base",
-    "(?i:'s|'t|'re|'ve|'m|'ll|'d)|[^\\r\\n\\p{L}\\p{N}]?\\p{L}+|\\p{N}{1,3}| ?[^\\s\\p{L}\\p{N}]+[\\r\\n]*|\\s*[\\r\\n]+|\\s+(?!\\S)|\\s+",
-    "/com/knuddels/jtokkit/cl100k_base.tiktoken",
+    regex,
+//    Regex("""(?:'s|'t|'re|'ve|'m|'ll|'d)|[^\r\n\p{L}\p{N}]?\p{L}+|\p{N}{1,3}| ?[^\s\p{L}\p{N}]+[\r\n]*|\s*[\r\n]+|\s+(?!\S)|\s+""", RegexOption.IGNORE_CASE),
+//    Regex(pattern, RegexOption.IGNORE_CASE),
+//    Regex("[^\\r\\n\\p{L}\\p{N}]?\\p{L}+|\\p{N}{1,3}| ?[^\\s\\p{L}\\p{N}]+[\\r\\n]*|\\s*[\\r\\n]+|\\s+(?!\\S)|\\s+", RegexOption.IGNORE_CASE),
+    cl100k_base,
     SPECIAL_TOKENS_CL100K_BASE
   )
 
@@ -88,11 +88,10 @@ object EncodingFactory {
 
   private fun fromPredefinedParameters(
     name: String,
-    patternString: String,
+    regex: Regex,
     base: String,
     specialTokens: Map<String, Int>
   ): Encoding {
-    val regex = Regex(patternString)
     val params = GptBytePairEncodingParams(name, regex, loadMergeableRanks(base), specialTokens)
     return fromParameters(params)
   }
@@ -101,8 +100,10 @@ object EncodingFactory {
   private fun loadMergeableRanks(base: String): Map<ByteArray, Int> =
     buildMap {
       base.lineSequence().forEach { line ->
-        val (token, rank) = line.split("\\s+".toRegex(), limit = 2).toTypedArray()
-        put(Base64.decode(token), rank.toInt())
+        val (token, rank) = line.split(Regex("\\s+"), limit = 2)
+        put(Base64.decode(token.encodeToByteArray()), rank.toInt())
       }
     }
 }
+
+expect val regex: Regex
