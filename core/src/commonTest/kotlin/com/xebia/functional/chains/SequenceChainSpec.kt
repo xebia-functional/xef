@@ -19,7 +19,7 @@ class SequenceChainSpec :
             chains = chains,
             inputVariables = listOf("foo"),
             outputVariables = listOf("bar"),
-            chainOutput = Chain.ChainOutput.InputAndOutput
+            chainOutput = StringMapChain.ChainOutput.InputAndOutput
           )
         sc.run(mapOf("foo" to "123")).bind()
       } shouldBeRight mapOf("foo" to "123", "bar" to "123dr")
@@ -36,7 +36,7 @@ class SequenceChainSpec :
             chains = chains,
             inputVariables = listOf("foo"),
             outputVariables = listOf("baz"),
-            chainOutput = Chain.ChainOutput.InputAndOutput
+            chainOutput = StringMapChain.ChainOutput.InputAndOutput
           )
         sc.run(mapOf("foo" to "123")).bind()
       } shouldBeRight mapOf("foo" to "123", "baz" to "123drdr")
@@ -53,7 +53,7 @@ class SequenceChainSpec :
             chains = chains,
             inputVariables = listOf("foo", "test"),
             outputVariables = listOf("baz"),
-            chainOutput = Chain.ChainOutput.InputAndOutput
+            chainOutput = StringMapChain.ChainOutput.InputAndOutput
           )
         sc.run(mapOf("foo" to "123", "test" to "456")).bind()
       } shouldBeRight mapOf("foo" to "123", "test" to "456", "baz" to "123456dr123dr")
@@ -70,7 +70,7 @@ class SequenceChainSpec :
             chains = chains,
             inputVariables = listOf("foo"),
             outputVariables = listOf("baz"),
-            chainOutput = Chain.ChainOutput.InputAndOutput
+            chainOutput = StringMapChain.ChainOutput.InputAndOutput
           )
         sc.run(mapOf("foo" to "123")).bind()
       } shouldBeRight mapOf("foo" to "123", "baz" to "123dr123dr")
@@ -87,7 +87,7 @@ class SequenceChainSpec :
             chains = chains,
             inputVariables = listOf("foo"),
             outputVariables = listOf("baz"),
-            chainOutput = Chain.ChainOutput.InputAndOutput
+            chainOutput = StringMapChain.ChainOutput.InputAndOutput
           )
         sc.run(mapOf("foo" to "123")).bind()
       } shouldBeLeft
@@ -107,7 +107,7 @@ class SequenceChainSpec :
               chains = chains,
               inputVariables = listOf("foo"),
               outputVariables = listOf("test"),
-              chainOutput = Chain.ChainOutput.InputAndOutput
+              chainOutput = StringMapChain.ChainOutput.InputAndOutput
             )
             .bind()
         sc.run(mapOf("foo" to "123")).bind()
@@ -126,7 +126,7 @@ class SequenceChainSpec :
               chains = chains,
               inputVariables = listOf("foo", "test"),
               outputVariables = listOf("baz"),
-              chainOutput = Chain.ChainOutput.InputAndOutput
+              chainOutput = StringMapChain.ChainOutput.InputAndOutput
             )
             .bind()
         sc.run(mapOf("foo" to "123")).bind()
@@ -147,7 +147,7 @@ class SequenceChainSpec :
               chains = chains,
               inputVariables = listOf("foo", "bar"),
               outputVariables = listOf("potato"),
-              chainOutput = Chain.ChainOutput.InputAndOutput
+              chainOutput = StringMapChain.ChainOutput.InputAndOutput
             )
             .bind()
         sc.run(mapOf("foo" to "123")).bind()

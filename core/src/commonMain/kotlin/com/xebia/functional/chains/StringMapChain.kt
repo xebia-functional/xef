@@ -8,8 +8,7 @@ import arrow.core.raise.ensureNotNull
 import com.xebia.functional.AIError
 import com.xebia.functional.AIError.Chain.InvalidInputs
 
-interface Chain {
-
+interface StringMapChain: Chain<Map<String, String>, Map<String, String>> {
   enum class ChainOutput {
     InputAndOutput,
     OnlyOutput
@@ -44,8 +43,6 @@ interface Chain {
   }
 
   val config: Config
-
-  suspend fun call(inputs: Map<String, String>): Either<AIError.Chain, Map<String, String>>
 
   suspend fun run(input: String): Either<AIError.Chain, Map<String, String>> = either {
     val preparedInputs = config.createInputs(input).bind()

@@ -3,7 +3,6 @@ package com.xebia.functional.textsplitters
 import com.knuddels.jtokkit.Encodings
 import com.knuddels.jtokkit.api.Encoding
 import com.knuddels.jtokkit.api.EncodingRegistry
-import com.xebia.functional.Document
 
 private class TokenTextSplitterImpl(
   private val tokenizer: Encoding,
@@ -23,13 +22,11 @@ private class TokenTextSplitterImpl(
       .toList()
   }
 
-  override suspend fun splitDocuments(documents: List<Document>): List<Document> =
-    documents.flatMap { document ->
-      splitText(document.content).map { content -> Document(content) }
-    }
+  override suspend fun splitDocuments(documents: List<String>): List<String> =
+    documents.flatMap { document -> splitText(document) }
 
-  override suspend fun splitTextInDocuments(text: String): List<Document> =
-    splitText(text).map { chunk -> Document(chunk) }
+  override suspend fun splitTextInDocuments(text: String): List<String> =
+    splitText(text)
 }
 
 val encodingRegistry: EncodingRegistry by lazy { Encodings.newDefaultEncodingRegistry() }

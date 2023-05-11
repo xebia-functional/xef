@@ -11,25 +11,26 @@ import arrow.fx.coroutines.resourceScope
 import com.xebia.functional.AIError
 import com.xebia.functional.auto.serialization.buildJsonSchema
 import com.xebia.functional.auto.serialization.sample
-import com.xebia.functional.chains.VectorQAChain
 import com.xebia.functional.embeddings.OpenAIEmbeddings
 import com.xebia.functional.env.OpenAIConfig
 import com.xebia.functional.llm.openai.*
 import com.xebia.functional.logTruncated
-import com.xebia.functional.tools.Agent
-import com.xebia.functional.tools.storeResults
-import com.xebia.functional.vectorstores.LocalVectorStore
-import com.xebia.functional.vectorstores.VectorStore
+import com.xebia.functional.persistence.LocalPersistence
+import com.xebia.functional.persistence.Persistence
+import com.xebia.functional.chains.Agent
+import com.xebia.functional.chains.storeResults
+import com.xebia.functional.persistence.LocalPersistenceSimilarity
+import com.xebia.functional.persistence.PersistenceSimilarity
 import io.github.oshai.KLogger
 import io.github.oshai.KotlinLogging
 import kotlin.jvm.JvmName
-import kotlin.time.ExperimentalTime
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.serializer
+import kotlin.time.ExperimentalTime
 
 @DslMarker annotation class AiDsl
 
@@ -44,13 +45,43 @@ data class SerializationConfig<A>(
  * an [A]. This value is _lazy_ and can be combined with other `AI` values using [AIScope.invoke],
  * and thus forms a monadic DSL.
  *
- * All [AI] actions that are composed together using [AIScope.invoke] share the same [VectorStore],
+ * All [AI] actions that are composed together using [AIScope.invoke] share the same [Persistence],
  * [OpenAIEmbeddings] and [OpenAIClient] instances.
  */
-typealias AI<A> = suspend AIScope.() -> A
+typealias AI<M, A> = suspend AIScope<M>.() -> A
 
 /** A DSL block that makes it more convenient to construct [AI] values. */
-inline fun <A> ai(noinline block: suspend AIScope.() -> A): AI<A> = block
+inline fun <A> ai(noinline block: suspend AIScope<String>.() -> A): AI<String, A> = block
+
+/** A DSL block that makes it more convenient to construct [AI] values. */
+inline fun <M, A> aiWithMemory(noinline block: suspend AIScope<M>.() -> A): AI<M, A> = block
+
+/**
+ * Applies a transformation to the result of [AI].
+ */
+inline fun <M, A, B> AI<M, A>.map(crossinline transform: (A) -> B): AI<M, B> =
+  aiWithMemory { transform(this@map(this)) }
+
+/**
+ * Run the [AI] value to produce an [A], this method initialises all the dependencies required to
+ * run the [AI] value and once it finishes it closes all the resources.
+ *
+ * This operator is **terminal** meaning it runs and completes the _chain_ of `AI` actions.
+ */
+suspend inline fun <M, reified A> AI<M, A>.getOrElse(crossinline orElse: suspend (AIError) -> A): A =
+  recover({
+    resourceScope {
+      val openAIConfig = OpenAIConfig()
+      val openAiClient: OpenAIClient = KtorOpenAIClient(openAIConfig)
+      val logger = KotlinLogging.logger("AutoAI")
+      // val embeddings = OpenAIEmbeddings(openAIConfig, openAiClient, logger)
+      val persistence = LocalPersistence<M>()
+      val scope = AIScope(openAiClient, persistence, logger, this, this@recover)
+      invoke(scope)
+    }
+  }) {
+    orElse(it)
+  }
 
 /**
  * Run the [AI] value to produce an [A], this method initialises all the dependencies required to
@@ -59,15 +90,15 @@ inline fun <A> ai(noinline block: suspend AIScope.() -> A): AI<A> = block
  * This operator is **terminal** meaning it runs and completes the _chain_ of `AI` actions.
  */
 @OptIn(ExperimentalTime::class)
-suspend inline fun <reified A> AI<A>.getOrElse(crossinline orElse: suspend (AIError) -> A): A =
+suspend inline fun <reified A> AI<String, A>.getOrElseSimilarity(crossinline orElse: suspend (AIError) -> A): A =
   recover({
     resourceScope {
       val openAIConfig = OpenAIConfig()
       val openAiClient: OpenAIClient = KtorOpenAIClient(openAIConfig)
       val logger = KotlinLogging.logger("AutoAI")
       val embeddings = OpenAIEmbeddings(openAIConfig, openAiClient, logger)
-      val vectorStore = LocalVectorStore(embeddings)
-      val scope = AIScope(openAiClient, vectorStore, emptyArray(), logger, this, this@recover)
+      val persistence = LocalPersistenceSimilarity(embeddings)
+      val scope = AIScope(openAiClient, persistence, logger, this, this@recover)
       invoke(scope)
     }
   }) {
@@ -82,8 +113,8 @@ suspend inline fun <reified A> AI<A>.getOrElse(crossinline orElse: suspend (AIEr
  *
  * @see getOrElse for an operator that allow directly handling the [AIError] case.
  */
-suspend inline fun <reified A> AI<A>.toEither(): Either<AIError, A> =
-  ai { invoke().right() }.getOrElse { it.left() }
+suspend inline fun <M, reified A> AI<M, A>.toEither(): Either<AIError, A> =
+  this.map { it.right() }.getOrElse { it.left() }
 
 // TODO: Allow traced transformation of Raise errors
 class AIException(message: String) : RuntimeException(message)
@@ -98,7 +129,7 @@ class AIException(message: String) : RuntimeException(message)
  * @see getOrElse for an operator that allow directly handling the [AIError] case instead of
  *   throwing.
  */
-suspend inline fun <reified A> AI<A>.getOrThrow(): A = getOrElse { throw AIException(it.reason) }
+suspend inline fun <M, reified A> AI<M, A>.getOrThrow(): A = getOrElse { throw AIException(it.reason) }
 
 /**
  * The [AIScope] is the context in which [AI] values are run. It encapsulates all the dependencies
@@ -107,10 +138,9 @@ suspend inline fun <reified A> AI<A>.getOrThrow(): A = getOrElse { throw AIExcep
  * It exposes the [ResourceScope] so you can easily add your own resources with the scope of the
  * [AI] program, and [Raise] of [AIError] in case you want to compose any [Raise] based actions.
  */
-class AIScope(
+class AIScope<M>(
   private val openAIClient: OpenAIClient,
-  private val vectorStore: VectorStore,
-  private val agent: Array<out Agent>,
+  private val persistence: Persistence<M, *>,
   private val logger: KLogger,
   resourceScope: ResourceScope,
   raise: Raise<AIError>,
@@ -153,22 +183,23 @@ class AIScope(
    * }
    * ```
    */
-  @AiDsl @JvmName("invokeAI") suspend operator fun <A> AI<A>.invoke(): A = invoke(this@AIScope)
+  @AiDsl @JvmName("invokeAI") suspend operator fun <A> AI<M, A>.invoke(): A = invoke(this@AIScope)
 
   /** Creates a child scope of this [AIScope] with the specified [agent]. */
   @AiDsl
-  suspend fun <A> agent(agent: Agent, scope: suspend AIScope.() -> A): A =
+  suspend fun <A> agent(agent: Agent<M>, scope: suspend AIScope<M>.() -> A): A =
     agent(arrayOf(agent), scope)
 
   /** Creates a child scope of this [AIScope] with the specified [agents]. */
   @AiDsl
-  suspend fun <A> agent(agents: Array<out Agent>, scope: suspend AIScope.() -> A): A =
-    scope(AIScope(openAIClient, vectorStore, agents, logger, this, this))
+  suspend fun <A> agent(agents: Array<out Agent<M>>, scope: suspend AIScope<M>.() -> A): A {
+    agents.storeResults(persistence)
+    return scope(AIScope(openAIClient, persistence, logger, this, this))
+  }
 
   /**
-   * Run a [prompt] describes the task you want to solve within the context of [AIScope], and any
-   * [agent] it contains. Returns a value of [A] where [A] **has to be** annotated with
-   * [kotlinx.serialization.Serializable].
+   * Run a [prompt] describes the task you want to solve within the context of [AIScope].
+   * Returns a value of [A] where [A] **has to be** annotated with [kotlinx.serialization.Serializable].
    *
    * @throws SerializationException if serializer cannot be created (provided [A] or its type
    *   argument is not serializable).
@@ -194,7 +225,7 @@ class AIScope(
     llmModel: LLMModel = LLMModel.GPT_3_5_TURBO,
   ): A {
     logger.logTruncated("AI", "Solving objective: $prompt")
-    val result = openAIChatCall(llmModel, prompt, prompt, serializationConfig)
+    val result = openAIChatCall(prompt, serializationConfig, llmModel)
     logger.logTruncated("AI", "Response: $result")
     return catch({ json.decodeFromString(serializationConfig.deserializationStrategy, result) }) {
       e: IllegalArgumentException ->
@@ -208,42 +239,29 @@ class AIScope(
     }
   }
 
-  private suspend fun Raise<AIError>.openAIChatCall(
-    llmModel: LLMModel,
-    question: String,
-    promptWithContext: String,
+  private suspend fun openAIChatCall(
+    prompt: String,
     serializationConfig: SerializationConfig<*>,
+    llmModel: LLMModel,
   ): String {
-    // run the agents so they store context in the database
-    agent.storeResults(vectorStore)
-    // run the vectorQAChain to get the answer
-    val numOfDocs = 10
-    val outputVariable = "answer"
-    val chain = VectorQAChain(openAIClient, llmModel, vectorStore, numOfDocs, outputVariable)
-    val contextQuestion =
-      """|
-            |Provide a solution as answer to the question or objective below:
-            |```
-            |$question
-            |```
-        """
-        .trimMargin()
-    val chainResults: Map<String, String> = chain.run(contextQuestion).bind()
-    logger.debug { "Chain results: $chainResults" }
+    val context =
+      kotlin.runCatching {
+        (persistence as PersistenceSimilarity<String, *>).similaritySearch(prompt, 10)
+      }.getOrElse { emptyList() }
     val promptWithMemory =
-      if (chainResults.isNotEmpty())
+      if (context.isNotEmpty())
         """
                 |Instructions: Use the [Information] below delimited by 3 backticks to accomplish
                 |the [Objective] at the end of the prompt.
                 |Try to match the data returned in the [Objective] with this [Information] as best as you can.
                 |[Information]:
                 |```
-                |${chainResults.entries.joinToString("\n") { (k, v) -> "$k: $v" }}
+                |${context.joinToString("\n")}
                 |```
-                |$promptWithContext
+                |$prompt
                 """
           .trimMargin()
-      else promptWithContext
+      else prompt
     val augmentedPrompt =
       """
                 |$promptWithMemory
@@ -256,7 +274,7 @@ class AIScope(
                 |Response:
             """
         .trimMargin()
-    val res = chatCompletionResponse(augmentedPrompt, "gpt-3.5-turbo", "AI_Value_Generator")
+    val res = chatCompletionResponse(augmentedPrompt, llmModel.name, "AI_Value_Generator")
     val msg = res.choices.firstOrNull()?.message?.content
     requireNotNull(msg) { "No message found in result: $res" }
     logger.logTruncated("AI", "Response: $msg", 100)

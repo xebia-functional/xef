@@ -13,25 +13,25 @@ import com.xebia.functional.AIError.Chain.InvalidOutputs
 import com.xebia.functional.AIError.Chain.Sequence.InvalidKeys
 
 fun Raise<AIError.Chain>.SequenceChain(
-  chains: List<Chain>,
+  chains: List<StringMapChain>,
   inputVariables: List<String>,
   outputVariables: List<String>,
-  chainOutput: Chain.ChainOutput = Chain.ChainOutput.OnlyOutput
+  chainOutput: StringMapChain.ChainOutput = StringMapChain.ChainOutput.OnlyOutput
 ): SequenceChain = SequenceChain.either(chains, inputVariables, outputVariables, chainOutput).bind()
 
 open class SequenceChain(
-  private val chains: List<Chain>,
+  private val chains: List<StringMapChain>,
   private val inputVariables: List<String>,
   private val outputVariables: List<String>,
-  chainOutput: Chain.ChainOutput = Chain.ChainOutput.OnlyOutput
-) : Chain {
+  chainOutput: StringMapChain.ChainOutput = StringMapChain.ChainOutput.OnlyOutput
+) : StringMapChain {
 
-  override val config = Chain.Config(inputVariables.toSet(), outputVariables.toSet(), chainOutput)
+  override val config = StringMapChain.Config(inputVariables.toSet(), outputVariables.toSet(), chainOutput)
 
   private val outputs =
     when (chainOutput) {
-      Chain.ChainOutput.OnlyOutput -> outputVariables
-      Chain.ChainOutput.InputAndOutput -> outputVariables.plus(inputVariables)
+      StringMapChain.ChainOutput.OnlyOutput -> outputVariables
+      StringMapChain.ChainOutput.InputAndOutput -> outputVariables.plus(inputVariables)
     }
 
   override suspend fun call(
@@ -44,13 +44,13 @@ open class SequenceChain(
 
   companion object {
     fun either(
-      chains: List<Chain>,
+      chains: List<StringMapChain>,
       inputVariables: List<String>,
       outputVariables: List<String>,
-      chainOutput: Chain.ChainOutput
+      chainOutput: StringMapChain.ChainOutput
     ): Either<InvalidKeys, SequenceChain> = either {
       val allOutputs = chains.map { it.config.outputKeys }.toSet().flatten()
-      val mappedChains: List<Chain> =
+      val mappedChains: List<StringMapChain> =
         recover({
           zipOrAccumulate(
             { validateSequenceOutputs(outputVariables, allOutputs) },

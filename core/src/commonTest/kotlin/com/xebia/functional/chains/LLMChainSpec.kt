@@ -31,7 +31,7 @@ class LLMChainSpec :
             prompt,
             model,
             outputVariable = "answer",
-            chainOutput = Chain.ChainOutput.InputAndOutput
+            chainOutput = StringMapChain.ChainOutput.InputAndOutput
           )
         chain.run("a joke").bind()
       } shouldBeRight mapOf("foo" to "a joke", "answer" to "I'm not good at jokes")
@@ -47,7 +47,7 @@ class LLMChainSpec :
             prompt,
             model,
             outputVariable = "answer",
-            chainOutput = Chain.ChainOutput.InputAndOutput
+            chainOutput = StringMapChain.ChainOutput.InputAndOutput
           )
         chain.run(mapOf("age" to "28", "name" to "foo")).bind()
       } shouldBeRight
@@ -64,7 +64,7 @@ class LLMChainSpec :
             prompt,
             model,
             outputVariable = "answer",
-            chainOutput = Chain.ChainOutput.InputAndOutput
+            chainOutput = StringMapChain.ChainOutput.InputAndOutput
           )
         chain.run(mapOf("age" to "28", "brand" to "foo")).bind()
       } shouldBeLeft
@@ -83,7 +83,7 @@ class LLMChainSpec :
             prompt,
             model,
             outputVariable = "answer",
-            chainOutput = Chain.ChainOutput.InputAndOutput
+            chainOutput = StringMapChain.ChainOutput.InputAndOutput
           )
         chain.run("foo").bind()
       } shouldBeLeft

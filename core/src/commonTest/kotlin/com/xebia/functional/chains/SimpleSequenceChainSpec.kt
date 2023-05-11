@@ -16,7 +16,7 @@ class SimpleSequenceChainSpec :
 
       either {
         val ssc =
-          SimpleSequenceChain(chains = chains, chainOutput = Chain.ChainOutput.InputAndOutput)
+          SimpleSequenceChain(chains = chains, chainOutput = StringMapChain.ChainOutput.InputAndOutput)
         ssc.run(mapOf("input" to "123")).bind()
       } shouldBeRight mapOf("input" to "123", "output" to "123dr")
     }
@@ -29,7 +29,7 @@ class SimpleSequenceChainSpec :
 
       either {
         val ssc =
-          SimpleSequenceChain(chains = chains, chainOutput = Chain.ChainOutput.InputAndOutput)
+          SimpleSequenceChain(chains = chains, chainOutput = StringMapChain.ChainOutput.InputAndOutput)
         ssc.run(mapOf("input" to "123")).bind()
       } shouldBeRight mapOf("input" to "123", "output" to "123drdrdr")
     }
@@ -41,7 +41,7 @@ class SimpleSequenceChainSpec :
 
       either {
         val ssc =
-          SimpleSequenceChain(chains = chains, chainOutput = Chain.ChainOutput.InputAndOutput)
+          SimpleSequenceChain(chains = chains, chainOutput = StringMapChain.ChainOutput.InputAndOutput)
         ssc.run(mapOf("input" to "123")).bind()
       } shouldBeLeft InvalidKeys("The expected inputs are more than one: {bar}, {foo}")
     }
@@ -53,7 +53,7 @@ class SimpleSequenceChainSpec :
 
       either {
         val ssc =
-          SimpleSequenceChain(chains = chains, chainOutput = Chain.ChainOutput.InputAndOutput)
+          SimpleSequenceChain(chains = chains, chainOutput = StringMapChain.ChainOutput.InputAndOutput)
         ssc.run(mapOf("input" to "123")).bind()
       } shouldBeLeft InvalidKeys("The expected outputs are more than one: {bar}, {foo}")
     }
@@ -62,9 +62,9 @@ class SimpleSequenceChainSpec :
 data class FakeChain(
   private val inputVariables: Set<String>,
   private val outputVariables: Set<String>
-) : Chain {
-  override val config: Chain.Config =
-    Chain.Config(inputKeys = inputVariables, outputKeys = outputVariables)
+) : StringMapChain {
+  override val config: StringMapChain.Config =
+    StringMapChain.Config(inputKeys = inputVariables, outputKeys = outputVariables)
 
   override suspend fun call(
     inputs: Map<String, String>

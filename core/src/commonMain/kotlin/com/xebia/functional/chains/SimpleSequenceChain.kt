@@ -11,21 +11,21 @@ import com.xebia.functional.AIError.Chain.InvalidInputs
 import com.xebia.functional.AIError.Chain.Sequence.InvalidKeys
 
 fun Raise<AIError.Chain>.SimpleSequenceChain(
-  chains: List<Chain>,
+  chains: List<StringMapChain>,
   inputKey: String = "input",
   outputKey: String = "output",
-  chainOutput: Chain.ChainOutput = Chain.ChainOutput.OnlyOutput
+  chainOutput: StringMapChain.ChainOutput = StringMapChain.ChainOutput.OnlyOutput
 ): SimpleSequenceChain = SimpleSequenceChain.either(chains, inputKey, outputKey, chainOutput).bind()
 
 class SimpleSequenceChain
 private constructor(
-  private val chains: List<Chain>,
+  private val chains: List<StringMapChain>,
   private val inputKey: String,
   private val outputKey: String,
-  chainOutput: Chain.ChainOutput
+  chainOutput: StringMapChain.ChainOutput
 ) : SequenceChain(chains, listOf(inputKey), listOf(outputKey), chainOutput) {
 
-  override val config = Chain.Config(setOf(inputKey), setOf(outputKey), chainOutput)
+  override val config = StringMapChain.Config(setOf(inputKey), setOf(outputKey), chainOutput)
 
   override suspend fun call(
     inputs: Map<String, String>
@@ -39,12 +39,12 @@ private constructor(
 
   companion object {
     fun either(
-      chains: List<Chain>,
+      chains: List<StringMapChain>,
       inputKey: String,
       outputKey: String,
-      chainOutput: Chain.ChainOutput
+      chainOutput: StringMapChain.ChainOutput
     ): Either<InvalidKeys, SimpleSequenceChain> = either {
-      val mappedChains: List<Chain> =
+      val mappedChains: List<StringMapChain> =
         chains.map { chain ->
           recover({
             zipOrAccumulate(

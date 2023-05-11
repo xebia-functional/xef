@@ -1,5 +1,6 @@
 package com.xebia.functional
 
+/*
 import com.xebia.functional.embeddings.Embedding
 import com.xebia.functional.embeddings.Embeddings
 import com.xebia.functional.llm.openai.RequestConfig
@@ -117,3 +118,4 @@ class PGVectorStore(
       }
     }
 }
+*/

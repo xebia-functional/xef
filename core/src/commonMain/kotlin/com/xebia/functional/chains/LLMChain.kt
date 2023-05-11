@@ -17,14 +17,14 @@ suspend fun LLMChain(
   n: Int = 1,
   temperature: Double = 0.0,
   outputVariable: String,
-  chainOutput: Chain.ChainOutput = Chain.ChainOutput.OnlyOutput
-): Chain =
-  object : Chain {
+  chainOutput: StringMapChain.ChainOutput = StringMapChain.ChainOutput.OnlyOutput
+): StringMapChain =
+  object : StringMapChain {
 
     private val inputKeys: Set<String> = promptTemplate.inputKeys.toSet()
     private val outputKeys: Set<String> = setOf(outputVariable)
 
-    override val config: Chain.Config = Chain.Config(inputKeys, outputKeys, chainOutput)
+    override val config: StringMapChain.Config = StringMapChain.Config(inputKeys, outputKeys, chainOutput)
 
     override suspend fun call(
       inputs: Map<String, String>
