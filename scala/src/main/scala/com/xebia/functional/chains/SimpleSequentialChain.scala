@@ -10,11 +10,11 @@ import com.xebia.functional.scala.chains.models.*
 import eu.timepit.refined.types.string.NonEmptyString
 
 class SimpleSequentialChain[F[_]: MonadThrow] private (
-    chains: NonEmptySeq[BaseChain[F]],
-    inputKey: NonEmptyString,
-    outputKey: NonEmptyString,
-    onlyOutputs: Boolean
-) extends BaseChain[F]:
+                                                        chains: NonEmptySeq[Chain[F]],
+                                                        inputKey: NonEmptyString,
+                                                        outputKey: NonEmptyString,
+                                                        onlyOutputs: Boolean
+) extends Chain[F]:
   val config: Config = Config(
     inputKeys = Set(inputKey.toString()),
     outputKeys = Set(outputKey.toString()),
@@ -22,7 +22,7 @@ class SimpleSequentialChain[F[_]: MonadThrow] private (
   )
 
   def call(inputs: Map[String, String]): F[Map[String, String]] =
-    def inner(chains: Seq[BaseChain[F]])(input: Map[String, String] | String): F[Map[String, String]] =
+    def inner(chains: Seq[Chain[F]])(input: Map[String, String] | String): F[Map[String, String]] =
       chains match
         case h :: Nil =>
           h.run(input).map(response =>
@@ -36,10 +36,10 @@ class SimpleSequentialChain[F[_]: MonadThrow] private (
 
 object SimpleSequentialChain:
   def make[F[_]: MonadThrow](
-      chains: NonEmptySeq[BaseChain[F]],
-      inputKey: NonEmptyString,
-      outputKey: NonEmptyString,
-      onlyOutputs: Boolean = false
+                              chains: NonEmptySeq[Chain[F]],
+                              inputKey: NonEmptyString,
+                              outputKey: NonEmptyString,
+                              onlyOutputs: Boolean = false
   ): F[SimpleSequentialChain[F]] =
     chains
       .traverse_(c =>
@@ -49,8 +49,8 @@ object SimpleSequentialChain:
       ).as(SimpleSequentialChain(chains, inputKey, outputKey, onlyOutputs))
 
   def resource[F[_]: MonadThrow](
-      chains: NonEmptySeq[BaseChain[F]],
-      inputKey: NonEmptyString,
-      outputKey: NonEmptyString,
-      onlyOutputs: Boolean = false
+                                  chains: NonEmptySeq[Chain[F]],
+                                  inputKey: NonEmptyString,
+                                  outputKey: NonEmptyString,
+                                  onlyOutputs: Boolean = false
   ): Resource[F, SimpleSequentialChain[F]] = Resource.eval(make(chains, inputKey, outputKey, onlyOutputs))

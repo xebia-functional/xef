@@ -10,11 +10,11 @@ import com.xebia.functional.scala.chains.models.*
 import eu.timepit.refined.types.string.NonEmptyString
 
 class SequentialChain[F[_]: MonadThrow] private (
-    chains: NonEmptySeq[BaseChain[F]],
-    inputVariables: NonEmptySet[NonEmptyString],
-    outputVariables: NonEmptySet[NonEmptyString],
-    onlyOutputs: Boolean
-) extends BaseChain[F]:
+                                                  chains: NonEmptySeq[Chain[F]],
+                                                  inputVariables: NonEmptySet[NonEmptyString],
+                                                  outputVariables: NonEmptySet[NonEmptyString],
+                                                  onlyOutputs: Boolean
+) extends Chain[F]:
   val config: Config = Config(
     inputKeys = inputVariables.toSortedSet.map(_.value),
     outputKeys = outputVariables.toSortedSet.map(_.value),
@@ -27,10 +27,10 @@ class SequentialChain[F[_]: MonadThrow] private (
 
 object SequentialChain:
   def make[F[_]: MonadThrow](
-      chains: NonEmptySeq[BaseChain[F]],
-      inputVariables: NonEmptySet[NonEmptyString],
-      outputVariables: NonEmptySet[NonEmptyString],
-      onlyOutputs: Boolean = false
+                              chains: NonEmptySeq[Chain[F]],
+                              inputVariables: NonEmptySet[NonEmptyString],
+                              outputVariables: NonEmptySet[NonEmptyString],
+                              onlyOutputs: Boolean = false
   ): F[SequentialChain[F]] =
     // known vars are, initially, the input vars + memory vars
     val knownVars0 = inputVariables.toSortedSet.map(_.toString) // TODO Add memory vars in the future
@@ -64,8 +64,8 @@ object SequentialChain:
     }
 
   def resource[F[_]: MonadThrow](
-      chains: NonEmptySeq[BaseChain[F]],
-      inputVariables: NonEmptySet[NonEmptyString],
-      outputVariables: NonEmptySet[NonEmptyString],
-      onlyOutputs: Boolean = false
+                                  chains: NonEmptySeq[Chain[F]],
+                                  inputVariables: NonEmptySet[NonEmptyString],
+                                  outputVariables: NonEmptySet[NonEmptyString],
+                                  onlyOutputs: Boolean = false
   ): Resource[F, SequentialChain[F]] = Resource.eval(make(chains, inputVariables, outputVariables, onlyOutputs))

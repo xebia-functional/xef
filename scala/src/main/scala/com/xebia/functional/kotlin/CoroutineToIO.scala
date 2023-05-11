@@ -34,6 +34,12 @@ trait CoroutineToIO[F[_]] {
 )
 object CoroutineToIO:
 
+  given [F[_]: Async, A]: Conversion[Continuation[? >: A] => ?, F[A]] with
+    def apply(ktFunction: Continuation[? >: A] => ?): F[A] = toAsync[F, A](ktFunction)
+
+  def toAsync[F[_]: Async, A](ktFunction: Continuation[? >: A] => ?): F[A] =
+    CoroutineToIO[F].runCancelable[A]( (_, cont) => ktFunction(cont) )
+
   def apply[F[_]: Async]: CoroutineToIO[F] = new CoroutineToIO[F]:
 
     def runCancelable_(block: kotlin.jvm.functions.Function2[CoroutineScope, Continuation[_ >: kotlin.Unit], Any]): F[Unit] =

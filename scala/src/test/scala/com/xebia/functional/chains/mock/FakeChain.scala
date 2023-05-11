@@ -4,10 +4,10 @@ import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import cats.implicits.*
 
-import com.xebia.functional.scala.chains.BaseChain
+import com.xebia.functional.scala.chains.Chain
 import com.xebia.functional.scala.chains.models.Config
 
-final case class FakeChain(inputVariables: Set[String], outputVariables: Set[String]) extends BaseChain[IO]:
+final case class FakeChain(inputVariables: Set[String], outputVariables: Set[String]) extends Chain[IO]:
   val config: Config = Config(
     inputKeys = inputVariables,
     outputKeys = outputVariables,
