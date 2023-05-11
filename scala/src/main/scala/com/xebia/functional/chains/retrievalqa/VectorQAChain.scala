@@ -1,21 +1,21 @@
-package com.xebia.functional.chains.retrievalqa
+package com.xebia.functional.scala.chains.retrievalqa
 
 import cats.effect.Sync
 import cats.effect.SyncIO
 import cats.syntax.all.*
 
-import com.xebia.functional.chains.combine.CombineDocumentsChain
-import com.xebia.functional.chains.combine.StuffChain
-import com.xebia.functional.chains.models.CombineDocumentsChainType
-import com.xebia.functional.chains.models.CombineDocumentsChainType.Stuff
-import com.xebia.functional.chains.models.Config
-import com.xebia.functional.chains.models.InvalidChainInputsError
-import com.xebia.functional.domain.Document
-import com.xebia.functional.llm.LLM
-import com.xebia.functional.llm.models.LLMResult
-import com.xebia.functional.llm.openai.OpenAIClient
-import com.xebia.functional.prompt.PromptTemplate
-import com.xebia.functional.vectorstores.VectorStore
+import com.xebia.functional.scala.chains.combine.CombineDocumentsChain
+import com.xebia.functional.scala.chains.combine.StuffChain
+import com.xebia.functional.scala.chains.models.CombineDocumentsChainType
+import com.xebia.functional.scala.chains.models.CombineDocumentsChainType.Stuff
+import com.xebia.functional.scala.chains.models.Config
+import com.xebia.functional.scala.chains.models.InvalidChainInputsError
+import com.xebia.functional.scala.domain.Document
+import com.xebia.functional.scala.llm.LLM
+import com.xebia.functional.scala.llm.models.LLMResult
+import com.xebia.functional.scala.llm.openai.OpenAIClient
+import com.xebia.functional.scala.prompt.PromptTemplate
+import com.xebia.functional.scala.vectorstores.VectorStore
 import eu.timepit.refined.types.string.NonEmptyString
 
 class VectorQAChain[F[_]: Sync](

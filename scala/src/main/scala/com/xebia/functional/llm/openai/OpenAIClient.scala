@@ -1,11 +1,11 @@
-package com.xebia.functional.llm.openai
+package com.xebia.functional.scala.llm.openai
 
 import cats.effect.Sync
 
-import com.xebia.functional.config.OpenAIConfig
-import com.xebia.functional.llm.LLM
-import com.xebia.functional.llm.models.*
-import com.xebia.functional.llm.openai.models.*
+import com.xebia.functional.scala.config.OpenAIConfig
+import com.xebia.functional.scala.llm.LLM
+import com.xebia.functional.scala.llm.models.*
+import com.xebia.functional.scala.llm.openai.models.*
 
 trait OpenAIClient[F[_]]:
 

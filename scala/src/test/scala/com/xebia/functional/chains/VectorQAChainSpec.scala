@@ -1,15 +1,15 @@
-package com.xebia.functional.chains
+package com.xebia.functional.scala.chains
 
 import cats.effect.IO
 
-import com.xebia.functional.chains.mock.OpenAIClientMock
-import com.xebia.functional.chains.mock.VectorStoreMock
-import com.xebia.functional.chains.models.InvalidChainInputError
-import com.xebia.functional.chains.models.InvalidChainInputsError
-import com.xebia.functional.chains.models.InvalidCombineDocumentsChainError
-import com.xebia.functional.chains.retrievalqa.VectorQAChain
-import com.xebia.functional.llm.LLM
-import com.xebia.functional.llm.models.OpenAIRequest
+import com.xebia.functional.scala.chains.mock.OpenAIClientMock
+import com.xebia.functional.scala.chains.mock.VectorStoreMock
+import com.xebia.functional.scala.chains.models.InvalidChainInputError
+import com.xebia.functional.scala.chains.models.InvalidChainInputsError
+import com.xebia.functional.scala.chains.models.InvalidCombineDocumentsChainError
+import com.xebia.functional.scala.chains.retrievalqa.VectorQAChain
+import com.xebia.functional.scala.llm.LLM
+import com.xebia.functional.scala.llm.models.OpenAIRequest
 import eu.timepit.refined.types.string.NonEmptyString
 import munit.CatsEffectSuite
 

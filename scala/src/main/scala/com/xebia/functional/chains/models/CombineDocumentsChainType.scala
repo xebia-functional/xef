@@ -1,8 +1,8 @@
-package com.xebia.functional.chains.models
+package com.xebia.functional.scala.chains.models
 
 import cats.ApplicativeThrow
 
-import com.xebia.functional.chains.models.InvalidCombineDocumentsChainError
+import com.xebia.functional.scala.chains.models.InvalidCombineDocumentsChainError
 
 enum CombineDocumentsChainType(val name: String):
   case Stuff extends CombineDocumentsChainType("stuff")

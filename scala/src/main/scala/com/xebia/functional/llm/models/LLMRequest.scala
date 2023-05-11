@@ -1,4 +1,4 @@
-package com.xebia.functional.llm.models
+package com.xebia.functional.scala.llm.models
 
 import java.util.{List => JList}
 import java.util.{Map => JMap}
@@ -9,12 +9,12 @@ import cats.ApplicativeThrow
 import cats.syntax.all.*
 
 import com.theokanning.openai.completion.{CompletionRequest => JCompletionRequest}
-import com.xebia.functional.config.HuggingFaceConfig
-import com.xebia.functional.config.OpenAIConfig
-import com.xebia.functional.llm.LLM
-import com.xebia.functional.llm.huggingface.HuggingFaceClient
-import com.xebia.functional.llm.openai.OpenAIClient
-import com.xebia.functional.llm.openai.models.OpenAIError
+import com.xebia.functional.scala.config.HuggingFaceConfig
+import com.xebia.functional.scala.config.OpenAIConfig
+import com.xebia.functional.scala.llm.LLM
+import com.xebia.functional.scala.llm.huggingface.HuggingFaceClient
+import com.xebia.functional.scala.llm.openai.OpenAIClient
+import com.xebia.functional.scala.llm.openai.models.OpenAIError
 import io.circe.Encoder
 
 final case class HFRequest(inputs: String, maxLength: Int = 1000) derives Encoder.AsObject

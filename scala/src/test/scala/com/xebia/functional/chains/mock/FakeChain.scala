@@ -1,11 +1,11 @@
-package com.xebia.functional.chains.mock
+package com.xebia.functional.scala.chains.mock
 
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import cats.implicits.*
 
-import com.xebia.functional.chains.BaseChain
-import com.xebia.functional.chains.models.Config
+import com.xebia.functional.scala.chains.BaseChain
+import com.xebia.functional.scala.chains.models.Config
 
 final case class FakeChain(inputVariables: Set[String], outputVariables: Set[String]) extends BaseChain[IO]:
   val config: Config = Config(

@@ -1,4 +1,4 @@
-package com.xebia.functional.prompt.models
+package com.xebia.functional.scala.prompt.models
 
 import cats.*
 import cats.data.*

@@ -1,14 +1,14 @@
-package com.xebia.functional.chains.mock
+package com.xebia.functional.scala.chains.mock
 
 import java.util.UUID
 
 import cats.effect.IO
 
-import com.xebia.functional.chains.TestData
-import com.xebia.functional.domain.Document
-import com.xebia.functional.embeddings.models.Embedding
-import com.xebia.functional.vectorstores.VectorStore
-import com.xebia.functional.vectorstores.models.DocumentVectorId
+import com.xebia.functional.scala.chains.TestData
+import com.xebia.functional.scala.domain.Document
+import com.xebia.functional.scala.embeddings.models.Embedding
+import com.xebia.functional.scala.vectorstores.VectorStore
+import com.xebia.functional.scala.vectorstores.models.DocumentVectorId
 
 class VectorStoreMock extends VectorStore[IO]:
 

@@ -1,4 +1,4 @@
-package com.xebia.functional.llm.models
+package com.xebia.functional.scala.llm.models
 
 import scala.util.control.NoStackTrace
 

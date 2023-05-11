@@ -6,13 +6,13 @@ import cats.effect.*
 import cats.implicits.*
 import cats.syntax.all.*
 
-import com.xebia.functional.config.Config
-import com.xebia.functional.llm.huggingface.*
-import com.xebia.functional.llm.huggingface.models.Model
-import com.xebia.functional.llm.models.HFRequest
-import com.xebia.functional.llm.models.OpenAIRequest
-import com.xebia.functional.llm.openai.OpenAIClient
-import com.xebia.functional.llm.openai.models.EmbeddingRequest
+import com.xebia.functional.scala.config.Config
+import com.xebia.functional.scala.llm.huggingface.*
+import com.xebia.functional.scala.llm.huggingface.models.Model
+import com.xebia.functional.scala.llm.models.HFRequest
+import com.xebia.functional.scala.llm.models.OpenAIRequest
+import com.xebia.functional.scala.llm.openai.OpenAIClient
+import com.xebia.functional.scala.llm.openai.models.EmbeddingRequest
 import org.http4s.client.Client
 import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.implicits.uri

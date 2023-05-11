@@ -1,4 +1,4 @@
-package com.xebia.functional.prompt
+package com.xebia.functional.scala.prompt
 
 import java.nio.file.Path
 
@@ -8,7 +8,7 @@ import cats.effect.*
 import cats.effect.kernel.syntax.all.*
 import cats.syntax.all.*
 
-import com.xebia.functional.prompt.models.*
+import com.xebia.functional.scala.prompt.models.*
 
 sealed trait PromptTemplate[F[_]]:
   def inputKeys: List[String]

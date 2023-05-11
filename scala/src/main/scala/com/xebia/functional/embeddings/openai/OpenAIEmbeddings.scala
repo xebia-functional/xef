@@ -1,4 +1,4 @@
-package com.xebia.functional.embeddings.openai
+package com.xebia.functional.scala.embeddings.openai
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -7,13 +7,13 @@ import cats.data.NonEmptyChain
 import cats.effect.*
 import cats.syntax.all.*
 
-import com.xebia.functional.config.OpenAIConfig
-import com.xebia.functional.embeddings.Embeddings
-import com.xebia.functional.embeddings.models.Embedding
-import com.xebia.functional.embeddings.openai.models.RequestConfig
-import com.xebia.functional.llm.openai.OpenAIClient
-import com.xebia.functional.llm.openai.models.EmbeddingRequest
-import com.xebia.functional.llm.openai.models.EmbeddingResult
+import com.xebia.functional.scala.config.OpenAIConfig
+import com.xebia.functional.scala.embeddings.Embeddings
+import com.xebia.functional.scala.embeddings.models.Embedding
+import com.xebia.functional.scala.embeddings.openai.models.RequestConfig
+import com.xebia.functional.scala.llm.openai.OpenAIClient
+import com.xebia.functional.scala.llm.openai.models.EmbeddingRequest
+import com.xebia.functional.scala.llm.openai.models.EmbeddingResult
 import org.typelevel.log4cats.Logger
 import retry.RetryDetails.*
 import retry.RetryPolicies.*

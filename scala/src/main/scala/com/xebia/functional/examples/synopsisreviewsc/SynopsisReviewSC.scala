@@ -1,4 +1,4 @@
-package com.xebia.functional.synopsisreviewsc
+package com.xebia.functional.scala.synopsisreviewsc
 
 import scala.concurrent.duration._
 
@@ -9,13 +9,13 @@ import cats.effect.IOApp
 import cats.implicits.*
 import cats.kernel.Order
 
-import com.xebia.functional.chains.*
-import com.xebia.functional.config.*
-import com.xebia.functional.embeddings.openai.models.*
-import com.xebia.functional.llm.LLM
-import com.xebia.functional.llm.openai.OpenAIClient
-import com.xebia.functional.prompt.PromptTemplate
-import com.xebia.functional.vectorstores.postgres.*
+import com.xebia.functional.scala.chains.*
+import com.xebia.functional.scala.config.*
+import com.xebia.functional.scala.embeddings.openai.models.*
+import com.xebia.functional.scala.llm.LLM
+import com.xebia.functional.scala.llm.openai.OpenAIClient
+import com.xebia.functional.scala.prompt.PromptTemplate
+import com.xebia.functional.scala.vectorstores.postgres.*
 import eu.timepit.refined.types.string.NonEmptyString
 
 object SynopsisReviewSC extends IOApp.Simple:

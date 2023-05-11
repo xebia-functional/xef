@@ -1,4 +1,4 @@
-package com.xebia.functional.chains.models
+package com.xebia.functional.scala.chains.models
 
 import scala.util.control.NoStackTrace
 
