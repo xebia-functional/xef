@@ -7,11 +7,7 @@ plugins {
 }
 
 dependencies {
-<<<<<<< Updated upstream
-    //implementation(projects.langchain4kCore)
-=======
     implementation(projects.langchain4kKotlin)
->>>>>>> Stashed changes
     implementation(libs.kotlinx.coroutines)
     implementation(libs.ciris.core)
     implementation(libs.ciris.refined)
