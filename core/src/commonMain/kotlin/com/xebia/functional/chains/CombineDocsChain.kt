@@ -2,13 +2,12 @@ package com.xebia.functional.chains
 
 import arrow.core.Either
 import com.xebia.functional.AIError
-import com.xebia.functional.Document
 import com.xebia.functional.llm.openai.LLMModel
 import com.xebia.functional.llm.openai.OpenAIClient
 import com.xebia.functional.prompt.PromptTemplate
 
 interface CombineDocsChain : Chain {
-  suspend fun combine(documents: List<Document>): Map<String, String>
+  suspend fun combine(documents: List<String>): Map<String, String>
 }
 
 @Suppress("LongParameterList")
@@ -16,7 +15,7 @@ suspend fun CombineDocsChain(
   llm: OpenAIClient,
   promptTemplate: PromptTemplate<String>,
   llmModel: LLMModel,
-  documents: List<Document>,
+  documents: List<String>,
   documentVariableName: String,
   outputVariable: String,
   chainOutput: Chain.ChainOutput = Chain.ChainOutput.OnlyOutput
@@ -29,8 +28,8 @@ suspend fun CombineDocsChain(
 
     override val config: Chain.Config = Chain.Config(inputKeys, outputKeys, chainOutput)
 
-    override suspend fun combine(documents: List<Document>): Map<String, String> {
-      val mergedDocs = documents.joinToString("\n") { it.content }
+    override suspend fun combine(documents: List<String>): Map<String, String> {
+      val mergedDocs = documents.joinToString("\n")
       return mapOf(documentVariableName to mergedDocs)
     }
 

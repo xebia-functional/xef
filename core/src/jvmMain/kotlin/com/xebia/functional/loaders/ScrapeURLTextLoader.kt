@@ -1,6 +1,5 @@
 package com.xebia.functional.loaders
 
-import com.xebia.functional.Document
 import com.xebia.functional.textsplitters.BaseTextSplitter
 import it.skrape.core.htmlDocument
 import it.skrape.fetcher.BrowserFetcher
@@ -11,27 +10,25 @@ import it.skrape.fetcher.skrape
 suspend fun ScrapeURLTextLoader(url: String): BaseLoader =
   object : BaseLoader {
 
-    override suspend fun load(): List<Document> = buildList {
+    override suspend fun load(): List<String> = buildList {
       skrape(BrowserFetcher) {
         request { this.url = url }
         response {
           htmlDocument {
             val cleanedText = cleanUpText(wholeText)
             add(
-              Document(
                 """|
                             |Title: $titleText
                             |Info: $cleanedText
                             """
                   .trimIndent()
-              )
             )
           }
         }
       }
     }
 
-    override suspend fun loadAndSplit(textSplitter: BaseTextSplitter): List<Document> =
+    override suspend fun loadAndSplit(textSplitter: BaseTextSplitter): List<String> =
       textSplitter.splitDocuments(documents = load())
 
     private tailrec fun cleanUpTextHelper(

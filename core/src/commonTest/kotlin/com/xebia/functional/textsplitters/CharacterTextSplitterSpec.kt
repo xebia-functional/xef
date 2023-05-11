@@ -1,6 +1,5 @@
 package com.xebia.functional.textsplitters
 
-import com.xebia.functional.Document
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
@@ -19,8 +18,8 @@ class CharacterTextSplitterSpec :
     "should return a list of documents after split on a list of documents with a given separator" {
       val documents =
         listOf(
-          Document("Lorem ipsum dolor sit amet, consectetur adipiscing elit."),
-          Document("Sed do eiusmod tempor incididunt, ut labore et dolore magna aliqua.")
+          "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+          "Sed do eiusmod tempor incididunt, ut labore et dolore magna aliqua."
         )
 
       val separator = ", "
@@ -28,10 +27,10 @@ class CharacterTextSplitterSpec :
 
       textSplitter.splitDocuments(documents) shouldBe
         listOf(
-          Document("Lorem ipsum dolor sit amet"),
-          Document("consectetur adipiscing elit."),
-          Document("Sed do eiusmod tempor incididunt"),
-          Document("ut labore et dolore magna aliqua.")
+          "Lorem ipsum dolor sit amet",
+          "consectetur adipiscing elit.",
+          "Sed do eiusmod tempor incididunt",
+          "ut labore et dolore magna aliqua."
         )
     }
 
@@ -44,9 +43,9 @@ class CharacterTextSplitterSpec :
 
       textSplitter.splitTextInDocuments(text) shouldBe
         listOf(
-          Document("Lorem ipsum dolor sit amet"),
-          Document("consectetur adipiscing elit"),
-          Document("ut labore et dolore magna aliqua.")
+          "Lorem ipsum dolor sit amet",
+          "consectetur adipiscing elit",
+          "ut labore et dolore magna aliqua."
         )
     }
   })

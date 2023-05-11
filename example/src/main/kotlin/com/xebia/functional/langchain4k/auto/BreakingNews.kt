@@ -16,7 +16,7 @@ suspend fun main() {
   ai {
     val sdf = SimpleDateFormat("dd/M/yyyy")
     val currentDate = sdf.format(Date())
-    agent(search("$currentDate Covid News")) {
+    context(search("$currentDate Covid News")) {
       val news: BreakingNewsAboutCovid =
         prompt("write a paragraph of about 300 words about: $currentDate Covid News")
       println(news)

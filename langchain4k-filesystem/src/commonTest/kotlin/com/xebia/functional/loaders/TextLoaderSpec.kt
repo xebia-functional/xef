@@ -1,6 +1,5 @@
 package com.xebia.functional.loaders
 
-import com.xebia.functional.Document
 import com.xebia.functional.textsplitters.CharacterTextSplitter
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
@@ -26,8 +25,8 @@ class TextLoaderSpec : StringSpec({
     val documentList = textLoader.load()
 
     documentList shouldBe listOf(
-      Document("Lorem ipsum dolor sit amet, consectetur adipiscing elit."),
-      Document("Sed do eiusmod tempor incididunt, ut labore et dolore magna aliqua.")
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+      "Sed do eiusmod tempor incididunt, ut labore et dolore magna aliqua."
     )
   }
 
@@ -50,10 +49,10 @@ class TextLoaderSpec : StringSpec({
     val documentList = textLoader.loadAndSplit(textSplitter)
 
     documentList shouldBe listOf(
-      Document("Lorem ipsum dolor sit amet"),
-      Document("consectetur adipiscing elit."),
-      Document("Sed do eiusmod tempor incididunt"),
-      Document("ut labore et dolore magna aliqua.")
+      "Lorem ipsum dolor sit amet",
+      "consectetur adipiscing elit.",
+      "Sed do eiusmod tempor incididunt",
+      "ut labore et dolore magna aliqua."
     )
   }
 })

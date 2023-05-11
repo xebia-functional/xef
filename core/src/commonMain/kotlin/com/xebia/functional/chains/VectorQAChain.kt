@@ -6,14 +6,13 @@ import arrow.core.raise.either
 import arrow.core.raise.recover
 import com.xebia.functional.AIError
 import com.xebia.functional.AIError.Chain.InvalidTemplate
-import com.xebia.functional.Document
 import com.xebia.functional.llm.openai.LLMModel
 import com.xebia.functional.llm.openai.OpenAIClient
 import com.xebia.functional.prompt.PromptTemplate
 import com.xebia.functional.vectorstores.VectorStore
 
 interface VectorQAChain : Chain {
-  suspend fun getDocs(question: String): List<Document>
+  suspend fun getDocs(question: String): List<String>
 }
 
 @Suppress("LongParameterList")
@@ -33,7 +32,7 @@ suspend fun VectorQAChain(
     override val config: Chain.Config =
       Chain.Config(setOf(inputVariable), setOf(outputVariable), chainOutput)
 
-    override suspend fun getDocs(question: String): List<Document> =
+    override suspend fun getDocs(question: String): List<String> =
       vectorStore.similaritySearch(question, numOfDocs)
 
     override suspend fun call(

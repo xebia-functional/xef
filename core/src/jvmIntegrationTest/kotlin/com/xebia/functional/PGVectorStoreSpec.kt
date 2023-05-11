@@ -63,17 +63,9 @@ class PGVectorStoreSpec :
 
     "createCollection should create collection" { pg.createCollection() }
 
-    "addTexts should return a list of 2 elements" {
-      pg.addTexts(listOf("foo", "bar")).size shouldBe 2
-    }
-
     "similaritySearchByVector should return both documents" {
       pg.similaritySearchByVector(Embedding(listOf(4.0f, 5.0f, 6.0f)), 2) shouldBe
-        listOf(Document("bar"), Document("foo"))
-    }
-
-    "addDocuments should return a list of 2 elements" {
-      pg.addDocuments(listOf(Document("foo"), Document("bar"))).size shouldBe 2
+        listOf("bar", "foo")
     }
 
     "similaritySearch should return 2 documents" { pg.similaritySearch("foo", 2).size shouldBe 2 }
@@ -85,6 +77,6 @@ class PGVectorStoreSpec :
 
     "similaritySearchByVector should return document" {
       pg.similaritySearchByVector(Embedding(listOf(1.0f, 2.0f, 3.0f)), 1) shouldBe
-        listOf(Document("foo"))
+        listOf("foo")
     }
   })

@@ -3,10 +3,8 @@ package com.xebia.functional.chains
 import arrow.core.raise.either
 import arrow.fx.coroutines.resourceScope
 import com.xebia.functional.AIError
-import com.xebia.functional.Document
 import com.xebia.functional.embeddings.Embedding
 import com.xebia.functional.llm.openai.LLMModel
-import com.xebia.functional.vectorstores.DocumentVectorId
 import com.xebia.functional.vectorstores.VectorStore
 import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
@@ -66,22 +64,19 @@ class VectorQAChainSpec :
 
 val testVectorStore =
   object : VectorStore {
-    override suspend fun addTexts(texts: List<String>): List<DocumentVectorId> = TODO()
+    override suspend fun addTexts(texts: List<String>) = TODO()
 
-    override suspend fun addDocuments(documents: List<Document>): List<DocumentVectorId> = TODO()
-
-    override suspend fun similaritySearch(query: String, limit: Int): List<Document> =
-      docsList.map { it.value }
+    override suspend fun similaritySearch(query: String, limit: Int): List<String> = docsList
 
     override suspend fun similaritySearchByVector(
       embedding: Embedding,
       limit: Int
-    ): List<Document> = TODO()
+    ): List<String> = TODO()
   }
 
 val docsList =
-  mapOf(
-    UUID.generateUUID() to Document("foo foo foo"),
-    UUID.generateUUID() to Document("bar bar bar"),
-    UUID.generateUUID() to Document("baz baz baz")
+  listOf(
+    "foo foo foo",
+    "bar bar bar",
+    "baz baz baz"
   )

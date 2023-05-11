@@ -2,7 +2,6 @@ package com.xebia.functional.chains
 
 import arrow.core.raise.either
 import com.xebia.functional.AIError
-import com.xebia.functional.Document
 import com.xebia.functional.llm.openai.LLMModel
 import com.xebia.functional.prompt.PromptTemplate
 import io.kotest.assertions.arrow.core.shouldBeLeft
@@ -18,7 +17,7 @@ class CombineDocsChainSpec :
     "Combine should return all the documents properly combined" {
       either {
         val promptTemplate = PromptTemplate(testTemplate, listOf("context", "question"))
-        val docs = listOf(Document("foo foo foo"), Document("bar bar bar"), Document("baz baz baz"))
+        val docs = listOf("foo foo foo", "bar bar bar", "baz baz baz")
         val chain =
           CombineDocsChain(
             testLLM,
@@ -35,7 +34,7 @@ class CombineDocsChainSpec :
     "Run should return the proper LLMChain response with one input" {
       either {
         val promptTemplate = PromptTemplate(testTemplate, listOf("context", "question"))
-        val docs = listOf(Document("foo foo foo"), Document("bar bar bar"), Document("baz baz baz"))
+        val docs = listOf("foo foo foo", "bar bar bar", "baz baz baz")
         val chain =
           CombineDocsChain(
             testLLM,
@@ -52,7 +51,7 @@ class CombineDocsChainSpec :
     "Run should return the proper LLMChain response with more than one input" {
       either {
         val promptTemplate = PromptTemplate(testTemplateInputs, listOf("context", "name", "age"))
-        val docs = listOf(Document("foo foo foo"), Document("bar bar bar"), Document("baz baz baz"))
+        val docs = listOf("foo foo foo", "bar bar bar", "baz baz baz")
         val chain =
           CombineDocsChain(
             testLLM,
@@ -71,7 +70,7 @@ class CombineDocsChainSpec :
     "Run should fail with a InvalidCombineDocumentsChainError if the inputs don't match the expected" {
       either {
         val promptTemplate = PromptTemplate(testTemplateInputs, listOf("context", "name", "age"))
-        val docs = listOf(Document("foo foo foo"), Document("bar bar bar"), Document("baz baz baz"))
+        val docs = listOf("foo foo foo", "bar bar bar", "baz baz baz")
         val chain =
           CombineDocsChain(
             testLLM,

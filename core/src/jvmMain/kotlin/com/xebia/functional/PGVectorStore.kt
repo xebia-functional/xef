@@ -3,7 +3,6 @@ package com.xebia.functional
 import com.xebia.functional.embeddings.Embedding
 import com.xebia.functional.embeddings.Embeddings
 import com.xebia.functional.llm.openai.RequestConfig
-import com.xebia.functional.vectorstores.DocumentVectorId
 import com.xebia.functional.vectorstores.PGCollection
 import com.xebia.functional.vectorstores.PGDistanceStrategy
 import com.xebia.functional.vectorstores.VectorStore
@@ -62,7 +61,7 @@ class PGVectorStore(
       }
     }
 
-  override suspend fun addTexts(texts: List<String>): List<DocumentVectorId> =
+  override suspend fun addTexts(texts: List<String>): Unit =
     dataSource.connection {
       val embeddings = embeddings.embedDocuments(texts, chunckSize, requestConfig)
       val collection = getCollection(collectionName)
@@ -74,14 +73,10 @@ class PGVectorStore(
           bind(embedding.data.toString())
           bind(text)
         }
-        DocumentVectorId(uuid)
       }
     }
 
-  override suspend fun addDocuments(documents: List<Document>): List<DocumentVectorId> =
-    addTexts(documents.map(Document::content))
-
-  override suspend fun similaritySearch(query: String, limit: Int): List<Document> =
+  override suspend fun similaritySearch(query: String, limit: Int): List<String> =
     dataSource.connection {
       val embeddings =
         embeddings.embedQuery(query, requestConfig).ifEmpty {
@@ -98,11 +93,11 @@ class PGVectorStore(
           bind(limit)
         }
       ) {
-        Document(string())
+        string()
       }
     }
 
-  override suspend fun similaritySearchByVector(embedding: Embedding, limit: Int): List<Document> =
+  override suspend fun similaritySearchByVector(embedding: Embedding, limit: Int): List<String> =
     dataSource.connection {
       val collection = getCollection(collectionName)
       queryAsList(
@@ -113,7 +108,7 @@ class PGVectorStore(
           bind(limit)
         }
       ) {
-        Document(string())
+        string()
       }
     }
 }
