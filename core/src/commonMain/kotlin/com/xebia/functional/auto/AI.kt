@@ -10,7 +10,6 @@ import arrow.fx.coroutines.ResourceScope
 import arrow.fx.coroutines.resourceScope
 import com.xebia.functional.AIError
 import com.xebia.functional.auto.serialization.buildJsonSchema
-import com.xebia.functional.auto.serialization.sample
 import com.xebia.functional.chains.VectorQAChain
 import com.xebia.functional.embeddings.OpenAIEmbeddings
 import com.xebia.functional.env.OpenAIConfig
@@ -248,15 +247,17 @@ class AIScope(
       """
                 |$promptWithMemory
                 |
-                |Response Instructions: Use the following JSON schema to produce the result exclusively in valid JSON format
+                |Response Instructions: 
+                |1. Return the entire response in a single line with not additional lines or characters.
+                |2. When returning the response consider <string> values should be accordingly escaped so the json remains valid.
+                |3. Use the JSON schema to produce the result exclusively in valid JSON format.
+                |4. Pay attention to required vs non-required fields in the schema.
                 |JSON Schema:
                 |${serializationConfig.jsonSchema}
-                |Response Example:
-                |${serializationConfig.descriptor.sample()}
                 |Response:
             """
         .trimMargin()
-    val res = chatCompletionResponse(augmentedPrompt, "gpt-3.5-turbo", "AI_Value_Generator")
+    val res = chatCompletionResponse(augmentedPrompt, llmModel, "AI_Value_Generator")
     val msg = res.choices.firstOrNull()?.message?.content
     requireNotNull(msg) { "No message found in result: $res" }
     logger.logTruncated("AI", "Response: $msg", 100)
@@ -265,12 +266,12 @@ class AIScope(
 
   private suspend fun chatCompletionResponse(
     prompt: String,
-    model: String,
+    model: LLMModel,
     user: String
   ): ChatCompletionResponse {
     val completionRequest =
       ChatCompletionRequest(
-        model = model,
+        model = model.name,
         messages = listOf(Message(Role.system.name, prompt, user)),
         user = user
       )
