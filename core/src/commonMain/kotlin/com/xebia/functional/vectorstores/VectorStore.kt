@@ -1,11 +1,6 @@
 package com.xebia.functional.vectorstores
 
-import com.xebia.functional.Document
 import com.xebia.functional.embeddings.Embedding
-import kotlin.jvm.JvmInline
-import kotlinx.uuid.UUID
-
-@JvmInline value class DocumentVectorId(val id: UUID)
 
 interface VectorStore {
   /**
@@ -14,17 +9,9 @@ interface VectorStore {
    * @param texts list of text to add to the vector store
    * @return a list of IDs from adding the texts to the vector store
    */
-  suspend fun addTexts(texts: List<String>): List<DocumentVectorId>
+  suspend fun addTexts(texts: List<String>)
 
-  suspend fun addText(texts: String): List<DocumentVectorId> = addTexts(listOf(texts))
-
-  /**
-   * Add documents to the vector store after running them through the embeddings
-   *
-   * @param documents list of Documents to add to the vector store
-   * @return a list of IDs from adding the documents to the vector store
-   */
-  suspend fun addDocuments(documents: List<Document>): List<DocumentVectorId>
+  suspend fun addText(texts: String) = addTexts(listOf(texts))
 
   /**
    * Return the docs most similar to the query
@@ -33,7 +20,7 @@ interface VectorStore {
    * @param limit number of documents to return
    * @return a list of Documents most similar to query
    */
-  suspend fun similaritySearch(query: String, limit: Int): List<Document>
+  suspend fun similaritySearch(query: String, limit: Int): List<String>
 
   /**
    * Return the docs most similar to the embedding
@@ -42,5 +29,5 @@ interface VectorStore {
    * @param limit number of documents to return
    * @return list of Documents most similar to the embedding
    */
-  suspend fun similaritySearchByVector(embedding: Embedding, limit: Int): List<Document>
+  suspend fun similaritySearchByVector(embedding: Embedding, limit: Int): List<String>
 }
