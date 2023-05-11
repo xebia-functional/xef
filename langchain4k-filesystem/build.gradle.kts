@@ -21,7 +21,7 @@ kotlin {
   sourceSets {
     val commonMain by getting {
       dependencies {
-        implementation(projects.langchain4kKotlin)
+        implementation(projects.langchain4kCore)
         implementation(libs.okio)
         implementation(libs.klogging)
       }
