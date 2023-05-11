@@ -1,33 +1,40 @@
 package com.xebia.functional.vectorstores
 
+import arrow.fx.stm.TMap
+import arrow.fx.stm.TVar
+import arrow.fx.stm.atomically
 import com.xebia.functional.Document
 import com.xebia.functional.embeddings.Embedding
 import com.xebia.functional.embeddings.Embeddings
 import com.xebia.functional.llm.openai.EmbeddingModel
 import com.xebia.functional.llm.openai.RequestConfig
 import kotlin.math.sqrt
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.uuid.UUID
 import kotlinx.uuid.generateUUID
 
-class LocalVectorStore(private val embeddings: Embeddings) : VectorStore {
+class LocalVectorStore
+private constructor(
+  private val embeddings: Embeddings,
+  private val documents: TVar<List<Document>>,
+  private val documentEmbeddings: TMap<Document, Embedding>
+) : VectorStore {
+
+  companion object {
+    suspend operator fun invoke(embeddings: Embeddings) =
+      LocalVectorStore(embeddings, TVar.new(emptyList()), TMap.new())
+  }
 
   private val requestConfig =
     RequestConfig(EmbeddingModel.TextEmbeddingAda002, RequestConfig.Companion.User("user"))
-
-  private val mutex: Mutex = Mutex()
-  private val documents: MutableList<Document> = mutableListOf()
-  private val documentEmbeddings: MutableMap<Document, Embedding> = mutableMapOf()
 
   override suspend fun addTexts(texts: List<String>): List<DocumentVectorId> {
     val embeddingsList =
       embeddings.embedDocuments(texts, chunkSize = null, requestConfig = requestConfig)
     return texts.zip(embeddingsList) { text, embedding ->
       val document = Document(text)
-      mutex.withLock {
-        documents.add(document)
-        documentEmbeddings[document] = embedding
+      atomically {
+        documents.modify { it + document }
+        documentEmbeddings.insert(document, embedding)
       }
       DocumentVectorId(UUID.generateUUID())
     }
@@ -42,12 +49,8 @@ class LocalVectorStore(private val embeddings: Embeddings) : VectorStore {
   }
 
   override suspend fun similaritySearchByVector(embedding: Embedding, limit: Int): List<Document> =
-    documents
-      .mapNotNull { document ->
-        mutex
-          .withLock { documentEmbeddings[document]?.cosineSimilarity(embedding) }
-          ?.let { document to it }
-      }
+    atomically { documents.read().mapNotNull { doc -> documentEmbeddings[doc]?.let { doc to it } } }
+      .map { (doc, embedding) -> doc to embedding.cosineSimilarity(embedding) }
       .sortedByDescending { (_, similarity) -> similarity }
       .take(limit)
       .map { (document, _) -> document }
