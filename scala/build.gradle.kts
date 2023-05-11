@@ -7,7 +7,7 @@ plugins {
 }
 
 dependencies {
-    //implementation(projects.langchain4kKotlin)
+    //implementation(projects.langchain4kCore)
     implementation(libs.kotlinx.coroutines)
     implementation(libs.ciris.core)
     implementation(libs.ciris.refined)

@@ -23,5 +23,5 @@ include("example")
 include("langchain4k-scala")
 project(":langchain4k-scala").projectDir = file("scala")
 
-include("langchain4k-kotlin")
-project(":langchain4k-kotlin").projectDir = file("kotlin")
+include("langchain4k-core")
+project(":langchain4k-core").projectDir = file("core")
