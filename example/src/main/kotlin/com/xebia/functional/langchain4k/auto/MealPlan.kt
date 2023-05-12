@@ -2,7 +2,7 @@ package com.xebia.functional.langchain4k.auto
 
 import com.xebia.functional.auto.ai
 import com.xebia.functional.auto.getOrElse
-import com.xebia.functional.tool.search
+import com.xebia.functional.agents.search
 import kotlinx.serialization.Serializable
 
 @Serializable

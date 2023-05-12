@@ -1,9 +1,8 @@
-package com.xebia.functional.tool
+package com.xebia.functional.agents
 
 import com.xebia.functional.textsplitters.TokenTextSplitter
-import com.xebia.functional.tools.Agent
 
-suspend fun search(vararg prompt: String): Array<Agent<String>> =
+fun search(vararg prompt: String): Collection<ParameterlessAgent<List<String>>> =
   prompt
     .map {
       bingSearch(
@@ -11,4 +10,3 @@ suspend fun search(vararg prompt: String): Array<Agent<String>> =
         TokenTextSplitter(modelName = "gpt-3.5-turbo", chunkSize = 100, chunkOverlap = 50)
       )
     }
-    .toTypedArray()
