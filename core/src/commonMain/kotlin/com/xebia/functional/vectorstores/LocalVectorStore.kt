@@ -41,7 +41,9 @@ private constructor(
   }
 
   override suspend fun similaritySearchByVector(embedding: Embedding, limit: Int): List<String> =
-    atomically { documents.read().mapNotNull { doc -> precomputedEmbeddings[doc]?.let { doc to it } } }
+    atomically {
+        documents.read().mapNotNull { doc -> precomputedEmbeddings[doc]?.let { doc to it } }
+      }
       .map { (doc, embedding) -> doc to embedding.cosineSimilarity(embedding) }
       .sortedByDescending { (_, similarity) -> similarity }
       .take(limit)

@@ -41,13 +41,13 @@ fun bingSearch(
         .flatten()
     val docs =
       items.map {
-          """|
+        """|
                     |${it.title}
                     |${it.description}
                     |${it.link}
                     |${it.pubDate}
                 """
-            .trimMargin()
+          .trimMargin()
       }
     splitter.splitDocuments(linkedDocs + docs)
   }

@@ -76,7 +76,6 @@ class PGVectorStoreSpec :
     }
 
     "similaritySearchByVector should return document" {
-      pg.similaritySearchByVector(Embedding(listOf(1.0f, 2.0f, 3.0f)), 1) shouldBe
-        listOf("foo")
+      pg.similaritySearchByVector(Embedding(listOf(1.0f, 2.0f, 3.0f)), 1) shouldBe listOf("foo")
     }
   })

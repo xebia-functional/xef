@@ -25,13 +25,12 @@ private class TokenTextSplitterImpl(
   override suspend fun splitDocuments(documents: List<String>): List<String> =
     documents.flatMap { document -> splitText(document) }
 
-  override suspend fun splitTextInDocuments(text: String): List<String> =
-    splitText(text)
+  override suspend fun splitTextInDocuments(text: String): List<String> = splitText(text)
 }
 
 val encodingRegistry: EncodingRegistry by lazy { Encodings.newDefaultEncodingRegistry() }
 
-suspend fun TokenTextSplitter(
+fun TokenTextSplitter(
   encodingName: String = "gpt2",
   modelName: String? = null,
   chunkSize: Int,

@@ -9,8 +9,6 @@ import com.xebia.functional.vectorstores.VectorStore
 import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.core.spec.style.StringSpec
-import kotlinx.uuid.UUID
-import kotlinx.uuid.generateUUID
 
 class VectorQAChainSpec :
   StringSpec({
@@ -68,15 +66,8 @@ val testVectorStore =
 
     override suspend fun similaritySearch(query: String, limit: Int): List<String> = docsList
 
-    override suspend fun similaritySearchByVector(
-      embedding: Embedding,
-      limit: Int
-    ): List<String> = TODO()
+    override suspend fun similaritySearchByVector(embedding: Embedding, limit: Int): List<String> =
+      TODO()
   }
 
-val docsList =
-  listOf(
-    "foo foo foo",
-    "bar bar bar",
-    "baz baz baz"
-  )
+val docsList = listOf("foo foo foo", "bar bar bar", "baz baz baz")

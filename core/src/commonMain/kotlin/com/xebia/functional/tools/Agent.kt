@@ -7,6 +7,5 @@ class Agent<out M>(
   val description: String,
   val action: suspend KLogger.() -> List<M>,
 ) {
-  fun <E> map(transform: (M) -> E): Agent<E> =
-    Agent(name, description) { action().map(transform) }
+  fun <E> map(transform: (M) -> E): Agent<E> = Agent(name, description) { action().map(transform) }
 }

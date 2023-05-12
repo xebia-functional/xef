@@ -17,11 +17,11 @@ suspend fun ScrapeURLTextLoader(url: String): BaseLoader =
           htmlDocument {
             val cleanedText = cleanUpText(wholeText)
             add(
-                """|
+              """|
                             |Title: $titleText
                             |Info: $cleanedText
                             """
-                  .trimIndent()
+                .trimIndent()
             )
           }
         }
