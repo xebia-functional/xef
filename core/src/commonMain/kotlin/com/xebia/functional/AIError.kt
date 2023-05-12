@@ -5,14 +5,12 @@ import arrow.core.NonEmptyList
 sealed interface AIError {
   val reason: String
 
-  object NoResponse: AIError {
+  object NoResponse : AIError {
     override val reason: String
       get() = "No response from the AI"
   }
 
-  data class Combined(
-    val errors: NonEmptyList<AIError>
-  ): AIError {
+  data class Combined(val errors: NonEmptyList<AIError>) : AIError {
     override val reason: String
       get() = errors.joinToString { it.reason }
   }

@@ -1,7 +1,7 @@
 package com.xebia.functional.agents
 
-import arrow.core.raise.catch
 import arrow.core.raise.Raise
+import arrow.core.raise.catch
 import arrow.core.raise.ensureNotNull
 import com.xebia.functional.AIError
 import com.xebia.functional.auto.SerializationConfig
@@ -16,52 +16,65 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 
 class DeserializerLLMAgent<A>(
-    serializer: KSerializer<A>,
-    private val json: Json = Json {
+  serializer: KSerializer<A>,
+  private val json: Json = Json {
+    ignoreUnknownKeys = true
+    isLenient = true
+  },
+  private val maxDeserializationAttempts: Int = 5,
+  llm: OpenAIClient,
+  template: PromptTemplate<String>,
+  model: LLMModel = LLMModel.GPT_3_5_TURBO,
+  context: VectorStore = VectorStore.EMPTY,
+  user: String = "testing",
+  echo: Boolean = false,
+  n: Int = 1,
+  temperature: Double = 0.0,
+  bringFromContext: Int = 10
+) : Agent<Map<String, String>, A> {
+
+  companion object {
+    inline operator fun <reified A> invoke(
+      llm: OpenAIClient,
+      template: PromptTemplate<String>,
+      model: LLMModel = LLMModel.GPT_3_5_TURBO,
+      context: VectorStore = VectorStore.EMPTY,
+      user: String = "testing",
+      echo: Boolean = false,
+      n: Int = 1,
+      temperature: Double = 0.0,
+      bringFromContext: Int = 10,
+      json: Json = Json {
         ignoreUnknownKeys = true
         isLenient = true
-    },
-    private val maxDeserializationAttempts: Int = 5,
-    llm: OpenAIClient,
-    template: PromptTemplate<String>,
-    model: LLMModel = LLMModel.GPT_3_5_TURBO,
-    context: VectorStore = VectorStore.EMPTY,
-    user: String = "testing",
-    echo: Boolean = false,
-    n: Int = 1,
-    temperature: Double = 0.0,
-    bringFromContext: Int = 10
-): Agent<Map<String, String>, A> {
+      },
+      maxDeserializationAttempts: Int = 5,
+    ): DeserializerLLMAgent<A> =
+      DeserializerLLMAgent(
+        serializer<A>(),
+        json,
+        maxDeserializationAttempts,
+        llm,
+        template,
+        model,
+        context,
+        user,
+        echo,
+        n,
+        temperature,
+        bringFromContext
+      )
+  }
 
-    companion object {
-        inline operator fun <reified A> invoke(
-            llm: OpenAIClient,
-            template: PromptTemplate<String>,
-            model: LLMModel = LLMModel.GPT_3_5_TURBO,
-            context: VectorStore = VectorStore.EMPTY,
-            user: String = "testing",
-            echo: Boolean = false,
-            n: Int = 1,
-            temperature: Double = 0.0,
-            bringFromContext: Int = 10,
-            json: Json = Json {
-                ignoreUnknownKeys = true
-                isLenient = true
-            },
-            maxDeserializationAttempts: Int = 5,
-        ): DeserializerLLMAgent<A> =
-            DeserializerLLMAgent(serializer<A>(), json, maxDeserializationAttempts, llm, template, model, context, user, echo, n, temperature, bringFromContext)
-    }
+  val serializationConfig: SerializationConfig<A> =
+    SerializationConfig(
+      jsonSchema = buildJsonSchema(serializer.descriptor, false),
+      descriptor = serializer.descriptor,
+      deserializationStrategy = serializer
+    )
 
-    val serializationConfig: SerializationConfig<A> =
-        SerializationConfig(
-            jsonSchema = buildJsonSchema(serializer.descriptor, false),
-            descriptor = serializer.descriptor,
-            deserializationStrategy = serializer
-        )
-
-    val responseInstructions =
-        """
+  val responseInstructions =
+    """
         |
         |Response Instructions: 
         |1. Return the entire response in a single line with not additional lines or characters.
@@ -72,27 +85,39 @@ class DeserializerLLMAgent<A>(
         |${serializationConfig.jsonSchema}
         |Response:
         """
-            .trimMargin()
+      .trimMargin()
 
-    val underlying: LLMAgent =
-        LLMAgent(llm, template.append(responseInstructions), model, context, user, echo, n, temperature, bringFromContext)
+  val underlying: LLMAgent =
+    LLMAgent(
+      llm,
+      template.append(responseInstructions),
+      model,
+      context,
+      user,
+      echo,
+      n,
+      temperature,
+      bringFromContext
+    )
 
-    override val name: String = "Deserializer LLM Agent"
-    override val description: String = "Runs a query through a LLM agent and deserializes the output from a JSON representation"
+  override val name: String = "Deserializer LLM Agent"
+  override val description: String =
+    "Runs a query through a LLM agent and deserializes the output from a JSON representation"
 
-    override suspend fun Raise<AIError>.call(input: Map<String, String>): A {
-        var currentAttempts = 0
-        while (currentAttempts < maxDeserializationAttempts) {
-            currentAttempts++
-            val result = ensureNotNull(with(underlying) { call(input) }.firstOrNull()) { AIError.NoResponse }
-            catch({
-                return@call json.decodeFromString(serializationConfig.deserializationStrategy, result)
-            }) { e: IllegalArgumentException ->
-                if (currentAttempts == maxDeserializationAttempts)
-                    raise(AIError.JsonParsing(result, maxDeserializationAttempts, e))
-                // else continue with the next attempt
-            }
-        }
-        raise(AIError.NoResponse)
+  override suspend fun Raise<AIError>.call(input: Map<String, String>): A {
+    var currentAttempts = 0
+    while (currentAttempts < maxDeserializationAttempts) {
+      currentAttempts++
+      val result =
+        ensureNotNull(with(underlying) { call(input) }.firstOrNull()) { AIError.NoResponse }
+      catch({
+        return@call json.decodeFromString(serializationConfig.deserializationStrategy, result)
+      }) { e: IllegalArgumentException ->
+        if (currentAttempts == maxDeserializationAttempts)
+          raise(AIError.JsonParsing(result, maxDeserializationAttempts, e))
+        // else continue with the next attempt
+      }
     }
+    raise(AIError.NoResponse)
+  }
 }

@@ -187,8 +187,8 @@ class AIScope(
   ): List<String> = with(LLMAgent(openAIClient, prompt, model, context)) { call(variables) }
 
   /**
-   * Run a [question] describes the task you want to solve within the context of [AIScope].
-   * Returns a value of [A] where [A] **has to be** annotated with [kotlinx.serialization.Serializable].
+   * Run a [question] describes the task you want to solve within the context of [AIScope]. Returns
+   * a value of [A] where [A] **has to be** annotated with [kotlinx.serialization.Serializable].
    *
    * @throws SerializationException if serializer cannot be created (provided [A] or its type
    *   argument is not serializable).
@@ -201,8 +201,8 @@ class AIScope(
   ): A = prompt(PromptTemplate(question), emptyMap(), model)
 
   /**
-   * Run a [prompt] describes the task you want to solve within the context of [AIScope].
-   * Returns a value of [A] where [A] **has to be** annotated with [kotlinx.serialization.Serializable].
+   * Run a [prompt] describes the task you want to solve within the context of [AIScope]. Returns a
+   * value of [A] where [A] **has to be** annotated with [kotlinx.serialization.Serializable].
    *
    * @throws SerializationException if serializer cannot be created (provided [A] or its type
    *   argument is not serializable).
@@ -213,7 +213,5 @@ class AIScope(
     prompt: PromptTemplate<String>,
     variables: Map<String, String>,
     model: LLMModel = LLMModel.GPT_3_5_TURBO
-  ): A =
-    with(DeserializerLLMAgent<A>(openAIClient, prompt, model, context)) { call(variables) }
-
+  ): A = with(DeserializerLLMAgent<A>(openAIClient, prompt, model, context)) { call(variables) }
 }

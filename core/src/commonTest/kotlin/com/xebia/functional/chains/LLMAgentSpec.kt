@@ -8,7 +8,6 @@ import com.xebia.functional.prompt.PromptTemplate
 import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.core.spec.style.StringSpec
-import io.kotest.matchers.shouldBe
 
 class LLMAgentSpec :
   StringSpec({
@@ -19,7 +18,7 @@ class LLMAgentSpec :
       either {
         val promptTemplate = PromptTemplate(template, listOf("foo"))
         val chain = LLMAgent(testLLM, promptTemplate, model)
-        with (chain) { call(mapOf("foo" to "a joke")) }
+        with(chain) { call(mapOf("foo" to "a joke")) }
       } shouldBeRight listOf("I'm not good at jokes")
     }
 
@@ -28,7 +27,7 @@ class LLMAgentSpec :
       either {
         val prompt = PromptTemplate(template, listOf("foo"))
         val chain = LLMAgent(testLLM, prompt, model)
-        with (chain) { call(mapOf("foo" to "a joke")) }
+        with(chain) { call(mapOf("foo" to "a joke")) }
       } shouldBeRight listOf("I'm not good at jokes")
     }
 
@@ -37,7 +36,7 @@ class LLMAgentSpec :
       either {
         val prompt = PromptTemplate(template, listOf("name", "age"))
         val chain = LLMAgent(testLLM, prompt, model)
-        with (chain) { call(mapOf("age" to "28", "name" to "foo")) }
+        with(chain) { call(mapOf("age" to "28", "name" to "foo")) }
       } shouldBeRight listOf("Hello there! Nice to meet you foo")
     }
 
@@ -46,7 +45,7 @@ class LLMAgentSpec :
       either {
         val prompt = PromptTemplate(template, listOf("name", "age"))
         val chain = LLMAgent(testLLM, prompt, model)
-        with (chain) { call(mapOf("age" to "28", "brand" to "foo")) }
+        with(chain) { call(mapOf("age" to "28", "brand" to "foo")) }
       } shouldBeLeft
         AIError.InvalidInputs(
           "The provided inputs: {age}, {brand} do not match with chain's inputs: {name}, {age}"

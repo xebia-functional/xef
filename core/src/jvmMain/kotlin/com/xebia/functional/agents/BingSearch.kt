@@ -26,9 +26,10 @@ fun bingSearch(
       links
         .parMap(Dispatchers.IO) { link ->
           try {
-            with (scrapeUrlContent(link, splitter)) { call() }
+            with(scrapeUrlContent(link, splitter)) { call() }
           } catch (e: Exception) {
-            // ignore errors when scrapping nested content due to certificates and other remote issues
+            // ignore errors when scrapping nested content due to certificates and other remote
+            // issues
             emptyList<String>()
           }
         }
