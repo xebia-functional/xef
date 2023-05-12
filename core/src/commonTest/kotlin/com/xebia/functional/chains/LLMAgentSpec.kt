@@ -20,7 +20,7 @@ class LLMAgentSpec :
         val promptTemplate = PromptTemplate(template, listOf("foo"))
         val chain = LLMAgent(testLLM, promptTemplate, model)
         with (chain) { call(mapOf("foo" to "a joke")) }
-      }.shouldBeRight() shouldBe "I'm not good at jokes"
+      } shouldBeRight listOf("I'm not good at jokes")
     }
 
     "LLMAgent should return a prediction with both output and inputs" {
@@ -29,7 +29,7 @@ class LLMAgentSpec :
         val prompt = PromptTemplate(template, listOf("foo"))
         val chain = LLMAgent(testLLM, prompt, model)
         with (chain) { call(mapOf("foo" to "a joke")) }
-      }.shouldBeRight() shouldBe "I'm not good at jokes"
+      } shouldBeRight listOf("I'm not good at jokes")
     }
 
     "LLMAgent should return a prediction with a more complex template" {
@@ -38,7 +38,7 @@ class LLMAgentSpec :
         val prompt = PromptTemplate(template, listOf("name", "age"))
         val chain = LLMAgent(testLLM, prompt, model)
         with (chain) { call(mapOf("age" to "28", "name" to "foo")) }
-      }.shouldBeRight() shouldBe "Hello there! Nice to meet you foo"
+      } shouldBeRight listOf("Hello there! Nice to meet you foo")
     }
 
     "LLMAgent should fail when inputs are not the expected ones from the PromptTemplate" {
@@ -47,7 +47,7 @@ class LLMAgentSpec :
         val prompt = PromptTemplate(template, listOf("name", "age"))
         val chain = LLMAgent(testLLM, prompt, model)
         with (chain) { call(mapOf("age" to "28", "brand" to "foo")) }
-      }.shouldBeLeft() shouldBe
+      } shouldBeLeft
         AIError.InvalidInputs(
           "The provided inputs: {age}, {brand} do not match with chain's inputs: {name}, {age}"
         )
