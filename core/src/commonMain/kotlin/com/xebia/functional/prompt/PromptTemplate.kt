@@ -1,6 +1,7 @@
 package com.xebia.functional.prompt
 
 import arrow.core.raise.Raise
+import arrow.core.raise.either
 
 fun Raise<InvalidTemplate>.PromptTemplate(
   examples: List<String>,
@@ -22,6 +23,9 @@ fun Raise<InvalidTemplate>.PromptTemplate(
   template: String,
   variables: List<String>
 ): PromptTemplate<String> = PromptTemplate(Config(template, variables))
+
+fun PromptTemplate(template: String): PromptTemplate<String> =
+  PromptTemplate(either { Config(template, emptyList()) }.getOrNull()!!)
 
 interface PromptTemplate<A> {
   val inputKeys: List<String>
@@ -73,3 +77,15 @@ interface PromptTemplate<A> {
       promptTemplate.mapK { ChatMessage(it, role) }
   }
 }
+
+fun PromptTemplate<String>.prepend(text: String) =
+  object : PromptTemplate<String> by this {
+    override suspend fun format(variables: Map<String, String>): String =
+      text + this@prepend.format(variables)
+  }
+
+fun PromptTemplate<String>.append(text: String) =
+  object : PromptTemplate<String> by this {
+    override suspend fun format(variables: Map<String, String>): String =
+      this@append.format(variables) + text
+  }

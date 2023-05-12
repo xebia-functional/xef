@@ -5,6 +5,16 @@ import arrow.core.NonEmptyList
 sealed interface AIError {
   val reason: String
 
+  object NoResponse : AIError {
+    override val reason: String
+      get() = "No response from the AI"
+  }
+
+  data class Combined(val errors: NonEmptyList<AIError>) : AIError {
+    override val reason: String
+      get() = errors.joinToString { it.reason }
+  }
+
   data class JsonParsing(
     val result: String,
     val maxAttempts: Int,
@@ -25,18 +35,5 @@ sealed interface AIError {
     }
   }
 
-  sealed interface Chain : AIError {
-    override val reason: String
-
-    data class InvalidInputs(override val reason: String) : Chain
-
-    data class InvalidOutputs(override val reason: String) : Chain
-
-    interface Sequence : Chain {
-      data class InvalidOutputs(override val reason: String) : Sequence
-      data class InvalidKeys(override val reason: String) : Sequence
-    }
-
-    data class InvalidTemplate(override val reason: String) : Chain
-  }
+  data class InvalidInputs(override val reason: String) : AIError
 }

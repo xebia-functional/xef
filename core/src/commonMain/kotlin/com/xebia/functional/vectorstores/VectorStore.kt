@@ -30,4 +30,16 @@ interface VectorStore {
    * @return list of Documents most similar to the embedding
    */
   suspend fun similaritySearchByVector(embedding: Embedding, limit: Int): List<String>
+
+  companion object {
+    val EMPTY: VectorStore =
+      object : VectorStore {
+        override suspend fun addTexts(texts: List<String>) {}
+        override suspend fun similaritySearch(query: String, limit: Int): List<String> = emptyList()
+        override suspend fun similaritySearchByVector(
+          embedding: Embedding,
+          limit: Int
+        ): List<String> = emptyList()
+      }
+  }
 }

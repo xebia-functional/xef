@@ -3,19 +3,18 @@ package com.xebia.functional.auto
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.raise.Raise
-import arrow.core.raise.catch
 import arrow.core.raise.recover
 import arrow.core.right
 import arrow.fx.coroutines.ResourceScope
 import arrow.fx.coroutines.resourceScope
 import com.xebia.functional.AIError
-import com.xebia.functional.auto.serialization.buildJsonSchema
-import com.xebia.functional.chains.VectorQAChain
+import com.xebia.functional.agents.ContextualAgent
+import com.xebia.functional.agents.DeserializerLLMAgent
+import com.xebia.functional.agents.LLMAgent
 import com.xebia.functional.embeddings.OpenAIEmbeddings
 import com.xebia.functional.env.OpenAIConfig
 import com.xebia.functional.llm.openai.*
-import com.xebia.functional.logTruncated
-import com.xebia.functional.tools.Agent
+import com.xebia.functional.prompt.PromptTemplate
 import com.xebia.functional.vectorstores.LocalVectorStore
 import com.xebia.functional.vectorstores.VectorStore
 import io.github.oshai.KLogger
@@ -25,9 +24,7 @@ import kotlin.time.ExperimentalTime
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.serializer
 
 @DslMarker annotation class AiDsl
 
@@ -106,15 +103,11 @@ suspend inline fun <reified A> AI<A>.getOrThrow(): A = getOrElse { throw AIExcep
  * [AI] program, and [Raise] of [AIError] in case you want to compose any [Raise] based actions.
  */
 class AIScope(
-  private val openAIClient: OpenAIClient,
-  private val context: VectorStore,
+  @PublishedApi internal val openAIClient: OpenAIClient,
+  @PublishedApi internal val context: VectorStore,
   private val logger: KLogger,
   resourceScope: ResourceScope,
   raise: Raise<AIError>,
-  private val json: Json = Json {
-    ignoreUnknownKeys = true
-    isLenient = true
-  },
 ) : ResourceScope by resourceScope, Raise<AIError> by raise {
 
   /**
@@ -154,15 +147,15 @@ class AIScope(
 
   /** Runs the [agent] to enlarge the [context], and then executes the [scope]. */
   @AiDsl
-  suspend fun <A> context(agent: Agent<String>, scope: suspend AIScope.() -> A): A =
-    context(arrayOf(agent), scope)
+  suspend fun <A> context(agent: ContextualAgent, scope: suspend AIScope.() -> A): A =
+    context(listOf(agent), scope)
 
   /** Runs the [agents] to enlarge the [context], and then executes the [scope]. */
   @AiDsl
-  suspend fun <A> context(agents: Array<Agent<String>>, scope: suspend AIScope.() -> A): A {
+  suspend fun <A> context(agents: Collection<ContextualAgent>, scope: suspend AIScope.() -> A): A {
     agents.forEach {
       logger.debug { "[${it.name}] Running" }
-      val docs = it.action(logger)
+      val docs = with(it) { call() }
       if (docs.isNotEmpty()) {
         context.addTexts(docs)
         logger.debug { "[${it.name}] Found and memorized ${docs.size} docs" }
@@ -180,115 +173,45 @@ class AIScope(
     return scope(AIScope(openAIClient, context, logger, this, this))
   }
 
+  @AiDsl
+  suspend fun promptMessage(
+    question: String,
+    model: LLMModel = LLMModel.GPT_3_5_TURBO
+  ): List<String> = promptMessage(PromptTemplate(question), emptyMap(), model)
+
+  @AiDsl
+  suspend fun promptMessage(
+    prompt: PromptTemplate<String>,
+    variables: Map<String, String>,
+    model: LLMModel = LLMModel.GPT_3_5_TURBO
+  ): List<String> = with(LLMAgent(openAIClient, prompt, model, context)) { call(variables) }
+
   /**
-   * Run a [prompt] describes the task you want to solve within the context of [AIScope], and any
-   * [agent] it contains. Returns a value of [A] where [A] **has to be** annotated with
-   * [kotlinx.serialization.Serializable].
+   * Run a [question] describes the task you want to solve within the context of [AIScope]. Returns
+   * a value of [A] where [A] **has to be** annotated with [kotlinx.serialization.Serializable].
    *
    * @throws SerializationException if serializer cannot be created (provided [A] or its type
    *   argument is not serializable).
-   * @throws IllegalArgumentException if any of [A]'s type arguments contains star projection
+   * @throws IllegalArgumentException if any of [A]'s type arguments contains star projection.
    */
   @AiDsl
-  suspend inline fun <reified A> prompt(prompt: String): A {
-    val serializer = serializer<A>()
-    val serializationConfig: SerializationConfig<A> =
-      SerializationConfig(
-        jsonSchema = buildJsonSchema(serializer.descriptor, false),
-        descriptor = serializer.descriptor,
-        deserializationStrategy = serializer
-      )
-    return prompt(prompt, serializationConfig)
-  }
-
-  @AiDsl
-  suspend fun <A> prompt(
-    prompt: String,
-    serializationConfig: SerializationConfig<A>,
-    maxAttempts: Int = 5,
-    llmModel: LLMModel = LLMModel.GPT_3_5_TURBO,
-  ): A {
-    logger.logTruncated("AI", "Solving objective: $prompt")
-    val result = openAIChatCall(llmModel, prompt, prompt, serializationConfig)
-    logger.logTruncated("AI", "Response: $result")
-    return catch({ json.decodeFromString(serializationConfig.deserializationStrategy, result) }) {
-      e: IllegalArgumentException ->
-      if (maxAttempts <= 0) raise(AIError.JsonParsing(result, maxAttempts, e))
-      else {
-        logger.logTruncated("System", "Error deserializing result, trying again... ${e.message}")
-        prompt(prompt, serializationConfig, maxAttempts - 1).also {
-          logger.debug { "Fixed JSON: $it" }
-        }
-      }
-    }
-  }
-
-  private suspend fun Raise<AIError>.openAIChatCall(
-    llmModel: LLMModel,
+  suspend inline fun <reified A> prompt(
     question: String,
-    promptWithContext: String,
-    serializationConfig: SerializationConfig<*>,
-  ): String {
-    // run the vectorQAChain to get the answer
-    val numOfDocs = 10
-    val outputVariable = "answer"
-    val chain = VectorQAChain(openAIClient, llmModel, context, numOfDocs, outputVariable)
-    val contextQuestion =
-      """|
-            |Provide a solution as answer to the question or objective below:
-            |```
-            |$question
-            |```
-        """
-        .trimMargin()
-    val chainResults: Map<String, String> = chain.run(contextQuestion).bind()
-    logger.debug { "Chain results: $chainResults" }
-    val promptWithMemory =
-      if (chainResults.isNotEmpty())
-        """
-                |Instructions: Use the [Information] below delimited by 3 backticks to accomplish
-                |the [Objective] at the end of the prompt.
-                |Try to match the data returned in the [Objective] with this [Information] as best as you can.
-                |[Information]:
-                |```
-                |${chainResults.entries.joinToString("\n") { (k, v) -> "$k: $v" }}
-                |```
-                |$promptWithContext
-                """
-          .trimMargin()
-      else promptWithContext
-    val augmentedPrompt =
-      """
-                |$promptWithMemory
-                |
-                |Response Instructions: 
-                |1. Return the entire response in a single line with not additional lines or characters.
-                |2. When returning the response consider <string> values should be accordingly escaped so the json remains valid.
-                |3. Use the JSON schema to produce the result exclusively in valid JSON format.
-                |4. Pay attention to required vs non-required fields in the schema.
-                |JSON Schema:
-                |${serializationConfig.jsonSchema}
-                |Response:
-            """
-        .trimMargin()
-    val res = chatCompletionResponse(augmentedPrompt, llmModel, "AI_Value_Generator")
-    val msg = res.choices.firstOrNull()?.message?.content
-    requireNotNull(msg) { "No message found in result: $res" }
-    logger.logTruncated("AI", "Response: $msg", 100)
-    return msg
-  }
+    model: LLMModel = LLMModel.GPT_3_5_TURBO
+  ): A = prompt(PromptTemplate(question), emptyMap(), model)
 
-  private suspend fun chatCompletionResponse(
-    prompt: String,
-    model: LLMModel,
-    user: String
-  ): ChatCompletionResponse {
-    val completionRequest =
-      ChatCompletionRequest(
-        model = model.name,
-        messages = listOf(Message(Role.system.name, prompt, user)),
-        user = user
-      )
-    return openAIClient.createChatCompletion(completionRequest)
-  }
+  /**
+   * Run a [prompt] describes the task you want to solve within the context of [AIScope]. Returns a
+   * value of [A] where [A] **has to be** annotated with [kotlinx.serialization.Serializable].
+   *
+   * @throws SerializationException if serializer cannot be created (provided [A] or its type
+   *   argument is not serializable).
+   * @throws IllegalArgumentException if any of [A]'s type arguments contains star projection.
+   */
+  @AiDsl
+  suspend inline fun <reified A> prompt(
+    prompt: PromptTemplate<String>,
+    variables: Map<String, String>,
+    model: LLMModel = LLMModel.GPT_3_5_TURBO
+  ): A = with(DeserializerLLMAgent<A>(openAIClient, prompt, model, context)) { call(variables) }
 }
