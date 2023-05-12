@@ -1,29 +1,11 @@
 package com.xebia.functional.tools
 
-import com.xebia.functional.Document
-import com.xebia.functional.vectorstores.VectorStore
 import io.github.oshai.KLogger
-import io.github.oshai.KotlinLogging
 
-class Agent(
+class Agent<out M>(
   val name: String,
   val description: String,
-  val action: suspend Agent.() -> List<Document>,
+  val action: suspend KLogger.() -> List<M>,
 ) {
-  val logger: KLogger by lazy { KotlinLogging.logger(name) }
-
-  suspend fun storeResults(vectorStore: VectorStore) {
-    logger.debug { "[${name}] Running" }
-    val docs = action()
-    if (docs.isNotEmpty()) {
-      vectorStore.addDocuments(docs)
-      logger.debug { "[${name}] Found and memorized ${docs.size} docs" }
-    } else {
-      logger.debug { "[${name}] Found no docs" }
-    }
-  }
-}
-
-suspend fun Array<out Agent>.storeResults(vectorStore: VectorStore) = forEach {
-  it.storeResults(vectorStore)
+  fun <E> map(transform: (M) -> E): Agent<E> = Agent(name, description) { action().map(transform) }
 }

@@ -18,7 +18,7 @@ suspend fun main() {
   ai {
     val sdf = SimpleDateFormat("dd/M/yyyy")
     val currentDate = sdf.format(Date())
-    agent(search("$currentDate Stock market results, raising stocks, decreasing stocks")) {
+    context(search("$currentDate Stock market results, raising stocks, decreasing stocks")) {
       val news: MarketNews = prompt(
         """|
                      |Write a short summary of the stock market results given the provided context.

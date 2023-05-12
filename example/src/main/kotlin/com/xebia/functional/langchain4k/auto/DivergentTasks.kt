@@ -11,7 +11,7 @@ data class NumberOfMedicalNeedlesInWorld(val numberOfNeedles: Long)
 
 suspend fun main() {
     ai {
-        agent(search("Estimate amount of medical needles in the world")) {
+        context(search("Estimate amount of medical needles in the world")) {
             val needlesInWorld: NumberOfMedicalNeedlesInWorld =
                 prompt("Provide the number of medical needles in the world")
             println("Needles in world: ${needlesInWorld.numberOfNeedles}")

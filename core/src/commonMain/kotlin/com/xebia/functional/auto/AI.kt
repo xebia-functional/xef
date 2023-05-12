@@ -16,7 +16,6 @@ import com.xebia.functional.env.OpenAIConfig
 import com.xebia.functional.llm.openai.*
 import com.xebia.functional.logTruncated
 import com.xebia.functional.tools.Agent
-import com.xebia.functional.tools.storeResults
 import com.xebia.functional.vectorstores.LocalVectorStore
 import com.xebia.functional.vectorstores.VectorStore
 import io.github.oshai.KLogger
@@ -66,7 +65,7 @@ suspend inline fun <reified A> AI<A>.getOrElse(crossinline orElse: suspend (AIEr
       val logger = KotlinLogging.logger("AutoAI")
       val embeddings = OpenAIEmbeddings(openAIConfig, openAiClient, logger)
       val vectorStore = LocalVectorStore(embeddings)
-      val scope = AIScope(openAiClient, vectorStore, emptyArray(), logger, this, this@recover)
+      val scope = AIScope(openAiClient, vectorStore, logger, this, this@recover)
       invoke(scope)
     }
   }) {
@@ -108,8 +107,7 @@ suspend inline fun <reified A> AI<A>.getOrThrow(): A = getOrElse { throw AIExcep
  */
 class AIScope(
   private val openAIClient: OpenAIClient,
-  private val vectorStore: VectorStore,
-  private val agent: Array<out Agent>,
+  private val context: VectorStore,
   private val logger: KLogger,
   resourceScope: ResourceScope,
   raise: Raise<AIError>,
@@ -154,15 +152,33 @@ class AIScope(
    */
   @AiDsl @JvmName("invokeAI") suspend operator fun <A> AI<A>.invoke(): A = invoke(this@AIScope)
 
-  /** Creates a child scope of this [AIScope] with the specified [agent]. */
+  /** Runs the [agent] to enlarge the [context], and then executes the [scope]. */
   @AiDsl
-  suspend fun <A> agent(agent: Agent, scope: suspend AIScope.() -> A): A =
-    agent(arrayOf(agent), scope)
+  suspend fun <A> context(agent: Agent<String>, scope: suspend AIScope.() -> A): A =
+    context(arrayOf(agent), scope)
 
-  /** Creates a child scope of this [AIScope] with the specified [agents]. */
+  /** Runs the [agents] to enlarge the [context], and then executes the [scope]. */
   @AiDsl
-  suspend fun <A> agent(agents: Array<out Agent>, scope: suspend AIScope.() -> A): A =
-    scope(AIScope(openAIClient, vectorStore, agents, logger, this, this))
+  suspend fun <A> context(agents: Array<Agent<String>>, scope: suspend AIScope.() -> A): A {
+    agents.forEach {
+      logger.debug { "[${it.name}] Running" }
+      val docs = it.action(logger)
+      if (docs.isNotEmpty()) {
+        context.addTexts(docs)
+        logger.debug { "[${it.name}] Found and memorized ${docs.size} docs" }
+      } else {
+        logger.debug { "[${it.name}] Found no docs" }
+      }
+    }
+    return scope(AIScope(openAIClient, context, logger, this, this))
+  }
+
+  /** Add new [docs] to the [context], and then executes the [scope]. */
+  @AiDsl
+  suspend fun <A> context(docs: List<String>, scope: suspend AIScope.() -> A): A {
+    context.addTexts(docs)
+    return scope(AIScope(openAIClient, context, logger, this, this))
+  }
 
   /**
    * Run a [prompt] describes the task you want to solve within the context of [AIScope], and any
@@ -213,12 +229,10 @@ class AIScope(
     promptWithContext: String,
     serializationConfig: SerializationConfig<*>,
   ): String {
-    // run the agents so they store context in the database
-    agent.storeResults(vectorStore)
     // run the vectorQAChain to get the answer
     val numOfDocs = 10
     val outputVariable = "answer"
-    val chain = VectorQAChain(openAIClient, llmModel, vectorStore, numOfDocs, outputVariable)
+    val chain = VectorQAChain(openAIClient, llmModel, context, numOfDocs, outputVariable)
     val contextQuestion =
       """|
             |Provide a solution as answer to the question or objective below:

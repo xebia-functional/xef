@@ -3,20 +3,17 @@ package com.xebia.functional.vectorstores
 import arrow.fx.stm.TMap
 import arrow.fx.stm.TVar
 import arrow.fx.stm.atomically
-import com.xebia.functional.Document
 import com.xebia.functional.embeddings.Embedding
 import com.xebia.functional.embeddings.Embeddings
 import com.xebia.functional.llm.openai.EmbeddingModel
 import com.xebia.functional.llm.openai.RequestConfig
 import kotlin.math.sqrt
-import kotlinx.uuid.UUID
-import kotlinx.uuid.generateUUID
 
 class LocalVectorStore
 private constructor(
   private val embeddings: Embeddings,
-  private val documents: TVar<List<Document>>,
-  private val documentEmbeddings: TMap<Document, Embedding>
+  private val documents: TVar<List<String>>,
+  private val precomputedEmbeddings: TMap<String, Embedding>
 ) : VectorStore {
 
   companion object {
@@ -27,29 +24,26 @@ private constructor(
   private val requestConfig =
     RequestConfig(EmbeddingModel.TextEmbeddingAda002, RequestConfig.Companion.User("user"))
 
-  override suspend fun addTexts(texts: List<String>): List<DocumentVectorId> {
+  override suspend fun addTexts(texts: List<String>) {
     val embeddingsList =
       embeddings.embedDocuments(texts, chunkSize = null, requestConfig = requestConfig)
-    return texts.zip(embeddingsList) { text, embedding ->
-      val document = Document(text)
+    texts.zip(embeddingsList) { text, embedding ->
       atomically {
-        documents.modify { it + document }
-        documentEmbeddings.insert(document, embedding)
+        documents.modify { it + text }
+        precomputedEmbeddings.insert(text, embedding)
       }
-      DocumentVectorId(UUID.generateUUID())
     }
   }
 
-  override suspend fun addDocuments(documents: List<Document>): List<DocumentVectorId> =
-    addTexts(documents.map(Document::content))
-
-  override suspend fun similaritySearch(query: String, limit: Int): List<Document> {
+  override suspend fun similaritySearch(query: String, limit: Int): List<String> {
     val queryEmbedding = embeddings.embedQuery(query, requestConfig = requestConfig).firstOrNull()
     return queryEmbedding?.let { similaritySearchByVector(it, limit) }.orEmpty()
   }
 
-  override suspend fun similaritySearchByVector(embedding: Embedding, limit: Int): List<Document> =
-    atomically { documents.read().mapNotNull { doc -> documentEmbeddings[doc]?.let { doc to it } } }
+  override suspend fun similaritySearchByVector(embedding: Embedding, limit: Int): List<String> =
+    atomically {
+        documents.read().mapNotNull { doc -> precomputedEmbeddings[doc]?.let { doc to it } }
+      }
       .map { (doc, embedding) -> doc to embedding.cosineSimilarity(embedding) }
       .sortedByDescending { (_, similarity) -> similarity }
       .take(limit)
