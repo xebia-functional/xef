@@ -10,6 +10,13 @@ sealed interface AIError {
       get() = "No response from the AI"
   }
 
+  data class Combined(
+    val errors: NonEmptyList<AIError>
+  ): AIError {
+    override val reason: String
+      get() = errors.joinToString { it.reason }
+  }
+
   data class JsonParsing(
     val result: String,
     val maxAttempts: Int,
