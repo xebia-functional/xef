@@ -13,20 +13,11 @@ class LLMAgentSpec :
   StringSpec({
     val model = LLMModel.GPT_3_5_TURBO
 
-    "LLMAgent should return a prediction with just the output" {
+    "LLMAgent should return a prediction with a simple template" {
       val template = "Tell me {foo}."
       either {
         val promptTemplate = PromptTemplate(template, listOf("foo"))
         val chain = LLMAgent(testLLM, promptTemplate, model)
-        with(chain) { call(mapOf("foo" to "a joke")) }
-      } shouldBeRight listOf("I'm not good at jokes")
-    }
-
-    "LLMAgent should return a prediction with both output and inputs" {
-      val template = "Tell me {foo}."
-      either {
-        val prompt = PromptTemplate(template, listOf("foo"))
-        val chain = LLMAgent(testLLM, prompt, model)
         with(chain) { call(mapOf("foo" to "a joke")) }
       } shouldBeRight listOf("I'm not good at jokes")
     }
