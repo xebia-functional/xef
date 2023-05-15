@@ -25,3 +25,6 @@ project(":langchain4k-scala").projectDir = file("scala")
 
 include("langchain4k-core")
 project(":langchain4k-core").projectDir = file("core")
+
+include("langchain4k-lucene")
+project(":langchain4k-lucene").projectDir = file("integrations/lucene")

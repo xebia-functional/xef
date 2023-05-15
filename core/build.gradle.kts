@@ -81,7 +81,6 @@ kotlin {
         implementation(libs.jtokk.it)
         implementation(libs.scrape.it)
         implementation(libs.rss.reader)
-        implementation(libs.apache.lucene)
       }
     }
 
