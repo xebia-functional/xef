@@ -16,6 +16,6 @@ java {
 }
 
 dependencies {
-    implementation(projects.langchain4kCore)
+    implementation(projects.xefCore)
     implementation(libs.apache.lucene)
 }
