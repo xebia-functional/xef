@@ -5,12 +5,14 @@ import arrow.core.left
 import arrow.core.raise.Raise
 import arrow.core.raise.recover
 import arrow.core.right
+import arrow.fx.coroutines.Resource
 import arrow.fx.coroutines.ResourceScope
 import arrow.fx.coroutines.resourceScope
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.agents.ContextualAgent
 import com.xebia.functional.xef.agents.DeserializerLLMAgent
 import com.xebia.functional.xef.agents.LLMAgent
+import com.xebia.functional.xef.embeddings.Embeddings
 import com.xebia.functional.xef.embeddings.OpenAIEmbeddings
 import com.xebia.functional.xef.env.OpenAIConfig
 import com.xebia.functional.xef.llm.openai.KtorOpenAIClient
@@ -64,7 +66,7 @@ suspend inline fun <reified A> AI<A>.getOrElse(crossinline orElse: suspend (AIEr
       val logger = KotlinLogging.logger("AutoAI")
       val embeddings = OpenAIEmbeddings(openAIConfig, openAiClient, logger)
       val vectorStore = LocalVectorStore(embeddings)
-      val scope = AIScope(openAiClient, vectorStore, logger, this, this@recover)
+      val scope = AIScope(openAiClient, vectorStore, embeddings, logger, this, this@recover)
       invoke(scope)
     }
   }) {
@@ -107,6 +109,7 @@ suspend inline fun <reified A> AI<A>.getOrThrow(): A = getOrElse { throw AIExcep
 class AIScope(
   @PublishedApi internal val openAIClient: OpenAIClient,
   @PublishedApi internal val context: VectorStore,
+  internal val embeddings: Embeddings,
   private val logger: KLogger,
   resourceScope: ResourceScope,
   raise: Raise<AIError>,
@@ -165,14 +168,14 @@ class AIScope(
         logger.debug { "[${it.name}] Found no docs" }
       }
     }
-    return scope(AIScope(openAIClient, context, logger, this, this))
+    return scope(this)
   }
 
   /** Add new [docs] to the [context], and then executes the [scope]. */
   @AiDsl
   suspend fun <A> context(docs: List<String>, scope: suspend AIScope.() -> A): A {
     context.addTexts(docs)
-    return scope(AIScope(openAIClient, context, logger, this, this))
+    return scope(this)
   }
 
   @AiDsl
@@ -216,4 +219,10 @@ class AIScope(
     variables: Map<String, String>,
     model: LLMModel = LLMModel.GPT_3_5_TURBO
   ): A = with(DeserializerLLMAgent<A>(openAIClient, prompt, model, context)) { call(variables) }
+
+  @AiDsl
+  suspend fun <A> withContextStore(
+    store: (Embeddings) -> Resource<VectorStore>,
+    block: AI<A>
+  ): A = AIScope(openAIClient, store(embeddings).bind(), embeddings, logger, this, this).block()
 }
