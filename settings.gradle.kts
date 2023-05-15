@@ -15,13 +15,18 @@ pluginManagement {
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
-rootProject.name = "langchain4k"
-include("langchain4k-filesystem")
+rootProject.name = "xef"
+include("xef-filesystem")
+project(":xef-filesystem").projectDir = file("filesystem")
+
 include("example")
 
 
-include("langchain4k-scala")
-project(":langchain4k-scala").projectDir = file("scala")
+include("xef-scala")
+project(":xef-scala").projectDir = file("scala")
 
-include("langchain4k-core")
-project(":langchain4k-core").projectDir = file("core")
+include("xef-core")
+project(":xef-core").projectDir = file("core")
+
+include("xef-lucene")
+project(":xef-lucene").projectDir = file("integrations/lucene")

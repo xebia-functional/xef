@@ -34,6 +34,7 @@ scrapeit = "1.1.5"
 jtokkit = "0.4.0"
 rssreader = "3.4.4"
 unwrapped = "0.0.0+186-c4a495f7-SNAPSHOT"
+lucene = "9.6.0"
 
 [libraries]
 arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
@@ -91,6 +92,7 @@ scrape-it-async-fetcher = { module = "it.skrape:skrapeit-asyn-fetcher", version.
 jtokk-it = { module = "com.knuddels:jtokkit", version.ref = "jtokkit" }
 rss-reader = { module = "com.apptasticsoftware:rssreader", version.ref = "rssreader" }
 unwrapped = { module = "com.47deg:unwrapped_3", version.ref = "unwrapped" }
+apache-lucene = { module = "org.apache.lucene:lucene-core", version.ref = "lucene" }
 
 [bundles]
 arrow = [
