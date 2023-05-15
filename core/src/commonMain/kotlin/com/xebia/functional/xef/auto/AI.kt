@@ -221,8 +221,6 @@ class AIScope(
   ): A = with(DeserializerLLMAgent<A>(openAIClient, prompt, model, context)) { call(variables) }
 
   @AiDsl
-  suspend fun <A> withContextStore(
-    store: (Embeddings) -> Resource<VectorStore>,
-    block: AI<A>
-  ): A = AIScope(openAIClient, store(embeddings).bind(), embeddings, logger, this, this).block()
+  suspend fun <A> withContextStore(store: (Embeddings) -> Resource<VectorStore>, block: AI<A>): A =
+    AIScope(openAIClient, store(embeddings).bind(), embeddings, logger, this, this).block()
 }
