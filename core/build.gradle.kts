@@ -74,8 +74,6 @@ kotlin {
 
     val jvmMain by getting {
       dependencies {
-        implementation(libs.hikari)
-        implementation(libs.postgresql)
         api(libs.ktor.client.cio)
         implementation(libs.logback)
         implementation(libs.jtokk.it)
@@ -117,13 +115,6 @@ kotlin {
     val linuxX64Test by getting
     val macosX64Test by getting
     val mingwX64Test by getting
-
-    val jvmIntegrationTest by getting {
-      dependencies {
-        implementation(libs.kotest.testcontainers)
-        implementation(libs.testcontainers.postgresql)
-      }
-    }
 
     create("nativeMain") {
       dependsOn(commonMain)

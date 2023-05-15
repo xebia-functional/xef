@@ -1,5 +1,7 @@
 package com.xebia.functional.xef.vectorstores
 
+import arrow.fx.coroutines.Resource
+import arrow.fx.coroutines.autoCloseable
 import com.xebia.functional.xef.embeddings.Embedding
 import com.xebia.functional.xef.embeddings.Embeddings
 import com.xebia.functional.xef.llm.openai.EmbeddingModel
@@ -78,5 +80,13 @@ fun InMemoryLucene(
   embeddings: Embeddings,
   similarity: VectorSimilarityFunction = VectorSimilarityFunction.EUCLIDEAN
 ): DirectoryLucene = DirectoryLucene(MMapDirectory(path), writerConfig, embeddings, similarity)
+
+fun InMemoryLuceneBuilder(
+  path: Path,
+  writerConfig: IndexWriterConfig = IndexWriterConfig(),
+  similarity: VectorSimilarityFunction = VectorSimilarityFunction.EUCLIDEAN
+): (Embeddings) -> Resource<VectorStore> = { embeddings ->
+  autoCloseable { InMemoryLucene(path, writerConfig, embeddings, similarity) }
+}
 
 fun List<Embedding>.toFloatArray(): FloatArray = flatMap { it.data }.toFloatArray()
