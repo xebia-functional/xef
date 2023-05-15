@@ -1,4 +1,4 @@
-package com.xebia.functional.langchain4k.auto
+package com.xebia.functional.xef.auto
 
 import com.xebia.functional.auto.ai
 import com.xebia.functional.auto.getOrElse
