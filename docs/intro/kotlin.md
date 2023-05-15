@@ -51,7 +51,7 @@ go on each field based on its name (like `title` and `author` above).
 ## Prompt templates
 
 The function `books` uses naive string interpolation to make the topic part of the question
-to the LLM. This is not the best practice, because the way the topic is phrase may confuse
+to the LLM. This is not the best practice, because the way the topic is phrased may confuse
 the LLM. It's recommended
 (for example, [here](https://www.deeplearning.ai/short-courses/chatgpt-prompt-engineering-for-developers/)
 and [here](https://learnprompting.org/docs/intro)) to use a _delimiter_ instead, and create a 
