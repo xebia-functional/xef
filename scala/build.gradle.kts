@@ -7,7 +7,7 @@ plugins {
 }
 
 dependencies {
-    //implementation(projects.langchain4kCore)
+    implementation(projects.langchain4kCore)
     implementation(libs.kotlinx.coroutines)
     implementation(libs.ciris.core)
     implementation(libs.ciris.refined)
@@ -26,6 +26,7 @@ dependencies {
     implementation(libs.openai)
     implementation(libs.cats.retry)
     implementation(libs.memeid)
+    implementation("com.47deg:unwrapped_3:0.0.0+186-c4a495f7-SNAPSHOT")
     testImplementation(libs.munit.core)
     testImplementation(libs.munit.cats.effect)
     testImplementation(libs.scala.testcontainers.munit)
