@@ -27,3 +27,6 @@ project(":xef-scala").projectDir = file("scala")
 
 include("xef-core")
 project(":xef-core").projectDir = file("core")
+
+include("xef-lucene")
+project(":xef-lucene").projectDir = file("integrations/lucene")
