@@ -30,3 +30,6 @@ project(":xef-core").projectDir = file("core")
 
 include("xef-lucene")
 project(":xef-lucene").projectDir = file("integrations/lucene")
+
+include("xef-postgresql")
+project(":xef-postgresql").projectDir = file("integrations/postgresql")
