@@ -1,7 +1,5 @@
 package com.xebia.functional.xef.auto
 
-import com.xebia.functional.auto.ai
-import com.xebia.functional.auto.getOrElse
 import kotlinx.serialization.Serializable
 
 @Serializable

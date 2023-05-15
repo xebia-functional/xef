@@ -1,11 +1,9 @@
 package com.xebia.functional.xef.auto
 
-import com.xebia.functional.auto.ai
-import com.xebia.functional.auto.getOrElse
-import com.xebia.functional.agents.search
+import com.xebia.functional.xef.agents.search
 import kotlinx.serialization.Serializable
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
 
 @Serializable
 data class MarketNews(
