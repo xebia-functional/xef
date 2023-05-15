@@ -30,6 +30,9 @@ val testLLM =
         else -> fakeChatCompletion("foo")
       }
 
+    override suspend fun createImages(request: ImagesGenerationRequest): ImagesGenerationResponse =
+      ImagesGenerationResponse(1, listOf(ImageGenerationUrl("foo")))
+
     private fun fakeChatCompletion(message: String): ChatCompletionResponse =
       ChatCompletionResponse(
         id = "foo",

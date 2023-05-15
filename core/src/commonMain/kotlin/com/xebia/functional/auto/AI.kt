@@ -3,6 +3,7 @@ package com.xebia.functional.auto
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.raise.Raise
+import arrow.core.raise.either
 import arrow.core.raise.recover
 import arrow.core.right
 import arrow.fx.coroutines.ResourceScope
@@ -10,6 +11,7 @@ import arrow.fx.coroutines.resourceScope
 import com.xebia.functional.AIError
 import com.xebia.functional.agents.ContextualAgent
 import com.xebia.functional.agents.DeserializerLLMAgent
+import com.xebia.functional.agents.ImageGenerationAgent
 import com.xebia.functional.agents.LLMAgent
 import com.xebia.functional.embeddings.OpenAIEmbeddings
 import com.xebia.functional.env.OpenAIConfig
@@ -214,4 +216,86 @@ class AIScope(
     variables: Map<String, String>,
     model: LLMModel = LLMModel.GPT_3_5_TURBO
   ): A = with(DeserializerLLMAgent<A>(openAIClient, prompt, model, context)) { call(variables) }
+
+  /**
+   * Run a [prompt] describes the images you want to generate within the context of [AIScope].
+   * Returns a [ImagesGenerationResponse] containing time and urls with images generated.
+   *
+   * @param prompt a [PromptTemplate] describing the images you want to generate.
+   * @param variables a map of variables to be replaced in the [prompt].
+   * @param n number of images to generate.
+   * @param size size of the images to generate.
+   */
+  @AiDsl
+  suspend fun images(
+    prompt: PromptTemplate<String>,
+    variables: Map<String, String>,
+    n: Int = 1,
+    size: String = "1024x1024"
+  ): ImagesGenerationResponse =
+    with(
+      ImageGenerationAgent(
+        llm = openAIClient,
+        template = prompt,
+        context = context,
+        n = n,
+        size = size
+      )
+    ) {
+      call(variables)
+    }
+
+  /**
+   * Run a [prompt] describes the images you want to generate within the context of [AIScope].
+   * Returns a [ImagesGenerationResponse] containing time and urls with images generated.
+   *
+   * @param prompt a [PromptTemplate] describing the images you want to generate.
+   * @param n number of images to generate.
+   * @param size size of the images to generate.
+   */
+  @AiDsl
+  suspend fun images(
+    prompt: String,
+    n: Int = 1,
+    size: String = "1024x1024"
+  ): ImagesGenerationResponse = images(PromptTemplate(prompt), emptyMap(), n, size)
+
+  /**
+   * Run a [prompt] describes the images you want to generate within the context of [AIScope].
+   * Produces a [ImagesGenerationResponse] which then gets serialized to [A] through [prompt].
+   *
+   * @param prompt a [PromptTemplate] describing the images you want to generate.
+   * @param n number of images to generate.
+   * @param size size of the images to generate.
+   */
+  @AiDsl
+  suspend inline fun <reified A> Raise<AIError>.image(
+    prompt: String,
+    size: String = "1024x1024",
+    llmModel: LLMModel = LLMModel.GPT_3_5_TURBO
+  ): A {
+    val imageResponse = images(prompt, 1, size)
+    val url = imageResponse.data.firstOrNull() ?: raise(AIError.NoResponse)
+    return either {
+        PromptTemplate(
+          """|Instructions: Format this [URL] and [PROMPT] information in the desired JSON response format
+           |specified at the end of the message.
+           |[URL]: 
+           |```
+           |{url}
+           |```
+           |[PROMPT]:
+           |```
+           |{prompt}
+           |```
+    """
+            .trimMargin(),
+          listOf("url", "prompt")
+        )
+      }
+      .fold(
+        { raise(AIError.InvalidInputs(it.reason)) },
+        { prompt(it, mapOf("url" to url.url, "prompt" to prompt), llmModel) }
+      )
+  }
 }
