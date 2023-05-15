@@ -25,8 +25,8 @@ interface OpenAIClient {
 @Serializable
 data class ImagesGenerationRequest(
   val prompt: String,
-  val n: Int = 1,
-  val size: String = "1024x1024",
+  val numberImages: Int = 1,
+  val imageSize: String = "1024x1024",
   @SerialName("response_format") val responseFormat: String = "url",
   val user: String? = null
 )

@@ -13,8 +13,8 @@ class ImageGenerationAgent(
   private val template: PromptTemplate<String>,
   private val context: VectorStore = VectorStore.EMPTY,
   private val user: String = "testing",
-  private val n: Int,
-  private val size: String,
+  private val numberImages: Int,
+  private val imageSize: String,
   private val bringFromContext: Int = 10
 ) : Agent<Map<String, String>, ImagesGenerationResponse> {
 
@@ -44,7 +44,13 @@ class ImageGenerationAgent(
   }
 
   private suspend fun callImageGenerationEndpoint(prompt: String): ImagesGenerationResponse {
-    val request = ImagesGenerationRequest(prompt = prompt, n = n, size = size, user = user)
+    val request =
+      ImagesGenerationRequest(
+        prompt = prompt,
+        numberImages = numberImages,
+        imageSize = imageSize,
+        user = user
+      )
     return llm.createImages(request)
   }
 }
