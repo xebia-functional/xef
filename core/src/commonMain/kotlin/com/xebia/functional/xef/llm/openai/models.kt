@@ -1,8 +1,8 @@
 package com.xebia.functional.xef.llm.openai
 
+import kotlin.jvm.JvmInline
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlin.jvm.JvmInline
 
 enum class EmbeddingModel(val modelName: String) {
   TextEmbeddingAda002("text-embedding-ada-002")
@@ -114,11 +114,7 @@ data class Usage(
   @SerialName("total_tokens") val totalTokens: Long
 )
 
-data class LLMModel(
-  val name: String,
-  val kind: Kind,
-  val contextLength: Int
-) {
+data class LLMModel(val name: String, val kind: Kind, val contextLength: Int) {
   enum class Kind {
     Completion,
     Chat
