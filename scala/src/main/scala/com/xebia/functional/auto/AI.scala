@@ -21,7 +21,7 @@ object AI:
     LoomAdapter.apply { (cont) =>
       AIKt.AIScope[A](
         { (coreAIScope, cont) =>
-          given AIScope = new AIScope(coreAIScope)
+          given AIScope = AIScope.fromCore(coreAIScope)
           block
         },
         (e: AIError, cont) => throw AIException(e.getReason),
@@ -36,7 +36,7 @@ final case class AIScope(kt: KtAIScope):
 
   def agent[A](agents: List[ParameterlessAgent[List[String]]], scope: AIScope ?=> A): A = ???
 
-  // Scala3 Json parser with support for generating Json Schema?
+  // TODO: Design signature for Scala3 w/ Json parser (with support for generating Json Schema)?
   def prompt[A](
       prompt: String,
       maxAttempts: Int = 5,
