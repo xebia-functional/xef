@@ -1,5 +1,7 @@
-package com.xebia.functional.xef.embeddings
+package com.xebia.functional.xef.embeddings.mock
 
+import com.xebia.functional.xef.embeddings.Embedding
+import com.xebia.functional.xef.embeddings.Embeddings
 import com.xebia.functional.xef.llm.openai.RequestConfig
 
 fun Embeddings.Companion.mock(

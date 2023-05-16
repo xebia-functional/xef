@@ -31,3 +31,6 @@ include("xef-lucene")
 project(":xef-lucene").projectDir = file("integrations/lucene")
 
 include("kotlin-loom")
+
+include("xef-postgresql")
+project(":xef-postgresql").projectDir = file("integrations/postgresql")

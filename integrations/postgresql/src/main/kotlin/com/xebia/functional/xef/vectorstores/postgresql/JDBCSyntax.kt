@@ -1,4 +1,4 @@
-package com.xebia.functional.xef
+package com.xebia.functional.xef.vectorstores.postgresql
 
 import arrow.core.raise.NullableRaise
 import arrow.core.raise.nullable
