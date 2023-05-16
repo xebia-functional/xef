@@ -230,14 +230,14 @@ class AIScope(
    * @param prompt a [PromptTemplate] describing the images you want to generate.
    * @param variables a map of variables to be replaced in the [prompt].
    * @param numberImages number of images to generate.
-   * @param imageSize size of the images to generate.
+   * @param size the size of the images to generate.
    */
   @AiDsl
   suspend fun images(
     prompt: PromptTemplate<String>,
     variables: Map<String, String>,
     numberImages: Int = 1,
-    imageSize: String = "1024x1024"
+    size: String = "1024x1024"
   ): ImagesGenerationResponse =
     with(
       ImageGenerationAgent(
@@ -245,7 +245,7 @@ class AIScope(
         template = prompt,
         context = context,
         numberImages = numberImages,
-        imageSize = imageSize
+        size = size
       )
     ) {
       call(variables)
@@ -257,30 +257,29 @@ class AIScope(
    *
    * @param prompt a [PromptTemplate] describing the images you want to generate.
    * @param numberImages number of images to generate.
-   * @param imageSize size of the images to generate.
+   * @param size the size of the images to generate.
    */
   @AiDsl
   suspend fun images(
     prompt: String,
     numberImages: Int = 1,
-    imageSize: String = "1024x1024"
-  ): ImagesGenerationResponse = images(PromptTemplate(prompt), emptyMap(), numberImages, imageSize)
+    size: String = "1024x1024"
+  ): ImagesGenerationResponse = images(PromptTemplate(prompt), emptyMap(), numberImages, size)
 
   /**
    * Run a [prompt] describes the images you want to generate within the context of [AIScope].
    * Produces a [ImagesGenerationResponse] which then gets serialized to [A] through [prompt].
    *
    * @param prompt a [PromptTemplate] describing the images you want to generate.
-   * @param n number of images to generate.
-   * @param imageSize size of the images to generate.
+   * @param size the size of the images to generate.
    */
   @AiDsl
   suspend inline fun <reified A> Raise<AIError>.image(
     prompt: String,
-    imageSize: String = "1024x1024",
+    size: String = "1024x1024",
     llmModel: LLMModel = LLMModel.GPT_3_5_TURBO
   ): A {
-    val imageResponse = images(prompt, 1, imageSize)
+    val imageResponse = images(prompt, 1, size)
     val url = imageResponse.data.firstOrNull() ?: raise(AIError.NoResponse)
     return either {
         PromptTemplate(

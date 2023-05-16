@@ -14,7 +14,7 @@ class ImageGenerationAgent(
   private val context: VectorStore = VectorStore.EMPTY,
   private val user: String = "testing",
   private val numberImages: Int,
-  private val imageSize: String,
+  private val size: String,
   private val bringFromContext: Int = 10
 ) : Agent<Map<String, String>, ImagesGenerationResponse> {
 
@@ -48,7 +48,7 @@ class ImageGenerationAgent(
       ImagesGenerationRequest(
         prompt = prompt,
         numberImages = numberImages,
-        imageSize = imageSize,
+        size = size,
         user = user
       )
     return llm.createImages(request)
