@@ -29,11 +29,12 @@ object AI:
     }
 
   final case class AIScope private(kt: KtAIScope):
+    self =>
     def context[A](agent: ContextualAgent, scope: AIScope ?=> A): A =
-      LoomAdapter.apply(kt.context[A](agent, (ktAiScope, _) => scope(using AIScope.fromCore(ktAiScope)), _))
+      LoomAdapter.apply(kt.context[A](agent, (_, _) => scope(using self), _))
 
     def context[A](agents: List[ContextualAgent], scope: AIScope ?=> A): A =
-      LoomAdapter.apply(kt.context[A](agents.asJava, (ktAiScope, _) => scope(using AIScope.fromCore(ktAiScope)), _))
+      LoomAdapter.apply(kt.context[A](agents.asJava, (_, _) => scope(using self), _))
 
     def promptMessage[A](question: String, model: KtLLMModel): List[String] =
       LoomAdapter.apply[java.util.List[String]](kt.promptMessage(question, model, _)).asScala.toList
