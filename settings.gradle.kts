@@ -21,7 +21,6 @@ project(":xef-filesystem").projectDir = file("filesystem")
 
 include("example")
 
-
 include("xef-scala")
 project(":xef-scala").projectDir = file("scala")
 
@@ -30,6 +29,8 @@ project(":xef-core").projectDir = file("core")
 
 include("xef-lucene")
 project(":xef-lucene").projectDir = file("integrations/lucene")
+
+include("kotlin-loom")
 
 include("xef-postgresql")
 project(":xef-postgresql").projectDir = file("integrations/postgresql")

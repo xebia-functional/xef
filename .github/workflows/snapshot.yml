@@ -30,7 +30,7 @@ jobs:
       - name: assemble
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: assemble
+          arguments: assemble -x:kotlin-loom:assemble
 
       - name: Upload reports
         if: failure()
@@ -42,4 +42,35 @@ jobs:
       - name: Publish final version
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: -Pversion=0.0.1-SNAPSHOT publishToSonatype
+          arguments: -Pversion=0.0.1-SNAPSHOT publishToSonatype -x:kotlin-loom:publishToSonatype
+
+  publish-kotlin-loom:
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: 19
+
+      - name: assemble
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: :kotlin-loom:assemble -Pversion=${{ inputs.version }}
+
+      - name: Upload reports
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: 'reports-${{ matrix.os }}'
+          path: '**/build/reports/**'
+
+      - name: Publish final version
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: -Pversion=0.0.1-SNAPSHOT :kotlin-loom:publishToSonatype
