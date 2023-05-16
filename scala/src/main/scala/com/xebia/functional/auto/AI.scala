@@ -40,7 +40,7 @@ final case class AIScope(kt: KtAIScope):
   def prompt[A](
       prompt: String,
       maxAttempts: Int = 5,
-      llmMode: LLMModel = LLMModel("gpt-3.5-turbo", LLMModel.Kind.Chat)
+      llmMode: LLMModel = LLMModel.getGPT_3_5_TURBO
   ): A = ???
 
 private object AIScope:
