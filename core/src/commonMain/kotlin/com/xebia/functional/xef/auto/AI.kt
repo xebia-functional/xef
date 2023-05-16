@@ -30,7 +30,8 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.json.JsonObject
 
-@DslMarker annotation class AiDsl
+@DslMarker
+annotation class AiDsl
 
 data class SerializationConfig<A>(
   val jsonSchema: JsonObject,
@@ -57,21 +58,26 @@ inline fun <A> ai(noinline block: suspend AIScope.() -> A): AI<A> = block
  *
  * This operator is **terminal** meaning it runs and completes the _chain_ of `AI` actions.
  */
-@OptIn(ExperimentalTime::class)
 suspend inline fun <reified A> AI<A>.getOrElse(crossinline orElse: suspend (AIError) -> A): A =
-  recover({
-    resourceScope {
-      val openAIConfig = OpenAIConfig()
-      val openAiClient: OpenAIClient = KtorOpenAIClient(openAIConfig)
-      val logger = KotlinLogging.logger("AutoAI")
-      val embeddings = OpenAIEmbeddings(openAIConfig, openAiClient, logger)
-      val vectorStore = LocalVectorStore(embeddings)
-      val scope = AIScope(openAiClient, vectorStore, embeddings, logger, this, this@recover)
-      invoke(scope)
-    }
-  }) {
-    orElse(it)
+  AIScope(this) { orElse(it) }
+
+@OptIn(ExperimentalTime::class)
+suspend fun <A> AIScope(
+  block: suspend AIScope.() -> A,
+  orElse: suspend (AIError) -> A
+): A = recover({
+  resourceScope {
+    val openAIConfig = OpenAIConfig()
+    val openAiClient: OpenAIClient = KtorOpenAIClient(openAIConfig)
+    val logger = KotlinLogging.logger("AutoAI")
+    val embeddings = OpenAIEmbeddings(openAIConfig, openAiClient, logger)
+    val vectorStore = LocalVectorStore(embeddings)
+    val scope = AIScope(openAiClient, vectorStore, embeddings, logger, this, this@recover)
+    block(scope)
   }
+}) {
+  orElse(it)
+}
 
 /**
  * Run the [AI] value to produce _either_ an [AIError], or [A]. this method initialises all the
@@ -148,7 +154,9 @@ class AIScope(
    * }
    * ```
    */
-  @AiDsl @JvmName("invokeAI") suspend operator fun <A> AI<A>.invoke(): A = invoke(this@AIScope)
+  @AiDsl
+  @JvmName("invokeAI")
+  suspend operator fun <A> AI<A>.invoke(): A = invoke(this@AIScope)
 
   /** Runs the [agent] to enlarge the [context], and then executes the [scope]. */
   @AiDsl
