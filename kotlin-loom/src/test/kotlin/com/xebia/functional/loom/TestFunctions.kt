@@ -1,4 +1,4 @@
-package com.xebia.functional
+package com.xebia.functional.loom
 
 import java.util.concurrent.CancellationException
 import java.util.concurrent.CompletableFuture
@@ -32,15 +32,14 @@ object TestFunctions {
   }
 
   /**
-   * A method that takes a [CompletableFuture] that will be completed with an [Throwable].
-   * Which is [CancellationException] in case of cancellation, or [Throwable] in case of error,
-   * and otherwise `null`.
+   * A method that takes a [CompletableFuture] that will be completed with an [Throwable]. Which is
+   * [CancellationException] in case of cancellation, or [Throwable] in case of error, and otherwise
+   * `null`.
    */
   @JvmStatic
-  fun forever(completableFuture: CompletableFuture<Throwable?>): suspend () -> Unit =
-    {
-      suspendCancellableCoroutine<Unit> { cont ->
-        cont.invokeOnCancellation { t -> completableFuture.complete(t) }
-      }
+  fun forever(completableFuture: CompletableFuture<Throwable?>): suspend () -> Unit = {
+    suspendCancellableCoroutine<Unit> { cont ->
+      cont.invokeOnCancellation { t -> completableFuture.complete(t) }
     }
+  }
 }

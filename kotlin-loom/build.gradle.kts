@@ -1,5 +1,6 @@
 plugins {
   id(libs.plugins.kotlin.jvm.get().pluginId)
+  alias(libs.plugins.spotless)
 }
 
 repositories {
@@ -43,5 +44,15 @@ tasks.withType<Test>().configureEach {
   jvmArgs("--enable-preview", "--add-modules", "jdk.incubator.concurrent")
   testLogging {
     events("passed", "skipped", "failed")
+  }
+}
+
+spotless {
+  java {
+    palantirJavaFormat()
+  }
+  kotlin {
+    target("**/*.kt")
+    ktfmt().googleStyle()
   }
 }

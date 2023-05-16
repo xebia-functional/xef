@@ -1,11 +1,10 @@
-package com.xebia.functional;
-
-import org.junit.jupiter.api.Test;
-
-import java.util.concurrent.*;
+package com.xebia.functional.loom;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import java.util.concurrent.*;
+import org.junit.jupiter.api.Test;
 
 public class ExampleTest {
 
@@ -34,8 +33,10 @@ public class ExampleTest {
     @Test
     public void isFailure() {
         assertThatThrownBy(() -> {
-            LoomAdapter.apply(TestFunctions.failure(new RuntimeException("Boom!")));
-        }).isInstanceOf(RuntimeException.class).hasMessage("Boom!");
+                    LoomAdapter.apply(TestFunctions.failure(new RuntimeException("Boom!")));
+                })
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("Boom!");
     }
 
     @Test
