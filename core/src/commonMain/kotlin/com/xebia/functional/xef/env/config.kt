@@ -7,9 +7,9 @@ import arrow.core.raise.recover
 import arrow.core.raise.zipOrAccumulate
 import arrow.resilience.Schedule
 import com.xebia.functional.xef.AIError
+import io.ktor.http.Url as KUrl
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
-import io.ktor.http.Url as KUrl
 
 data class Env(val openAI: OpenAIConfig, val huggingFace: HuggingFaceConfig)
 
