@@ -1,6 +1,7 @@
 plugins {
   id(libs.plugins.kotlin.jvm.get().pluginId)
   alias(libs.plugins.spotless)
+  alias(libs.plugins.arrow.gradle.publish)
 }
 
 repositories {
