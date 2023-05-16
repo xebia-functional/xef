@@ -28,7 +28,7 @@ class LLMAgent(
   override val description: String = "Runs a query through a LLM agent"
 
   override suspend fun Raise<AIError>.call(input: Map<String, String>): List<String> {
-    val prompt = template.format(checkInput(input))
+    val prompt = template.format(checkInput(template, input))
 
     val ctxInfo = context.similaritySearch(prompt, bringFromContext)
     val promptWithContext =
@@ -50,18 +50,6 @@ class LLMAgent(
       LLMModel.Kind.Completion -> callCompletionEndpoint(promptWithContext)
       LLMModel.Kind.Chat -> callChatEndpoint(promptWithContext)
     }
-  }
-
-  fun Raise<AIError>.checkInput(input: Map<String, String>): Map<String, String> {
-    ensure((template.inputKeys subtract input.keys).isEmpty()) {
-      AIError.InvalidInputs(
-        "The provided inputs: " +
-          input.keys.joinToString(", ") { "{$it}" } +
-          " do not match with chain's inputs: " +
-          template.inputKeys.joinToString(", ") { "{$it}" }
-      )
-    }
-    return input
   }
 
   private suspend fun callCompletionEndpoint(prompt: String): List<String> {
@@ -90,4 +78,19 @@ class LLMAgent(
       )
     return llm.createChatCompletion(request).choices.map { it.message.content }
   }
+}
+
+fun Raise<AIError>.checkInput(
+  template: PromptTemplate<String>,
+  input: Map<String, String>
+): Map<String, String> {
+  ensure((template.inputKeys subtract input.keys).isEmpty()) {
+    AIError.InvalidInputs(
+      "The provided inputs: " +
+        input.keys.joinToString(", ") { "{$it}" } +
+        " do not match with chain's inputs: " +
+        template.inputKeys.joinToString(", ") { "{$it}" }
+    )
+  }
+  return input
 }
