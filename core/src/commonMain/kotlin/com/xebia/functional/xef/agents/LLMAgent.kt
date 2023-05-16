@@ -61,7 +61,7 @@ class LLMAgent(
         echo = echo,
         n = n,
         temperature = temperature,
-        maxTokens = 256
+        maxTokens = 1024
       )
     return llm.createCompletion(request).map { it.text }
   }
@@ -74,7 +74,7 @@ class LLMAgent(
         messages = listOf(Message(Role.system.name, prompt)),
         n = n,
         temperature = temperature,
-        maxTokens = 256
+        maxTokens = 1024
       )
     return llm.createChatCompletion(request).choices.map { it.message.content }
   }

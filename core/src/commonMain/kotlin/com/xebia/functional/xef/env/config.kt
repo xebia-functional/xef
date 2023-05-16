@@ -17,7 +17,8 @@ data class OpenAIConfig(
   val token: String,
   val baseUrl: KUrl,
   val chunkSize: Int,
-  val retryConfig: RetryConfig
+  val retryConfig: RetryConfig,
+  val requestTimeout: Duration
 )
 
 data class RetryConfig(val backoff: Duration, val maxRetries: Long) {
@@ -41,8 +42,9 @@ fun Raise<AIError.Env.OpenAI>.OpenAIConfig(token: String? = null) =
       { env("OPENAI_CHUNK_SIZE", default = 300) { it.toIntOrNull() } },
       { env("OPENAI_BACKOFF", default = 5.seconds) { it.toIntOrNull()?.seconds } },
       { env("OPENAI_MAX_RETRIES", default = 5) { it.toLongOrNull() } },
-    ) { token2, baseUrl, chunkSize, backoff, maxRetries ->
-      OpenAIConfig(token2, baseUrl, chunkSize, RetryConfig(backoff, maxRetries))
+      { env("OPENAI_REQUEST_TIMEOUT", default = 30.seconds) { it.toIntOrNull()?.seconds } },
+    ) { token2, baseUrl, chunkSize, backoff, maxRetries, requestTimeout ->
+      OpenAIConfig(token2, baseUrl, chunkSize, RetryConfig(backoff, maxRetries), requestTimeout)
     }
   }) { e: NonEmptyList<String> ->
     raise(AIError.Env.OpenAI(e))

@@ -4,6 +4,7 @@ import arrow.fx.coroutines.ResourceScope
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.HttpClientEngine
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.HttpRequestBuilder
@@ -28,6 +29,7 @@ suspend fun ResourceScope.httpClient(engine: HttpClientEngine?, baseUrl: Url): H
   }
 
 private fun HttpClientConfig<*>.configure(baseUrl: Url): Unit {
+  install(HttpTimeout)
   install(ContentNegotiation) { json() }
   defaultRequest { url(baseUrl.toString()) }
 }
