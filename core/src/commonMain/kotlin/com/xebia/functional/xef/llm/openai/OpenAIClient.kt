@@ -39,8 +39,7 @@ data class ImagesGenerationResponse(val created: Long, val data: List<ImageGener
 suspend fun ResourceScope.KtorOpenAIClient(
   config: OpenAIConfig,
   engine: HttpClientEngine? = null
-): OpenAIClient =
-  KtorOpenAIClient(httpClient(engine, config.baseUrl), config)
+): OpenAIClient = KtorOpenAIClient(httpClient(engine, config.baseUrl), config)
 
 private class KtorOpenAIClient(
   private val httpClient: HttpClient,
