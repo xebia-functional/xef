@@ -8,7 +8,7 @@ import com.xebia.functional.xef.httpClient
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
-import io.ktor.client.plugins.*
+import io.ktor.client.plugins.timeout
 import io.ktor.client.request.post
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.path
@@ -25,8 +25,8 @@ interface OpenAIClient {
 @Serializable
 data class ImagesGenerationRequest(
   val prompt: String,
-  val numberImages: Int = 1,
-  val imageSize: String = "1024x1024",
+  @SerialName("n") val numberImages: Int = 1,
+  @SerialName("size") val imageSize: String = "1024x1024",
   @SerialName("response_format") val responseFormat: String = "url",
   val user: String? = null
 )
@@ -40,7 +40,7 @@ suspend fun ResourceScope.KtorOpenAIClient(
   config: OpenAIConfig,
   engine: HttpClientEngine? = null
 ): OpenAIClient =
-  com.xebia.functional.xef.llm.openai.KtorOpenAIClient(httpClient(engine, config.baseUrl), config)
+  KtorOpenAIClient(httpClient(engine, config.baseUrl), config)
 
 private class KtorOpenAIClient(
   private val httpClient: HttpClient,
