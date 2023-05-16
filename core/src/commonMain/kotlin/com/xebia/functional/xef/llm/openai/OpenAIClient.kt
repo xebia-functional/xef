@@ -26,7 +26,7 @@ interface OpenAIClient {
 data class ImagesGenerationRequest(
   val prompt: String,
   @SerialName("n") val numberImages: Int = 1,
-  @SerialName("size") val imageSize: String = "1024x1024",
+  val size: String = "1024x1024",
   @SerialName("response_format") val responseFormat: String = "url",
   val user: String? = null
 )
