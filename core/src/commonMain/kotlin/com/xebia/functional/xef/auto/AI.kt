@@ -223,7 +223,6 @@ class AIScope(
     model: LLMModel = LLMModel.GPT_3_5_TURBO
   ): A = with(DeserializerLLMAgent<A>(openAIClient, prompt, model, context)) { call(variables) }
 
-
   /**
    * Run a [prompt] describes the images you want to generate within the context of [AIScope].
    * Returns a [ImagesGenerationResponse] containing time and urls with images generated.
@@ -309,5 +308,4 @@ class AIScope(
   @AiDsl
   suspend fun <A> withContextStore(store: (Embeddings) -> Resource<VectorStore>, block: AI<A>): A =
     AIScope(openAIClient, store(embeddings).bind(), embeddings, logger, this, this).block()
-
 }
