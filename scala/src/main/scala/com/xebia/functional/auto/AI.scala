@@ -28,7 +28,7 @@ object AI:
       )
     }
 
-  final case class AIScope private(kt: KtAIScope):
+  final case class AIScope private (kt: KtAIScope):
     self =>
     def context[A](agent: ContextualAgent, scope: AIScope ?=> A): A =
       LoomAdapter.apply(kt.context[A](agent, (_, _) => scope(using self), _))
