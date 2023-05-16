@@ -1,20 +1,9 @@
-package com.xebia.functional.xef
+package com.xebia.functional.xef.vectorstores
 
 import com.xebia.functional.xef.embeddings.Embedding
 import com.xebia.functional.xef.embeddings.Embeddings
 import com.xebia.functional.xef.llm.openai.RequestConfig
-import com.xebia.functional.xef.vectorstores.PGCollection
-import com.xebia.functional.xef.vectorstores.PGDistanceStrategy
-import com.xebia.functional.xef.vectorstores.VectorStore
-import com.xebia.functional.xef.vectorstores.addNewCollection
-import com.xebia.functional.xef.vectorstores.addNewText
-import com.xebia.functional.xef.vectorstores.addVectorExtension
-import com.xebia.functional.xef.vectorstores.createCollectionsTable
-import com.xebia.functional.xef.vectorstores.createEmbeddingTable
-import com.xebia.functional.xef.vectorstores.deleteCollection
-import com.xebia.functional.xef.vectorstores.deleteCollectionDocs
-import com.xebia.functional.xef.vectorstores.getCollection
-import com.xebia.functional.xef.vectorstores.searchSimilarDocument
+import com.xebia.functional.xef.vectorstores.postgresql.*
 import javax.sql.DataSource
 import kotlinx.uuid.UUID
 import kotlinx.uuid.generateUUID

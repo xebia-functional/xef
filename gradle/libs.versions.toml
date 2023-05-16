@@ -17,7 +17,7 @@ testcontainers = "1.17.6"
 hikari = "5.0.1"
 dokka = "1.8.10"
 logback = "1.4.6"
-kotlinx-coroutines = "1.6.4"
+kotlinx-coroutines = "1.7.1"
 scalaMultiversion = "2.0.4"
 ciris = "3.1.0"
 http4s = "0.23.18"
@@ -35,6 +35,8 @@ jtokkit = "0.4.0"
 rssreader = "3.4.4"
 unwrapped = "0.0.0+186-c4a495f7-SNAPSHOT"
 lucene = "9.6.0"
+assertj = "3.11.1"
+junit = "5.9.3"
 
 [libraries]
 arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
@@ -59,6 +61,7 @@ kotest-property = { module = "io.kotest:kotest-property", version.ref = "kotest"
 kotest-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
 kotest-testcontainers = { module = "io.kotest.extensions:kotest-extensions-testcontainers", version.ref = "kotest-testcontainers" }
 kotest-assertions-arrow = { module = "io.kotest.extensions:kotest-assertions-arrow", version.ref = "kotest-arrow" }
+junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
 uuid = { module = "app.softwork:kotlinx-uuid-core", version.ref = "uuid" }
 klogging = { module = "io.github.oshai:kotlin-logging", version.ref = "klogging"  }
 hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
@@ -93,6 +96,7 @@ jtokk-it = { module = "com.knuddels:jtokkit", version.ref = "jtokkit" }
 rss-reader = { module = "com.apptasticsoftware:rssreader", version.ref = "rssreader" }
 unwrapped = { module = "com.47deg:unwrapped_3", version.ref = "unwrapped" }
 apache-lucene = { module = "org.apache.lucene:lucene-core", version.ref = "lucene" }
+assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 
 [bundles]
 arrow = [

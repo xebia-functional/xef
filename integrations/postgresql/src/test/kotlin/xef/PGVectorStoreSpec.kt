@@ -1,11 +1,12 @@
-package com.xebia.functional.xef
+package xef
 
 import com.xebia.functional.xef.embeddings.Embedding
 import com.xebia.functional.xef.embeddings.Embeddings
-import com.xebia.functional.xef.embeddings.mock
+import com.xebia.functional.xef.embeddings.mock.mock
 import com.xebia.functional.xef.llm.openai.EmbeddingModel
 import com.xebia.functional.xef.llm.openai.RequestConfig
-import com.xebia.functional.xef.vectorstores.PGDistanceStrategy
+import com.xebia.functional.xef.vectorstores.PGVectorStore
+import com.xebia.functional.xef.vectorstores.postgresql.PGDistanceStrategy
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.kotest.core.extensions.install
