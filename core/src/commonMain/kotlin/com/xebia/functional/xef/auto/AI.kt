@@ -28,10 +28,7 @@ import io.github.oshai.KLogger
 import io.github.oshai.KotlinLogging
 import kotlin.jvm.JvmName
 import kotlin.time.ExperimentalTime
-import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.json.JsonObject
 
 @DslMarker annotation class AiDsl
 
@@ -227,7 +224,10 @@ class AIScope(
     model: LLMModel = LLMModel.GPT_3_5_TURBO,
     jsonSchema: String,
     transform: (json: String) -> A
-  ): A = with(DeserializerLLMAgent<A>(jsonSchema, transform, 5, openAIClient, prompt, model, context)) { call(variables) }
+  ): A =
+    with(DeserializerLLMAgent<A>(jsonSchema, transform, 5, openAIClient, prompt, model, context)) {
+      call(variables)
+    }
 
   /**
    * Run a [prompt] describes the images you want to generate within the context of [AIScope].

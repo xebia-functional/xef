@@ -15,11 +15,7 @@ sealed interface AIError {
       get() = errors.joinToString { it.reason }
   }
 
-  data class JsonParsing(
-    val result: String,
-    val maxAttempts: Int,
-    val cause: Throwable
-  ) : AIError {
+  data class JsonParsing(val result: String, val maxAttempts: Int, val cause: Throwable) : AIError {
     override val reason: String
       get() = "Failed to parse the JSON response after $maxAttempts attempts: $result"
   }

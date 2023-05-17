@@ -38,7 +38,7 @@ final case class AIScope(kt: KtAIScope):
   def agent[A](agents: List[ParameterlessAgent[List[String]]], scope: AIScope ?=> A): A = ???
 
   // TODO: Design signature for Scala3 w/ Json parser (with support for generating Json Schema)?
-  def prompt[A : Decoder](
+  def prompt[A: Decoder](
       prompt: String,
       maxAttempts: Int = 5,
       llmMode: LLMModel = LLMModel.getGPT_3_5_TURBO

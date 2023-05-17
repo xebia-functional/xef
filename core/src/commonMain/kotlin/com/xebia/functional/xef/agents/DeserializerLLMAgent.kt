@@ -15,10 +15,10 @@ import kotlinx.serialization.serializer
 
 class DeserializerLLMAgent<A>(
   //  serializer: KSerializer<A>,
-//  private val json: Json = Json {
-//    ignoreUnknownKeys = true
-//    isLenient = true
-//  },
+  //  private val json: Json = Json {
+  //    ignoreUnknownKeys = true
+  //    isLenient = true
+  //  },
   jsonSchema: String,
   private val transform: (json: String) -> A,
   private val maxDeserializationAttempts: Int = 5,
@@ -69,12 +69,12 @@ class DeserializerLLMAgent<A>(
     }
   }
 
-//  val serializationConfig: SerializationConfig<A> =
-//    SerializationConfig(
-//      jsonSchema = buildJsonSchema(serializer.descriptor, false),
-//      descriptor = serializer.descriptor,
-//      deserializationStrategy = serializer
-//    )
+  //  val serializationConfig: SerializationConfig<A> =
+  //    SerializationConfig(
+  //      jsonSchema = buildJsonSchema(serializer.descriptor, false),
+  //      descriptor = serializer.descriptor,
+  //      deserializationStrategy = serializer
+  //    )
 
   val responseInstructions =
     """
@@ -112,7 +112,9 @@ class DeserializerLLMAgent<A>(
       currentAttempts++
       val result =
         ensureNotNull(with(underlying) { call(input) }.firstOrNull()) { AIError.NoResponse }
-      catch({ return@call transform(result) }) { e: Throwable ->
+      catch({
+        return@call transform(result)
+      }) { e: Throwable ->
         if (currentAttempts == maxDeserializationAttempts)
           raise(AIError.JsonParsing(result, maxDeserializationAttempts, e))
         // else continue with the next attempt
