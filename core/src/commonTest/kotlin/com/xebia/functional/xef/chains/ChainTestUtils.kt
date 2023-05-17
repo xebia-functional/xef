@@ -7,6 +7,9 @@ import com.xebia.functional.xef.llm.openai.CompletionChoice
 import com.xebia.functional.xef.llm.openai.CompletionRequest
 import com.xebia.functional.xef.llm.openai.EmbeddingRequest
 import com.xebia.functional.xef.llm.openai.EmbeddingResult
+import com.xebia.functional.xef.llm.openai.ImageGenerationUrl
+import com.xebia.functional.xef.llm.openai.ImagesGenerationRequest
+import com.xebia.functional.xef.llm.openai.ImagesGenerationResponse
 import com.xebia.functional.xef.llm.openai.Message
 import com.xebia.functional.xef.llm.openai.OpenAIClient
 import com.xebia.functional.xef.llm.openai.Role
@@ -39,6 +42,9 @@ val testLLM =
         testQATemplateFormatted -> fakeChatCompletion("I don't know")
         else -> fakeChatCompletion("foo")
       }
+
+    override suspend fun createImages(request: ImagesGenerationRequest): ImagesGenerationResponse =
+      ImagesGenerationResponse(1, listOf(ImageGenerationUrl("foo")))
 
     private fun fakeChatCompletion(message: String): ChatCompletionResponse =
       ChatCompletionResponse(

@@ -28,6 +28,12 @@ object AI:
       )
     }
 
+//def example(using AIScope): String =
+//    prompt[String]("What is your name?")
+
+//val example: AIScope ?=> String =
+//  prompt[String]("What is your name?")
+
   final case class AIScope private (kt: KtAIScope):
     self =>
     def context[A](agent: ContextualAgent, scope: AIScope ?=> A): A =
@@ -41,6 +47,9 @@ object AI:
 
     def promptMessage[A](prompt: KtPromptTemplate[String], variables: Map[String, String], model: KtLLMModel): List[String] =
       LoomAdapter.apply[java.util.List[String]](kt.promptMessage(prompt, variables.asJava, model, _)).asScala.toList
+
+    // TODO: Design signature for Scala3 w/ Json parser (with support for generating Json Schema)?
+    def prompt[A](prompt: String, maxAttempts: Int = 5, llmMode: KtLLMModel = KtLLMModel.getGPT_3_5_TURBO): A = ???
 
   object AIScope:
     def fromCore(coreAIScope: KtAIScope): AIScope = new AIScope(coreAIScope)
