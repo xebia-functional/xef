@@ -11,8 +11,9 @@ import com.xebia.functional.xef.llm.openai.EmbeddingModel
 import com.xebia.functional.xef.llm.openai.RequestConfig
 import kotlin.math.sqrt
 
-val LocalVectorStoreBuilder: (Embeddings) -> Resource<LocalVectorStore> =
-  { e -> resource { LocalVectorStore(e) }}
+val LocalVectorStoreBuilder: (Embeddings) -> Resource<LocalVectorStore> = { e ->
+  resource { LocalVectorStore(e) }
+}
 
 class LocalVectorStore
 private constructor(

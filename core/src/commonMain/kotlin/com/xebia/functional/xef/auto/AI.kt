@@ -158,11 +158,13 @@ class AIScope(
    */
   @AiDsl @JvmName("invokeAI") suspend operator fun <A> AI<A>.invoke(): A = invoke(this@AIScope)
 
-  @AiDsl suspend fun extendContext(vararg docs: String) {
+  @AiDsl
+  suspend fun extendContext(vararg docs: String) {
     context.addTexts(docs.toList())
   }
 
-  @AiDsl suspend fun extendContext(vararg agents: ContextualAgent) {
+  @AiDsl
+  suspend fun extendContext(vararg agents: ContextualAgent) {
     agents.forEach {
       logger.debug { "[${it.name}] Running" }
       val docs = with(it) { call() }
@@ -176,9 +178,20 @@ class AIScope(
   }
 
   @AiDsl
-  suspend fun <A> contextScope(store: suspend (Embeddings) -> Resource<VectorStore>, block: AI<A>): A {
+  suspend fun <A> contextScope(
+    store: suspend (Embeddings) -> Resource<VectorStore>,
+    block: AI<A>
+  ): A {
     val newStore = store(embeddings).bind()
-    return AIScope(openAIClient, CombinedVectorStore(newStore, context), embeddings, logger, this, this).block()
+    return AIScope(
+        openAIClient,
+        CombinedVectorStore(newStore, context),
+        embeddings,
+        logger,
+        this,
+        this
+      )
+      .block()
   }
 
   @AiDsl
@@ -186,10 +199,11 @@ class AIScope(
 
   /** Add new [docs] to the [context], and then executes the [scope]. */
   @AiDsl
-  suspend fun <A> contextScope(docs: List<String>, scope: suspend AIScope.() -> A): A = contextScope {
-    extendContext(*docs.toTypedArray())
-    scope(this)
-  }
+  suspend fun <A> contextScope(docs: List<String>, scope: suspend AIScope.() -> A): A =
+    contextScope {
+      extendContext(*docs.toTypedArray())
+      scope(this)
+    }
 
   /** Runs the [agent] to enlarge the [context], and then executes the [scope]. */
   @AiDsl
@@ -198,7 +212,10 @@ class AIScope(
 
   /** Runs the [agents] to enlarge the [context], and then executes the [scope]. */
   @AiDsl
-  suspend fun <A> contextScope(agents: Collection<ContextualAgent>, scope: suspend AIScope.() -> A): A = contextScope {
+  suspend fun <A> contextScope(
+    agents: Collection<ContextualAgent>,
+    scope: suspend AIScope.() -> A
+  ): A = contextScope {
     extendContext(*agents.toTypedArray())
     scope(this)
   }
@@ -325,5 +342,4 @@ class AIScope(
         { prompt(it, mapOf("url" to url.url, "prompt" to prompt), llmModel) }
       )
   }
-
 }
