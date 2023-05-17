@@ -63,19 +63,18 @@ suspend inline fun <A> AI<A>.getOrElse(crossinline orElse: suspend (AIError) -> 
 @OptIn(ExperimentalTime::class)
 suspend fun <A> AIScope(block: suspend AIScope.() -> A, orElse: suspend (AIError) -> A): A =
   recover({
-  resourceScope {
-    val openAIConfig = OpenAIConfig()
-    val openAiClient: OpenAIClient = KtorOpenAIClient(openAIConfig)
-    val logger = KotlinLogging.logger("AutoAI")
-    val embeddings = OpenAIEmbeddings(openAIConfig, openAiClient, logger)
-    val vectorStore = LocalVectorStore(embeddings)
-    val scope = AIScope(openAiClient, vectorStore, embeddings, logger, this, this@recover)
-    block(scope)
+    resourceScope {
+      val openAIConfig = OpenAIConfig()
+      val openAiClient: OpenAIClient = KtorOpenAIClient(openAIConfig)
+      val logger = KotlinLogging.logger("AutoAI")
+      val embeddings = OpenAIEmbeddings(openAIConfig, openAiClient, logger)
+      val vectorStore = LocalVectorStore(embeddings)
+      val scope = AIScope(openAiClient, vectorStore, embeddings, logger, this, this@recover)
+      block(scope)
+    }
+  }) {
+    orElse(it)
   }
-}) {
-  orElse(it)
-}
-
 
 /**
  * Run the [AI] value to produce _either_ an [AIError], or [A]. this method initialises all the
