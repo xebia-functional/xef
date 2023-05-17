@@ -45,7 +45,7 @@ jobs:
       - name: Publish final version
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: -Pversion=${{ inputs.version }} publishToSonatype closeSonatypeStagingRepository -x:kotlin-loom:publishToSonatype -x:kotlin-loom:closeSonatypeStagingRepository -x:xef-scala:publishToSonatype -x:xef-scala:closeSonatypeStagingRepository
+          arguments: -Pversion=${{ inputs.version }} publishToSonatype closeSonatypeStagingRepository -x:kotlin-loom:publishToSonatype -x:kotlin-loom:closeSonatypeStagingRepository
 
   publish-modules-with-loom:
     timeout-minutes: 30
@@ -76,4 +76,4 @@ jobs:
       - name: Publish final version
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: -Pversion=${{ inputs.version }} :kotlin-loom:publishToSonatype :kotlin-loom:closeSonatypeStagingRepository :xef-scala:publishToSonatype :xef-scala:closeSonatypeStagingRepository
+          arguments: -Pversion=${{ inputs.version }} :kotlin-loom:publishToSonatype :kotlin-loom:closeSonatypeStagingRepository
