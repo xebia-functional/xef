@@ -36,6 +36,7 @@ rssreader = "3.4.4"
 lucene = "9.6.0"
 assertj = "3.11.1"
 junit = "5.9.3"
+pdfbox = "2.0.28"
 
 [libraries]
 arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
@@ -95,6 +96,7 @@ jtokk-it = { module = "com.knuddels:jtokkit", version.ref = "jtokkit" }
 rss-reader = { module = "com.apptasticsoftware:rssreader", version.ref = "rssreader" }
 apache-lucene = { module = "org.apache.lucene:lucene-core", version.ref = "lucene" }
 assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
+apache-pdf-box = { module = "org.apache.pdfbox:pdfbox", version.ref = "pdfbox" }
 
 [bundles]
 arrow = [

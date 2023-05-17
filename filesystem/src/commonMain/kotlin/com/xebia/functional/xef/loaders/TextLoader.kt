@@ -21,6 +21,4 @@ suspend fun TextLoader(
       }
     }
 
-  override suspend fun loadAndSplit(textSplitter: BaseTextSplitter): List<String> =
-    textSplitter.splitDocuments(documents = load())
 }
