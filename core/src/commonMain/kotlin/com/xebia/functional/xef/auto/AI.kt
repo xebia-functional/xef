@@ -22,7 +22,9 @@ import com.xebia.functional.xef.llm.openai.KtorOpenAIClient
 import com.xebia.functional.xef.llm.openai.LLMModel
 import com.xebia.functional.xef.llm.openai.OpenAIClient
 import com.xebia.functional.xef.prompt.PromptTemplate
+import com.xebia.functional.xef.vectorstores.CombinedVectorStore
 import com.xebia.functional.xef.vectorstores.LocalVectorStore
+import com.xebia.functional.xef.vectorstores.LocalVectorStoreBuilder
 import com.xebia.functional.xef.vectorstores.VectorStore
 import io.github.oshai.KLogger
 import io.github.oshai.KotlinLogging
@@ -156,14 +158,13 @@ class AIScope(
    */
   @AiDsl @JvmName("invokeAI") suspend operator fun <A> AI<A>.invoke(): A = invoke(this@AIScope)
 
-  /** Runs the [agent] to enlarge the [context], and then executes the [scope]. */
   @AiDsl
-  suspend fun <A> context(agent: ContextualAgent, scope: suspend AIScope.() -> A): A =
-    context(listOf(agent), scope)
+  suspend fun extendContext(vararg docs: String) {
+    context.addTexts(docs.toList())
+  }
 
-  /** Runs the [agents] to enlarge the [context], and then executes the [scope]. */
   @AiDsl
-  suspend fun <A> context(agents: Collection<ContextualAgent>, scope: suspend AIScope.() -> A): A {
+  suspend fun extendContext(vararg agents: ContextualAgent) {
     agents.forEach {
       logger.debug { "[${it.name}] Running" }
       val docs = with(it) { call() }
@@ -174,14 +175,49 @@ class AIScope(
         logger.debug { "[${it.name}] Found no docs" }
       }
     }
-    return scope(this)
   }
+
+  @AiDsl
+  suspend fun <A> contextScope(
+    store: suspend (Embeddings) -> Resource<VectorStore>,
+    block: AI<A>
+  ): A {
+    val newStore = store(embeddings).bind()
+    return AIScope(
+        openAIClient,
+        CombinedVectorStore(newStore, context),
+        embeddings,
+        logger,
+        this,
+        this
+      )
+      .block()
+  }
+
+  @AiDsl
+  suspend fun <A> contextScope(block: AI<A>): A = contextScope(LocalVectorStoreBuilder, block)
 
   /** Add new [docs] to the [context], and then executes the [scope]. */
   @AiDsl
-  suspend fun <A> context(docs: List<String>, scope: suspend AIScope.() -> A): A {
-    context.addTexts(docs)
-    return scope(this)
+  suspend fun <A> contextScope(docs: List<String>, scope: suspend AIScope.() -> A): A =
+    contextScope {
+      extendContext(*docs.toTypedArray())
+      scope(this)
+    }
+
+  /** Runs the [agent] to enlarge the [context], and then executes the [scope]. */
+  @AiDsl
+  suspend fun <A> contextScope(agent: ContextualAgent, scope: suspend AIScope.() -> A): A =
+    contextScope(listOf(agent), scope)
+
+  /** Runs the [agents] to enlarge the [context], and then executes the [scope]. */
+  @AiDsl
+  suspend fun <A> contextScope(
+    agents: Collection<ContextualAgent>,
+    scope: suspend AIScope.() -> A
+  ): A = contextScope {
+    extendContext(*agents.toTypedArray())
+    scope(this)
   }
 
   @AiDsl
@@ -306,8 +342,4 @@ class AIScope(
         { prompt(it, mapOf("url" to url.url, "prompt" to prompt), llmModel) }
       )
   }
-
-  @AiDsl
-  suspend fun <A> withContextStore(store: (Embeddings) -> Resource<VectorStore>, block: AI<A>): A =
-    AIScope(openAIClient, store(embeddings).bind(), embeddings, logger, this, this).block()
 }

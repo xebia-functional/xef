@@ -15,7 +15,7 @@ suspend fun main() {
 private suspend fun getQuestionAnswer(
     question: String
 ): List<String> = ai {
-    context(search("Weather in Cádiz, Spain")) {
+    contextScope(search("Weather in Cádiz, Spain")) {
         promptMessage(question)
     }
 }.getOrElse { throw IllegalStateException(it.reason) }
