@@ -99,7 +99,7 @@ fun whatToWear(place: String): List<String> = ai {
     context(search("Weather in $place")) {
         promptMessage("Knowing this forecast, what clothes do you recommend I should wear?")
     }
-}
+}.getOrThrow()
 ```
 
 > **Note**
@@ -116,5 +116,5 @@ fun whatToWear(place: String): List<String> = ai {
 > 
 > fun books(topic: String) = ai {
 >   withContextStore(InMemoryLuceneBuilder(LUCENE_PATH)) { /* do stuff */ }
-> }
+> }.getOrThrow()
 > ```
