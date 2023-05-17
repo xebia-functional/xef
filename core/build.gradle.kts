@@ -48,10 +48,18 @@ kotlin {
     browser()
     nodejs()
   }
+
+  /*
+  * Native support currently blocked due to regex inconsistencies not happening on JVM & JS on KMP tokenizer project.
+  * Link to the issue: https://youtrack.jetbrains.com/issue/KT-58678/Native-Regex-inconsistency-with-JVM-Native-Regex
+  */
+
+  /*
   linuxX64()
   macosX64()
   macosArm64()
   mingwX64()
+  */
 
   sourceSets {
     val commonMain by getting {
@@ -66,7 +74,7 @@ kotlin {
       }
     }
 
-    commonTest {
+    val commonTest by getting {
       dependencies {
         implementation(libs.kotest.property)
         implementation(libs.kotest.framework)
@@ -90,6 +98,17 @@ kotlin {
       }
     }
 
+    val jvmTest by getting {
+      dependencies {
+        implementation(libs.kotest.junit5)
+      }
+    }
+
+    /*
+    * Commenting also the source sets because of the KT-58678 issue specified above.
+    */
+
+    /*
     val linuxX64Main by getting {
       dependencies {
         api(libs.ktor.client.cio)
@@ -114,12 +133,6 @@ kotlin {
       }
     }
 
-    val commonTest by getting
-    val jvmTest by getting {
-      dependencies {
-        implementation(libs.kotest.junit5)
-      }
-    }
     val linuxX64Test by getting
     val macosX64Test by getting
     val macosArm64Test by getting
@@ -140,6 +153,7 @@ kotlin {
       macosArm64Test.dependsOn(this)
       mingwX64Test.dependsOn(this)
     }
+   */
   }
 }
 

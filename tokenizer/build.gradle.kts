@@ -24,10 +24,18 @@ kotlin {
     browser()
     nodejs()
   }
+
+  /*
+  * Native support currently blocked due to regex inconsistencies not happening on JVM & JS.
+  * Link to the issue: https://youtrack.jetbrains.com/issue/KT-58678/Native-Regex-inconsistency-with-JVM-Native-Regex
+  */
+
+  /*
   linuxX64()
   macosX64()
   macosArm64()
   mingwX64()
+  */
 
   sourceSets {
     val commonMain by getting
@@ -48,6 +56,11 @@ kotlin {
       }
     }
 
+    /*
+    * Commenting also the source sets because of the KT-58678 issue specified above.
+    */
+
+    /*
     val linuxX64Main by getting
     val macosX64Main by getting
     val macosArm64Main by getting
@@ -60,5 +73,7 @@ kotlin {
       macosArm64Main.dependsOn(this)
       mingwX64Main.dependsOn(this)
     }
+    */
   }
 }
+
