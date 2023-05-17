@@ -1,6 +1,7 @@
 package com.xebia.functional.xef.pdf
 
 import com.xebia.functional.xef.agents.ParameterlessAgent
+import com.xebia.functional.xef.llm.openai.LLMModel
 import com.xebia.functional.xef.loaders.BaseLoader
 import com.xebia.functional.xef.textsplitters.BaseTextSplitter
 import com.xebia.functional.xef.textsplitters.TokenTextSplitter
@@ -10,7 +11,7 @@ import java.io.File
 
 fun pdf(
   file: File,
-  splitter: BaseTextSplitter = TokenTextSplitter(modelName = "gpt-3.5-turbo", chunkSize = 100, chunkOverlap = 50)
+  splitter: BaseTextSplitter = TokenTextSplitter(modelName = LLMModel.GPT_3_5_TURBO.name, chunkSize = 100, chunkOverlap = 50)
 ): ParameterlessAgent<List<String>> =
   ParameterlessAgent(name = "Get PDF content", description = "Get PDF Content of $file") {
     val loader = PDFLoader(file)
