@@ -33,7 +33,7 @@ jobs:
       - name: assemble
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: assemble -x:kotlin-loom:assemble -Pversion=${{ inputs.version }}
+          arguments: assemble -x:kotlin-loom:assemble -x:xef-scala:assemble -Pversion=${{ inputs.version }}
 
       - name: Upload reports
         if: failure()
@@ -45,9 +45,9 @@ jobs:
       - name: Publish final version
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: -Pversion=${{ inputs.version }} publishToSonatype closeSonatypeStagingRepository -x:kotlin-loom:publishToSonatype -x:kotlin-loom:closeSonatypeStagingRepository
+          arguments: -Pversion=${{ inputs.version }} publishToSonatype closeSonatypeStagingRepository -x:kotlin-loom:publishToSonatype -x:kotlin-loom:closeSonatypeStagingRepository -x:xef-scala:publishToSonatype -x:xef-scala:closeSonatypeStagingRepository
 
-  publish-kotlin-loom:
+  publish-modules-with-loom:
     timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
@@ -64,7 +64,7 @@ jobs:
       - name: assemble
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: :kotlin-loom:assemble -Pversion=${{ inputs.version }}
+          arguments: -Pversion=${{ inputs.version }} :kotlin-loom:assemble :xef-scala:assemble
 
       - name: Upload reports
         if: failure()
@@ -76,4 +76,4 @@ jobs:
       - name: Publish final version
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: -Pversion=${{ inputs.version }} :kotlin-loom:publishToSonatype :kotlin-loom:closeSonatypeStagingRepository
+          arguments: -Pversion=${{ inputs.version }} :kotlin-loom:publishToSonatype :kotlin-loom:closeSonatypeStagingRepository :xef-scala:publishToSonatype :xef-scala:closeSonatypeStagingRepository

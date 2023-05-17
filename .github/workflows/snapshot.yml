@@ -29,7 +29,7 @@ jobs:
       - name: assemble
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: assemble -x:kotlin-loom:assemble
+          arguments: assemble -x:kotlin-loom:assemble -x:xef-scala:assemble
 
       - name: Upload reports
         if: failure()
@@ -41,9 +41,9 @@ jobs:
       - name: Publish final version
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: -Pversion=0.0.1-SNAPSHOT publishToSonatype -x:kotlin-loom:publishToSonatype
+          arguments: -Pversion=0.0.1-SNAPSHOT publishToSonatype -x:kotlin-loom:publishToSonatype -x:xef-scala:publishToSonatype
 
-  publish-kotlin-loom:
+  publish-modules-with-loom:
     timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
@@ -60,7 +60,7 @@ jobs:
       - name: assemble
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: :kotlin-loom:assemble -Pversion=${{ inputs.version }}
+          arguments: -Pversion=${{ inputs.version }} :kotlin-loom:assemble :xef-scala:assemble
 
       - name: Upload reports
         if: failure()
@@ -72,4 +72,4 @@ jobs:
       - name: Publish final version
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: -Pversion=0.0.1-SNAPSHOT :kotlin-loom:publishToSonatype
+          arguments: -Pversion=0.0.1-SNAPSHOT :kotlin-loom:publishToSonatype :xef-scala:publishToSonatype
