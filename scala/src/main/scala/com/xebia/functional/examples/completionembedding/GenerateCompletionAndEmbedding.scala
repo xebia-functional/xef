@@ -1,18 +1,18 @@
-package com.xebia.functional.completionembedding
+package com.xebia.functional.scala.completionembedding
 
 import scala.concurrent.duration._
 
 import cats.effect.IO
 import cats.effect.IOApp
 
-import com.xebia.functional.config.OpenAIConfig
-import com.xebia.functional.config.OpenAIConfigLLM
-import com.xebia.functional.embeddings.openai.models.EmbeddingModel
-import com.xebia.functional.embeddings.openai.models.RequestConfig
-import com.xebia.functional.embeddings.openai.models.RequestConfig.User
-import com.xebia.functional.llm.models.OpenAIRequest
-import com.xebia.functional.llm.openai.OpenAIClient
-import com.xebia.functional.llm.openai.models.EmbeddingRequest
+import com.xebia.functional.scala.config.OpenAIConfig
+import com.xebia.functional.scala.config.OpenAIConfigLLM
+import com.xebia.functional.scala.embeddings.openai.models.EmbeddingModel
+import com.xebia.functional.scala.embeddings.openai.models.RequestConfig
+import com.xebia.functional.scala.embeddings.openai.models.RequestConfig.User
+import com.xebia.functional.scala.llm.models.OpenAIRequest
+import com.xebia.functional.scala.llm.openai.OpenAIClient
+import com.xebia.functional.scala.llm.openai.models.EmbeddingRequest
 import org.http4s.ember.client.EmberClientBuilder
 
 object GenerateCompletionAndEmbedding extends IOApp.Simple {

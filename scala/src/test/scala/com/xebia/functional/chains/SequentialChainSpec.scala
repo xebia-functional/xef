@@ -1,4 +1,4 @@
-package com.xebia.functional.chains
+package com.xebia.functional.scala.chains
 
 import cats.data.NonEmptySeq
 import cats.data.NonEmptySet
@@ -6,8 +6,8 @@ import cats.effect.IO
 import cats.implicits.*
 import cats.kernel.Order
 
-import com.xebia.functional.chains.mock.FakeChain
-import com.xebia.functional.chains.models.*
+import com.xebia.functional.scala.chains.mock.FakeChain
+import com.xebia.functional.scala.chains.models.*
 import eu.timepit.refined.types.string.NonEmptyString
 import munit.CatsEffectSuite
 

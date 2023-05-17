@@ -1,4 +1,4 @@
-package com.xebia.functional.config
+package com.xebia.functional.scala.config
 
 import scala.concurrent.duration._
 
@@ -7,7 +7,7 @@ import cats.syntax.all._
 import ciris.*
 import ciris.http4s.*
 import ciris.refined.*
-import com.xebia.functional.llm.huggingface.models.Model
+import com.xebia.functional.scala.llm.huggingface.models.Model
 import eu.timepit.refined.types.string.NonEmptyString
 import org.http4s.Uri
 import org.http4s.implicits.uri

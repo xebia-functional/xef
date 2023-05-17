@@ -17,7 +17,7 @@ testcontainers = "1.17.6"
 hikari = "5.0.1"
 dokka = "1.8.10"
 logback = "1.4.6"
-kotlinx-coroutines = "1.6.4"
+kotlinx-coroutines = "1.7.1"
 scalaMultiversion = "2.0.4"
 ciris = "3.1.0"
 http4s = "0.23.18"
@@ -33,10 +33,14 @@ munitCatsEffect = "1.0.5"
 scrapeit = "1.1.5"
 jtokkit = "0.4.0"
 rssreader = "3.4.4"
+lucene = "9.6.0"
+assertj = "3.11.1"
+junit = "5.9.3"
 
 [libraries]
 arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
 arrow-fx-coroutines = { module = "io.arrow-kt:arrow-fx-coroutines", version.ref = "arrow" }
+arrow-fx-stm = { module = "io.arrow-kt:arrow-fx-stm", version.ref = "arrow" }
 arrow-resilience = { module = "io.arrow-kt:arrow-resilience", version.ref = "arrow" }
 open-ai = { module = "com.theokanning.openai-gpt3-java:service", version.ref = "openai" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-json" }
@@ -56,6 +60,7 @@ kotest-property = { module = "io.kotest:kotest-property", version.ref = "kotest"
 kotest-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
 kotest-testcontainers = { module = "io.kotest.extensions:kotest-extensions-testcontainers", version.ref = "kotest-testcontainers" }
 kotest-assertions-arrow = { module = "io.kotest.extensions:kotest-assertions-arrow", version.ref = "kotest-arrow" }
+junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
 uuid = { module = "app.softwork:kotlinx-uuid-core", version.ref = "uuid" }
 klogging = { module = "io.github.oshai:kotlin-logging", version.ref = "klogging"  }
 hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
@@ -87,6 +92,8 @@ skrape = { module = "it.skrape:skrapeit", version.ref = "scrapeit" }
 skrape-browser-fetcher = { module = "it.skrape:skrapeit-browser-fetcher", version.ref = "scrapeit" }
 skrape-async-fetcher = { module = "it.skrape:skrapeit-asyn-fetcher", version.ref = "scrapeit" }
 rss-reader = { module = "com.apptasticsoftware:rssreader", version.ref = "rssreader" }
+apache-lucene = { module = "org.apache.lucene:lucene-core", version.ref = "lucene" }
+assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 
 [bundles]
 arrow = [

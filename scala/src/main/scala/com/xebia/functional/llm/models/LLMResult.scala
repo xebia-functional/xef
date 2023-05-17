@@ -1,4 +1,4 @@
-package com.xebia.functional.llm.models
+package com.xebia.functional.scala.llm.models
 
 import com.theokanning.openai.completion.{CompletionChoice => JCompletionChoice}
 import io.circe.Decoder

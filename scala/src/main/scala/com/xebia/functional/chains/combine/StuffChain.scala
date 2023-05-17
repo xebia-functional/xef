@@ -1,15 +1,15 @@
-package com.xebia.functional.chains.combine
+package com.xebia.functional.scala.chains.combine
 
 import cats.effect.Sync
 import cats.syntax.all.*
 
-import com.xebia.functional.chains.LLMChain
-import com.xebia.functional.chains.models.Config
-import com.xebia.functional.domain.Document
-import com.xebia.functional.llm.LLM
-import com.xebia.functional.llm.models.LLMResult
-import com.xebia.functional.llm.openai.OpenAIClient
-import com.xebia.functional.prompt.PromptTemplate
+import com.xebia.functional.scala.chains.LLMChain
+import com.xebia.functional.scala.chains.models.Config
+import com.xebia.functional.scala.domain.Document
+import com.xebia.functional.scala.llm.LLM
+import com.xebia.functional.scala.llm.models.LLMResult
+import com.xebia.functional.scala.llm.openai.OpenAIClient
+import com.xebia.functional.scala.prompt.PromptTemplate
 import eu.timepit.refined.types.string.NonEmptyString
 
 class StuffChain[F[_]: Sync](

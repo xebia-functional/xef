@@ -1,4 +1,4 @@
-package com.xebia.functional.embeddings.openai
+package com.xebia.functional.scala.embeddings.openai
 
 import scala.concurrent.duration.*
 import scala.util.Try
@@ -7,14 +7,14 @@ import cats.data.NonEmptyChain
 import cats.effect.IO
 import cats.syntax.all.*
 
-import com.xebia.functional.config.OpenAIConfig
-import com.xebia.functional.config.OpenAIConfigLLM
-import com.xebia.functional.embeddings.models.*
-import com.xebia.functional.embeddings.openai.models.*
-import com.xebia.functional.llm.models.LLMResult
-import com.xebia.functional.llm.models.OpenAIRequest
-import com.xebia.functional.llm.openai.OpenAIClient
-import com.xebia.functional.llm.openai.models.*
+import com.xebia.functional.scala.config.OpenAIConfig
+import com.xebia.functional.scala.config.OpenAIConfigLLM
+import com.xebia.functional.scala.embeddings.models.*
+import com.xebia.functional.scala.embeddings.openai.models.*
+import com.xebia.functional.scala.llm.models.LLMResult
+import com.xebia.functional.scala.llm.models.OpenAIRequest
+import com.xebia.functional.scala.llm.openai.OpenAIClient
+import com.xebia.functional.scala.llm.openai.models.*
 import munit.CatsEffectSuite
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.SelfAwareStructuredLogger

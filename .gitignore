@@ -140,7 +140,6 @@ target/
 
 
 _site/
-docs/
 kotlin-js-store/
 .sass-cache/
 .jekyll-cache/

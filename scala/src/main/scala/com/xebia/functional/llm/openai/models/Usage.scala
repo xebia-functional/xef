@@ -1,4 +1,4 @@
-package com.xebia.functional.llm.openai.models
+package com.xebia.functional.scala.llm.openai.models
 
 import com.theokanning.openai.{Usage => JUsage}
 

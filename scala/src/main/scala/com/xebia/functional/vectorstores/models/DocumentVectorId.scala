@@ -1,4 +1,4 @@
-package com.xebia.functional.vectorstores.models
+package com.xebia.functional.scala.vectorstores.models
 
 import java.util.UUID
 

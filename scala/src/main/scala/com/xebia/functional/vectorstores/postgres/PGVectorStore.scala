@@ -1,4 +1,4 @@
-package com.xebia.functional.vectorstores.postgres
+package com.xebia.functional.scala.vectorstores.postgres
 
 import java.util.UUID
 
@@ -6,14 +6,14 @@ import cats.effect.Resource
 import cats.effect.Sync
 import cats.syntax.all.*
 
-import com.xebia.functional.config.DBConfig
-import com.xebia.functional.domain.Document
-import com.xebia.functional.embeddings.Embeddings
-import com.xebia.functional.embeddings.models.Embedding
-import com.xebia.functional.embeddings.openai.models.RequestConfig
-import com.xebia.functional.vectorstores.VectorStore
-import com.xebia.functional.vectorstores.models.DocumentVectorId
-import com.xebia.functional.vectorstores.postgres.PGSql.*
+import com.xebia.functional.scala.config.DBConfig
+import com.xebia.functional.scala.domain.Document
+import com.xebia.functional.scala.embeddings.Embeddings
+import com.xebia.functional.scala.embeddings.models.Embedding
+import com.xebia.functional.scala.embeddings.openai.models.RequestConfig
+import com.xebia.functional.scala.vectorstores.VectorStore
+import com.xebia.functional.scala.vectorstores.models.DocumentVectorId
+import com.xebia.functional.scala.vectorstores.postgres.PGSql.*
 import doobie.ConnectionIO
 import doobie.hikari.HikariTransactor
 import doobie.implicits._

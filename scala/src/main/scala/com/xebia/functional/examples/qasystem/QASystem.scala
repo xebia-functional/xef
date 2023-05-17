@@ -1,4 +1,4 @@
-package com.xebia.functional.qasystem
+package com.xebia.functional.scala.qasystem
 
 import java.io.File
 
@@ -7,23 +7,23 @@ import scala.concurrent.duration._
 import cats.effect.IO
 import cats.effect.IOApp
 
-import com.xebia.functional.chains.retrievalqa.QAPrompt
-import com.xebia.functional.chains.retrievalqa.VectorQAChain
-import com.xebia.functional.config.DBConfig
-import com.xebia.functional.config.OpenAIConfig
-import com.xebia.functional.config.OpenAIConfigLLM
-import com.xebia.functional.domain.Document
-import com.xebia.functional.embeddings.openai.OpenAIEmbeddings
-import com.xebia.functional.embeddings.openai.models.EmbeddingModel
-import com.xebia.functional.embeddings.openai.models.RequestConfig
-import com.xebia.functional.embeddings.openai.models.RequestConfig.User
-import com.xebia.functional.llm.*
-import com.xebia.functional.llm.models.OpenAIRequest
-import com.xebia.functional.llm.openai.OpenAIClient
-import com.xebia.functional.loaders.TextLoader
-import com.xebia.functional.vectorstores.db.DoobieTransactor
-import com.xebia.functional.vectorstores.postgres.PGDistanceStrategy
-import com.xebia.functional.vectorstores.postgres.PGVectorStore
+import com.xebia.functional.scala.chains.retrievalqa.QAPrompt
+import com.xebia.functional.scala.chains.retrievalqa.VectorQAChain
+import com.xebia.functional.scala.config.DBConfig
+import com.xebia.functional.scala.config.OpenAIConfig
+import com.xebia.functional.scala.config.OpenAIConfigLLM
+import com.xebia.functional.scala.domain.Document
+import com.xebia.functional.scala.embeddings.openai.OpenAIEmbeddings
+import com.xebia.functional.scala.embeddings.openai.models.EmbeddingModel
+import com.xebia.functional.scala.embeddings.openai.models.RequestConfig
+import com.xebia.functional.scala.embeddings.openai.models.RequestConfig.User
+import com.xebia.functional.scala.llm.*
+import com.xebia.functional.scala.llm.models.OpenAIRequest
+import com.xebia.functional.scala.llm.openai.OpenAIClient
+import com.xebia.functional.scala.loaders.TextLoader
+import com.xebia.functional.scala.vectorstores.db.DoobieTransactor
+import com.xebia.functional.scala.vectorstores.postgres.PGDistanceStrategy
+import com.xebia.functional.scala.vectorstores.postgres.PGVectorStore
 import eu.timepit.refined.types.string.NonEmptyString
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 

@@ -1,9 +1,9 @@
-package com.xebia.functional.chains
+package com.xebia.functional.scala.chains
 
 import cats.MonadThrow
 import cats.syntax.all.*
 
-import com.xebia.functional.chains.models.Config
+import com.xebia.functional.scala.chains.models.Config
 
 trait BaseChain[F[_]: MonadThrow]:
 

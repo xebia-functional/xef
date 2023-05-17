@@ -16,8 +16,8 @@ java {
 }
 
 dependencies {
-  implementation(projects.langchain4kKotlin)
-  implementation(projects.langchain4kFilesystem)
+  implementation(projects.xefCore)
+  implementation(projects.xefFilesystem)
   implementation(libs.kotlinx.serialization.json)
   implementation(libs.logback)
   implementation(libs.klogging)

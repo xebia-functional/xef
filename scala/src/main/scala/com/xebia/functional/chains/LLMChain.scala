@@ -1,16 +1,16 @@
-package com.xebia.functional.chains
+package com.xebia.functional.scala.chains
 
 import cats.effect.Sync
 import cats.syntax.all.*
 
-import com.xebia.functional.chains.models.Config
-import com.xebia.functional.config.OpenAIConfig
-import com.xebia.functional.config.*
-import com.xebia.functional.llm.*
-import com.xebia.functional.llm.models.OpenAIRequest
-import com.xebia.functional.llm.models.*
-import com.xebia.functional.llm.openai.OpenAIClient
-import com.xebia.functional.prompt.PromptTemplate
+import com.xebia.functional.scala.chains.models.Config
+import com.xebia.functional.scala.config.OpenAIConfig
+import com.xebia.functional.scala.config.*
+import com.xebia.functional.scala.llm.*
+import com.xebia.functional.scala.llm.models.OpenAIRequest
+import com.xebia.functional.scala.llm.models.*
+import com.xebia.functional.scala.llm.openai.OpenAIClient
+import com.xebia.functional.scala.prompt.PromptTemplate
 import eu.timepit.refined.types.string.NonEmptyString
 
 class LLMChain[F[_]: Sync](

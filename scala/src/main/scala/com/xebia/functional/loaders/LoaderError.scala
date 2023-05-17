@@ -1,4 +1,4 @@
-package com.xebia.functional.loaders
+package com.xebia.functional.scala.loaders
 
 import scala.util.control.NoStackTrace
 
