@@ -60,8 +60,11 @@ inline fun <A> ai(noinline block: suspend AIScope.() -> A): AI<A> = block
  *
  * This operator is **terminal** meaning it runs and completes the _chain_ of `AI` actions.
  */
+suspend inline fun <A> AI<A>.getOrElse(crossinline orElse: suspend (AIError) -> A): A =
+  AIScope(this) { orElse(it) }
+
 @OptIn(ExperimentalTime::class)
-suspend inline fun <reified A> AI<A>.getOrElse(crossinline orElse: suspend (AIError) -> A): A =
+suspend fun <A> AIScope(block: suspend AIScope.() -> A, orElse: suspend (AIError) -> A): A =
   recover({
     resourceScope {
       val openAIConfig = OpenAIConfig()
@@ -70,7 +73,7 @@ suspend inline fun <reified A> AI<A>.getOrElse(crossinline orElse: suspend (AIEr
       val embeddings = OpenAIEmbeddings(openAIConfig, openAiClient, logger)
       val vectorStore = LocalVectorStore(embeddings)
       val scope = AIScope(openAiClient, vectorStore, embeddings, logger, this, this@recover)
-      invoke(scope)
+      block(scope)
     }
   }) {
     orElse(it)

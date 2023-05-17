@@ -7,7 +7,8 @@ plugins {
 }
 
 dependencies {
-    //implementation(projects.xefCore)
+    implementation(projects.xefCore)
+    implementation(projects.kotlinLoom)
     implementation(libs.kotlinx.coroutines)
     implementation(libs.ciris.core)
     implementation(libs.ciris.refined)
