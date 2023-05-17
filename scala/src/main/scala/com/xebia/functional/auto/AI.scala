@@ -1,9 +1,6 @@
 package com.xebia.functional.scala.auto
 
-import cats.effect.kernel.Async
-import cats.implicits.*
 import com.xebia.functional.xef.prompt.PromptTemplate as KtPromptTemplate
-import com.xebia.functional.xef.auto.SerializationConfig as KtSerializationConfig
 import com.xebia.functional.xef.auto.AIScope as KtAIScope
 import com.xebia.functional.xef.auto.AIException
 import com.xebia.functional.xef.agents.*
@@ -11,8 +8,6 @@ import com.xebia.functional.xef.llm.openai.LLMModel as KtLLMModel
 import com.xebia.functional.xef.auto.AIKt
 import com.xebia.functional.loom.LoomAdapter
 import com.xebia.functional.xef.AIError
-import kotlin.coroutines.Continuation
-import unwrapped.*
 
 import scala.jdk.CollectionConverters.*
 
