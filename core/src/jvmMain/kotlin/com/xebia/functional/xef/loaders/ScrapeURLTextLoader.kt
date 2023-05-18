@@ -1,6 +1,5 @@
 package com.xebia.functional.xef.loaders
 
-import com.xebia.functional.xef.textsplitters.BaseTextSplitter
 import it.skrape.core.htmlDocument
 import it.skrape.fetcher.BrowserFetcher
 import it.skrape.fetcher.response
@@ -27,9 +26,6 @@ suspend fun ScrapeURLTextLoader(url: String): BaseLoader =
         }
       }
     }
-
-    override suspend fun loadAndSplit(textSplitter: BaseTextSplitter): List<String> =
-      textSplitter.splitDocuments(documents = load())
 
     private tailrec fun cleanUpTextHelper(
       lines: List<String>,

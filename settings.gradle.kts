@@ -34,3 +34,6 @@ include("kotlin-loom")
 
 include("xef-postgresql")
 project(":xef-postgresql").projectDir = file("integrations/postgresql")
+
+include("xef-pdf")
+project(":xef-pdf").projectDir = file("integrations/pdf")

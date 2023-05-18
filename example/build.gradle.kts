@@ -18,6 +18,7 @@ java {
 dependencies {
   implementation(projects.xefCore)
   implementation(projects.xefFilesystem)
+  implementation(projects.xefPdf)
   implementation(libs.kotlinx.serialization.json)
   implementation(libs.logback)
   implementation(libs.klogging)
