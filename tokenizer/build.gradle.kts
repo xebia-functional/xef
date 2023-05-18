@@ -56,6 +56,23 @@ kotlin {
       }
     }
 
+    js {
+      nodejs {
+        testTask {
+          useMocha {
+            timeout = "10000"
+          }
+        }
+      }
+      browser {
+        testTask {
+          useMocha {
+            timeout = "10000"
+          }
+        }
+      }
+    }
+
     /*
     * Commenting also the source sets because of the KT-58678 issue specified above.
     */
