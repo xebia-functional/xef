@@ -1,0 +1,57 @@
+name: Generate version tag manually
+
+on:
+  workflow_dispatch:
+    branches: [main]
+    inputs:
+      stage:
+        description: 'Stage'
+        required: true
+        default: 'alpha'
+        type: choice
+        options:
+          - 'alpha'
+          - 'beta'
+          - 'rc'
+          - 'final'
+      scope:
+        description: 'Scope'
+        required: true
+        default: 'auto'
+        type: choice
+        options:
+          - 'auto'
+          - 'major'
+          - 'minor'
+          - 'patch'
+
+env:
+  GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.parallel=false -Dorg.gradle.jvmargs="-Xmx5g -XX:+UseParallelGC -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8"
+
+jobs:
+  generate-alpha-tag:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: 11
+
+      - name: Running test on the JVM
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: jvmTest
+
+      - name: Generate Tag
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: createSemverTag "-Psemver.scope=${{ github.event.inputs.scope }}" "-Psemver.stage=${{ github.event.inputs.stage }}"
+
+      - name: Push Tag
+        run: git push --follow-tags
