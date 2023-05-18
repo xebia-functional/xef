@@ -2,7 +2,6 @@ package com.xebia.functional.xef.auto
 
 import com.xebia.functional.xef.pdf.pdf
 import kotlinx.serialization.Serializable
-import java.io.File
 
 @Serializable
 data class AIResponse(val answer: String, val source: String)
