@@ -1,6 +1,5 @@
 plugins {
     id(libs.plugins.kotlin.jvm.get().pluginId)
-    id(libs.plugins.kotlinx.serialization.get().pluginId)
 }
 
 repositories {
