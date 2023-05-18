@@ -64,15 +64,10 @@ object EncodingFactory {
     p50k_base,
     SPECIAL_TOKENS_P50K_EDIT
   )
-  val common = """(?i:'s|'t|'re|'ve|'m|'ll|'d)|[^\r\n\p{Letter}\p{Digit}]?\p{Letter}+|\p{Digit}{1,3}| ?[^\s\p{Letter}\p{Digit}]+[\r\n]*|\s*[\r\n]+|\s+(?!\S)|\s+"""
-  val pattern = """(?i:'s|'t|'re|'ve|'m|'ll|'d)|[^\\r\\n\\p{L}\\p{N}]?\\p{L}+|\\p{N}{1,3}| ?[^\\s\\p{L}\\p{N}]+[\\r\\n]*|\\s*[\\r\\n]+|\\s+(?!\\S)|\\s+"""
 
   fun cl100kBase(): Encoding = fromPredefinedParameters(
     "cl100k_base",
     regex,
-//    Regex("""(?:'s|'t|'re|'ve|'m|'ll|'d)|[^\r\n\p{L}\p{N}]?\p{L}+|\p{N}{1,3}| ?[^\s\p{L}\p{N}]+[\r\n]*|\s*[\r\n]+|\s+(?!\S)|\s+""", RegexOption.IGNORE_CASE),
-//    Regex(pattern, RegexOption.IGNORE_CASE),
-//    Regex("[^\\r\\n\\p{L}\\p{N}]?\\p{L}+|\\p{N}{1,3}| ?[^\\s\\p{L}\\p{N}]+[\\r\\n]*|\\s*[\\r\\n]+|\\s+(?!\\S)|\\s+", RegexOption.IGNORE_CASE),
     cl100k_base,
     SPECIAL_TOKENS_CL100K_BASE
   )
