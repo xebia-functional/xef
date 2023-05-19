@@ -1,6 +1,5 @@
 package com.xebia.functional.xef.pdf
 
-import com.xebia.functional.xef.agents.ParameterlessAgent
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.loaders.BaseLoader
 import com.xebia.functional.xef.textsplitters.BaseTextSplitter
@@ -17,9 +16,9 @@ import java.io.File
 suspend fun pdf(
   url: String,
   splitter: BaseTextSplitter = TokenTextSplitter(modelType = ModelType.GPT_3_5_TURBO, chunkSize = 100, chunkOverlap = 50)
-): ParameterlessAgent<List<String>> =
+): List<String> =
   HttpClient().use {
-    val response = client.get(url)
+    val response = it.get(url)
     val file = File.createTempFile("pdf", ".pdf")
     file.writeChannel().use {
       response.bodyAsChannel().copyAndClose(this)
@@ -28,7 +27,7 @@ suspend fun pdf(
   }
 
 
-fun pdf(
+suspend fun pdf(
   file: File,
   splitter: BaseTextSplitter = TokenTextSplitter(modelType = ModelType.GPT_3_5_TURBO, chunkSize = 100, chunkOverlap = 50)
 ): List<String> {
