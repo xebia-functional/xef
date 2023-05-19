@@ -13,11 +13,11 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 
 /**
- * Run a [question] describes the task you want to solve within the context of [AIScope]. Returns
- * a value of [A] where [A] **has to be** annotated with [kotlinx.serialization.Serializable].
+ * Run a [question] describes the task you want to solve within the context of [AIScope]. Returns a
+ * value of [A] where [A] **has to be** annotated with [kotlinx.serialization.Serializable].
  *
- * @throws SerializationException if serializer cannot be created (provided [A] or its type
- *   argument is not serializable).
+ * @throws SerializationException if serializer cannot be created (provided [A] or its type argument
+ *   is not serializable).
  * @throws IllegalArgumentException if any of [A]'s type arguments contains star projection.
  */
 @AiDsl
@@ -34,14 +34,25 @@ suspend inline fun <reified A> AIScope.prompt(
   n: Int = 1,
   temperature: Double = 0.0,
   bringFromContext: Int = 10
-): A = prompt(Prompt(question), json, maxDeserializationAttempts, model, user, echo, n, temperature, bringFromContext)
+): A =
+  prompt(
+    Prompt(question),
+    json,
+    maxDeserializationAttempts,
+    model,
+    user,
+    echo,
+    n,
+    temperature,
+    bringFromContext
+  )
 
 /**
  * Run a [prompt] describes the task you want to solve within the context of [AIScope]. Returns a
  * value of [A] where [A] **has to be** annotated with [kotlinx.serialization.Serializable].
  *
- * @throws SerializationException if serializer cannot be created (provided [A] or its type
- *   argument is not serializable).
+ * @throws SerializationException if serializer cannot be created (provided [A] or its type argument
+ *   is not serializable).
  * @throws IllegalArgumentException if any of [A]'s type arguments contains star projection.
  */
 @AiDsl
@@ -58,7 +69,19 @@ suspend inline fun <reified A> AIScope.prompt(
   n: Int = 1,
   temperature: Double = 0.0,
   bringFromContext: Int = 10
-): A = prompt(prompt, serializer(), json, maxDeserializationAttempts, model, user, echo, n, temperature, bringFromContext)
+): A =
+  prompt(
+    prompt,
+    serializer(),
+    json,
+    maxDeserializationAttempts,
+    model,
+    user,
+    echo,
+    n,
+    temperature,
+    bringFromContext
+  )
 
 @AiDsl
 suspend fun <A> AIScope.prompt(
@@ -97,9 +120,17 @@ suspend fun <A> AIScope.prompt(
         """
       .trimMargin()
 
-  return tryDeserialize(
-    serializationConfig, json, maxDeserializationAttempts
-  ) { promptMessage(prompt.append(responseInstructions), model, user, echo, n, temperature, bringFromContext) }
+  return tryDeserialize(serializationConfig, json, maxDeserializationAttempts) {
+    promptMessage(
+      prompt.append(responseInstructions),
+      model,
+      user,
+      echo,
+      n,
+      temperature,
+      bringFromContext
+    )
+  }
 }
 
 suspend fun <A> AIScope.tryDeserialize(
@@ -111,12 +142,9 @@ suspend fun <A> AIScope.tryDeserialize(
   var currentAttempts = 0
   while (currentAttempts < maxDeserializationAttempts) {
     currentAttempts++
-    val result = ensureNotNull(
-      agent().firstOrNull()
-    ) { AIError.NoResponse }
-    catch({
-      json.decodeFromString(serializationConfig.deserializationStrategy, result)
-    }) { e: IllegalArgumentException ->
+    val result = ensureNotNull(agent().firstOrNull()) { AIError.NoResponse }
+    catch({ json.decodeFromString(serializationConfig.deserializationStrategy, result) }) {
+      e: IllegalArgumentException ->
       if (currentAttempts == maxDeserializationAttempts)
         raise(AIError.JsonParsing(result, maxDeserializationAttempts, e))
       // else continue with the next attempt

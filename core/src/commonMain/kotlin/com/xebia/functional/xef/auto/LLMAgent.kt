@@ -44,7 +44,8 @@ suspend fun AIScope.promptMessage(
     } else prompt.message
 
   return when (model.kind) {
-    LLMModel.Kind.Completion -> callCompletionEndpoint(promptWithContext, model, user, echo, n, temperature)
+    LLMModel.Kind.Completion ->
+      callCompletionEndpoint(promptWithContext, model, user, echo, n, temperature)
     LLMModel.Kind.Chat -> callChatEndpoint(promptWithContext, model, user, n, temperature)
   }
 }

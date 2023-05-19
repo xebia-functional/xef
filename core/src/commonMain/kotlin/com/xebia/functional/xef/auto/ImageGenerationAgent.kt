@@ -36,8 +36,8 @@ suspend inline fun <reified A> AIScope.image(
 }
 
 /**
- * Run a [prompt] describes the images you want to generate within the context of [AIScope].
- * Returns a [ImagesGenerationResponse] containing time and urls with images generated.
+ * Run a [prompt] describes the images you want to generate within the context of [AIScope]. Returns
+ * a [ImagesGenerationResponse] containing time and urls with images generated.
  *
  * @param prompt a [Prompt] describing the images you want to generate.
  * @param numberImages number of images to generate.
@@ -49,12 +49,11 @@ suspend fun AIScope.images(
   numberImages: Int = 1,
   size: String = "1024x1024",
   bringFromContext: Int = 10
-): ImagesGenerationResponse =
-  images(Prompt(prompt), user, numberImages, size, bringFromContext)
+): ImagesGenerationResponse = images(Prompt(prompt), user, numberImages, size, bringFromContext)
 
 /**
- * Run a [prompt] describes the images you want to generate within the context of [AIScope].
- * Returns a [ImagesGenerationResponse] containing time and urls with images generated.
+ * Run a [prompt] describes the images you want to generate within the context of [AIScope]. Returns
+ * a [ImagesGenerationResponse] containing time and urls with images generated.
  *
  * @param prompt a [Prompt] describing the images you want to generate.
  * @param numberImages number of images to generate.
