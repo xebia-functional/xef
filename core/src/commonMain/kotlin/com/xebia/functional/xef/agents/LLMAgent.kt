@@ -89,7 +89,7 @@ class LLMAgent(
     val promptSize: Int = model.encodingType.encoding.encode(prompt).size
 
     val requestMaxTokens: Int = checkContextLength(contextLength, promptSize)
-    return if (maxTokens < requestMaxTokens) maxTokens else requestMaxTokens
+    return minOf(maxTokens, requestMaxTokens)
   }
 
   private fun Raise<AIError>.checkContextLength(maxContextLength: Int, promptSize: Int): Int {

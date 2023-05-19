@@ -1,5 +1,6 @@
 package com.xebia.functional.xef.chains
 
+import com.xebia.functional.tokenizer.EncodingType
 import com.xebia.functional.xef.llm.openai.ChatCompletionRequest
 import com.xebia.functional.xef.llm.openai.ChatCompletionResponse
 import com.xebia.functional.xef.llm.openai.Choice
@@ -10,10 +11,14 @@ import com.xebia.functional.xef.llm.openai.EmbeddingResult
 import com.xebia.functional.xef.llm.openai.ImageGenerationUrl
 import com.xebia.functional.xef.llm.openai.ImagesGenerationRequest
 import com.xebia.functional.xef.llm.openai.ImagesGenerationResponse
+import com.xebia.functional.xef.llm.openai.LLMModel
 import com.xebia.functional.xef.llm.openai.Message
 import com.xebia.functional.xef.llm.openai.OpenAIClient
 import com.xebia.functional.xef.llm.openai.Role
 import com.xebia.functional.xef.llm.openai.Usage
+
+val testChatTinyModel = LLMModel("test", LLMModel.Kind.Chat, EncodingType.P50K_BASE, 1)
+val testCompletionTinyModel = LLMModel("test", LLMModel.Kind.Completion, EncodingType.P50K_BASE, 1)
 
 val testLLM =
   object : OpenAIClient {
@@ -46,18 +51,29 @@ val testLLM =
     override suspend fun createImages(request: ImagesGenerationRequest): ImagesGenerationResponse =
       ImagesGenerationResponse(1, listOf(ImageGenerationUrl("foo")))
 
-    private fun fakeChatCompletion(message: String): ChatCompletionResponse =
-      ChatCompletionResponse(
-        id = "foo",
-        `object` = "foo",
-        created = 1,
-        model = "foo",
-        usage = Usage(1, 1, 1),
-        choices = listOf(Choice(Message(Role.system.name, message), "foo", index = 0))
-      )
-
     override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult = TODO()
   }
+
+val maxTokensTestLLM = object : OpenAIClient {
+  override suspend fun createCompletion(request: CompletionRequest): List<CompletionChoice> =
+    when (request.maxTokens) {
+      10 -> listOf(CompletionChoice("foo", 1, finishReason = "bar"))
+      4092 -> listOf(CompletionChoice("foo", 1, finishReason = "bar"))
+      else -> listOf(CompletionChoice("I don't know", 1, finishReason = "foo"))
+    }
+
+  override suspend fun createChatCompletion(request: ChatCompletionRequest): ChatCompletionResponse =
+    when (request.maxTokens) {
+      10 -> fakeChatCompletion("No")
+      4092 -> fakeChatCompletion("I'm not in humor for jokes, buddy")
+      else -> fakeChatCompletion("I don't know")
+    }
+
+  override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult = TODO()
+
+  override suspend fun createImages(request: ImagesGenerationRequest): ImagesGenerationResponse = TODO()
+
+}
 
 val testContext =
   """foo foo foo
@@ -117,3 +133,13 @@ val testQATemplateFormatted =
 
 val testOutputIDK = mapOf("answer" to "I don't know")
 val testOutputInputs = mapOf("answer" to "Two inputs, right?")
+
+private fun fakeChatCompletion(message: String): ChatCompletionResponse =
+  ChatCompletionResponse(
+    id = "foo",
+    `object` = "foo",
+    created = 1,
+    model = "foo",
+    usage = Usage(1, 1, 1),
+    choices = listOf(Choice(Message(Role.system.name, message), "foo", index = 0))
+  )

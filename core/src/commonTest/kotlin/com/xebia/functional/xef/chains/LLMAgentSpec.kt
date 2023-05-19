@@ -42,4 +42,40 @@ class LLMAgentSpec :
           "The provided inputs: {age}, {brand} do not match with chain's inputs: {name}, {age}"
         )
     }
+
+    "LLMAgent should fail when the prompt size is larger than the model's max context size of type completion" {
+      val template = "Tell me {foo}."
+      either {
+        val promptTemplate = PromptTemplate(template, listOf("foo"))
+        val chain = LLMAgent(maxTokensTestLLM, promptTemplate, testCompletionTinyModel)
+        with(chain) { call(mapOf("foo" to "a joke")) }
+      } shouldBeLeft AIError.ExceedModelContextLength(1, 5)
+    }
+
+    "LLMAgent should fail when the prompt size is larger than the model's max context size of type chat" {
+      val template = "Tell me {foo}."
+      either {
+        val promptTemplate = PromptTemplate(template, listOf("foo"))
+        val chain = LLMAgent(maxTokensTestLLM, promptTemplate, testChatTinyModel)
+        with(chain) { call(mapOf("foo" to "a joke")) }
+      } shouldBeLeft AIError.ExceedModelContextLength(1, 5)
+    }
+
+    "LLMAgent should return a limited prediction with length of maxTokens length when passing smaller maxTokens" {
+      val template = "Tell me {foo}."
+      either {
+        val promptTemplate = PromptTemplate(template, listOf("foo"))
+        val chain = LLMAgent(maxTokensTestLLM, promptTemplate, model, maxTokens = 10)
+        with(chain) { call(mapOf("foo" to "a joke")) }
+      } shouldBeRight listOf("No")
+    }
+
+    "LLMAgent should return a prediction with max length of contextLength - promptLength when passing big maxTokens" {
+      val template = "Tell me {foo}."
+      either {
+        val promptTemplate = PromptTemplate(template, listOf("foo"))
+        val chain = LLMAgent(maxTokensTestLLM, promptTemplate, model, maxTokens = 5000)
+        with(chain) { call(mapOf("foo" to "a joke")) }
+      } shouldBeRight listOf("I'm not in humor for jokes, buddy")
+    }
   })
