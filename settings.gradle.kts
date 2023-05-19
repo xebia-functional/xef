@@ -20,6 +20,7 @@ include("xef-filesystem")
 project(":xef-filesystem").projectDir = file("filesystem")
 
 include("example")
+include("tokenizer")
 
 include("xef-scala")
 project(":xef-scala").projectDir = file("scala")
