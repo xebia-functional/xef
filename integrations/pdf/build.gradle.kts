@@ -16,5 +16,6 @@ java {
 
 dependencies {
     implementation(projects.xefCore)
+    implementation(projects.tokenizer)
     implementation(libs.apache.pdf.box)
 }
