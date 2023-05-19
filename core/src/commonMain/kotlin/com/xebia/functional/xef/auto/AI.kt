@@ -56,11 +56,6 @@ inline fun <A> ai(noinline block: suspend AIScope.() -> A): AI<A> = block
 suspend inline fun <A> AI<A>.getOrElse(crossinline orElse: suspend (AIError) -> A): A =
   AIScope(this) { orElse(it) }
 
-/**
- * Compose an [AI] computation with a [transform], in sequence.
- */
-fun <A, B> AI<A>.map(transform: AIScope.(A) -> B): AI<B> = {transform(this@map()) }
-
 @OptIn(ExperimentalTime::class)
 suspend fun <A> AIScope(block: suspend AIScope.() -> A, orElse: suspend (AIError) -> A): A =
   recover({
