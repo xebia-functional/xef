@@ -9,6 +9,7 @@ repositories {
 plugins {
   base
   alias(libs.plugins.kotlin.multiplatform)
+  alias(libs.plugins.kotest.multiplatform)
   alias(libs.plugins.kotlinx.serialization)
   alias(libs.plugins.spotless)
   alias(libs.plugins.dokka)
@@ -47,8 +48,10 @@ kotlin {
     browser()
     nodejs()
   }
+
   linuxX64()
   macosX64()
+  macosArm64()
   mingwX64()
 
   sourceSets {
@@ -56,6 +59,7 @@ kotlin {
       dependencies {
         api(libs.bundles.arrow)
         api(libs.bundles.ktor.client)
+        implementation(projects.tokenizer)
         implementation(libs.arrow.fx.stm)
         implementation(libs.kotlinx.serialization.json)
         implementation(libs.uuid)
@@ -63,7 +67,7 @@ kotlin {
       }
     }
 
-    commonTest {
+    val commonTest by getting {
       dependencies {
         implementation(libs.kotest.property)
         implementation(libs.kotest.framework)
@@ -76,8 +80,7 @@ kotlin {
       dependencies {
         api(libs.ktor.client.cio)
         implementation(libs.logback)
-        implementation(libs.jtokk.it)
-        implementation(libs.scrape.it)
+        implementation(libs.skrape)
         implementation(libs.rss.reader)
       }
     }
@@ -85,6 +88,12 @@ kotlin {
     val jsMain by getting {
       dependencies {
         api(libs.ktor.client.js)
+      }
+    }
+
+    val jvmTest by getting {
+      dependencies {
+        implementation(libs.kotest.junit5)
       }
     }
 
@@ -100,26 +109,28 @@ kotlin {
       }
     }
 
+    val macosArm64Main by getting {
+      dependencies {
+        api(libs.ktor.client.cio)
+      }
+    }
+
     val mingwX64Main by getting {
       dependencies {
         api(libs.ktor.client.winhttp)
       }
     }
 
-    val commonTest by getting
-    val jvmTest by getting {
-      dependencies {
-        implementation(libs.kotest.junit5)
-      }
-    }
     val linuxX64Test by getting
     val macosX64Test by getting
+    val macosArm64Test by getting
     val mingwX64Test by getting
 
     create("nativeMain") {
       dependsOn(commonMain)
       linuxX64Main.dependsOn(this)
       macosX64Main.dependsOn(this)
+      macosArm64Main.dependsOn(this)
       mingwX64Main.dependsOn(this)
     }
 
@@ -127,6 +138,7 @@ kotlin {
       dependsOn(commonTest)
       linuxX64Test.dependsOn(this)
       macosX64Test.dependsOn(this)
+      macosArm64Test.dependsOn(this)
       mingwX64Test.dependsOn(this)
     }
   }

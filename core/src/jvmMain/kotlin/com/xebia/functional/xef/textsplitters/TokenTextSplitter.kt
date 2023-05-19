@@ -1,8 +1,10 @@
 package com.xebia.functional.xef.textsplitters
 
-import com.knuddels.jtokkit.Encodings
-import com.knuddels.jtokkit.api.Encoding
-import com.knuddels.jtokkit.api.EncodingRegistry
+import com.xebia.functional.tokenizer.Encoding
+import com.xebia.functional.tokenizer.ModelType
+
+fun TokenTextSplitter(modelType: ModelType, chunkSize: Int, chunkOverlap: Int): BaseTextSplitter =
+  TokenTextSplitterImpl(modelType.encoding, chunkSize, chunkOverlap)
 
 private class TokenTextSplitterImpl(
   private val tokenizer: Encoding,
@@ -26,22 +28,4 @@ private class TokenTextSplitterImpl(
     documents.flatMap { document -> splitText(document) }
 
   override suspend fun splitTextInDocuments(text: String): List<String> = splitText(text)
-}
-
-val encodingRegistry: EncodingRegistry by lazy { Encodings.newDefaultEncodingRegistry() }
-
-fun TokenTextSplitter(
-  encodingName: String = "gpt2",
-  modelName: String? = null,
-  chunkSize: Int,
-  chunkOverlap: Int
-): BaseTextSplitter {
-  val tokenizer =
-    if (modelName != null) {
-      encodingRegistry.getEncodingForModel(modelName).orElseThrow()
-    } else {
-      encodingRegistry.getEncoding(encodingName).orElseThrow()
-    }
-
-  return TokenTextSplitterImpl(tokenizer, chunkSize, chunkOverlap)
 }
