@@ -1,6 +1,6 @@
-package com.xebia.functional.tokenizer
+package com.xebia.functional.tokenizer.internal
 
-val r50k_base : String by lazy(mode = LazyThreadSafetyMode.SYNCHRONIZED) {
+internal val r50k_base : String by lazy(mode = LazyThreadSafetyMode.SYNCHRONIZED) {
 """IQ== 0
 Ig== 1
 Iw== 2

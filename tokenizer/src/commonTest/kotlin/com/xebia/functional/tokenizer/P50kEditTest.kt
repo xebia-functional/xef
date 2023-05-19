@@ -1,42 +1,41 @@
 package com.xebia.functional.tokenizer
 
 import com.goncalossilva.resources.Resource
-import com.xebia.functional.tokenizer.EncodingType.CL100K_BASE
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 import kotlin.test.Test
 
-class Cl100kBaseTest {
-  private val resource = Resource("src/commonTest/resources/cl100k_base_encodings.csv")
-  private val ENCODING = CL100K_BASE.encoding
+class P50kEditTest {
+  private val resource = Resource("src/commonTest/resources/p50k_edit_encodings.csv")
+  private val ENCODING = EncodingType.P50K_EDIT.encoding
 
   @Test
-  fun cl100kBaseEncodesCorrectly() {
+  fun p50kEditEncodesCorrectly() {
     resource.splitCSV().forEach { (input, output, _) ->
       ENCODING.encode(input) shouldBe output.parseEncoding()
     }
   }
 
   @Test
-  fun cl100kBaseEncodesStable() {
+  fun p50kEditEncodesStable() {
     resource.splitCSV().forEach { (input, _, _) ->
       ENCODING.decode(ENCODING.encode(input)) shouldBe input
     }
   }
 
   @Test
-  fun cl100kBaseEncodesCorrectlyWithMaxTokensSet() {
+  fun p50kEditEncodesCorrectlyWithMaxTokensSet() {
     resource.splitCSV().forEach { (input, output, outputMaxTokens10) ->
-      val expected = output.parseEncoding()
-      val expectedWithMaxTokens = outputMaxTokens10.parseEncoding()
-      val encodingResult = ENCODING.encode(input, 10)
+      val expected: List<Int> = output.parseEncoding()
+      val expectedWithMaxTokens: List<Int> = outputMaxTokens10.parseEncoding()
+      val encodingResult: EncodingResult = ENCODING.encode(input, 10)
       encodingResult.tokens shouldBe expectedWithMaxTokens
-      (expected.size > expectedWithMaxTokens.size) shouldBe encodingResult.isTruncated
+      encodingResult.isTruncated shouldBe (expected.size > expectedWithMaxTokens.size)
     }
   }
 
   @Test
-  fun cl100kBaseEncodesStableWithMaxTokensSet() {
+  fun p50kEditEncodesStableWithMaxTokensSet() {
     resource.splitCSV().forEach { (input, _, _) ->
       val actual = ENCODING.decode(ENCODING.encode(input, 10).tokens)
       input shouldStartWith actual
@@ -44,32 +43,32 @@ class Cl100kBaseTest {
   }
 
   @Test
-  fun cl100kBaseEncodeOrdinaryEncodesCorrectly() {
+  fun p50kEditEncodeOrdinaryEncodesCorrectly() {
     resource.splitCSV().forEach { (input, output, _) ->
       ENCODING.encodeOrdinary(input) shouldBe output.parseEncoding()
     }
   }
 
   @Test
-  fun cl100kBaseEncodeOrdinaryEncodesCorrectlyWithMaxTokens() {
+  fun p50kEditEncodeOrdinaryEncodesCorrectlyWithMaxTokens() {
     resource.splitCSV().forEach { (input, output, outputMaxTokens10) ->
-      val expected = output.parseEncoding()
-      val expectedWithMaxTokens = outputMaxTokens10.parseEncoding()
-      val encodingResult = ENCODING.encodeOrdinary(input, 10)
+      val expected: List<Int> = output.parseEncoding()
+      val expectedWithMaxTokens: List<Int> = outputMaxTokens10.parseEncoding()
+      val encodingResult: EncodingResult = ENCODING.encodeOrdinary(input, 10)
       encodingResult.tokens shouldBe expectedWithMaxTokens
-      (expected.size > expectedWithMaxTokens.size) shouldBe encodingResult.isTruncated
+      encodingResult.isTruncated shouldBe (expected.size > expectedWithMaxTokens.size)
     }
   }
 
   @Test
-  fun cl100kBaseEncodeOrdinaryEncodesStable() {
+  fun p50kEditEncodeOrdinaryEncodesStable() {
     resource.splitCSV().forEach { (input, _, _) ->
       ENCODING.decode(ENCODING.encodeOrdinary(input)) shouldBe input
     }
   }
 
   @Test
-  fun cl100kBaseEncodeOrdinaryEncodesStableWithMaxTokensSet() {
+  fun p50kEditEncodeOrdinaryEncodesStableWithMaxTokensSet() {
     resource.splitCSV().forEach { (input, _, _) ->
       val actual = ENCODING.decode(ENCODING.encodeOrdinary(input, 10).tokens)
       input shouldStartWith actual
@@ -77,9 +76,8 @@ class Cl100kBaseTest {
   }
 
   @Test
-  fun cl100kBaseEncodeOrdinaryEncodesSpecialTokensCorrectly() {
+  fun p50kEditEncodeOrdinaryEncodesSpecialTokensCorrectly() {
     val input = "Hello<|endoftext|>, <|fim_prefix|> <|fim_middle|> world <|fim_suffix|> ! <|endofprompt|>"
-    val actual = ENCODING.decode(ENCODING.encodeOrdinary(input))
-    actual shouldBe input
+    ENCODING.decode(ENCODING.encodeOrdinary(input)) shouldBe input
   }
 }

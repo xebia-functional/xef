@@ -1,9 +1,31 @@
+@file:OptIn(ExperimentalEncodingApi::class)
+
 package com.xebia.functional.tokenizer
 
+import com.xebia.functional.tokenizer.internal.cl100k_base
+import com.xebia.functional.tokenizer.internal.p50k_base
+import com.xebia.functional.tokenizer.internal.r50k_base
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
-object EncodingFactory {
+enum class EncodingType(@Suppress("UNUSED_PARAMETER") name: String) {
+  R50K_BASE("r50k_base") {
+    override val encoding by lazy { EncodingFactory.r50kBase() }
+  },
+  P50K_BASE("p50k_base") {
+    override val encoding by lazy { EncodingFactory.p50kBase() }
+  },
+  P50K_EDIT("p50k_edit") {
+    override val encoding by lazy { EncodingFactory.p50kEdit() }
+  },
+  CL100K_BASE("cl100k_base") {
+    override val encoding by lazy { EncodingFactory.cl100kBase() }
+  };
+
+  abstract val encoding: Encoding
+}
+
+private object EncodingFactory {
   private const val ENDOFTEXT = "<|endoftext|>"
   private const val FIM_PREFIX = "<|fim_prefix|>"
   private const val FIM_MIDDLE = "<|fim_middle|>"
@@ -36,7 +58,7 @@ object EncodingFactory {
    */
   fun r50kBase(): Encoding = fromPredefinedParameters(
     "r50k_base",
-    Regex("'s|'t|'re|'ve|'m|'ll|'d| ?\\p{L}+| ?\\p{N}+| ?[^\\s\\p{L}\\p{N}]+|\\s+(?!\\S)|\\s+"),
+    p50k_regex,
     r50k_base,
     SPECIAL_TOKENS_X50K_BASE
   )
@@ -48,7 +70,7 @@ object EncodingFactory {
    */
   fun p50kBase(): Encoding = fromPredefinedParameters(
     "p50k_base",
-    Regex("'s|'t|'re|'ve|'m|'ll|'d| ?\\p{L}+| ?\\p{N}+| ?[^\\s\\p{L}\\p{N}]+|\\s+(?!\\S)|\\s+"),
+    p50k_regex,
     p50k_base,
     SPECIAL_TOKENS_X50K_BASE
   )
@@ -60,14 +82,14 @@ object EncodingFactory {
    */
   fun p50kEdit(): Encoding = fromPredefinedParameters(
     "p50k_edit",
-    Regex("'s|'t|'re|'ve|'m|'ll|'d| ?\\p{L}+| ?\\p{N}+| ?[^\\s\\p{L}\\p{N}]+|\\s+(?!\\S)|\\s+", RegexOption.IGNORE_CASE),
+    p50k_regex,
     p50k_base,
     SPECIAL_TOKENS_P50K_EDIT
   )
 
   fun cl100kBase(): Encoding = fromPredefinedParameters(
     "cl100k_base",
-    regex,
+    cl100k_base_regex,
     cl100k_base,
     SPECIAL_TOKENS_CL100K_BASE
   )
@@ -91,7 +113,6 @@ object EncodingFactory {
     return fromParameters(params)
   }
 
-  @OptIn(ExperimentalEncodingApi::class)
   private fun loadMergeableRanks(base: String): Map<ByteArray, Int> =
     buildMap {
       base.lineSequence().forEach { line ->
@@ -101,4 +122,5 @@ object EncodingFactory {
     }
 }
 
-expect val regex: Regex
+expect val cl100k_base_regex: Regex
+expect val p50k_regex: Regex

@@ -4,23 +4,6 @@ import com.xebia.functional.tokenizer.EncodingType.CL100K_BASE
 import com.xebia.functional.tokenizer.EncodingType.P50K_BASE
 import com.xebia.functional.tokenizer.EncodingType.R50K_BASE
 
-enum class EncodingType(@Suppress("UNUSED_PARAMETER") name: String) {
-  R50K_BASE("r50k_base") {
-    override val encoding by lazy { EncodingFactory.r50kBase() }
-  },
-  P50K_BASE("p50k_base") {
-    override val encoding by lazy { EncodingFactory.p50kBase() }
-  },
-  P50K_EDIT("p50k_edit") {
-    override val encoding by lazy { EncodingFactory.p50kEdit() }
-  },
-  CL100K_BASE("cl100k_base") {
-    override val encoding by lazy { EncodingFactory.cl100kBase() }
-  };
-
-  abstract val encoding: Encoding
-}
-
 enum class ModelType(
   /**
    * Returns the name of the model type as used by the OpenAI API.

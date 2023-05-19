@@ -10,5 +10,8 @@ val decimalNumbers = """
 
 val alphaNumerics = alphaChars + decimalNumbers
 
-actual val regex: Regex
+actual val cl100k_base_regex: Regex
   get() = Regex("""('s|'t|'re|'ve|'m|'ll|'d)|[^\r\n[$alphaNumerics]]?[$alphaChars]+|\d{1,3}| ?[^\s$alphaNumerics]+[\r\n]*|\s*[\r\n]+|\s+(?!\S)|\s+""", RegexOption.IGNORE_CASE)
+
+actual val p50k_regex: Regex
+  get() = Regex("""'s|'t|'re|'ve|'m|'ll|'d| ?[$alphaChars]+| ?[$alphaNumerics]+| ?[^\s[$alphaNumerics]]+|\s+(?!\S)|\s+""", RegexOption.IGNORE_CASE)

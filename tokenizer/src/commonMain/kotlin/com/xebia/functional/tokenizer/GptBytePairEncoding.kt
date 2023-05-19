@@ -52,19 +52,20 @@ internal class GptBytePairEncoding(params: GptBytePairEncodingParams) : Encoding
   private fun encodeOrdinaryInternal(text: String?, maxTokens: Int?): EncodingResult {
     if (text == null) return EncodingResult(emptyList(), false)
     val out = buildList {
-      val matcher = pattern.findAll(text).toList()
       var tokenCount = 0
-      matcher.forEach { result ->
-        val res = result.value.encodeToByteArray()
-        val match = ImmutableByteArray.from(res)
-        if (encoder.containsDecodedToken(match)) {
-          add(encoder.encode(match))
-          tokenCount++
-        } else {
-          val tokensToAdd = bytePairMerge(match)
-          tokenCount += addTokens(this, tokensToAdd, maxTokens)
+      pattern.findAll(text)
+        .takeWhile { maxTokenCountNotReached(maxTokens, tokenCount) }
+        .forEach { result ->
+          val res = result.value.encodeToByteArray()
+          val match = ImmutableByteArray.from(res)
+          if (encoder.containsDecodedToken(match)) {
+            add(encoder.encode(match))
+            tokenCount++
+          } else {
+            val tokensToAdd = bytePairMerge(match)
+            tokenCount += addTokens(this, tokensToAdd, maxTokens)
+          }
         }
-      }
     }
     if (maxTokens != null) {
       // Make sure we didn't break the multibyte character
