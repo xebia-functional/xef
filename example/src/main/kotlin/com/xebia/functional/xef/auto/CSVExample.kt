@@ -3,6 +3,7 @@ package com.xebia.functional.xef.auto.csv
 import com.xebia.functional.xef.agents.csv
 import com.xebia.functional.xef.auto.ai
 import com.xebia.functional.xef.auto.getOrThrow
+import com.xebia.functional.xef.auto.promptMessage
 import okio.Path
 import okio.Path.Companion.toPath
 import java.io.File
