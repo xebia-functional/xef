@@ -52,7 +52,11 @@ class LLMAgent(
     }
   }
 
-  private suspend fun callCompletionEndpoint(prompt: String): List<String> {
+  private suspend fun Raise<AIError>.callCompletionEndpoint(prompt: String): List<String> {
+    val contextLength: Int = model.maxContextLength
+    val promptSize: Int = model.encodingType.encoding.encode(prompt).size
+    val maxTokens: Int = checkPromptLength(contextLength, promptSize)
+
     val request =
       CompletionRequest(
         model = model.name,
@@ -61,12 +65,16 @@ class LLMAgent(
         echo = echo,
         n = n,
         temperature = temperature,
-        maxTokens = 1024
+        maxTokens = maxTokens
       )
     return llm.createCompletion(request).map { it.text }
   }
 
-  private suspend fun callChatEndpoint(prompt: String): List<String> {
+  private suspend fun Raise<AIError>.callChatEndpoint(prompt: String): List<String> {
+    val contextLength: Int = model.maxContextLength
+    val promptSize: Int = model.encodingType.encoding.encode(prompt).size
+    val maxTokens: Int = checkPromptLength(contextLength, promptSize)
+
     val request =
       ChatCompletionRequest(
         model = model.name,
@@ -74,9 +82,16 @@ class LLMAgent(
         messages = listOf(Message(Role.system.name, prompt)),
         n = n,
         temperature = temperature,
-        maxTokens = 1024
+        maxTokens = maxTokens
       )
     return llm.createChatCompletion(request).choices.map { it.message.content }
+  }
+
+  private fun Raise<AIError>.checkPromptLength(contextLength: Int, promptSize: Int): Int {
+    ensure(contextLength > promptSize) {
+      AIError.ExceedModelContextLength(contextLength, promptSize)
+    }
+    return contextLength - promptSize
   }
 }
 

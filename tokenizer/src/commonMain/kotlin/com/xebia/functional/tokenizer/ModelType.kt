@@ -1,8 +1,6 @@
 package com.xebia.functional.tokenizer
 
-import com.xebia.functional.tokenizer.EncodingType.CL100K_BASE
-import com.xebia.functional.tokenizer.EncodingType.P50K_BASE
-import com.xebia.functional.tokenizer.EncodingType.R50K_BASE
+import com.xebia.functional.tokenizer.EncodingType.*
 
 enum class EncodingType(@Suppress("UNUSED_PARAMETER") name: String) {
   R50K_BASE("r50k_base") {
@@ -40,8 +38,10 @@ enum class ModelType(
 ) {
   // chat
   GPT_4("gpt-4", CL100K_BASE, 8192),
+  GPT_4_0314("gpt-4-0314", CL100K_BASE, 8192),
   GPT_4_32K("gpt-4-32k", CL100K_BASE, 32768),
   GPT_3_5_TURBO("gpt-3.5-turbo", CL100K_BASE, 4097),
+  GPT_3_5_TURBO_0301("gpt-3.5-turbo-0301", CL100K_BASE, 4097),
 
   // text
   TEXT_DAVINCI_003("text-davinci-003", P50K_BASE, 4097),

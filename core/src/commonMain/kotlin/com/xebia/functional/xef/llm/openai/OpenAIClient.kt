@@ -48,13 +48,18 @@ private class KtorOpenAIClient(
 
   override suspend fun createCompletion(request: CompletionRequest): List<CompletionChoice> {
     val response =
-      config.retryConfig.schedule().retry {
-        httpClient.post {
-          url { path("completions") }
-          configure(config.token, request)
-          timeout { requestTimeoutMillis = config.requestTimeout.inWholeMilliseconds }
+      config.retryConfig
+        .schedule()
+        .log { error, attempts ->
+          println("Retrying completion due to $error after $attempts attempts")
         }
-      }
+        .retry {
+          httpClient.post {
+            url { path("completions") }
+            configure(config.token, request)
+            timeout { requestTimeoutMillis = config.requestTimeout.inWholeMilliseconds }
+          }
+        }
     val body: CompletionResult = response.body()
     return body.choices
   }
@@ -80,25 +85,35 @@ private class KtorOpenAIClient(
 
   override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult {
     val response: HttpResponse =
-      config.retryConfig.schedule().retry {
-        httpClient.post {
-          url { path("embeddings") }
-          configure(config.token, request)
-          timeout { requestTimeoutMillis = config.requestTimeout.inWholeMilliseconds }
+      config.retryConfig
+        .schedule()
+        .log { error, attempts ->
+          println("Retrying embeddings due to $error after $attempts attempts")
         }
-      }
+        .retry {
+          httpClient.post {
+            url { path("embeddings") }
+            configure(config.token, request)
+            timeout { requestTimeoutMillis = config.requestTimeout.inWholeMilliseconds }
+          }
+        }
     return response.body()
   }
 
   override suspend fun createImages(request: ImagesGenerationRequest): ImagesGenerationResponse {
     val response: HttpResponse =
-      config.retryConfig.schedule().retry {
-        httpClient.post {
-          url { path("images/generations") }
-          configure(config.token, request)
-          timeout { requestTimeoutMillis = config.requestTimeout.inWholeMilliseconds }
+      config.retryConfig
+        .schedule()
+        .log { error, attempts ->
+          println("Retrying images due to $error after $attempts attempts")
         }
-      }
+        .retry {
+          httpClient.post {
+            url { path("images/generations") }
+            configure(config.token, request)
+            timeout { requestTimeoutMillis = config.requestTimeout.inWholeMilliseconds }
+          }
+        }
     return response.body()
   }
 }

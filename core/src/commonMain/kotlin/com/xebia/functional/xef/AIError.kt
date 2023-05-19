@@ -35,5 +35,15 @@ sealed interface AIError {
     }
   }
 
+  data class ExceedModelContextLength(val promptSize: Int, val maxContextLength: Int) : AIError {
+    override val reason: String
+      get() =
+        """
+        This model's maximum context length is $maxContextLength tokens, however you requested $promptSize tokens. 
+        Please reduce your prompt.
+      """
+          .trimIndent()
+  }
+
   data class InvalidInputs(override val reason: String) : AIError
 }
