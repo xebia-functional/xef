@@ -23,7 +23,7 @@ class DeserializerLLMAgent<A>(
   },
   private val maxDeserializationAttempts: Int = 5,
   llm: OpenAIClient,
-  template: Prompt<String>,
+  template: Prompt,
   model: LLMModel = LLMModel.GPT_3_5_TURBO,
   context: VectorStore = VectorStore.EMPTY,
   user: String = "testing",
@@ -31,12 +31,12 @@ class DeserializerLLMAgent<A>(
   n: Int = 1,
   temperature: Double = 0.0,
   bringFromContext: Int = 10
-) : Agent<Map<String, String>, A> {
+) : Agent<A> {
 
   companion object {
     inline operator fun <reified A> invoke(
       llm: OpenAIClient,
-      template: Prompt<String>,
+      template: Prompt,
       model: LLMModel = LLMModel.GPT_3_5_TURBO,
       context: VectorStore = VectorStore.EMPTY,
       user: String = "testing",
@@ -104,12 +104,11 @@ class DeserializerLLMAgent<A>(
   override val description: String =
     "Runs a query through a LLM agent and deserializes the output from a JSON representation"
 
-  override suspend fun Raise<AIError>.call(input: Map<String, String>): A {
+  override suspend fun Raise<AIError>.call(): A {
     var currentAttempts = 0
     while (currentAttempts < maxDeserializationAttempts) {
       currentAttempts++
-      val result =
-        ensureNotNull(with(underlying) { call(input) }.firstOrNull()) { AIError.NoResponse }
+      val result = ensureNotNull(with(underlying) { call() }.firstOrNull()) { AIError.NoResponse }
       catch({
         return@call json.decodeFromString(serializationConfig.deserializationStrategy, result)
       }) { e: IllegalArgumentException ->

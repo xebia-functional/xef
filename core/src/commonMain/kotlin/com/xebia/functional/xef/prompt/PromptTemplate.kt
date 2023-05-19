@@ -12,31 +12,62 @@ import kotlin.jvm.JvmInline
 
 data class InvalidTemplate(val reason: String)
 
-@JvmInline
-value class PromptTemplate private constructor(val template: String) {
-  fun build(variables: Map<String, String>): Either<InvalidTemplate, Prompt<String>> = either {
-    val placeholders = placeholderValues(template)
-    recover<NonEmptyList<InvalidTemplate>, Unit>({
-      zipOrAccumulate(
-        { validate(template, variables.keys - placeholders.toSet(), "unused") },
-        { validate(template, placeholders.toSet() - variables.keys, "missing") },
-        { validateDuplicated(template, placeholders) }
-      ) { _, _, _ -> }
-    }) { raise(InvalidTemplate(it.joinToString(transform = InvalidTemplate::reason))) }
-    Prompt(variables.fold(template) { acc, (key, value) ->
-      acc.replace("{$key}", value)
-    })
-  }
-
-  companion object {
-    fun either(template: String): Either<InvalidTemplate, PromptTemplate> = either {
-      val placeholders = placeholderValues(template)
-      validateDuplicated(template, placeholders)
-      PromptTemplate(template)
-    }
-  }
+fun Raise<InvalidTemplate>.PromptTemplate(
+  examples: List<String>,
+  suffix: String,
+  variables: List<String>,
+  prefix: String
+): PromptTemplate {
+  val template =
+    """|$prefix
+      |
+      |${examples.joinToString(separator = "\n")}
+      |
+      |$suffix"""
+      .trimMargin()
+  return PromptTemplate(template, variables)
 }
 
+fun Raise<InvalidTemplate>.PromptTemplate(
+  template: String,
+  validate: List<String>? = null
+): PromptTemplate = PromptTemplate.either(template, validate).bind()
+
+@JvmInline
+value class PromptTemplate private constructor(val template: String) {
+  fun format(variables: Map<String, String>): Prompt =
+    Prompt(variables.fold(template) { acc, (key, value) -> acc.replace("{$key}", value) })
+
+  companion object {
+    fun either(
+      template: String,
+      variables: List<String>? = null
+    ): Either<InvalidTemplate, PromptTemplate> =
+      either {
+          val placeholders = placeholderValues(template)
+          recover<NonEmptyList<InvalidTemplate>, Unit>({
+            zipOrAccumulate(
+              {
+                variables?.let {
+                  validate(template, variables.toSet() - placeholders.toSet(), "unused")
+                }
+              },
+              {
+                variables?.let {
+                  validate(template, placeholders.toSet() - variables.toSet(), "missing")
+                }
+              },
+              { validateDuplicated(template, placeholders) }
+            ) { _, _, _ ->
+            }
+          }) {
+            raise(InvalidTemplate(it.joinToString(transform = InvalidTemplate::reason)))
+          }
+          template
+        } // We need to map otherwise Raise constructor gets precedence
+        .map { PromptTemplate(template) }
+  }
+}
 
 private fun Raise<InvalidTemplate>.validate(
   template: String,
@@ -64,8 +95,4 @@ private fun Raise<InvalidTemplate>.validateDuplicated(
 private fun placeholderValues(template: String): List<String> {
   @Suppress("RegExpRedundantEscape") val regex = Regex("""\{([^\{\}]+)\}""")
   return regex.findAll(template).toList().mapNotNull { it.groupValues.getOrNull(1) }
-}
-
-private fun String.capitalized(): String = replaceFirstChar {
-  if (it.isLowerCase()) it.titlecase() else it.toString()
 }

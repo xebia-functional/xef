@@ -1,7 +1,5 @@
 package com.xebia.functional.xef.prompt
 
-import arrow.core.raise.Raise
-import arrow.core.raise.either
 import kotlinx.serialization.Serializable
 
 enum class Type {
@@ -42,9 +40,6 @@ data class ChatMessage(override val content: String, val role: String) : Message
   override fun format(): String = "$role: $content"
 }
 
-enum class TemplateFormat {
-  FString
+private fun String.capitalized(): String = replaceFirstChar {
+  if (it.isLowerCase()) it.titlecase() else it.toString()
 }
-
-
-

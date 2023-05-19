@@ -15,8 +15,8 @@ fun bingSearch(
   splitter: BaseTextSplitter,
   url: String = "https://www.bing.com/news/search?q=${search.encodeURLParameter()}&format=rss",
   maxLinks: Int = 10
-): ParameterlessAgent<List<String>> =
-  ParameterlessAgent<List<String>>(
+): Agent<List<String>> =
+  Agent(
     name = "Bing Search",
     description = "Searches Bing for $search",
   ) {

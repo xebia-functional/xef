@@ -2,7 +2,7 @@ package com.xebia.functional.xef.agents
 
 import com.xebia.functional.xef.textsplitters.TokenTextSplitter
 
-fun search(vararg prompt: String): Collection<ParameterlessAgent<List<String>>> =
+fun search(vararg prompt: String): Collection<Agent<List<String>>> =
   prompt.map {
     bingSearch(
       search = it,

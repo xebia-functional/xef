@@ -13,7 +13,7 @@ import com.xebia.functional.xef.vectorstores.VectorStore
 
 class LLMAgent(
   private val llm: OpenAIClient,
-  private val prompt: Prompt<String>,
+  private val prompt: Prompt,
   private val model: LLMModel,
   private val context: VectorStore = VectorStore.EMPTY,
   private val user: String = "testing",
@@ -21,12 +21,12 @@ class LLMAgent(
   private val n: Int = 1,
   private val temperature: Double = 0.0,
   private val bringFromContext: Int = 10
-) : Agent<Map<String, String>, List<String>> {
+) : Agent<List<String>> {
 
   override val name = "LLM Agent"
   override val description: String = "Runs a query through a LLM agent"
 
-  override suspend fun Raise<AIError>.call(input: Map<String, String>): List<String> {
+  override suspend fun Raise<AIError>.call(): List<String> {
     val ctxInfo = context.similaritySearch(prompt.message, bringFromContext)
     val promptWithContext =
       if (ctxInfo.isNotEmpty()) {
@@ -37,7 +37,8 @@ class LLMAgent(
            |```
            |${ctxInfo.joinToString("\n")}
            |```
-           |$prompt""".trimMargin()
+           |$prompt"""
+          .trimMargin()
       } else prompt.message
 
     return when (model.kind) {

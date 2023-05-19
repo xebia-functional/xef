@@ -6,7 +6,6 @@ import com.xebia.functional.xef.auto.AIException
 import com.xebia.functional.xef.auto.AIKt
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.agents.Agent as KtAgent
-import com.xebia.functional.xef.agents.ParameterlessAgent
 import com.xebia.functional.xef.llm.openai.LLMModel
 
 //def example(using AIScope): String =
@@ -32,9 +31,9 @@ object AI:
 end AI
 
 final case class AIScope(kt: KtAIScope):
-  def agent[A](agent: ParameterlessAgent[List[String]], scope: AIScope ?=> A): A = ???
+  def agent[A](agent: KtAgent[List[String]], scope: AIScope ?=> A): A = ???
 
-  def agent[A](agents: List[ParameterlessAgent[List[String]]], scope: AIScope ?=> A): A = ???
+  def agent[A](agents: List[KtAgent[List[String]]], scope: AIScope ?=> A): A = ???
 
   // TODO: Design signature for Scala3 w/ Json parser (with support for generating Json Schema)?
   def prompt[A](

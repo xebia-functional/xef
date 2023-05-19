@@ -10,29 +10,31 @@ import com.xebia.functional.xef.vectorstores.VectorStore
 
 class ImageGenerationAgent(
   private val llm: OpenAIClient,
-  private val prompt: Prompt<String>,
+  private val prompt: Prompt,
   private val context: VectorStore = VectorStore.EMPTY,
   private val user: String = "testing",
   private val numberImages: Int,
   private val size: String,
   private val bringFromContext: Int = 10
-) : Agent<Map<String, String>, ImagesGenerationResponse> {
+) : Agent<ImagesGenerationResponse> {
 
   override val name = "Image Generation Agent"
   override val description: String = "Generates images"
 
-  override suspend fun Raise<AIError>.call(input: Map<String, String>): ImagesGenerationResponse {
+  override suspend fun Raise<AIError>.call(): ImagesGenerationResponse {
     val ctxInfo = context.similaritySearch(prompt.message, bringFromContext)
-    val promptWithContext = if (ctxInfo.isNotEmpty()) {
-      """|Instructions: Use the [Information] below delimited by 3 backticks to accomplish
+    val promptWithContext =
+      if (ctxInfo.isNotEmpty()) {
+        """|Instructions: Use the [Information] below delimited by 3 backticks to accomplish
          |the [Objective] at the end of the prompt.
          |Try to match the data returned in the [Objective] with this [Information] as best as you can.
          |[Information]:
          |```
          |${ctxInfo.joinToString("\n")}
          |```
-         |$prompt""".trimMargin()
-    } else prompt.message
+         |$prompt"""
+          .trimMargin()
+      } else prompt.message
 
     return callImageGenerationEndpoint(promptWithContext)
   }

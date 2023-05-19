@@ -10,36 +10,29 @@ class PromptTemplateSpec :
     "PromptTemplate(template, list) should fail if the template is not valid" {
       val template = "Tell me {foo}."
 
-      either {
-        val prompt = Prompt(template, emptyList())
-        prompt.format(mapOf("foo" to "bar"))
-      } shouldBeLeft InvalidTemplate("Template 'Tell me {foo}.' has missing arguments: {foo}")
+      either { PromptTemplate(template, emptyList()).format(mapOf("foo" to "bar")) } shouldBeLeft
+        InvalidTemplate("Template 'Tell me {foo}.' has missing arguments: {foo}")
     }
 
     "format with no input variables shouldn't have any effect" {
       val template = "Tell me a joke."
 
-      either {
-        val prompt = Prompt(template, emptyList())
-        prompt.format(emptyMap())
-      } shouldBeRight "Tell me a joke."
+      either { PromptTemplate(template).format(emptyMap()) } shouldBeRight Prompt("Tell me a joke.")
     }
 
     "format should return the expected result with a given set of variables" {
       val template = "My name is {name} and I'm {age} years old"
       val variables = mapOf("name" to "John", "age" to "47")
 
-      either {
-        val config = Config(template, listOf("name", "age"))
-        Prompt(config).format(variables)
-      } shouldBeRight "My name is John and I'm 47 years old"
+      either { PromptTemplate(template, listOf("name", "age")).format(variables) } shouldBeRight
+        Prompt("My name is John and I'm 47 years old")
     }
 
     "PromptTemplate(template, list) should return a PromptTemplate instance with the given template and input variables" {
       val template = "My name is {name} and I'm {age} years old"
       val variables = mapOf("name" to "Mary", "age" to "25")
-      either { Prompt(template, listOf("name", "age")).format(variables) } shouldBeRight
-        "My name is Mary and I'm 25 years old"
+      either { PromptTemplate(template, listOf("name", "age")).format(variables) } shouldBeRight
+        Prompt("My name is Mary and I'm 25 years old")
     }
 
     " PromptTemplate(examples, suffix, variables, prefix) should return a PromptTemplate instance with the given examples and input variables" {
@@ -60,10 +53,11 @@ class PromptTemplateSpec :
       val variables = mapOf("product" to "functional programming")
 
       either {
-        Prompt(examples, suffix = suffix, variables = listOf("product"), prefix = prefix)
+        PromptTemplate(examples, suffix = suffix, variables = listOf("product"), prefix = prefix)
           .format(variables)
       } shouldBeRight
-        """
+        Prompt(
+          """
         |I want you to act as a naming consultant for new companies.
         |Here are some examples of good company names:
         |
@@ -73,7 +67,8 @@ class PromptTemplateSpec :
         |
         |The name should be short, catchy and easy to remember.
         |What is a good name for a company that makes functional programming?"""
-          .trimMargin()
+            .trimMargin()
+        )
     }
 
     "format should return the expected result for variables with functions" {
@@ -82,54 +77,48 @@ class PromptTemplateSpec :
 
       val variables = mapOf("name" to "Charles", "age" to getAge())
 
-      either {
-        val config = Config(template, listOf("name", "age"))
-        Prompt(config).format(variables)
-      } shouldBeRight "My name is Charles and I'm ${getAge()} years old"
+      either { PromptTemplate(template, listOf("name", "age")).format(variables) } shouldBeRight
+        Prompt("My name is Charles and I'm ${getAge()} years old")
     }
 
-    "format for human should return a HumanMessage" {
-      val template = "My name is {name} and I'm {age} years old"
-      val variables: Map<String, String> = mapOf("name" to "Charles", "age" to "21")
+    "should fail with a InvalidTemplateError if the template has missing arguments" {
+      val template = "Hello {name}, you are {age} years old."
+      val variables = listOf("name")
 
-      either {
-        val prompt: Prompt<String> = Prompt(template, listOf("name", "age"))
-        val humanPrompt: Prompt<HumanMessage> = Prompt.human(prompt)
-        humanPrompt.format(variables)
-      } shouldBeRight HumanMessage("My name is Charles and I'm 21 years old")
+      either { PromptTemplate(template, variables) } shouldBeLeft
+        InvalidTemplate(
+          "Template 'Hello {name}, you are {age} years old.' has missing arguments: {age}"
+        )
     }
 
-    "format for system should return a SystemMessage" {
-      val template = "{sounds}"
-      val variables: Map<String, String> = mapOf("sounds" to "Beep bep")
+    "should fail with a InvalidTemplateError if the template has unused arguments" {
+      val template = "Hello {name}, you are {age} years old."
+      val variables = listOf("name", "age", "unused")
 
-      either {
-        val prompt: Prompt<String> = Prompt(template, listOf("sounds"))
-        val systemPrompt: Prompt<SystemMessage> = Prompt.system(prompt)
-        systemPrompt.format(variables)
-      } shouldBeRight SystemMessage("Beep bep")
+      either { PromptTemplate(template, variables) } shouldBeLeft
+        InvalidTemplate(
+          "Template 'Hello {name}, you are {age} years old.' has unused arguments: {unused}"
+        )
     }
 
-    "format for ai should return a AIMessage" {
-      val template = "Hi, I'm an {machine}"
-      val variables: Map<String, String> = mapOf("machine" to "AI")
+    "should fail with a InvalidTemplateError if there are duplicate input variables" {
+      val template = "Hello {name}, you are {name} years old."
+      val variables = listOf("name")
 
-      either {
-        val prompt: Prompt<String> = Prompt(template, listOf("machine"))
-        val aiPrompt: Prompt<AIMessage> = Prompt.ai(prompt)
-        aiPrompt.format(variables)
-      } shouldBeRight AIMessage("Hi, I'm an AI")
+      either { PromptTemplate(template, variables) } shouldBeLeft
+        InvalidTemplate(
+          "Template 'Hello {name}, you are {name} years old.' has duplicate arguments: {name}"
+        )
     }
 
-    "format for chat should return a ChatMessage" {
-      val role = "Yoda"
-      val template = "Lost a {action}, master {name} has."
-      val variables: Map<String, String> = mapOf("action" to "battle", "name" to "Obi-Wan")
+    "should fail with a combination of InvalidTemplateErrors if there are multiple things wrong" {
+      val template = "Hello {name}, you are {name} years old."
+      val variables = listOf("name", "age")
+      val unused = "Template 'Hello {name}, you are {name} years old.' has unused arguments: {age}"
+      val duplicated =
+        "Template 'Hello {name}, you are {name} years old.' has duplicate arguments: {name}"
 
-      either {
-        val prompt: Prompt<String> = Prompt(template, listOf("action", "name"))
-        val chatPrompt: Prompt<ChatMessage> = Prompt.chat(prompt, role)
-        chatPrompt.format(variables)
-      } shouldBeRight ChatMessage("Lost a battle, master Obi-Wan has.", "Yoda")
+      either { PromptTemplate(template, variables) } shouldBeLeft
+        InvalidTemplate("$unused, $duplicated")
     }
   })

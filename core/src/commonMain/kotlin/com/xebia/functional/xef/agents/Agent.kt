@@ -3,61 +3,35 @@ package com.xebia.functional.xef.agents
 import arrow.core.raise.Raise
 import com.xebia.functional.xef.AIError
 
-interface Agent<in Input, out Output> {
+interface Agent<out Output> {
   val name: String
   val description: String
-  suspend fun Raise<AIError>.call(input: Input): Output
+  suspend fun Raise<AIError>.call(): Output
 
-  fun <A> contramap(pretransform: (A) -> Input): Agent<A, Output> =
-    Wrapper(pretransform, this) { it }
+  fun <B> map(transform: (Output) -> B): Agent<B> = Mapped(this, transform)
 
-  fun <B> map(transform: (Output) -> B): Agent<Input, B> = Wrapper({ it }, this, transform)
+  //  /** Record an [input] but don't execute the agent yet. */
+  //  fun with(): Agent<Output> =
+  //    Agent(name = this.name, description = this.description) {
+  //      with(this@Agent) { call() }
+  //    }
 
-  /** Record an [input] but don't execute the agent yet. */
-  fun with(input: Input): ParameterlessAgent<Output> =
-    ParameterlessAgent<Output>(name = this.name, description = this.description) {
-      with(this@Agent) { call(input) }
-    }
-
-  class Wrapper<in A, B, C, out D>(
-    val pretransform: (A) -> B,
-    val agent: Agent<B, C>,
-    val transform: (C) -> D
-  ) : Agent<A, D> {
+  private class Mapped<C, out D>(val agent: Agent<C>, val transform: (C) -> D) : Agent<D> {
     override val name = agent.name
     override val description: String = agent.description
-    override suspend fun Raise<AIError>.call(input: A): D {
-      val i = pretransform(input)
-      val o = with(agent) { call(i) }
+    override suspend fun Raise<AIError>.call(): D {
+      val o = with(agent) { call() }
       return transform(o)
     }
   }
-
-  companion object {
-    operator fun <Input, Output> invoke(
-      name: String,
-      description: String,
-      action: suspend Raise<AIError>.(Input) -> Output
-    ): Agent<Input, Output> =
-      object : Agent<Input, Output> {
-        override val name: String = name
-        override val description: String = description
-        override suspend fun Raise<AIError>.call(input: Input): Output = action(input)
-      }
-  }
-}
-
-interface ParameterlessAgent<out Output> : Agent<Unit, Output> {
-  suspend fun Raise<AIError>.call(): Output
-  override suspend fun Raise<AIError>.call(input: Unit): Output = call()
 
   companion object {
     operator fun <Output> invoke(
       name: String,
       description: String,
       action: suspend Raise<AIError>.() -> Output
-    ): ParameterlessAgent<Output> =
-      object : ParameterlessAgent<Output> {
+    ): Agent<Output> =
+      object : Agent<Output> {
         override val name: String = name
         override val description: String = description
         override suspend fun Raise<AIError>.call(): Output = action()
@@ -65,4 +39,21 @@ interface ParameterlessAgent<out Output> : Agent<Unit, Output> {
   }
 }
 
-typealias ContextualAgent = ParameterlessAgent<List<String>>
+// interface ParameterlessAgent<out Output> : Agent<Output> {
+//  override suspend fun Raise<AIError>.call(): Output = call()
+//
+//  companion object {
+//    operator fun <Output> invoke(
+//      name: String,
+//      description: String,
+//      action: suspend Raise<AIError>.() -> Output
+//    ): ParameterlessAgent<Output> =
+//      object : ParameterlessAgent<Output> {
+//        override val name: String = name
+//        override val description: String = description
+//        override suspend fun Raise<AIError>.call(): Output = action()
+//      }
+//  }
+// }
+
+typealias ContextualAgent = Agent<List<String>>
