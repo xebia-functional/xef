@@ -19,12 +19,7 @@ suspend fun pdf(
   url: String,
   splitter: BaseTextSplitter = TokenTextSplitter(modelName = LLMModel.GPT_3_5_TURBO.name, chunkSize = 100, chunkOverlap = 50)
 ): ParameterlessAgent<List<String>> =
-  resourceScope {
-    val client = install({
-       HttpClient { }
-    }) { client, _ ->
-      client.close()
-    }
+  HttpClient().use {
     val response = client.get(url)
     val file = File.createTempFile("pdf", ".pdf")
     file.writeChannel().use {
