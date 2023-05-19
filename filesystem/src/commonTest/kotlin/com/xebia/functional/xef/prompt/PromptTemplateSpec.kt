@@ -14,12 +14,11 @@ class PromptTemplateSpec : StringSpec({
       val example = templates / "example.txt"
       write(example) { writeUtf8("My name is {name} and I'm {age} years old") }
     }
-    val inputVariables = listOf("name", "age")
     val variables = mapOf("name" to "Angela", "age" to "18")
 
     either {
-      val prompt = PromptTemplate("templates/example.txt".toPath(), inputVariables, fileSystem)
+      val prompt = PromptTemplate("templates/example.txt".toPath(), fileSystem)
       prompt.format(variables)
-    } shouldBeRight "My name is Angela and I'm 18 years old"
+    } shouldBeRight Prompt("My name is Angela and I'm 18 years old")
   }
 })

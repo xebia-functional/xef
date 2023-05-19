@@ -1,7 +1,6 @@
 package com.xebia.functional.xef.pdf
 
 import com.xebia.functional.tokenizer.ModelType
-import com.xebia.functional.xef.agents.ParameterlessAgent
 import com.xebia.functional.xef.loaders.BaseLoader
 import com.xebia.functional.xef.textsplitters.BaseTextSplitter
 import com.xebia.functional.xef.textsplitters.TokenTextSplitter
@@ -9,15 +8,13 @@ import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.text.PDFTextStripper
 import java.io.File
 
-fun pdf(
+suspend fun pdf(
   file: File,
   splitter: BaseTextSplitter = TokenTextSplitter(modelType = ModelType.GPT_3_5_TURBO, chunkSize = 100, chunkOverlap = 50)
-): ParameterlessAgent<List<String>> =
-  ParameterlessAgent(name = "Get PDF content", description = "Get PDF Content of $file") {
-    val loader = PDFLoader(file)
-
-    loader.loadAndSplit(splitter)
-  }
+): List<String> {
+  val loader = PDFLoader(file)
+  return loader.loadAndSplit(splitter)
+}
 
 class PDFLoader(private val file: File) : BaseLoader {
   override suspend fun load(): List<String> {
