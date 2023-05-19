@@ -9,18 +9,11 @@ import arrow.fx.coroutines.Resource
 import arrow.fx.coroutines.ResourceScope
 import arrow.fx.coroutines.resourceScope
 import com.xebia.functional.xef.AIError
-import com.xebia.functional.xef.agents.ContextualAgent
-import com.xebia.functional.xef.agents.DeserializerLLMAgent
-import com.xebia.functional.xef.agents.ImageGenerationAgent
-import com.xebia.functional.xef.agents.LLMAgent
 import com.xebia.functional.xef.embeddings.Embeddings
 import com.xebia.functional.xef.embeddings.OpenAIEmbeddings
 import com.xebia.functional.xef.env.OpenAIConfig
-import com.xebia.functional.xef.llm.openai.ImagesGenerationResponse
 import com.xebia.functional.xef.llm.openai.KtorOpenAIClient
-import com.xebia.functional.xef.llm.openai.LLMModel
 import com.xebia.functional.xef.llm.openai.OpenAIClient
-import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.vectorstores.CombinedVectorStore
 import com.xebia.functional.xef.vectorstores.LocalVectorStore
 import com.xebia.functional.xef.vectorstores.LocalVectorStoreBuilder
@@ -30,7 +23,6 @@ import io.github.oshai.KotlinLogging
 import kotlin.jvm.JvmName
 import kotlin.time.ExperimentalTime
 import kotlinx.serialization.DeserializationStrategy
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.json.JsonObject
 
@@ -63,6 +55,11 @@ inline fun <A> ai(noinline block: suspend AIScope.() -> A): AI<A> = block
  */
 suspend inline fun <A> AI<A>.getOrElse(crossinline orElse: suspend (AIError) -> A): A =
   AIScope(this) { orElse(it) }
+
+/**
+ * Compose an [AI] computation with a [transform], in sequence.
+ */
+fun <A, B> AI<A>.map(transform: AIScope.(A) -> B): AI<B> = {transform(this@map()) }
 
 @OptIn(ExperimentalTime::class)
 suspend fun <A> AIScope(block: suspend AIScope.() -> A, orElse: suspend (AIError) -> A): A =
@@ -114,8 +111,8 @@ suspend inline fun <reified A> AI<A>.getOrThrow(): A = getOrElse { throw AIExcep
  * [AI] program, and [Raise] of [AIError] in case you want to compose any [Raise] based actions.
  */
 class AIScope(
-  @PublishedApi internal val openAIClient: OpenAIClient,
-  @PublishedApi internal val context: VectorStore,
+  val openAIClient: OpenAIClient,
+  val context: VectorStore,
   internal val embeddings: Embeddings,
   private val logger: KLogger,
   resourceScope: ResourceScope,
@@ -163,20 +160,6 @@ class AIScope(
   }
 
   @AiDsl
-  suspend fun extendContext(vararg agents: ContextualAgent) {
-    agents.forEach {
-      logger.debug { "[${it.name}] Running" }
-      val docs = with(it) { call() }
-      if (docs.isNotEmpty()) {
-        context.addTexts(docs)
-        logger.debug { "[${it.name}] Found and memorized ${docs.size} docs" }
-      } else {
-        logger.debug { "[${it.name}] Found no docs" }
-      }
-    }
-  }
-
-  @AiDsl
   suspend fun <A> contextScope(
     store: suspend (Embeddings) -> Resource<VectorStore>,
     block: AI<A>
@@ -203,131 +186,4 @@ class AIScope(
       extendContext(*docs.toTypedArray())
       scope(this)
     }
-
-  /** Runs the [agent] to enlarge the [context], and then executes the [scope]. */
-  @AiDsl
-  suspend fun <A> contextScope(agent: ContextualAgent, scope: suspend AIScope.() -> A): A =
-    contextScope(listOf(agent), scope)
-
-  /** Runs the [agents] to enlarge the [context], and then executes the [scope]. */
-  @AiDsl
-  suspend fun <A> contextScope(
-    agents: Collection<ContextualAgent>,
-    scope: suspend AIScope.() -> A
-  ): A = contextScope {
-    extendContext(*agents.toTypedArray())
-    scope(this)
-  }
-
-  @AiDsl
-  suspend fun promptMessage(
-    question: String,
-    model: LLMModel = LLMModel.GPT_3_5_TURBO
-  ): List<String> = promptMessage(Prompt(question), model)
-
-  @AiDsl
-  suspend fun promptMessage(
-    prompt: Prompt,
-    model: LLMModel = LLMModel.GPT_3_5_TURBO
-  ): List<String> = with(LLMAgent(openAIClient, prompt, model, context)) { call() }
-
-  /**
-   * Run a [question] describes the task you want to solve within the context of [AIScope]. Returns
-   * a value of [A] where [A] **has to be** annotated with [kotlinx.serialization.Serializable].
-   *
-   * @throws SerializationException if serializer cannot be created (provided [A] or its type
-   *   argument is not serializable).
-   * @throws IllegalArgumentException if any of [A]'s type arguments contains star projection.
-   */
-  @AiDsl
-  suspend inline fun <reified A> prompt(
-    question: String,
-    model: LLMModel = LLMModel.GPT_3_5_TURBO
-  ): A = prompt(Prompt(question), model)
-
-  /**
-   * Run a [prompt] describes the task you want to solve within the context of [AIScope]. Returns a
-   * value of [A] where [A] **has to be** annotated with [kotlinx.serialization.Serializable].
-   *
-   * @throws SerializationException if serializer cannot be created (provided [A] or its type
-   *   argument is not serializable).
-   * @throws IllegalArgumentException if any of [A]'s type arguments contains star projection.
-   */
-  @AiDsl
-  suspend inline fun <reified A> prompt(
-    prompt: Prompt,
-    model: LLMModel = LLMModel.GPT_3_5_TURBO
-  ): A = with(DeserializerLLMAgent<A>(openAIClient, prompt, model, context)) { call() }
-
-  /**
-   * Run a [prompt] describes the images you want to generate within the context of [AIScope].
-   * Returns a [ImagesGenerationResponse] containing time and urls with images generated.
-   *
-   * @param prompt a [Prompt] describing the images you want to generate.
-   * @param numberImages number of images to generate.
-   * @param size the size of the images to generate.
-   */
-  @AiDsl
-  suspend fun images(
-    prompt: Prompt,
-    numberImages: Int = 1,
-    size: String = "1024x1024"
-  ): ImagesGenerationResponse =
-    with(
-      ImageGenerationAgent(
-        llm = openAIClient,
-        prompt = prompt,
-        context = context,
-        numberImages = numberImages,
-        size = size
-      )
-    ) {
-      call()
-    }
-
-  /**
-   * Run a [prompt] describes the images you want to generate within the context of [AIScope].
-   * Returns a [ImagesGenerationResponse] containing time and urls with images generated.
-   *
-   * @param prompt a [Prompt] describing the images you want to generate.
-   * @param numberImages number of images to generate.
-   * @param size the size of the images to generate.
-   */
-  @AiDsl
-  suspend fun images(
-    prompt: String,
-    numberImages: Int = 1,
-    size: String = "1024x1024"
-  ): ImagesGenerationResponse = images(Prompt(prompt), numberImages, size)
-
-  /**
-   * Run a [prompt] describes the images you want to generate within the context of [AIScope].
-   * Produces a [ImagesGenerationResponse] which then gets serialized to [A] through [prompt].
-   *
-   * @param prompt a [Prompt] describing the images you want to generate.
-   * @param size the size of the images to generate.
-   */
-  @AiDsl
-  suspend inline fun <reified A> Raise<AIError>.image(
-    prompt: String,
-    size: String = "1024x1024",
-    llmModel: LLMModel = LLMModel.GPT_3_5_TURBO
-  ): A {
-    val imageResponse = images(prompt, 1, size)
-    val url = imageResponse.data.firstOrNull() ?: raise(AIError.NoResponse)
-    return prompt(
-      """|Instructions: Format this [URL] and [PROMPT] information in the desired JSON response format
-         |specified at the end of the message.
-         |[URL]: 
-         |```
-         |$url
-         |```
-         |[PROMPT]:
-         |```
-         |$prompt
-         |```"""
-        .trimMargin(),
-      llmModel
-    )
-  }
 }

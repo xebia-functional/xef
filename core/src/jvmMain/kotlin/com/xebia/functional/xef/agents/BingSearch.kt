@@ -10,39 +10,34 @@ import java.util.stream.Collectors
 import kotlin.jvm.optionals.toList
 import kotlinx.coroutines.Dispatchers
 
-fun bingSearch(
+suspend fun bingSearch(
   search: String,
   splitter: BaseTextSplitter,
   url: String = "https://www.bing.com/news/search?q=${search.encodeURLParameter()}&format=rss",
   maxLinks: Int = 10
-): Agent<List<String>> =
-  Agent(
-    name = "Bing Search",
-    description = "Searches Bing for $search",
-  ) {
-    val items: List<Item> = RssReader().read(url).collect(Collectors.toList())
-    val links = items.map { it.link }.flatMap { it.toList() }.take(maxLinks)
-    val linkedDocs =
-      links
-        .parMap(Dispatchers.IO) { link ->
-          try {
-            with(scrapeUrlContent(link, splitter)) { call() }
-          } catch (e: Exception) {
-            // ignore errors when scrapping nested content due to certificates and other remote
-            // issues
-            emptyList<String>()
-          }
+): List<String> {
+  val items: List<Item> = RssReader().read(url).collect(Collectors.toList())
+  val links = items.map { it.link }.flatMap { it.toList() }.take(maxLinks)
+  val linkedDocs =
+    links
+      .parMap(Dispatchers.IO) { link ->
+        try {
+          scrapeUrlContent(link, splitter)
+        } catch (e: Exception) {
+          // ignore errors when scrapping nested content due to certificates and other remote issues
+          emptyList()
         }
-        .flatten()
-    val docs =
-      items.map {
-        """|
-                    |${it.title}
-                    |${it.description}
-                    |${it.link}
-                    |${it.pubDate}
-                """
-          .trimMargin()
       }
-    splitter.splitDocuments(linkedDocs + docs)
-  }
+      .flatten()
+  val docs =
+    items.map {
+      """|
+                  |${it.title}
+                  |${it.description}
+                  |${it.link}
+                  |${it.pubDate}
+              """
+        .trimMargin()
+    }
+  return splitter.splitDocuments(linkedDocs + docs)
+}
