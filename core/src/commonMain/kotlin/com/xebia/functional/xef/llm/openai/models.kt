@@ -128,7 +128,8 @@ data class LLMModel(
   }
 
   constructor(
-    modelType: ModelType, kind: Kind
+    modelType: ModelType,
+    kind: Kind
   ) : this(modelType.name, kind, modelType.encodingType, modelType.maxContextLength)
 
   companion object {

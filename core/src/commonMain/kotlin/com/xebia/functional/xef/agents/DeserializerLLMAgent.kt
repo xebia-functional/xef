@@ -30,7 +30,8 @@ class DeserializerLLMAgent<A>(
   echo: Boolean = false,
   n: Int = 1,
   temperature: Double = 0.0,
-  bringFromContext: Int = 10
+  bringFromContext: Int = 10,
+  maxTokens: Int = Int.MAX_VALUE
 ) : Agent<Map<String, String>, A> {
 
   companion object {
@@ -44,6 +45,7 @@ class DeserializerLLMAgent<A>(
       n: Int = 1,
       temperature: Double = 0.0,
       bringFromContext: Int = 10,
+      maxTokens: Int = Int.MAX_VALUE,
       json: Json = Json {
         ignoreUnknownKeys = true
         isLenient = true
@@ -62,7 +64,8 @@ class DeserializerLLMAgent<A>(
         echo,
         n,
         temperature,
-        bringFromContext
+        bringFromContext,
+        maxTokens
       )
   }
 

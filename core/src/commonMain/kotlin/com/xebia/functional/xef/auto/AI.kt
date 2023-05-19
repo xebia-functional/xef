@@ -26,12 +26,12 @@ import com.xebia.functional.xef.vectorstores.LocalVectorStore
 import com.xebia.functional.xef.vectorstores.VectorStore
 import io.github.oshai.KLogger
 import io.github.oshai.KotlinLogging
-import kotlin.jvm.JvmName
-import kotlin.time.ExperimentalTime
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.json.JsonObject
+import kotlin.jvm.JvmName
+import kotlin.time.ExperimentalTime
 
 @DslMarker annotation class AiDsl
 
@@ -205,8 +205,9 @@ class AIScope(
   @AiDsl
   suspend inline fun <reified A> prompt(
     question: String,
-    model: LLMModel = LLMModel.GPT_3_5_TURBO
-  ): A = prompt(PromptTemplate(question), emptyMap(), model)
+    model: LLMModel = LLMModel.GPT_3_5_TURBO,
+    maxTokens: Int = Int.MAX_VALUE
+  ): A = prompt(PromptTemplate(question), emptyMap(), model, maxTokens)
 
   /**
    * Run a [prompt] describes the task you want to solve within the context of [AIScope]. Returns a
@@ -220,8 +221,12 @@ class AIScope(
   suspend inline fun <reified A> prompt(
     prompt: PromptTemplate<String>,
     variables: Map<String, String>,
-    model: LLMModel = LLMModel.GPT_3_5_TURBO
-  ): A = with(DeserializerLLMAgent<A>(openAIClient, prompt, model, context)) { call(variables) }
+    model: LLMModel = LLMModel.GPT_3_5_TURBO,
+    maxTokens: Int = Int.MAX_VALUE
+  ): A =
+    with(DeserializerLLMAgent<A>(openAIClient, prompt, model, context, maxTokens = maxTokens)) {
+      call(variables)
+    }
 
   /**
    * Run a [prompt] describes the images you want to generate within the context of [AIScope].

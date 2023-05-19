@@ -21,7 +21,8 @@ class LLMAgent(
   private val echo: Boolean = false,
   private val n: Int = 1,
   private val temperature: Double = 0.0,
-  private val bringFromContext: Int = 10
+  private val bringFromContext: Int = 10,
+  private val maxTokens: Int = Int.MAX_VALUE
 ) : Agent<Map<String, String>, List<String>> {
 
   override val name = "LLM Agent"
@@ -53,9 +54,7 @@ class LLMAgent(
   }
 
   private suspend fun Raise<AIError>.callCompletionEndpoint(prompt: String): List<String> {
-    val contextLength: Int = model.maxContextLength
-    val promptSize: Int = model.encodingType.encoding.encode(prompt).size
-    val maxTokens: Int = checkContextLength(contextLength, promptSize)
+    val configMaxTokens: Int = calculateMaxTokens(prompt)
 
     val request =
       CompletionRequest(
@@ -65,15 +64,13 @@ class LLMAgent(
         echo = echo,
         n = n,
         temperature = temperature,
-        maxTokens = maxTokens
+        maxTokens = configMaxTokens
       )
     return llm.createCompletion(request).map { it.text }
   }
 
   private suspend fun Raise<AIError>.callChatEndpoint(prompt: String): List<String> {
-    val contextLength: Int = model.maxContextLength
-    val promptSize: Int = model.encodingType.encoding.encode(prompt).size
-    val maxTokens: Int = checkContextLength(contextLength, promptSize)
+    val configMaxTokens: Int = calculateMaxTokens(prompt)
 
     val request =
       ChatCompletionRequest(
@@ -82,16 +79,22 @@ class LLMAgent(
         messages = listOf(Message(Role.system.name, prompt)),
         n = n,
         temperature = temperature,
-        maxTokens = maxTokens
+        maxTokens = configMaxTokens
       )
     return llm.createChatCompletion(request).choices.map { it.message.content }
   }
 
+  private fun Raise<AIError>.calculateMaxTokens(prompt: String): Int {
+    val contextLength: Int = model.maxContextLength
+    val promptSize: Int = model.encodingType.encoding.encode(prompt).size
+
+    val requestMaxTokens: Int = checkContextLength(contextLength, promptSize)
+    return if (maxTokens < requestMaxTokens) maxTokens else requestMaxTokens
+  }
+
   private fun Raise<AIError>.checkContextLength(maxContextLength: Int, promptSize: Int): Int {
     val maxTokens: Int = maxContextLength - promptSize
-    ensure(maxTokens > 0) {
-      AIError.ExceedModelContextLength(maxContextLength, promptSize)
-    }
+    ensure(maxTokens > 0) { AIError.ExceedModelContextLength(maxContextLength, promptSize) }
     return maxTokens
   }
 }
