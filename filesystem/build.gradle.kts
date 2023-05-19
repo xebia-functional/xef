@@ -23,6 +23,7 @@ kotlin {
     val commonMain by getting {
       dependencies {
         implementation(projects.xefCore)
+        implementation(projects.tokenizer)
         implementation(libs.okio)
         implementation(libs.klogging)
       }
