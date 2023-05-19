@@ -8,13 +8,10 @@ import okio.Path
 /**
  * Creates a PromptTemplate based on a Path
  */
-suspend fun Raise<InvalidTemplate>.PromptTemplate(
+fun Raise<InvalidTemplate>.PromptTemplate(
   path: Path,
-  variables: List<String>,
   fileSystem: FileSystem = FileSystem.DEFAULT
-): PromptTemplate<String> =
+): PromptTemplate =
   fileSystem.read(path) {
-    val template = readUtf8()
-    val config = Config(template, variables)
-    PromptTemplate(config)
+    PromptTemplate.either(readUtf8()).bind()
   }

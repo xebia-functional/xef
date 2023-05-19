@@ -3,25 +3,17 @@ package com.xebia.functional.xef.auto
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.raise.Raise
-import arrow.core.raise.either
 import arrow.core.raise.recover
 import arrow.core.right
 import arrow.fx.coroutines.Resource
 import arrow.fx.coroutines.ResourceScope
 import arrow.fx.coroutines.resourceScope
 import com.xebia.functional.xef.AIError
-import com.xebia.functional.xef.agents.ContextualAgent
-import com.xebia.functional.xef.agents.DeserializerLLMAgent
-import com.xebia.functional.xef.agents.ImageGenerationAgent
-import com.xebia.functional.xef.agents.LLMAgent
 import com.xebia.functional.xef.embeddings.Embeddings
 import com.xebia.functional.xef.embeddings.OpenAIEmbeddings
 import com.xebia.functional.xef.env.OpenAIConfig
-import com.xebia.functional.xef.llm.openai.ImagesGenerationResponse
 import com.xebia.functional.xef.llm.openai.KtorOpenAIClient
-import com.xebia.functional.xef.llm.openai.LLMModel
 import com.xebia.functional.xef.llm.openai.OpenAIClient
-import com.xebia.functional.xef.prompt.PromptTemplate
 import com.xebia.functional.xef.vectorstores.CombinedVectorStore
 import com.xebia.functional.xef.vectorstores.LocalVectorStore
 import com.xebia.functional.xef.vectorstores.LocalVectorStoreBuilder
@@ -31,7 +23,6 @@ import io.github.oshai.KotlinLogging
 import kotlin.jvm.JvmName
 import kotlin.time.ExperimentalTime
 import kotlinx.serialization.DeserializationStrategy
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.json.JsonObject
 
@@ -115,8 +106,8 @@ suspend inline fun <reified A> AI<A>.getOrThrow(): A = getOrElse { throw AIExcep
  * [AI] program, and [Raise] of [AIError] in case you want to compose any [Raise] based actions.
  */
 class AIScope(
-  @PublishedApi internal val openAIClient: OpenAIClient,
-  @PublishedApi internal val context: VectorStore,
+  val openAIClient: OpenAIClient,
+  val context: VectorStore,
   internal val embeddings: Embeddings,
   private val logger: KLogger,
   resourceScope: ResourceScope,
@@ -164,20 +155,6 @@ class AIScope(
   }
 
   @AiDsl
-  suspend fun extendContext(vararg agents: ContextualAgent) {
-    agents.forEach {
-      logger.debug { "[${it.name}] Running" }
-      val docs = with(it) { call() }
-      if (docs.isNotEmpty()) {
-        context.addTexts(docs)
-        logger.debug { "[${it.name}] Found and memorized ${docs.size} docs" }
-      } else {
-        logger.debug { "[${it.name}] Found no docs" }
-      }
-    }
-  }
-
-  @AiDsl
   suspend fun <A> contextScope(
     store: suspend (Embeddings) -> Resource<VectorStore>,
     block: AI<A>
@@ -204,142 +181,4 @@ class AIScope(
       extendContext(*docs.toTypedArray())
       scope(this)
     }
-
-  /** Runs the [agent] to enlarge the [context], and then executes the [scope]. */
-  @AiDsl
-  suspend fun <A> contextScope(agent: ContextualAgent, scope: suspend AIScope.() -> A): A =
-    contextScope(listOf(agent), scope)
-
-  /** Runs the [agents] to enlarge the [context], and then executes the [scope]. */
-  @AiDsl
-  suspend fun <A> contextScope(
-    agents: Collection<ContextualAgent>,
-    scope: suspend AIScope.() -> A
-  ): A = contextScope {
-    extendContext(*agents.toTypedArray())
-    scope(this)
-  }
-
-  @AiDsl
-  suspend fun promptMessage(
-    question: String,
-    model: LLMModel = LLMModel.GPT_3_5_TURBO
-  ): List<String> = promptMessage(PromptTemplate(question), emptyMap(), model)
-
-  @AiDsl
-  suspend fun promptMessage(
-    prompt: PromptTemplate<String>,
-    variables: Map<String, String>,
-    model: LLMModel = LLMModel.GPT_3_5_TURBO
-  ): List<String> = with(LLMAgent(openAIClient, prompt, model, context)) { call(variables) }
-
-  /**
-   * Run a [question] describes the task you want to solve within the context of [AIScope]. Returns
-   * a value of [A] where [A] **has to be** annotated with [kotlinx.serialization.Serializable].
-   *
-   * @throws SerializationException if serializer cannot be created (provided [A] or its type
-   *   argument is not serializable).
-   * @throws IllegalArgumentException if any of [A]'s type arguments contains star projection.
-   */
-  @AiDsl
-  suspend inline fun <reified A> prompt(
-    question: String,
-    model: LLMModel = LLMModel.GPT_3_5_TURBO
-  ): A = prompt(PromptTemplate(question), emptyMap(), model)
-
-  /**
-   * Run a [prompt] describes the task you want to solve within the context of [AIScope]. Returns a
-   * value of [A] where [A] **has to be** annotated with [kotlinx.serialization.Serializable].
-   *
-   * @throws SerializationException if serializer cannot be created (provided [A] or its type
-   *   argument is not serializable).
-   * @throws IllegalArgumentException if any of [A]'s type arguments contains star projection.
-   */
-  @AiDsl
-  suspend inline fun <reified A> prompt(
-    prompt: PromptTemplate<String>,
-    variables: Map<String, String>,
-    model: LLMModel = LLMModel.GPT_3_5_TURBO
-  ): A = with(DeserializerLLMAgent<A>(openAIClient, prompt, model, context)) { call(variables) }
-
-  /**
-   * Run a [prompt] describes the images you want to generate within the context of [AIScope].
-   * Returns a [ImagesGenerationResponse] containing time and urls with images generated.
-   *
-   * @param prompt a [PromptTemplate] describing the images you want to generate.
-   * @param variables a map of variables to be replaced in the [prompt].
-   * @param numberImages number of images to generate.
-   * @param size the size of the images to generate.
-   */
-  @AiDsl
-  suspend fun images(
-    prompt: PromptTemplate<String>,
-    variables: Map<String, String>,
-    numberImages: Int = 1,
-    size: String = "1024x1024"
-  ): ImagesGenerationResponse =
-    with(
-      ImageGenerationAgent(
-        llm = openAIClient,
-        template = prompt,
-        context = context,
-        numberImages = numberImages,
-        size = size
-      )
-    ) {
-      call(variables)
-    }
-
-  /**
-   * Run a [prompt] describes the images you want to generate within the context of [AIScope].
-   * Returns a [ImagesGenerationResponse] containing time and urls with images generated.
-   *
-   * @param prompt a [PromptTemplate] describing the images you want to generate.
-   * @param numberImages number of images to generate.
-   * @param size the size of the images to generate.
-   */
-  @AiDsl
-  suspend fun images(
-    prompt: String,
-    numberImages: Int = 1,
-    size: String = "1024x1024"
-  ): ImagesGenerationResponse = images(PromptTemplate(prompt), emptyMap(), numberImages, size)
-
-  /**
-   * Run a [prompt] describes the images you want to generate within the context of [AIScope].
-   * Produces a [ImagesGenerationResponse] which then gets serialized to [A] through [prompt].
-   *
-   * @param prompt a [PromptTemplate] describing the images you want to generate.
-   * @param size the size of the images to generate.
-   */
-  @AiDsl
-  suspend inline fun <reified A> Raise<AIError>.image(
-    prompt: String,
-    size: String = "1024x1024",
-    llmModel: LLMModel = LLMModel.GPT_3_5_TURBO
-  ): A {
-    val imageResponse = images(prompt, 1, size)
-    val url = imageResponse.data.firstOrNull() ?: raise(AIError.NoResponse)
-    return either {
-        PromptTemplate(
-          """|Instructions: Format this [URL] and [PROMPT] information in the desired JSON response format
-           |specified at the end of the message.
-           |[URL]: 
-           |```
-           |{url}
-           |```
-           |[PROMPT]:
-           |```
-           |{prompt}
-           |```
-    """
-            .trimMargin(),
-          listOf("url", "prompt")
-        )
-      }
-      .fold(
-        { raise(AIError.InvalidInputs(it.reason)) },
-        { prompt(it, mapOf("url" to url.url, "prompt" to prompt), llmModel) }
-      )
-  }
 }
