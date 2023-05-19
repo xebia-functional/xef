@@ -84,9 +84,4 @@ enum class ModelType(
 
   inline val encoding: Encoding
     inline get() = encodingType.encoding
-
-  companion object {
-    fun fromName(name: String): ModelType? =
-      values().firstOrNull { it.name == name }
-  }
 }

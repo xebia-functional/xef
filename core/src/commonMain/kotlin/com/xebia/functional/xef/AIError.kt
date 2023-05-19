@@ -35,7 +35,7 @@ sealed interface AIError {
     }
   }
 
-  data class ExceedModelContextLength(val promptSize: Int, val maxContextLength: Int) : AIError {
+  data class ExceedModelContextLength(val maxContextLength: Int, val promptSize: Int) : AIError {
     override val reason: String
       get() =
         """

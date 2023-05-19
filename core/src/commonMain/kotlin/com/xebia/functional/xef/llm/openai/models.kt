@@ -2,9 +2,9 @@ package com.xebia.functional.xef.llm.openai
 
 import com.xebia.functional.tokenizer.EncodingType
 import com.xebia.functional.tokenizer.ModelType
-import kotlin.jvm.JvmInline
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlin.jvm.JvmInline
 
 enum class EmbeddingModel(val modelName: String) {
   TextEmbeddingAda002("text-embedding-ada-002")
@@ -127,46 +127,20 @@ data class LLMModel(
     Chat
   }
 
+  constructor(
+    modelType: ModelType, kind: Kind
+  ) : this(modelType.name, kind, modelType.encodingType, modelType.maxContextLength)
+
   companion object {
-    val GPT_4 = with(ModelType.GPT_4) { LLMModel(name, Kind.Chat, encodingType, maxContextLength) }
-
-    val GPT_4_0314 =
-      with(ModelType.GPT_4_0314) { LLMModel(name, Kind.Chat, encodingType, maxContextLength) }
-
-    val GPT_4_32K =
-      with(ModelType.GPT_4_32K) { LLMModel(name, Kind.Chat, encodingType, maxContextLength) }
-
-    val GPT_3_5_TURBO =
-      with(ModelType.GPT_3_5_TURBO) { LLMModel(name, Kind.Chat, encodingType, maxContextLength) }
-
-    val GPT_3_5_TURBO_0301 =
-      with(ModelType.GPT_3_5_TURBO_0301) {
-        LLMModel(name, Kind.Chat, encodingType, maxContextLength)
-      }
-
-    val TEXT_DAVINCI_003 =
-      with(ModelType.TEXT_DAVINCI_003) {
-        LLMModel(name, Kind.Completion, encodingType, maxContextLength)
-      }
-
-    val TEXT_DAVINCI_002 =
-      with(ModelType.TEXT_DAVINCI_002) {
-        LLMModel(name, Kind.Completion, encodingType, maxContextLength)
-      }
-
-    val TEXT_CURIE_001 =
-      with(ModelType.TEXT_CURIE_001) {
-        LLMModel(name, Kind.Completion, encodingType, maxContextLength)
-      }
-
-    val TEXT_BABBAGE_001 =
-      with(ModelType.TEXT_BABBAGE_001) {
-        LLMModel(name, Kind.Completion, encodingType, maxContextLength)
-      }
-
-    val TEXT_ADA_001 =
-      with(ModelType.TEXT_ADA_001) {
-        LLMModel(name, Kind.Completion, encodingType, maxContextLength)
-      }
+    val GPT_4 = LLMModel(ModelType.GPT_4, Kind.Chat)
+    val GPT_4_0314 = LLMModel(ModelType.GPT_4_0314, Kind.Chat)
+    val GPT_4_32K = LLMModel(ModelType.GPT_4_32K, Kind.Chat)
+    val GPT_3_5_TURBO = LLMModel(ModelType.GPT_3_5_TURBO, Kind.Chat)
+    val GPT_3_5_TURBO_0301 = LLMModel(ModelType.GPT_3_5_TURBO_0301, Kind.Chat)
+    val TEXT_DAVINCI_003 = LLMModel(ModelType.TEXT_DAVINCI_003, Kind.Completion)
+    val TEXT_DAVINCI_002 = LLMModel(ModelType.TEXT_DAVINCI_002, Kind.Completion)
+    val TEXT_CURIE_001 = LLMModel(ModelType.TEXT_CURIE_001, Kind.Completion)
+    val TEXT_BABBAGE_001 = LLMModel(ModelType.TEXT_BABBAGE_001, Kind.Completion)
+    val TEXT_ADA_001 = LLMModel(ModelType.TEXT_ADA_001, Kind.Completion)
   }
 }
