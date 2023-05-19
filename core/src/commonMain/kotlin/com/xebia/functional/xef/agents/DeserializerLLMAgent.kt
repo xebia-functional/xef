@@ -8,7 +8,7 @@ import com.xebia.functional.xef.auto.SerializationConfig
 import com.xebia.functional.xef.auto.serialization.buildJsonSchema
 import com.xebia.functional.xef.llm.openai.LLMModel
 import com.xebia.functional.xef.llm.openai.OpenAIClient
-import com.xebia.functional.xef.prompt.PromptTemplate
+import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.append
 import com.xebia.functional.xef.vectorstores.VectorStore
 import kotlinx.serialization.KSerializer
@@ -23,7 +23,7 @@ class DeserializerLLMAgent<A>(
   },
   private val maxDeserializationAttempts: Int = 5,
   llm: OpenAIClient,
-  template: PromptTemplate<String>,
+  template: Prompt<String>,
   model: LLMModel = LLMModel.GPT_3_5_TURBO,
   context: VectorStore = VectorStore.EMPTY,
   user: String = "testing",
@@ -36,7 +36,7 @@ class DeserializerLLMAgent<A>(
   companion object {
     inline operator fun <reified A> invoke(
       llm: OpenAIClient,
-      template: PromptTemplate<String>,
+      template: Prompt<String>,
       model: LLMModel = LLMModel.GPT_3_5_TURBO,
       context: VectorStore = VectorStore.EMPTY,
       user: String = "testing",

@@ -3,7 +3,6 @@ package com.xebia.functional.xef.auto
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.raise.Raise
-import arrow.core.raise.either
 import arrow.core.raise.recover
 import arrow.core.right
 import arrow.fx.coroutines.Resource
@@ -21,7 +20,7 @@ import com.xebia.functional.xef.llm.openai.ImagesGenerationResponse
 import com.xebia.functional.xef.llm.openai.KtorOpenAIClient
 import com.xebia.functional.xef.llm.openai.LLMModel
 import com.xebia.functional.xef.llm.openai.OpenAIClient
-import com.xebia.functional.xef.prompt.PromptTemplate
+import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.vectorstores.CombinedVectorStore
 import com.xebia.functional.xef.vectorstores.LocalVectorStore
 import com.xebia.functional.xef.vectorstores.LocalVectorStoreBuilder
@@ -35,7 +34,8 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.json.JsonObject
 
-@DslMarker annotation class AiDsl
+@DslMarker
+annotation class AiDsl
 
 data class SerializationConfig<A>(
   val jsonSchema: JsonObject,
@@ -156,7 +156,9 @@ class AIScope(
    * }
    * ```
    */
-  @AiDsl @JvmName("invokeAI") suspend operator fun <A> AI<A>.invoke(): A = invoke(this@AIScope)
+  @AiDsl
+  @JvmName("invokeAI")
+  suspend operator fun <A> AI<A>.invoke(): A = invoke(this@AIScope)
 
   @AiDsl
   suspend fun extendContext(vararg docs: String) {
@@ -224,11 +226,11 @@ class AIScope(
   suspend fun promptMessage(
     question: String,
     model: LLMModel = LLMModel.GPT_3_5_TURBO
-  ): List<String> = promptMessage(PromptTemplate(question), emptyMap(), model)
+  ): List<String> = promptMessage(Prompt(question), emptyMap(), model)
 
   @AiDsl
   suspend fun promptMessage(
-    prompt: PromptTemplate<String>,
+    prompt: Prompt<String>,
     variables: Map<String, String>,
     model: LLMModel = LLMModel.GPT_3_5_TURBO
   ): List<String> = with(LLMAgent(openAIClient, prompt, model, context)) { call(variables) }
@@ -245,7 +247,7 @@ class AIScope(
   suspend inline fun <reified A> prompt(
     question: String,
     model: LLMModel = LLMModel.GPT_3_5_TURBO
-  ): A = prompt(PromptTemplate(question), emptyMap(), model)
+  ): A = prompt(Prompt(question), emptyMap(), model)
 
   /**
    * Run a [prompt] describes the task you want to solve within the context of [AIScope]. Returns a
@@ -257,7 +259,7 @@ class AIScope(
    */
   @AiDsl
   suspend inline fun <reified A> prompt(
-    prompt: PromptTemplate<String>,
+    prompt: Prompt<String>,
     variables: Map<String, String>,
     model: LLMModel = LLMModel.GPT_3_5_TURBO
   ): A = with(DeserializerLLMAgent<A>(openAIClient, prompt, model, context)) { call(variables) }
@@ -266,14 +268,14 @@ class AIScope(
    * Run a [prompt] describes the images you want to generate within the context of [AIScope].
    * Returns a [ImagesGenerationResponse] containing time and urls with images generated.
    *
-   * @param prompt a [PromptTemplate] describing the images you want to generate.
+   * @param prompt a [Prompt] describing the images you want to generate.
    * @param variables a map of variables to be replaced in the [prompt].
    * @param numberImages number of images to generate.
    * @param size the size of the images to generate.
    */
   @AiDsl
   suspend fun images(
-    prompt: PromptTemplate<String>,
+    prompt: Prompt<String>,
     variables: Map<String, String>,
     numberImages: Int = 1,
     size: String = "1024x1024"
@@ -281,7 +283,7 @@ class AIScope(
     with(
       ImageGenerationAgent(
         llm = openAIClient,
-        template = prompt,
+        prompt = prompt,
         context = context,
         numberImages = numberImages,
         size = size
@@ -294,7 +296,7 @@ class AIScope(
    * Run a [prompt] describes the images you want to generate within the context of [AIScope].
    * Returns a [ImagesGenerationResponse] containing time and urls with images generated.
    *
-   * @param prompt a [PromptTemplate] describing the images you want to generate.
+   * @param prompt a [Prompt] describing the images you want to generate.
    * @param numberImages number of images to generate.
    * @param size the size of the images to generate.
    */
@@ -303,13 +305,13 @@ class AIScope(
     prompt: String,
     numberImages: Int = 1,
     size: String = "1024x1024"
-  ): ImagesGenerationResponse = images(PromptTemplate(prompt), emptyMap(), numberImages, size)
+  ): ImagesGenerationResponse = images(Prompt(prompt), emptyMap(), numberImages, size)
 
   /**
    * Run a [prompt] describes the images you want to generate within the context of [AIScope].
    * Produces a [ImagesGenerationResponse] which then gets serialized to [A] through [prompt].
    *
-   * @param prompt a [PromptTemplate] describing the images you want to generate.
+   * @param prompt a [Prompt] describing the images you want to generate.
    * @param size the size of the images to generate.
    */
   @AiDsl
@@ -320,26 +322,17 @@ class AIScope(
   ): A {
     val imageResponse = images(prompt, 1, size)
     val url = imageResponse.data.firstOrNull() ?: raise(AIError.NoResponse)
-    return either {
-        PromptTemplate(
-          """|Instructions: Format this [URL] and [PROMPT] information in the desired JSON response format
-           |specified at the end of the message.
-           |[URL]: 
-           |```
-           |{url}
-           |```
-           |[PROMPT]:
-           |```
-           |{prompt}
-           |```
-    """
-            .trimMargin(),
-          listOf("url", "prompt")
-        )
-      }
-      .fold(
-        { raise(AIError.InvalidInputs(it.reason)) },
-        { prompt(it, mapOf("url" to url.url, "prompt" to prompt), llmModel) }
-      )
+    val prompt =
+      """|Instructions: Format this [URL] and [PROMPT] information in the desired JSON response format
+         |specified at the end of the message.
+         |[URL]: 
+         |```
+         |$url
+         |```
+         |[PROMPT]:
+         |```
+         |$prompt
+         |```""".trimMargin()
+    return prompt(prompt, llmModel)
   }
 }

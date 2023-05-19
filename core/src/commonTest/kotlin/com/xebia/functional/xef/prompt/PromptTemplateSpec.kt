@@ -11,7 +11,7 @@ class PromptTemplateSpec :
       val template = "Tell me {foo}."
 
       either {
-        val prompt = PromptTemplate(template, emptyList())
+        val prompt = Prompt(template, emptyList())
         prompt.format(mapOf("foo" to "bar"))
       } shouldBeLeft InvalidTemplate("Template 'Tell me {foo}.' has missing arguments: {foo}")
     }
@@ -20,7 +20,7 @@ class PromptTemplateSpec :
       val template = "Tell me a joke."
 
       either {
-        val prompt = PromptTemplate(template, emptyList())
+        val prompt = Prompt(template, emptyList())
         prompt.format(emptyMap())
       } shouldBeRight "Tell me a joke."
     }
@@ -31,14 +31,14 @@ class PromptTemplateSpec :
 
       either {
         val config = Config(template, listOf("name", "age"))
-        PromptTemplate(config).format(variables)
+        Prompt(config).format(variables)
       } shouldBeRight "My name is John and I'm 47 years old"
     }
 
     "PromptTemplate(template, list) should return a PromptTemplate instance with the given template and input variables" {
       val template = "My name is {name} and I'm {age} years old"
       val variables = mapOf("name" to "Mary", "age" to "25")
-      either { PromptTemplate(template, listOf("name", "age")).format(variables) } shouldBeRight
+      either { Prompt(template, listOf("name", "age")).format(variables) } shouldBeRight
         "My name is Mary and I'm 25 years old"
     }
 
@@ -60,7 +60,7 @@ class PromptTemplateSpec :
       val variables = mapOf("product" to "functional programming")
 
       either {
-        PromptTemplate(examples, suffix = suffix, variables = listOf("product"), prefix = prefix)
+        Prompt(examples, suffix = suffix, variables = listOf("product"), prefix = prefix)
           .format(variables)
       } shouldBeRight
         """
@@ -84,7 +84,7 @@ class PromptTemplateSpec :
 
       either {
         val config = Config(template, listOf("name", "age"))
-        PromptTemplate(config).format(variables)
+        Prompt(config).format(variables)
       } shouldBeRight "My name is Charles and I'm ${getAge()} years old"
     }
 
@@ -93,8 +93,8 @@ class PromptTemplateSpec :
       val variables: Map<String, String> = mapOf("name" to "Charles", "age" to "21")
 
       either {
-        val prompt: PromptTemplate<String> = PromptTemplate(template, listOf("name", "age"))
-        val humanPrompt: PromptTemplate<HumanMessage> = PromptTemplate.human(prompt)
+        val prompt: Prompt<String> = Prompt(template, listOf("name", "age"))
+        val humanPrompt: Prompt<HumanMessage> = Prompt.human(prompt)
         humanPrompt.format(variables)
       } shouldBeRight HumanMessage("My name is Charles and I'm 21 years old")
     }
@@ -104,8 +104,8 @@ class PromptTemplateSpec :
       val variables: Map<String, String> = mapOf("sounds" to "Beep bep")
 
       either {
-        val prompt: PromptTemplate<String> = PromptTemplate(template, listOf("sounds"))
-        val systemPrompt: PromptTemplate<SystemMessage> = PromptTemplate.system(prompt)
+        val prompt: Prompt<String> = Prompt(template, listOf("sounds"))
+        val systemPrompt: Prompt<SystemMessage> = Prompt.system(prompt)
         systemPrompt.format(variables)
       } shouldBeRight SystemMessage("Beep bep")
     }
@@ -115,8 +115,8 @@ class PromptTemplateSpec :
       val variables: Map<String, String> = mapOf("machine" to "AI")
 
       either {
-        val prompt: PromptTemplate<String> = PromptTemplate(template, listOf("machine"))
-        val aiPrompt: PromptTemplate<AIMessage> = PromptTemplate.ai(prompt)
+        val prompt: Prompt<String> = Prompt(template, listOf("machine"))
+        val aiPrompt: Prompt<AIMessage> = Prompt.ai(prompt)
         aiPrompt.format(variables)
       } shouldBeRight AIMessage("Hi, I'm an AI")
     }
@@ -127,8 +127,8 @@ class PromptTemplateSpec :
       val variables: Map<String, String> = mapOf("action" to "battle", "name" to "Obi-Wan")
 
       either {
-        val prompt: PromptTemplate<String> = PromptTemplate(template, listOf("action", "name"))
-        val chatPrompt: PromptTemplate<ChatMessage> = PromptTemplate.chat(prompt, role)
+        val prompt: Prompt<String> = Prompt(template, listOf("action", "name"))
+        val chatPrompt: Prompt<ChatMessage> = Prompt.chat(prompt, role)
         chatPrompt.format(variables)
       } shouldBeRight ChatMessage("Lost a battle, master Obi-Wan has.", "Yoda")
     }
