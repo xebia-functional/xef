@@ -143,7 +143,9 @@ suspend fun <A> AIScope.tryDeserialize(
   while (currentAttempts < maxDeserializationAttempts) {
     currentAttempts++
     val result = ensureNotNull(agent().firstOrNull()) { AIError.NoResponse }
-    catch({ json.decodeFromString(serializationConfig.deserializationStrategy, result) }) {
+    catch({
+      return@tryDeserialize json.decodeFromString(serializationConfig.deserializationStrategy, result)
+    }) {
       e: IllegalArgumentException ->
       if (currentAttempts == maxDeserializationAttempts)
         raise(AIError.JsonParsing(result, maxDeserializationAttempts, e))
