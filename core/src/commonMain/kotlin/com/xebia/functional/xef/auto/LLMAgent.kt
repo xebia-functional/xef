@@ -175,6 +175,9 @@ private suspend fun AIScope.promptWithContextAndRemainingTokens(
   val promptTokens = model.modelType.encoding.countTokens(promptWithContext)
   val takenTokens = roleTokens + promptTokens + padding
   val totalLeftTokens = model.modelType.maxContextLength - takenTokens
+  if (totalLeftTokens < 0) {
+    raise(AIError.PromptExceedsMaxTokenLength(promptWithContext, takenTokens, model.modelType.maxContextLength))
+  }
   logger.debug {
     "Tokens: used: $takenTokens, model max: ${model.modelType.maxContextLength}, left: $totalLeftTokens"
   }
