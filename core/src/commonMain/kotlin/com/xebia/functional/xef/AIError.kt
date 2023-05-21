@@ -10,6 +10,15 @@ sealed interface AIError {
       get() = "No response from the AI"
   }
 
+  data class PromptExceedsMaxTokenLength(
+    val prompt: String,
+    val promptTokens: Int,
+    val maxTokens: Int
+  ) : AIError {
+    override val reason: String =
+      "Prompt exceeds max token length: $promptTokens + $maxTokens = ${promptTokens + maxTokens}"
+  }
+
   data class JsonParsing(
     val result: String,
     val maxAttempts: Int,
