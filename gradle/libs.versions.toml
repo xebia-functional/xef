@@ -37,6 +37,7 @@ lucene = "9.6.0"
 assertj = "3.11.1"
 junit = "5.9.3"
 pdfbox = "2.0.28"
+semverGradle = "0.5.0-alpha.2"
 
 [libraries]
 arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
@@ -120,3 +121,4 @@ arrow-gradle-nexus = { id = "io.arrow-kt.arrow-gradle-config-nexus", version.ref
 arrow-gradle-publish = { id = "io.arrow-kt.arrow-gradle-config-publish", version.ref = "arrowGradle" }
 scala-multiversion  = { id = "com.adtran.scala-multiversion-plugin", version.ref = "scalaMultiversion" }
 kotest-multiplatform = { id = "io.kotest.multiplatform", version.ref = "kotest" }
+semver-gradle = { id="com.javiersc.semver", version.ref="semverGradle" }
