@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.textsplitters
 
-fun CharacterTextSplitter(separator: String): BaseTextSplitter =
-  object : BaseTextSplitter {
+fun CharacterTextSplitter(separator: String): TextSplitter =
+  object : TextSplitter {
 
     override suspend fun splitText(text: String): List<String> = text.split(separator)
 
