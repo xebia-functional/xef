@@ -6,6 +6,7 @@ import com.xebia.functional.xef.auto.AIException
 import com.xebia.functional.xef.auto.AIKt
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.llm.openai.LLMModel
+import com.xebia.functional.tokenizer.ModelType
 
 //def example(using AIScope): String =
 //    prompt[String]("What is your name?")
@@ -15,13 +16,14 @@ import com.xebia.functional.xef.llm.openai.LLMModel
 
 object AI:
 
-  def apply[A](block: AIScope ?=> A): A =
+  def apply[A](model: ModelType = ModelType.GPT_3_5_TURBO, block: AIScope ?=> A): A =
     LoomAdapter.apply { (cont) =>
       AIKt.AIScope[A](
         { (coreAIScope, cont) =>
           given AIScope = AIScope.fromCore(coreAIScope)
           block
         },
+        model,
         (e: AIError, cont) => throw AIException(e.getReason),
         cont
       )

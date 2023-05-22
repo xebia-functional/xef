@@ -2,9 +2,13 @@ package com.xebia.functional.xef.textsplitters
 
 import com.xebia.functional.tokenizer.Encoding
 import com.xebia.functional.tokenizer.ModelType
+import com.xebia.functional.xef.auto.AIScope
 
-fun TokenTextSplitter(modelType: ModelType, chunkSize: Int, chunkOverlap: Int): TextSplitter =
-  TokenTextSplitterImpl(modelType.encoding, chunkSize, chunkOverlap)
+fun TokenTextSplitter(model: ModelType, chunkSize: Int, chunkOverlap: Int): TextSplitter =
+  TokenTextSplitterImpl(model.encoding, chunkSize, chunkOverlap)
+
+fun AIScope.TokenTextSplitter(chunkSize: Int, chunkOverlap: Int): TextSplitter =
+  TokenTextSplitter(model, chunkSize, chunkOverlap)
 
 private class TokenTextSplitterImpl(
   private val tokenizer: Encoding,

@@ -59,11 +59,11 @@ kotlin {
       dependencies {
         api(libs.bundles.arrow)
         api(libs.bundles.ktor.client)
-        implementation(projects.tokenizer)
+        api(projects.tokenizer)
+        api(libs.klogging)
         implementation(libs.arrow.fx.stm)
         implementation(libs.kotlinx.serialization.json)
         implementation(libs.uuid)
-        implementation(libs.klogging)
       }
     }
 

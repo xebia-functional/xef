@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.vectorstores
 
 import arrow.fx.coroutines.Resource
-import arrow.fx.coroutines.continuations.resource
+import arrow.fx.coroutines.resource
 import arrow.fx.stm.TMap
 import arrow.fx.stm.TVar
 import arrow.fx.stm.atomically

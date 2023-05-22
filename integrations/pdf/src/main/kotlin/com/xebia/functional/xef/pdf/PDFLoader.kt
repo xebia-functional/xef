@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.pdf
 
-import com.xebia.functional.tokenizer.ModelType
+import com.xebia.functional.xef.auto.AIScope
 import com.xebia.functional.xef.loaders.BaseLoader
 import com.xebia.functional.xef.textsplitters.TextSplitter
 import com.xebia.functional.xef.textsplitters.TokenTextSplitter
@@ -13,23 +13,20 @@ import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.text.PDFTextStripper
 import java.io.File
 
-suspend fun pdf(
-  url: String,
-  splitter: TextSplitter = TokenTextSplitter(modelType = ModelType.GPT_3_5_TURBO, chunkSize = 100, chunkOverlap = 50)
-): List<String> =
-  HttpClient().use {
-    val response = it.get(url)
-    val file = File.createTempFile("pdf", ".pdf")
-    file.writeChannel().use {
-      response.bodyAsChannel().copyAndClose(this)
-    }
-    pdf(file, splitter)
+suspend fun AIScope.pdf(
+  url: String, splitter: TextSplitter = TokenTextSplitter(chunkSize = 100, chunkOverlap = 50)
+): List<String> = HttpClient().use {
+  val response = it.get(url)
+  val file = File.createTempFile("pdf", ".pdf")
+  file.writeChannel().use {
+    response.bodyAsChannel().copyAndClose(this)
   }
+  pdf(file, splitter)
+}
 
 
-suspend fun pdf(
-  file: File,
-  splitter: TextSplitter = TokenTextSplitter(modelType = ModelType.GPT_3_5_TURBO, chunkSize = 100, chunkOverlap = 50)
+suspend fun AIScope.pdf(
+  file: File, splitter: TextSplitter = TokenTextSplitter(chunkSize = 100, chunkOverlap = 50)
 ): List<String> {
   val loader = PDFLoader(file)
   return loader.loadAndSplit(splitter)
@@ -42,10 +39,8 @@ class PDFLoader(private val file: File) : BaseLoader {
       val stripper = PDFTextStripper()
       stripper.sortByPosition = true
       listOf(
-        """|
-      |Title: ${it.documentInformation.title}
-      |Info: ${stripper.getText(doc)}
-    """.trimMargin()
+        """|Title: ${it.documentInformation.title}
+           |Info: ${stripper.getText(doc)}""".trimMargin()
       )
     }
   }

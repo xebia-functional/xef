@@ -8,6 +8,7 @@ import arrow.core.right
 import arrow.fx.coroutines.Resource
 import arrow.fx.coroutines.ResourceScope
 import arrow.fx.coroutines.resourceScope
+import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.embeddings.Embeddings
 import com.xebia.functional.xef.embeddings.OpenAIEmbeddings
@@ -21,6 +22,7 @@ import com.xebia.functional.xef.vectorstores.VectorStore
 import io.github.oshai.KLogger
 import io.github.oshai.KotlinLogging
 import kotlin.jvm.JvmName
+import kotlin.jvm.JvmOverloads
 import kotlin.time.ExperimentalTime
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -53,19 +55,26 @@ inline fun <A> ai(noinline block: suspend AIScope.() -> A): AI<A> = block
  *
  * This operator is **terminal** meaning it runs and completes the _chain_ of `AI` actions.
  */
-suspend inline fun <A> AI<A>.getOrElse(crossinline orElse: suspend (AIError) -> A): A =
-  AIScope(this) { orElse(it) }
+suspend inline fun <A> AI<A>.getOrElse(
+  model: ModelType = ModelType.GPT_3_5_TURBO,
+  crossinline orElse: suspend (AIError) -> A
+): A = AIScope(this, model) { orElse(it) }
 
+@JvmOverloads
 @OptIn(ExperimentalTime::class)
-suspend fun <A> AIScope(block: suspend AIScope.() -> A, orElse: suspend (AIError) -> A): A =
+suspend fun <A> AIScope(
+  block: suspend AIScope.() -> A,
+  model: ModelType = ModelType.GPT_3_5_TURBO,
+  orElse: suspend (AIError) -> A
+): A =
   recover({
     resourceScope {
       val openAIConfig = OpenAIConfig()
       val openAiClient: OpenAIClient = KtorOpenAIClient(openAIConfig)
-      val logger = KotlinLogging.logger("AutoAI")
+      val logger = KotlinLogging.logger("AI")
       val embeddings = OpenAIEmbeddings(openAIConfig, openAiClient, logger)
       val vectorStore = LocalVectorStore(embeddings)
-      val scope = AIScope(openAiClient, vectorStore, embeddings, logger, this, this@recover)
+      val scope = AIScope(openAiClient, vectorStore, embeddings, logger, model, this, this@recover)
       block(scope)
     }
   }) {
@@ -80,8 +89,9 @@ suspend fun <A> AIScope(block: suspend AIScope.() -> A, orElse: suspend (AIError
  *
  * @see getOrElse for an operator that allow directly handling the [AIError] case.
  */
-suspend inline fun <reified A> AI<A>.toEither(): Either<AIError, A> =
-  ai { invoke().right() }.getOrElse { it.left() }
+suspend inline fun <reified A> AI<A>.toEither(
+  model: ModelType = ModelType.GPT_3_5_TURBO
+): Either<AIError, A> = ai { invoke().right() }.getOrElse(model) { it.left() }
 
 // TODO: Allow traced transformation of Raise errors
 class AIException(message: String) : RuntimeException(message)
@@ -96,7 +106,8 @@ class AIException(message: String) : RuntimeException(message)
  * @see getOrElse for an operator that allow directly handling the [AIError] case instead of
  *   throwing.
  */
-suspend inline fun <reified A> AI<A>.getOrThrow(): A = getOrElse { throw AIException(it.reason) }
+suspend inline fun <reified A> AI<A>.getOrThrow(model: ModelType = ModelType.GPT_3_5_TURBO): A =
+  getOrElse(model) { throw AIException(it.reason) }
 
 /**
  * The [AIScope] is the context in which [AI] values are run. It encapsulates all the dependencies
@@ -109,7 +120,8 @@ class AIScope(
   val openAIClient: OpenAIClient,
   val context: VectorStore,
   internal val embeddings: Embeddings,
-  private val logger: KLogger,
+  val logger: KLogger,
+  val model: ModelType,
   resourceScope: ResourceScope,
   raise: Raise<AIError>,
 ) : ResourceScope by resourceScope, Raise<AIError> by raise {
@@ -165,6 +177,7 @@ class AIScope(
         CombinedVectorStore(newStore, context),
         embeddings,
         logger,
+        model,
         this,
         this
       )
@@ -174,11 +187,10 @@ class AIScope(
   @AiDsl
   suspend fun <A> contextScope(block: AI<A>): A = contextScope(LocalVectorStoreBuilder, block)
 
-  /** Add new [docs] to the [context], and then executes the [scope]. */
+  /** Add new [docs] to the [context], and then executes the [block]. */
   @AiDsl
-  suspend fun <A> contextScope(docs: List<String>, scope: suspend AIScope.() -> A): A =
-    contextScope {
-      extendContext(*docs.toTypedArray())
-      scope(this)
-    }
+  suspend fun <A> contextScope(docs: List<String>, block: AI<A>): A = contextScope {
+    extendContext(*docs.toTypedArray())
+    block(this)
+  }
 }
