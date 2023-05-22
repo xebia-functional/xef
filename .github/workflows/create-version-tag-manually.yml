@@ -1,4 +1,4 @@
-name: Generate version tag manually
+name: Create version tag manually
 
 on:
   workflow_dispatch:
@@ -7,35 +7,25 @@ on:
       stage:
         description: 'Stage'
         required: true
-        default: 'alpha'
+        default: 'alpha-patch'
         type: choice
         options:
-          - 'alpha'
+          - 'alpha-major'
+          - 'alpha-minor'
+          - 'alpha-patch'
           - 'beta'
           - 'rc'
           - 'final'
-      scope:
-        description: 'Scope'
-        required: true
-        default: 'auto'
-        type: choice
-        options:
-          - 'auto'
-          - 'major'
-          - 'minor'
-          - 'patch'
-
-env:
-  GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.parallel=false -Dorg.gradle.jvmargs="-Xmx5g -XX:+UseParallelGC -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8"
 
 jobs:
-  generate-alpha-tag:
+  create-version-tag-manually:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+          token: ${{ secrets.BOT_TOKEN }}
 
       - name: Set up Java
         uses: actions/setup-java@v3
@@ -43,15 +33,15 @@ jobs:
           distribution: 'zulu'
           java-version: 11
 
-      - name: Running test on the JVM
-        uses: gradle/gradle-build-action@v2
-        with:
-          arguments: jvmTest
+      - name: Extract parameters from selected choice
+        id: extract-parameters
+        run: ./.github/scripts/extract_parameters.sh ${{ github.event.inputs.stage }}
+        shell: bash
 
       - name: Generate Tag
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: createSemverTag "-Psemver.scope=${{ github.event.inputs.scope }}" "-Psemver.stage=${{ github.event.inputs.stage }}"
+          arguments: createSemverTag "-Psemver.scope=${{ steps.extract-parameters.outputs.scope }}" "-Psemver.stage=${{ steps.extract-parameters.outputs.stage }}"
 
       - name: Push Tag
         run: git push --follow-tags

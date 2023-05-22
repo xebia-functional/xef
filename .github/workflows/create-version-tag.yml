@@ -25,10 +25,22 @@ jobs:
         with:
           arguments: build
 
+      - name: Read version
+        id: read-version
+        run: echo "version=$(head -n 1 build/semver/version.txt)" >> "$GITHUB_OUTPUT"
+
       - name: Create new version tag
+        if: |
+          contains(steps.read-version.outputs.version, 'alpha') ||
+          contains(steps.read-version.outputs.version, 'beta') ||
+          contains(steps.read-version.outputs.version, 'rc')
         uses: gradle/gradle-build-action@v2
         with:
           arguments: createSemverTag -Psemver.stage=auto
 
       - name: Push Tag
+        if: |
+          contains(steps.read-version.outputs.version, 'alpha') ||
+          contains(steps.read-version.outputs.version, 'beta') ||
+          contains(steps.read-version.outputs.version, 'rc')
         run: git push --follow-tags

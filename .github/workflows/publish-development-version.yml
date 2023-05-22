@@ -1,0 +1,80 @@
+name: Publish a development version
+
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+-alpha.[0-9]+'
+      - '[0-9]+.[0-9]+.[0-9]+-beta.[0-9]+'
+      - '[0-9]+.[0-9]+.[0-9]+-rc.[0-9]+'
+
+env:
+  OSS_USER: '${{ secrets.OSS_USER }}'
+  OSS_TOKEN: '${{ secrets.OSS_TOKEN }}'
+  SIGNING_KEY_PASSPHRASE: '${{ secrets.SIGNING_KEY_PASSPHRASE }}'
+  SIGNING_KEY: '${{ secrets.SIGNING_KEY }}'
+
+jobs:
+  publish:
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: ${{ github.ref_name }}
+
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: 11
+
+      - name: Assemble
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: assemble -x:kotlin-loom:assemble -x:xef-scala:assemble
+
+      - name: Upload reports
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: 'reports-${{ matrix.os }}'
+          path: '**/build/reports/**'
+
+      - name: Publish development version
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: publishToSonatype closeSonatypeStagingRepository -x:kotlin-loom:publishToSonatype -x:kotlin-loom:closeSonatypeStagingRepository -x:xef-scala:publishToSonatype -x:xef-scala:closeSonatypeStagingRepository
+
+  publish-modules-with-loom:
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: ${{ github.ref_name }}
+
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: 19
+
+      - name: assemble
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: :kotlin-loom:assemble :xef-scala:assemble
+
+      - name: Upload reports
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: 'reports-${{ matrix.os }}'
+          path: '**/build/reports/**'
+
+      - name: Publish development version
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: :kotlin-loom:publishToSonatype :kotlin-loom:closeSonatypeStagingRepository :xef-scala:publishToSonatype :xef-scala:closeSonatypeStagingRepository
