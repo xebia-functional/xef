@@ -2,9 +2,14 @@ package com.xebia.functional.xef.auto
 
 import arrow.core.raise.Raise
 import arrow.core.raise.ensure
+import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.tokenizer.truncateText
 import com.xebia.functional.xef.AIError
-import com.xebia.functional.xef.llm.openai.*
+import com.xebia.functional.xef.llm.openai.ChatCompletionRequest
+import com.xebia.functional.xef.llm.openai.CompletionRequest
+import com.xebia.functional.xef.llm.openai.LLMModel
+import com.xebia.functional.xef.llm.openai.Message
+import com.xebia.functional.xef.llm.openai.Role
 import com.xebia.functional.xef.prompt.Prompt
 import io.github.oshai.KLogger
 import io.github.oshai.KotlinLogging
@@ -71,27 +76,25 @@ suspend fun AIScope.promptMessage(
 
 private fun Raise<AIError>.createPromptWithContextAwareOfTokens(
   ctxInfo: List<String>,
-  model: LLMModel,
+  modelType: ModelType,
   prompt: String,
   minResponseTokens: Int,
 ): String {
-  val remaininingTokens =
-    model.modelType.maxContextLength -
-      model.modelType.encoding.countTokens(prompt) -
-      minResponseTokens
-  return if (ctxInfo.isNotEmpty() && remaininingTokens > minResponseTokens) {
-    val ctx = ctxInfo.joinToString("\n")
-    val promptTokens = model.modelType.encoding.countTokens(prompt)
-    ensure(promptTokens < model.modelType.maxContextLength) {
-      raise(
-        AIError.PromptExceedsMaxTokenLength(prompt, promptTokens, model.modelType.maxContextLength)
-      )
+  val maxContextLength: Int = modelType.maxContextLength
+  val promptTokens: Int = modelType.encoding.countTokens(prompt)
+  val remainingTokens: Int = maxContextLength - promptTokens - minResponseTokens
+
+  return if (ctxInfo.isNotEmpty() && remainingTokens > minResponseTokens) {
+    val ctx: String = ctxInfo.joinToString("\n")
+
+    ensure(promptTokens < maxContextLength) {
+      raise(AIError.PromptExceedsMaxTokenLength(prompt, promptTokens, maxContextLength))
     }
     // truncate the context if it's too long based on the max tokens calculated considering the
     // existing prompt tokens
     // alternatively we could summarize the context, but that's not implemented yet
-    val maxTokens = model.modelType.maxContextLength - promptTokens - minResponseTokens
-    val ctxTruncated = model.modelType.encoding.truncateText(ctx, maxTokens)
+    val ctxTruncated: String = modelType.encoding.truncateText(ctx, remainingTokens)
+
     """|```Context
          |${ctxTruncated}
          |```
@@ -116,8 +119,14 @@ private suspend fun AIScope.callCompletionEndpoint(
   bringFromContext: Int,
   minResponseTokens: Int,
 ): List<String> {
-  val (promptWithContext, maxTokens) =
-    promptWithContextAndRemainingTokens("", prompt, bringFromContext, model, minResponseTokens)
+  val (promptWithContext: String, maxTokens: Int) =
+    promptWithContextAndRemainingTokens(
+      "",
+      prompt,
+      bringFromContext,
+      model.modelType,
+      minResponseTokens
+    )
   val request =
     CompletionRequest(
       model = model.name,
@@ -128,7 +137,7 @@ private suspend fun AIScope.callCompletionEndpoint(
       temperature = temperature,
       maxTokens = maxTokens
     )
-  return openAIClient.createCompletion(request).map { it.text }
+  return openAIClient.createCompletion(request).choices.map { it.text }
 }
 
 private suspend fun AIScope.callChatEndpoint(
@@ -140,9 +149,15 @@ private suspend fun AIScope.callChatEndpoint(
   bringFromContext: Int,
   minResponseTokens: Int
 ): List<String> {
-  val role = Role.system.name
-  val (promptWithContext, maxTokens) =
-    promptWithContextAndRemainingTokens(role, prompt, bringFromContext, model, minResponseTokens)
+  val role: String = Role.system.name
+  val (promptWithContext: String, maxTokens: Int) =
+    promptWithContextAndRemainingTokens(
+      role,
+      prompt,
+      bringFromContext,
+      model.modelType,
+      minResponseTokens
+    )
   val request =
     ChatCompletionRequest(
       model = model.name,
@@ -159,33 +174,37 @@ private suspend fun AIScope.promptWithContextAndRemainingTokens(
   role: String,
   prompt: String,
   bringFromContext: Int,
-  model: LLMModel,
+  modelType: ModelType,
   minResponseTokens: Int
 ): Pair<String, Int> {
-  val ctxInfo = context.similaritySearch(prompt, bringFromContext)
-  val promptWithContext =
+  val ctxInfo: List<String> = context.similaritySearch(prompt, bringFromContext)
+  val promptWithContext: String =
     createPromptWithContextAwareOfTokens(
       ctxInfo = ctxInfo,
-      model = model,
+      modelType = modelType,
       prompt = prompt,
       minResponseTokens = minResponseTokens
     )
-  val roleTokens = model.modelType.encoding.countTokens(role)
-  val padding = 20 // reserve 20 tokens for additional symbols around the context
-  val promptTokens = model.modelType.encoding.countTokens(promptWithContext)
-  val takenTokens = roleTokens + promptTokens + padding
-  val totalLeftTokens = model.modelType.maxContextLength - takenTokens
-  if (totalLeftTokens < 0) {
-    raise(
-      AIError.PromptExceedsMaxTokenLength(
-        promptWithContext,
-        takenTokens,
-        model.modelType.maxContextLength
-      )
-    )
-  }
-  logger.debug {
-    "Tokens: used: $takenTokens, model max: ${model.modelType.maxContextLength}, left: $totalLeftTokens"
-  }
+  val totalLeftTokens: Int = checkTotalLeftTokens(modelType, role, promptWithContext)
   return Pair(promptWithContext, totalLeftTokens)
 }
+
+private fun AIScope.checkTotalLeftTokens(
+  modelType: ModelType,
+  role: String,
+  promptWithContext: String
+): Int =
+  with(modelType) {
+    val roleTokens: Int = encoding.countTokens(role)
+    val padding = 20 // reserve 20 tokens for additional symbols around the context
+    val promptTokens: Int = encoding.countTokens(promptWithContext)
+    val takenTokens: Int = roleTokens + promptTokens + padding
+    val totalLeftTokens: Int = maxContextLength - takenTokens
+    if (totalLeftTokens < 0) {
+      raise(AIError.PromptExceedsMaxTokenLength(promptWithContext, takenTokens, maxContextLength))
+    }
+    logger.debug {
+      "Tokens :: used: $takenTokens, model max: $maxContextLength, left: $totalLeftTokens"
+    }
+    totalLeftTokens
+  }
