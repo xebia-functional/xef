@@ -2,17 +2,9 @@ package com.xebia.functional.xef.prompt
 
 import kotlin.jvm.JvmInline
 
-fun Prompt(examples: List<String>, suffix: String, prefix: String): Prompt =
-  Prompt(
-    """|$prefix
-     |
-     |${examples.joinToString(separator = "\n")}
-     |
-     |$suffix"""
-      .trimMargin()
-  )
-
 @JvmInline value class Prompt(val message: String)
+
+fun String.prompt(): Prompt = Prompt(this)
 
 fun Prompt.prepend(text: String) = Prompt(text + message)
 
