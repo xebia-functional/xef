@@ -214,6 +214,9 @@ interface Encoding {
  * **WARNING:** for small [maxTokens] this function may hang forever,
  * some [text] like emoticons, or special characters have token length of 9.
  * So trying to truncateText to maxToken = 5 might hang forever for them.
+ *
+ * **WARNING:** This method might truncate crucial information from your prompt,
+ * and as a result might degrade reliability of your prompts.
  */
 tailrec fun Encoding.truncateText(text: String, maxTokens: Int): String {
   val tokenCount = countTokens(text)
