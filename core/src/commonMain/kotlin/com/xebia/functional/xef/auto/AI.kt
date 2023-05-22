@@ -25,8 +25,7 @@ import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.json.JsonObject
 
-@DslMarker
-annotation class AiDsl
+@DslMarker annotation class AiDsl
 
 data class SerializationConfig<A>(
   val jsonSchema: JsonObject,
@@ -147,9 +146,7 @@ class AIScope(
    * }
    * ```
    */
-  @AiDsl
-  @JvmName("invokeAI")
-  suspend operator fun <A> AI<A>.invoke(): A = invoke(this@AIScope)
+  @AiDsl @JvmName("invokeAI") suspend operator fun <A> AI<A>.invoke(): A = invoke(this@AIScope)
 
   @AiDsl
   suspend fun extendContext(vararg docs: String) {
@@ -157,9 +154,9 @@ class AIScope(
   }
 
   /**
-   * Creates a new scoped [VectorStore] using [store], which is scoped to the [block] lambda.
-   * The [block] also runs on a _nested_ [resourceScope],
-   * meaning that all additional resources created within [block] will be finalized after [block] finishes.
+   * Creates a new scoped [VectorStore] using [store], which is scoped to the [block] lambda. The
+   * [block] also runs on a _nested_ [resourceScope], meaning that all additional resources created
+   * within [block] will be finalized after [block] finishes.
    */
   @AiDsl
   suspend fun <A> contextScope(
@@ -168,13 +165,14 @@ class AIScope(
   ): A = resourceScope {
     val newStore = store(this@AIScope.embeddings)
     AIScope(
-      this@AIScope.openAIClient,
-      CombinedVectorStore(newStore, this@AIScope.context),
-      this@AIScope.embeddings,
-      this@AIScope.logger,
-      this,
-      this@AIScope
-    ).block()
+        this@AIScope.openAIClient,
+        CombinedVectorStore(newStore, this@AIScope.context),
+        this@AIScope.embeddings,
+        this@AIScope.logger,
+        this,
+        this@AIScope
+      )
+      .block()
   }
 
   @AiDsl
@@ -182,9 +180,8 @@ class AIScope(
 
   /** Add new [docs] to the [context], and then executes the [block]. */
   @AiDsl
-  suspend fun <A> contextScope(docs: List<String>, block: AI<A>): A =
-    contextScope {
-      extendContext(*docs.toTypedArray())
-      block(this)
-    }
+  suspend fun <A> contextScope(docs: List<String>, block: AI<A>): A = contextScope {
+    extendContext(*docs.toTypedArray())
+    block(this)
+  }
 }
