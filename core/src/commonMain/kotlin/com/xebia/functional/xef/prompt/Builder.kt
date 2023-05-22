@@ -1,25 +1,21 @@
 package com.xebia.functional.xef.prompt
 
 open class PromptBuilder {
-    private val items = mutableListOf<Prompt>()
+  private val items = mutableListOf<Prompt>()
 
-    val emptyLine: String = ""
+  val emptyLine: String = ""
 
-    operator fun Prompt.unaryPlus() {
-        items.add(this)
-    }
+  operator fun Prompt.unaryPlus() {
+    items.add(this)
+  }
 
-    operator fun String.unaryPlus() {
-        items.add(Prompt(this))
-    }
+  operator fun String.unaryPlus() {
+    items.add(Prompt(this))
+  }
 
-    open fun preprocess(elements: List<Prompt>): List<Prompt> =
-        elements
+  open fun preprocess(elements: List<Prompt>): List<Prompt> = elements
 
-    fun build(): Prompt = buildString {
-        preprocess(items).forEach(this::append)
-    }.let { Prompt(it) }
+  fun build(): Prompt = buildString { preprocess(items).forEach(this::append) }.let { Prompt(it) }
 }
 
-fun buildPrompt(block: PromptBuilder.() -> Unit): Prompt =
-    PromptBuilder().apply { block() }.build()
+fun buildPrompt(block: PromptBuilder.() -> Unit): Prompt = PromptBuilder().apply { block() }.build()
