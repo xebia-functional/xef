@@ -104,11 +104,7 @@ private class KtorOpenAIClient(
         }
       }
     val body: EmbeddingResult = response.body()
-    with(body.usage) {
-      logger.debug {
-        "Embeddings Tokens :: total: $totalTokens"
-      }
-    }
+    with(body.usage) { logger.debug { "Embeddings Tokens :: total: $totalTokens" } }
     return body
   }
 
