@@ -223,7 +223,8 @@ private fun tokensFromMessages(messages: List<Message>, model: LLMModel): Int =
       }
       tokensFromMessages(messages, fallbackModel) + paddingTokens
     }
-    LLMModel.GPT_4, LLMModel.GPT_4_32K -> {
+    LLMModel.GPT_4,
+    LLMModel.GPT_4_32K -> {
       val paddingTokens = 5 // otherwise if the model changes, it might later fail
       val fallbackModel: LLMModel = LLMModel.GPT_4_0314
       logger.debug {
