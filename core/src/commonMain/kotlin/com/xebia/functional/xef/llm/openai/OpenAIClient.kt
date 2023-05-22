@@ -59,10 +59,11 @@ private class KtorOpenAIClient(
           timeout { requestTimeoutMillis = config.requestTimeout.inWholeMilliseconds }
         }
       }
+
     val body: CompletionResult = response.body()
     with(body.usage) {
       logger.debug {
-        "OpenAI Tokens :: prompt: $promptTokens, completion: $completionTokens, total: $totalTokens"
+        "Completion Tokens :: prompt: $promptTokens, completion: $completionTokens, total: $totalTokens"
       }
     }
     return body
@@ -87,7 +88,7 @@ private class KtorOpenAIClient(
     val body: ChatCompletionResponse = response.body()
     with(body.usage) {
       logger.debug {
-        "OpenAI Tokens :: prompt: $promptTokens, completion: $completionTokens, total: $totalTokens"
+        "Chat Completion Tokens :: prompt: $promptTokens, completion: $completionTokens, total: $totalTokens"
       }
     }
     return body
@@ -105,7 +106,7 @@ private class KtorOpenAIClient(
     val body: EmbeddingResult = response.body()
     with(body.usage) {
       logger.debug {
-        "OpenAI Tokens :: prompt: $promptTokens, completion: $completionTokens, total: $totalTokens"
+        "Embeddings Tokens :: total: $totalTokens"
       }
     }
     return body
