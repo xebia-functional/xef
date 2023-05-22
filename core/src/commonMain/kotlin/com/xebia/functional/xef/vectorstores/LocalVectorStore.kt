@@ -1,7 +1,6 @@
 package com.xebia.functional.xef.vectorstores
 
-import arrow.fx.coroutines.Resource
-import arrow.fx.coroutines.continuations.resource
+import arrow.fx.coroutines.ResourceScope
 import arrow.fx.stm.TMap
 import arrow.fx.stm.TVar
 import arrow.fx.stm.atomically
@@ -11,8 +10,8 @@ import com.xebia.functional.xef.llm.openai.EmbeddingModel
 import com.xebia.functional.xef.llm.openai.RequestConfig
 import kotlin.math.sqrt
 
-val LocalVectorStoreBuilder: (Embeddings) -> Resource<LocalVectorStore> = { e ->
-  resource { LocalVectorStore(e) }
+val LocalVectorStoreBuilder: suspend ResourceScope.(Embeddings) -> LocalVectorStore = { e ->
+  LocalVectorStore(e)
 }
 
 class LocalVectorStore

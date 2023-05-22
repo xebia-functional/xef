@@ -5,7 +5,6 @@ import arrow.core.left
 import arrow.core.raise.Raise
 import arrow.core.raise.recover
 import arrow.core.right
-import arrow.fx.coroutines.Resource
 import arrow.fx.coroutines.ResourceScope
 import arrow.fx.coroutines.resourceScope
 import com.xebia.functional.xef.AIError
@@ -154,19 +153,24 @@ class AIScope(
     context.addTexts(docs.toList())
   }
 
+  /**
+   * Creates a new scoped [VectorStore] using [store], which is scoped to the [block] lambda. The
+   * [block] also runs on a _nested_ [resourceScope], meaning that all additional resources created
+   * within [block] will be finalized after [block] finishes.
+   */
   @AiDsl
   suspend fun <A> contextScope(
-    store: suspend (Embeddings) -> Resource<VectorStore>,
+    store: suspend ResourceScope.(Embeddings) -> VectorStore,
     block: AI<A>
-  ): A {
-    val newStore = store(embeddings).bind()
-    return AIScope(
-        openAIClient,
-        CombinedVectorStore(newStore, context),
-        embeddings,
-        logger,
+  ): A = resourceScope {
+    val newStore = store(this@AIScope.embeddings)
+    AIScope(
+        this@AIScope.openAIClient,
+        CombinedVectorStore(newStore, this@AIScope.context),
+        this@AIScope.embeddings,
+        this@AIScope.logger,
         this,
-        this
+        this@AIScope
       )
       .block()
   }
@@ -174,11 +178,10 @@ class AIScope(
   @AiDsl
   suspend fun <A> contextScope(block: AI<A>): A = contextScope(LocalVectorStoreBuilder, block)
 
-  /** Add new [docs] to the [context], and then executes the [scope]. */
+  /** Add new [docs] to the [context], and then executes the [block]. */
   @AiDsl
-  suspend fun <A> contextScope(docs: List<String>, scope: suspend AIScope.() -> A): A =
-    contextScope {
-      extendContext(*docs.toTypedArray())
-      scope(this)
-    }
+  suspend fun <A> contextScope(docs: List<String>, block: AI<A>): A = contextScope {
+    extendContext(*docs.toTypedArray())
+    block(this)
+  }
 }
