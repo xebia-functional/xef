@@ -2,7 +2,7 @@ package com.xebia.functional.xef.sql.jdbc
 
 import com.xebia.functional.tokenizer.ModelType
 
-class DatabaseConfig(
+class JdbcConfig(
   val vendor: String,
   val host: String,
   val username: String,
