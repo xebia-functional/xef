@@ -1,5 +1,7 @@
 package com.xebia.functional.tokenizer
 
+import kotlin.math.roundToInt
+
 /** The result of encoding operation. */
 data class EncodingResult(
   val tokens: List<Int>,
@@ -198,4 +200,32 @@ interface Encoding {
    * @throws IllegalArgumentException if the list contains invalid token ids
    */
   fun decodeBytes(tokens: List<Int>): ByteArray
+}
+
+/**
+ * Truncates the given [text] to the given [maxTokens] by removing tokens from the end of the text.
+ * It removes tokens from the tail of the [text].
+ * Tokens are chosen to be removed based on the percentage of the [maxTokens]
+ * compared to the total amount of tokens in the [text].
+ *
+ * If the truncation fails,
+ * it will retry by recursively calling this function until a text with maxTokens is found.
+ *
+ * **WARNING:** for small [maxTokens] this function may hang forever,
+ * some [text] like emoticons, or special characters have token length of 9.
+ * So trying to truncateText to maxToken = 5 might hang forever for them.
+ */
+tailrec fun Encoding.truncateText(text: String, maxTokens: Int): String {
+  val tokenCount = countTokens(text)
+  return if (tokenCount <= maxTokens) text
+  else {
+    val percentage = maxTokens.toDouble() / tokenCount.toDouble()
+    val truncatedTextLength = (text.length * percentage).roundToInt()
+    val result = text.substring(0, truncatedTextLength)
+    val tokenCountResult = countTokens(result)
+    when {
+      tokenCountResult >= maxTokens -> truncateText(result, maxTokens)
+      else -> result
+    }
+  }
 }
