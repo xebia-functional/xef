@@ -5,6 +5,8 @@ import arrow.resilience.retry
 import com.xebia.functional.xef.configure
 import com.xebia.functional.xef.env.OpenAIConfig
 import com.xebia.functional.xef.httpClient
+import io.github.oshai.KLogger
+import io.github.oshai.KotlinLogging
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
@@ -15,8 +17,10 @@ import io.ktor.http.path
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+private val logger: KLogger = KotlinLogging.logger {}
+
 interface OpenAIClient {
-  suspend fun createCompletion(request: CompletionRequest): List<CompletionChoice>
+  suspend fun createCompletion(request: CompletionRequest): CompletionResult
   suspend fun createChatCompletion(request: ChatCompletionRequest): ChatCompletionResponse
   suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult
   suspend fun createImages(request: ImagesGenerationRequest): ImagesGenerationResponse
@@ -46,8 +50,8 @@ private class KtorOpenAIClient(
   private val config: OpenAIConfig
 ) : OpenAIClient {
 
-  override suspend fun createCompletion(request: CompletionRequest): List<CompletionChoice> {
-    val response =
+  override suspend fun createCompletion(request: CompletionRequest): CompletionResult {
+    val response: HttpResponse =
       config.retryConfig.schedule().retry {
         httpClient.post {
           url { path("completions") }
@@ -56,13 +60,18 @@ private class KtorOpenAIClient(
         }
       }
     val body: CompletionResult = response.body()
-    return body.choices
+    with(body.usage) {
+      logger.debug {
+        "OpenAI Tokens :: prompt: $promptTokens, completion: $completionTokens, total: $totalTokens"
+      }
+    }
+    return body
   }
 
   override suspend fun createChatCompletion(
     request: ChatCompletionRequest
   ): ChatCompletionResponse {
-    val response =
+    val response: HttpResponse =
       config.retryConfig
         .schedule()
         .log { error, attempts ->
@@ -75,7 +84,13 @@ private class KtorOpenAIClient(
             timeout { requestTimeoutMillis = config.requestTimeout.inWholeMilliseconds }
           }
         }
-    return response.body()
+    val body: ChatCompletionResponse = response.body()
+    with(body.usage) {
+      logger.debug {
+        "OpenAI Tokens :: prompt: $promptTokens, completion: $completionTokens, total: $totalTokens"
+      }
+    }
+    return body
   }
 
   override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult {
@@ -87,7 +102,13 @@ private class KtorOpenAIClient(
           timeout { requestTimeoutMillis = config.requestTimeout.inWholeMilliseconds }
         }
       }
-    return response.body()
+    val body: EmbeddingResult = response.body()
+    with(body.usage) {
+      logger.debug {
+        "OpenAI Tokens :: prompt: $promptTokens, completion: $completionTokens, total: $totalTokens"
+      }
+    }
+    return body
   }
 
   override suspend fun createImages(request: ImagesGenerationRequest): ImagesGenerationResponse {
