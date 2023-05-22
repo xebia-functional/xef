@@ -1,5 +1,6 @@
 package com.xebia.functional.xef.llm.openai
 
+import com.xebia.functional.tokenizer.ModelType
 import kotlin.jvm.JvmInline
 import kotlin.jvm.JvmStatic
 import kotlinx.serialization.SerialName
@@ -115,31 +116,37 @@ data class Usage(
   @SerialName("total_tokens") val totalTokens: Long
 )
 
-data class LLMModel(val name: String, val kind: Kind, val contextLength: Int) {
+data class LLMModel(val name: String, val kind: Kind, val modelType: ModelType) {
   enum class Kind {
     Completion,
     Chat
   }
 
   companion object {
-    @JvmStatic val GPT_4 = LLMModel("gpt-4", Kind.Chat, 8192)
+    @JvmStatic val GPT_4 = LLMModel("gpt-4", Kind.Chat, ModelType.GPT_4)
 
-    @JvmStatic val GPT_4_0314 = LLMModel("gpt-4-0314", Kind.Chat, 8192)
+    @JvmStatic val GPT_4_0314 = LLMModel("gpt-4-0314", Kind.Chat, ModelType.GPT_4)
 
-    @JvmStatic val GPT_4_32K = LLMModel("gpt-4-32k", Kind.Chat, 32768)
+    @JvmStatic val GPT_4_32K = LLMModel("gpt-4-32k", Kind.Chat, ModelType.GPT_4_32K)
 
-    @JvmStatic val GPT_3_5_TURBO = LLMModel("gpt-3.5-turbo", Kind.Chat, 4096)
+    @JvmStatic val GPT_3_5_TURBO = LLMModel("gpt-3.5-turbo", Kind.Chat, ModelType.GPT_3_5_TURBO)
 
-    @JvmStatic val GPT_3_5_TURBO_0301 = LLMModel("gpt-3.5-turbo-0301", Kind.Chat, 4096)
+    @JvmStatic
+    val GPT_3_5_TURBO_0301 = LLMModel("gpt-3.5-turbo-0301", Kind.Chat, ModelType.GPT_3_5_TURBO)
 
-    @JvmStatic val TEXT_DAVINCI_003 = LLMModel("text-davinci-003", Kind.Completion, 4097)
+    @JvmStatic
+    val TEXT_DAVINCI_003 = LLMModel("text-davinci-003", Kind.Completion, ModelType.TEXT_DAVINCI_003)
 
-    @JvmStatic val TEXT_DAVINCI_002 = LLMModel("text-davinci-002", Kind.Completion, 4097)
+    @JvmStatic
+    val TEXT_DAVINCI_002 = LLMModel("text-davinci-002", Kind.Completion, ModelType.TEXT_DAVINCI_002)
 
-    @JvmStatic val TEXT_CURIE_001 = LLMModel("text-curie-001", Kind.Completion, 2049)
+    @JvmStatic
+    val TEXT_CURIE_001 =
+      LLMModel("text-curie-001", Kind.Completion, ModelType.TEXT_SIMILARITY_CURIE_001)
 
-    @JvmStatic val TEXT_BABBAGE_001 = LLMModel("text-babbage-001", Kind.Completion, 2049)
+    @JvmStatic
+    val TEXT_BABBAGE_001 = LLMModel("text-babbage-001", Kind.Completion, ModelType.TEXT_BABBAGE_001)
 
-    @JvmStatic val TEXT_ADA_001 = LLMModel("text-ada-001", Kind.Completion, 2049)
+    @JvmStatic val TEXT_ADA_001 = LLMModel("text-ada-001", Kind.Completion, ModelType.TEXT_ADA_001)
   }
 }
