@@ -8,7 +8,7 @@ plugins {
   alias(libs.plugins.dokka)
   alias(libs.plugins.arrow.gradle.nexus)
   alias(libs.plugins.arrow.gradle.publish) apply false
-  alias(libs.plugins.semver.gradle)
+//  alias(libs.plugins.semver.gradle)
 }
 
 allprojects {

@@ -37,6 +37,7 @@ lucene = "9.6.0"
 assertj = "3.11.1"
 junit = "5.9.3"
 pdfbox = "2.0.28"
+mysql = "8.0.33"
 semverGradle = "0.5.0-alpha.2"
 
 [libraries]
@@ -97,6 +98,7 @@ rss-reader = { module = "com.apptasticsoftware:rssreader", version.ref = "rssrea
 apache-lucene = { module = "org.apache.lucene:lucene-core", version.ref = "lucene" }
 assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 apache-pdf-box = { module = "org.apache.pdfbox:pdfbox", version.ref = "pdfbox" }
+jdbc-mysql-connector = { module = "mysql:mysql-connector-java", version.ref = "mysql" }
 
 [bundles]
 arrow = [

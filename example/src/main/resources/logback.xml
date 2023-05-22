@@ -16,7 +16,7 @@
         <appender-ref ref="NOOP"/>
     </root>
 
-    <logger name="AutoAI" level="debug">
+    <logger name="com.xebia.functional.xef" level="debug">
         <appender-ref ref="STDOUT" />
     </logger>
 

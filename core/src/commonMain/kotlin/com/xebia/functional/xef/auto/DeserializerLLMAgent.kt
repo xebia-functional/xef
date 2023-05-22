@@ -97,7 +97,8 @@ suspend fun <A> AIScope.prompt(
   echo: Boolean = false,
   n: Int = 1,
   temperature: Double = 0.0,
-  bringFromContext: Int = 10
+  bringFromContext: Int = 10,
+  minResponseTokens: Int = 500,
 ): A {
   val serializationConfig: SerializationConfig<A> =
     SerializationConfig(
@@ -128,7 +129,8 @@ suspend fun <A> AIScope.prompt(
       echo,
       n,
       temperature,
-      bringFromContext
+      bringFromContext,
+      minResponseTokens
     )
   }
 }

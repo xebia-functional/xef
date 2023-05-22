@@ -38,3 +38,6 @@ project(":xef-postgresql").projectDir = file("integrations/postgresql")
 
 include("xef-pdf")
 project(":xef-pdf").projectDir = file("integrations/pdf")
+
+include("xef-sql")
+project(":xef-sql").projectDir = file("integrations/sql")
