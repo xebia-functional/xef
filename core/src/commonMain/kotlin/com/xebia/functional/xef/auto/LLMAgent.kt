@@ -75,11 +75,11 @@ private fun Raise<AIError>.createPromptWithContextAwareOfTokens(
   prompt: String,
   minResponseTokens: Int,
 ): String {
-  val remaininingTokens =
+  val remainingTokens =
     model.modelType.maxContextLength -
       model.modelType.encoding.countTokens(prompt) -
       minResponseTokens
-  return if (ctxInfo.isNotEmpty() && remaininingTokens > minResponseTokens) {
+  return if (ctxInfo.isNotEmpty() && remainingTokens > minResponseTokens) {
     val ctx = ctxInfo.joinToString("\n")
     val promptTokens = model.modelType.encoding.countTokens(prompt)
     ensure(promptTokens < model.modelType.maxContextLength) {
