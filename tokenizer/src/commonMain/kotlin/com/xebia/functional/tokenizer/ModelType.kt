@@ -73,21 +73,3 @@ enum class ModelType(
       values().firstOrNull { it.name == name }
   }
 }
-
-/**
- * Truncates the given [text] to the given [maxTokens] by removing tokens
- * from the end of the text.
- * It removes tokens from the tail of the [text].
- * Tokens are chosen to be removed based on the percentage of the [maxTokens]
- * compared to the total amount of tokens in the [text].
- */
-fun Encoding.truncateText(text: String, maxTokens: Int): String {
-  val tokenCount = countTokens(text)
-  return if (tokenCount <= maxTokens) {
-    text
-  } else {
-    val percentage = maxTokens.toDouble() / tokenCount.toDouble()
-    val truncatedTextLength = (text.length * percentage).toInt()
-    text.substring(0, truncatedTextLength)
-  }
-}
