@@ -1,7 +1,6 @@
 package com.xebia.functional.xef.loaders
 
 import com.xebia.functional.xef.io.DEFAULT
-import com.xebia.functional.xef.textsplitters.BaseTextSplitter
 import okio.FileSystem
 import okio.Path
 

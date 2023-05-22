@@ -6,9 +6,9 @@ import com.xebia.functional.xef.auto.ai
 import com.xebia.functional.xef.auto.getOrThrow
 import com.xebia.functional.xef.auto.promptMessage
 import com.xebia.functional.xef.sql.SQL
-import com.xebia.functional.xef.sql.jdbc.DatabaseConfig
+import com.xebia.functional.xef.sql.jdbc.JdbcConfig
 
-val config = DatabaseConfig(
+val config = JdbcConfig(
   vendor = System.getenv("XEF_SQL_DB_VENDOR") ?: "mysql",
   host = System.getenv("XEF_SQL_DB_HOST") ?: "localhost",
   username = System.getenv("XEF_SQL_DB_USER") ?: "user",

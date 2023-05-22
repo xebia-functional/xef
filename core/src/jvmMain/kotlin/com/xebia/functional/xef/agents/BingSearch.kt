@@ -4,7 +4,7 @@ import arrow.core.flatten
 import arrow.fx.coroutines.parMap
 import com.apptasticsoftware.rssreader.Item
 import com.apptasticsoftware.rssreader.RssReader
-import com.xebia.functional.xef.textsplitters.BaseTextSplitter
+import com.xebia.functional.xef.textsplitters.TextSplitter
 import io.ktor.http.*
 import java.util.stream.Collectors
 import kotlin.jvm.optionals.toList
@@ -12,7 +12,7 @@ import kotlinx.coroutines.Dispatchers
 
 suspend fun bingSearch(
   search: String,
-  splitter: BaseTextSplitter,
+  splitter: TextSplitter,
   url: String = "https://www.bing.com/news/search?q=${search.encodeURLParameter()}&format=rss",
   maxLinks: Int = 10
 ): List<String> {
