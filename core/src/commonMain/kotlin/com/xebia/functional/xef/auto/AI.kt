@@ -5,7 +5,6 @@ import arrow.core.left
 import arrow.core.raise.Raise
 import arrow.core.raise.recover
 import arrow.core.right
-import arrow.fx.coroutines.Resource
 import arrow.fx.coroutines.ResourceScope
 import arrow.fx.coroutines.resourceScope
 import com.xebia.functional.tokenizer.ModelType
@@ -166,20 +165,25 @@ class AIScope(
     context.addTexts(docs.toList())
   }
 
+  /**
+   * Creates a new scoped [VectorStore] using [store], which is scoped to the [block] lambda. The
+   * [block] also runs on a _nested_ [resourceScope], meaning that all additional resources created
+   * within [block] will be finalized after [block] finishes.
+   */
   @AiDsl
   suspend fun <A> contextScope(
-    store: suspend (Embeddings) -> Resource<VectorStore>,
+    store: suspend ResourceScope.(Embeddings) -> VectorStore,
     block: AI<A>
-  ): A {
-    val newStore = store(embeddings).bind()
-    return AIScope(
-        openAIClient,
-        CombinedVectorStore(newStore, context),
-        embeddings,
-        logger,
+  ): A = resourceScope {
+    val newStore = store(this@AIScope.embeddings)
+    AIScope(
+        this@AIScope.openAIClient,
+        CombinedVectorStore(newStore, this@AIScope.context),
+        this@AIScope.embeddings,
+        this@AIScope.logger,
         model,
         this,
-        this
+        this@AIScope
       )
       .block()
   }
