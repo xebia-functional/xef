@@ -19,7 +19,6 @@ import org.http4s.implicits.uri
 
 object Main extends IOApp.Simple {
   def run: IO[Unit] =
-//    IO(println(buildJsonSchema(ScalaSerialDescriptor[Person].serialDescriptor)))
     (
       for
         httpClient <- EmberClientBuilder.default[IO].build
