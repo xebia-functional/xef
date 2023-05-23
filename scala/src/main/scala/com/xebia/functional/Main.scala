@@ -16,9 +16,6 @@ import com.xebia.functional.scala.llm.openai.models.EmbeddingRequest
 import org.http4s.client.Client
 import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.implicits.uri
-import com.xebia.functional.scala.auto.ScalaSerialDescriptor
-import com.xebia.functional.xef.auto.serialization.JsonSchemaKt._
-import scala.deriving.*
 
 object Main extends IOApp.Simple {
   def run: IO[Unit] =
