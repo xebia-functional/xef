@@ -6,19 +6,29 @@ import java.lang.annotation.Annotation
 import kotlinx.serialization.descriptors.{PrimitiveKind, SerialDescriptor, SerialKind, StructureKind}
 import kotlinx.serialization.internal.ArrayListSerializer
 
+import java.util
 import scala.deriving.*
 import scala.compiletime.{constValue, erasedValue, summonInline}
 
+trait ScalaSerialDescriptor[A]:
+  def serialDescriptor: SerialDescriptor
+
 object ScalaSerialDescriptor:
-  inline def derived[A <: Product](using m: Mirror.Of[A]): SerialDescriptor =
-    new SerialDescriptor:
-      def getElementIndex(name: String): Int = summonInline[m.MirroredElemLabels].toArray.indexOf(name)
+  def apply[A](using ev: ScalaSerialDescriptor[A]): ScalaSerialDescriptor[A] = ev
+
+  private inline def getElemsLabel[T <: Tuple]: List[String] = inline erasedValue[T] match
+    case _: EmptyTuple => Nil
+    case _: (h *: t) => erasedValue[h].toString :: getElemsLabel[t]
+
+  inline final def derived[A](using inline m: Mirror.Of[A]): ScalaSerialDescriptor[A] = new ScalaSerialDescriptor[A]:
+    val serialDescriptorImpl: SerialDescriptor = new SerialDescriptor:
+      def getElementIndex(name: String): Int = getElemsLabel[m.MirroredElemLabels].indexOf(name)
 
       // We're going to ignore annotations for now, it's not relevant for JsonSchema
-      def getElementAnnotations(index: Int): java.util.List[Annotation] = java.util.ArrayList(0)
+      def getElementAnnotations(index: Int): util.List[Annotation] = java.util.ArrayList(0)
 
       def getElementDescriptor(index: Int): SerialDescriptor =
-        constValue[m.MirroredElemTypes].productElementName(index) match {
+        summon[m.MirroredElemTypes].toList(index).toString match {
           case "String" => PrimitiveSerialDescriptor("String", PrimitiveKind.STRING.INSTANCE)
           case "Int" => PrimitiveSerialDescriptor("Int", PrimitiveKind.INT.INSTANCE)
           case "Long" => PrimitiveSerialDescriptor("Long", PrimitiveKind.LONG.INSTANCE)
@@ -31,9 +41,9 @@ object ScalaSerialDescriptor:
         }
 
       // We're going to ignore annotations for now, it's not relevant for JsonSchema
-      override def getAnnotations: java.util.List[Annotation] = java.util.ArrayList(0)
+      override def getAnnotations: util.List[Annotation] = java.util.ArrayList(0)
 
-      override def getElementsCount: Int = summonInline[m.MirroredElemLabels].size
+      override def getElementsCount: Int = getElemsLabel[m.MirroredElemLabels].size
 
       override def isInline: Boolean = false
 
@@ -44,7 +54,9 @@ object ScalaSerialDescriptor:
 
       override def getSerialName: String = constValue[m.MirroredLabel]
 
-      override def getElementName(i: Int): String = summonInline[m.MirroredElemLabels].productElementName(i)
+      override def getElementName(i: Int): String = getElemsLabel[m.MirroredElemLabels](i)
 
       // Does the element at the given index have a default value, or is it wrapped in `Option`, or is a union with `Null`?
       def isElementOptional(index: Int): Boolean = false
+
+    def serialDescriptor = serialDescriptorImpl

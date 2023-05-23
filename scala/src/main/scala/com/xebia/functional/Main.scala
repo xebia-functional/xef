@@ -18,13 +18,14 @@ import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.implicits.uri
 import com.xebia.functional.scala.auto.ScalaSerialDescriptor
 import com.xebia.functional.xef.auto.serialization.JsonSchemaKt._
+import scala.deriving.*
 
 object Main extends IOApp.Simple {
 
-  case class Person(age: Int, name: String)
+  case class Person(age: Int, name: String) derives ScalaSerialDescriptor
 
   def run: IO[Unit] =
-    IO(buildJsonSchema(ScalaSerialDescriptor.derived[Person]))
+    IO(buildJsonSchema(ScalaSerialDescriptor[Person].serialDescriptor))
 //    (
 //      for
 //        httpClient <- EmberClientBuilder.default[IO].build
