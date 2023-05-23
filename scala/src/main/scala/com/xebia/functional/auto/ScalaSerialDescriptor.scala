@@ -37,7 +37,7 @@ object ScalaSerialDescriptor:
       def getElementAnnotations(index: Int): util.List[Annotation] = java.util.ArrayList(0)
 
       def getElementDescriptor(index: Int): SerialDescriptor =
-        types(index).toString match {
+        types(index).runtimeClass.toString match {
           case s if s.toLowerCase.contains("string") => KotlinXSerializers.string.getDescriptor
           case s if s.toLowerCase.contains("int") => KotlinXSerializers.int.getDescriptor
           case s if s.toLowerCase.contains("long") => KotlinXSerializers.long.getDescriptor
