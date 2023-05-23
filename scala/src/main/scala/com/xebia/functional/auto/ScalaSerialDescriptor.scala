@@ -28,8 +28,8 @@ object ScalaSerialDescriptor:
 
   inline final def derived[A](using inline m: Mirror.Of[A]): ScalaSerialDescriptor[A] = new ScalaSerialDescriptor[A]:
     val serialDescriptorImpl: SerialDescriptor = new SerialDescriptor:
-      val labels =  getElemsLabel[m.MirroredElemLabels]
-      val types =  getElemTypes[m.MirroredElemTypes]
+      val labels = getElemsLabel[m.MirroredElemLabels]
+      val types = getElemTypes[m.MirroredElemTypes]
 
       def getElementIndex(name: String): Int = labels.indexOf(name)
 
