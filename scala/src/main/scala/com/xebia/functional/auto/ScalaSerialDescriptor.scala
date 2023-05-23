@@ -24,7 +24,7 @@ object ScalaSerialDescriptor:
 
   private inline def getElemTypes[T <: Tuple]: List[ClassTag[_]] = inline erasedValue[T] match
     case _: EmptyTuple => Nil
-    case _: (h *: t) => summonInline[ClassTag[h]]:: getElemTypes[t]
+    case _: (h *: t) => summonInline[ClassTag[h]] :: getElemTypes[t]
 
   inline final def derived[A](using inline m: Mirror.Of[A]): ScalaSerialDescriptor[A] = new ScalaSerialDescriptor[A]:
     val serialDescriptorImpl: SerialDescriptor = new SerialDescriptor:
