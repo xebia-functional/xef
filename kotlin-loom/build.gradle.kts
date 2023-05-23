@@ -2,6 +2,7 @@ plugins {
   id(libs.plugins.kotlin.jvm.get().pluginId)
   alias(libs.plugins.spotless)
   alias(libs.plugins.arrow.gradle.publish)
+  alias(libs.plugins.semver.gradle)
 }
 
 repositories {
@@ -56,4 +57,8 @@ spotless {
     target("**/*.kt")
     ktfmt().googleStyle()
   }
+}
+
+tasks.withType<AbstractPublishToMaven> {
+  dependsOn(tasks.withType<Sign>())
 }

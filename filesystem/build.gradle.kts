@@ -63,3 +63,7 @@ kotlin {
     }
   }
 }
+
+tasks.withType<AbstractPublishToMaven> {
+  dependsOn(tasks.withType<Sign>())
+}
