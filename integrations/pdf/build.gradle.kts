@@ -1,5 +1,7 @@
 plugins {
     id(libs.plugins.kotlin.jvm.get().pluginId)
+    alias(libs.plugins.arrow.gradle.publish)
+    alias(libs.plugins.semver.gradle)
 }
 
 repositories {
@@ -16,6 +18,10 @@ java {
 
 dependencies {
     implementation(projects.xefCore)
-    implementation(projects.tokenizer)
+    implementation(projects.xefTokenizer)
     implementation(libs.apache.pdf.box)
+}
+
+tasks.withType<AbstractPublishToMaven> {
+    dependsOn(tasks.withType<Sign>())
 }

@@ -22,7 +22,7 @@ dependencies {
   implementation(projects.xefFilesystem)
   implementation(projects.xefPdf)
   implementation(projects.xefSql)
-  implementation(projects.tokenizer)
+  implementation(projects.xefTokenizer)
   implementation(libs.kotlinx.serialization.json)
   implementation(libs.logback)
   implementation(libs.klogging)

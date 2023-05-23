@@ -33,6 +33,14 @@ dependencies {
     testImplementation(libs.scala.testcontainers.postgresql)
 }
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_19
+    targetCompatibility = JavaVersion.VERSION_19
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(19)
+    }
+}
+
 tasks.withType<Test>().configureEach {
     useJUnit()
 }

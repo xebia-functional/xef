@@ -2,6 +2,8 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id(libs.plugins.kotlin.jvm.get().pluginId)
+    alias(libs.plugins.arrow.gradle.publish)
+    alias(libs.plugins.semver.gradle)
 }
 
 repositories {
@@ -18,6 +20,10 @@ java {
 
 dependencies {
     implementation(projects.xefCore)
-    implementation(projects.tokenizer)
+    implementation(projects.xefTokenizer)
     implementation(libs.klogging)
+}
+
+tasks.withType<AbstractPublishToMaven> {
+    dependsOn(tasks.withType<Sign>())
 }
