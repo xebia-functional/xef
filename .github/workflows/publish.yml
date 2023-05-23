@@ -1,4 +1,4 @@
-name: "Publish stable version"
+name: Publish stable version
 
 on:
   workflow_dispatch:
@@ -46,7 +46,7 @@ jobs:
       - name: Publish final version
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: -Pversion=${{ inputs.version }} publishToSonatype closeSonatypeStagingRepository -x:kotlin-loom:publishToSonatype -x:kotlin-loom:closeSonatypeStagingRepository
+          arguments: -Pversion=${{ inputs.version }} publishToSonatype -x:kotlin-loom:publishToSonatype closeSonatypeStagingRepository
 
   publish-modules-with-loom:
     timeout-minutes: 30
@@ -77,4 +77,4 @@ jobs:
       - name: Publish final version
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: -Pversion=${{ inputs.version }} :kotlin-loom:publishToSonatype :kotlin-loom:closeSonatypeStagingRepository
+          arguments: -Pversion=${{ inputs.version }} :kotlin-loom:publishToSonatype closeSonatypeStagingRepository

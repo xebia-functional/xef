@@ -1,4 +1,4 @@
-name: githubpages
+name: Generate and deploy GitHub Pages
 
 on:
   release:

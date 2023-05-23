@@ -14,6 +14,7 @@ plugins {
   alias(libs.plugins.spotless)
   alias(libs.plugins.dokka)
   alias(libs.plugins.arrow.gradle.publish)
+  alias(libs.plugins.semver.gradle)
 }
 
 java {
@@ -57,9 +58,9 @@ kotlin {
   sourceSets {
     val commonMain by getting {
       dependencies {
+        api(projects.xefTokenizer)
         api(libs.bundles.arrow)
         api(libs.bundles.ktor.client)
-        api(projects.tokenizer)
         api(libs.klogging)
         implementation(libs.arrow.fx.stm)
         implementation(libs.kotlinx.serialization.json)
@@ -182,4 +183,8 @@ tasks {
       }
     }
   }
+}
+
+tasks.withType<AbstractPublishToMaven> {
+  dependsOn(tasks.withType<Sign>())
 }

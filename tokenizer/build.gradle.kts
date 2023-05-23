@@ -3,6 +3,7 @@ plugins {
   alias(libs.plugins.kotest.multiplatform)
   alias(libs.plugins.spotless)
   alias(libs.plugins.arrow.gradle.publish)
+  alias(libs.plugins.semver.gradle)
   id("com.goncalossilva.resources") version "0.3.2"
 }
 
@@ -80,3 +81,6 @@ kotlin {
   }
 }
 
+tasks.withType<AbstractPublishToMaven> {
+  dependsOn(tasks.withType<Sign>())
+}
