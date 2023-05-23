@@ -9,6 +9,7 @@ import kotlinx.serialization.internal.ArrayListSerializer
 import java.util
 import scala.deriving.*
 import scala.compiletime.{constValue, erasedValue, summonInline}
+import scala.reflect.ClassTag
 
 trait ScalaSerialDescriptor[A]:
   def serialDescriptor: SerialDescriptor
@@ -20,6 +21,10 @@ object ScalaSerialDescriptor:
     case _: EmptyTuple => Nil
     case _: (h *: t) => erasedValue[h].toString :: getElemsLabel[t]
 
+  private inline def getElemTypes[T <: Tuple]: List[Class[_]] = inline erasedValue[T] match
+    case _: EmptyTuple => Nil
+    case _: (h *: t) => summonInline[ClassTag[h]].runtimeClass :: getElemTypes[t]
+
   inline final def derived[A](using inline m: Mirror.Of[A]): ScalaSerialDescriptor[A] = new ScalaSerialDescriptor[A]:
     val serialDescriptorImpl: SerialDescriptor = new SerialDescriptor:
       def getElementIndex(name: String): Int = getElemsLabel[m.MirroredElemLabels].indexOf(name)
@@ -28,16 +33,18 @@ object ScalaSerialDescriptor:
       def getElementAnnotations(index: Int): util.List[Annotation] = java.util.ArrayList(0)
 
       def getElementDescriptor(index: Int): SerialDescriptor =
-        summon[m.MirroredElemTypes].toList(index).toString match {
-          case "String" => PrimitiveSerialDescriptor("String", PrimitiveKind.STRING.INSTANCE)
-          case "Int" => PrimitiveSerialDescriptor("Int", PrimitiveKind.INT.INSTANCE)
-          case "Long" => PrimitiveSerialDescriptor("Long", PrimitiveKind.LONG.INSTANCE)
-          case "Float" => PrimitiveSerialDescriptor("Float", PrimitiveKind.FLOAT.INSTANCE)
-          case "Double" => PrimitiveSerialDescriptor("Double", PrimitiveKind.DOUBLE.INSTANCE)
-          case "Boolean" => PrimitiveSerialDescriptor("Boolean", PrimitiveKind.BOOLEAN.INSTANCE)
-          case "Byte" => PrimitiveSerialDescriptor("Byte", PrimitiveKind.BYTE.INSTANCE)
-          case "Short" => PrimitiveSerialDescriptor("Short", PrimitiveKind.SHORT.INSTANCE)
-          case "Char" => PrimitiveSerialDescriptor("Char", PrimitiveKind.CHAR.INSTANCE)
+        val types = getElemTypes[m.MirroredElemTypes].map(_.toString)
+        println(s"TYPEEEEEES: $types")
+        getElemTypes[m.MirroredElemTypes](index).toString match {
+          case s if s.toLowerCase.contains("string") => PrimitiveSerialDescriptor("String", PrimitiveKind.STRING.INSTANCE)
+          case s if s.toLowerCase.contains("int") => PrimitiveSerialDescriptor("Int", PrimitiveKind.INT.INSTANCE)
+          case s if s.toLowerCase.contains("long") => PrimitiveSerialDescriptor("Long", PrimitiveKind.LONG.INSTANCE)
+          case s if s.toLowerCase.contains("float") => PrimitiveSerialDescriptor("Float", PrimitiveKind.FLOAT.INSTANCE)
+          case s if s.toLowerCase.contains("double") => PrimitiveSerialDescriptor("Double", PrimitiveKind.DOUBLE.INSTANCE)
+          case s if s.toLowerCase.contains("boolean") => PrimitiveSerialDescriptor("Boolean", PrimitiveKind.BOOLEAN.INSTANCE)
+          case s if s.toLowerCase.contains("byte") => PrimitiveSerialDescriptor("Byte", PrimitiveKind.BYTE.INSTANCE)
+          case s if s.toLowerCase.contains("short") => PrimitiveSerialDescriptor("Short", PrimitiveKind.SHORT.INSTANCE)
+          case s if s.toLowerCase.contains("char") => PrimitiveSerialDescriptor("Char", PrimitiveKind.CHAR.INSTANCE)
         }
 
       // We're going to ignore annotations for now, it's not relevant for JsonSchema
