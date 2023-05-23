@@ -1,4 +1,4 @@
-import scala.collection.JavaConverters.*
+import scala.jdk.CollectionConverters.*
 
 import cats.effect.IO
 import cats.effect.IOApp
@@ -18,7 +18,6 @@ import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.implicits.uri
 
 object Main extends IOApp.Simple {
-
   def run: IO[Unit] =
     (
       for
