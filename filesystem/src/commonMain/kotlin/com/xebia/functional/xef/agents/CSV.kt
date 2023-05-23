@@ -10,10 +10,12 @@ import okio.Path
 
 suspend fun csv(
   vararg files: Path,
+  hasHeader: Boolean = true,
+  rowSeparator: CharSequence = ", ",
   fileSystem: FileSystem = FileSystem.DEFAULT,
   splitter: TextSplitter = TokenTextSplitter(ModelType.GPT_3_5_TURBO, chunkSize = 100, chunkOverlap = 50)
 ): List<String> = files.flatMap { file ->
-    val loader = CSVLoader(file, fileSystem)
+    val loader = CSVLoader(file, hasHeader, rowSeparator, fileSystem)
     loader.loadAndSplit(splitter)
 }
 

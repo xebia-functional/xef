@@ -1,5 +1,6 @@
 package com.xebia.functional.xef.loaders
 
+import com.xebia.functional.xef.csv.RFC4180Parser
 import com.xebia.functional.xef.io.DEFAULT
 import okio.FileSystem
 import okio.Path
@@ -7,29 +8,29 @@ import okio.Path
 /** Creates a CSVLoader based on a Path */
 fun CSVLoader(
   filePath: Path,
+  hasHeader: Boolean = true,
+  rowSeparator: CharSequence = ", ",
   fileSystem: FileSystem = FileSystem.DEFAULT
 ): BaseLoader = object : BaseLoader {
 
   override suspend fun load(): List<String> =
     buildList {
-      var headerLine : String = ""
+      val parser = RFC4180Parser()
+      var headers: List<String> = emptyList()
       fileSystem.read(filePath) {
         while (true) {
-          val line = readUtf8Line() ?: break
-          if (this@buildList.size == 0)
-            headerLine = line
-          val headers = headerLine.split(",")
-          val values = line.split(",")
-          val map = headers.zip(values).toMap()
-          add(recordMapToDocument(map))
+          val row = readUtf8Line() ?: break
+          when {
+            hasHeader && this@buildList.size == 0 -> {
+              headers = parser.parseLine(row)
+            }
+
+            hasHeader -> add(headers.zip(parser.parseLine(row)) { key, value -> "$key: $value" }
+              .joinToString(rowSeparator))
+
+            else -> add(parser.parseLine(row).joinToString(rowSeparator))
+          }
         }
       }
     }
-
-  private fun recordMapToDocument(map: Map<String, String>): String {
-    return map.entries.joinToString(separator = "\n") { (key, value) ->
-      "$key: $value"
-    }
-  }
-
 }
