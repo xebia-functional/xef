@@ -25,7 +25,7 @@ object Main extends IOApp.Simple {
   case class Person(age: Int, name: String) derives ScalaSerialDescriptor
 
   def run: IO[Unit] =
-    IO(buildJsonSchema(ScalaSerialDescriptor[Person].serialDescriptor))
+    IO(println(buildJsonSchema(ScalaSerialDescriptor[Person].serialDescriptor)))
 //    (
 //      for
 //        httpClient <- EmberClientBuilder.default[IO].build

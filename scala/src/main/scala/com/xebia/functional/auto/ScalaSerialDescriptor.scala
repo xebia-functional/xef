@@ -1,5 +1,6 @@
 package com.xebia.functional.scala.auto
 
+import com.xebia.functional.auto.KotlinXSerializers
 import kotlinx.serialization.descriptors.SerialDescriptorsKt.PrimitiveSerialDescriptor
 
 import java.lang.annotation.Annotation
@@ -34,17 +35,16 @@ object ScalaSerialDescriptor:
 
       def getElementDescriptor(index: Int): SerialDescriptor =
         val types = getElemTypes[m.MirroredElemTypes].map(_.toString)
-        println(s"TYPEEEEEES: $types")
         getElemTypes[m.MirroredElemTypes](index).toString match {
-          case s if s.toLowerCase.contains("string") => PrimitiveSerialDescriptor("String", PrimitiveKind.STRING.INSTANCE)
-          case s if s.toLowerCase.contains("int") => PrimitiveSerialDescriptor("Int", PrimitiveKind.INT.INSTANCE)
-          case s if s.toLowerCase.contains("long") => PrimitiveSerialDescriptor("Long", PrimitiveKind.LONG.INSTANCE)
-          case s if s.toLowerCase.contains("float") => PrimitiveSerialDescriptor("Float", PrimitiveKind.FLOAT.INSTANCE)
-          case s if s.toLowerCase.contains("double") => PrimitiveSerialDescriptor("Double", PrimitiveKind.DOUBLE.INSTANCE)
-          case s if s.toLowerCase.contains("boolean") => PrimitiveSerialDescriptor("Boolean", PrimitiveKind.BOOLEAN.INSTANCE)
-          case s if s.toLowerCase.contains("byte") => PrimitiveSerialDescriptor("Byte", PrimitiveKind.BYTE.INSTANCE)
-          case s if s.toLowerCase.contains("short") => PrimitiveSerialDescriptor("Short", PrimitiveKind.SHORT.INSTANCE)
-          case s if s.toLowerCase.contains("char") => PrimitiveSerialDescriptor("Char", PrimitiveKind.CHAR.INSTANCE)
+          case s if s.toLowerCase.contains("string") => KotlinXSerializers.string.getDescriptor
+          case s if s.toLowerCase.contains("int") => KotlinXSerializers.int.getDescriptor
+          case s if s.toLowerCase.contains("long") => KotlinXSerializers.long.getDescriptor
+          case s if s.toLowerCase.contains("float") => KotlinXSerializers.float.getDescriptor
+          case s if s.toLowerCase.contains("double") => KotlinXSerializers.double.getDescriptor
+          case s if s.toLowerCase.contains("boolean") => KotlinXSerializers.boolean.getDescriptor
+          case s if s.toLowerCase.contains("byte") => KotlinXSerializers.byte.getDescriptor
+          case s if s.toLowerCase.contains("short") => KotlinXSerializers.short.getDescriptor
+          case s if s.toLowerCase.contains("char") => KotlinXSerializers.char.getDescriptor
         }
 
       // We're going to ignore annotations for now, it's not relevant for JsonSchema
