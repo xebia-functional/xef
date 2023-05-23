@@ -3,6 +3,7 @@ plugins {
   alias(libs.plugins.kotlinx.serialization)
   alias(libs.plugins.spotless)
   alias(libs.plugins.arrow.gradle.publish)
+  alias(libs.plugins.semver.gradle)
 }
 
 repositories {

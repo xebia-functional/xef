@@ -14,6 +14,7 @@ plugins {
   alias(libs.plugins.spotless)
   alias(libs.plugins.dokka)
   alias(libs.plugins.arrow.gradle.publish)
+  alias(libs.plugins.semver.gradle)
 }
 
 java {
@@ -182,4 +183,8 @@ tasks {
       }
     }
   }
+}
+
+tasks.withType<AbstractPublishToMaven> {
+  dependsOn(tasks.withType<Sign>())
 }
