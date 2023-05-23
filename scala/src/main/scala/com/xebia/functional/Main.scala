@@ -1,4 +1,4 @@
-import scala.collection.JavaConverters.*
+import scala.jdk.CollectionConverters.*
 
 import cats.effect.IO
 import cats.effect.IOApp

@@ -28,13 +28,16 @@ object ScalaSerialDescriptor:
 
   inline final def derived[A](using inline m: Mirror.Of[A]): ScalaSerialDescriptor[A] = new ScalaSerialDescriptor[A]:
     val serialDescriptorImpl: SerialDescriptor = new SerialDescriptor:
-      def getElementIndex(name: String): Int = getElemsLabel[m.MirroredElemLabels].indexOf(name)
+      val labels =  getElemsLabel[m.MirroredElemLabels]
+      val types =  getElemTypes[m.MirroredElemTypes]
+
+      def getElementIndex(name: String): Int = labels.indexOf(name)
 
       // We're going to ignore annotations for now, it's not relevant for JsonSchema
       def getElementAnnotations(index: Int): util.List[Annotation] = java.util.ArrayList(0)
 
       def getElementDescriptor(index: Int): SerialDescriptor =
-        getElemTypes[m.MirroredElemTypes](index).toString match {
+        types(index).toString match {
           case s if s.toLowerCase.contains("string") => KotlinXSerializers.string.getDescriptor
           case s if s.toLowerCase.contains("int") => KotlinXSerializers.int.getDescriptor
           case s if s.toLowerCase.contains("long") => KotlinXSerializers.long.getDescriptor
@@ -49,7 +52,7 @@ object ScalaSerialDescriptor:
       // We're going to ignore annotations for now, it's not relevant for JsonSchema
       override def getAnnotations: util.List[Annotation] = java.util.ArrayList(0)
 
-      override def getElementsCount: Int = getElemsLabel[m.MirroredElemLabels].size
+      override def getElementsCount: Int = labels.size
 
       override def isInline: Boolean = false
 
@@ -60,7 +63,7 @@ object ScalaSerialDescriptor:
 
       override def getSerialName: String = constValue[m.MirroredLabel]
 
-      override def getElementName(i: Int): String = getElemsLabel[m.MirroredElemLabels](i)
+      override def getElementName(i: Int): String = labels(i)
 
       // Does the element at the given index have a default value, or is it wrapped in `Option`, or is a union with `Null`?
       def isElementOptional(index: Int): Boolean = false
