@@ -11,6 +11,7 @@ which states the following:
 
 // TODO: We should consider a fork and maintain it ourselves.
  */
+import kotlin.jvm.JvmOverloads
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialInfo
 import kotlinx.serialization.SerializationStrategy
@@ -176,6 +177,7 @@ fun Json.encodeToSchema(
  *
  * @param autoDefinitions automatically generate definitions by default
  */
+@JvmOverloads
 fun buildJsonSchema(descriptor: SerialDescriptor, autoDefinitions: Boolean = false): JsonObject {
   val prepend = mapOf("\$schema" to JsonPrimitive("http://json-schema.org/draft-07/schema"))
   val definitions = JsonSchemaDefinitions(autoDefinitions)

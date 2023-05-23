@@ -7,12 +7,12 @@ import kotlinx.serialization.descriptors.{PrimitiveKind, SerialDescriptor, Seria
 import kotlinx.serialization.internal.ArrayListSerializer
 
 import scala.deriving.*
-import scala.compiletime.{constValue, erasedValue}
+import scala.compiletime.{constValue, erasedValue, summonInline}
 
 object ScalaSerialDescriptor:
   inline def derived[A <: Product](using m: Mirror.Of[A]): SerialDescriptor =
     new SerialDescriptor:
-      def getElementIndex(name: String): Int = constValue[m.MirroredElemLabels].toArray.indexOf(name)
+      def getElementIndex(name: String): Int = summonInline[m.MirroredElemLabels].toArray.indexOf(name)
 
       // We're going to ignore annotations for now, it's not relevant for JsonSchema
       def getElementAnnotations(index: Int): java.util.List[Annotation] = java.util.ArrayList(0)
@@ -33,7 +33,7 @@ object ScalaSerialDescriptor:
       // We're going to ignore annotations for now, it's not relevant for JsonSchema
       override def getAnnotations: java.util.List[Annotation] = java.util.ArrayList(0)
 
-      override def getElementsCount: Int = constValue[m.MirroredElemLabels].size
+      override def getElementsCount: Int = summonInline[m.MirroredElemLabels].size
 
       override def isInline: Boolean = false
 
@@ -44,7 +44,7 @@ object ScalaSerialDescriptor:
 
       override def getSerialName: String = constValue[m.MirroredLabel]
 
-      override def getElementName(i: Int): String = constValue[m.MirroredElemLabels].productElementName(i)
+      override def getElementName(i: Int): String = summonInline[m.MirroredElemLabels].productElementName(i)
 
       // Does the element at the given index have a default value, or is it wrapped in `Option`, or is a union with `Null`?
       def isElementOptional(index: Int): Boolean = false

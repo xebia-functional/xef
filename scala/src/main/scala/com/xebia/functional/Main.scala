@@ -16,27 +16,32 @@ import com.xebia.functional.scala.llm.openai.models.EmbeddingRequest
 import org.http4s.client.Client
 import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.implicits.uri
+import com.xebia.functional.scala.auto.ScalaSerialDescriptor
+import com.xebia.functional.xef.auto.serialization.JsonSchemaKt._
 
 object Main extends IOApp.Simple {
 
+  case class Person(age: Int, name: String)
+
   def run: IO[Unit] =
-    (
-      for
-        httpClient <- EmberClientBuilder.default[IO].build
-        config <- Resource.eval(Config.configValue[IO].load[IO])
-        openAIClient = OpenAIClient[IO](config.openAI)
-        hfClient = HuggingFaceClient[IO](config.huggingFace, httpClient)
-      yield (openAIClient, hfClient)
-    ).use { case (oai, hf) =>
-      for
-        o1 <- openAIExample(oai)
-        o2 <- hfExample(hf)
-        o3 <- openAIEmbeddingsExample(oai)
-        _ = println(o1)
-        _ = println(o2)
-        _ = println(o3)
-      yield ()
-    }
+    IO(buildJsonSchema(ScalaSerialDescriptor.derived[Person]))
+//    (
+//      for
+//        httpClient <- EmberClientBuilder.default[IO].build
+//        config <- Resource.eval(Config.configValue[IO].load[IO])
+//        openAIClient = OpenAIClient[IO](config.openAI)
+//        hfClient = HuggingFaceClient[IO](config.huggingFace, httpClient)
+//      yield (openAIClient, hfClient)
+//    ).use { case (oai, hf) =>
+//      for
+//        o1 <- openAIExample(oai)
+//        o2 <- hfExample(hf)
+//        o3 <- openAIEmbeddingsExample(oai)
+//        _ = println(o1)
+//        _ = println(o2)
+//        _ = println(o3)
+//      yield ()
+//    }
 
   def openAIEmbeddingsExample(client: OpenAIClient[IO]) =
     client
