@@ -11,16 +11,19 @@ object ScalaSerialDescriptor:
     new SerialDescriptor:
       def getElementIndex(name: String): Int = constValue[m.MirroredElemLabels].toArray.indexOf(name)
 
-      def getElementAnnotations(index: Int): java.util.List[Annotation] = ???
+      // We're going to ignore annotations for now, it's not relevant for JsonSchema
+      def getElementAnnotations(index: Int): java.util.List[Annotation] = java.util.ArrayList(0)
 
       def getElementDescriptor(index: Int): SerialDescriptor = ??? // You need to determine how to get the SerialDescriptor
 
-      override def getAnnotations: java.util.List[Annotation] = ???
+      // We're going to ignore annotations for now, it's not relevant for JsonSchema
+      override def getAnnotations: java.util.List[Annotation] = java.util.ArrayList(0)
 
       override def getElementsCount: Int = constValue[m.MirroredElemLabels].size
 
       override def isInline: Boolean = false
 
+      // Is the element wrapped in `Option`, or is a union with `Null`?
       override def isNullable: Boolean = false
 
       override def getKind: SerialKind = StructureKind.CLASS.INSTANCE
@@ -29,4 +32,5 @@ object ScalaSerialDescriptor:
 
       override def getElementName(i: Int): String = constValue[m.MirroredElemLabels].productElementName(i)
 
-      def isElementOptional(index: Int): Boolean = false // You need to determine how to check if element is optional
+      // Does the element at the given index have a default value, or is it wrapped in `Option`, or is a union with `Null`?
+      def isElementOptional(index: Int): Boolean = false
