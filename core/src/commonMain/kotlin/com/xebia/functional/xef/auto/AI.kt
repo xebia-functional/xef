@@ -181,7 +181,7 @@ class AIScope(
         CombinedVectorStore(newStore, this@AIScope.context),
         this@AIScope.embeddings,
         this@AIScope.logger,
-        model,
+        this@AIScope.model,
         this,
         this@AIScope
       )
