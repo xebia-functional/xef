@@ -1,7 +1,10 @@
 package com.xebia.functional.scala.auto
 
+import kotlinx.serialization.descriptors.SerialDescriptorsKt.PrimitiveSerialDescriptor
+
 import java.lang.annotation.Annotation
-import kotlinx.serialization.descriptors.{SerialDescriptor, SerialKind, StructureKind}
+import kotlinx.serialization.descriptors.{PrimitiveKind, SerialDescriptor, SerialKind, StructureKind}
+import kotlinx.serialization.internal.ArrayListSerializer
 
 import scala.deriving.*
 import scala.compiletime.{constValue, erasedValue}
@@ -14,7 +17,18 @@ object ScalaSerialDescriptor:
       // We're going to ignore annotations for now, it's not relevant for JsonSchema
       def getElementAnnotations(index: Int): java.util.List[Annotation] = java.util.ArrayList(0)
 
-      def getElementDescriptor(index: Int): SerialDescriptor = ??? // You need to determine how to get the SerialDescriptor
+      def getElementDescriptor(index: Int): SerialDescriptor =
+        constValue[m.MirroredElemTypes].productElementName(index) match {
+          case "String" => PrimitiveSerialDescriptor("String", PrimitiveKind.STRING.INSTANCE)
+          case "Int" => PrimitiveSerialDescriptor("Int", PrimitiveKind.INT.INSTANCE)
+          case "Long" => PrimitiveSerialDescriptor("Long", PrimitiveKind.LONG.INSTANCE)
+          case "Float" => PrimitiveSerialDescriptor("Float", PrimitiveKind.FLOAT.INSTANCE)
+          case "Double" => PrimitiveSerialDescriptor("Double", PrimitiveKind.DOUBLE.INSTANCE)
+          case "Boolean" => PrimitiveSerialDescriptor("Boolean", PrimitiveKind.BOOLEAN.INSTANCE)
+          case "Byte" => PrimitiveSerialDescriptor("Byte", PrimitiveKind.BYTE.INSTANCE)
+          case "Short" => PrimitiveSerialDescriptor("Short", PrimitiveKind.SHORT.INSTANCE)
+          case "Char" => PrimitiveSerialDescriptor("Char", PrimitiveKind.CHAR.INSTANCE)
+        }
 
       // We're going to ignore annotations for now, it's not relevant for JsonSchema
       override def getAnnotations: java.util.List[Annotation] = java.util.ArrayList(0)
