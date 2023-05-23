@@ -46,7 +46,7 @@ jobs:
       - name: Publish development version
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: publishToSonatype closeSonatypeStagingRepository -x:kotlin-loom:publishToSonatype --stacktrace
+          arguments: publishToSonatype -x:kotlin-loom:publishToSonatype closeAndReleaseSonatypeStagingRepository
 
   publish-modules-with-loom:
     timeout-minutes: 30
@@ -78,4 +78,4 @@ jobs:
       - name: Publish development version
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: :kotlin-loom:publishToSonatype closeSonatypeStagingRepository --stacktrace
+          arguments: :kotlin-loom:publishToSonatype closeAndReleaseSonatypeStagingRepository
