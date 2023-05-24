@@ -44,7 +44,6 @@ kotlin {
       val test by compilations.getting
       integrationTest.associateWith(test)
     }
-    withJava()
   }
   js(IR) {
     browser()
