@@ -22,32 +22,33 @@ object ScalaSerialDescriptor:
     case _: EmptyTuple => Nil
     case _: (h *: t) => erasedValue[h].toString :: getElemsLabel[t]
 
-  private inline def getElemTypes[T <: Tuple]: List[ClassTag[_]] = inline erasedValue[T] match
+  private inline def getElemTypes[T <: Tuple]: List[SerialDescriptor] = inline erasedValue[T] match
     case _: EmptyTuple => Nil
-    case _: (h *: t) => summonInline[ClassTag[h]] :: getElemTypes[t]
+    case _: (h *: t) =>
+      summonInline[ClassTag[h]].runtimeClass.toString match {
+        case s if s.toLowerCase.contains("boolean") => KotlinXSerializers.boolean.getDescriptor :: getElemTypes[t]
+        case s if s.toLowerCase.contains("byte") => KotlinXSerializers.byte.getDescriptor :: getElemTypes[t]
+        case s if s.toLowerCase.contains("char") => KotlinXSerializers.char.getDescriptor :: getElemTypes[t]
+        case s if s.toLowerCase.contains("double") => KotlinXSerializers.double.getDescriptor :: getElemTypes[t]
+        case s if s.toLowerCase.contains("float") => KotlinXSerializers.float.getDescriptor :: getElemTypes[t]
+        case s if s.toLowerCase.contains("int") => KotlinXSerializers.int.getDescriptor :: getElemTypes[t]
+        case s if s.toLowerCase.contains("long") => KotlinXSerializers.long.getDescriptor :: getElemTypes[t]
+        case s if s.toLowerCase.contains("short") => KotlinXSerializers.short.getDescriptor :: getElemTypes[t]
+        case s if s.toLowerCase.contains("string") => KotlinXSerializers.string.getDescriptor :: getElemTypes[t]
+        case _ => summonInline[ScalaSerialDescriptor[h]].serialDescriptor :: getElemTypes[t]
+      }
 
   inline final def derived[A](using inline m: Mirror.Of[A]): ScalaSerialDescriptor[A] = new ScalaSerialDescriptor[A]:
     val serialDescriptorImpl: SerialDescriptor = new SerialDescriptor:
       val labels = getElemsLabel[m.MirroredElemLabels]
       val types = getElemTypes[m.MirroredElemTypes]
 
-      def getElementIndex(name: String): Int = labels.indexOf(name)
+      override def getElementIndex(name: String): Int = labels.indexOf(name)
 
       // We're going to ignore annotations for now, it's not relevant for JsonSchema
-      def getElementAnnotations(index: Int): util.List[Annotation] = java.util.ArrayList(0)
+      override def getElementAnnotations(index: Int): util.List[Annotation] = java.util.ArrayList(0)
 
-      def getElementDescriptor(index: Int): SerialDescriptor =
-        types(index).runtimeClass.toString match {
-          case s if s.toLowerCase.contains("string") => KotlinXSerializers.string.getDescriptor
-          case s if s.toLowerCase.contains("int") => KotlinXSerializers.int.getDescriptor
-          case s if s.toLowerCase.contains("long") => KotlinXSerializers.long.getDescriptor
-          case s if s.toLowerCase.contains("float") => KotlinXSerializers.float.getDescriptor
-          case s if s.toLowerCase.contains("double") => KotlinXSerializers.double.getDescriptor
-          case s if s.toLowerCase.contains("boolean") => KotlinXSerializers.boolean.getDescriptor
-          case s if s.toLowerCase.contains("byte") => KotlinXSerializers.byte.getDescriptor
-          case s if s.toLowerCase.contains("short") => KotlinXSerializers.short.getDescriptor
-          case s if s.toLowerCase.contains("char") => KotlinXSerializers.char.getDescriptor
-        }
+      override def getElementDescriptor(index: Int): SerialDescriptor = types(index)
 
       // We're going to ignore annotations for now, it's not relevant for JsonSchema
       override def getAnnotations: util.List[Annotation] = java.util.ArrayList(0)
@@ -66,6 +67,6 @@ object ScalaSerialDescriptor:
       override def getElementName(i: Int): String = labels(i)
 
       // Does the element at the given index have a default value, or is it wrapped in `Option`, or is a union with `Null`?
-      def isElementOptional(index: Int): Boolean = false
+      override def isElementOptional(index: Int): Boolean = false
 
     def serialDescriptor = serialDescriptorImpl
