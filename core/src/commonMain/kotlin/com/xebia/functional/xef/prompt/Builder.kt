@@ -15,7 +15,7 @@ open class PromptBuilder {
 
   open protected fun preprocess(elements: List<Prompt>): List<Prompt> = elements
 
-  fun build(): Prompt = buildString { preprocess(items).forEach(this::append) }.let { Prompt(it) }
+  fun build(): Prompt = buildString { preprocess(items).forEach { appendLine(it.message) } }.let { Prompt(it) }
 }
 
 fun buildPrompt(block: PromptBuilder.() -> Unit): Prompt = PromptBuilder().apply { block() }.build()
