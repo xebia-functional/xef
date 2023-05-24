@@ -37,15 +37,15 @@ final case class AIScope(kt: KtAIScope):
 
   // TODO: Design signature for Scala3 w/ Json parser (with support for generating Json Schema)?
   def prompt[A](
-    prompt: String,
-    maxAttempts: Int = 5,
-    llmMode: LLMModel = LLMModel.getGPT_3_5_TURBO,
-    user: String = "testing",
-    echo: Boolean = false,
-    n: Int = 1,
-    temperature: Double = 0.0,
-    bringFromContext: Int = 10,
-    minResponseTokens: Int = 500,
+      prompt: String,
+      maxAttempts: Int = 5,
+      llmMode: LLMModel = LLMModel.getGPT_3_5_TURBO,
+      user: String = "testing",
+      echo: Boolean = false,
+      n: Int = 1,
+      temperature: Double = 0.0,
+      bringFromContext: Int = 10,
+      minResponseTokens: Int = 500
   )(using descriptor: ScalaSerialDescriptor[A])(using decoder: Decoder[A]): A =
     LoomAdapter.apply((cont) =>
       KtAgent.promptWithSerializer[A](
@@ -65,12 +65,11 @@ final case class AIScope(kt: KtAIScope):
       )
     )
 
-
   def promptMessage(
-                     prompt: String,
-                     maxAttempts: Int = 5,
-                     llmMode: LLMModel = LLMModel.getGPT_3_5_TURBO
-                   ): String = ???
+      prompt: String,
+      maxAttempts: Int = 5,
+      llmMode: LLMModel = LLMModel.getGPT_3_5_TURBO
+  ): String = ???
 
 private object AIScope:
   def fromCore(coreAIScope: KtAIScope): AIScope = new AIScope(coreAIScope)

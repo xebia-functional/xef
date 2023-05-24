@@ -1,5 +1,6 @@
 @file:JvmMultifileClass
 @file:JvmName("Agent")
+
 package com.xebia.functional.xef.auto
 
 import arrow.core.raise.Raise

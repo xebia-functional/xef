@@ -1,5 +1,6 @@
 @file:JvmMultifileClass
 @file:JvmName("Agent")
+
 package com.xebia.functional.xef.auto
 
 import arrow.core.nonFatalOrThrow
@@ -105,12 +106,20 @@ suspend fun <A> AIScope.prompt(
   temperature: Double = 0.0,
   bringFromContext: Int = 10,
   minResponseTokens: Int = 500,
-): A = prompt(
-  prompt,
-  serializer.descriptor,
-  { json.decodeFromString(serializer, it) },
-  maxDeserializationAttempts, model, user, echo, n, temperature, bringFromContext, minResponseTokens
-)
+): A =
+  prompt(
+    prompt,
+    serializer.descriptor,
+    { json.decodeFromString(serializer, it) },
+    maxDeserializationAttempts,
+    model,
+    user,
+    echo,
+    n,
+    temperature,
+    bringFromContext,
+    minResponseTokens
+  )
 
 @AiDsl
 @JvmName("promptWithSerializer")
@@ -175,4 +184,3 @@ suspend fun <A> AIScope.tryDeserialize(
   }
   raise(AIError.NoResponse)
 }
-
