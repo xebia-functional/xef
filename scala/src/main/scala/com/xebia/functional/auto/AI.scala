@@ -9,6 +9,7 @@ import com.xebia.functional.xef.auto.AIKt
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.llm.openai.LLMModel
 import io.circe.{Decoder, Json}
+import io.circe.parser.parse
 
 //def example(using AIScope): String =
 //    prompt[String]("What is your name?")
@@ -52,7 +53,7 @@ final case class AIScope(kt: KtAIScope):
         kt,
         prompt,
         descriptor.serialDescriptor,
-        (a: String) => ???,
+        (a: String) => parse(a).flatMap(decoder.decodeJson).fold(throw _, identity),
         maxAttempts,
         llmMode,
         user,
