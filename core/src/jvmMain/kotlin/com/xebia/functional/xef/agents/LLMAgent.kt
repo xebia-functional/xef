@@ -32,6 +32,7 @@ suspend fun AIScope.patternPrompt(
     stopAfterMatch,
     genTokens = 0,
     partialCompletion = "",
+    tokenFilter = TokenFilter(model.modelType.encodingType)
   )
 
 private suspend fun AIScope.patternPrompt(
@@ -45,12 +46,12 @@ private suspend fun AIScope.patternPrompt(
   maxNewTokens: Int,
   stopAfterMatch: Boolean,
   genTokens: Int,
-  partialCompletion: String
+  partialCompletion: String,
+  tokenFilter: TokenFilter
 ): String {
   if (genTokens >= maxNewTokens) return partialCompletion
 
-  val logitBias: Map<String, Int> =
-    TokenFilter(model.modelType.encodingType).buildLogitBias(partialCompletion, pattern)
+  val logitBias: Map<String, Int> = tokenFilter.buildLogitBias(partialCompletion, pattern)
 
   val outputCompletion: List<String> =
     patternPrompt(model, user, prompt, echo, n, temperature, logitBias)
@@ -76,6 +77,7 @@ private suspend fun AIScope.patternPrompt(
     stopAfterMatch,
     genTokens = genTokens + 1,
     nextPartialCompletion,
+    tokenFilter
   )
 }
 
