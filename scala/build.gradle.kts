@@ -16,6 +16,7 @@ dependencies {
     implementation(libs.http4s.dsl)
     implementation(libs.http4s.client)
     implementation(libs.http4s.circe)
+    implementation(libs.circe.parser)
     implementation(libs.http4s.emberClient)
     implementation(libs.doobie.core)
     implementation(libs.doobie.postgres)

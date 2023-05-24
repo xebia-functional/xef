@@ -1,5 +1,9 @@
+@file:JvmMultifileClass
+@file:JvmName("Agent")
+
 package com.xebia.functional.xef.auto
 
+import arrow.core.nonFatalOrThrow
 import arrow.core.raise.catch
 import arrow.core.raise.ensureNotNull
 import com.xebia.functional.xef.AIError
@@ -7,8 +11,11 @@ import com.xebia.functional.xef.auto.serialization.buildJsonSchema
 import com.xebia.functional.xef.llm.openai.LLMModel
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.append
+import kotlin.jvm.JvmMultifileClass
+import kotlin.jvm.JvmName
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
+import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 
@@ -99,14 +106,37 @@ suspend fun <A> AIScope.prompt(
   temperature: Double = 0.0,
   bringFromContext: Int = 10,
   minResponseTokens: Int = 500,
-): A {
-  val serializationConfig: SerializationConfig<A> =
-    SerializationConfig(
-      jsonSchema = buildJsonSchema(serializer.descriptor, false),
-      descriptor = serializer.descriptor,
-      deserializationStrategy = serializer
-    )
+): A =
+  prompt(
+    prompt,
+    serializer.descriptor,
+    { json.decodeFromString(serializer, it) },
+    maxDeserializationAttempts,
+    model,
+    user,
+    echo,
+    n,
+    temperature,
+    bringFromContext,
+    minResponseTokens
+  )
 
+@AiDsl
+@JvmName("promptWithSerializer")
+suspend fun <A> AIScope.prompt(
+  prompt: Prompt,
+  descriptor: SerialDescriptor,
+  serializer: (json: String) -> A,
+  maxDeserializationAttempts: Int = 5,
+  model: LLMModel = LLMModel.GPT_3_5_TURBO,
+  user: String = "testing",
+  echo: Boolean = false,
+  n: Int = 1,
+  temperature: Double = 0.0,
+  bringFromContext: Int = 10,
+  minResponseTokens: Int = 500,
+): A {
+  val jsonSchema = buildJsonSchema(descriptor, false)
   val responseInstructions =
     """
         |
@@ -116,12 +146,12 @@ suspend fun <A> AIScope.prompt(
         |3. Use the JSON schema to produce the result exclusively in valid JSON format.
         |4. Pay attention to required vs non-required fields in the schema.
         |JSON Schema:
-        |${serializationConfig.jsonSchema}
+        |$jsonSchema
         |Response:
         """
       .trimMargin()
 
-  return tryDeserialize(serializationConfig, json, maxDeserializationAttempts) {
+  return tryDeserialize(serializer, maxDeserializationAttempts) {
     promptMessage(
       prompt.append(responseInstructions),
       model,
@@ -136,8 +166,7 @@ suspend fun <A> AIScope.prompt(
 }
 
 suspend fun <A> AIScope.tryDeserialize(
-  serializationConfig: SerializationConfig<A>,
-  json: Json,
+  serializer: (json: String) -> A,
   maxDeserializationAttempts: Int,
   agent: AI<List<String>>
 ): A {
@@ -146,13 +175,10 @@ suspend fun <A> AIScope.tryDeserialize(
     currentAttempts++
     val result = ensureNotNull(agent().firstOrNull()) { AIError.NoResponse }
     catch({
-      return@tryDeserialize json.decodeFromString(
-        serializationConfig.deserializationStrategy,
-        result
-      )
-    }) { e: IllegalArgumentException ->
+      return@tryDeserialize serializer(result)
+    }) { e: Throwable ->
       if (currentAttempts == maxDeserializationAttempts)
-        raise(AIError.JsonParsing(result, maxDeserializationAttempts, e))
+        raise(AIError.JsonParsing(result, maxDeserializationAttempts, e.nonFatalOrThrow()))
       // else continue with the next attempt
     }
   }

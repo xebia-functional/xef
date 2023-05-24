@@ -1,3 +1,6 @@
+@file:JvmMultifileClass
+@file:JvmName("Agent")
+
 package com.xebia.functional.xef.auto
 
 import arrow.core.raise.Raise
@@ -14,6 +17,8 @@ import com.xebia.functional.xef.llm.openai.Role
 import com.xebia.functional.xef.prompt.Prompt
 import io.github.oshai.KLogger
 import io.github.oshai.KotlinLogging
+import kotlin.jvm.JvmMultifileClass
+import kotlin.jvm.JvmName
 
 private val logger: KLogger by lazy { KotlinLogging.logger {} }
 
