@@ -90,6 +90,29 @@ suspend inline fun <reified A> AIScope.prompt(
   )
 
 @AiDsl
+suspend fun <A> AIScope.prompt(
+  prompt: Prompt,
+  serializer: KSerializer<A>,
+  json: Json = Json {
+    ignoreUnknownKeys = true
+    isLenient = true
+  },
+  maxDeserializationAttempts: Int = 5,
+  model: LLMModel = LLMModel.GPT_3_5_TURBO,
+  user: String = "testing",
+  echo: Boolean = false,
+  n: Int = 1,
+  temperature: Double = 0.0,
+  bringFromContext: Int = 10,
+  minResponseTokens: Int = 500,
+): A = prompt(
+  prompt,
+  serializer.descriptor,
+  { json.decodeFromString(serializer, it) },
+  maxDeserializationAttempts, model, user, echo, n, temperature, bringFromContext, minResponseTokens
+)
+
+@AiDsl
 @JvmName("promptWithSerializer")
 suspend fun <A> AIScope.prompt(
   prompt: Prompt,
@@ -132,29 +155,6 @@ suspend fun <A> AIScope.prompt(
     )
   }
 }
-
-@AiDsl
-suspend fun <A> AIScope.prompt(
-  prompt: Prompt,
-  serializer: KSerializer<A>,
-  json: Json = Json {
-    ignoreUnknownKeys = true
-    isLenient = true
-  },
-  maxDeserializationAttempts: Int = 5,
-  model: LLMModel = LLMModel.GPT_3_5_TURBO,
-  user: String = "testing",
-  echo: Boolean = false,
-  n: Int = 1,
-  temperature: Double = 0.0,
-  bringFromContext: Int = 10,
-  minResponseTokens: Int = 500,
-): A = prompt(
-  prompt,
-  serializer.descriptor,
-  { json.decodeFromString(serializer, it) },
-  maxDeserializationAttempts, model, user, echo, n, temperature, bringFromContext, minResponseTokens
-)
 
 suspend fun <A> AIScope.tryDeserialize(
   serializer: (json: String) -> A,
