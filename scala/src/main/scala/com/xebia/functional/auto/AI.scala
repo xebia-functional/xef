@@ -32,7 +32,7 @@ final case class AIScope(kt: KtAIScope)
 private object AIScope:
   def fromCore(coreAIScope: KtAIScope): AIScope = new AIScope(coreAIScope)
 
-def prompt[A](
+def prompt[A: Decoder: SerialDescriptor](
     prompt: String,
     maxAttempts: Int = 5,
     llmMode: LLMModel = LLMModel.getGPT_3_5_TURBO,
@@ -42,13 +42,13 @@ def prompt[A](
     temperature: Double = 0.0,
     bringFromContext: Int = 10,
     minResponseTokens: Int = 500
-)(using descriptor: ScalaSerialDescriptor[A])(using decoder: Decoder[A])(using scope: AIScope): A =
+)(using scope: AIScope): A =
   LoomAdapter.apply((cont) =>
     KtAgent.promptWithSerializer[A](
       scope.kt,
       prompt,
-      descriptor.serialDescriptor,
-      (a: String) => parse(a).flatMap(decoder.decodeJson).fold(throw _, identity),
+      SerialDescriptor[A].serialDescriptor,
+      decode[A](_).fold(throw _, identity),
       maxAttempts,
       llmMode,
       user,
