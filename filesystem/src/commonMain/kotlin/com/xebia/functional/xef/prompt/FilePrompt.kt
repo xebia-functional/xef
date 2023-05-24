@@ -1,17 +1,16 @@
 package com.xebia.functional.xef.prompt
 
-import arrow.core.raise.Raise
 import com.xebia.functional.xef.io.DEFAULT
 import okio.FileSystem
 import okio.Path
 
 /**
- * Creates a PromptTemplate based on a Path
+ * Creates a Prompt based on a Path
  */
-fun Raise<InvalidTemplate>.PromptTemplate(
+fun Prompt(
   path: Path,
   fileSystem: FileSystem = FileSystem.DEFAULT
-): PromptTemplate =
+): Prompt =
   fileSystem.read(path) {
-    PromptTemplate.either(readUtf8()).bind()
+    Prompt(readUtf8())
   }

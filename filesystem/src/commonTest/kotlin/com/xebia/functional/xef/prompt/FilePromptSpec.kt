@@ -1,8 +1,7 @@
 package com.xebia.functional.xef.prompt
 
-import arrow.core.raise.either
-import io.kotest.assertions.arrow.core.shouldBeRight
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldBe
 import okio.Path.Companion.toPath
 import okio.fakefilesystem.FakeFileSystem
 
@@ -14,11 +13,10 @@ class PromptTemplateSpec : StringSpec({
       val example = templates / "example.txt"
       write(example) { writeUtf8("My name is {name} and I'm {age} years old") }
     }
-    val variables = mapOf("name" to "Angela", "age" to "18")
 
-    either {
-      val prompt = PromptTemplate("templates/example.txt".toPath(), fileSystem)
-      prompt.format(variables)
-    } shouldBeRight Prompt("My name is Angela and I'm 18 years old")
+    val variables = mapOf("name" to "Angela", "age" to "18")
+    val prompt = Prompt("templates/example.txt".toPath(), fileSystem)
+
+    prompt.format(variables) shouldBe Prompt("My name is Angela and I'm 18 years old")
   }
 })
