@@ -52,7 +52,8 @@ private suspend fun AIScope.patternPrompt(
   val logitBias: Map<String, Int> =
     TokenFilter(model.modelType.encodingType).buildLogitBias(partialCompletion, pattern)
 
-  val outputCompletion: List<String> = patternPrompt(model, user, prompt, echo, n, temperature, logitBias)
+  val outputCompletion: List<String> =
+    patternPrompt(model, user, prompt, echo, n, temperature, logitBias)
 
   val nextPartialCompletion: String = partialCompletion + outputCompletion[0]
   val nextPromptPlusCompletion: String = prompt + outputCompletion[0]
@@ -86,36 +87,37 @@ private suspend fun AIScope.patternPrompt(
   n: Int,
   temperature: Double,
   logitBias: Map<String, Int>
-): List<String> = when (model.kind) {
-  LLMModel.Kind.Completion -> {
-    val request =
-      CompletionRequest(
-        model = model.name,
-        user = user,
-        prompt = prompt,
-        echo = echo,
-        n = n,
-        temperature = temperature,
-        maxTokens = 1,
-        logitBias = logitBias
-      )
-    openAIClient.createCompletion(request).choices.map { it.text }
+): List<String> =
+  when (model.kind) {
+    LLMModel.Kind.Completion -> {
+      val request =
+        CompletionRequest(
+          model = model.name,
+          user = user,
+          prompt = prompt,
+          echo = echo,
+          n = n,
+          temperature = temperature,
+          maxTokens = 1,
+          logitBias = logitBias
+        )
+      openAIClient.createCompletion(request).choices.map { it.text }
+    }
+    LLMModel.Kind.Chat -> {
+      val role: String = Role.system.name
+      val request =
+        ChatCompletionRequest(
+          model = model.name,
+          messages = listOf(Message(role, prompt)),
+          temperature = temperature,
+          n = n,
+          user = user,
+          maxTokens = 1,
+          logitBias = logitBias
+        )
+      openAIClient.createChatCompletion(request).choices.map { it.message.content }
+    }
   }
-
-  LLMModel.Kind.Chat -> {
-    val role: String = Role.system.name
-    val request = ChatCompletionRequest(
-      model = model.name,
-      messages = listOf(Message(role, prompt)),
-      temperature = temperature,
-      n = n,
-      user = user,
-      maxTokens = 1,
-      logitBias = logitBias
-    )
-    openAIClient.createChatCompletion(request).choices.map { it.message.content }
-  }
-}
 
 interface TokenFilter {
   val tokensCache: Map<Int, String>
@@ -127,18 +129,16 @@ interface TokenFilter {
       object : TokenFilter {
         override val tokensCache: Map<Int, String> = encodingType.buildDecodedTokensCache()
 
-        override fun buildLogitBias(
-          partialCompletion: String,
-          pattern: Regex
-        ): Map<String, Int> = buildMap {
-          val openAILimit = 300
-          val exclusiveBias = 100
-          tokensCache
-            .asSequence()
-            .filter { pattern.partialMatch(partialCompletion + it.value) }
-            .take(openAILimit)
-            .forEach { put("${it.key}", exclusiveBias) }
-        }
+        override fun buildLogitBias(partialCompletion: String, pattern: Regex): Map<String, Int> =
+          buildMap {
+            val openAILimit = 300
+            val exclusiveBias = 100
+            tokensCache
+              .asSequence()
+              .filter { pattern.partialMatch(partialCompletion + it.value) }
+              .take(openAILimit)
+              .forEach { put("${it.key}", exclusiveBias) }
+          }
 
         private fun EncodingType.buildDecodedTokensCache(): Map<Int, String> = buildMap {
           base.lineSequence().forEach { line ->

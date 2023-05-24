@@ -1,10 +1,10 @@
 package com.xebia.functional.xef.llm.openai
 
 import com.xebia.functional.tokenizer.ModelType
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import kotlin.jvm.JvmInline
 import kotlin.jvm.JvmStatic
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 enum class EmbeddingModel(val modelName: String) {
   TextEmbeddingAda002("text-embedding-ada-002")
