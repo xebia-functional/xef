@@ -1,6 +1,6 @@
 package com.xebia.functional.tokenizer.internal
 
-public val cl100k_base: String by lazy(mode = LazyThreadSafetyMode.SYNCHRONIZED) {
+internal val cl100k_base: String by lazy(mode = LazyThreadSafetyMode.SYNCHRONIZED) {
 """IQ== 0
 Ig== 1
 Iw== 2
