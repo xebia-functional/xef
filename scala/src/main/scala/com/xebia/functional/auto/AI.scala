@@ -36,7 +36,6 @@ end AI
 
 final case class AIScope(kt: KtAIScope):
 
-  // TODO: Design signature for Scala3 w/ Json parser (with support for generating Json Schema)?
   def prompt[A](
       prompt: String,
       maxAttempts: Int = 5,
