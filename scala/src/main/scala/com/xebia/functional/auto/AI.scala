@@ -32,7 +32,7 @@ final case class AIScope(kt: KtAIScope)
 private object AIScope:
   def fromCore(coreAIScope: KtAIScope): AIScope = new AIScope(coreAIScope)
 
-def prompt[A: Decoder: SerialDescriptor](
+def prompt[A: Decoder: ScalaSerialDescriptor](
     prompt: String,
     maxAttempts: Int = 5,
     llmMode: LLMModel = LLMModel.getGPT_3_5_TURBO,
@@ -47,8 +47,8 @@ def prompt[A: Decoder: SerialDescriptor](
     KtAgent.promptWithSerializer[A](
       scope.kt,
       prompt,
-      SerialDescriptor[A].serialDescriptor,
-      decode[A](_).fold(throw _, identity),
+      ScalaSerialDescriptor[A].serialDescriptor,
+      (json) => parse(json).flatMap(Decoder[A].decodeJson(_)).fold(throw _, identity),
       maxAttempts,
       llmMode,
       user,
