@@ -4,8 +4,8 @@ import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.PromptBuilder
 import com.xebia.functional.xef.prompt.prompt
 
-fun youAre(you: String, talkingTo: String): Prompt =
-  "You are a $you talking with a $talkingTo".prompt()
+fun youAre(role: String, talkingTo: String): Prompt =
+  "You are a $role talking with a $talkingTo".prompt()
 
 class StepsBuilder : PromptBuilder() {
   override fun preprocess(elements: List<Prompt>): List<Prompt> =
