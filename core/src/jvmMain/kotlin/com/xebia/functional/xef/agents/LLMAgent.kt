@@ -123,11 +123,7 @@ interface TokenFilter {
 
         private fun Regex.partialMatch(input: String): Boolean {
           val matcher: Matcher = toPattern().matcher(input)
-          return if (matcher.matches()) {
-            true
-          } else {
-            matcher.hitEnd()
-          }
+          return matcher.matches().or(matcher.hitEnd())
         }
       }
   }
