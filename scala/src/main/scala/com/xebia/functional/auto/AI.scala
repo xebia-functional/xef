@@ -48,10 +48,10 @@ final case class AIScope(kt: KtAIScope):
     minResponseTokens: Int = 500,
   )(using descriptor: ScalaSerialDescriptor[A])(using decoder: Decoder[A]): A =
     LoomAdapter.apply((cont) =>
-      KtAgent.prompt[A](
+      KtAgent.promptWithSerializer[A](
         kt,
         prompt,
-        descriptor,
+        descriptor.serialDescriptor,
         (a: String) => ???,
         maxAttempts,
         llmMode,

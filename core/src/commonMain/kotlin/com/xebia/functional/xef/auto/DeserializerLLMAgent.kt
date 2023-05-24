@@ -90,6 +90,7 @@ suspend inline fun <reified A> AIScope.prompt(
   )
 
 @AiDsl
+@JvmName("promptWithSerializer")
 suspend fun <A> AIScope.prompt(
   prompt: Prompt,
   descriptor: SerialDescriptor,
