@@ -25,7 +25,7 @@ enum class EncodingType(@Suppress("UNUSED_PARAMETER") name: String) {
   abstract val encoding: Encoding
 }
 
-private object EncodingFactory {
+object EncodingFactory {
   private const val ENDOFTEXT = "<|endoftext|>"
   private const val FIM_PREFIX = "<|fim_prefix|>"
   private const val FIM_MIDDLE = "<|fim_middle|>"
@@ -43,7 +43,7 @@ private object EncodingFactory {
     put(FIM_SUFFIX, 50283)
   }
 
-  private val SPECIAL_TOKENS_CL100K_BASE: Map<String, Int> = HashMap<String, Int>(5).apply {
+  val SPECIAL_TOKENS_CL100K_BASE: Map<String, Int> = HashMap<String, Int>(5).apply {
     put(ENDOFTEXT, 100257)
     put(FIM_PREFIX, 100258)
     put(FIM_MIDDLE, 100259)
@@ -113,7 +113,7 @@ private object EncodingFactory {
     return fromParameters(params)
   }
 
-  private fun loadMergeableRanks(base: String): Map<ByteArray, Int> =
+  fun loadMergeableRanks(base: String): Map<ByteArray, Int> =
     buildMap {
       base.lineSequence().forEach { line ->
         val (token, rank) = line.split(Regex("\\s+"), limit = 2)
