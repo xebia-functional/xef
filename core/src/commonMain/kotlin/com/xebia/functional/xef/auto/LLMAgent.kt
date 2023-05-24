@@ -118,8 +118,7 @@ private suspend fun AIScope.callCompletionEndpoint(
   n: Int = 1,
   temperature: Double = 0.0,
   bringFromContext: Int,
-  minResponseTokens: Int,
-  logitBias: Map<String, Int> = mapOf()
+  minResponseTokens: Int
 ): List<String> {
   val promptWithContext: String =
     promptWithContext(prompt, bringFromContext, model.modelType, minResponseTokens)
@@ -134,8 +133,7 @@ private suspend fun AIScope.callCompletionEndpoint(
       echo = echo,
       n = n,
       temperature = temperature,
-      maxTokens = maxTokens,
-      logitBias = logitBias
+      maxTokens = maxTokens
     )
   return openAIClient.createCompletion(request).choices.map { it.text }
 }
