@@ -11,12 +11,6 @@ import com.xebia.functional.xef.llm.openai.LLMModel
 import io.circe.{Decoder, Json}
 import io.circe.parser.parse
 
-//def example(using AIScope): String =
-//    prompt[String]("What is your name?")
-
-//val example: AIScope ?=> String =
-//  prompt[String]("What is your name?")
-
 object AI:
 
   def apply[A](block: AIScope ?=> A): A =
@@ -34,42 +28,35 @@ object AI:
 
 end AI
 
-final case class AIScope(kt: KtAIScope):
-
-  def prompt[A](
-      prompt: String,
-      maxAttempts: Int = 5,
-      llmMode: LLMModel = LLMModel.getGPT_3_5_TURBO,
-      user: String = "testing",
-      echo: Boolean = false,
-      n: Int = 1,
-      temperature: Double = 0.0,
-      bringFromContext: Int = 10,
-      minResponseTokens: Int = 500
-  )(using descriptor: ScalaSerialDescriptor[A])(using decoder: Decoder[A]): A =
-    LoomAdapter.apply((cont) =>
-      KtAgent.promptWithSerializer[A](
-        kt,
-        prompt,
-        descriptor.serialDescriptor,
-        (a: String) => parse(a).flatMap(decoder.decodeJson).fold(throw _, identity),
-        maxAttempts,
-        llmMode,
-        user,
-        echo,
-        n,
-        temperature,
-        bringFromContext,
-        minResponseTokens,
-        cont
-      )
-    )
-
-  def promptMessage(
-      prompt: String,
-      maxAttempts: Int = 5,
-      llmMode: LLMModel = LLMModel.getGPT_3_5_TURBO
-  ): String = ???
-
+final case class AIScope(kt: KtAIScope)
 private object AIScope:
   def fromCore(coreAIScope: KtAIScope): AIScope = new AIScope(coreAIScope)
+
+def prompt[A](
+    prompt: String,
+    maxAttempts: Int = 5,
+    llmMode: LLMModel = LLMModel.getGPT_3_5_TURBO,
+    user: String = "testing",
+    echo: Boolean = false,
+    n: Int = 1,
+    temperature: Double = 0.0,
+    bringFromContext: Int = 10,
+    minResponseTokens: Int = 500
+)(using descriptor: ScalaSerialDescriptor[A])(using decoder: Decoder[A])(using scope: AIScope): A =
+  LoomAdapter.apply((cont) =>
+    KtAgent.promptWithSerializer[A](
+      scope.kt,
+      prompt,
+      descriptor.serialDescriptor,
+      (a: String) => parse(a).flatMap(decoder.decodeJson).fold(throw _, identity),
+      maxAttempts,
+      llmMode,
+      user,
+      echo,
+      n,
+      temperature,
+      bringFromContext,
+      minResponseTokens,
+      cont
+    )
+  )
