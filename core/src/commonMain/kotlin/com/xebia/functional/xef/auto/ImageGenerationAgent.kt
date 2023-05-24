@@ -1,9 +1,13 @@
+@file:JvmMultifileClass
+@file:JvmName("Agent")
 package com.xebia.functional.xef.auto
 
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.llm.openai.ImagesGenerationRequest
 import com.xebia.functional.xef.llm.openai.ImagesGenerationResponse
 import com.xebia.functional.xef.prompt.Prompt
+import kotlin.jvm.JvmMultifileClass
+import kotlin.jvm.JvmName
 
 /**
  * Run a [prompt] describes the images you want to generate within the context of [AIScope].

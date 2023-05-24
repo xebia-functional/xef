@@ -82,6 +82,7 @@ doobie-postgres = { module = "org.tpolecat:doobie-postgres_3", version.ref = "do
 doobie-hikari = { module = "org.tpolecat:doobie-hikari_3", version.ref = "doobie" }
 doobie-munit = { module = "org.tpolecat:doobie-munit_3", version.ref = "doobie" }
 circe = { module = "io.circe:circe-generic_3", version.ref = "circe" }
+circe-parser = { module = "io.circe:circe-parser_3", version.ref = "circe" }
 cats-effect = { module = "org.typelevel:cats-effect_3", version.ref = "catsEffect" }
 logger = { module = "org.typelevel:log4cats-slf4j_3", version.ref = "log4cats" }
 openai = { module = "com.theokanning.openai-gpt3-java:service", version.ref = "openai" }
