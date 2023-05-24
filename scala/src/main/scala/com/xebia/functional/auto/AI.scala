@@ -9,7 +9,7 @@ import com.xebia.functional.xef.auto.AIKt
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.llm.openai.LLMModel
 import io.circe.{Decoder, Json}
-import io.circe.parser.parse
+import io.circe.parser.decode
 
 object AI:
 
@@ -48,7 +48,7 @@ def prompt[A: Decoder: ScalaSerialDescriptor](
       scope.kt,
       prompt,
       ScalaSerialDescriptor[A].serialDescriptor,
-      (json) => parse(json).flatMap(Decoder[A].decodeJson(_)).fold(throw _, identity),
+      decode[A](_).fold(throw _, identity),
       maxAttempts,
       llmMode,
       user,
