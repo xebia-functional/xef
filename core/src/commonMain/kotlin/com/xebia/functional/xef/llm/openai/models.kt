@@ -1,10 +1,10 @@
 package com.xebia.functional.xef.llm.openai
 
 import com.xebia.functional.tokenizer.ModelType
-import kotlin.jvm.JvmInline
-import kotlin.jvm.JvmStatic
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlin.jvm.JvmInline
+import kotlin.jvm.JvmStatic
 
 enum class EmbeddingModel(val modelName: String) {
   TextEmbeddingAda002("text-embedding-ada-002")
@@ -66,7 +66,7 @@ data class ChatCompletionRequest(
   @SerialName("max_tokens") val maxTokens: Int? = null,
   @SerialName("presence_penalty") val presencePenalty: Double = 0.0,
   @SerialName("frequency_penalty") val frequencyPenalty: Double = 0.0,
-  @SerialName("logit_bias") val logitBias: Map<String, Double>? = emptyMap(),
+  @SerialName("logit_bias") val logitBias: Map<String, Int> = emptyMap(),
   val user: String?
 )
 
