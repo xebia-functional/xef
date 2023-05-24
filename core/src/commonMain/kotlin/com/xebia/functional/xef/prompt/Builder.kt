@@ -13,7 +13,7 @@ open class PromptBuilder {
     items.add(Prompt(this))
   }
 
-  open fun preprocess(elements: List<Prompt>): List<Prompt> = elements
+  open protected fun preprocess(elements: List<Prompt>): List<Prompt> = elements
 
   fun build(): Prompt = buildString { preprocess(items).forEach(this::append) }.let { Prompt(it) }
 }
