@@ -24,19 +24,16 @@ object ScalaSerialDescriptor:
 
   private inline def getSerialDescriptor[T <: Tuple]: List[SerialDescriptor] = inline erasedValue[T] match
     case _: EmptyTuple => Nil
-    case _: (h *: t) =>
-      summonInline[ClassTag[h]].runtimeClass match {
-        case x if classOf[Boolean].isAssignableFrom(x) => KotlinXSerializers.boolean.getDescriptor :: getSerialDescriptor[t]
-        case x if classOf[Byte].isAssignableFrom(x) => KotlinXSerializers.byte.getDescriptor :: getSerialDescriptor[t]
-        case x if classOf[Char].isAssignableFrom(x) => KotlinXSerializers.char.getDescriptor :: getSerialDescriptor[t]
-        case x if classOf[Double].isAssignableFrom(x) => KotlinXSerializers.double.getDescriptor :: getSerialDescriptor[t]
-        case x if classOf[Float].isAssignableFrom(x) => KotlinXSerializers.float.getDescriptor :: getSerialDescriptor[t]
-        case x if classOf[Int].isAssignableFrom(x) => KotlinXSerializers.int.getDescriptor :: getSerialDescriptor[t]
-        case x if classOf[Long].isAssignableFrom(x) => KotlinXSerializers.long.getDescriptor :: getSerialDescriptor[t]
-        case x if classOf[Short].isAssignableFrom(x) => KotlinXSerializers.short.getDescriptor :: getSerialDescriptor[t]
-        case x if classOf[String].isAssignableFrom(x) => KotlinXSerializers.string.getDescriptor :: getSerialDescriptor[t]
-        case _ => summonInline[ScalaSerialDescriptor[h]].serialDescriptor :: getSerialDescriptor[t]
-      }
+    case _: (Boolean *: t) => KotlinXSerializers.boolean.getDescriptor :: getSerialDescriptor[t]
+    case _: (Byte *: t) => KotlinXSerializers.byte.getDescriptor :: getSerialDescriptor[t]
+    case _: (Char *: t) => KotlinXSerializers.char.getDescriptor :: getSerialDescriptor[t]
+    case _: (Double *: t) => KotlinXSerializers.double.getDescriptor :: getSerialDescriptor[t]
+    case _: (Float *: t) => KotlinXSerializers.float.getDescriptor :: getSerialDescriptor[t]
+    case _: (Int *: t) => KotlinXSerializers.int.getDescriptor :: getSerialDescriptor[t]
+    case _: (Long *: t) => KotlinXSerializers.long.getDescriptor :: getSerialDescriptor[t]
+    case _: (Short *: t) => KotlinXSerializers.short.getDescriptor :: getSerialDescriptor[t]
+    case _: (String *: t) => KotlinXSerializers.string.getDescriptor :: getSerialDescriptor[t]
+    case _: (h *: t) => summonInline[ScalaSerialDescriptor[h]].serialDescriptor :: getSerialDescriptor[t]
 
   inline final def derived[A](using inline m: Mirror.Of[A]): ScalaSerialDescriptor[A] = new ScalaSerialDescriptor[A]:
     val serialDescriptorImpl: SerialDescriptor = new SerialDescriptor:
