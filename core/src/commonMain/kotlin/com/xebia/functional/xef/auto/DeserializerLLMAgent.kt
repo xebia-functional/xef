@@ -122,6 +122,7 @@ suspend fun <A> AIScope.prompt(
         |2. When returning the response consider <string> values should be accordingly escaped so the json remains valid.
         |3. Use the JSON schema to produce the result exclusively in valid JSON format.
         |4. Pay attention to required vs non-required fields in the schema.
+        |5. Start the response with {
         |JSON Schema:
         |${serializationConfig.jsonSchema}
         |Response:
@@ -159,22 +160,22 @@ suspend fun <A> AIScope.tryDeserialize(
         result
       )
     }) { e: IllegalArgumentException ->
-      if (currentAttempts == maxDeserializationAttempts)
+      if (currentAttempts == maxDeserializationAttempts) {
         raise(AIError.JsonParsing(result, maxDeserializationAttempts, e))
-      // else continue with the next attempt
+        // else continue with the next attempt
+      }
+
     }
   }
   raise(AIError.NoResponse)
 }
 
 private fun JsonObject.buildSchemaBias(model: LLMModel): Map<String, Int> {
-  val schemaKey = "schema"
   val jsonKeys: List<String> = listOf("{", "}", "[", "]")
-  val schemaKeys: List<String> =
-    getProperties().distinct().filter { !it.contains(schemaKey) } + jsonKeys
+  val schemaKeys: List<String> = getProperties().distinct() + jsonKeys
 
   return buildMap {
-    val bias = 10
+    val bias = 1
     schemaKeys.forEach { schemaKey ->
       model.modelType.encoding.encode(schemaKey).forEach { token -> put("$token", bias) }
     }
@@ -190,9 +191,12 @@ private fun JsonElement.getProperties(): List<String> =
       flatMap { it.getProperties() }
     }
     is JsonPrimitive -> {
-      listOf(content)
+      val filterWords: List<String> = listOf("schema", "array", "number", "string", "object")
+      if (content.containsAny(filterWords)) { emptyList() } else { listOf(content) }
     }
     else -> {
       emptyList()
     }
   }
+
+private fun String.containsAny(words: List<String>): Boolean = words.any { contains(it) }
