@@ -19,7 +19,7 @@ import org.http4s.implicits.uri
 
 object Main extends IOApp.Simple {
   def run: IO[Unit] =
-  (
+    (
       for
         httpClient <- EmberClientBuilder.default[IO].build
         config <- Resource.eval(Config.configValue[IO].load[IO])
