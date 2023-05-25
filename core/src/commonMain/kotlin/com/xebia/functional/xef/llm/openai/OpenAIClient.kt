@@ -20,7 +20,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.internal.decodeStringToJsonTree
 
 private val logger: KLogger = KotlinLogging.logger {}
 
@@ -139,4 +138,3 @@ private suspend inline fun <reified T> HttpResponse.bodyOrError(): T {
     throw AIClientError(JsonLenient.decodeFromString<JsonElement>(contents))
   }
 }
-
