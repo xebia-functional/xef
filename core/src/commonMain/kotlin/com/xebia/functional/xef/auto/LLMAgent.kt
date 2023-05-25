@@ -118,7 +118,7 @@ private suspend fun AIScope.callCompletionEndpoint(
   n: Int = 1,
   temperature: Double = 0.0,
   bringFromContext: Int,
-  minResponseTokens: Int,
+  minResponseTokens: Int
 ): List<String> {
   val promptWithContext: String =
     promptWithContext(prompt, bringFromContext, model.modelType, minResponseTokens)

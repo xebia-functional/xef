@@ -3,6 +3,7 @@ package com.xebia.functional.xef.agents
 import com.xebia.functional.tokenizer.EncodingType
 import com.xebia.functional.xef.auto.AIScope
 import com.xebia.functional.xef.llm.openai.ChatCompletionRequest
+import com.xebia.functional.xef.llm.openai.CompletionRequest
 import com.xebia.functional.xef.llm.openai.LLMModel
 import com.xebia.functional.xef.llm.openai.Message
 import com.xebia.functional.xef.llm.openai.Role
@@ -14,6 +15,7 @@ suspend fun AIScope.patternPrompt(
   model: LLMModel = LLMModel.GPT_3_5_TURBO,
   user: String = "testing",
   n: Int = 1,
+  echo: Boolean = false,
   temperature: Double = 0.0,
   maxNewTokens: Int = 30,
   stopAfterMatch: Boolean = true
@@ -24,11 +26,13 @@ suspend fun AIScope.patternPrompt(
     model,
     user,
     n,
+    echo,
     temperature,
     maxNewTokens,
     stopAfterMatch,
     genTokens = 0,
     partialCompletion = "",
+    tokenFilter = TokenFilter(model.modelType.encodingType)
   )
 
 private suspend fun AIScope.patternPrompt(
@@ -37,36 +41,23 @@ private suspend fun AIScope.patternPrompt(
   model: LLMModel,
   user: String,
   n: Int,
+  echo: Boolean,
   temperature: Double,
   maxNewTokens: Int,
   stopAfterMatch: Boolean,
   genTokens: Int,
-  partialCompletion: String
+  partialCompletion: String,
+  tokenFilter: TokenFilter
 ): String {
   if (genTokens >= maxNewTokens) return partialCompletion
 
-  val logitBias: Map<String, Double> =
-    TokenFilter(model.modelType.encodingType).buildLogitBias(partialCompletion, pattern)
+  val logitBias: Map<String, Int> = tokenFilter.buildLogitBias(partialCompletion, pattern)
 
-  val role: String = Role.system.name
-  val messages: List<Message> = listOf(Message(role, prompt))
+  val outputCompletion: List<String> =
+    patternPrompt(model, user, prompt, echo, n, temperature, logitBias)
 
-  val request =
-    ChatCompletionRequest(
-      model = model.name,
-      user = user,
-      messages = messages,
-      n = n,
-      temperature = temperature,
-      maxTokens = 1,
-      logitBias = logitBias
-    )
-
-  val outputTokens: List<String> =
-    openAIClient.createChatCompletion(request).choices.map { it.message.content }
-
-  val nextPartialCompletion: String = partialCompletion + outputTokens[0]
-  val nextPromptPlusCompletion: String = prompt + outputTokens[0]
+  val nextPartialCompletion: String = partialCompletion + outputCompletion[0]
+  val nextPromptPlusCompletion: String = prompt + outputCompletion[0]
 
   if (stopAfterMatch && pattern.matches(nextPartialCompletion)) {
     return nextPartialCompletion
@@ -80,36 +71,76 @@ private suspend fun AIScope.patternPrompt(
     model,
     user,
     n,
+    echo,
     temperature,
     maxNewTokens,
     stopAfterMatch,
     genTokens = genTokens + 1,
     nextPartialCompletion,
+    tokenFilter
   )
 }
+
+private suspend fun AIScope.patternPrompt(
+  model: LLMModel,
+  user: String,
+  prompt: String,
+  echo: Boolean,
+  n: Int,
+  temperature: Double,
+  logitBias: Map<String, Int>
+): List<String> =
+  when (model.kind) {
+    LLMModel.Kind.Completion -> {
+      val request =
+        CompletionRequest(
+          model = model.name,
+          user = user,
+          prompt = prompt,
+          echo = echo,
+          n = n,
+          temperature = temperature,
+          maxTokens = 1,
+          logitBias = logitBias
+        )
+      openAIClient.createCompletion(request).choices.map { it.text }
+    }
+    LLMModel.Kind.Chat -> {
+      val role: String = Role.system.name
+      val request =
+        ChatCompletionRequest(
+          model = model.name,
+          messages = listOf(Message(role, prompt)),
+          temperature = temperature,
+          n = n,
+          user = user,
+          maxTokens = 1,
+          logitBias = logitBias
+        )
+      openAIClient.createChatCompletion(request).choices.map { it.message.content }
+    }
+  }
 
 interface TokenFilter {
   val tokensCache: Map<Int, String>
 
-  fun buildLogitBias(partialCompletion: String, pattern: Regex): Map<String, Double>
+  fun buildLogitBias(partialCompletion: String, pattern: Regex): Map<String, Int>
 
   companion object {
     operator fun invoke(encodingType: EncodingType): TokenFilter =
       object : TokenFilter {
         override val tokensCache: Map<Int, String> = encodingType.buildDecodedTokensCache()
 
-        override fun buildLogitBias(
-          partialCompletion: String,
-          pattern: Regex
-        ): Map<String, Double> = buildMap {
-          val openAILimit = 300
-          val exclusiveBias = 100.0
-          tokensCache
-            .asSequence()
-            .filter { pattern.partialMatch(partialCompletion + it.value) }
-            .take(openAILimit)
-            .forEach { put("${it.key}", exclusiveBias) }
-        }
+        override fun buildLogitBias(partialCompletion: String, pattern: Regex): Map<String, Int> =
+          buildMap {
+            val openAILimit = 300
+            val exclusiveBias = 100
+            tokensCache
+              .asSequence()
+              .filter { pattern.partialMatch(partialCompletion + it.value) }
+              .take(openAILimit)
+              .forEach { put("${it.key}", exclusiveBias) }
+          }
 
         private fun EncodingType.buildDecodedTokensCache(): Map<Int, String> = buildMap {
           base.lineSequence().forEach { line ->
@@ -123,11 +154,7 @@ interface TokenFilter {
 
         private fun Regex.partialMatch(input: String): Boolean {
           val matcher: Matcher = toPattern().matcher(input)
-          return if (matcher.matches()) {
-            true
-          } else {
-            matcher.hitEnd()
-          }
+          return matcher.matches().or(matcher.hitEnd())
         }
       }
   }
