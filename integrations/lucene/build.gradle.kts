@@ -19,7 +19,8 @@ java {
 
 dependencies {
     implementation(projects.xefCore)
-    implementation(libs.apache.lucene)
+    implementation(libs.lucene.core)
+    implementation(libs.lucene.queries)
 }
 
 tasks.withType<AbstractPublishToMaven> {

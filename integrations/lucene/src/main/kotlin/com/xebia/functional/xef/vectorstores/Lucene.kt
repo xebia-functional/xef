@@ -6,36 +6,26 @@ import com.xebia.functional.xef.embeddings.Embedding
 import com.xebia.functional.xef.embeddings.Embeddings
 import com.xebia.functional.xef.llm.openai.EmbeddingModel
 import com.xebia.functional.xef.llm.openai.RequestConfig
+import org.apache.lucene.analysis.standard.StandardAnalyzer
+import org.apache.lucene.document.*
 import java.nio.file.Path
-import org.apache.lucene.document.Document
-import org.apache.lucene.document.Field
-import org.apache.lucene.document.KnnFloatVectorField
-import org.apache.lucene.document.TextField
 import org.apache.lucene.index.*
-import org.apache.lucene.search.FuzzyQuery
-import org.apache.lucene.search.IndexSearcher
-import org.apache.lucene.search.KnnFloatVectorQuery
-import org.apache.lucene.search.Query
+import org.apache.lucene.queries.mlt.MoreLikeThis
+import org.apache.lucene.search.*
 import org.apache.lucene.store.Directory
 import org.apache.lucene.store.MMapDirectory
+import java.io.StringReader
 
 open class Lucene(
   private val writer: IndexWriter,
-  private val searcher: IndexSearcher,
   private val embeddings: Embeddings?,
   private val similarity: VectorSimilarityFunction = VectorSimilarityFunction.EUCLIDEAN
 ) : VectorStore, AutoCloseable {
 
-  constructor(
-    writer: IndexWriter,
-    embeddings: Embeddings?,
-    similarity: VectorSimilarityFunction = VectorSimilarityFunction.EUCLIDEAN
-  ) : this(writer, IndexSearcher(DirectoryReader.open(writer)), embeddings, similarity)
-
   private val requestConfig =
     RequestConfig(EmbeddingModel.TextEmbeddingAda002, RequestConfig.Companion.User("user"))
 
-  override suspend fun addTexts(texts: List<String>) =
+  override suspend fun addTexts(texts: List<String>) {
     texts.forEach {
       val embedding = embeddings?.embedQuery(it, requestConfig)
       val doc =
@@ -45,17 +35,30 @@ open class Lucene(
         }
       writer.addDocument(doc)
     }
+    writer.commit()
+  }
 
-  override suspend fun similaritySearch(query: String, limit: Int): List<String> =
-    search(FuzzyQuery(Term("contents", query)), limit)
+  override suspend fun similaritySearch(query: String, limit: Int): List<String> {
+    val reader = DirectoryReader.open(writer)
+    val mlt = MoreLikeThis(reader)
+    mlt.analyzer = StandardAnalyzer()
+    mlt.minTermFreq = 1
+    mlt.minDocFreq = 1
+    mlt.minWordLen = 3
+    val luceneQuery = mlt.like("contents", StringReader(query))
+    val searcher = IndexSearcher(reader)
+    return IndexSearcher(reader).search(luceneQuery, limit).extract(searcher)
+  }
 
   override suspend fun similaritySearchByVector(embedding: Embedding, limit: Int): List<String> {
     requireNotNull(embeddings) { "no embeddings were computed for this model" }
-    return search(KnnFloatVectorQuery("embedding", embedding.data.toFloatArray(), limit), limit)
+    val luceneQuery = KnnFloatVectorQuery("embedding", embedding.data.toFloatArray(), limit)
+    val searcher = IndexSearcher(DirectoryReader.open(writer))
+    return searcher.search(luceneQuery, limit).extract(searcher)
   }
 
-  private fun search(q: Query, limit: Int): List<String> =
-    searcher.search(q, limit).scoreDocs.map {
+  fun TopDocs.extract(searcher: IndexSearcher): List<String> =
+    scoreDocs.map {
       searcher.storedFields().document(it.doc).get("contents")
     }
 
