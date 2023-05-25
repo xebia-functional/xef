@@ -35,7 +35,7 @@ open class Lucene(
   private val requestConfig =
     RequestConfig(EmbeddingModel.TextEmbeddingAda002, RequestConfig.Companion.User("user"))
 
-  override suspend fun addTexts(texts: List<String>) =
+  override suspend fun addTexts(texts: List<String>) {
     texts.forEach {
       val embedding = embeddings?.embedQuery(it, requestConfig)
       val doc =
@@ -45,6 +45,8 @@ open class Lucene(
         }
       writer.addDocument(doc)
     }
+    writer.commit()
+  }
 
   override suspend fun similaritySearch(query: String, limit: Int): List<String> =
     search(FuzzyQuery(Term("contents", query)), limit)
