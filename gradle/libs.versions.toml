@@ -96,7 +96,8 @@ skrape = { module = "it.skrape:skrapeit", version.ref = "scrapeit" }
 skrape-browser-fetcher = { module = "it.skrape:skrapeit-browser-fetcher", version.ref = "scrapeit" }
 skrape-async-fetcher = { module = "it.skrape:skrapeit-asyn-fetcher", version.ref = "scrapeit" }
 rss-reader = { module = "com.apptasticsoftware:rssreader", version.ref = "rssreader" }
-apache-lucene = { module = "org.apache.lucene:lucene-core", version.ref = "lucene" }
+lucene-core = { module = "org.apache.lucene:lucene-core", version.ref = "lucene" }
+lucene-queries = { module = "org.apache.lucene:lucene-queries", version.ref = "lucene" }
 assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 apache-pdf-box = { module = "org.apache.pdfbox:pdfbox", version.ref = "pdfbox" }
 jdbc-mysql-connector = { module = "mysql:mysql-connector-java", version.ref = "mysql" }
