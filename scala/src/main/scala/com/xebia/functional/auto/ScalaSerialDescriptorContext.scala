@@ -29,11 +29,12 @@ object ScalaSerialDescriptorContext:
   given [T: ClassTag]: ScalaSerialDescriptor[Set[T]] = new ScalaSerialDescriptor[Set[T]]:
     def serialDescriptor = BuiltinSerializersKt.SetSerializer(summonInline[KSerializer[T]]).getDescriptor
 
-  given [S: ClassTag, T: ClassTag]: ScalaSerialDescriptor[Map[S, T]] = new ScalaSerialDescriptor[Map[S, T]]:
-    def serialDescriptor = BuiltinSerializersKt.MapSerializer(summonInline[KSerializer[T]], summonInline[KSerializer[T]]).getDescriptor
+  given [K: ClassTag, V: ClassTag]: ScalaSerialDescriptor[Map[K, V]] = new ScalaSerialDescriptor[Map[K, V]]:
+    def serialDescriptor = BuiltinSerializersKt.MapSerializer(summonInline[KSerializer[K]], summonInline[KSerializer[V]]).getDescriptor
 
   given ScalaSerialDescriptor[Boolean] = new ScalaSerialDescriptor[Boolean]:
     def serialDescriptor = KotlinXSerializers.boolean.getDescriptor
+
   given ScalaSerialDescriptor[Byte] = new ScalaSerialDescriptor[Byte]:
     def serialDescriptor = KotlinXSerializers.byte.getDescriptor
 
