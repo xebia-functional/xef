@@ -10,6 +10,10 @@ import com.xebia.functional.xef.prompt.append
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.serializer
 
 /**
@@ -100,12 +104,15 @@ suspend fun <A> AIScope.prompt(
   bringFromContext: Int = 10,
   minResponseTokens: Int = 500,
 ): A {
+  val jsonSchema: JsonObject = buildJsonSchema(serializer.descriptor, false)
   val serializationConfig: SerializationConfig<A> =
     SerializationConfig(
-      jsonSchema = buildJsonSchema(serializer.descriptor, false),
+      jsonSchema = jsonSchema,
       descriptor = serializer.descriptor,
       deserializationStrategy = serializer
     )
+
+  val logitBias: Map<String, Int> = jsonSchema.buildSchemaBias(model)
 
   val responseInstructions =
     """
@@ -130,7 +137,8 @@ suspend fun <A> AIScope.prompt(
       n,
       temperature,
       bringFromContext,
-      minResponseTokens
+      minResponseTokens,
+      logitBias
     )
   }
 }
@@ -158,3 +166,33 @@ suspend fun <A> AIScope.tryDeserialize(
   }
   raise(AIError.NoResponse)
 }
+
+private fun JsonObject.buildSchemaBias(model: LLMModel): Map<String, Int> {
+  val schemaKey = "schema"
+  val jsonKeys: List<String> = listOf("{", "}", "[", "]")
+  val schemaKeys: List<String> =
+    getProperties().distinct().filter { !it.contains(schemaKey) } + jsonKeys
+
+  return buildMap {
+    val bias = 10
+    schemaKeys.forEach { schemaKey ->
+      model.modelType.encoding.encode(schemaKey).forEach { token -> put("$token", bias) }
+    }
+  }
+}
+
+private fun JsonElement.getProperties(): List<String> =
+  when (this) {
+    is JsonObject -> {
+      values.flatMap { it.getProperties() }
+    }
+    is JsonArray -> {
+      flatMap { it.getProperties() }
+    }
+    is JsonPrimitive -> {
+      listOf(content)
+    }
+    else -> {
+      emptyList()
+    }
+  }

@@ -48,7 +48,8 @@ suspend fun AIScope.promptMessage(
   n: Int = 1,
   temperature: Double = 0.0,
   bringFromContext: Int = 10,
-  minResponseTokens: Int
+  minResponseTokens: Int,
+  logitBias: Map<String, Int> = mapOf()
 ): List<String> {
   return when (model.kind) {
     LLMModel.Kind.Completion ->
@@ -60,7 +61,8 @@ suspend fun AIScope.promptMessage(
         n,
         temperature,
         bringFromContext,
-        minResponseTokens
+        minResponseTokens,
+        logitBias
       )
     LLMModel.Kind.Chat ->
       callChatEndpoint(
@@ -70,7 +72,8 @@ suspend fun AIScope.promptMessage(
         n,
         temperature,
         bringFromContext,
-        minResponseTokens
+        minResponseTokens,
+        logitBias
       )
   }
 }
@@ -118,7 +121,8 @@ private suspend fun AIScope.callCompletionEndpoint(
   n: Int = 1,
   temperature: Double = 0.0,
   bringFromContext: Int,
-  minResponseTokens: Int
+  minResponseTokens: Int,
+  logitBias: Map<String, Int>
 ): List<String> {
   val promptWithContext: String =
     promptWithContext(prompt, bringFromContext, model.modelType, minResponseTokens)
@@ -133,7 +137,8 @@ private suspend fun AIScope.callCompletionEndpoint(
       echo = echo,
       n = n,
       temperature = temperature,
-      maxTokens = maxTokens
+      maxTokens = maxTokens,
+      logitBias = logitBias
     )
   return openAIClient.createCompletion(request).choices.map { it.text }
 }
@@ -145,7 +150,8 @@ private suspend fun AIScope.callChatEndpoint(
   n: Int = 1,
   temperature: Double = 0.0,
   bringFromContext: Int,
-  minResponseTokens: Int
+  minResponseTokens: Int,
+  logitBias: Map<String, Int>
 ): List<String> {
   val role: String = Role.system.name
   val promptWithContext: String =
@@ -159,7 +165,8 @@ private suspend fun AIScope.callChatEndpoint(
       messages = messages,
       n = n,
       temperature = temperature,
-      maxTokens = maxTokens
+      maxTokens = maxTokens,
+      logitBias = logitBias
     )
   return openAIClient.createChatCompletion(request).choices.map { it.message.content }
 }
