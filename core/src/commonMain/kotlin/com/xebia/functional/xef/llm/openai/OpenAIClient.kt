@@ -5,6 +5,7 @@ import arrow.resilience.retry
 import com.xebia.functional.xef.configure
 import com.xebia.functional.xef.env.OpenAIConfig
 import com.xebia.functional.xef.httpClient
+import com.xebia.functional.xef.llm.AIClientError
 import io.github.oshai.KLogger
 import io.github.oshai.KotlinLogging
 import io.ktor.client.HttpClient
@@ -12,10 +13,13 @@ import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.plugins.timeout
 import io.ktor.client.request.post
-import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.*
 import io.ktor.http.path
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
 
 private val logger: KLogger = KotlinLogging.logger {}
 
@@ -60,7 +64,7 @@ private class KtorOpenAIClient(
         }
       }
 
-    val body: CompletionResult = response.body()
+    val body: CompletionResult = response.bodyOrError()
     with(body.usage) {
       logger.debug {
         "Completion Tokens :: prompt: $promptTokens, completion: $completionTokens, total: $totalTokens"
@@ -85,7 +89,7 @@ private class KtorOpenAIClient(
             timeout { requestTimeoutMillis = config.requestTimeout.inWholeMilliseconds }
           }
         }
-    val body: ChatCompletionResponse = response.body()
+    val body: ChatCompletionResponse = response.bodyOrError()
     with(body.usage) {
       logger.debug {
         "Chat Completion Tokens :: prompt: $promptTokens, completion: $completionTokens, total: $totalTokens"
@@ -103,7 +107,7 @@ private class KtorOpenAIClient(
           timeout { requestTimeoutMillis = config.requestTimeout.inWholeMilliseconds }
         }
       }
-    val body: EmbeddingResult = response.body()
+    val body: EmbeddingResult = response.bodyOrError()
     with(body.usage) { logger.debug { "Embeddings Tokens :: total: $totalTokens" } }
     return body
   }
@@ -117,6 +121,20 @@ private class KtorOpenAIClient(
           timeout { requestTimeoutMillis = config.requestTimeout.inWholeMilliseconds }
         }
       }
-    return response.body()
+    return response.bodyOrError()
+  }
+}
+
+val JsonLenient = Json {
+  isLenient = true
+  ignoreUnknownKeys = true
+}
+
+private suspend inline fun <reified T> HttpResponse.bodyOrError(): T {
+  val contents = bodyAsText()
+  try {
+    return JsonLenient.decodeFromString<T>(contents)
+  } catch (_: IllegalArgumentException) {
+    throw AIClientError(JsonLenient.decodeFromString<JsonElement>(contents))
   }
 }

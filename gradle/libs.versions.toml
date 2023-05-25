@@ -3,7 +3,7 @@ arrow = "1.2.0-RC"
 arrowGradle = "0.11.0-alpha.1"
 kotlin = "1.8.20"
 openai = "0.12.0"
-kotlinx-json = "1.5.0"
+kotlinx-json = "1.5.1"
 ktor = "2.2.2"
 spotless = "6.18.0"
 okio = "3.3.0"
@@ -96,7 +96,8 @@ skrape = { module = "it.skrape:skrapeit", version.ref = "scrapeit" }
 skrape-browser-fetcher = { module = "it.skrape:skrapeit-browser-fetcher", version.ref = "scrapeit" }
 skrape-async-fetcher = { module = "it.skrape:skrapeit-asyn-fetcher", version.ref = "scrapeit" }
 rss-reader = { module = "com.apptasticsoftware:rssreader", version.ref = "rssreader" }
-apache-lucene = { module = "org.apache.lucene:lucene-core", version.ref = "lucene" }
+lucene-core = { module = "org.apache.lucene:lucene-core", version.ref = "lucene" }
+lucene-queries = { module = "org.apache.lucene:lucene-queries", version.ref = "lucene" }
 assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 apache-pdf-box = { module = "org.apache.pdfbox:pdfbox", version.ref = "pdfbox" }
 jdbc-mysql-connector = { module = "mysql:mysql-connector-java", version.ref = "mysql" }
