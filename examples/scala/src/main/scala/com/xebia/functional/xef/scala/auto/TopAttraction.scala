@@ -1,15 +1,14 @@
 package com.xebia.functional.xef.scala.auto
 
 import com.xebia.functional.xef.scala.auto.*
-import com.xebia.functional.xef.scala.auto.ScalaSerialDescriptor
-import com.xebia.functional.xef.scala.auto.ScalaSerialDescriptorContext.given
 import io.circe.Decoder
+import io.circe.parser.decode
 
 private final case class City(name: String, country: String) derives ScalaSerialDescriptor, Decoder
 
-private final case class Weather(city: City, temperature: Double, description: String) derives ScalaSerialDescriptor, Decoder
+private final case class TopAttractionWeather(city: City, temperature: Double, description: String) derives ScalaSerialDescriptor, Decoder
 
-private final case class TopAttraction(city: City, attractionName: String, description: String, weather: Weather)
+private final case class TopAttraction(city: City, attractionName: String, description: String, weather: TopAttractionWeather)
     derives ScalaSerialDescriptor,
       Decoder
 

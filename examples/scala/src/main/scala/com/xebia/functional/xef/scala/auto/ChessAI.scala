@@ -1,8 +1,9 @@
 package com.xebia.functional.xef.scala.auto
 
-import io.circe.Decoder
 import com.xebia.functional.xef.scala.auto.*
 import com.xebia.functional.xef.scala.auto.ScalaSerialDescriptorContext.given
+import io.circe.Decoder
+import io.circe.parser.decode
 
 import scala.annotation.tailrec
 

@@ -1,9 +1,8 @@
 package com.xebia.functional.xef.scala.auto
 
 import com.xebia.functional.xef.scala.auto.*
-import com.xebia.functional.xef.scala.auto.ScalaSerialDescriptor
-import com.xebia.functional.xef.scala.auto.ScalaSerialDescriptorContext.given
 import io.circe.Decoder
+import io.circe.parser.decode
 
 private final case class ASCIIArt(art: String) derives ScalaSerialDescriptor, Decoder
 
