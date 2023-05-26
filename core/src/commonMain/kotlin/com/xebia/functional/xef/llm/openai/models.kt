@@ -66,7 +66,7 @@ data class ChatCompletionRequest(
   @SerialName("max_tokens") val maxTokens: Int? = null,
   @SerialName("presence_penalty") val presencePenalty: Double = 0.0,
   @SerialName("frequency_penalty") val frequencyPenalty: Double = 0.0,
-  @SerialName("logit_bias") val logitBias: Map<String, Double>? = emptyMap(),
+  @SerialName("logit_bias") val logitBias: Map<String, Int> = emptyMap(),
   val user: String?
 )
 

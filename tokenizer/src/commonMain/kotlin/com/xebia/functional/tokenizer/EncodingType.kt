@@ -2,6 +2,9 @@
 
 package com.xebia.functional.tokenizer
 
+import com.xebia.functional.tokenizer.internal.SPECIAL_TOKENS_CL100K_BASE
+import com.xebia.functional.tokenizer.internal.SPECIAL_TOKENS_P50K_EDIT
+import com.xebia.functional.tokenizer.internal.SPECIAL_TOKENS_X50K_BASE
 import com.xebia.functional.tokenizer.internal.cl100k_base
 import com.xebia.functional.tokenizer.internal.p50k_base
 import com.xebia.functional.tokenizer.internal.r50k_base
@@ -9,117 +12,74 @@ import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
 enum class EncodingType(@Suppress("UNUSED_PARAMETER") name: String) {
-  R50K_BASE("r50k_base") {
-    override val encoding by lazy { EncodingFactory.r50kBase() }
-  },
-  P50K_BASE("p50k_base") {
-    override val encoding by lazy { EncodingFactory.p50kBase() }
-  },
-  P50K_EDIT("p50k_edit") {
-    override val encoding by lazy { EncodingFactory.p50kEdit() }
-  },
-  CL100K_BASE("cl100k_base") {
-    override val encoding by lazy { EncodingFactory.cl100kBase() }
-  };
+    R50K_BASE("r50k_base") {
+        override val base: String = r50k_base
+        override val regex: Regex = p50k_regex
+        override val specialTokensBase: Map<String, Int> = SPECIAL_TOKENS_P50K_EDIT
+        override val encoding by lazy {
+            EncodingFactory.fromPredefinedParameters(
+                name, regex, base, specialTokensBase
+            )
+        }
+    },
+    P50K_BASE("p50k_base") {
+      override val base: String = p50k_base
+      override val regex: Regex = p50k_regex
+      override val specialTokensBase: Map<String, Int> = SPECIAL_TOKENS_X50K_BASE
+      override val encoding by lazy {
+        EncodingFactory.fromPredefinedParameters(
+          name, regex, base, specialTokensBase
+        )
+      }
+    },
+    P50K_EDIT("p50k_edit") {
+      override val base: String = p50k_base
+      override val regex: Regex = p50k_regex
+      override val specialTokensBase: Map<String, Int> = SPECIAL_TOKENS_P50K_EDIT
+      override val encoding by lazy {
+        EncodingFactory.fromPredefinedParameters(
+          name, regex, base, specialTokensBase
+        )
+      }
+    },
+    CL100K_BASE("cl100k_base") {
+      override val base: String = cl100k_base
+      override val regex: Regex = cl100k_base_regex
+      override val specialTokensBase: Map<String, Int> = SPECIAL_TOKENS_CL100K_BASE
+      override val encoding by lazy {
+        EncodingFactory.fromPredefinedParameters(
+          name, regex, base, specialTokensBase
+        )
+      }
+    };
 
-  abstract val encoding: Encoding
+    abstract val base: String
+    abstract val regex: Regex
+    abstract val specialTokensBase: Map<String, Int>
+    abstract val encoding: Encoding
 }
 
 private object EncodingFactory {
-  private const val ENDOFTEXT = "<|endoftext|>"
-  private const val FIM_PREFIX = "<|fim_prefix|>"
-  private const val FIM_MIDDLE = "<|fim_middle|>"
-  private const val FIM_SUFFIX = "<|fim_suffix|>"
-  private const val ENDOFPROMPT = "<|endofprompt|>"
-
-  private val SPECIAL_TOKENS_X50K_BASE: Map<String, Int> = HashMap<String, Int>(1).apply {
-    put(ENDOFTEXT, 50256)
-  }
-
-  private val SPECIAL_TOKENS_P50K_EDIT: Map<String, Int> = HashMap<String, Int>(4).apply {
-    put(ENDOFTEXT, 50256)
-    put(FIM_PREFIX, 50281)
-    put(FIM_MIDDLE, 50282)
-    put(FIM_SUFFIX, 50283)
-  }
-
-  private val SPECIAL_TOKENS_CL100K_BASE: Map<String, Int> = HashMap<String, Int>(5).apply {
-    put(ENDOFTEXT, 100257)
-    put(FIM_PREFIX, 100258)
-    put(FIM_MIDDLE, 100259)
-    put(FIM_SUFFIX, 100260)
-    put(ENDOFPROMPT, 100276)
-  }
-
-  /**
-   * Returns an [Encoding] instance for the r50k_base encoding.
-   *
-   * @return an [Encoding] instance for the r50k_base encoding
-   */
-  fun r50kBase(): Encoding = fromPredefinedParameters(
-    "r50k_base",
-    p50k_regex,
-    r50k_base,
-    SPECIAL_TOKENS_X50K_BASE
-  )
-
-  /**
-   * Returns an [Encoding] instance for the p50k_base encoding.
-   *
-   * @return an [Encoding] instance for the p50k_base encoding
-   */
-  fun p50kBase(): Encoding = fromPredefinedParameters(
-    "p50k_base",
-    p50k_regex,
-    p50k_base,
-    SPECIAL_TOKENS_X50K_BASE
-  )
-
-  /**
-   * Returns an [Encoding] instance for the p50k_edit encoding.
-   *
-   * @return an [Encoding] instance for the p50k_edit encoding
-   */
-  fun p50kEdit(): Encoding = fromPredefinedParameters(
-    "p50k_edit",
-    p50k_regex,
-    p50k_base,
-    SPECIAL_TOKENS_P50K_EDIT
-  )
-
-  fun cl100kBase(): Encoding = fromPredefinedParameters(
-    "cl100k_base",
-    cl100k_base_regex,
-    cl100k_base,
-    SPECIAL_TOKENS_CL100K_BASE
-  )
-
-  /**
-   * Returns an [Encoding] instance for the given GPT BytePairEncoding parameters.
-   *
-   * @param parameters the GPT BytePairEncoding parameters
-   * @return an [Encoding] instance for the given GPT BytePairEncoding parameters
-   */
-  fun fromParameters(parameters: GptBytePairEncodingParams): Encoding =
-    GptBytePairEncoding(parameters)
-
-  private fun fromPredefinedParameters(
-    name: String,
-    regex: Regex,
-    base: String,
-    specialTokens: Map<String, Int>
-  ): Encoding {
-    val params = GptBytePairEncodingParams(name, regex, loadMergeableRanks(base), specialTokens)
-    return fromParameters(params)
-  }
-
-  private fun loadMergeableRanks(base: String): Map<ByteArray, Int> =
-    buildMap {
-      base.lineSequence().forEach { line ->
-        val (token, rank) = line.split(Regex("\\s+"), limit = 2)
-        put(Base64.decode(token.encodeToByteArray()), rank.toInt())
-      }
+    fun fromPredefinedParameters(
+        name: String,
+        regex: Regex,
+        base: String,
+        specialTokens: Map<String, Int>
+    ): Encoding {
+        val params = GptBytePairEncodingParams(name, regex, loadMergeableRanks(base), specialTokens)
+        return fromParameters(params)
     }
+
+    private fun fromParameters(parameters: GptBytePairEncodingParams): Encoding =
+        GptBytePairEncoding(parameters)
+
+    fun loadMergeableRanks(base: String): Map<ByteArray, Int> =
+        buildMap {
+            base.lineSequence().forEach { line ->
+                val (token, rank) = line.split(Regex("\\s+"), limit = 2)
+                put(Base64.decode(token.encodeToByteArray()), rank.toInt())
+            }
+        }
 }
 
 expect val cl100k_base_regex: Regex
