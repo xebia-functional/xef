@@ -1,4 +1,4 @@
-package com.xebia.functional.auto
+package com.xebia.functional.scala.auto
 
 import com.xebia.functional.loom.LoomAdapter
 import com.xebia.functional.scala.auto.ScalaSerialDescriptor

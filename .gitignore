@@ -15,6 +15,7 @@
 bin/
 gen/
 out/
+tokenizer/karma.config.d/
 
 # Gradle files
 .gradle/
