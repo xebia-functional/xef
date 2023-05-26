@@ -23,6 +23,7 @@ dependencies {
   implementation(projects.xefPdf)
   implementation(projects.xefSql)
   implementation(projects.xefTokenizer)
+  implementation(projects.xefGit)
   implementation(libs.kotlinx.serialization.json)
   implementation(libs.logback)
   implementation(libs.klogging)
