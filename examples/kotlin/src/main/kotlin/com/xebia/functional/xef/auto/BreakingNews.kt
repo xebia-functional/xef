@@ -6,9 +6,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 
 @Serializable
-data class BreakingNewsAboutCovid(
-  val summary: String
-)
+data class BreakingNewsAboutCovid(val summary: String)
 
 suspend fun main() {
   ai {

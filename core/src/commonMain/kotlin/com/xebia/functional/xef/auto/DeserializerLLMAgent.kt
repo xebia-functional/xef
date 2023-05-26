@@ -145,6 +145,7 @@ suspend fun <A> AIScope.prompt(
         |2. When returning the response consider <string> values should be accordingly escaped so the json remains valid.
         |3. Use the JSON schema to produce the result exclusively in valid JSON format.
         |4. Pay attention to required vs non-required fields in the schema.
+        |5. Escape any double quotes in the response.
         |JSON Schema:
         |$jsonSchema
         |Response:
