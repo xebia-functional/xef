@@ -12,7 +12,7 @@ interface TokenVocabulary {
                     base.lineSequence().forEach { line ->
                         val (_, rank) = line.split(Regex("\\s+"), limit = 2)
                         val tokenId: Int = rank.toInt()
-                        val token: String = encodingType.encoding.decode(listOf(tokenId))
+                        val token: String = encoding.decode(listOf(tokenId))
                         put(tokenId, token)
                     }
                     specialTokensBase.forEach { put(it.value, it.key) }
