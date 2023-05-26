@@ -1,14 +1,13 @@
-package com.xebia.functional.scala.auto
+package com.xebia.functional.xef.scala.auto
 
-import com.xebia.functional.auto.KotlinXSerializers
 import kotlinx.serialization.descriptors.SerialDescriptorsKt.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.{PrimitiveKind, SerialDescriptor, SerialKind, StructureKind}
 import kotlinx.serialization.internal.ArrayListSerializer
 
-import java.util
 import java.lang.annotation.Annotation
-import scala.deriving.*
+import java.util
 import scala.compiletime.{constValue, erasedValue, summonInline}
+import scala.deriving.*
 import scala.reflect.ClassTag
 
 trait ScalaSerialDescriptor[A]:

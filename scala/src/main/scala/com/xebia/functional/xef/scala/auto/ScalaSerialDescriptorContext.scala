@@ -1,11 +1,9 @@
-package com.xebia.functional.scala.auto
+package com.xebia.functional.xef.scala.auto
 
-import com.xebia.functional.auto.KotlinXSerializers
-import com.xebia.functional.scala.auto.ScalaSerialDescriptor
+import kotlin.jvm.internal.Reflection
+import kotlin.reflect.KClass
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.BuiltinSerializersKt
-import kotlin.reflect.KClass
-import kotlin.jvm.internal.Reflection
 
 import scala.compiletime.summonInline
 import scala.reflect.ClassTag
