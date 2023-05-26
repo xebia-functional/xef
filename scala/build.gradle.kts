@@ -2,7 +2,9 @@
 
 plugins {
     scala
-    alias(libs.plugins.scala.multiversion)
+    `maven-publish`
+    signing
+    alias(libs.plugins.semver.gradle)
     alias(libs.plugins.spotless)
 }
 
@@ -23,10 +25,23 @@ java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(19)
     }
+    withSourcesJar()
+    withJavadocJar()
 }
 
 tasks.withType<Test>().configureEach {
     useJUnit()
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            val scala3Suffix = "_3"
+            from(components["java"])
+
+            artifactId = base.archivesName.get() + scala3Suffix
+        }
+    }
 }
 
 spotless {
