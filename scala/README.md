@@ -18,3 +18,11 @@ Therefore, the previous command (`./gradlew build`) will fail in case there is a
 ## Examples
 
 Check out some use case at the [Scala examples](../examples/scala) folder.
+
+### Running the Examples
+
+How to run the examples (from IntelliJ IDEA):
+
+* Set Java version 19
+* Set VM options: "--enable-preview"
+* Set Env variable: "OPENAI_TOKEN=xxx"
