@@ -1,15 +1,11 @@
-package com.xebia.functional.scala.auto
+package com.xebia.functional.xef.scala.auto
 
 import com.xebia.functional.loom.LoomAdapter
-import com.xebia.functional.scala.auto.ScalaSerialDescriptor
-import com.xebia.functional.xef.auto.AIScope as KtAIScope
-import com.xebia.functional.xef.auto.Agent as KtAgent
-import com.xebia.functional.xef.auto.AIException
-import com.xebia.functional.xef.auto.AIKt
 import com.xebia.functional.xef.AIError
+import com.xebia.functional.xef.auto.{AIException, AIKt, AIScope as KtAIScope, Agent as KtAgent}
 import com.xebia.functional.xef.llm.openai.LLMModel
-import io.circe.{Decoder, Json}
 import io.circe.parser.decode
+import io.circe.{Decoder, Json}
 
 object AI:
 

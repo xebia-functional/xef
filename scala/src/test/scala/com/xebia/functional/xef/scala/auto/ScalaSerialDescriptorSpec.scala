@@ -1,6 +1,7 @@
-package com.xebia.functional.scala.auto
+package com.xebia.functional.xef.scala.auto
 
 import cats.syntax.either.*
+import com.xebia.functional.xef.scala.auto.ScalaSerialDescriptor
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.BuiltinSerializersKt
 import munit.FunSuite
@@ -10,7 +11,7 @@ import scala.compiletime.summonInline
 import scala.reflect.ClassTag
 
 class ScalaSerialDescriptorSpec extends FunSuite:
-  import ScalaSerialDescriptorContext.given
+  import com.xebia.functional.xef.scala.auto.ScalaSerialDescriptorContext.given
 
   test("Should create a ScalaSerialDescriptor for a simple case class") {
     final case class Person(age: Int, name: String) derives ScalaSerialDescriptor
