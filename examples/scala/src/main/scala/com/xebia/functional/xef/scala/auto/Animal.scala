@@ -1,8 +1,8 @@
 package com.xebia.functional.xef.scala.auto
 
-import com.xebia.functional.scala.auto.*
-import com.xebia.functional.scala.auto.ScalaSerialDescriptor
-import com.xebia.functional.scala.auto.ScalaSerialDescriptorContext.given
+import com.xebia.functional.xef.scala.auto.*
+import com.xebia.functional.xef.scala.auto.ScalaSerialDescriptor
+import com.xebia.functional.xef.scala.auto.ScalaSerialDescriptorContext.given
 import io.circe.Decoder
 import io.circe.parser.decode
 

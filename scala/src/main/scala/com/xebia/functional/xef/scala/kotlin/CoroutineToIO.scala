@@ -1,4 +1,4 @@
-package com.xebia.functional.scala.kotlin
+package com.xebia.functional.xef.scala.kotlin
 
 import java.util.Collections
 import java.util.concurrent.AbstractExecutorService
