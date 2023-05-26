@@ -17,6 +17,8 @@ java {
 dependencies {
   implementation(projects.xefCore)
   implementation(projects.xefScala)
+  implementation(projects.kotlinLoom)
+  implementation(libs.circe.parser)
 }
 
 tasks.withType<Test>().configureEach {
