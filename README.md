@@ -43,5 +43,5 @@ could be useful if you use Gradle.
 - In Scala (work in progress)
 
 You can also have a look at our
-[examples](https://github.com/xebia-functional/xef/tree/main/example/src/main/kotlin/com/xebia/functional/xef/auto)
+[examples](https://github.com/xebia-functional/xef/tree/main/examples/kotlin/src/main/kotlin/com/xebia/functional/xef/auto)
 to have a feeling of how using the library looks like.
