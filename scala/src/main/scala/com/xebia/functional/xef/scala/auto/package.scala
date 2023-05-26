@@ -5,6 +5,7 @@ import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.llm.openai.LLMModel
 import io.circe.parser.decode
 import io.circe.{Decoder, Json}
+import io.circe.parser.parse
 import com.xebia.functional.xef.auto.{AIException, AIKt, AIScope as KtAIScope, Agent as KtAgent}
 
 package object auto {
@@ -38,7 +39,7 @@ package object auto {
         scope.kt,
         prompt,
         ScalaSerialDescriptor[A].serialDescriptor,
-        decode[A](_).fold(throw _, identity),
+        (json: String) => parse(json).flatMap(Decoder[A].decodeJson(_)).fold(throw _, identity),
         maxAttempts,
         llmMode,
         user,
