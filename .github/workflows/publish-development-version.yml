@@ -78,4 +78,4 @@ jobs:
       - name: Publish development version
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: :kotlin-loom:publishToSonatype closeAndReleaseSonatypeStagingRepository
+          arguments: :kotlin-loom:publishToSonatype :xef-scala:publishToSonatype closeAndReleaseSonatypeStagingRepository
