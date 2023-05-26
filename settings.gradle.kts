@@ -17,7 +17,11 @@ enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 rootProject.name = "xef"
 
-include("example")
+include("xef-kotlin-examples")
+project(":xef-kotlin-examples").projectDir = file("examples/kotlin")
+
+include("xef-scala-examples")
+project(":xef-scala-examples").projectDir = file("examples/scala")
 
 include("kotlin-loom")
 
