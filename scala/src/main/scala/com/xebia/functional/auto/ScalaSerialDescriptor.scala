@@ -2,12 +2,11 @@ package com.xebia.functional.scala.auto
 
 import com.xebia.functional.auto.KotlinXSerializers
 import kotlinx.serialization.descriptors.SerialDescriptorsKt.PrimitiveSerialDescriptor
-
-import java.lang.annotation.Annotation
 import kotlinx.serialization.descriptors.{PrimitiveKind, SerialDescriptor, SerialKind, StructureKind}
 import kotlinx.serialization.internal.ArrayListSerializer
 
 import java.util
+import java.lang.annotation.Annotation
 import scala.deriving.*
 import scala.compiletime.{constValue, erasedValue, summonInline}
 import scala.reflect.ClassTag
@@ -24,6 +23,7 @@ object ScalaSerialDescriptor:
 
   private inline def getSerialDescriptor[T <: Tuple]: List[SerialDescriptor] = inline erasedValue[T] match
     case _: EmptyTuple => Nil
+    case _: (String *: t) => KotlinXSerializers.string.getDescriptor :: getSerialDescriptor[t]
     case _: (Boolean *: t) => KotlinXSerializers.boolean.getDescriptor :: getSerialDescriptor[t]
     case _: (Byte *: t) => KotlinXSerializers.byte.getDescriptor :: getSerialDescriptor[t]
     case _: (Char *: t) => KotlinXSerializers.char.getDescriptor :: getSerialDescriptor[t]
@@ -32,7 +32,6 @@ object ScalaSerialDescriptor:
     case _: (Int *: t) => KotlinXSerializers.int.getDescriptor :: getSerialDescriptor[t]
     case _: (Long *: t) => KotlinXSerializers.long.getDescriptor :: getSerialDescriptor[t]
     case _: (Short *: t) => KotlinXSerializers.short.getDescriptor :: getSerialDescriptor[t]
-    case _: (String *: t) => KotlinXSerializers.string.getDescriptor :: getSerialDescriptor[t]
     case _: (h *: t) => summonInline[ScalaSerialDescriptor[h]].serialDescriptor :: getSerialDescriptor[t]
 
   inline final def derived[A](using inline m: Mirror.Of[A]): ScalaSerialDescriptor[A] = new ScalaSerialDescriptor[A]:

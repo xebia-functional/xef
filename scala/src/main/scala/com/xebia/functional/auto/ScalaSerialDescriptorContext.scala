@@ -4,6 +4,8 @@ import com.xebia.functional.auto.KotlinXSerializers
 import com.xebia.functional.scala.auto.ScalaSerialDescriptor
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.BuiltinSerializersKt
+import kotlin.reflect.KClass
+import kotlin.jvm.internal.Reflection
 
 import scala.compiletime.summonInline
 import scala.reflect.ClassTag
@@ -20,10 +22,22 @@ object ScalaSerialDescriptorContext:
     case x if classOf[Long].isAssignableFrom(x) => KotlinXSerializers.long
     case x if classOf[Short].isAssignableFrom(x) => KotlinXSerializers.short
   }).asInstanceOf[KSerializer[T]]
+
   given [T: ClassTag]: ScalaSerialDescriptor[Option[T]] = new ScalaSerialDescriptor[Option[T]]:
     def serialDescriptor = BuiltinSerializersKt.getNullable(summonInline[KSerializer[T]]).getDescriptor
 
+  given [T: ClassTag]: ScalaSerialDescriptor[Array[T]] = new ScalaSerialDescriptor[Array[T]]:
+    def serialDescriptor =
+      val kClass = Reflection.createKotlinClass(summonInline[ClassTag[T]].runtimeClass).asInstanceOf[KClass[T]]
+      BuiltinSerializersKt.ArraySerializer(kClass, summonInline[KSerializer[T]]).getDescriptor
+
   given [T: ClassTag]: ScalaSerialDescriptor[List[T]] = new ScalaSerialDescriptor[List[T]]:
+    def serialDescriptor = BuiltinSerializersKt.ListSerializer(summonInline[KSerializer[T]]).getDescriptor
+
+  given [T: ClassTag]: ScalaSerialDescriptor[Seq[T]] = new ScalaSerialDescriptor[Seq[T]]:
+    def serialDescriptor = BuiltinSerializersKt.ListSerializer(summonInline[KSerializer[T]]).getDescriptor
+
+  given [T: ClassTag]: ScalaSerialDescriptor[Vector[T]] = new ScalaSerialDescriptor[Vector[T]]:
     def serialDescriptor = BuiltinSerializersKt.ListSerializer(summonInline[KSerializer[T]]).getDescriptor
 
   given [T: ClassTag]: ScalaSerialDescriptor[Set[T]] = new ScalaSerialDescriptor[Set[T]]:
