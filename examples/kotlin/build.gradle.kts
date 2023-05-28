@@ -24,6 +24,8 @@ dependencies {
   implementation(projects.xefSql)
   implementation(projects.xefTokenizer)
   implementation(projects.xefGit)
+  implementation(projects.xefTreeSitter)
+  implementation(projects.xefAntlr)
   implementation(libs.kotlinx.serialization.json)
   implementation(libs.logback)
   implementation(libs.klogging)
@@ -31,4 +33,5 @@ dependencies {
   implementation(libs.okio)
   implementation(libs.jdbc.mysql.connector)
   api(libs.bundles.ktor.client)
+  implementation("org.antlr:antlr4-runtime:4.13.0")
 }

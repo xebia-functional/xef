@@ -5,6 +5,7 @@ import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
+import okio.FileSystem
 
 actual val CommandExecutor.Companion.DEFAULT: CommandExecutor
   get() = JvmCommandExecutor
@@ -12,47 +13,28 @@ actual val CommandExecutor.Companion.DEFAULT: CommandExecutor
 object JvmCommandExecutor : CommandExecutor {
 
   // TODO Remove RunBlocking
-  private val platform: Platform by lazy {
+  override suspend fun platform(): Platform {
     val osName = System.getProperty("os.name").lowercase()
-
-    when {
-      osName.startsWith("windows") -> {
-        val uname = runBlocking {
-          try {
-            executeCommandAndCaptureOutput(
-              listOf("where", "uname"),
-              ExecuteCommandOptions(
-                directory = ".",
-                abortOnError = true,
-                redirectStderr = false,
-                trim = true,
-              ),
-            )
-            executeCommandAndCaptureOutput(
-              listOf("uname", "-a"),
-              ExecuteCommandOptions(
-                directory = ".",
-                abortOnError = true,
-                redirectStderr = true,
-                trim = true,
-              ),
-            )
-          } catch (e: Exception) {
-            ""
-          }
-        }
-//        if (uname.isNotBlank()) println("uname: $uname")
-        when {
-          uname.startsWith("MSYS") -> Platform.LINUX
-          uname.startsWith("MINGW") -> Platform.LINUX
-          uname.startsWith("CYGWIN") -> Platform.LINUX
-          else -> Platform.WINDOWS
-        } // .also { println("platform is $it") }
+    val uname =
+      try {
+        executeCommandAndCaptureOutput(
+          listOf("uname", "-m"),
+          ExecuteCommandOptions(
+            directory = FileSystem.SYSTEM_TEMPORARY_DIRECTORY.toString(),
+            abortOnError = true,
+            redirectStderr = true,
+            trim = true,
+          ),
+        )
+      } catch (e: Exception) {
+        ""
       }
 
-      osName.startsWith("linux") -> Platform.LINUX
-      osName.startsWith("mac") -> Platform.MACOS
-      osName.startsWith("darwin") -> Platform.MACOS
+    return when {
+      osName.startsWith("windows") -> Platform.WINDOWS(uname)
+      osName.startsWith("linux") -> Platform.LINUX(uname)
+      osName.startsWith("mac") -> Platform.MACOS(uname)
+      osName.startsWith("darwin") -> Platform.MACOS(uname)
       else -> error("unknown osName: $osName")
     }
   }
@@ -76,8 +58,8 @@ object JvmCommandExecutor : CommandExecutor {
     File(".").absolutePath
 
   override suspend fun findExecutable(executable: String): String =
-    when (platform) {
-      Platform.WINDOWS -> executeCommandAndCaptureOutput(
+    when (platform()) {
+      is Platform.WINDOWS -> executeCommandAndCaptureOutput(
         listOf("where", executable),
         ExecuteCommandOptions(".", true, false, true)
       )

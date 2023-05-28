@@ -13,8 +13,8 @@ actual val CommandExecutor.Companion.DEFAULT: CommandExecutor
 
 object WindowsCommandExecutor : CommandExecutor {
   // TODO Remove RunBlocking
-  private val platform: Platform by lazy {
-    val uname = runBlocking {
+  override suspend fun platform(): Platform {
+    val uname =
       try {
         executeCommandAndCaptureOutput(
           listOf("where", "uname"),
@@ -26,7 +26,7 @@ object WindowsCommandExecutor : CommandExecutor {
           ),
         )
         executeCommandAndCaptureOutput(
-          listOf("uname", "-a"),
+          listOf("uname", "-m"),
           ExecuteCommandOptions(
             directory = ".",
             abortOnError = true,
@@ -37,14 +37,7 @@ object WindowsCommandExecutor : CommandExecutor {
       } catch (e: Exception) {
         ""
       }
-    }
-    // if (uname.isNotBlank()) println("uname: $uname")
-    when {
-      uname.startsWith("MSYS") -> Platform.LINUX
-      uname.startsWith("MINGW") -> Platform.LINUX
-      uname.startsWith("CYGWIN") -> Platform.LINUX
-      else -> Platform.WINDOWS
-    }//.also { println("platform is $it") }
+    return Platform.WINDOWS(uname)
   }
 
   /**
@@ -78,8 +71,8 @@ object WindowsCommandExecutor : CommandExecutor {
   }
 
 
-  override suspend fun pwd(options: ExecuteCommandOptions): String = when (platform) {
-    Platform.WINDOWS -> executeCommandAndCaptureOutput(listOf("echo", "%cd%"), options).trim('"', ' ')
+  override suspend fun pwd(options: ExecuteCommandOptions): String = when (platform()) {
+    is Platform.WINDOWS -> executeCommandAndCaptureOutput(listOf("echo", "%cd%"), options).trim('"', ' ')
     else -> executeCommandAndCaptureOutput(listOf("pwd"), options).trim()
   }
 
