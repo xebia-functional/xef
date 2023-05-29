@@ -1,22 +1,12 @@
 package com.xebia.functional.xef.scala.auto
 
 import com.xebia.functional.xef.scala.auto.*
+import com.xebia.functional.xef.scala.auto.ScalaSerialDescriptorContext.given
 import io.circe.Decoder
 import io.circe.parser.decode
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.BuiltinSerializersKt
 import kotlinx.serialization.encoding.{Decoder as DecoderX, Encoder as EncoderX}
-
-import scala.compiletime.summonInline
-
-private final class MoonSerializer extends KSerializer[Moon] {
-  override def getDescriptor = summonInline[ScalaSerialDescriptor[Moon]].serialDescriptor
-  override def serialize(encoder: EncoderX, m: Moon): Unit = ???
-  override def deserialize(decoder: DecoderX): Moon = ???
-}
-
-given ScalaSerialDescriptor[List[Moon]] = new ScalaSerialDescriptor[List[Moon]]:
-  def serialDescriptor = BuiltinSerializersKt.ListSerializer(new MoonSerializer).getDescriptor
 
 private final case class Moon(name: String, distanceFromPlanet: Double) derives ScalaSerialDescriptor, Decoder
 
