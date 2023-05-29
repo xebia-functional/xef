@@ -29,8 +29,8 @@ object ScalaSerialDescriptorContext:
       val kClass = Reflection.createKotlinClass(summonInline[ClassTag[T]].runtimeClass).asInstanceOf[KClass[T]]
       BuiltinSerializersKt.ArraySerializer(kClass, summonInline[KSerializer[T]]).getDescriptor
 
-  given [T: ClassTag]: ScalaSerialDescriptor[List[T]] = new ScalaSerialDescriptor[List[T]]:
-    def serialDescriptor = BuiltinSerializersKt.ListSerializer(summonInline[KSerializer[T]]).getDescriptor
+  given [T: ScalaSerialDescriptor]: ScalaSerialDescriptor[List[T]] = new ScalaSerialDescriptor[List[T]]:
+    def serialDescriptor = BuiltinSerializersKt.ListSerializer(ScalaSerialDescriptor[T].kserializer).getDescriptor
 
   given [T: ClassTag]: ScalaSerialDescriptor[Seq[T]] = new ScalaSerialDescriptor[Seq[T]]:
     def serialDescriptor = BuiltinSerializersKt.ListSerializer(summonInline[KSerializer[T]]).getDescriptor
