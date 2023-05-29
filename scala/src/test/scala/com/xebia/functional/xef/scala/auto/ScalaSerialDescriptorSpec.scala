@@ -4,6 +4,7 @@ import cats.syntax.either.*
 import com.xebia.functional.xef.scala.auto.ScalaSerialDescriptor
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.BuiltinSerializersKt
+import kotlinx.serialization.encoding.{Decoder, Encoder}
 import munit.FunSuite
 
 import scala.collection.immutable.HashSet
@@ -25,6 +26,22 @@ class ScalaSerialDescriptorSpec extends FunSuite:
 
   test("Should create a ScalaSerialDescriptor for a simple case class with set and list fields") {
     final case class Person(age: Int, name: String, siblingNames: Set[String], nationality: List[String]) derives ScalaSerialDescriptor
+    assert(Either.catchNonFatal(ScalaSerialDescriptor[Person].serialDescriptor).isRight)
+  }
+
+  test("Should create a ScalaSerialDescriptor for a simple case class with a list case class") {
+    final case class Pet(age: Int, name: String) derives ScalaSerialDescriptor
+    final case class Person(age: Int, name: String, pets: List[Pet]) derives ScalaSerialDescriptor
+
+    class PetSerializer extends KSerializer[Pet] {
+      override def getDescriptor = summonInline[ScalaSerialDescriptor[Pet]].serialDescriptor
+      override def serialize(encoder: Encoder, t: Pet): Unit = ???
+      override def deserialize(decoder: Decoder): Pet = ???
+    }
+
+    given ScalaSerialDescriptor[List[Pet]] = new ScalaSerialDescriptor[List[Pet]]:
+      def serialDescriptor = BuiltinSerializersKt.ListSerializer(new PetSerializer).getDescriptor
+
     assert(Either.catchNonFatal(ScalaSerialDescriptor[Person].serialDescriptor).isRight)
   }
 
