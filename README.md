@@ -27,7 +27,7 @@ repositories {
 }
 ```
 
-Then add `com.47deg.xef:xef-<name>:0.0.1-SNAPSHOT` as a dependency, where `<name>` refers
+Then add `com.xebia:xef-<name>:0.0.1-alpha.<latest-alpha-version>` as a dependency, where `<name>` refers
 to the subcomponent you need:
 
 1. `xef-core` for Kotlin support, `xef-scala` for Scala.
