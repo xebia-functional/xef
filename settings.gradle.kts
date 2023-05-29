@@ -53,8 +53,5 @@ project(":xef-sql").projectDir = file("integrations/sql")
 include("xef-git")
 project(":xef-git").projectDir = file("integrations/git")
 
-include("xef-tree-sitter")
-project(":xef-tree-sitter").projectDir = file("integrations/tree-sitter")
-
 include("xef-antlr")
 project(":xef-antlr").projectDir = file("integrations/antlr")

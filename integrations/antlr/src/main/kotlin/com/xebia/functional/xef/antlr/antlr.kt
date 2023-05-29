@@ -79,7 +79,7 @@ private fun generateParserAndLexerSources(filePaths: MutableList<String>, tempDi
     val grammar: Grammar = Grammar.load(filePath)
     grammar.tool.outputDirectory = tempDir.path
     grammar.tool.gen_listener = true
-    grammar.tool.process(grammar, true)
+    grammar.tool.process(/* g = */ grammar, /* gencode = */ true)
   }
 }
 

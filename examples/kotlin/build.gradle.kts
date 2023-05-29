@@ -24,7 +24,6 @@ dependencies {
   implementation(projects.xefSql)
   implementation(projects.xefTokenizer)
   implementation(projects.xefGit)
-  implementation(projects.xefTreeSitter)
   implementation(projects.xefAntlr)
   implementation(libs.kotlinx.serialization.json)
   implementation(libs.logback)

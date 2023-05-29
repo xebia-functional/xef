@@ -15,7 +15,8 @@ import kotlinx.coroutines.Dispatchers
 
 suspend fun bingSearch(
   search: String,
-  splitter: TextSplitter = TokenTextSplitter(ModelType.GPT_3_5_TURBO, chunkSize = 100, chunkOverlap = 50),
+  splitter: TextSplitter =
+    TokenTextSplitter(ModelType.GPT_3_5_TURBO, chunkSize = 100, chunkOverlap = 50),
   url: String = "https://www.bing.com/news/search?q=${search.encodeURLParameter()}&format=rss",
   maxLinks: Int = 10
 ): List<String> {

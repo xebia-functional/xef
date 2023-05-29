@@ -1,11 +1,10 @@
 package com.xebia.functional.xef.io
 
-import kotlinx.coroutines.runBlocking
-import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
 import okio.FileSystem
+import java.io.File
 
 actual val CommandExecutor.Companion.DEFAULT: CommandExecutor
   get() = JvmCommandExecutor
