@@ -4,9 +4,6 @@ import com.xebia.functional.xef.scala.auto.*
 import com.xebia.functional.xef.scala.auto.ScalaSerialDescriptorContext.given
 import io.circe.Decoder
 import io.circe.parser.decode
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.builtins.BuiltinSerializersKt
-import kotlinx.serialization.encoding.{Decoder as DecoderX, Encoder as EncoderX}
 
 private final case class Moon(name: String, distanceFromPlanet: Double) derives ScalaSerialDescriptor, Decoder
 

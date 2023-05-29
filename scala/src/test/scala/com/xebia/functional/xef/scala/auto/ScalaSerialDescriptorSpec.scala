@@ -33,15 +33,6 @@ class ScalaSerialDescriptorSpec extends FunSuite:
     final case class Pet(age: Int, name: String) derives ScalaSerialDescriptor
     final case class Person(age: Int, name: String, pets: List[Pet]) derives ScalaSerialDescriptor
 
-    class PetSerializer extends KSerializer[Pet] {
-      override def getDescriptor = summonInline[ScalaSerialDescriptor[Pet]].serialDescriptor
-      override def serialize(encoder: Encoder, t: Pet): Unit = ???
-      override def deserialize(decoder: Decoder): Pet = ???
-    }
-
-    given ScalaSerialDescriptor[List[Pet]] = new ScalaSerialDescriptor[List[Pet]]:
-      def serialDescriptor = BuiltinSerializersKt.ListSerializer(new PetSerializer).getDescriptor
-
     assert(Either.catchNonFatal(ScalaSerialDescriptor[Person].serialDescriptor).isRight)
   }
 
@@ -61,8 +52,8 @@ class ScalaSerialDescriptorSpec extends FunSuite:
   }
 
   test("Should create a ScalaSerialDescriptor for a simple case class with HashSet field, providing a custom given") {
-    given [T: ClassTag]: ScalaSerialDescriptor[HashSet[T]] = new ScalaSerialDescriptor[HashSet[T]]:
-      def serialDescriptor = BuiltinSerializersKt.SetSerializer(summonInline[KSerializer[T]]).getDescriptor
+    given [T: ScalaSerialDescriptor]: ScalaSerialDescriptor[HashSet[T]] = new ScalaSerialDescriptor[HashSet[T]]:
+      def serialDescriptor = BuiltinSerializersKt.SetSerializer(ScalaSerialDescriptor[T].kserializer).getDescriptor
     final case class Person(age: Int, name: String, alias: HashSet[String]) derives ScalaSerialDescriptor
     assert(Either.catchNonFatal(ScalaSerialDescriptor[Person].serialDescriptor).isRight)
   }
