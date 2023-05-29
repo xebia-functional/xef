@@ -8,6 +8,8 @@ import io.circe.{Decoder, Json}
 import io.circe.parser.parse
 import com.xebia.functional.xef.auto.{AIException, AIKt, AIScope as KtAIScope, Agent as KtAgent}
 
+import scala.jdk.CollectionConverters.*
+
 package object auto {
 
   def ai[A](block: AIScope ?=> A): A =
@@ -51,4 +53,8 @@ package object auto {
         cont
       )
     )
+
+  def contextScope[A: Decoder: ScalaSerialDescriptor](docs: List[String])(block: AIScope ?=> A)(using scope: AIScope): A =
+    LoomAdapter.apply(scope.kt.contextScopeWithDocs[A](docs.asJava, (_, _) => block, _))
+
 }
