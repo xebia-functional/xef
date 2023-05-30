@@ -32,3 +32,6 @@ object KotlinXSerializers:
 
   val char: KSerializer[Character] =
     serializer(kotlin.jvm.internal.CharCompanionObject.INSTANCE)
+
+  val unit: KSerializer[kotlin.Unit] =
+    serializer(kotlin.Unit.INSTANCE)
