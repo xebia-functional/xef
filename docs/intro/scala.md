@@ -6,7 +6,7 @@ First of all, you need to add the dependency to your project:
 libraryDependencies += "com.xebia" %% "xef-scala" % "<version>"
 ```
 
-Replacing `<version>` with the latest available version.
+Replacing `<version>` with the latest available version. `xef-scala` is only available for Scala 3.
 
 After this, you get access to the `ai` function, which is your gate to the modern AI world.
 Inside of it, you can _prompt_ for information, which means posing the question to an LLM
