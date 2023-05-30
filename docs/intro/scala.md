@@ -18,7 +18,7 @@ package com.xebia.functional.xef.scala.auto
 import com.xebia.functional.xef.scala.auto.*
 
 @main def runBook: Unit = ai {
-  promptMessage("Give me a selection of books about $topic")
+  promptMessage(s"Give me a selection of books about $topic")
 }
 ```
 
@@ -120,4 +120,4 @@ private def getQuestionAnswer(question: String): List[String] = ai {
 
 ## Examples
 
-Check out the [examples folder](https://github.com/xebia-functional/xef/blob/main/examples/scala) for a complete list of different use cases.
+Check out the [examples folder](https://github.com/xebia-functional/xef/blob/main/examples/scala/auto) for a complete list of different use cases.
