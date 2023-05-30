@@ -8,8 +8,14 @@ import io.circe.parser.decode
 import io.circe.{Decoder, Json}
 import io.circe.parser.parse
 import com.xebia.functional.xef.auto.{AIException, AIKt, AIScope as KtAIScope, Agent as KtAgent}
+import com.xebia.functional.xef.textsplitters.TextSplitter
+import com.xebia.functional.xef.textsplitters.TokenTextSplitterKt.TokenTextSplitter
+import com.xebia.functional.xef.pdf.PDFLoaderKt
+import com.xebia.functional.tokenizer.ModelType
 
+import java.io.File
 import scala.jdk.CollectionConverters.*
+import scala.util.*
 
 package object auto {
 
@@ -25,6 +31,11 @@ package object auto {
         cont
       )
     }
+
+  extension [A](block: AIScope ?=> A) {
+    inline def getOrElse(orElse: Throwable => A): A =
+      Try(ai(block)).fold(orElse, v => v)
+  }
 
   def prompt[A: Decoder: ScalaSerialDescriptor](
       prompt: String,
@@ -71,6 +82,17 @@ package object auto {
     LoomAdapter
       .apply[java.util.List[String]](
         KtAgent.promptMessage(scope.kt, prompt, llmModel, user, echo, n, temperature, bringFromContext, minResponseTokens, _)
+      ).asScala.toList
+
+  def pdf(
+      resource: String | File,
+      splitter: TextSplitter = TokenTextSplitter(ModelType.GPT_3_5_TURBO, 100, 50)
+  )(using scope: AIScope): List[String] =
+    LoomAdapter
+      .apply[java.util.List[String]](count =>
+        resource match
+          case url: String => PDFLoaderKt.pdf(url, splitter, count)
+          case file: File => PDFLoaderKt.pdf(file, splitter, count)
       ).asScala.toList
 
 }

@@ -10,6 +10,8 @@ plugins {
 
 dependencies {
     implementation(projects.xefCore)
+    implementation(projects.xefTokenizer)
+    implementation(projects.xefPdf)
     implementation(projects.kotlinLoom)
     implementation(libs.kotlinx.coroutines)
     implementation(libs.circe.parser)
