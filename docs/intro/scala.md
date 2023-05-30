@@ -8,7 +8,7 @@ libraryDependencies += "com.xebia" %% "xef-scala" % "<version>"
 
 Replacing `<version>` with the latest available version.
 
-After this, you get access to the `ai` function, which is your port of entry to the modern AI world.
+After this, you get access to the `ai` function, which is your gate to the modern AI world.
 Inside of it, you can _prompt_ for information, which means posing the question to an LLM
 (Large Language Model). The easiest way is to just get the information back as a string.
 
