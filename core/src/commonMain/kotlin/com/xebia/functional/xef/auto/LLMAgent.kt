@@ -49,7 +49,7 @@ suspend fun AIScope.promptMessage(
   temperature: Double = 0.0,
   bringFromContext: Int = 10,
   minResponseTokens: Int,
-  logitBias: Map<String, Int> = mapOf()
+  logitBias: Map<Int, Int> = mapOf()
 ): List<String> {
   return when (model.kind) {
     LLMModel.Kind.Completion ->
@@ -122,7 +122,7 @@ private suspend fun AIScope.callCompletionEndpoint(
   temperature: Double = 0.0,
   bringFromContext: Int,
   minResponseTokens: Int,
-  logitBias: Map<String, Int>
+  logitBias: Map<Int, Int>
 ): List<String> {
   val promptWithContext: String =
     promptWithContext(prompt, bringFromContext, model.modelType, minResponseTokens)
@@ -151,7 +151,7 @@ private suspend fun AIScope.callChatEndpoint(
   temperature: Double = 0.0,
   bringFromContext: Int,
   minResponseTokens: Int,
-  logitBias: Map<String, Int>
+  logitBias: Map<Int, Int>
 ): List<String> {
   val role: String = Role.system.name
   val promptWithContext: String =

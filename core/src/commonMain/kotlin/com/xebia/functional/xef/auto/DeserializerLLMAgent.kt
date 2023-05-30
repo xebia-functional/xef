@@ -2,6 +2,7 @@ package com.xebia.functional.xef.auto
 
 import arrow.core.raise.catch
 import arrow.core.raise.ensureNotNull
+import com.xebia.functional.tokenizer.TokenVocabulary
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.auto.serialization.buildJsonSchema
 import com.xebia.functional.xef.llm.openai.LLMModel
@@ -112,7 +113,14 @@ suspend fun <A> AIScope.prompt(
       deserializationStrategy = serializer
     )
 
-  val logitBias: Map<String, Int> = jsonSchema.buildSchemaBias(model)
+  val schemaKeys: List<String> =
+    jsonSchema.getPropertyKeys().distinct() + listOf("{", "}", "[", "]")
+  val forbiddenKeys: List<String> = listOf("\n", "\t", "\r")
+
+  val tokenVocabulary = TokenVocabulary(model.modelType.encodingType)
+
+  val logitBias: Map<Int, Int> =
+    tokenVocabulary.buildLogitBias(optimisticKeys = schemaKeys, forbiddenKeys = forbiddenKeys)
 
   val responseInstructions =
     """
@@ -164,35 +172,48 @@ suspend fun <A> AIScope.tryDeserialize(
         raise(AIError.JsonParsing(result, maxDeserializationAttempts, e))
         // else continue with the next attempt
       }
-
     }
   }
   raise(AIError.NoResponse)
 }
 
-private fun JsonObject.buildSchemaBias(model: LLMModel): Map<String, Int> {
-  val jsonKeys: List<String> = listOf("{", "}", "[", "]")
-  val schemaKeys: List<String> = getProperties().distinct() + jsonKeys
+fun TokenVocabulary.buildLogitBias(
+  optimisticKeys: List<String> = listOf(),
+  exclusiveKeys: List<String> = listOf(),
+  forbiddenKeys: List<String> = listOf(),
+  limitBias: Int = 300
+): Map<Int, Int> = buildMap {
+  val keys: Map<List<String>, Int> = mapOf(
+    optimisticKeys to 10,
+    exclusiveKeys to 100,
+    forbiddenKeys to -100
+  )
 
-  return buildMap {
-    val bias = 1
-    schemaKeys.forEach { schemaKey ->
-      model.modelType.encoding.encode(schemaKey).forEach { token -> put("$token", bias) }
+  keys.forEach { (keyList: List<String>, value: Int) ->
+    keyList.forEach { key ->
+      decodedTokens
+        .asSequence()
+        .filter { it.value.contains(key) && it.value.length < 4 }
+        .forEach { if (size < limitBias) { put(it.key, value) } }
     }
   }
 }
 
-private fun JsonElement.getProperties(): List<String> =
+private fun JsonElement.getPropertyKeys(): List<String> =
   when (this) {
     is JsonObject -> {
-      values.flatMap { it.getProperties() }
+      values.flatMap { it.getPropertyKeys() }
     }
     is JsonArray -> {
-      flatMap { it.getProperties() }
+      flatMap { it.getPropertyKeys() }
     }
     is JsonPrimitive -> {
       val filterWords: List<String> = listOf("schema", "array", "number", "string", "object")
-      if (content.containsAny(filterWords)) { emptyList() } else { listOf(content) }
+      if (content.containsAny(filterWords)) {
+        emptyList()
+      } else {
+        listOf(content)
+      }
     }
     else -> {
       emptyList()
