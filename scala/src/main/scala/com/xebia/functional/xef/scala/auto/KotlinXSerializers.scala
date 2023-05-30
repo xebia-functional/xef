@@ -2,6 +2,7 @@ package com.xebia.functional.xef.scala.auto
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.BuiltinSerializersKt.serializer
+import scala.jdk.CollectionConverters.*
 
 import java.lang
 
@@ -32,3 +33,6 @@ object KotlinXSerializers:
 
   val char: KSerializer[Character] =
     serializer(kotlin.jvm.internal.CharCompanionObject.INSTANCE)
+
+  val unit: KSerializer[kotlin.Unit] =
+    serializer(kotlin.Unit.INSTANCE)
