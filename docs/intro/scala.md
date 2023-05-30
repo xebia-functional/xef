@@ -1,0 +1,123 @@
+# Quick introduction to xef.ai (Scala version)
+
+First of all, you need to add the dependency to your project:
+
+```sbt
+libraryDependencies += "com.xebia" %% "xef-scala" % "<version>"
+```
+
+Replacing `<version>` with the latest available version.
+
+After this, you get access to the `ai` function, which is your port of entry to the modern AI world.
+Inside of it, you can _prompt_ for information, which means posing the question to an LLM
+(Large Language Model). The easiest way is to just get the information back as a string.
+
+```scala
+package com.xebia.functional.xef.scala.auto
+
+import com.xebia.functional.xef.scala.auto.*
+
+@main def runBook: Unit = ai {
+  promptMessage("Give me a selection of books about $topic")
+}
+```
+
+> **Note**
+> By default the `ai` block connects to [OpenAI](https://platform.openai.com/).
+> To use their services you should provide the corresponding API key in the `OPENAI_TOKEN`
+> environment variable, and have enough credits.
+
+In the example above we _execute_ the `ai` block, that throws an exception
+whenever a problem is found (for example, if your API key is not correct). If you want more
+control, you will need to handle the potential errors accordingly.
+
+## Project Loom Dependency
+
+The Scala module depends on project [Loom](https://openjdk.org/projects/loom/), so you will need at least Java 19 to use the library.
+
+### Running with Sbt
+
+If you use SBT, you will need to enable preview by running the following command:
+
+```shell
+env OPENAI_TOKEN=<your-token> sbt -J--enable-preview run
+```
+
+### Running with IntelliJ
+
+It's necessary to set up:
+
+* Java version 19
+* Set VM options: "--enable-preview"
+* Set Env variable: "OPENAI_TOKEN=xxx"
+
+## Structure
+
+The output from the `books` function above may be hard to parse back from the
+strings we obtain. Fortunately, you can also ask xef.ai to give you back the information
+using a _custom type_. The library takes care of instructing the LLM on building such
+a structure, and deserialize the result back for you.
+
+```scala
+import com.xebia.functional.xef.scala.auto.*
+import io.circe.Decoder
+import io.circe.parser.decode
+
+private final case class Book(name: String, author: String, summary: String) derives ScalaSerialDescriptor, Decoder
+
+@main def runBook: Unit =
+val book = ai(prompt[Book]("To Kill a Mockingbird by Harper Lee summary."))
+println(s"To Kill a Mockingbird summary:\n ${book.summary}")
+```
+
+xef.ai for Scala uses xef.ai core, which it's based on Kotlin. Hence, the core 
+reuses [Kotlin's common serialization](https://kotlinlang.org/docs/serialization.html), and
+Scala uses [circe](https://github.com/circe/circe) to derive the required serializable instance. 
+The LLM is usually able to detect which kind of information should
+go on each field based on its name (like `title` and `author` above).
+
+## Context
+
+LLMs have knowledge about a broad variety of topics. But by construction they are not able
+to respond to questions about information not available in their training set. However, you
+often want to supplement the LLM with more data:
+- Transient information referring to the current moment, like the current weather, or
+  the trends in the stock market in the past 10 days.
+- Non-public information, for example for summarizing a piece of text you're creating
+  within you organization.
+
+These additional pieces of information are called the _context_ in xef.ai, and are attached
+to every question to the LLM. Although you can add arbitrary strings to the context at any
+point, the most common mode of usage is using an _agent_ to consult an external service,
+and make its response part of the context. One such agent is `search`, which uses a web
+search service to enrich that context.
+
+```scala
+import com.xebia.functional.xef.scala.agents.DefaultSearch
+import com.xebia.functional.xef.scala.auto.*
+import com.xebia.functional.xef.scala.auto.ScalaSerialDescriptorContext.given
+import io.circe.Decoder
+import io.circe.parser.decode
+
+private def getQuestionAnswer(question: String): List[String] = ai {
+  contextScope(DefaultSearch.search("Weather in Cádiz, Spain")) {
+    promptMessage(question)
+  }
+}
+@main def runWeather: Unit =
+  val question = "Knowing this forecast, what clothes do you recommend I should wear if I live in Cádiz?"
+  println(getQuestionAnswer(question).mkString("\n"))
+
+```
+
+> **Note**
+> The underlying mechanism of the context is a _vector store_, a data structure which
+> saves a set of strings, and is able to find those similar to another given one.
+> By default xef.ai uses an _in-memory_ vector store, since it provides maximum
+> compatibility across platforms. However, if you foresee your context growing above
+> the hundreds of elements, you may consider switching to another alternative, like
+> Lucene or PostgreSQL.
+
+## Examples
+
+Check out the [examples folder](https://github.com/xebia-functional/xef/blob/main/examples/scala) for a complete list of different use cases.
