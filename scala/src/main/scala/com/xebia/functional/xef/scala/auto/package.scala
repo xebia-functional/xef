@@ -10,6 +10,7 @@ import io.circe.parser.parse
 import com.xebia.functional.xef.auto.{AIException, AIKt, AIScope as KtAIScope, Agent as KtAgent}
 
 import scala.jdk.CollectionConverters.*
+import scala.util.*
 
 package object auto {
 
@@ -25,6 +26,11 @@ package object auto {
         cont
       )
     }
+
+  extension [A](block: AIScope ?=> A) {
+    inline def getOrElse(orElse: Throwable => A): A =
+      Try(ai(block)).fold(orElse, v => v)
+  }
 
   def prompt[A: Decoder: ScalaSerialDescriptor](
       prompt: String,
