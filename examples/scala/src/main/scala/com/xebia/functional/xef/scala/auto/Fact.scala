@@ -23,4 +23,4 @@ private final case class Riddle(content: String) derives ScalaSerialDescriptor, 
     val riddle = prompt[Riddle](riddlePrompt)
 
     println(s"Riddle:\n${riddle.content}")
-  }
+  }.getOrElse(ex => println(ex.getMessage))

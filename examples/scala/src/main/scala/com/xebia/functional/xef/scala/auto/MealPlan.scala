@@ -11,9 +11,9 @@ private final case class MealPlanRecipe(name: String, ingredients: List[String])
 private final case class MealPlan(name: String, recipes: List[MealPlanRecipe]) derives ScalaSerialDescriptor, Decoder
 
 @main def runMealPlan: Unit =
-  val mealPlan = ai {
+  ai {
     contextScope(DefaultSearch.search("gall bladder stones meals")) {
-      prompt[MealPlan]("Meal plan for the week for a person with gall bladder stones that includes 5 recipes.")
+      val mealPlan = prompt[MealPlan]("Meal plan for the week for a person with gall bladder stones that includes 5 recipes.")
+      println(mealPlan)
     }
-  }
-  println(mealPlan)
+  }.getOrElse(ex => println(ex.getMessage))
