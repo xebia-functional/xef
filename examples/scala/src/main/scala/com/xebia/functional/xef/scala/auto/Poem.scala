@@ -23,4 +23,4 @@ private final case class Poem(title: String, content: String) derives ScalaSeria
     val newPoem: Poem = prompt(newPoemPrompt)
 
     println(s"New Poem:\n\n${newPoem.content}")
-  }
+  }.getOrElse(ex => println(ex.getMessage))

@@ -22,4 +22,4 @@ private final case class Planet(name: String, distanceFromSun: Double, moons: Li
     val mars: Planet = prompt("Information about Mars and its moons.")
 
     println(s"Celestial bodies information:\n\n${planetInfo(earth)}\n\n${planetInfo(mars)}")
-  }
+  }.getOrElse(ex => println(ex.getMessage))

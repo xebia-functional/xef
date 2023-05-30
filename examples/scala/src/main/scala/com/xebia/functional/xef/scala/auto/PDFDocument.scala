@@ -15,4 +15,4 @@ private final case class AIResponse(answer: String) derives ScalaSerialDescripto
       val response = prompt[AIResponse](line)
       println(s"${response.answer}\n---\n")
     }
-  }
+  }.getOrElse(ex => println(ex.getMessage))

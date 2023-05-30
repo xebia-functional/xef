@@ -10,8 +10,8 @@ private final case class Riddle(content: String) derives ScalaSerialDescriptor, 
 
 @main def runFact: Unit =
   ai {
-    val fact1: Fact = prompt("A fascinating fact about you")
-    val fact2: Fact = prompt("An interesting fact about me")
+    val fact1 = prompt[Fact]("A fascinating fact about you")
+    val fact2 = prompt[Fact]("An interesting fact about me")
 
     val riddlePrompt =
       s"""

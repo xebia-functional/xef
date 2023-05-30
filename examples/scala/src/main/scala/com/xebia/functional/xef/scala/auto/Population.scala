@@ -13,4 +13,4 @@ private final case class Image(description: String, url: String) derives ScalaSe
     val cadiz: Population = prompt("Population of Cádiz, Spain.")
     val seattle: Population = prompt("Population of Seattle, WA.")
     println(s"The population of Cádiz is ${cadiz.size} and the population of Seattle is ${seattle.size}")
-  }
+  }.getOrElse(ex => println(ex.getMessage))
