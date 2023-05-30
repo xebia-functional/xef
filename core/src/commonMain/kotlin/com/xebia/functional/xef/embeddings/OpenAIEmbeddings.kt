@@ -37,27 +37,7 @@ class OpenAIEmbeddings(
     texts: List<String>,
     requestConfig: RequestConfig
   ): List<Embedding> =
-    kotlin
-      .runCatching {
-        config.retryConfig
-          .schedule()
-          .log { error, retriesSoFar ->
-            error.printStackTrace()
-            logger.warn { "Open AI call failed. So far we have retried $retriesSoFar times." }
-          }
-          .retry {
-            oaiClient
-              .createEmbeddings(
-                EmbeddingRequest(requestConfig.model.modelName, texts, requestConfig.user.id)
-              )
-              .data
-              .map { Embedding(it.embedding) }
-          }
-      }
-      .getOrElse {
-        logger.warn {
-          "Open AI call failed. Giving up after ${config.retryConfig.maxRetries} retries"
-        }
-        throw it
-      }
+    oaiClient.createEmbeddings(EmbeddingRequest(requestConfig.model.modelName, texts, requestConfig.user.id))
+      .data
+      .map { Embedding(it.embedding) }
 }

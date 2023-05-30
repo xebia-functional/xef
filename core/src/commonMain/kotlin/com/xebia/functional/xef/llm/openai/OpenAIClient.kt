@@ -1,7 +1,17 @@
 package com.xebia.functional.xef.llm.openai
 
+import arrow.core.Either
+import arrow.core.NonEmptyList
+import arrow.core.left
+import arrow.core.nonFatalOrThrow
+import arrow.core.right
+import arrow.core.toNonEmptyListOrNull
 import arrow.fx.coroutines.ResourceScope
+import arrow.resilience.Schedule
+import arrow.resilience.ScheduleStep
 import arrow.resilience.retry
+import com.xebia.functional.xef.AIError
+import com.xebia.functional.xef.AIError.AIClient.FailedParsing
 import com.xebia.functional.xef.configure
 import com.xebia.functional.xef.env.OpenAIConfig
 import com.xebia.functional.xef.httpClient
@@ -9,15 +19,19 @@ import com.xebia.functional.xef.llm.AIClientError
 import io.github.oshai.KLogger
 import io.github.oshai.KotlinLogging
 import io.ktor.client.HttpClient
-import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.plugins.timeout
 import io.ktor.client.request.post
 import io.ktor.client.statement.*
 import io.ktor.http.path
+import kotlin.time.Duration
+import kotlin.time.ExperimentalTime
+import kotlin.time.TimeSource
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 
@@ -26,8 +40,8 @@ private val logger: KLogger = KotlinLogging.logger {}
 interface OpenAIClient {
   suspend fun createCompletion(request: CompletionRequest): CompletionResult
   suspend fun createChatCompletion(request: ChatCompletionRequest): ChatCompletionResponse
-  suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult
-  suspend fun createImages(request: ImagesGenerationRequest): ImagesGenerationResponse
+  suspend fun createEmbeddings(request: EmbeddingRequest): Either<AIError.AIClient, EmbeddingResult>
+  suspend fun createImages(request: ImagesGenerationRequest): Either<FailedParsing, ImagesGenerationResponse>
 }
 
 @Serializable
@@ -42,7 +56,8 @@ data class ImagesGenerationRequest(
 @Serializable
 data class ImagesGenerationResponse(val created: Long, val data: List<ImageGenerationUrl>)
 
-@Serializable data class ImageGenerationUrl(val url: String)
+@Serializable
+data class ImageGenerationUrl(val url: String)
 
 suspend fun ResourceScope.KtorOpenAIClient(
   config: OpenAIConfig,
@@ -51,7 +66,8 @@ suspend fun ResourceScope.KtorOpenAIClient(
 
 private class KtorOpenAIClient(
   private val httpClient: HttpClient,
-  private val config: OpenAIConfig
+  private val config: OpenAIConfig,
+  private val temperature: Double
 ) : OpenAIClient {
 
   override suspend fun createCompletion(request: CompletionRequest): CompletionResult {
@@ -79,9 +95,7 @@ private class KtorOpenAIClient(
     val response: HttpResponse =
       config.retryConfig
         .schedule()
-        .log { error, attempts ->
-          println("Retrying chat completion due to $error after $attempts attempts")
-        }
+        .log { error, attempts -> logger.debug(error) { "Retrying chat completion after $attempts attempts" } }
         .retry {
           httpClient.post {
             url { path("chat/completions") }
@@ -98,21 +112,24 @@ private class KtorOpenAIClient(
     return body
   }
 
-  override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult {
-    val response: HttpResponse =
-      config.retryConfig.schedule().retry {
+  override suspend fun createEmbeddings(request: EmbeddingRequest): Either<AIError.AIClient, EmbeddingResult> {
+    val history: NonEmptyList<History<HttpResponse>> =
+      config.retryConfig.schedule().retryTimed {
         httpClient.post {
           url { path("embeddings") }
           configure(config.token, request)
           timeout { requestTimeoutMillis = config.requestTimeout.inWholeMilliseconds }
         }
       }
-    val body: EmbeddingResult = response.bodyOrError()
-    with(body.usage) { logger.debug { "Embeddings Tokens :: total: $totalTokens" } }
-    return body
+    return history.head.result.fold({
+      throw it
+    }, { response ->
+      response.bodyOrError<EmbeddingResult>()
+        .onRight { with(it.usage) { logger.debug { "Embeddings Tokens :: total: $totalTokens" } } }
+    })
   }
 
-  override suspend fun createImages(request: ImagesGenerationRequest): ImagesGenerationResponse {
+  override suspend fun createImages(request: ImagesGenerationRequest): Either<FailedParsing, ImagesGenerationResponse> {
     val response: HttpResponse =
       config.retryConfig.schedule().retry {
         httpClient.post {
@@ -130,11 +147,41 @@ val JsonLenient = Json {
   ignoreUnknownKeys = true
 }
 
-private suspend inline fun <reified T> HttpResponse.bodyOrError(): T {
+private suspend inline fun <reified T> HttpResponse.bodyOrError(): Either<FailedParsing, T> {
   val contents = bodyAsText()
-  try {
-    return JsonLenient.decodeFromString<T>(contents)
-  } catch (_: IllegalArgumentException) {
-    throw AIClientError(JsonLenient.decodeFromString<JsonElement>(contents))
+  return try {
+    JsonLenient.decodeFromString<T>(contents).right()
+  } catch (e: IllegalArgumentException) {
+    FailedParsing(JsonLenient.decodeFromString<JsonElement>(contents), e).left()
+  }
+}
+
+data class History<A>(val result: Either<Throwable, A>, val duration: Duration)
+
+@OptIn(ExperimentalTime::class)
+private suspend fun <Input, Output> Schedule<Throwable, Output>.retryTimed(action: suspend () -> Input): NonEmptyList<History<Input>> {
+  var step: ScheduleStep<Throwable, Output> = step
+  val history: MutableList<History<Input>> = mutableListOf()
+
+  while (true) {
+    currentCoroutineContext().ensureActive()
+    val start = TimeSource.Monotonic.markNow()
+    try {
+      history.add(History(action.invoke().right(), start.elapsedNow()))
+      return history.asReversed().toNonEmptyListOrNull()!!
+    } catch (e: Throwable) {
+      when (val decision = step(e.nonFatalOrThrow())) {
+        is Schedule.Decision.Continue -> {
+          history.add(History(e.left(), start.elapsedNow()))
+          if (decision.delay != Duration.ZERO) delay(decision.delay)
+          step = decision.step
+        }
+
+        is Schedule.Decision.Done -> {
+          history.add(History(e.left(), start.elapsedNow()))
+          return history.asReversed().toNonEmptyListOrNull()!!
+        }
+      }
+    }
   }
 }

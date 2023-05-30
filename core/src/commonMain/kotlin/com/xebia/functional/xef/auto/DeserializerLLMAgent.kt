@@ -170,9 +170,7 @@ suspend fun <A> AIScope.tryDeserialize(
   maxDeserializationAttempts: Int,
   agent: AI<List<String>>
 ): A {
-  var currentAttempts = 0
-  while (currentAttempts < maxDeserializationAttempts) {
-    currentAttempts++
+  (0 until maxDeserializationAttempts).forEach { currentAttempts ->
     val result = ensureNotNull(agent().firstOrNull()) { AIError.NoResponse }
     catch({
       return@tryDeserialize serializer(result)
