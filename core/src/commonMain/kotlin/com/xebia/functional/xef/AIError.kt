@@ -1,13 +1,7 @@
 package com.xebia.functional.xef
 
 import arrow.core.NonEmptyList
-import com.xebia.functional.xef.auto.AI
-import com.xebia.functional.xef.auto.AIScope
-import com.xebia.functional.xef.auto.ai
-import com.xebia.functional.xef.auto.prompt
-import com.xebia.functional.xef.llm.openai.History
 import com.xebia.functional.xef.llm.openai.Message
-import io.ktor.client.statement.HttpResponse
 import kotlinx.serialization.json.JsonElement
 
 sealed interface AIError {
@@ -18,14 +12,10 @@ sealed interface AIError {
       get() = "No response from the AI"
   }
 
-  sealed interface AIClient : AIError {
-    data class FailedParsing(val json: JsonElement, val cause: IllegalArgumentException) : AIClient {
+  sealed interface Client : AIError {
+    data class FailedParsing(val json: JsonElement, val cause: IllegalArgumentException) : Client {
       override val reason: String
         get() = "AIClient failed to parse response. Received $json, cause: ${cause.stackTraceToString()}"
-    }
-
-    data class NoResponse(val history: NonEmptyList<History<HttpResponse>>) {
-
     }
   }
 

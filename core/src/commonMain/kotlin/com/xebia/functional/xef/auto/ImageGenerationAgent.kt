@@ -91,5 +91,5 @@ suspend fun AIScope.images(
       size = size,
       user = user
     )
-  return openAIClient.createImages(request).bind()
+  return openAIClient.createImages(request)
 }
