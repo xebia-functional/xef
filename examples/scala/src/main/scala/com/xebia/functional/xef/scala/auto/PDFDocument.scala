@@ -21,4 +21,4 @@ val pdfUrl = "https://people.cs.ksu.edu/~schmidt/705a/Scala/Programming-in-Scala
         println(s"${response.answer}\n---\n")
       }
     }
-  }
+  }.getOrElse(ex => println(ex.getMessage))

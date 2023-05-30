@@ -63,4 +63,4 @@ object ScalaSerialDescriptorContext:
     def serialDescriptor = KotlinXSerializers.string.getDescriptor
 
   given ScalaSerialDescriptor[Unit] = new ScalaSerialDescriptor[Unit]:
-    override def serialDescriptor: SerialDescriptor = KotlinXSerializers.unit.getDescriptor
+    def serialDescriptor = KotlinXSerializers.unit.getDescriptor
