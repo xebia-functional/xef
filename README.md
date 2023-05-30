@@ -40,8 +40,11 @@ could be useful if you use Gradle.
 ## Quick introduction
 
 - [In Kotlin](https://github.com/xebia-functional/xef/blob/main/docs/intro/kotlin.md)
-- In Scala (work in progress)
+- [In Scala](https://github.com/xebia-functional/xef/blob/main/docs/intro/scala.md)
 
-You can also have a look at our
-[examples](https://github.com/xebia-functional/xef/tree/main/examples/kotlin/src/main/kotlin/com/xebia/functional/xef/auto)
+You can also have a look at the examples:
+
+- [In Kotlin](https://github.com/xebia-functional/xef/tree/main/examples/kotlin/src/main/kotlin/com/xebia/functional/xef/auto)
+- [In Scala](https://github.com/xebia-functional/xef/tree/main/examples/scala/src/main/scala/com/xebia/functional/xef/scala/auto)
+
 to have a feeling of how using the library looks like.
