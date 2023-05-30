@@ -45,3 +45,25 @@ could be useful if you use Gradle.
 You can also have a look at our
 [examples](https://github.com/xebia-functional/xef/tree/main/examples/kotlin/src/main/kotlin/com/xebia/functional/xef/auto)
 to have a feeling of how using the library looks like.
+
+## Data Transmission Disclosure
+
+While this library is licensed under the Apache License, it's crucial
+to inform our users about specific data transmission behaviors associated
+with using this software.
+
+This library may transmit source code and potentially user input data to
+third-party services as part of its functionality. We understand the paramount
+importance of data security and privacy, so we want to be upfront about these mechanisms.
+
+**Developers integrating this library into their applications should be aware
+of this behavior and take necessary precautions to ensure that sensitive data
+is not inadvertently transmitted.**
+
+We strongly recommend reviewing the third-party services' privacy policies
+before using this library, as their data handling practices may not align with
+your expectations or requirements.
+
+You acknowledge and agree to these data transmission behaviors by using this
+library. Please consider this when planning your data management and privacy
+strategies.
