@@ -60,3 +60,6 @@ object ScalaSerialDescriptorContext:
 
   given ScalaSerialDescriptor[String] = new ScalaSerialDescriptor[String]:
     def serialDescriptor = KotlinXSerializers.string.getDescriptor
+
+  given ScalaSerialDescriptor[Unit] = new ScalaSerialDescriptor[Unit]:
+    def serialDescriptor = KotlinXSerializers.unit.getDescriptor
