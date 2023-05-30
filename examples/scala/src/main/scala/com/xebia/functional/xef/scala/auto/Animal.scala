@@ -25,4 +25,4 @@ private final case class Story(animal: Animal, invention: Invention, story: Stri
     val story: Story = prompt(storyPrompt)
 
     println(s"Story about ${animal.name} and ${invention.name}: ${story.story}")
-  }.getOrElse { ex => println(ex.getMessage) }
+  }.getOrElse(ex => println(ex.getMessage))
