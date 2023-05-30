@@ -19,7 +19,7 @@ import com.xebia.functional.xef.scala.auto.*
 
 @main def runBook: Unit = ai {
   promptMessage(s"Give me a selection of books about $topic")
-}
+}.getOrElse(ex => println(ex.getMessage))
 ```
 
 > **Note**
@@ -27,9 +27,9 @@ import com.xebia.functional.xef.scala.auto.*
 > To use their services you should provide the corresponding API key in the `OPENAI_TOKEN`
 > environment variable, and have enough credits.
 
-In the example above we _execute_ the `ai` block, that throws an exception
-whenever a problem is found (for example, if your API key is not correct). If you want more
-control, you will need to handle the potential errors accordingly.
+In the example above we _execute_ the `ai` block with `getOrElse`, so in case an exception
+is thrown (for example, if your API key is not correct), we are handing the error by printing
+the reason of the error.
 
 ## Project Loom Dependency
 
@@ -66,8 +66,11 @@ import io.circe.parser.decode
 private final case class Book(name: String, author: String, summary: String) derives ScalaSerialDescriptor, Decoder
 
 @main def runBook: Unit =
-val book = ai(prompt[Book]("To Kill a Mockingbird by Harper Lee summary."))
-println(s"To Kill a Mockingbird summary:\n ${book.summary}")
+val book = ai {
+  val toKillAMockingBird = prompt[Book]("To Kill a Mockingbird by Harper Lee summary.")
+  println(s"${toKillAMockingBird.name} by ${toKillAMockingBird.author} summary:\n ${toKillAMockingBird.summary}")
+}.getOrElse(ex => println(ex.getMessage))
+
 ```
 
 xef.ai for Scala uses xef.ai core, which it's based on Kotlin. Hence, the core 
