@@ -25,6 +25,11 @@ control, you can use `getOrElse` (to which you provide a custom handler for erro
 `toEither` (which returns the result using 
 [`Either` from Arrow](https://arrow-kt.io/learn/typed-errors/either-and-ior/)).
 
+In the next examples we'll drop the `getOrThrow`, so we get the result from `ai` directly.
+This is of the form `AI<Something>`, where `Something` is the type you eventually obtain
+after performing the AI calls. Within an `ai` block you can freely get the result from
+those `AI` values; this allows you to break a larger pipeline into small pieces.
+
 ## Structure
 
 The output from the `books` function above may be hard to parse back from the
@@ -38,24 +43,23 @@ import com.xebia.functional.xef.auto.*
 @Serializable
 data class Book(val title: String, val author: String)
 
-fun books(topic: String): List<Book> = ai {
+fun books(topic: String): AI<List<Book>> = ai {
     prompt("Give me a selection of books about $topic")
-}.getOrThrow()
+}
 ```
 
 xef.ai reuses [Kotlin's common serialization](https://kotlinlang.org/docs/serialization.html),
-which require adding the `kotlinx.serialization` plug-in to your build, and mark each
+which requires adding the `kotlinx.serialization` plug-in to your build, and mark each
 class as `@Serializable`. The LLM is usually able to detect which kind of information should
 go on each field based on its name (like `title` and `author` above).
 
 ## Prompt templates
 
 The function `books` uses naive string interpolation to make the topic part of the question
-to the LLM. This is not the best practice, because the way the topic is phrased may confuse
-the LLM. It's recommended
-(for example, [here](https://www.deeplearning.ai/short-courses/chatgpt-prompt-engineering-for-developers/)
-and [here](https://learnprompting.org/docs/intro)) to use a _delimiter_ instead, and create a 
-template to avoid string manipulation and promote reuse.
+to the LLM. As the prompt gets bigger, though, you may want to break it into smaller parts.
+The `buildPrompt` function is the tool here: inside of it you can include any string or
+smaller prompt by prefixing it with `+`
+(this is known as the [builder pattern](https://kotlinlang.org/docs/type-safe-builders.html)).
 
 ```kotlin
 import com.xebia.functional.xef.auto.*
@@ -63,18 +67,19 @@ import com.xebia.functional.xef.auto.*
 @Serializable
 data class Book(val title: String, val author: String)
 
-fun books(topic: String): List<Book> = ai {
-    val template = PromptTemplate(
-        "Give me a selection of books about the topic given between triple backticks: ```{topic}```",
-        listOf("topic")
-    )
-    prompt(template, mapOf("topic" to topic))
-}.getOrThrow()
+fun books(topic: String): AI<List<Book>> = ai {
+  val prompt = buildPrompt {
+    + "Give me a selection of books about the following topic:"
+    + topic
+  }
+  prompt(prompt)
+}
 ```
 
-As you can see above, a _template_ describes a message pattern alongside a set of _variables_;
-in our case only `topic`. The call to prompt accepts that template, and a map of values for
-each of the variables.
+In a larger AI application it's common to end up with quite some template for prompts.
+Online material like [this course](https://www.deeplearning.ai/short-courses/chatgpt-prompt-engineering-for-developers/)
+and [this tutorial](https://learnprompting.org/docs/intro) explain some of the most important patterns,
+some of them readily available in xef.ai.
 
 ## Context
 
@@ -95,7 +100,7 @@ search service to enrich that context.
 ```kotlin
 import com.xebia.functional.xef.auto.*
 
-fun whatToWear(place: String): List<String> = ai {
+fun whatToWear(place: String): AI<List<String>> = ai {
     context(search("Weather in $place")) {
         promptMessage("Knowing this forecast, what clothes do you recommend I should wear?")
     }
@@ -114,7 +119,7 @@ fun whatToWear(place: String): List<String> = ai {
 > import com.xebia.functional.xef.auto.*
 > import com.xebia.functional.xef.vectorstores
 > 
-> fun books(topic: String) = ai {
+> fun books(topic: String): AI<List<Book>> = ai {
 >   withContextStore(InMemoryLuceneBuilder(LUCENE_PATH)) { /* do stuff */ }
 > }
 > ```
