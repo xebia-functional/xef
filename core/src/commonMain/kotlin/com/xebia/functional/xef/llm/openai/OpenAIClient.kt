@@ -1,14 +1,7 @@
 package com.xebia.functional.xef.llm.openai
 
-import arrow.core.Either
-import arrow.core.left
-import arrow.core.raise.catch
-import arrow.core.right
 import arrow.fx.coroutines.ResourceScope
 import arrow.resilience.retry
-import com.xebia.functional.xef.AIError
-import com.xebia.functional.xef.AIError.Client.FailedParsing
-import com.xebia.functional.xef.Tracer
 import com.xebia.functional.xef.configure
 import com.xebia.functional.xef.env.OpenAIConfig
 import com.xebia.functional.xef.httpClient
@@ -18,12 +11,13 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.plugins.timeout
 import io.ktor.client.request.post
-import io.ktor.client.statement.*
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.path
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonElement
 
 private val logger: KLogger = KotlinLogging.logger {}
 
@@ -60,7 +54,7 @@ private class KtorOpenAIClient(
 ) : OpenAIClient {
 
   override suspend fun createCompletion(request: CompletionRequest): CompletionResult {
-    val response: HttpResponse =
+    val response =
       config.retryConfig.schedule().retry {
         httpClient.post {
           url { path("completions") }
@@ -126,16 +120,32 @@ private class KtorOpenAIClient(
   }
 }
 
-val JsonLenient = Json {
-  isLenient = true
-  ignoreUnknownKeys = true
-}
+private suspend inline fun <reified T> HttpResponse.bodyOrError(): T =
+  if (status == HttpStatusCode.OK) Json.decodeFromString(bodyAsText())
+  else throw OpenAIClientException(status, Json.decodeFromString(bodyAsText()))
 
-private suspend inline fun <reified T> HttpResponse.bodyOrError(): T {
-  val contents = bodyAsText()
-//  return catch({
-    return JsonLenient.decodeFromString<T>(contents)
-//  }) { e: IllegalArgumentException ->
-//    FailedParsing(JsonLenient.decodeFromString<JsonElement>(contents), e).left()
-//  }
+class OpenAIClientException(
+  val httpStatusCode: HttpStatusCode,
+  val error: Error
+) : IllegalStateException(
+  """
+  
+  OpenAI error: ${error.error.type}
+    message: ${error.error.message}
+    StatusCode: $httpStatusCode 
+    param: ${error.error.param}
+    code: ${error.error.code}
+      
+      """.trimIndent()
+)
+
+@Serializable
+data class Error(val error: Description) {
+  @Serializable
+  data class Description(
+    val message: String,
+    val type: String,
+    val param: String? = null,
+    val code: String? = null
+  )
 }
