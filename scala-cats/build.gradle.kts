@@ -10,14 +10,14 @@ plugins {
 
 dependencies {
     implementation(projects.xefCore)
-    implementation(projects.kotlinLoom)
 
     // TODO split to separate Scala library
     implementation(projects.xefPdf)
-
+    implementation(libs.cats.effect)
     implementation(libs.circe.parser)
     implementation(libs.circe)
     testImplementation(libs.munit.core)
+    testImplementation(libs.munit.cats.effect)
 }
 
 java {
