@@ -8,10 +8,9 @@ import io.circe.parser.decode
 import io.circe.{Decoder, Json}
 import io.circe.parser.parse
 import com.xebia.functional.xef.auto.{AIException, AIKt, AIScope as KtAIScope, Agent as KtAgent}
-import com.xebia.functional.xef.textsplitters.TextSplitter
-import com.xebia.functional.xef.textsplitters.TokenTextSplitterKt.TokenTextSplitter
 import com.xebia.functional.xef.pdf.PDFLoaderKt
 import com.xebia.functional.tokenizer.ModelType
+import com.xebia.functional.xef.scala.textsplitters.TextSplitter
 
 import java.io.File
 import scala.jdk.CollectionConverters.*
@@ -86,13 +85,13 @@ package object auto {
 
   def pdf(
       resource: String | File,
-      splitter: TextSplitter = TokenTextSplitter(ModelType.GPT_3_5_TURBO, 100, 50)
+      splitter: TextSplitter = TextSplitter.tokenTextSplitter(ModelType.GPT_3_5_TURBO, 100, 50)
   )(using scope: AIScope): List[String] =
     LoomAdapter
       .apply[java.util.List[String]](count =>
         resource match
-          case url: String => PDFLoaderKt.pdf(url, splitter, count)
-          case file: File => PDFLoaderKt.pdf(file, splitter, count)
+          case url: String => PDFLoaderKt.pdf(url, splitter.core, count)
+          case file: File => PDFLoaderKt.pdf(file, splitter.core, count)
       ).asScala.toList
 
 }
