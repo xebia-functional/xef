@@ -1,14 +1,8 @@
 # Quick introduction to xef.ai (Scala version)
 
-First of all, you need to add the dependency to your project:
-
-```sbt
-libraryDependencies += "com.xebia" %% "xef-scala" % "<version>"
-```
-
-Replacing `<version>` with the latest available version. `xef-scala` is only available for Scala 3.
-
-After this, you get access to the `ai` function, which is your gate to the modern AI world.
+After adding the library to your project
+(see the [main README](https://github.com/xebia-functional/xef/blob/main/README.md) for instructions),
+you get access to the `ai` function, which is your gate to the modern AI world.
 Inside of it, you can _prompt_ for information, which means posing the question to an LLM
 (Large Language Model). The easiest way is to just get the information back as a string.
 
