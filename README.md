@@ -14,8 +14,14 @@ xef.ai is packaged in two layers:
 xef.ai draws inspiration from libraries like [LangChain](https://docs.langchain.com/docs/)
 and community projects like [Hugging Face](https://huggingface.co/).
 
-<details>
-<summary> <b>⚠️ Data Transmission Disclosure</b> </summary>
+<!-- TOC -->
+* [⚠️ Data Transmission Disclosure](#-data-transmission-disclosure)
+* [🛎️ Getting the Libraries](#-getting-the-libraries)
+* [📖 Quick Introduction](#-quick-introduction)
+* [🚀 Examples](#-examples)
+<!-- TOC -->
+
+## ⚠️ Data Transmission Disclosure
 
 While this library is licensed under the Apache License, it's crucial
 to inform our users about specific data transmission behaviors associated
@@ -37,9 +43,7 @@ You acknowledge and agree to these data transmission behaviors by using this
 library. Please consider this when planning your data management and privacy
 strategies.
 
-</details>
-
-## Getting the libraries
+## 🛎️ Getting the Libraries
 
 Libraries are published in Maven Central, under the `com.xebia` group.
 
@@ -85,14 +89,14 @@ libraryDependencies += "com.xebia" %% "xef-scala" % "<version>"
 
 </details>
 
-## Quick introduction
+## 📖 Quick Introduction
 
 In this small introduction we look at the main features of xef, including the `ai` function.
 
 - [<img src="https://upload.wikimedia.org/wikipedia/commons/3/37/Kotlin_Icon_2021.svg" height="15px" alt="Kotlin logo"> Kotlin version](https://github.com/xebia-functional/xef/blob/main/docs/intro/kotlin.md)
 - [<img src="https://www.scala-lang.org/resources/img/frontpage/scala-spiral.png" height="15px" alt="Scala logo"> Scala version](https://github.com/xebia-functional/xef/blob/main/docs/intro/scala.md)
 
-## Examples
+## 🚀 Examples
 
 You can also have a look at the examples to have a feeling of how using the library looks like.
 
