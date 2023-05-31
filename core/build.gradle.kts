@@ -73,7 +73,6 @@ kotlin {
         implementation(libs.kotest.property)
         implementation(libs.kotest.framework)
         implementation(libs.kotest.assertions)
-        implementation(libs.kotest.assertions.arrow)
       }
     }
 
