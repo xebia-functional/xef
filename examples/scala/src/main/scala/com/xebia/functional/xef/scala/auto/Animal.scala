@@ -2,7 +2,6 @@ package com.xebia.functional.xef.scala.auto
 
 import com.xebia.functional.xef.scala.auto.*
 import io.circe.Decoder
-import io.circe.parser.decode
 
 private final case class Animal(name: String, habitat: String, diet: String) derives ScalaSerialDescriptor, Decoder
 

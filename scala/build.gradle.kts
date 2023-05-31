@@ -17,6 +17,7 @@ dependencies {
     implementation(libs.circe.parser)
     implementation(libs.circe)
     implementation(libs.cats.effect)
+    implementation(libs.scala.lang)
     testImplementation(libs.munit.core)
     testImplementation(libs.munit.cats.effect)
 }
@@ -33,6 +34,10 @@ java {
 
 tasks.withType<Test>().configureEach {
     useJUnit()
+}
+
+tasks.withType<ScalaCompile> {
+    scalaCompileOptions.additionalParameters = listOf("-Wunused:all", "-Wvalue-discard")
 }
 
 publishing {
@@ -86,6 +91,6 @@ signing {
 
 spotless {
     scala {
-        scalafmt("3.7.1").configFile(".scalafmt.conf").scalaMajorVersion("2.13")
+        scalafmt("3.7.3").configFile(".scalafmt.conf").scalaMajorVersion("2.13")
     }
 }
