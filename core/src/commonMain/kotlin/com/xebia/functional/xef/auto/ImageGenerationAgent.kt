@@ -115,7 +115,8 @@ suspend fun <A> AIScope.image(
   val imageResponse = images(prompt, user, 1, size, bringFromContext)
   val url = imageResponse.data.firstOrNull() ?: raise(AIError.NoResponse)
   return prompt(
-    Prompt("""|Instructions: Format this [URL] and [PROMPT] information in the desired JSON response format
+    Prompt(
+      """|Instructions: Format this [URL] and [PROMPT] information in the desired JSON response format
        |specified at the end of the message.
        |[URL]:
        |```
@@ -125,7 +126,8 @@ suspend fun <A> AIScope.image(
        |```
        |$prompt
        |```"""
-      .trimMargin()),
+        .trimMargin()
+    ),
     descriptor,
     serializer,
     maxDeserializationAttempts,
