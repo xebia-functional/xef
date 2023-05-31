@@ -10,6 +10,7 @@ Inside of it, you can _prompt_ for information, which means posing the question 
 import com.xebia.functional.xef.scala.auto.*
 
 @main def runBook: Unit = ai {
+  val topic: String = "functional programming"
   promptMessage(s"Give me a selection of books about $topic")
 }.getOrElse(ex => println(ex.getMessage))
 ```
@@ -17,6 +18,22 @@ import com.xebia.functional.xef.scala.auto.*
 In the example above we _execute_ the `ai` block with `getOrElse`, so in case an exception
 is thrown (for example, if your API key is not correct), we are handing the error by printing
 the reason of the error.
+
+In the next examples we'll write functions that rely on `ai`'s DSL functionality,
+but without actually extracting the values yet using `getOrThrow` or `getOrElse`.
+We'll eventually call this functions from an `ai` block as we've shown above, and
+this allows us to build larger pipelines, and only extract the final result at the end.
+
+This can be done by either uing a context parameters or function _using_ `AIScope`.
+Let's compare the two:
+
+```scala
+def book(topic: String)(using scope: AIScope): String =
+  promptMessage(s"Give me a selection of books about $topic")
+
+def book(topic: String): AIScope ?=> String =
+  promptMessage(s"Give me a selection of books about $topic")
+```
 
 ## Additional setup
 
@@ -79,12 +96,14 @@ import io.circe.parser.decode
 
 private final case class Book(name: String, author: String, summary: String) derives ScalaSerialDescriptor, Decoder
 
-@main def runBook: Unit =
-val book = ai {
-  val toKillAMockingBird = prompt[Book]("To Kill a Mockingbird by Harper Lee summary.")
-  println(s"${toKillAMockingBird.name} by ${toKillAMockingBird.author} summary:\n ${toKillAMockingBird.summary}")
-}.getOrElse(ex => println(ex.getMessage))
+def summarizeBook(title: String, author: String)(using scope: AIScope): Book =
+  prompt(s"$title by $author summary.")
 
+@main def runBook: Unit =
+  ai {
+    val toKillAMockingBird = summarizeBook("To Kill a Mockingbird", "Harper Lee")
+    println(s"${toKillAMockingBird.name} by ${toKillAMockingBird.author} summary:\n ${toKillAMockingBird.summary}")
+  }.getOrElse(ex => println(ex.getMessage))
 ```
 
 xef.ai for Scala uses xef.ai core, which it's based on Kotlin. Hence, the core 
@@ -116,11 +135,10 @@ import com.xebia.functional.xef.scala.auto.ScalaSerialDescriptorContext.given
 import io.circe.Decoder
 import io.circe.parser.decode
 
-private def getQuestionAnswer(question: String)(using scope: AIScope): List[String] = ai {
+private def getQuestionAnswer(question: String)(using scope: AIScope): List[String] =
   contextScope(DefaultSearch.search("Weather in Cádiz, Spain")) {
     promptMessage(question)
   }
-}
 
 @main def runWeather: Unit =
   val question = "Knowing this forecast, what clothes do you recommend I should wear if I live in Cádiz?"

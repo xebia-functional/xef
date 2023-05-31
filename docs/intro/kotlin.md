@@ -25,10 +25,28 @@ control, you can use `getOrElse` (to which you provide a custom handler for erro
 `toEither` (which returns the result using 
 [`Either` from Arrow](https://arrow-kt.io/learn/typed-errors/either-and-ior/)).
 
-In the next examples we'll drop the `getOrThrow`, so we get the result from `ai` directly.
-This is of the form `AI<Something>`, where `Something` is the type you eventually obtain
-after performing the AI calls. Within an `ai` block you can freely get the result from
-those `AI` values; this allows you to break a larger pipeline into small pieces.
+In the next examples we'll write functions that rely on `ai`'s DSL functionality, 
+but without actually extracting the values yet using `getOrThrow` or `getOrElse`.
+We'll eventually call this functions from an `ai` block as we've shown above, and
+this allows us to build larger pipelines, and only extract the final result at the end.
+
+This can be done by either writing an extension function on `AIScope`, or by using the form `AI<Something>`.
+Let's compare the two:
+
+```kotlin
+import com.xebia.functional.xef.auto.*
+
+suspend fun AIScope.books(topic: String): String =
+  promptMessage("Give me a selection of books about $topic")
+
+fun books2(topic: String): AI<String> =
+  promptMessage("Give me a selection of books about $topic")
+```
+
+Both functions are equivalent, but the first is considered most idiomatic, and can be compared to
+`CoroutineScope` from KotlinX Coroutines which gives access to concurrency primitives like `launch` and `async`.
+The second form is useful when you want to create an extension function on something else than `AIScope`,
+and you can use `bind` to extract the `String` value from `AI<String>` within an `ai` block or an `AIScope`.
 
 ## Structure
 
@@ -43,9 +61,8 @@ import com.xebia.functional.xef.auto.*
 @Serializable
 data class Book(val title: String, val author: String)
 
-fun books(topic: String): AI<List<Book>> = ai {
+suspend fun AIScope.books(topic: String): AI<List<Book>> =
     prompt("Give me a selection of books about $topic")
-}
 ```
 
 xef.ai reuses [Kotlin's common serialization](https://kotlinlang.org/docs/serialization.html),
@@ -67,12 +84,12 @@ import com.xebia.functional.xef.auto.*
 @Serializable
 data class Book(val title: String, val author: String)
 
-fun books(topic: String): AI<List<Book>> = ai {
+suspend fun AIScope.books(topic: String): List<Book> {
   val prompt = buildPrompt {
     + "Give me a selection of books about the following topic:"
     + topic
   }
-  prompt(prompt)
+  return prompt(prompt)
 }
 ```
 
@@ -100,11 +117,10 @@ search service to enrich that context.
 ```kotlin
 import com.xebia.functional.xef.auto.*
 
-fun whatToWear(place: String): AI<List<String>> = ai {
-    context(search("Weather in $place")) {
-        promptMessage("Knowing this forecast, what clothes do you recommend I should wear?")
-    }
-}
+suspend fun AIScope.whatToWear(place: String): List<String> =
+  context(search("Weather in $place")) {
+    promptMessage("Knowing this forecast, what clothes do you recommend I should wear?")
+  }
 ```
 
 > **Note**
@@ -119,7 +135,6 @@ fun whatToWear(place: String): AI<List<String>> = ai {
 > import com.xebia.functional.xef.auto.*
 > import com.xebia.functional.xef.vectorstores
 > 
-> fun books(topic: String): AI<List<Book>> = ai {
+> suspend fun AIScope.books(topic: String): List<Book> =
 >   withContextStore(InMemoryLuceneBuilder(LUCENE_PATH)) { /* do stuff */ }
-> }
 > ```
