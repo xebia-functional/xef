@@ -4,6 +4,7 @@ import kotlin.jvm.internal.Reflection
 import kotlin.reflect.KClass
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.BuiltinSerializersKt
+import kotlinx.serialization.descriptors.SerialDescriptor
 
 import scala.compiletime.summonInline
 import scala.reflect.ClassTag
@@ -60,3 +61,6 @@ object ScalaSerialDescriptorContext:
 
   given ScalaSerialDescriptor[String] = new ScalaSerialDescriptor[String]:
     def serialDescriptor = KotlinXSerializers.string.getDescriptor
+
+  given ScalaSerialDescriptor[Unit] = new ScalaSerialDescriptor[Unit]:
+    def serialDescriptor = KotlinXSerializers.unit.getDescriptor

@@ -62,5 +62,7 @@ private def chessGame(moves: List[ChessMove], gameState: GameState)(using scope:
   else (gameState.winner.getOrElse("Something went wrong"), moves.last)
 
 @main def runChess: Unit =
-  val (winner, fMove) = ai(chessGame(Nil, GameState(false, None)))
-  println(s"Game over. Final move: $fMove, Winner: $winner")
+  ai {
+    val (winner, fMove) = chessGame(Nil, GameState(false, None))
+    println(s"Game over. Final move: $fMove, Winner: $winner")
+  }.getOrElse(ex => println(ex.getMessage))

@@ -4,7 +4,7 @@ import com.xebia.functional.xef.scala.auto.*
 import io.circe.Decoder
 import io.circe.parser.decode
 
-final case class Poem(title: String, content: String) derives ScalaSerialDescriptor, Decoder
+private final case class Poem(title: String, content: String) derives ScalaSerialDescriptor, Decoder
 
 @main def runPoem: Unit =
   ai {
@@ -23,4 +23,4 @@ final case class Poem(title: String, content: String) derives ScalaSerialDescrip
     val newPoem: Poem = prompt(newPoemPrompt)
 
     println(s"New Poem:\n\n${newPoem.content}")
-  }
+  }.getOrElse(ex => println(ex.getMessage))

@@ -15,4 +15,4 @@ private final case class TouristAttraction(name: String, location: String, histo
          |${statueOfLiberty.history}
       """.stripMargin
     )
-  }
+  }.getOrElse(ex => println(ex.getMessage))

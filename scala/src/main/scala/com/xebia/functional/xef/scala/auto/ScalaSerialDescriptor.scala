@@ -37,6 +37,7 @@ object ScalaSerialDescriptor:
     case _: (Int *: t) => KotlinXSerializers.int.getDescriptor :: getSerialDescriptor[t]
     case _: (Long *: t) => KotlinXSerializers.long.getDescriptor :: getSerialDescriptor[t]
     case _: (Short *: t) => KotlinXSerializers.short.getDescriptor :: getSerialDescriptor[t]
+    case _: (Unit *: t) => KotlinXSerializers.unit.getDescriptor :: getSerialDescriptor[t]
     case _: (h *: t) => summonInline[ScalaSerialDescriptor[h]].serialDescriptor :: getSerialDescriptor[t]
 
   inline final def derived[A](using inline m: Mirror.Of[A]): ScalaSerialDescriptor[A] = new ScalaSerialDescriptor[A]:
