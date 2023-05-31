@@ -1,7 +1,6 @@
 package com.xebia.functional.xef.embeddings
 
 import arrow.fx.coroutines.parMap
-import arrow.resilience.retry
 import com.xebia.functional.xef.env.OpenAIConfig
 import com.xebia.functional.xef.llm.openai.EmbeddingRequest
 import com.xebia.functional.xef.llm.openai.OpenAIClient
@@ -37,7 +36,10 @@ class OpenAIEmbeddings(
     texts: List<String>,
     requestConfig: RequestConfig
   ): List<Embedding> =
-    oaiClient.createEmbeddings(EmbeddingRequest(requestConfig.model.modelName, texts, requestConfig.user.id))
+    oaiClient
+      .createEmbeddings(
+        EmbeddingRequest(requestConfig.model.modelName, texts, requestConfig.user.id)
+      )
       .data
       .map { Embedding(it.embedding) }
 }

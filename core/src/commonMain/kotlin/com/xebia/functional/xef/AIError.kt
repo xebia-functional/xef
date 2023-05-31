@@ -2,7 +2,6 @@ package com.xebia.functional.xef
 
 import arrow.core.NonEmptyList
 import com.xebia.functional.xef.llm.openai.Message
-import kotlinx.serialization.json.JsonElement
 
 sealed interface AIError {
   val reason: String
@@ -11,19 +10,6 @@ sealed interface AIError {
     override val reason: String
       get() = "No response from the AI"
   }
-
-  sealed interface Client : AIError {
-    data class FailedParsing(val json: JsonElement, val cause: IllegalArgumentException) : Client {
-      override val reason: String
-        get() = "AIClient failed to parse response. Received $json, cause: ${cause.stackTraceToString()}"
-    }
-  }
-
-//  data class AIClient(val error: Throwable) : AIError {
-//    override val reason: String
-//      get() = TODO("Not yet implemented")
-//  }
-
 
   data class MessagesExceedMaxTokenLength(
     val messages: List<Message>,
