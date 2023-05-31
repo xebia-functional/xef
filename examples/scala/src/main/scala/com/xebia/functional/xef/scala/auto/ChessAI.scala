@@ -1,8 +1,9 @@
 package com.xebia.functional.xef.scala.auto
 
-import io.circe.Decoder
 import com.xebia.functional.xef.scala.auto.*
 import com.xebia.functional.xef.scala.auto.ScalaSerialDescriptorContext.given
+import io.circe.Decoder
+import io.circe.parser.decode
 
 import scala.annotation.tailrec
 
@@ -61,5 +62,7 @@ private def chessGame(moves: List[ChessMove], gameState: GameState)(using scope:
   else (gameState.winner.getOrElse("Something went wrong"), moves.last)
 
 @main def runChess: Unit =
-  val (winner, fMove) = AI(chessGame(Nil, GameState(false, None)))
-  println(s"Game over. Final move: $fMove, Winner: $winner")
+  ai {
+    val (winner, fMove) = chessGame(Nil, GameState(false, None))
+    println(s"Game over. Final move: $fMove, Winner: $winner")
+  }.getOrElse(ex => println(ex.getMessage))

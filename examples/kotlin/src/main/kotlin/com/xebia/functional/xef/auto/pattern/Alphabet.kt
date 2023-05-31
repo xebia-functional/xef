@@ -4,7 +4,6 @@ import com.xebia.functional.xef.agents.patternPrompt
 import com.xebia.functional.xef.auto.ai
 import com.xebia.functional.xef.auto.getOrElse
 import com.xebia.functional.xef.auto.prompt
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
 suspend fun main() {

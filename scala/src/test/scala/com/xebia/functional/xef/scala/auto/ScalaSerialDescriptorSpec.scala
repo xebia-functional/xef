@@ -4,6 +4,7 @@ import cats.syntax.either.*
 import com.xebia.functional.xef.scala.auto.ScalaSerialDescriptor
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.BuiltinSerializersKt
+import kotlinx.serialization.encoding.{Decoder, Encoder}
 import munit.FunSuite
 
 import scala.collection.immutable.HashSet
@@ -28,6 +29,13 @@ class ScalaSerialDescriptorSpec extends FunSuite:
     assert(Either.catchNonFatal(ScalaSerialDescriptor[Person].serialDescriptor).isRight)
   }
 
+  test("Should create a ScalaSerialDescriptor for a simple case class with a list case class") {
+    final case class Pet(age: Int, name: String) derives ScalaSerialDescriptor
+    final case class Person(age: Int, name: String, pets: List[Pet]) derives ScalaSerialDescriptor
+
+    assert(Either.catchNonFatal(ScalaSerialDescriptor[Person].serialDescriptor).isRight)
+  }
+
   test("Should create a ScalaSerialDescriptor for a simple case class with seq and vector fields") {
     final case class Person(age: Int, name: String, other1: Seq[Byte], other2: Vector[Short]) derives ScalaSerialDescriptor
     assert(Either.catchNonFatal(ScalaSerialDescriptor[Person].serialDescriptor).isRight)
@@ -44,8 +52,8 @@ class ScalaSerialDescriptorSpec extends FunSuite:
   }
 
   test("Should create a ScalaSerialDescriptor for a simple case class with HashSet field, providing a custom given") {
-    given [T: ClassTag]: ScalaSerialDescriptor[HashSet[T]] = new ScalaSerialDescriptor[HashSet[T]]:
-      def serialDescriptor = BuiltinSerializersKt.SetSerializer(summonInline[KSerializer[T]]).getDescriptor
+    given [T: ScalaSerialDescriptor]: ScalaSerialDescriptor[HashSet[T]] = new ScalaSerialDescriptor[HashSet[T]]:
+      def serialDescriptor = BuiltinSerializersKt.SetSerializer(ScalaSerialDescriptor[T].kserializer).getDescriptor
     final case class Person(age: Int, name: String, alias: HashSet[String]) derives ScalaSerialDescriptor
     assert(Either.catchNonFatal(ScalaSerialDescriptor[Person].serialDescriptor).isRight)
   }

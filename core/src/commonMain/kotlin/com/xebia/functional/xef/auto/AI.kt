@@ -180,6 +180,7 @@ class AIScope(
 
   /** Add new [docs] to the [context], and then executes the [block]. */
   @AiDsl
+  @JvmName("contextScopeWithDocs")
   suspend fun <A> contextScope(docs: List<String>, block: AI<A>): A = contextScope {
     extendContext(*docs.toTypedArray())
     block(this)

@@ -1,4 +1,4 @@
-# xef.ai
+# xef.ai [![Maven Central](https://img.shields.io/maven-central/v/com.xebia/xef-core?color=4caf50&label=latest%20release)](https://central.sonatype.com/artifact/com.xebia/xef-core)
 
 > Bring modern AI everywhere!
 
@@ -14,34 +14,92 @@ xef.ai is packaged in two layers:
 xef.ai draws inspiration from libraries like [LangChain](https://docs.langchain.com/docs/)
 and community projects like [Hugging Face](https://huggingface.co/).
 
-## Getting the libraries
+<!-- TOC -->
+* [⚠️ Data Transmission Disclosure](#-data-transmission-disclosure)
+* [🛎️ Getting the Libraries](#-getting-the-libraries)
+* [📖 Quick Introduction](#-quick-introduction)
+* [🚀 Examples](#-examples)
+<!-- TOC -->
 
-At this moment libraries are published in Sonatype's Snapshot repository. You need to add
-that repository to your Maven or Gradle build:
+## ⚠️ Data Transmission Disclosure
 
-```kotlin
-repositories {
-    mavenCentral()
-    // other repositories
-    maven(url = "https://oss.sonatype.org/content/repositories/snapshots")
-}
-```
+While this library is licensed under the Apache License, it's crucial
+to inform our users about specific data transmission behaviors associated
+with using this software.
 
-Then add `com.47deg.xef:xef-<name>:0.0.1-SNAPSHOT` as a dependency, where `<name>` refers
-to the subcomponent you need:
+This library may transmit source code and potentially user input data to
+third-party services as part of its functionality. We understand the paramount
+importance of data security and privacy, so we want to be upfront about these mechanisms.
+
+**Developers integrating this library into their applications should be aware
+of this behavior and take necessary precautions to ensure that sensitive data
+is not inadvertently transmitted.**
+
+We strongly recommend reviewing the third-party services' privacy policies
+before using this library, as their data handling practices may not align with
+your expectations or requirements.
+
+You acknowledge and agree to these data transmission behaviors by using this
+library. Please consider this when planning your data management and privacy
+strategies.
+
+## 🛎️ Getting the Libraries
+
+Libraries are published in Maven Central, under the `com.xebia` group.
 
 1. `xef-core` for Kotlin support, `xef-scala` for Scala.
 2. The name of a library we provide integration for, like `xef-lucene`.
 
+<details>
+<summary><img src="https://upload.wikimedia.org/wikipedia/commons/3/37/Kotlin_Icon_2021.svg" height="15px" alt="Kotlin logo"> Gradle (Kotlin DSL)</summary>
+
+Libraries are published in Maven Central. You may need to  add that repository explicitly
+in your build, if you haven't done it before.
+
+```kotlin
+repositories {
+    mavenCentral()
+}
+```
+
+Then add the library in the usual way.
+
+```kotlin
+// In Gradle Kotlin 
+dependencies {
+    implementation("com.xebia:xef-core:<version>")
+}
+```
+
 We publish all libraries at once under the same version, so
 [version catalogs](https://docs.gradle.org/current/userguide/platforms.html#sec:sharing-catalogs)
-could be useful if you use Gradle.
+could be useful.
 
-## Quick introduction
+</details>
 
-- [In Kotlin](https://github.com/xebia-functional/xef/blob/main/docs/intro/kotlin.md)
-- In Scala (work in progress)
+<details>
+<summary><img src="https://www.scala-lang.org/resources/img/frontpage/scala-spiral.png" height="15px" alt="Scala logo"> SBT</summary>
 
-You can also have a look at our
-[examples](https://github.com/xebia-functional/xef/tree/main/examples/kotlin/src/main/kotlin/com/xebia/functional/xef/auto)
-to have a feeling of how using the library looks like.
+```sbt
+libraryDependencies += "com.xebia" %% "xef-scala" % "<version>"
+```
+
+> **Warning**
+> `xef-scala` is currently only available for Scala 3, and depends on project [Loom](https://openjdk.org/projects/loom/),
+> so you will need at least Java 19 to use the library.
+
+</details>
+
+## 📖 Quick Introduction
+
+In this small introduction we look at the main features of xef, including the `ai` function.
+
+- [<img src="https://upload.wikimedia.org/wikipedia/commons/3/37/Kotlin_Icon_2021.svg" height="15px" alt="Kotlin logo"> Kotlin version](https://github.com/xebia-functional/xef/blob/main/docs/intro/kotlin.md)
+- [<img src="https://www.scala-lang.org/resources/img/frontpage/scala-spiral.png" height="15px" alt="Scala logo"> Scala version](https://github.com/xebia-functional/xef/blob/main/docs/intro/scala.md)
+
+## 🚀 Examples
+
+You can also have a look at the examples to have a feeling of how using the library looks like.
+
+- [<img src="https://upload.wikimedia.org/wikipedia/commons/3/37/Kotlin_Icon_2021.svg" height="15px" alt="Kotlin logo"> Examples in Kotlin](https://github.com/xebia-functional/xef/tree/main/examples/kotlin/src/main/kotlin/com/xebia/functional/xef/auto)
+- [<img src="https://www.scala-lang.org/resources/img/frontpage/scala-spiral.png" height="15px" alt="Scala logo"> Examples in Scala](https://github.com/xebia-functional/xef/tree/main/examples/scala/src/main/scala/com/xebia/functional/xef/scala/auto)

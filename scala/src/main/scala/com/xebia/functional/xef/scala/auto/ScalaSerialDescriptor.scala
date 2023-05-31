@@ -3,6 +3,8 @@ package com.xebia.functional.xef.scala.auto
 import kotlinx.serialization.descriptors.SerialDescriptorsKt.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.{PrimitiveKind, SerialDescriptor, SerialKind, StructureKind}
 import kotlinx.serialization.internal.ArrayListSerializer
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.encoding.{Decoder, Encoder}
 
 import java.lang.annotation.Annotation
 import java.util
@@ -12,6 +14,10 @@ import scala.reflect.ClassTag
 
 trait ScalaSerialDescriptor[A]:
   def serialDescriptor: SerialDescriptor
+  def kserializer: KSerializer[A] = new KSerializer[A]:
+    override def getDescriptor: SerialDescriptor = serialDescriptor
+    override def serialize(encoder: Encoder, t: A): Unit = ???
+    override def deserialize(decoder: Decoder): A = ???
 
 object ScalaSerialDescriptor:
   def apply[A](using ev: ScalaSerialDescriptor[A]): ScalaSerialDescriptor[A] = ev
@@ -31,6 +37,7 @@ object ScalaSerialDescriptor:
     case _: (Int *: t) => KotlinXSerializers.int.getDescriptor :: getSerialDescriptor[t]
     case _: (Long *: t) => KotlinXSerializers.long.getDescriptor :: getSerialDescriptor[t]
     case _: (Short *: t) => KotlinXSerializers.short.getDescriptor :: getSerialDescriptor[t]
+    case _: (Unit *: t) => KotlinXSerializers.unit.getDescriptor :: getSerialDescriptor[t]
     case _: (h *: t) => summonInline[ScalaSerialDescriptor[h]].serialDescriptor :: getSerialDescriptor[t]
 
   inline final def derived[A](using inline m: Mirror.Of[A]): ScalaSerialDescriptor[A] = new ScalaSerialDescriptor[A]:
