@@ -16,34 +16,56 @@ import com.xebia.functional.xef.scala.auto.*
 }.getOrElse(ex => println(ex.getMessage))
 ```
 
-> **Note**
-> By default the `ai` block connects to [OpenAI](https://platform.openai.com/).
-> To use their services you should provide the corresponding API key in the `OPENAI_TOKEN`
-> environment variable, and have enough credits.
-
 In the example above we _execute_ the `ai` block with `getOrElse`, so in case an exception
 is thrown (for example, if your API key is not correct), we are handing the error by printing
 the reason of the error.
 
-## Project Loom Dependency
+## Additional setup
 
-The Scala module depends on project [Loom](https://openjdk.org/projects/loom/), so you will need at least Java 19 to use the library.
+If the code above fails, you may need to perform some additional setup.
 
-### Running with Sbt
+### OpenAI
 
-If you use SBT, you will need to enable preview by running the following command:
+By default, the `ai` block connects to [OpenAI](https://platform.openai.com/).
+To use their services you should provide the corresponding API key in the `OPENAI_TOKEN`
+environment variable, and have enough credits.
+
+<details>
+<summary>SBT</summary>
 
 ```shell
-env OPENAI_TOKEN=<your-token> sbt -J--enable-preview run
+env OPENAI_TOKEN=<your-token> sbt <your-command>
 ```
+</details>
 
-### Running with IntelliJ
+<details>
+<summary>IntelliJ</summary>
 
-It's necessary to set up:
+Set the environment variable `OPENAI_TOKEN=xxx`
 
-* Java version 19
-* Set VM options: "--enable-preview"
-* Set Env variable: "OPENAI_TOKEN=xxx"
+</details>
+
+### Project Loom
+
+The Scala module depends on project [Loom](https://openjdk.org/projects/loom/), 
+so you will need at least Java 19 to use the library. Furthermore, you need to pass
+the `--enable-preview` flag.
+
+<details>
+<summary>SBT</summary>
+
+```shell
+env OPENAI_TOKEN=<your-token> sbt -J--enable-preview <your-command>
+```
+</details>
+
+<details>
+<summary>IntelliJ</summary>
+
+- Set the Java version to at least 19
+- Set VM options to `--enable-preview`
+
+</details>
 
 ## Structure
 
