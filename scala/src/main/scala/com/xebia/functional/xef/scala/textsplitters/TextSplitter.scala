@@ -7,7 +7,6 @@ import com.xebia.functional.tokenizer.ModelType
 import kotlin.coroutines.Continuation
 
 import scala.jdk.CollectionConverters.*
-import scala.util.Try
 
 trait TextSplitter:
   private type Ret = java.util.List[String]
