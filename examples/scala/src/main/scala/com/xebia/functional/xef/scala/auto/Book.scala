@@ -5,7 +5,7 @@ import io.circe.Decoder
 
 private final case class Book(name: String, author: String, summary: String) derives ScalaSerialDescriptor, Decoder
 
-def summarizeBook(title: String, author: String)(using scope: AIScope): Book =
+def summarizeBook(title: String, author: String): AI[Book] =
   prompt(s"$title by $author summary.")
 
 @main def runBook: Unit =

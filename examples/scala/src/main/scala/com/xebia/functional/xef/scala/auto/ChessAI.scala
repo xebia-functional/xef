@@ -13,14 +13,11 @@ private final case class ChessBoard(board: String) derives ScalaSerialDescriptor
 private final case class GameState(ended: Boolean, winner: Option[String]) derives ScalaSerialDescriptor, Decoder
 
 @tailrec
-private def chessGame(moves: List[ChessMove], gameState: GameState)(using scope: AIScope): (String, ChessMove) =
+private def chessGame(moves: List[ChessMove], gameState: GameState): AI[(String, ChessMove)] =
   if !gameState.ended then
-    println("==================================== New Move ====================================")
     val currentPlayer = if moves.size % 2 == 0 then "Player 1 (White)" else "Player 2 (Black)"
-    println(s"Current player is: $currentPlayer")
 
     val previousMoves = moves.map(m => m.player + ":" + m.move).mkString(", ")
-    println(s"Previous moves: $previousMoves")
 
     val movePrompt = moves match {
       case Nil => s"""
@@ -55,7 +52,6 @@ private def chessGame(moves: List[ChessMove], gameState: GameState)(using scope:
       """.stripMargin
 
     val gameState: GameState = prompt(gameStatePrompt)
-    println(s"Is the game Ended? ${gameState.ended}")
 
     chessGame(moves :+ move, gameState)
   else (gameState.winner.getOrElse("Something went wrong"), moves.last)
