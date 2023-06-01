@@ -16,7 +16,7 @@ suspend fun main() {
             prompt = goal,
             pattern = pattern,
             maxIterations = 10,
-            maxTokensPerCompletion = 3
+            maxTokensPerCompletion = 1
         )
         val pessimisticDecoded: List<String> = Json.decodeFromString(pessimistic)
         println(pessimisticDecoded)
