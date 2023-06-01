@@ -10,28 +10,26 @@ plugins {
 
 dependencies {
     implementation(projects.xefCore)
-
-    // TODO split to separate Scala library
-    implementation(projects.xefPdf)
+    implementation(libs.scala.lang)
     implementation(libs.cats.effect)
-    implementation(libs.circe.parser)
-    implementation(libs.circe)
     testImplementation(libs.munit.core)
     testImplementation(libs.munit.cats.effect)
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_19
-    targetCompatibility = JavaVersion.VERSION_19
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
     toolchain {
-        languageVersion = JavaLanguageVersion.of(19)
+        languageVersion = JavaLanguageVersion.of(11)
     }
-    withSourcesJar()
-    withJavadocJar()
 }
 
 tasks.withType<Test>().configureEach {
     useJUnit()
+}
+
+tasks.withType<ScalaCompile> {
+    scalaCompileOptions.additionalParameters = listOf("-Wunused:all", "-Wvalue-discard")
 }
 
 publishing {
@@ -85,6 +83,6 @@ signing {
 
 spotless {
     scala {
-        scalafmt("3.7.1").configFile(".scalafmt.conf").scalaMajorVersion("2.13")
+        scalafmt("3.7.3").configFile(".scalafmt.conf").scalaMajorVersion("2.13")
     }
 }
