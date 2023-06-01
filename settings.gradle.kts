@@ -34,6 +34,9 @@ project(":xef-filesystem").projectDir = file("filesystem")
 include("xef-scala")
 project(":xef-scala").projectDir = file("scala")
 
+include("xef-scala-cats")
+project(":xef-scala-cats").projectDir = file("scala-cats")
+
 include("xef-tokenizer")
 project(":xef-tokenizer").projectDir = file("tokenizer")
 

@@ -1,9 +1,7 @@
 package com.xebia.functional.xef.scala.auto
 
 import com.xebia.functional.xef.scala.auto.*
-import com.xebia.functional.xef.scala.auto.ScalaSerialDescriptorContext.given
 import io.circe.Decoder
-import io.circe.parser.decode
 
 private final case class Person(name: String, age: Int) derives ScalaSerialDescriptor, Decoder
 

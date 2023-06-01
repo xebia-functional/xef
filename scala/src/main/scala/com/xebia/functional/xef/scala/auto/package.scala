@@ -2,12 +2,10 @@ package com.xebia.functional.xef.scala
 
 import com.xebia.functional.loom.LoomAdapter
 import com.xebia.functional.xef.AIError
-import com.xebia.functional.xef.agents.LLMAgentKt
 import com.xebia.functional.xef.llm.openai.LLMModel
-import io.circe.parser.decode
-import io.circe.{Decoder, Json}
+import io.circe.Decoder
 import io.circe.parser.parse
-import com.xebia.functional.xef.auto.{AIException, AIKt, AIScope as KtAIScope, Agent as KtAgent}
+import com.xebia.functional.xef.auto.{AIException, AIKt, Agent as KtAgent}
 import com.xebia.functional.xef.textsplitters.TextSplitter
 import com.xebia.functional.xef.textsplitters.TokenTextSplitterKt.TokenTextSplitter
 import com.xebia.functional.xef.pdf.PDFLoaderKt
@@ -20,14 +18,14 @@ import scala.util.*
 package object auto {
 
   def ai[A](block: AIScope ?=> A): A =
-    LoomAdapter.apply { (cont) =>
+    LoomAdapter.apply { cont =>
       AIKt.AIScope[A](
-        { (coreAIScope, cont) =>
+        { (coreAIScope, _) =>
           given AIScope = AIScope.fromCore(coreAIScope)
 
           block
         },
-        (e: AIError, cont) => throw AIException(e.getReason),
+        (e: AIError, _) => throw AIException(e.getReason),
         cont
       )
     }

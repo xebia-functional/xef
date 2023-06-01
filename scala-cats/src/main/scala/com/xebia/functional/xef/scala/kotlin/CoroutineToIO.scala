@@ -46,7 +46,6 @@ object CoroutineToIO:
 
     private def dispatcher: F[CoroutineDispatcher] =
       Async[F].executionContext.map { other =>
-        Async[F].executionContext
         kotlinx.coroutines.ExecutorsKt.from(
           new AbstractExecutorService with ExecutionContextExecutorService {
             override def isShutdown = false

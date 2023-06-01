@@ -3,7 +3,6 @@ package com.xebia.functional.xef.scala.auto
 import com.xebia.functional.xef.scala.auto.*
 import com.xebia.functional.xef.scala.auto.ScalaSerialDescriptorContext.given
 import io.circe.Decoder
-import io.circe.parser.decode
 
 private final case class Moon(name: String, distanceFromPlanet: Double) derives ScalaSerialDescriptor, Decoder
 
