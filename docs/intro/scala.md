@@ -1,55 +1,86 @@
 # Quick introduction to xef.ai (Scala version)
 
-First of all, you need to add the dependency to your project:
-
-```sbt
-libraryDependencies += "com.xebia" %% "xef-scala" % "<version>"
-```
-
-Replacing `<version>` with the latest available version. `xef-scala` is only available for Scala 3.
-
-After this, you get access to the `ai` function, which is your gate to the modern AI world.
+After adding the library to your project
+(see the [main README](https://github.com/xebia-functional/xef/blob/main/README.md) for instructions),
+you get access to the `ai` function, which is your gate to the modern AI world.
 Inside of it, you can _prompt_ for information, which means posing the question to an LLM
 (Large Language Model). The easiest way is to just get the information back as a string.
 
 ```scala
-package com.xebia.functional.xef.scala.auto
-
 import com.xebia.functional.xef.scala.auto.*
 
 @main def runBook: Unit = ai {
+  val topic: String = "functional programming"
   promptMessage(s"Give me a selection of books about $topic")
 }.getOrElse(ex => println(ex.getMessage))
 ```
-
-> **Note**
-> By default the `ai` block connects to [OpenAI](https://platform.openai.com/).
-> To use their services you should provide the corresponding API key in the `OPENAI_TOKEN`
-> environment variable, and have enough credits.
 
 In the example above we _execute_ the `ai` block with `getOrElse`, so in case an exception
 is thrown (for example, if your API key is not correct), we are handing the error by printing
 the reason of the error.
 
-## Project Loom Dependency
+In the next examples we'll write functions that rely on `ai`'s DSL functionality,
+but without actually extracting the values yet using `getOrThrow` or `getOrElse`.
+We'll eventually call this functions from an `ai` block as we've shown above, and
+this allows us to build larger pipelines, and only extract the final result at the end.
 
-The Scala module depends on project [Loom](https://openjdk.org/projects/loom/), so you will need at least Java 19 to use the library.
+This can be done by either using a context parameters or function _using_ `AIScope`.
+Let's compare the two:
 
-### Running with Sbt
+```scala
+def book(topic: String)(using scope: AIScope): List[String] =
+  promptMessage(s"Give me a selection of books about $topic")
 
-If you use SBT, you will need to enable preview by running the following command:
-
-```shell
-env OPENAI_TOKEN=<your-token> sbt -J--enable-preview run
+def book(topic: String): AIScope ?=> List[String] =
+  promptMessage(s"Give me a selection of books about $topic")
 ```
 
-### Running with IntelliJ
+## Additional setup
 
-It's necessary to set up:
+If the code above fails, you may need to perform some additional setup.
 
-* Java version 19
-* Set VM options: "--enable-preview"
-* Set Env variable: "OPENAI_TOKEN=xxx"
+### OpenAI
+
+By default, the `ai` block connects to [OpenAI](https://platform.openai.com/).
+To use their services you should provide the corresponding API key in the `OPENAI_TOKEN`
+environment variable, and have enough credits.
+
+<details>
+<summary>SBT</summary>
+
+```shell
+env OPENAI_TOKEN=<your-token> sbt <your-command>
+```
+</details>
+
+<details>
+<summary>IntelliJ</summary>
+
+Set the environment variable `OPENAI_TOKEN=xxx`
+
+</details>
+
+### Project Loom
+
+The Scala module depends on project [Loom](https://openjdk.org/projects/loom/), 
+so you will need at least Java 19 to use the library. Furthermore, you need to pass
+the `--enable-preview` flag.
+
+<details>
+<summary>SBT</summary>
+
+```shell
+env OPENAI_TOKEN=<your-token> sbt -J--enable-preview <your-command>
+```
+</details>
+
+<details>
+<summary>IntelliJ</summary>
+
+- Set the Java version to at least 19
+- Set VM options to `--enable-preview`
+
+</details>
 
 ## Structure
 
@@ -65,12 +96,14 @@ import io.circe.parser.decode
 
 private final case class Book(name: String, author: String, summary: String) derives ScalaSerialDescriptor, Decoder
 
-@main def runBook: Unit =
-val book = ai {
-  val toKillAMockingBird = prompt[Book]("To Kill a Mockingbird by Harper Lee summary.")
-  println(s"${toKillAMockingBird.name} by ${toKillAMockingBird.author} summary:\n ${toKillAMockingBird.summary}")
-}.getOrElse(ex => println(ex.getMessage))
+def summarizeBook(title: String, author: String)(using scope: AIScope): Book =
+  prompt(s"$title by $author summary.")
 
+@main def runBook: Unit =
+  ai {
+    val toKillAMockingBird = summarizeBook("To Kill a Mockingbird", "Harper Lee")
+    println(s"${toKillAMockingBird.name} by ${toKillAMockingBird.author} summary:\n ${toKillAMockingBird.summary}")
+  }.getOrElse(ex => println(ex.getMessage))
 ```
 
 xef.ai for Scala uses xef.ai core, which it's based on Kotlin. Hence, the core 
@@ -102,15 +135,15 @@ import com.xebia.functional.xef.scala.auto.ScalaSerialDescriptorContext.given
 import io.circe.Decoder
 import io.circe.parser.decode
 
-private def getQuestionAnswer(question: String): List[String] = ai {
+private def getQuestionAnswer(question: String)(using scope: AIScope): List[String] =
   contextScope(DefaultSearch.search("Weather in Cádiz, Spain")) {
     promptMessage(question)
   }
-}
-@main def runWeather: Unit =
+
+@main def runWeather: Unit = ai {
   val question = "Knowing this forecast, what clothes do you recommend I should wear if I live in Cádiz?"
   println(getQuestionAnswer(question).mkString("\n"))
-
+}
 ```
 
 > **Note**

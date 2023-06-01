@@ -59,10 +59,14 @@ kotlin {
     val commonMain by getting {
       dependencies {
         api(libs.bundles.arrow)
+
         api(libs.bundles.ktor.client)
-        implementation(projects.xefTokenizer)
+        api(projects.xefTokenizer)
         implementation(libs.arrow.fx.stm)
+
+        // TODO split to a separate module
         implementation(libs.kotlinx.serialization.json)
+
         implementation(libs.uuid)
         implementation(libs.klogging)
       }
@@ -73,7 +77,6 @@ kotlin {
         implementation(libs.kotest.property)
         implementation(libs.kotest.framework)
         implementation(libs.kotest.assertions)
-        implementation(libs.kotest.assertions.arrow)
       }
     }
 

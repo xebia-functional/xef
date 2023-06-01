@@ -2,12 +2,10 @@ package com.xebia.functional.xef.scala
 
 import com.xebia.functional.loom.LoomAdapter
 import com.xebia.functional.xef.AIError
-import com.xebia.functional.xef.agents.LLMAgentKt
 import com.xebia.functional.xef.llm.openai.LLMModel
-import io.circe.parser.decode
-import io.circe.{Decoder, Json}
+import io.circe.Decoder
 import io.circe.parser.parse
-import com.xebia.functional.xef.auto.{AIException, AIKt, AIScope as KtAIScope, Agent as KtAgent}
+import com.xebia.functional.xef.auto.{AIException, AIKt, Agent as KtAgent}
 import com.xebia.functional.xef.pdf.PDFLoaderKt
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.scala.textsplitters.TextSplitter
@@ -19,14 +17,14 @@ import scala.util.*
 package object auto {
 
   def ai[A](block: AIScope ?=> A): A =
-    LoomAdapter.apply { (cont) =>
+    LoomAdapter.apply { cont =>
       AIKt.AIScope[A](
-        { (coreAIScope, cont) =>
+        { (coreAIScope, _) =>
           given AIScope = AIScope.fromCore(coreAIScope)
 
           block
         },
-        (e: AIError, cont) => throw AIException(e.getReason),
+        (e: AIError, _) => throw AIException(e.getReason),
         cont
       )
     }
@@ -94,4 +92,34 @@ package object auto {
           case file: File => PDFLoaderKt.pdf(file, splitter.core, count)
       ).asScala.toList
 
+  def image[A: Decoder: ScalaSerialDescriptor](
+      prompt: String,
+      maxAttempts: Int = 5,
+      user: String = "testing",
+      size: String = "1024x1024",
+      bringFromContext: Int = 10,
+      llmModel: LLMModel = LLMModel.getGPT_3_5_TURBO,
+      echo: Boolean = false,
+      n: Int = 1,
+      temperature: Double = 0.0,
+      minResponseTokens: Int = 500
+  )(using scope: AIScope): A =
+    LoomAdapter.apply(cont =>
+      KtAgent.imageWithSerializer[A](
+        scope.kt,
+        prompt,
+        ScalaSerialDescriptor[A].serialDescriptor,
+        (json: String) => parse(json).flatMap(Decoder[A].decodeJson(_)).fold(throw _, identity),
+        maxAttempts,
+        user,
+        size,
+        bringFromContext,
+        llmModel,
+        echo,
+        n,
+        temperature,
+        minResponseTokens,
+        cont
+      )
+    )
 }

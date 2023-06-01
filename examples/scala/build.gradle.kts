@@ -2,7 +2,6 @@
 
 plugins {
   scala
-  alias(libs.plugins.scala.multiversion)
   alias(libs.plugins.spotless)
 }
 
@@ -19,14 +18,19 @@ dependencies {
   implementation(projects.xefScala)
   implementation(projects.kotlinLoom)
   implementation(libs.circe.parser)
+  implementation(libs.scala.lang)
 }
 
 tasks.withType<Test>().configureEach {
   useJUnit()
 }
 
+tasks.withType<ScalaCompile> {
+  scalaCompileOptions.additionalParameters = listOf("-Wunused:all", "-Wvalue-discard")
+}
+
 spotless {
   scala {
-    scalafmt("3.7.1").configFile(".scalafmt.conf").scalaMajorVersion("2.13")
+    scalafmt("3.7.3").configFile(".scalafmt.conf").scalaMajorVersion("2.13")
   }
 }

@@ -1,8 +1,6 @@
 package com.xebia.functional.xef.scala.auto
 
-import kotlinx.serialization.descriptors.SerialDescriptorsKt.PrimitiveSerialDescriptor
-import kotlinx.serialization.descriptors.{PrimitiveKind, SerialDescriptor, SerialKind, StructureKind}
-import kotlinx.serialization.internal.ArrayListSerializer
+import kotlinx.serialization.descriptors.{SerialDescriptor, SerialKind, StructureKind}
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.encoding.{Decoder, Encoder}
 
@@ -10,7 +8,6 @@ import java.lang.annotation.Annotation
 import java.util
 import scala.compiletime.{constValue, erasedValue, summonInline}
 import scala.deriving.*
-import scala.reflect.ClassTag
 
 trait ScalaSerialDescriptor[A]:
   def serialDescriptor: SerialDescriptor
@@ -40,7 +37,7 @@ object ScalaSerialDescriptor:
     case _: (Unit *: t) => KotlinXSerializers.unit.getDescriptor :: getSerialDescriptor[t]
     case _: (h *: t) => summonInline[ScalaSerialDescriptor[h]].serialDescriptor :: getSerialDescriptor[t]
 
-  inline final def derived[A](using inline m: Mirror.Of[A]): ScalaSerialDescriptor[A] = new ScalaSerialDescriptor[A]:
+  inline final def derived[A](using m: Mirror.Of[A]): ScalaSerialDescriptor[A] = new ScalaSerialDescriptor[A]:
     val serialDescriptorImpl: SerialDescriptor = new SerialDescriptor:
       val labels = getElemsLabel[m.MirroredElemLabels]
       val serialDescriptors = getSerialDescriptor[m.MirroredElemTypes]

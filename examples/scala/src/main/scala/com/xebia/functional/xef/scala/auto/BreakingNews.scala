@@ -4,7 +4,6 @@ import com.xebia.functional.xef.scala.auto.*
 import com.xebia.functional.xef.scala.auto.ScalaSerialDescriptorContext.given
 import com.xebia.functional.xef.scala.agents.DefaultSearch
 import io.circe.Decoder
-import io.circe.parser.decode
 
 import java.text.SimpleDateFormat
 import java.util.Date
