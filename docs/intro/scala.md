@@ -35,7 +35,7 @@ def book(topic: String): AIScope ?=> List[String] =
   promptMessage(s"Give me a selection of books about $topic")
 ```
 
-Using the type alias `AI`:
+Using the type alias `AI`, defined in `com.xebia.functional.xef.scala.auto` as:
 
 ```scala
 type AI[A] = AIScope ?=> A
