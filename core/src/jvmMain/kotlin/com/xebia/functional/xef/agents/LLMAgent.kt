@@ -1,5 +1,6 @@
 package com.xebia.functional.xef.agents
 
+import com.xebia.functional.tokenizer.Encoding
 import com.xebia.functional.tokenizer.TokenVocabulary
 import com.xebia.functional.xef.auto.AIScope
 import com.xebia.functional.xef.llm.openai.ChatCompletionRequest
@@ -60,13 +61,15 @@ private suspend fun AIScope.patternPrompt(
   val patternLogitBias: Map<String, Int> =
     tokensVocab.buildPatternLogitBias(partialCompletion, pattern, maxLength = logitBiasMaxSize)
 
+  val encoding: Encoding = model.modelType.encodingType.encoding
+
   val logitBias: Map<String, Int> =
     if (patternLogitBias.size < logitBiasMaxSize && maxTokensPerCompletion > 1) {
       buildMap {
         putAll(patternLogitBias)
 
         patternLogitBias.entries.asSequence().forEach { (key: String) ->
-          val token: String = model.modelType.encodingType.encoding.decode(listOf(key.toInt()))
+          val token: String = encoding.decode(listOf(key.toInt()))
           val tokenLogitBias: Map<String, Int> =
             tokensVocab.buildPatternLogitBias(
               partialCompletion = partialCompletion + token,
@@ -90,11 +93,7 @@ private suspend fun AIScope.patternPrompt(
     nextPartialCompletionOutput
       .removeValuesFromEndUntilRegexMet(tokensVocab.decodedTokens, pattern)
       .replace(partialCompletion, "")
-      .ifEmpty {
-        patternLogitBias.entries.map { (key: String) ->
-          model.modelType.encodingType.encoding.decode(listOf(key.toInt()))
-        }.shuffled().firstOrNull() ?: ""
-      }
+      .ifEmpty { encoding.getLongestMatchingPattern(patternLogitBias) }
 
   val nextCleanPartialCompletion: String = partialCompletion + cleanOutput
   val nextPromptPlusCompletion: String = prompt + cleanOutput
@@ -187,6 +186,13 @@ private fun String.removeValuesFromEndUntilRegexMet(
 ): String =
   if (isEmpty() || matchesRegex(tokens, pattern)) { this }
   else { dropLast(n = 1).removeValuesFromEndUntilRegexMet(tokens, pattern) }
+
+private fun Encoding.getLongestMatchingPattern(
+  patternLogitBias: Map<String, Int>
+): String =
+  patternLogitBias.entries.map { (key: String) ->
+    decode(listOf(key.toInt()))
+  }.maxByOrNull { it.length } ?: ""
 
 private fun String.matchesRegex(tokens: Map<Int, String>, pattern: Regex): Boolean =
   pattern.matches(this) || tokens.asSequence().any { pattern.partialMatch(this + it.value) }
