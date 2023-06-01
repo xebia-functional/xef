@@ -184,15 +184,17 @@ private fun String.removeValuesFromEndUntilRegexMet(
   tokens: Map<Int, String>,
   pattern: Regex
 ): String =
-  if (isEmpty() || matchesRegex(tokens, pattern)) { this }
-  else { dropLast(n = 1).removeValuesFromEndUntilRegexMet(tokens, pattern) }
+  if (isEmpty() || matchesRegex(tokens, pattern)) {
+    this
+  } else {
+    dropLast(n = 1).removeValuesFromEndUntilRegexMet(tokens, pattern)
+  }
 
-private fun Encoding.getLongestMatchingPattern(
-  patternLogitBias: Map<String, Int>
-): String =
-  patternLogitBias.entries.map { (key: String) ->
-    decode(listOf(key.toInt()))
-  }.maxByOrNull { it.length } ?: ""
+private fun Encoding.getLongestMatchingPattern(patternLogitBias: Map<String, Int>): String =
+  patternLogitBias.entries
+    .map { (key: String) -> decode(listOf(key.toInt())) }
+    .maxByOrNull { it.length }
+    ?: ""
 
 private fun String.matchesRegex(tokens: Map<Int, String>, pattern: Regex): Boolean =
   pattern.matches(this) || tokens.asSequence().any { pattern.partialMatch(this + it.value) }
