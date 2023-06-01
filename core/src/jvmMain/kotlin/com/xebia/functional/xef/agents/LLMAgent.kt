@@ -16,9 +16,11 @@ suspend fun AIScope.patternPrompt(
   user: String = "testing",
   n: Int = 1,
   echo: Boolean = false,
-  temperature: Double = 0.0,
-  maxNewTokens: Int = 30,
-  stopAfterMatch: Boolean = true
+  temperature: Double = 0.5,
+  maxIterations: Int = 30,
+  maxTokensPerCompletion: Int = 1,
+  stopAfterMatch: Boolean = true,
+  logitBiasMaxSize: Int = 300
 ): String =
   patternPrompt(
     prompt,
@@ -28,11 +30,13 @@ suspend fun AIScope.patternPrompt(
     n,
     echo,
     temperature,
-    maxNewTokens,
+    maxIterations,
+    maxTokensPerCompletion,
     stopAfterMatch,
-    genTokens = 0,
+    iterations = 0,
     partialCompletion = "",
-    tokenVocab = TokenVocabulary(model.modelType.encodingType)
+    tokensVocab = TokenVocabulary(model.modelType.encodingType),
+    logitBiasMaxSize = logitBiasMaxSize
   )
 
 private suspend fun AIScope.patternPrompt(
@@ -43,24 +47,60 @@ private suspend fun AIScope.patternPrompt(
   n: Int,
   echo: Boolean,
   temperature: Double,
-  maxNewTokens: Int,
+  maxIterations: Int,
+  maxTokensPerCompletion: Int = 1,
   stopAfterMatch: Boolean,
-  genTokens: Int,
+  iterations: Int,
   partialCompletion: String,
-  tokenVocab: TokenVocabulary
+  tokensVocab: TokenVocabulary,
+  logitBiasMaxSize: Int = 300
 ): String {
-  if (genTokens >= maxNewTokens) return partialCompletion
+  if (iterations >= maxIterations) return partialCompletion
 
-  val logitBias: Map<String, Int> = tokenVocab.buildLogitBias(partialCompletion, pattern)
+  val patternLogitBias: Map<String, Int> =
+    tokensVocab.buildPatternLogitBias(partialCompletion, pattern, maxLength = logitBiasMaxSize)
+
+  val logitBias: Map<String, Int> =
+    if (patternLogitBias.size < logitBiasMaxSize && maxTokensPerCompletion > 1) {
+      buildMap {
+        putAll(patternLogitBias)
+
+        patternLogitBias.entries.asSequence().forEach { (key: String) ->
+          val token: String = model.modelType.encodingType.encoding.decode(listOf(key.toInt()))
+          val tokenLogitBias: Map<String, Int> =
+            tokensVocab.buildPatternLogitBias(
+              partialCompletion = partialCompletion + token,
+              pattern,
+              maxLength = logitBiasMaxSize - size
+            )
+          putAll(tokenLogitBias)
+        }
+      }
+    } else {
+      patternLogitBias
+    }
 
   val outputCompletion: List<String> =
-    patternPrompt(model, user, prompt, echo, n, temperature, logitBias)
+    patternPrompt(model, user, prompt, echo, n, temperature, logitBias, maxTokensPerCompletion)
 
-  val nextPartialCompletion: String = partialCompletion + outputCompletion[0]
-  val nextPromptPlusCompletion: String = prompt + outputCompletion[0]
+  val output: String = outputCompletion[0]
+  val nextPartialCompletionOutput: String = partialCompletion + output
 
-  if (stopAfterMatch && pattern.matches(nextPartialCompletion)) {
-    return nextPartialCompletion
+  val cleanOutput: String =
+    nextPartialCompletionOutput
+      .removeValuesFromEndUntilRegexMet(tokensVocab.decodedTokens, pattern)
+      .replace(partialCompletion, "")
+      .ifEmpty {
+        patternLogitBias.entries.map { (key: String) ->
+          model.modelType.encodingType.encoding.decode(listOf(key.toInt()))
+        }.shuffled().firstOrNull() ?: ""
+      }
+
+  val nextCleanPartialCompletion: String = partialCompletion + cleanOutput
+  val nextPromptPlusCompletion: String = prompt + cleanOutput
+
+  if (stopAfterMatch && pattern.matches(nextCleanPartialCompletion)) {
+    return nextCleanPartialCompletion
   }
 
   println(nextPromptPlusCompletion)
@@ -73,11 +113,12 @@ private suspend fun AIScope.patternPrompt(
     n,
     echo,
     temperature,
-    maxNewTokens,
+    maxIterations,
+    maxTokensPerCompletion,
     stopAfterMatch,
-    genTokens = genTokens + 1,
-    nextPartialCompletion,
-    tokenVocab
+    iterations = iterations + 1,
+    nextCleanPartialCompletion,
+    tokensVocab
   )
 }
 
@@ -88,7 +129,8 @@ private suspend fun AIScope.patternPrompt(
   echo: Boolean,
   n: Int,
   temperature: Double,
-  logitBias: Map<String, Int>
+  logitBias: Map<String, Int>,
+  maxTokensPerCompletion: Int = 1,
 ): List<String> =
   when (model.kind) {
     LLMModel.Kind.Completion -> {
@@ -100,7 +142,7 @@ private suspend fun AIScope.patternPrompt(
           echo = echo,
           n = n,
           temperature = temperature,
-          maxTokens = 1,
+          maxTokens = maxTokensPerCompletion,
           logitBias = logitBias
         )
       openAIClient.createCompletion(request).choices.map { it.text }
@@ -114,27 +156,37 @@ private suspend fun AIScope.patternPrompt(
           temperature = temperature,
           n = n,
           user = user,
-          maxTokens = 1,
+          maxTokens = maxTokensPerCompletion,
           logitBias = logitBias
         )
       openAIClient.createChatCompletion(request).choices.map { it.message.content }
     }
   }
 
-private fun TokenVocabulary.buildLogitBias(
+private fun TokenVocabulary.buildPatternLogitBias(
   partialCompletion: String,
-  pattern: Regex
+  pattern: Regex,
+  maxLength: Int = 300,
+  bias: Int = 100
 ): Map<String, Int> = buildMap {
-  val openAILimit = 300
-  val exclusiveBias = 100
   decodedTokens
     .asSequence()
     .filter { pattern.partialMatch(partialCompletion + it.value) }
-    .take(openAILimit)
-    .forEach { put("${it.key}", exclusiveBias) }
+    .take(maxLength)
+    .forEach { put("${it.key}", bias) }
 }
 
 private fun Regex.partialMatch(input: String): Boolean {
   val matcher: Matcher = toPattern().matcher(input)
   return matcher.matches().or(matcher.hitEnd())
 }
+
+private fun String.removeValuesFromEndUntilRegexMet(
+  tokens: Map<Int, String>,
+  pattern: Regex
+): String =
+  if (isEmpty() || matchesRegex(tokens, pattern)) { this }
+  else { dropLast(n = 1).removeValuesFromEndUntilRegexMet(tokens, pattern) }
+
+private fun String.matchesRegex(tokens: Map<Int, String>, pattern: Regex): Boolean =
+  pattern.matches(this) || tokens.asSequence().any { pattern.partialMatch(this + it.value) }
