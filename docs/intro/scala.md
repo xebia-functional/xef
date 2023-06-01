@@ -24,14 +24,14 @@ but without actually extracting the values yet using `getOrThrow` or `getOrElse`
 We'll eventually call this functions from an `ai` block as we've shown above, and
 this allows us to build larger pipelines, and only extract the final result at the end.
 
-This can be done by either uing a context parameters or function _using_ `AIScope`.
+This can be done by either using a context parameters or function _using_ `AIScope`.
 Let's compare the two:
 
 ```scala
-def book(topic: String)(using scope: AIScope): String =
+def book(topic: String)(using scope: AIScope): List[String] =
   promptMessage(s"Give me a selection of books about $topic")
 
-def book(topic: String): AIScope ?=> String =
+def book(topic: String): AIScope ?=> List[String] =
   promptMessage(s"Give me a selection of books about $topic")
 ```
 
@@ -140,9 +140,10 @@ private def getQuestionAnswer(question: String)(using scope: AIScope): List[Stri
     promptMessage(question)
   }
 
-@main def runWeather: Unit =
+@main def runWeather: Unit = ai {
   val question = "Knowing this forecast, what clothes do you recommend I should wear if I live in Cádiz?"
   println(getQuestionAnswer(question).mkString("\n"))
+}
 ```
 
 > **Note**
