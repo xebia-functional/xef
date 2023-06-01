@@ -20,12 +20,12 @@ package object auto {
   def ai[A](block: AIScope ?=> A): A =
     LoomAdapter.apply { cont =>
       AIKt.AIScope[A](
-        { (coreAIScope, cont) =>
+        { (coreAIScope, _) =>
           given AIScope = AIScope.fromCore(coreAIScope)
 
           block
         },
-        (e: AIError, cont) => throw AIException(e.getReason),
+        (e: AIError, _) => throw AIException(e.getReason),
         cont
       )
     }

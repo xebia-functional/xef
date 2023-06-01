@@ -7,8 +7,6 @@ Inside of it, you can _prompt_ for information, which means posing the question 
 (Large Language Model). The easiest way is to just get the information back as a string.
 
 ```scala
-package com.xebia.functional.xef.scala.auto
-
 import com.xebia.functional.xef.scala.auto.*
 
 @main def runBook: Unit = ai {
