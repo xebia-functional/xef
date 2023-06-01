@@ -36,13 +36,15 @@ def book(topic: String): AIScope ?=> List[String] =
 ```
 
 Using the type alias `AI`:
+
 ```scala
 type AI[A] = AIScope ?=> A
 ```
 
-The second option would look like this:
+book function can be written in this way:
+
 ```scala
-def book(topic: String): AI[List[String]] = 
+def book(topic: String): AI[List[String]] =
   promptMessage(s"Give me a selection of books about $topic")
 ```
 
