@@ -1,10 +1,7 @@
 package com.xebia.functional.xef.scala.auto
 
 import cats.syntax.either.*
-import com.xebia.functional.xef.scala.auto.ScalaSerialDescriptor
-import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.BuiltinSerializersKt
-import kotlinx.serialization.encoding.{Decoder, Encoder}
 import munit.FunSuite
 
 import scala.collection.immutable.HashSet
