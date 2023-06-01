@@ -5,7 +5,6 @@ import java.util.concurrent.AbstractExecutorService
 import java.util.concurrent.CancellationException
 import java.util.concurrent.TimeUnit
 
-import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContextExecutorService
 import scala.util.control.NoStackTrace
 import scala.util.control.NonFatal
