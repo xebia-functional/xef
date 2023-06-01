@@ -146,7 +146,6 @@ import com.xebia.functional.xef.scala.agents.DefaultSearch
 import com.xebia.functional.xef.scala.auto.*
 import com.xebia.functional.xef.scala.auto.ScalaSerialDescriptorContext.given
 import io.circe.Decoder
-import io.circe.parser.decode
 
 private def getQuestionAnswer(question: String)(using scope: AIScope): List[String] =
   contextScope(DefaultSearch.search("Weather in Cádiz, Spain")) {
