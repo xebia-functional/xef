@@ -13,8 +13,8 @@ trait SerialDescriptor[A]:
   def serialDescriptor: KtSerialDescriptor
   def kserializer: KSerializer[A] = new KSerializer[A]:
     override def getDescriptor: KtSerialDescriptor = serialDescriptor
-    override def serialize(encoder: KtEncoder, t: A): Unit = ???
-    override def deserialize(decoder: KtDecoder): A = ???
+    override def serialize(encoder: KtEncoder, t: A): Unit = ??? // TODO should we implement this?
+    override def deserialize(decoder: KtDecoder): A = ??? // TODO should we implement this?
 
 object SerialDescriptor extends SerialDescriptorInstances:
   def apply[A](using ev: SerialDescriptor[A]): SerialDescriptor[A] = ev
