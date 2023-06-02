@@ -3,9 +3,9 @@ package com.xebia.functional.xef.scala.prompt
 import com.xebia.functional.xef.scala.auto.*
 import io.circe.Decoder
 
-trait PromptTemplate[A: ScalaSerialDescriptor: Decoder] {
+trait PromptTemplate[A] {
 
-  def chain(template: String): A
+  def chain[B: ScalaSerialDescriptor: Decoder](template: String): B
 
   extension (a: A) {
     def chain[B: ScalaSerialDescriptor: Decoder](template: A => String): B =
@@ -15,7 +15,8 @@ trait PromptTemplate[A: ScalaSerialDescriptor: Decoder] {
 
 object PromptTemplate:
 
-  def apply[A](using ev: PromptTemplate[A]): PromptTemplate[A] = ev
+  def apply[A](instance: A): A = instance
 
   inline final def derived[A: ScalaSerialDescriptor: Decoder]: PromptTemplate[A] = new PromptTemplate[A]:
-    def chain(template: String): A = ai(prompt[A](template))
+
+    def chain[B: ScalaSerialDescriptor: Decoder](template: String): B = ai(prompt[B](template))

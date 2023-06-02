@@ -4,11 +4,13 @@ import com.xebia.functional.xef.scala.auto.*
 import com.xebia.functional.xef.scala.prompt.*
 import io.circe.Decoder
 
-final case class Play(title: String, era: String)
+final case class Play(title: String, era: String) derives PromptTemplate, Decoder, ScalaSerialDescriptor
 
 final case class Synopsis(summary: String) derives PromptTemplate, Decoder, ScalaSerialDescriptor
 
 final case class Review(review: String) derives PromptTemplate, Decoder, ScalaSerialDescriptor
+
+final case class Score(score: Double) derives PromptTemplate, Decoder, ScalaSerialDescriptor
 
 @main def runSynopsisReview: Unit = {
   def synopsisTemplate(play: Play): String =
@@ -28,8 +30,18 @@ final case class Review(review: String) derives PromptTemplate, Decoder, ScalaSe
        |Review from a New York Times play critic of the above play:
     """.stripMargin
 
-  val playReview = PromptTemplate[Synopsis]
-    .chain(synopsisTemplate(Play("The power of Zuluastral", "Modern Era")))
+  def scoreTemplate(review: Review): String =
+    s"""
+       |You are an independent play critic scoring the best plays of the year.
+       |Given the review of the play, it is your job to score this play.
+       |
+       |Play Review: ${review.review}.
+       |Score the above play from 0 to 10:
+    """.stripMargin
+
+  val playScore = PromptTemplate[Play](Play("The power of Zuluastral", "Modern Era"))
+    .chain[Synopsis](play => synopsisTemplate(play))
     .chain[Review](synopsis => reviewTemplate(synopsis))
-  println(playReview.review)
+    .chain[Score](review => scoreTemplate(review))
+  println(s"Score (0 to 10): " + playScore.score)
 }
