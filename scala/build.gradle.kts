@@ -6,6 +6,7 @@ plugins {
     signing
     alias(libs.plugins.semver.gradle)
     alias(libs.plugins.spotless)
+    `xef-scala-documentation`
 }
 
 dependencies {
@@ -18,6 +19,7 @@ dependencies {
     implementation(libs.circe.parser)
     implementation(libs.circe)
     implementation(libs.scala.lang)
+    implementation(libs.logback)
     testImplementation(libs.munit.core)
 }
 
@@ -28,7 +30,6 @@ java {
         languageVersion = JavaLanguageVersion.of(19)
     }
     withSourcesJar()
-    withJavadocJar()
 }
 
 tasks.withType<Test>().configureEach {
@@ -41,9 +42,10 @@ tasks.withType<ScalaCompile> {
 
 publishing {
     publications {
-        create<MavenPublication>("maven") {
+        register<MavenPublication>("maven") {
             val scala3Suffix = "_3"
             from(components["java"])
+            artifact(tasks.named("scaladocJar"))
 
             artifactId = base.archivesName.get() + scala3Suffix
 

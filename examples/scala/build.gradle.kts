@@ -19,6 +19,7 @@ dependencies {
   implementation(projects.kotlinLoom)
   implementation(libs.circe.parser)
   implementation(libs.scala.lang)
+  implementation(libs.logback)
 }
 
 tasks.withType<Test>().configureEach {

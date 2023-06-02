@@ -1,13 +1,9 @@
-name: Publish stable version
+name: Publish final version
 
 on:
-  workflow_dispatch:
-    branches: [main]
-    inputs:
-      version:
-        description: 'Version'
-        required: true
-        type: string
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
 
 env:
   OSS_USER: '${{ secrets.OSS_USER }}'
@@ -20,10 +16,12 @@ jobs:
   publish:
     timeout-minutes: 30
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+          ref: ${{ github.ref_name }}
 
       - name: Set up Java
         uses: actions/setup-java@v3
@@ -31,10 +29,10 @@ jobs:
           distribution: 'zulu'
           java-version: 11
 
-      - name: assemble
+      - name: Assemble
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: assemble -x:kotlin-loom:assemble -x:xef-scala:assemble -Pversion=${{ inputs.version }}
+          arguments: assemble -x:kotlin-loom:assemble -x:xef-scala:assemble -x:xef-scala-examples:assemble
 
       - name: Upload reports
         if: failure()
@@ -46,7 +44,7 @@ jobs:
       - name: Publish final version
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: -Pversion=${{ inputs.version }} publishToSonatype -x:kotlin-loom:publishToSonatype -x:xef-scala:publishToSonatype closeSonatypeStagingRepository
+          arguments: publishToSonatype -x:kotlin-loom:publishToSonatype -x:xef-scala:publishToSonatype closeSonatypeStagingRepository
 
   publish-modules-with-loom:
     timeout-minutes: 30
@@ -55,6 +53,7 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+          ref: ${{ github.ref_name }}
 
       - name: Set up Java
         uses: actions/setup-java@v3
@@ -65,7 +64,7 @@ jobs:
       - name: assemble
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: -Pversion=${{ inputs.version }} :kotlin-loom:assemble :xef-scala:assemble
+          arguments: :kotlin-loom:assemble :xef-scala:assemble
 
       - name: Upload reports
         if: failure()
@@ -77,4 +76,4 @@ jobs:
       - name: Publish final version
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: -Pversion=${{ inputs.version }} :kotlin-loom:publishToSonatype :xef-scala:publishToSonatype closeSonatypeStagingRepository
+          arguments: :kotlin-loom:publishToSonatype :xef-scala:publishToSonatype closeSonatypeStagingRepository

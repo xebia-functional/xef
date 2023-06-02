@@ -35,6 +35,19 @@ def book(topic: String): AIScope ?=> List[String] =
   promptMessage(s"Give me a selection of books about $topic")
 ```
 
+Using the type alias `AI`, defined in `com.xebia.functional.xef.scala.auto` as:
+
+```scala
+type AI[A] = AIScope ?=> A
+```
+
+book function can be written in this way:
+
+```scala
+def book(topic: String): AI[List[String]] =
+  promptMessage(s"Give me a selection of books about $topic")
+```
+
 ## Additional setup
 
 If the code above fails, you may need to perform some additional setup.
@@ -133,7 +146,6 @@ import com.xebia.functional.xef.scala.agents.DefaultSearch
 import com.xebia.functional.xef.scala.auto.*
 import com.xebia.functional.xef.scala.auto.ScalaSerialDescriptorContext.given
 import io.circe.Decoder
-import io.circe.parser.decode
 
 private def getQuestionAnswer(question: String)(using scope: AIScope): List[String] =
   contextScope(DefaultSearch.search("Weather in Cádiz, Spain")) {

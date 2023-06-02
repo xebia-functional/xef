@@ -15,7 +15,7 @@ private final case class Story(animal: Animal, invention: Invention, story: Stri
     val invention: Invention = prompt("A groundbreaking invention from the 20th century.")
 
     val storyPrompt =
-      """
+      s"""
           Write a short story that involves the following elements:
           1. A unique animal species called ${animal.name} that lives in ${animal.habitat} and has a diet of ${animal.diet}.
           2. A groundbreaking invention from the 20th century called ${invention.name}, invented by ${invention.inventor} in ${invention.year}, which serves the purpose of ${invention.purpose}.
