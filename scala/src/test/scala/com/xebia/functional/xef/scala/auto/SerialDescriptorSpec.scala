@@ -8,7 +8,7 @@ import scala.collection.immutable.HashSet
 import scala.compiletime.summonInline
 import scala.reflect.ClassTag
 
-class ScalaSerialDescriptorSpec extends FunSuite:
+class SerialDescriptorSpec extends FunSuite:
 
   test("Should create a SerialDescriptor for a simple case class") {
     final case class Person(age: Int, name: String) derives SerialDescriptor

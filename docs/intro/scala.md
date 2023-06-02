@@ -107,7 +107,7 @@ import com.xebia.functional.xef.scala.auto.*
 import io.circe.Decoder
 import io.circe.parser.decode
 
-private final case class Book(name: String, author: String, summary: String) derives ScalaSerialDescriptor, Decoder
+private final case class Book(name: String, author: String, summary: String) derives SerialDescriptor, Decoder
 
 def summarizeBook(title: String, author: String)(using scope: AIScope): Book =
   prompt(s"$title by $author summary.")
@@ -144,8 +144,6 @@ search service to enrich that context.
 ```scala
 import com.xebia.functional.xef.scala.agents.DefaultSearch
 import com.xebia.functional.xef.scala.auto.*
-import com.xebia.functional.xef.scala.auto.ScalaSerialDescriptorContext.given
-import io.circe.Decoder
 
 private def getQuestionAnswer(question: String)(using scope: AIScope): List[String] =
   contextScope(DefaultSearch.search("Weather in Cádiz, Spain")) {
