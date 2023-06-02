@@ -3,9 +3,7 @@ package com.xebia.functional.xef.scala.auto
 import com.xebia.functional.xef.scala.auto.*
 import io.circe.Decoder
 
-private final case class Employee(firstName: String, lastName: String, age: Int, position: String, company: Company)
-    derives SerialDescriptor,
-      Decoder
+private final case class Employee(firstName: String, lastName: String, age: Int, position: String, company: Company) derives SerialDescriptor, Decoder
 
 private final case class Address(street: String, city: String, country: String) derives SerialDescriptor, Decoder
 
