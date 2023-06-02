@@ -3,9 +3,9 @@ package com.xebia.functional.xef.scala.auto
 import com.xebia.functional.xef.scala.auto.*
 import io.circe.Decoder
 
-private final case class Population(size: Int, description: String) derives ScalaSerialDescriptor, Decoder
+private final case class Population(size: Int, description: String) derives SerialDescriptor, Decoder
 
-private final case class Image(description: String, url: String) derives ScalaSerialDescriptor, Decoder
+private final case class Image(description: String, url: String) derives SerialDescriptor, Decoder
 
 @main def runPopulation: Unit =
   ai {

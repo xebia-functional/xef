@@ -1,29 +1,29 @@
 package com.xebia.functional.xef.scala.auto
 
-import kotlinx.serialization.descriptors.{SerialDescriptor, SerialKind, StructureKind}
+import kotlinx.serialization.descriptors.{SerialDescriptor as KtSerialDescriptor, SerialKind, StructureKind}
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.encoding.{Decoder, Encoder}
+import kotlinx.serialization.encoding.{Decoder as KtDecoder, Encoder as KtEncoder}
 
 import java.lang.annotation.Annotation
 import java.util
 import scala.compiletime.{constValue, erasedValue, summonInline}
 import scala.deriving.*
 
-trait ScalaSerialDescriptor[A]:
-  def serialDescriptor: SerialDescriptor
+trait SerialDescriptor[A]:
+  def serialDescriptor: KtSerialDescriptor
   def kserializer: KSerializer[A] = new KSerializer[A]:
-    override def getDescriptor: SerialDescriptor = serialDescriptor
-    override def serialize(encoder: Encoder, t: A): Unit = ???
-    override def deserialize(decoder: Decoder): A = ???
+    override def getDescriptor: KtSerialDescriptor = serialDescriptor
+    override def serialize(encoder: KtEncoder, t: A): Unit = ???
+    override def deserialize(decoder: KtDecoder): A = ???
 
-object ScalaSerialDescriptor:
-  def apply[A](using ev: ScalaSerialDescriptor[A]): ScalaSerialDescriptor[A] = ev
+object SerialDescriptor extends SerialDescriptorInstances:
+  def apply[A](using ev: SerialDescriptor[A]): SerialDescriptor[A] = ev
 
   private inline def getElemsLabel[T <: Tuple]: List[String] = inline erasedValue[T] match
     case _: EmptyTuple => Nil
     case _: (h *: t) => erasedValue[h].toString :: getElemsLabel[t]
 
-  private inline def getSerialDescriptor[T <: Tuple]: List[SerialDescriptor] = inline erasedValue[T] match
+  private inline def getSerialDescriptor[T <: Tuple]: List[KtSerialDescriptor] = inline erasedValue[T] match
     case _: EmptyTuple => Nil
     case _: (String *: t) => KotlinXSerializers.string.getDescriptor :: getSerialDescriptor[t]
     case _: (Boolean *: t) => KotlinXSerializers.boolean.getDescriptor :: getSerialDescriptor[t]
@@ -35,10 +35,10 @@ object ScalaSerialDescriptor:
     case _: (Long *: t) => KotlinXSerializers.long.getDescriptor :: getSerialDescriptor[t]
     case _: (Short *: t) => KotlinXSerializers.short.getDescriptor :: getSerialDescriptor[t]
     case _: (Unit *: t) => KotlinXSerializers.unit.getDescriptor :: getSerialDescriptor[t]
-    case _: (h *: t) => summonInline[ScalaSerialDescriptor[h]].serialDescriptor :: getSerialDescriptor[t]
+    case _: (h *: t) => summonInline[SerialDescriptor[h]].serialDescriptor :: getSerialDescriptor[t]
 
-  inline final def derived[A](using m: Mirror.Of[A]): ScalaSerialDescriptor[A] = new ScalaSerialDescriptor[A]:
-    val serialDescriptorImpl: SerialDescriptor = new SerialDescriptor:
+  inline final def derived[A](using m: Mirror.Of[A]): SerialDescriptor[A] = new SerialDescriptor[A]:
+    val serialDescriptorImpl: KtSerialDescriptor = new KtSerialDescriptor:
       val labels = getElemsLabel[m.MirroredElemLabels]
       val serialDescriptors = getSerialDescriptor[m.MirroredElemTypes]
 
@@ -47,7 +47,7 @@ object ScalaSerialDescriptor:
       // We're going to ignore annotations for now, it's not relevant for JsonSchema
       override def getElementAnnotations(index: Int): util.List[Annotation] = java.util.ArrayList(0)
 
-      override def getElementDescriptor(index: Int): SerialDescriptor = serialDescriptors(index)
+      override def getElementDescriptor(index: Int): KtSerialDescriptor = serialDescriptors(index)
 
       // We're going to ignore annotations for now, it's not relevant for JsonSchema
       override def getAnnotations: util.List[Annotation] = java.util.ArrayList(0)

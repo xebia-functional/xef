@@ -3,12 +3,12 @@ package com.xebia.functional.xef.scala.auto
 import com.xebia.functional.xef.scala.auto.*
 import io.circe.Decoder
 
-private final case class City(name: String, country: String) derives ScalaSerialDescriptor, Decoder
+private final case class City(name: String, country: String) derives SerialDescriptor, Decoder
 
-private final case class TopAttractionWeather(city: City, temperature: Double, description: String) derives ScalaSerialDescriptor, Decoder
+private final case class TopAttractionWeather(city: City, temperature: Double, description: String) derives SerialDescriptor, Decoder
 
 private final case class TopAttraction(city: City, attractionName: String, description: String, weather: TopAttractionWeather)
-    derives ScalaSerialDescriptor,
+    derives SerialDescriptor,
       Decoder
 
 @main def runTopAttraction: Unit =

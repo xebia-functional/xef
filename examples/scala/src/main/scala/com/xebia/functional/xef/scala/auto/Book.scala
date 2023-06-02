@@ -3,7 +3,7 @@ package com.xebia.functional.xef.scala.auto
 import com.xebia.functional.xef.scala.auto.*
 import io.circe.Decoder
 
-private final case class Book(name: String, author: String, summary: String) derives ScalaSerialDescriptor, Decoder
+private final case class Book(name: String, author: String, summary: String) derives SerialDescriptor, Decoder
 
 def summarizeBook(title: String, author: String): AI[Book] =
   prompt(s"$title by $author summary.")

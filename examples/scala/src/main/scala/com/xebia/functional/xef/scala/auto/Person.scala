@@ -3,7 +3,7 @@ package com.xebia.functional.xef.scala.auto
 import com.xebia.functional.xef.scala.auto.*
 import io.circe.Decoder
 
-private final case class Person(name: String, age: Int) derives ScalaSerialDescriptor, Decoder
+private final case class Person(name: String, age: Int) derives SerialDescriptor, Decoder
 
 @main def runPerson: Unit =
   ai {

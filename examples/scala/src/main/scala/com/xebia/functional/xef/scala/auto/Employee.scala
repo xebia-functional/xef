@@ -4,12 +4,12 @@ import com.xebia.functional.xef.scala.auto.*
 import io.circe.Decoder
 
 private final case class Employee(firstName: String, lastName: String, age: Int, position: String, company: Company)
-    derives ScalaSerialDescriptor,
+    derives SerialDescriptor,
       Decoder
 
-private final case class Address(street: String, city: String, country: String) derives ScalaSerialDescriptor, Decoder
+private final case class Address(street: String, city: String, country: String) derives SerialDescriptor, Decoder
 
-private final case class Company(name: String, address: Address) derives ScalaSerialDescriptor, Decoder
+private final case class Company(name: String, address: Address) derives SerialDescriptor, Decoder
 
 @main def runEmployee: Unit =
   ai {
