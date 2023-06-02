@@ -19,6 +19,7 @@ dependencies {
     implementation(libs.circe.parser)
     implementation(libs.circe)
     implementation(libs.scala.lang)
+    implementation(libs.logback)
     testImplementation(libs.munit.core)
 }
 
