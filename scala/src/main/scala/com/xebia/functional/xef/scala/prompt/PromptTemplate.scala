@@ -5,7 +5,7 @@ import io.circe.Decoder
 
 trait PromptTemplate[A] {
 
-  def chain[B: ScalaSerialDescriptor: Decoder](template: String): B
+  def chain(template: String): A
 
   extension (a: A) {
     def chain[B: ScalaSerialDescriptor: Decoder](template: A => String): B =
@@ -19,4 +19,4 @@ object PromptTemplate:
 
   inline final def derived[A: ScalaSerialDescriptor: Decoder]: PromptTemplate[A] = new PromptTemplate[A]:
 
-    def chain[B: ScalaSerialDescriptor: Decoder](template: String): B = ai(prompt[B](template))
+    def chain(template: String): A = ai(prompt[A](template))
