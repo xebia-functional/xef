@@ -4,13 +4,13 @@ import com.xebia.functional.xef.scala.auto.*
 import com.xebia.functional.xef.scala.prompt.*
 import io.circe.Decoder
 
-final case class Play(title: String, era: String) derives PromptTemplate, Decoder, ScalaSerialDescriptor
+final case class Play(title: String, era: String) derives PromptTemplate, Decoder, SerialDescriptor
 
-final case class Synopsis(summary: String) derives PromptTemplate, Decoder, ScalaSerialDescriptor
+final case class Synopsis(summary: String) derives PromptTemplate, Decoder, SerialDescriptor
 
-final case class Review(review: String) derives PromptTemplate, Decoder, ScalaSerialDescriptor
+final case class Review(review: String) derives PromptTemplate, Decoder, SerialDescriptor
 
-final case class Score(score: Double) derives PromptTemplate, Decoder, ScalaSerialDescriptor
+final case class Score(score: Double) derives PromptTemplate, Decoder, SerialDescriptor
 
 @main def runSynopsisReview: Unit = {
   def synopsisTemplate(play: Play): String =
