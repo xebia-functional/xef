@@ -28,8 +28,8 @@ final case class Review(review: String) derives PromptTemplate, Decoder, ScalaSe
        |Review from a New York Times play critic of the above play:
     """.stripMargin
 
-  val synopsisReview = PromptTemplate[Synopsis]
-    .create(synopsisTemplate(Play("The power of Zuluastral", "Modern Era")))
-    .add[Review](synopsis => reviewTemplate(synopsis))
-  println(synopsisReview.review)
+  val playReview = PromptTemplate[Synopsis]
+    .chain(synopsisTemplate(Play("The power of Zuluastral", "Modern Era")))
+    .chain[Review](synopsis => reviewTemplate(synopsis))
+  println(playReview.review)
 }
