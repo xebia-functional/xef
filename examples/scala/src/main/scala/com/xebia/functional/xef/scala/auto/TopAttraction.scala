@@ -7,7 +7,9 @@ private final case class City(name: String, country: String) derives SerialDescr
 
 private final case class TopAttractionWeather(city: City, temperature: Double, description: String) derives SerialDescriptor, Decoder
 
-private final case class TopAttraction(city: City, attractionName: String, description: String, weather: TopAttractionWeather) derives SerialDescriptor, Decoder
+private final case class TopAttraction(city: City, attractionName: String, description: String, weather: TopAttractionWeather)
+    derives SerialDescriptor,
+      Decoder
 
 @main def runTopAttraction: Unit =
   ai {

@@ -7,7 +7,9 @@ import io.circe.Decoder
 import java.text.SimpleDateFormat
 import java.util.Date
 
-private final case class MarketNews(news: String, raisingStockSymbols: List[String], decreasingStockSymbols: List[String]) derives SerialDescriptor, Decoder
+private final case class MarketNews(news: String, raisingStockSymbols: List[String], decreasingStockSymbols: List[String])
+    derives SerialDescriptor,
+      Decoder
 
 @main def runMarkets: Unit =
   ai {
