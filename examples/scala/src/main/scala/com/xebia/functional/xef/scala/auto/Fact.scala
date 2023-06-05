@@ -3,9 +3,9 @@ package com.xebia.functional.xef.scala.auto
 import com.xebia.functional.xef.scala.auto.*
 import io.circe.Decoder
 
-private final case class Fact(topic: String, content: String) derives ScalaSerialDescriptor, Decoder
+private final case class Fact(topic: String, content: String) derives SerialDescriptor, Decoder
 
-private final case class Riddle(content: String) derives ScalaSerialDescriptor, Decoder
+private final case class Riddle(content: String) derives SerialDescriptor, Decoder
 
 @main def runFact: Unit =
   ai {

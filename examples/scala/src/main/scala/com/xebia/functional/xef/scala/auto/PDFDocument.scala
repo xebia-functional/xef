@@ -1,12 +1,11 @@
 package com.xebia.functional.xef.scala.auto
 
 import com.xebia.functional.xef.scala.auto.*
-import com.xebia.functional.xef.scala.auto.ScalaSerialDescriptorContext.given
 import io.circe.Decoder
 
 import scala.io.StdIn.readLine
 
-private final case class AIResponse(answer: String) derives ScalaSerialDescriptor, Decoder
+private final case class AIResponse(answer: String) derives SerialDescriptor, Decoder
 
 val pdfUrl = "https://people.cs.ksu.edu/~schmidt/705a/Scala/Programming-in-Scala.pdf"
 

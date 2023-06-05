@@ -1,11 +1,10 @@
 package com.xebia.functional.xef.scala.auto
 
 import com.xebia.functional.xef.scala.auto.*
-import com.xebia.functional.xef.scala.auto.ScalaSerialDescriptorContext.given
 import com.xebia.functional.xef.scala.agents.DefaultSearch
 import io.circe.Decoder
 
-private final case class NumberOfMedicalNeedlesInWorld(numberOfNeedles: Long) derives ScalaSerialDescriptor, Decoder
+private final case class NumberOfMedicalNeedlesInWorld(numberOfNeedles: Long) derives SerialDescriptor, Decoder
 
 @main def runDivergentTasks: Unit =
   ai {

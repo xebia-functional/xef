@@ -1,10 +1,9 @@
 package com.xebia.functional.xef.scala.auto
 
 import com.xebia.functional.xef.scala.auto.*
-import com.xebia.functional.xef.scala.auto.ScalaSerialDescriptorContext.given
 import io.circe.Decoder
 
-private final case class Love(emojis: List[String]) derives ScalaSerialDescriptor, Decoder
+private final case class Love(emojis: List[String]) derives SerialDescriptor, Decoder
 
 @main def runLove: Unit =
   ai {

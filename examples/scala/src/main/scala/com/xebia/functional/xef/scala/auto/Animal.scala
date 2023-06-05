@@ -3,11 +3,11 @@ package com.xebia.functional.xef.scala.auto
 import com.xebia.functional.xef.scala.auto.*
 import io.circe.Decoder
 
-private final case class Animal(name: String, habitat: String, diet: String) derives ScalaSerialDescriptor, Decoder
+private final case class Animal(name: String, habitat: String, diet: String) derives SerialDescriptor, Decoder
 
-private final case class Invention(name: String, inventor: String, year: Int, purpose: String) derives ScalaSerialDescriptor, Decoder
+private final case class Invention(name: String, inventor: String, year: Int, purpose: String) derives SerialDescriptor, Decoder
 
-private final case class Story(animal: Animal, invention: Invention, story: String) derives ScalaSerialDescriptor, Decoder
+private final case class Story(animal: Animal, invention: Invention, story: String) derives SerialDescriptor, Decoder
 
 @main def runAnimal: Unit =
   ai {

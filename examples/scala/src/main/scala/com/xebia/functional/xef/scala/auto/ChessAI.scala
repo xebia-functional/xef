@@ -1,16 +1,15 @@
 package com.xebia.functional.xef.scala.auto
 
 import com.xebia.functional.xef.scala.auto.*
-import com.xebia.functional.xef.scala.auto.ScalaSerialDescriptorContext.given
 import io.circe.Decoder
 
 import scala.annotation.tailrec
 
-private final case class ChessMove(player: String, move: String) derives ScalaSerialDescriptor, Decoder
+private final case class ChessMove(player: String, move: String) derives SerialDescriptor, Decoder
 
-private final case class ChessBoard(board: String) derives ScalaSerialDescriptor, Decoder
+private final case class ChessBoard(board: String) derives SerialDescriptor, Decoder
 
-private final case class GameState(ended: Boolean, winner: Option[String]) derives ScalaSerialDescriptor, Decoder
+private final case class GameState(ended: Boolean, winner: Option[String]) derives SerialDescriptor, Decoder
 
 @tailrec
 private def chessGame(moves: List[ChessMove], gameState: GameState): AI[(String, ChessMove)] =
