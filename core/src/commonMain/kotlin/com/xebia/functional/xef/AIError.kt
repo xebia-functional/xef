@@ -11,6 +11,12 @@ sealed interface AIError {
       get() = "No response from the AI"
   }
 
+  data class ChatError(
+    val content: String
+  ) : AIError {
+    override val reason: String = content
+  }
+
   data class MessagesExceedMaxTokenLength(
     val messages: List<Message>,
     val promptTokens: Int,
