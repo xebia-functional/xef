@@ -13,8 +13,8 @@ import java.util.Scanner
 
 suspend fun main(args: Array<String>) {
     ai {
-        val modelName = "llama"
-        val modelPath = "examples/kotlin/src/main/kotlin/com/xebia/functional/xef/auto/gpt4all/models/ggml-gpt4all-l13b-snoozy.bin"
+        val modelName = "gptj"
+        val modelPath = "examples/kotlin/src/main/kotlin/com/xebia/functional/xef/auto/gpt4all/models/ggml-gpt4all-j-v1.3-groovy.bin"
 
         val type: GPT4AllModel.Type =
             when (modelName) {
@@ -28,34 +28,27 @@ suspend fun main(args: Array<String>) {
             AIError.ChatError("Model at ${path.toAbsolutePath()} cannot be found.")
         }
 
-        println("Loading...")
-        System.out.flush()
-
-        println("Loading...")
-        System.out.flush()
         Scanner(System.`in`).use { scanner ->
+            println("Loading model...")
+
             GPT4All(path, type).use { gpt4All ->
-                println()
-                print("Prompt[0]: ")
-                System.out.flush()
+                println("Model loaded!")
+                print("Prompt: ")
 
                 buildList {
                     while (scanner.hasNextLine()) {
                         val prompt: String = scanner.nextLine()
-                        if (prompt.equals("exit", ignoreCase = true)) {
-                            break
-                        }
-                        println("Thinking...")
-                        System.out.flush()
+                        if (prompt.equals("exit", ignoreCase = true)) { break }
 
+                        println("...")
                         val promptMessage = Message(Message.Role.USER, prompt)
                         add(promptMessage)
+
                         val response: Response = gpt4All.chatCompletion(this)
-                        println("Response: " + response.choices[0].content)
+                        println("Response: ${response.choices[0].content}")
+
                         add(response.choices[0])
-                        println()
-                        print("Prompt[" + size / 2 + "]: ")
-                        System.out.flush()
+                        print("Prompt: ")
                     }
                 }
             }

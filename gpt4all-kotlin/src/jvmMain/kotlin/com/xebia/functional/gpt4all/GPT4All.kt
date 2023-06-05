@@ -23,14 +23,14 @@ data class GenerationConfig(
     val logitsSize: Int = 0,
     val tokensSize: Int = 0,
     val nPast: Int = 0,
-    val nCtx: Int = 1024,
+    val nCtx: Int = 4096,
     val nPredict: Int = 128,
     val topK: Int = 40,
-    val topP: Double = 0.9,
-    val temp: Double = 0.1,
+    val topP: Double = 0.95,
+    val temp: Double = 0.28,
     val nBatch: Int = 8,
-    val repeatPenalty: Double = 1.2,
-    val repeatLastN: Int = 10,
+    val repeatPenalty: Double = 1.1,
+    val repeatLastN: Int = 64,
     val contextErase: Double = 0.5
 )
 
@@ -57,7 +57,7 @@ interface GPT4All : AutoCloseable {
                 messages: List<Message>,
                 verbose: Boolean
             ): Response {
-                val prompt: String = messages.buildPrompt()
+                val prompt = "${messages.buildPrompt()} \n### Response:"
                 if (verbose) {
                     println(prompt)
                 }
@@ -82,7 +82,7 @@ interface GPT4All : AutoCloseable {
                 map { message ->
                     when (message.role) {
                         Message.Role.SYSTEM -> message.content
-                        Message.Role.USER -> "\n ${message.content}"
+                        Message.Role.USER -> "\n### Human: ${message.content}"
                         Message.Role.ASSISTANT -> "\n### Response: ${message.content}"
                     }
                 }.toString()
