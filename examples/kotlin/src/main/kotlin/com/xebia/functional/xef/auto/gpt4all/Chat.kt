@@ -9,29 +9,23 @@ import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.auto.ai
 import com.xebia.functional.xef.auto.getOrThrow
 import java.nio.file.Path
-import java.util.Scanner
+import java.util.*
 
 suspend fun main() {
     ai {
-        val modelName = "gptj"
-        val modelPath = "examples/kotlin/src/main/kotlin/com/xebia/functional/xef/auto/gpt4all/models/ggml-gpt4all-j-v1.3-groovy.bin"
+        val resources = "models/gpt4all"
+        val path = "$resources/ggml-gpt4all-j-v1.3-groovy.bin"
+        val modelType = GPT4AllModel.Type.GPTJ
 
-        val type: GPT4AllModel.Type =
-            when (modelName) {
-                "llama" -> GPT4AllModel.Type.LLAMA
-                "gptj" -> GPT4AllModel.Type.GPTJ
-                else -> raise(AIError.ChatError("Model type $modelName is not recognized."))
-            }
-
-        val path: Path = Path.of(modelPath)
-        ensure(path.toFile().exists()) {
-            AIError.ChatError("Model at ${path.toAbsolutePath()} cannot be found.")
+        val modelPath: Path = Path.of(path)
+        ensure(modelPath.toFile().exists()) {
+            AIError.ChatError("Model at ${modelPath.toAbsolutePath()} cannot be found.")
         }
 
         Scanner(System.`in`).use { scanner ->
             println("Loading model...")
 
-            GPT4All(path, type).use { gpt4All ->
+            GPT4All(modelPath, modelType).use { gpt4All ->
                 println("Model loaded!")
                 print("Prompt: ")
 

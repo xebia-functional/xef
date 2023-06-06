@@ -30,3 +30,8 @@ dependencies {
   implementation(libs.jdbc.mysql.connector)
   api(libs.bundles.ktor.client)
 }
+
+tasks.getByName<Copy>("processResources") {
+  from("${projects.xefGpt4all.dependencyProject.buildDir}/processedResources/jvm/main")
+  into("$buildDir/resources/main")
+}

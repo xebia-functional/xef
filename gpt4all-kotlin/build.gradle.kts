@@ -30,7 +30,7 @@ kotlin {
   mingwX64()
 
   sourceSets {
-    val commonMain by getting
+    val commonMain by getting {}
 
     commonTest {
       dependencies {

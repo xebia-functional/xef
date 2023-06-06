@@ -116,7 +116,7 @@ interface GPT4All : AutoCloseable {
                         context
                     )
                 }
-                return responseBuffer.toString()
+                return responseBuffer.trim().toString()
             }
         }
     }
