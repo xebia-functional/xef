@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.auto
 
 import com.xebia.functional.xef.agents.search
-import io.github.oshai.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 
 suspend fun main() {
     val logger = KotlinLogging.logger("Weather")

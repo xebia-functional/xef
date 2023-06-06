@@ -5,7 +5,7 @@ import com.xebia.functional.xef.env.OpenAIConfig
 import com.xebia.functional.xef.llm.openai.EmbeddingRequest
 import com.xebia.functional.xef.llm.openai.OpenAIClient
 import com.xebia.functional.xef.llm.openai.RequestConfig
-import io.github.oshai.KLogger
+import io.github.oshai.kotlinlogging.KLogger
 import kotlin.time.ExperimentalTime
 
 @ExperimentalTime

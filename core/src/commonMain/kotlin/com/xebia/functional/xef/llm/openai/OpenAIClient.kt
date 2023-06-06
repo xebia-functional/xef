@@ -5,8 +5,8 @@ import arrow.resilience.retryOrElse
 import com.xebia.functional.xef.configure
 import com.xebia.functional.xef.env.OpenAIConfig
 import com.xebia.functional.xef.httpClient
-import io.github.oshai.KLogger
-import io.github.oshai.KotlinLogging
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.plugins.timeout

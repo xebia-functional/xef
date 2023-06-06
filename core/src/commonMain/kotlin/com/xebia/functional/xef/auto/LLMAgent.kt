@@ -15,8 +15,8 @@ import com.xebia.functional.xef.llm.openai.LLMModel
 import com.xebia.functional.xef.llm.openai.Message
 import com.xebia.functional.xef.llm.openai.Role
 import com.xebia.functional.xef.prompt.Prompt
-import io.github.oshai.KLogger
-import io.github.oshai.KotlinLogging
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlin.jvm.JvmMultifileClass
 import kotlin.jvm.JvmName
 
