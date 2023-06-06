@@ -17,8 +17,8 @@ import com.xebia.functional.xef.vectorstores.CombinedVectorStore
 import com.xebia.functional.xef.vectorstores.LocalVectorStore
 import com.xebia.functional.xef.vectorstores.LocalVectorStoreBuilder
 import com.xebia.functional.xef.vectorstores.VectorStore
-import io.github.oshai.KLogger
-import io.github.oshai.KotlinLogging
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlin.jvm.JvmName
 import kotlin.time.ExperimentalTime
 import kotlinx.serialization.DeserializationStrategy
