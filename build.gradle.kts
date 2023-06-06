@@ -2,7 +2,7 @@
 
 plugins {
   base
-  id(libs.plugins.kotlin.multiplatform.get().pluginId) apply false
+  alias(libs.plugins.kotlin.multiplatform) apply false
   alias(libs.plugins.kotlinx.serialization)
   alias(libs.plugins.spotless)
   alias(libs.plugins.dokka)

@@ -1,5 +1,5 @@
 plugins {
-  id(libs.plugins.kotlin.multiplatform.get().pluginId)
+  alias(libs.plugins.kotlin.multiplatform)
   alias(libs.plugins.kotest.multiplatform)
   alias(libs.plugins.spotless)
   alias(libs.plugins.arrow.gradle.publish)
