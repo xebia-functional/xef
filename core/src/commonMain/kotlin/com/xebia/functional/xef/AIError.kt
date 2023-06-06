@@ -11,9 +11,7 @@ sealed interface AIError {
       get() = "No response from the AI"
   }
 
-  data class ChatError(
-    val content: String
-  ) : AIError {
+  data class ChatError(val content: String) : AIError {
     override val reason: String = content
   }
 

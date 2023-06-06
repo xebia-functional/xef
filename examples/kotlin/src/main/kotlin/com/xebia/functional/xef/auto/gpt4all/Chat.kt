@@ -11,7 +11,7 @@ import com.xebia.functional.xef.auto.getOrThrow
 import java.nio.file.Path
 import java.util.Scanner
 
-suspend fun main(args: Array<String>) {
+suspend fun main() {
     ai {
         val modelName = "gptj"
         val modelPath = "examples/kotlin/src/main/kotlin/com/xebia/functional/xef/auto/gpt4all/models/ggml-gpt4all-j-v1.3-groovy.bin"

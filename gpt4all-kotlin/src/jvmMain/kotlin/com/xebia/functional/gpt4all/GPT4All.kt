@@ -57,15 +57,11 @@ interface GPT4All : AutoCloseable {
                 messages: List<Message>,
                 verbose: Boolean
             ): Response {
-                val prompt = "${messages.buildPrompt()} \n### Response:"
-                if (verbose) {
-                    println(prompt)
-                }
+                val prompt: String = messages.buildPrompt()
+                if (verbose) { println(prompt) }
 
                 val response: String = generateCompletion(prompt, GenerationConfig())
-                if (verbose) {
-                    println(response)
-                }
+                if (verbose) { println(response) }
 
                 return Response(
                     gpt4AllModel.name,
@@ -78,14 +74,16 @@ interface GPT4All : AutoCloseable {
 
             override fun close(): Unit = gpt4AllModel.close()
 
-            private fun List<Message>.buildPrompt(): String =
-                map { message ->
+            private fun List<Message>.buildPrompt(): String {
+                val messages: String = joinToString("") { message ->
                     when (message.role) {
                         Message.Role.SYSTEM -> message.content
                         Message.Role.USER -> "\n### Human: ${message.content}"
                         Message.Role.ASSISTANT -> "\n### Response: ${message.content}"
                     }
-                }.toString()
+                }
+                return "$messages\n### Response:"
+            }
 
             private fun generateCompletion(
                 prompt: String,
@@ -120,7 +118,6 @@ interface GPT4All : AutoCloseable {
                 }
                 return responseBuffer.toString()
             }
-
         }
     }
 }
