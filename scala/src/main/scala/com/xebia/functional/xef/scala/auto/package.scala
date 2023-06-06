@@ -6,6 +6,7 @@ import com.xebia.functional.xef.llm.openai.LLMModel
 import io.circe.Decoder
 import io.circe.parser.parse
 import com.xebia.functional.xef.auto.{AIException, AIKt, Agent as KtAgent}
+import com.xebia.functional.xef.auto.serialization.JsonSchemaKt
 import com.xebia.functional.xef.pdf.PDFLoaderKt
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.scala.textsplitters.TextSplitter
@@ -49,7 +50,7 @@ def prompt[A: Decoder: SerialDescriptor](
     KtAgent.promptWithSerializer[A](
       scope.kt,
       prompt,
-      SerialDescriptor[A].serialDescriptor,
+      JsonSchemaKt.encodeJsonSchema(SerialDescriptor[A].serialDescriptor),
       (json: String) => parse(json).flatMap(Decoder[A].decodeJson(_)).fold(throw _, identity),
       maxAttempts,
       llmModel,
@@ -108,7 +109,7 @@ def image[A: Decoder: SerialDescriptor](
     KtAgent.imageWithSerializer[A](
       scope.kt,
       prompt,
-      SerialDescriptor[A].serialDescriptor,
+      JsonSchemaKt.encodeJsonSchema(SerialDescriptor[A].serialDescriptor),
       (json: String) => parse(json).flatMap(Decoder[A].decodeJson(_)).fold(throw _, identity),
       maxAttempts,
       user,

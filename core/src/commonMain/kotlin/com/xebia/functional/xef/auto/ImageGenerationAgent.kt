@@ -10,37 +10,6 @@ import com.xebia.functional.xef.llm.openai.LLMModel
 import com.xebia.functional.xef.prompt.Prompt
 import kotlin.jvm.JvmMultifileClass
 import kotlin.jvm.JvmName
-import kotlinx.serialization.descriptors.SerialDescriptor
-
-/**
- * Run a [prompt] describes the images you want to generate within the context of [AIScope].
- * Produces a [ImagesGenerationResponse] which then gets serialized to [A] through [prompt].
- *
- * @param prompt a [Prompt] describing the images you want to generate.
- * @param size the size of the images to generate.
- */
-suspend inline fun <reified A> AIScope.image(
-  prompt: String,
-  user: String = "testing",
-  size: String = "1024x1024",
-  bringFromContext: Int = 10
-): A {
-  val imageResponse = images(prompt, user, 1, size, bringFromContext)
-  val url = imageResponse.data.firstOrNull() ?: raise(AIError.NoResponse)
-  return prompt<A>(
-    """|Instructions: Format this [URL] and [PROMPT] information in the desired JSON response format
-       |specified at the end of the message.
-       |[URL]: 
-       |```
-       |$url
-       |```
-       |[PROMPT]:
-       |```
-       |$prompt
-       |```"""
-      .trimMargin()
-  )
-}
 
 /**
  * Run a [prompt] describes the images you want to generate within the context of [AIScope]. Returns
@@ -100,7 +69,7 @@ suspend fun AIScope.images(
 @JvmName("imageWithSerializer")
 suspend fun <A> AIScope.image(
   prompt: Prompt,
-  descriptor: SerialDescriptor,
+  jsonSchema: String,
   serializer: (json: String) -> A,
   maxDeserializationAttempts: Int = 5,
   user: String = "testing",
@@ -128,7 +97,7 @@ suspend fun <A> AIScope.image(
        |```"""
         .trimMargin()
     ),
-    descriptor,
+    jsonSchema,
     serializer,
     maxDeserializationAttempts,
     model,
