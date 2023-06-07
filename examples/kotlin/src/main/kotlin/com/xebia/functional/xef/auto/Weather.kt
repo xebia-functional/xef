@@ -18,4 +18,4 @@ private suspend fun getQuestionAnswer(
     contextScope(search("Weather in Cádiz, Spain")) {
         promptMessage(question)
     }
-}.getOrElse { throw IllegalStateException(it.reason) }
+}.getOrElse { throw IllegalStateException(it.message) }
