@@ -1,5 +1,7 @@
 package com.xebia.functional.xef.prompt
 
+import com.xebia.functional.xef.auto.*
+
 open class PromptBuilder {
   private val items = mutableListOf<Prompt>()
 
@@ -20,3 +22,8 @@ open class PromptBuilder {
 }
 
 fun buildPrompt(block: PromptBuilder.() -> Unit): Prompt = PromptBuilder().apply { block() }.build()
+
+suspend inline fun <A, reified B> A.chain(crossinline template: (A) -> String): B {
+  val input = this
+  return ai { prompt<B>(template(input)) }.getOrThrow()
+}

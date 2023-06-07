@@ -5,8 +5,6 @@ import io.circe.Decoder
 
 trait PromptTemplate[A] {
 
-  def chain(template: String): A
-
   extension (a: A) {
     def chain[B: SerialDescriptor: Decoder](template: A => String): B =
       ai(prompt[B](template(a)))

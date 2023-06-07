@@ -39,9 +39,9 @@ final case class Score(score: Double) derives PromptTemplate, Decoder, SerialDes
        |Score the above play from 0 to 10:
     """.stripMargin
 
-  val playScore = PromptTemplate[Play](Play("The power of Zuluastral", "Modern Era"))
+  val playScore = PromptTemplate(Play("The power of Zuluastral", "Modern Era"))
     .chain[Synopsis](play => synopsisTemplate(play))
     .chain[Review](synopsis => reviewTemplate(synopsis))
     .chain[Score](review => scoreTemplate(review))
-  println(s"Score (0 to 10): " + playScore.score)
+  println(s"Score (0 to 10): ${playScore.score}")
 }
