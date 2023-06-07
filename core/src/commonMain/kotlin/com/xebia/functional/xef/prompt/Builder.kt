@@ -1,7 +1,5 @@
 package com.xebia.functional.xef.prompt
 
-import com.xebia.functional.xef.auto.*
-
 open class PromptBuilder {
   private val items = mutableListOf<Prompt>()
 

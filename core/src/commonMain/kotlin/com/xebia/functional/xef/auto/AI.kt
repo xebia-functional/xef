@@ -102,7 +102,6 @@ suspend inline fun <A, reified B> A.chain(crossinline template: (A) -> String): 
   return ai { prompt<B>(template(input)) }.getOrThrow()
 }
 
-
 /**
  * The [AIScope] is the context in which [AI] values are run. It encapsulates all the dependencies
  * required to run [AI] values, and provides convenient syntax for writing [AI] based programs.
