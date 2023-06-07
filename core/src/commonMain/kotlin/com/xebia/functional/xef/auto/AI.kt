@@ -27,12 +27,6 @@ import kotlinx.serialization.json.JsonObject
 
 @DslMarker annotation class AiDsl
 
-data class SerializationConfig<A>(
-  val jsonSchema: JsonObject,
-  val descriptor: SerialDescriptor,
-  val deserializationStrategy: DeserializationStrategy<A>,
-)
-
 /**
  * An [AI] value represents an action relying on artificial intelligence that can be run to produce
  * an [A]. This value is _lazy_ and can be combined with other `AI` values using [AIScope.invoke],
