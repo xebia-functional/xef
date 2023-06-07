@@ -1,6 +1,5 @@
 package com.xebia.functional.xef.auto
 
-import com.xebia.functional.xef.prompt.chain
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -14,6 +13,7 @@ data class Review(val review: String)
 
 @Serializable
 data class Score(val score: Double)
+
 suspend fun main() {
     val playScore = Play("The power of Zuluastral", "Modern Era")
         .chain<Play, Synopsis> { play -> synopsisTemplate(play) }

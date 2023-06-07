@@ -22,8 +22,3 @@ open class PromptBuilder {
 }
 
 fun buildPrompt(block: PromptBuilder.() -> Unit): Prompt = PromptBuilder().apply { block() }.build()
-
-suspend inline fun <A, reified B> A.chain(crossinline template: (A) -> String): B {
-  val input = this
-  return ai { prompt<B>(template(input)) }.getOrThrow()
-}
