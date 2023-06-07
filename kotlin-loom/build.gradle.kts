@@ -3,6 +3,7 @@ plugins {
   alias(libs.plugins.spotless)
   alias(libs.plugins.arrow.gradle.publish)
   alias(libs.plugins.semver.gradle)
+  `xef-gradle-cross-compilation`
 }
 
 repositories {

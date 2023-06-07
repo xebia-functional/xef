@@ -2,6 +2,7 @@ plugins {
     id(libs.plugins.kotlin.jvm.get().pluginId)
     alias(libs.plugins.arrow.gradle.publish)
     alias(libs.plugins.semver.gradle)
+    `xef-gradle-cross-compilation`
 }
 
 repositories {
