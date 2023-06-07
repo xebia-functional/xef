@@ -40,9 +40,7 @@ data class ImagesGenerationResponse(val created: Long, val data: List<ImageGener
 @Serializable data class ImageGenerationUrl(val url: String)
 
 @OptIn(ExperimentalStdlibApi::class)
-class KtorOpenAIClient(
-  private val config: OpenAIConfig
-) : OpenAIClient, AutoCloseable {
+class KtorOpenAIClient(private val config: OpenAIConfig) : OpenAIClient, AutoCloseable {
 
   private val httpClient: HttpClient = HttpClient {
     install(HttpTimeout)

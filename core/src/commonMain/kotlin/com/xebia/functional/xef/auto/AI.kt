@@ -15,9 +15,7 @@ import com.xebia.functional.xef.llm.openai.KtorOpenAIClient
 import com.xebia.functional.xef.llm.openai.OpenAIClient
 import com.xebia.functional.xef.vectorstores.CombinedVectorStore
 import com.xebia.functional.xef.vectorstores.LocalVectorStore
-import com.xebia.functional.xef.vectorstores.LocalVectorStoreBuilder
 import com.xebia.functional.xef.vectorstores.VectorStore
-import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlin.jvm.JvmName
 import kotlin.time.ExperimentalTime
@@ -58,15 +56,16 @@ suspend inline fun <A> AI<A>.getOrElse(crossinline orElse: suspend (AIError) -> 
 @OptIn(ExperimentalTime::class, ExperimentalStdlibApi::class)
 suspend fun <A> AIScope(block: suspend AIScope.() -> A, orElse: suspend (AIError) -> A): A =
   recover({
-      val openAIConfig = OpenAIConfig()
-      val logger = KotlinLogging.logger("AutoAI")
-      KtorOpenAIClient(openAIConfig).use { openAiClient ->
-        val embeddings = OpenAIEmbeddings(openAIConfig, openAiClient, logger)
-        val vectorStore = LocalVectorStore(embeddings)
-        val scope = AIScope(openAiClient, vectorStore, embeddings, logger, this@recover)
-        block(scope)
-      }
-  }) { orElse(it) }
+    val openAIConfig = OpenAIConfig()
+    KtorOpenAIClient(openAIConfig).use { openAiClient ->
+      val embeddings = OpenAIEmbeddings(openAIConfig, openAiClient)
+      val vectorStore = LocalVectorStore(embeddings)
+      val scope = AIScope(openAiClient, vectorStore, embeddings, this@recover)
+      block(scope)
+    }
+  }) {
+    orElse(it)
+  }
 
 /**
  * Run the [AI] value to produce _either_ an [AIError], or [A]. this method initialises all the
@@ -105,9 +104,10 @@ class AIScope(
   val openAIClient: OpenAIClient,
   val context: VectorStore,
   internal val embeddings: Embeddings,
-  private val logger: KLogger,
   raise: Raise<AIError>,
 ) : Raise<AIError> by raise {
+
+  private val logger = KotlinLogging.logger("AutoAI")
 
   /**
    * Allows invoking [AI] values in the context of this [AIScope].
@@ -156,22 +156,19 @@ class AIScope(
    */
   @OptIn(ExperimentalStdlibApi::class)
   @AiDsl
-  suspend fun <A> contextScope(
-    store: suspend AutoCloseable.(Embeddings) -> VectorStore,
-    block: AI<A>
-  ): A {
-    val newStore = store(this@AIScope.embeddings)
-    return AIScope(
-      this@AIScope.openAIClient,
-      CombinedVectorStore(newStore, this@AIScope.context),
-      this@AIScope.embeddings,
-      this@AIScope.logger,
-      this@AIScope
-    ).block()
-  }
+  suspend fun <A> contextScope(store: suspend (Embeddings) -> VectorStore, block: AI<A>): A =
+    store(this@AIScope.embeddings).use { newStore ->
+      return AIScope(
+          this@AIScope.openAIClient,
+          CombinedVectorStore(newStore, this@AIScope.context),
+          this@AIScope.embeddings,
+          this@AIScope
+        )
+        .block()
+    }
 
   @AiDsl
-  suspend fun <A> contextScope(block: AI<A>): A = contextScope(LocalVectorStoreBuilder, block)
+  suspend fun <A> contextScope(block: AI<A>): A = contextScope(LocalVectorStore::invoke, block)
 
   /** Add new [docs] to the [context], and then executes the [block]. */
   @AiDsl

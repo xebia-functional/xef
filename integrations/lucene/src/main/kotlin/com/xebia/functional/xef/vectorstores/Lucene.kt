@@ -1,7 +1,5 @@
 package com.xebia.functional.xef.vectorstores
 
-import arrow.fx.coroutines.ResourceScope
-import arrow.fx.coroutines.autoCloseable
 import com.xebia.functional.xef.embeddings.Embedding
 import com.xebia.functional.xef.embeddings.Embeddings
 import com.xebia.functional.xef.llm.openai.EmbeddingModel
@@ -20,7 +18,7 @@ open class Lucene(
   private val writer: IndexWriter,
   private val embeddings: Embeddings?,
   private val similarity: VectorSimilarityFunction = VectorSimilarityFunction.EUCLIDEAN
-) : VectorStore, AutoCloseable {
+) : VectorStore {
 
   private val requestConfig =
     RequestConfig(EmbeddingModel.TextEmbeddingAda002, RequestConfig.Companion.User("user"))
@@ -91,8 +89,8 @@ fun InMemoryLuceneBuilder(
   useAIEmbeddings: Boolean = true,
   writerConfig: IndexWriterConfig = IndexWriterConfig(),
   similarity: VectorSimilarityFunction = VectorSimilarityFunction.EUCLIDEAN
-): suspend ResourceScope.(Embeddings) -> DirectoryLucene = { embeddings ->
-  autoCloseable { InMemoryLucene(path, writerConfig, embeddings.takeIf { useAIEmbeddings }, similarity) }
+): suspend (Embeddings) -> DirectoryLucene = { embeddings ->
+  InMemoryLucene(path, writerConfig, embeddings.takeIf { useAIEmbeddings }, similarity)
 }
 
 fun List<Embedding>.toFloatArray(): FloatArray = flatMap { it.data }.toFloatArray()

@@ -1,8 +1,9 @@
 package com.xebia.functional.xef.vectorstores
 
 import com.xebia.functional.xef.embeddings.Embedding
+import kotlin.jvm.JvmStatic
 
-interface VectorStore {
+interface VectorStore : AutoCloseable {
   /**
    * Add texts to the vector store after running them through the embeddings
    *
@@ -31,7 +32,12 @@ interface VectorStore {
    */
   suspend fun similaritySearchByVector(embedding: Embedding, limit: Int): List<String>
 
+  override fun close() {
+    // no-op
+  }
+
   companion object {
+    @JvmStatic
     val EMPTY: VectorStore =
       object : VectorStore {
         override suspend fun addTexts(texts: List<String>) {}
