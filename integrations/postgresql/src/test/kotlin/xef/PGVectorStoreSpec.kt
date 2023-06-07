@@ -2,7 +2,6 @@ package xef
 
 import com.xebia.functional.xef.embeddings.Embedding
 import com.xebia.functional.xef.embeddings.Embeddings
-import com.xebia.functional.xef.embeddings.mock.mock
 import com.xebia.functional.xef.llm.openai.EmbeddingModel
 import com.xebia.functional.xef.llm.openai.RequestConfig
 import com.xebia.functional.xef.vectorstores.PGVectorStore
