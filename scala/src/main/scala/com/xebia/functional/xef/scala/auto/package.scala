@@ -70,8 +70,7 @@ extension [A](instance: A) {
         scope.kt,
         instance,
         (input: A) => template(input),
-        SerialDescriptor[B].serialDescriptor,
-        (json: String) => parse(json).flatMap(Decoder[B].decodeJson(_)).fold(throw _, identity),
+        SerialDescriptor[B].kserializer,
         cont
       )
     )

@@ -21,7 +21,7 @@ suspend fun main() {
             .chain<Synopsis, Review>(this) { synopsis -> reviewTemplate(synopsis) }
             .chain<Review, Score>(this) { review -> scoreTemplate(review) }
         println("Score (0 to 10): ${playScore.score}")
-    }
+    }.getOrElse { println(it) }
 }
 
 private fun synopsisTemplate(play: Play): String =

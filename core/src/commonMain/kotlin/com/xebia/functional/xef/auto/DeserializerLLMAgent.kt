@@ -193,12 +193,12 @@ suspend inline fun <A, reified B> A.chain(scope: AIScope, noinline template: (A)
 suspend fun <A, B> AIScope.chain(
   instance: A,
   template: (A) -> String,
-  serializer: KSerializer<B>,
-  json: Json = Json {
+  serializer: KSerializer<B>
+): B {
+  val json = Json {
     ignoreUnknownKeys = true
     isLenient = true
   }
-): B {
   return prompt(
     Prompt(template(instance)),
     serializer.descriptor,
