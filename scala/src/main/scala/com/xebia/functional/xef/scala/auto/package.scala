@@ -45,7 +45,7 @@ def prompt[A: Decoder: SerialDescriptor](
     bringFromContext: Int = 10,
     minResponseTokens: Int = 500
 )(using scope: AIScope): A =
-  LoomAdapter.apply((cont) =>
+  LoomAdapter.apply(cont =>
     KtAgent.promptWithSerializer[A](
       scope.kt,
       prompt,
@@ -66,10 +66,9 @@ def prompt[A: Decoder: SerialDescriptor](
 extension [A](instance: A) {
   def chain[B: Decoder: SerialDescriptor](template: A => String)(using scope: AIScope): B =
     LoomAdapter.apply(cont =>
-      KtAgent.chainWithSerializer[A, B](
+      KtAgent.chainWithSerializer[B](
         scope.kt,
-        instance,
-        (input: A) => template(input),
+        template(instance),
         SerialDescriptor[B].kserializer,
         cont
       )

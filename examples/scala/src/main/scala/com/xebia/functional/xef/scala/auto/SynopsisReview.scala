@@ -1,7 +1,6 @@
 package com.xebia.functional.xef.scala.auto
 
 import com.xebia.functional.xef.scala.auto.*
-import com.xebia.functional.xef.scala.prompt.*
 import io.circe.Decoder
 
 final case class Play(title: String, era: String) derives Decoder, SerialDescriptor

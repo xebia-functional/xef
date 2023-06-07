@@ -186,22 +186,14 @@ suspend fun <A> AIScope.tryDeserialize(
 
 @AiDsl
 suspend inline fun <A, reified B> A.chain(scope: AIScope, noinline template: (A) -> String): B =
-  scope.chain(this, template, serializer())
+  scope.chain(template(this), serializer())
 
 @AiDsl
 @JvmName("chainWithSerializer")
-suspend fun <A, B> AIScope.chain(
-  instance: A,
-  template: (A) -> String,
-  serializer: KSerializer<B>
-): B {
+suspend fun <B> AIScope.chain(template: String, serializer: KSerializer<B>): B {
   val json = Json {
     ignoreUnknownKeys = true
     isLenient = true
   }
-  return prompt(
-    Prompt(template(instance)),
-    serializer.descriptor,
-    { json.decodeFromString(serializer, it) }
-  )
+  return prompt(Prompt(template), serializer.descriptor, { json.decodeFromString(serializer, it) })
 }
