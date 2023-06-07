@@ -185,7 +185,8 @@ suspend fun <A> AIScope.tryDeserialize(
 }
 
 @AiDsl
-suspend inline fun <A, reified B> A.chain(scope: AIScope, noinline template: (A) -> String): B = scope.chain(this, template, serializer())
+suspend inline fun <A, reified B> A.chain(scope: AIScope, noinline template: (A) -> String): B =
+  scope.chain(this, template, serializer())
 
 @AiDsl
 @JvmName("chainWithSerializer")
