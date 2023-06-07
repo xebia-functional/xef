@@ -32,6 +32,7 @@ dependencies {
 }
 
 tasks.getByName<Copy>("processResources") {
+  dependsOn(projects.xefGpt4all.dependencyProject.tasks.getByName("jvmProcessResources"))
   from("${projects.xefGpt4all.dependencyProject.buildDir}/processedResources/jvm/main")
   into("$buildDir/resources/main")
 }
