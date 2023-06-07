@@ -12,6 +12,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
+    strategy:
+      matrix:
+        platform: [ jvm, js, linuxX64, macosX64, mingwX64 ]
+
     steps:
       - uses: actions/checkout@v3
         with:
@@ -23,10 +27,29 @@ jobs:
           distribution: 'zulu'
           java-version: 19
 
-      - name: build
+      - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
-        with:
-          arguments: build --full-stacktrace
+
+      - name: Build Multi-platform Modules
+        run: |
+          ./gradlew \
+            :xef-core:${{ matrix.platform }}Test \
+            :xef-filesystem:${{ matrix.platform }}Test \
+            :xef-tokenizer:${{ matrix.platform }}Test \
+
+      - name: Build Single-platform Modules
+        if: matrix.platform == 'jvm'
+        run: |
+          ./gradlew \
+            :xef-lucene:build \
+            :xef-pdf:build \
+            :xef-postgresql:build \
+            :xef-sql:build \
+            :xef-kotlin-examples:build \
+            :kotlin-loom:build \
+            :xef-scala-examples:build \
+            :xef-scala:build \
+            :xef-scala-cats:build
 
       - name: Upload reports
         if: failure()
