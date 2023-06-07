@@ -1,20 +1,19 @@
 package com.xebia.functional.xef.llm.openai
 
-import arrow.fx.coroutines.ResourceScope
 import arrow.resilience.retryOrElse
 import com.xebia.functional.xef.configure
 import com.xebia.functional.xef.env.OpenAIConfig
-import com.xebia.functional.xef.httpClient
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.HttpClientEngine
-import io.ktor.client.plugins.timeout
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.post
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.path
+import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -40,15 +39,16 @@ data class ImagesGenerationResponse(val created: Long, val data: List<ImageGener
 
 @Serializable data class ImageGenerationUrl(val url: String)
 
-suspend fun ResourceScope.KtorOpenAIClient(
-  config: OpenAIConfig,
-  engine: HttpClientEngine? = null,
-): OpenAIClient = KtorOpenAIClient(httpClient(engine, config.baseUrl), config)
-
-private class KtorOpenAIClient(
-  private val httpClient: HttpClient,
+@OptIn(ExperimentalStdlibApi::class)
+class KtorOpenAIClient(
   private val config: OpenAIConfig
-) : OpenAIClient {
+) : OpenAIClient, AutoCloseable {
+
+  private val httpClient: HttpClient = HttpClient {
+    install(HttpTimeout)
+    install(ContentNegotiation) { json() }
+    defaultRequest { url(config.baseUrl.encodedPath) }
+  }
 
   private val logger: KLogger = KotlinLogging.logger {}
 
@@ -121,6 +121,8 @@ private class KtorOpenAIClient(
     }
     return response.bodyOrError()
   }
+
+  override fun close() = httpClient.close()
 }
 
 private suspend inline fun <reified T> HttpResponse.bodyOrError(): T =

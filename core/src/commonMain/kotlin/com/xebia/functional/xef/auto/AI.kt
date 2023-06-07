@@ -55,21 +55,18 @@ inline fun <A> ai(noinline block: suspend AIScope.() -> A): AI<A> = block
 suspend inline fun <A> AI<A>.getOrElse(crossinline orElse: suspend (AIError) -> A): A =
   AIScope(this) { orElse(it) }
 
-@OptIn(ExperimentalTime::class)
+@OptIn(ExperimentalTime::class, ExperimentalStdlibApi::class)
 suspend fun <A> AIScope(block: suspend AIScope.() -> A, orElse: suspend (AIError) -> A): A =
   recover({
-    resourceScope {
       val openAIConfig = OpenAIConfig()
-      val openAiClient: OpenAIClient = KtorOpenAIClient(openAIConfig)
       val logger = KotlinLogging.logger("AutoAI")
-      val embeddings = OpenAIEmbeddings(openAIConfig, openAiClient, logger)
-      val vectorStore = LocalVectorStore(embeddings)
-      val scope = AIScope(openAiClient, vectorStore, embeddings, logger, this, this@recover)
-      block(scope)
-    }
-  }) {
-    orElse(it)
-  }
+      KtorOpenAIClient(openAIConfig).use { openAiClient ->
+        val embeddings = OpenAIEmbeddings(openAIConfig, openAiClient, logger)
+        val vectorStore = LocalVectorStore(embeddings)
+        val scope = AIScope(openAiClient, vectorStore, embeddings, logger, this@recover)
+        block(scope)
+      }
+  }) { orElse(it) }
 
 /**
  * Run the [AI] value to produce _either_ an [AIError], or [A]. this method initialises all the
@@ -109,9 +106,8 @@ class AIScope(
   val context: VectorStore,
   internal val embeddings: Embeddings,
   private val logger: KLogger,
-  resourceScope: ResourceScope,
   raise: Raise<AIError>,
-) : ResourceScope by resourceScope, Raise<AIError> by raise {
+) : Raise<AIError> by raise {
 
   /**
    * Allows invoking [AI] values in the context of this [AIScope].
@@ -158,21 +154,20 @@ class AIScope(
    * [block] also runs on a _nested_ [resourceScope], meaning that all additional resources created
    * within [block] will be finalized after [block] finishes.
    */
+  @OptIn(ExperimentalStdlibApi::class)
   @AiDsl
   suspend fun <A> contextScope(
-    store: suspend ResourceScope.(Embeddings) -> VectorStore,
+    store: suspend AutoCloseable.(Embeddings) -> VectorStore,
     block: AI<A>
-  ): A = resourceScope {
+  ): A {
     val newStore = store(this@AIScope.embeddings)
-    AIScope(
-        this@AIScope.openAIClient,
-        CombinedVectorStore(newStore, this@AIScope.context),
-        this@AIScope.embeddings,
-        this@AIScope.logger,
-        this,
-        this@AIScope
-      )
-      .block()
+    return AIScope(
+      this@AIScope.openAIClient,
+      CombinedVectorStore(newStore, this@AIScope.context),
+      this@AIScope.embeddings,
+      this@AIScope.logger,
+      this@AIScope
+    ).block()
   }
 
   @AiDsl
