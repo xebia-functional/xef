@@ -15,11 +15,13 @@ data class Review(val review: String)
 data class Score(val score: Double)
 
 suspend fun main() {
-    val playScore = Play("The power of Zuluastral", "Modern Era")
-        .chain<Play, Synopsis> { play -> synopsisTemplate(play) }
-        .chain<Synopsis, Review> { synopsis -> reviewTemplate(synopsis) }
-        .chain<Review, Score> { review -> scoreTemplate(review) }
-    println("Score (0 to 10): ${playScore.score}")
+    ai {
+        val playScore = Play("The power of Zuluastral", "Modern Era")
+            .chain<Play, Synopsis>(this) { play -> synopsisTemplate(play) }
+            .chain<Synopsis, Review>(this) { synopsis -> reviewTemplate(synopsis) }
+            .chain<Review, Score>(this) { review -> scoreTemplate(review) }
+        println("Score (0 to 10): ${playScore.score}")
+    }
 }
 
 private fun synopsisTemplate(play: Play): String =

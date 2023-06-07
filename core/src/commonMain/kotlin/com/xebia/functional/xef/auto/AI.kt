@@ -97,11 +97,6 @@ class AIException(message: String) : RuntimeException(message)
  */
 suspend inline fun <reified A> AI<A>.getOrThrow(): A = getOrElse { throw AIException(it.reason) }
 
-suspend inline fun <A, reified B> A.chain(crossinline template: (A) -> String): B {
-  val input = this
-  return ai { prompt<B>(template(input)) }.getOrThrow()
-}
-
 /**
  * The [AIScope] is the context in which [AI] values are run. It encapsulates all the dependencies
  * required to run [AI] values, and provides convenient syntax for writing [AI] based programs.

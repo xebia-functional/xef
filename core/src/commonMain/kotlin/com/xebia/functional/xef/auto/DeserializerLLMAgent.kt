@@ -183,3 +183,24 @@ suspend fun <A> AIScope.tryDeserialize(
   }
   raise(AIError.NoResponse)
 }
+
+@AiDsl
+suspend inline fun <A, reified B> A.chain(scope: AIScope, noinline template: (A) -> String): B = scope.chain(this, template, serializer())
+
+@AiDsl
+@JvmName("chainWithSerializer")
+suspend fun <A, B> AIScope.chain(
+  instance: A,
+  template: (A) -> String,
+  serializer: KSerializer<B>,
+  json: Json = Json {
+    ignoreUnknownKeys = true
+    isLenient = true
+  }
+): B {
+  return prompt(
+    Prompt(template(instance)),
+    serializer.descriptor,
+    { json.decodeFromString(serializer, it) }
+  )
+}

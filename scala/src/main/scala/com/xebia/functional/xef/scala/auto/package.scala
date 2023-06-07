@@ -63,6 +63,20 @@ def prompt[A: Decoder: SerialDescriptor](
     )
   )
 
+extension [A](instance: A) {
+  def chain[B: Decoder: SerialDescriptor](template: A => String)(using scope: AIScope): B =
+    LoomAdapter.apply(cont =>
+      KtAgent.chainWithSerializer[A, B](
+        scope.kt,
+        instance,
+        (input: A) => template(input),
+        SerialDescriptor[B].serialDescriptor,
+        (json: String) => parse(json).flatMap(Decoder[B].decodeJson(_)).fold(throw _, identity),
+        cont
+      )
+    )
+}
+
 def contextScope[A: Decoder: SerialDescriptor](docs: List[String])(block: AI[A])(using scope: AIScope): A =
   LoomAdapter.apply(scope.kt.contextScopeWithDocs[A](docs.asJava, (_, _) => block, _))
 

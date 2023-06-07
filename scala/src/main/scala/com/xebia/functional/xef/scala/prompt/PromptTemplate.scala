@@ -1,3 +1,4 @@
+/*
 package com.xebia.functional.xef.scala.prompt
 
 import com.xebia.functional.xef.scala.auto.*
@@ -18,3 +19,4 @@ object PromptTemplate:
   inline final def derived[A: SerialDescriptor: Decoder]: PromptTemplate[A] = new PromptTemplate[A]:
 
     def chain(template: String): A = ai(prompt[A](template))
+ */

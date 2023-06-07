@@ -4,13 +4,13 @@ import com.xebia.functional.xef.scala.auto.*
 import com.xebia.functional.xef.scala.prompt.*
 import io.circe.Decoder
 
-final case class Play(title: String, era: String) derives PromptTemplate, Decoder, SerialDescriptor
+final case class Play(title: String, era: String) derives Decoder, SerialDescriptor
 
-final case class Synopsis(summary: String) derives PromptTemplate, Decoder, SerialDescriptor
+final case class Synopsis(summary: String) derives Decoder, SerialDescriptor
 
-final case class Review(review: String) derives PromptTemplate, Decoder, SerialDescriptor
+final case class Review(review: String) derives Decoder, SerialDescriptor
 
-final case class Score(score: Double) derives PromptTemplate, Decoder, SerialDescriptor
+final case class Score(score: Double) derives Decoder, SerialDescriptor
 
 @main def runSynopsisReview: Unit = {
   def synopsisTemplate(play: Play): String =
@@ -39,9 +39,11 @@ final case class Score(score: Double) derives PromptTemplate, Decoder, SerialDes
        |Score the above play from 0 to 10:
     """.stripMargin
 
-  val playScore = PromptTemplate(Play("The power of Zuluastral", "Modern Era"))
-    .chain[Synopsis](play => synopsisTemplate(play))
-    .chain[Review](synopsis => reviewTemplate(synopsis))
-    .chain[Score](review => scoreTemplate(review))
-  println(s"Score (0 to 10): ${playScore.score}")
+  ai {
+    val playScore = Play("The power of Zuluastral", "Modern Era")
+      .chain[Synopsis](play => synopsisTemplate(play))
+      .chain[Review](synopsis => reviewTemplate(synopsis))
+      .chain[Score](review => scoreTemplate(review))
+    println(s"Score (0 to 10): ${playScore.score}")
+  }.getOrElse(ex => println(ex.getMessage))
 }
