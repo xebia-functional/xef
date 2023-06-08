@@ -3,9 +3,10 @@ package com.xebia.functional.xef.auto.gpt4all
 import arrow.core.raise.either
 import arrow.core.raise.ensure
 import com.xebia.functional.gpt4all.*
-import com.xebia.functional.xef.AIError
 import java.nio.file.Path
 import java.util.*
+
+data class ChatError(val content: String)
 
 suspend fun main() {
     either {
@@ -15,7 +16,7 @@ suspend fun main() {
 
         val modelPath: Path = Path.of(path)
         ensure(modelPath.toFile().exists()) {
-            AIError.ChatError("Model at ${modelPath.toAbsolutePath()} cannot be found.")
+            ChatError("Model at ${modelPath.toAbsolutePath()} cannot be found.")
         }
 
         Scanner(System.`in`).use { scanner ->
