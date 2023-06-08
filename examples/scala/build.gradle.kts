@@ -3,6 +3,7 @@
 plugins {
   scala
   alias(libs.plugins.spotless)
+  `xef-gradle-cross-compilation`
 }
 
 java {

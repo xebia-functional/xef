@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
   id(libs.plugins.kotlin.jvm.get().pluginId)
   id(libs.plugins.kotlinx.serialization.get().pluginId)
+  `xef-gradle-cross-compilation`
 }
 
 repositories {

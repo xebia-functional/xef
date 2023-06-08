@@ -7,26 +7,29 @@ import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
-import org.jetbrains.kotlin.gradle.dsl.kotlinExtension
 
 class GradleCrossCompilationPlugin : Plugin<Project> {
   override fun apply(project: Project): Unit = project.run {
-    if (kotlinExtension is KotlinMultiplatformExtension) {
-      extensions.configure<KotlinMultiplatformExtension> {
-        afterEvaluate {
-          targets.configureEach {
-            disableCompilationIfNeeded()
+    when {
+      isKotlinMultiplatform ->
+        extensions.configure<KotlinMultiplatformExtension> {
+          afterEvaluate {
+            targets.configureEach {
+              disableCompilationIfNeeded()
+            }
           }
         }
+      isKotlinJvm ->
+        extensions.configure<KotlinJvmProjectExtension> {
+          afterEvaluate {
+            target.disableCompilationIfNeeded()
+          }
+        }
+      isScala || isJavaPlatform -> {
+        disableSinglePlatformCompilations()
       }
     }
 
-    if (kotlinExtension is KotlinJvmProjectExtension)
-    extensions.configure<KotlinJvmProjectExtension> {
-      afterEvaluate {
-        target.disableCompilationIfNeeded()
-      }
-    }
   }
 
   private fun Project.singlePlatformSetup(platformEnabled: Boolean) {

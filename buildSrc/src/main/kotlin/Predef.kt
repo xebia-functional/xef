@@ -1,15 +1,15 @@
 import org.gradle.api.Project
 import org.gradle.api.publish.maven.tasks.AbstractPublishToMaven
 import org.gradle.api.publish.tasks.GenerateModuleMetadata
+import org.gradle.api.tasks.compile.AbstractCompile
+import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.testing.Test
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.plugin.KotlinTarget
-import org.jetbrains.kotlin.gradle.plugin.mpp.AbstractKotlinTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinMultiplatformPlugin
-import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeCompilation
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 
 internal val Project.isJavaPlatform: Boolean
@@ -74,6 +74,10 @@ internal fun KotlinTarget.disableCompilations() {
     compileTaskProvider.get().enabled = false
   }
 
+  project.tasks.withType<JavaCompile> {
+    enabled = false
+  }
+
   project.tasks.withType<Test> {
     enabled = false
   }
@@ -92,5 +96,23 @@ internal fun KotlinTarget.disableCompilations() {
       project.tasks[processResourcesTaskName].enabled = false
     }
     binaries.all { linkTask.enabled = false }
+  }
+}
+
+internal fun Project.disableSinglePlatformCompilations() {
+  tasks.withType<AbstractCompile> {
+    enabled = false
+  }
+
+  tasks.withType<Test> {
+    enabled = false
+  }
+
+  tasks.withType<AbstractPublishToMaven> {
+    enabled = false
+  }
+
+  tasks.withType<GenerateModuleMetadata> {
+    enabled = false
   }
 }

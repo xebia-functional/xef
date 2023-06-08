@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.semver.gradle)
     alias(libs.plugins.spotless)
     `xef-scala-documentation`
+    `xef-gradle-cross-compilation`
 }
 
 dependencies {
