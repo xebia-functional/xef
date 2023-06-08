@@ -16,9 +16,10 @@ interface GPT4AllModel : AutoCloseable {
         ): GPT4AllModel = object : GPT4AllModel {
             override val llModel: LLModel =
                 when (modelType) {
-                    LLModel.Type.LLAMA -> LlamaModel(path).also { it.loadModel() }
-                    LLModel.Type.GPTJ -> GPTJModel(path).also { it.loadModel() }
-                }
+                    LLModel.Type.LLAMA -> LlamaModel(path)
+                    LLModel.Type.GPTJ -> GPTJModel(path)
+                    LLModel.Type.MPT -> MPTModel(path)
+                }.also { it.loadModel() }
 
             override fun prompt(prompt: String, context: LLModelContext): String =
                 with(llModel) {

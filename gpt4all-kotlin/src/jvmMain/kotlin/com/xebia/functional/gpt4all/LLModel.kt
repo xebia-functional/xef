@@ -15,7 +15,8 @@ sealed interface LLModel : AutoCloseable {
 
     enum class Type {
         LLAMA,
-        GPTJ
+        GPTJ,
+        MPT
     }
 
     fun loadModel(): Boolean
@@ -24,6 +25,7 @@ sealed interface LLModel : AutoCloseable {
         when (this) {
             is LlamaModel -> Type.LLAMA
             is GPTJModel -> Type.GPTJ
+            is MPTModel -> Type.MPT
         }
 }
 
@@ -53,6 +55,21 @@ interface GPTJModel : LLModel {
             override val name: String = path.getModelName()
             override fun loadModel(): Boolean = llModelLibrary.llmodel_loadModel(model, path.toString())
             override fun close(): Unit = llModelLibrary.llmodel_gptj_destroy(model)
+        }
+    }
+}
+
+interface MPTModel : LLModel {
+    companion object {
+        operator fun invoke(
+            path: Path
+        ): MPTModel = object : MPTModel {
+            override val llamaLibrary: LlamaLibrary = loadLlamaLibrary()
+            override val llModelLibrary: LLModelLibrary.MPT = loadLLModelLibrary()
+            override val model: Pointer? = llModelLibrary.llmodel_mpt_create()
+            override val name: String = path.getModelName()
+            override fun loadModel(): Boolean = llModelLibrary.llmodel_loadModel(model, path.toString())
+            override fun close(): Unit = llModelLibrary.llmodel_mpt_destroy(model)
         }
     }
 }

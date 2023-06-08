@@ -15,7 +15,7 @@ data class GenerationConfig(
     val contextErase: Double = 0.5
 )
 
-data class Completion(val context: String)
+data class Completion(val content: String)
 
 data class Message(val role: Role, val content: String) {
     enum class Role {

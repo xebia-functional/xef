@@ -65,14 +65,19 @@ sealed interface LLModelLibrary : Library {
         context: LLModelContext?
     )
 
+    interface Llama : LLModelLibrary {
+        fun llmodel_llama_create(): Pointer?
+        fun llmodel_llama_destroy(model: Pointer?)
+    }
+
     interface GPTJ : LLModelLibrary {
         fun llmodel_gptj_create(): Pointer?
         fun llmodel_gptj_destroy(model: Pointer?)
     }
 
-    interface Llama : LLModelLibrary {
-        fun llmodel_llama_create(): Pointer?
-        fun llmodel_llama_destroy(model: Pointer?)
+    interface MPT : LLModelLibrary {
+        fun llmodel_mpt_create(): Pointer?
+        fun llmodel_mpt_destroy(model: Pointer?)
     }
 
     fun interface LLModelResponseCallback : Callback {
