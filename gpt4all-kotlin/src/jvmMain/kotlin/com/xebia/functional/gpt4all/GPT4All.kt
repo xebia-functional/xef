@@ -19,9 +19,8 @@ interface GPT4All : AutoCloseable {
             override suspend fun createCompletion(request: CompletionRequest): CompletionResponse =
                 with(request) {
                     val response: String = generateCompletion(prompt, generationConfig)
-                    val name: String = gpt4allModel.llModel.name
                     return CompletionResponse(
-                        name,
+                        gpt4allModel.llModel.name,
                         prompt.length,
                         response.length,
                         totalTokens = prompt.length + response.length,
@@ -33,9 +32,8 @@ interface GPT4All : AutoCloseable {
                 with(request) {
                     val prompt: String = messages.buildPrompt()
                     val response: String = generateCompletion(prompt, generationConfig)
-                    val name: String = gpt4allModel.llModel.name
                     return ChatCompletionResponse(
-                        name,
+                        gpt4allModel.llModel.name,
                         prompt.length,
                         response.length,
                         totalTokens = prompt.length + response.length,
