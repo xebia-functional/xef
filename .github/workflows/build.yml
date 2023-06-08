@@ -48,7 +48,7 @@ jobs:
         if: ${{ matrix.platform != 'mingwX64' }}
 
       - name: Build and Test (multip/Windows)
-        run: gradlew.bat :xef-core:${{ matrix.platform }}Test :xef-filesystem:${{ matrix.platform }}Test :xef-tokenizer:${{ matrix.platform }}Test
+        run: cmd.exe /c gradlew.bat :xef-core:${{ matrix.platform }}Test :xef-filesystem:${{ matrix.platform }}Test :xef-tokenizer:${{ matrix.platform }}Test
         if: ${{ matrix.platform == 'mingwX64' }}
 
       - name: Build and Test (singlep/No Windows)
@@ -56,7 +56,7 @@ jobs:
         if: ${{ matrix.platform == 'jvm' && matrix.platform != 'mingwX64' }}
 
       - name: Build and Test (singlep/Windows)
-        run: gradlew.bat :xef-lucene:build :xef-pdf:build :xef-postgresql:build :xef-sql:build :xef-kotlin-examples:build :kotlin-loom:build :xef-scala-examples:build :xef-scala:build :xef-scala-cats:build
+        run: cmd.exe /c gradlew.bat :xef-lucene:build :xef-pdf:build :xef-postgresql:build :xef-sql:build :xef-kotlin-examples:build :kotlin-loom:build :xef-scala-examples:build :xef-scala:build :xef-scala-cats:build
         if: ${{ matrix.platform == 'jvm' && matrix.platform == 'mingwX64' }}
 
       - name: Upload reports
