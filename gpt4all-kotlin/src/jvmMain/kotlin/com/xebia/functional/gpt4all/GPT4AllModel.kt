@@ -1,65 +1,42 @@
 package com.xebia.functional.gpt4all
 
-import com.sun.jna.Library
-import com.sun.jna.Native
-import com.sun.jna.Pointer
+import com.xebia.functional.gpt4all.libraries.LLModelContext
 import java.nio.file.Path
 
-sealed interface GPT4AllModel : AutoCloseable {
-    val adapter: LLModelAdapter
-    val model: Pointer?
-    val name: String
+interface GPT4AllModel : AutoCloseable {
+    val llModel: LLModel
 
-    enum class Type {
-        LLAMA,
-        GPTJ
-    }
+    fun prompt(prompt: String, context: LLModelContext): String
+    fun embeddings(prompt: String): List<Float>
 
-    fun loadModel(): Boolean
-
-    fun type(): Type =
-        when (this) {
-            is LlamaModel -> Type.LLAMA
-            is GPTJModel -> Type.GPTJ
-        }
-}
-
-interface LlamaModel : GPT4AllModel {
     companion object {
         operator fun invoke(
-            path: Path
-        ): LlamaModel = object : LlamaModel {
-            override val adapter: LLModelAdapter.Llama = loadAdapter()
-            override val model: Pointer? = adapter.llmodel_llama_create()
-            override val name: String = path.getModelName()
-            override fun loadModel(): Boolean = adapter.llmodel_loadModel(model, path.toString())
-            override fun close(): Unit = adapter.llmodel_llama_destroy(model)
+            path: Path,
+            modelType: LLModel.Type
+        ): GPT4AllModel = object : GPT4AllModel {
+            override val llModel: LLModel =
+                when (modelType) {
+                    LLModel.Type.LLAMA -> LlamaModel(path).also { it.loadModel() }
+                    LLModel.Type.GPTJ -> GPTJModel(path).also { it.loadModel() }
+                }
+
+            override fun prompt(prompt: String, context: LLModelContext): String =
+                with(llModel) {
+                    val responseBuffer = StringBuffer()
+                    llModelLibrary.llmodel_prompt(
+                        model,
+                        prompt,
+                        { _, _ -> true },
+                        { _, response -> responseBuffer.append(response).let { true } },
+                        { _ -> true },
+                        context
+                    )
+                    responseBuffer.trim().toString()
+                }
+
+            override fun embeddings(prompt: String): List<Float> = TODO("Not yet implemented")
+
+            override fun close(): Unit = llModel.close()
         }
     }
 }
-
-interface GPTJModel : GPT4AllModel {
-    companion object {
-        operator fun invoke(
-            path: Path
-        ): GPTJModel = object : GPTJModel {
-            override val adapter: LLModelAdapter.GPTJ = loadAdapter()
-            override val model: Pointer? = adapter.llmodel_gptj_create()
-            override val name: String = path.getModelName()
-            override fun loadModel(): Boolean = adapter.llmodel_loadModel(model, path.toString())
-            override fun close(): Unit = adapter.llmodel_gptj_destroy(model)
-        }
-    }
-}
-
-private inline fun <reified T : Library> loadAdapter(): T {
-    load<LlamaAdapter>(from = "llama")
-    return load<T>(from = "llmodel")
-}
-
-private fun Path.getModelName(): String =
-    toFile().name.split(
-        "\\.(?=[^.]+$)".toRegex()
-    ).dropLastWhile { it.isEmpty() }.toTypedArray()[0]
-
-private inline fun <reified T : Library> load(from: String): T = Native.load(from, T::class.java)

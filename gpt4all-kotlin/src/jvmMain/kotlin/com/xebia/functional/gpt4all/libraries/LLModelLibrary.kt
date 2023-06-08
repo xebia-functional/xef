@@ -1,4 +1,4 @@
-package com.xebia.functional.gpt4all
+package com.xebia.functional.gpt4all.libraries
 
 import com.sun.jna.Callback
 import com.sun.jna.Library
@@ -53,9 +53,7 @@ open class LLModelContext(
     var context_erase: Float = 0f
 ) : Structure()
 
-interface LlamaAdapter : Library
-
-sealed interface LLModelAdapter : Library {
+sealed interface LLModelLibrary : Library {
     fun llmodel_loadModel(model: Pointer?, modelPath: String?): Boolean
     fun llmodel_isModelLoaded(model: Pointer?): Boolean
     fun llmodel_prompt(
@@ -67,12 +65,12 @@ sealed interface LLModelAdapter : Library {
         context: LLModelContext?
     )
 
-    interface GPTJ : LLModelAdapter {
+    interface GPTJ : LLModelLibrary {
         fun llmodel_gptj_create(): Pointer?
         fun llmodel_gptj_destroy(model: Pointer?)
     }
 
-    interface Llama : LLModelAdapter {
+    interface Llama : LLModelLibrary {
         fun llmodel_llama_create(): Pointer?
         fun llmodel_llama_destroy(model: Pointer?)
     }

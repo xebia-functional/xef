@@ -1,10 +1,10 @@
 package com.xebia.functional.xef.auto.gpt4all
 
 import arrow.core.raise.ensure
+import com.xebia.functional.gpt4all.ChatCompletionResponse
 import com.xebia.functional.gpt4all.GPT4All
-import com.xebia.functional.gpt4all.GPT4AllModel
+import com.xebia.functional.gpt4all.LLModel
 import com.xebia.functional.gpt4all.Message
-import com.xebia.functional.gpt4all.Response
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.auto.ai
 import com.xebia.functional.xef.auto.getOrThrow
@@ -15,7 +15,7 @@ suspend fun main() {
     ai {
         val resources = "models/gpt4all"
         val path = "$resources/ggml-gpt4all-j-v1.3-groovy.bin"
-        val modelType = GPT4AllModel.Type.GPTJ
+        val modelType = LLModel.Type.GPTJ
 
         val modelPath: Path = Path.of(path)
         ensure(modelPath.toFile().exists()) {
@@ -38,10 +38,10 @@ suspend fun main() {
                         val promptMessage = Message(Message.Role.USER, prompt)
                         add(promptMessage)
 
-                        val response: Response = gpt4All.chatCompletion(this)
-                        println("Response: ${response.choices[0].content}")
+                        val chatCompletionResponse: ChatCompletionResponse = gpt4All.createChatCompletion(this)
+                        println("Response: ${chatCompletionResponse.choices[0].content}")
 
-                        add(response.choices[0])
+                        add(chatCompletionResponse.choices[0])
                         print("Prompt: ")
                     }
                 }

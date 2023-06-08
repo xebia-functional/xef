@@ -1,70 +1,42 @@
 package com.xebia.functional.gpt4all
 
 import com.sun.jna.platform.unix.LibCAPI
+import com.xebia.functional.gpt4all.libraries.LLModelContext
 import java.nio.file.Path
 
-data class Message(val role: Role, val content: String) {
-    enum class Role {
-        SYSTEM,
-        USER,
-        ASSISTANT
-    }
-}
-
-data class Response(
-    val modelName: String,
-    val promptTokens: Int,
-    val completionTokens: Int,
-    val totalTokens: Int,
-    val choices: List<Message>
-)
-
-data class GenerationConfig(
-    val logitsSize: Int = 0,
-    val tokensSize: Int = 0,
-    val nPast: Int = 0,
-    val nCtx: Int = 4096,
-    val nPredict: Int = 128,
-    val topK: Int = 40,
-    val topP: Double = 0.95,
-    val temp: Double = 0.28,
-    val nBatch: Int = 8,
-    val repeatPenalty: Double = 1.1,
-    val repeatLastN: Int = 64,
-    val contextErase: Double = 0.5
-)
-
 interface GPT4All : AutoCloseable {
-    val gpt4AllModel: GPT4AllModel
+    val gpt4allModel: GPT4AllModel
 
-    suspend fun chatCompletion(
-        messages: List<Message>,
-        verbose: Boolean = false
-    ): Response
+    suspend fun createCompletion(prompt: String): CompletionResponse
+
+    suspend fun createChatCompletion(messages: List<Message>): ChatCompletionResponse
 
     companion object {
         operator fun invoke(
             path: Path,
-            modelType: GPT4AllModel.Type
+            modelType: LLModel.Type,
+            generationConfig: GenerationConfig = GenerationConfig()
         ): GPT4All = object : GPT4All {
-            override val gpt4AllModel: GPT4AllModel =
-                when (modelType) {
-                    GPT4AllModel.Type.LLAMA -> LlamaModel(path).also { it.loadModel() }
-                    GPT4AllModel.Type.GPTJ -> GPTJModel(path).also { it.loadModel() }
-                }
+            override val gpt4allModel: GPT4AllModel = GPT4AllModel(path, modelType)
 
-            override suspend fun chatCompletion(
-                messages: List<Message>,
-                verbose: Boolean
-            ): Response {
+            override suspend fun createCompletion(prompt: String): CompletionResponse {
+                val response: String = generateCompletion(prompt, generationConfig)
+                val name: String = gpt4allModel.llModel.name
+                return CompletionResponse(
+                    name,
+                    prompt.length,
+                    response.length,
+                    totalTokens = prompt.length + response.length,
+                    listOf(Completion(response))
+                )
+            }
+
+            override suspend fun createChatCompletion(messages: List<Message>): ChatCompletionResponse {
                 val prompt: String = messages.buildPrompt()
-                if (verbose) { println(prompt) }
-
-                val response: String = generateCompletion(prompt, GenerationConfig())
-                if (verbose) { println(response) }
-
-                return Response(
-                    gpt4AllModel.name,
+                val response: String = generateCompletion(prompt, generationConfig)
+                val name: String = gpt4allModel.llModel.name
+                return ChatCompletionResponse(
+                    name,
                     prompt.length,
                     response.length,
                     totalTokens = prompt.length + response.length,
@@ -72,7 +44,7 @@ interface GPT4All : AutoCloseable {
                 )
             }
 
-            override fun close(): Unit = gpt4AllModel.close()
+            override fun close(): Unit = gpt4allModel.close()
 
             private fun List<Message>.buildPrompt(): String {
                 val messages: String = joinToString("") { message ->
@@ -104,19 +76,7 @@ interface GPT4All : AutoCloseable {
                     context_erase = generationConfig.contextErase.toFloat()
                 )
 
-                val responseBuffer = StringBuffer()
-
-                with(gpt4AllModel) {
-                    adapter.llmodel_prompt(
-                        model,
-                        prompt,
-                        { _, _ -> true },
-                        { _, response -> responseBuffer.append(response).let { true } },
-                        { _ -> true },
-                        context
-                    )
-                }
-                return responseBuffer.trim().toString()
+                return gpt4allModel.prompt(prompt, context)
             }
         }
     }
