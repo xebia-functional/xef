@@ -45,7 +45,7 @@ jobs:
         if: ${{ matrix.platform != 'mingwX64' }}
 
       - name: Build and Test (multip/Windows)
-        run: cmd.exe /c gradlew.bat buildAndTestMultip -Pplatform=${{ matrix.platform }} -PgradleCommand=gradlew.bat
+        run: cmd.exe /c gradlew.bat buildAndTestMultip -Pplatform=${{ matrix.platform }} -PgradleCommand='gradlew.bat'
         if: ${{ matrix.platform == 'mingwX64' }}
 
       - name: Build and Test (singlep/No Windows)
@@ -53,7 +53,7 @@ jobs:
         if: ${{ matrix.platform == 'jvm' && matrix.platform != 'mingwX64' }}
 
       - name: Build and Test (singlep/Windows)
-        run: ./gradlew buildAndTestSinglep -PgradleCommand=gradlew.bat
+        run: ./gradlew buildAndTestSinglep -PgradleCommand='gradlew.bat'
         if: ${{ matrix.platform == 'jvm' && matrix.platform == 'mingwX64' }}
 
       - name: Upload reports
