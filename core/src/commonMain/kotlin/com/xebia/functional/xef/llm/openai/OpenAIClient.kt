@@ -53,7 +53,7 @@ private class KtorOpenAIClient(
       httpClient.post {
         url { path("completions") }
         configure(config.token, request)
-        timeout { requestTimeoutMillis = config.requestTimeout.inWholeMilliseconds }
+        timeout { requestTimeoutMillis = config.requestTimeoutMillis }
       }
 
     val body: CompletionResult = response.bodyOrError()
@@ -72,7 +72,7 @@ private class KtorOpenAIClient(
       httpClient.post {
         url { path("chat/completions") }
         configure(config.token, request)
-        timeout { requestTimeoutMillis = config.requestTimeout.inWholeMilliseconds }
+        timeout { requestTimeoutMillis = config.requestTimeoutMillis }
       }
 
     val body: ChatCompletionResponse = response.bodyOrError()
@@ -89,7 +89,7 @@ private class KtorOpenAIClient(
       .post {
         url { path("embeddings") }
         configure(config.token, request)
-        timeout { requestTimeoutMillis = config.requestTimeout.inWholeMilliseconds }
+        timeout { requestTimeoutMillis = config.requestTimeoutMillis }
       }
       .bodyOrError()
 
@@ -98,7 +98,7 @@ private class KtorOpenAIClient(
       .post {
         url { path("images/generations") }
         configure(config.token, request)
-        timeout { requestTimeoutMillis = config.requestTimeout.inWholeMilliseconds }
+        timeout { requestTimeoutMillis = config.requestTimeoutMillis }
       }
       .bodyOrError()
 }

@@ -3,7 +3,6 @@ package com.xebia.functional.xef.auto
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.raise.Raise
-import arrow.core.raise.recover
 import arrow.core.right
 import arrow.fx.coroutines.ResourceScope
 import arrow.fx.coroutines.resourceScope
@@ -21,17 +20,8 @@ import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlin.jvm.JvmName
 import kotlin.time.ExperimentalTime
-import kotlinx.serialization.DeserializationStrategy
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.json.JsonObject
 
 @DslMarker annotation class AiDsl
-
-data class SerializationConfig<A>(
-  val jsonSchema: JsonObject,
-  val descriptor: SerialDescriptor,
-  val deserializationStrategy: DeserializationStrategy<A>,
-)
 
 /**
  * An [AI] value represents an action relying on artificial intelligence that can be run to produce
@@ -57,18 +47,18 @@ suspend inline fun <A> AI<A>.getOrElse(crossinline orElse: suspend (AIError) -> 
 
 @OptIn(ExperimentalTime::class)
 suspend fun <A> AIScope(block: suspend AIScope.() -> A, orElse: suspend (AIError) -> A): A =
-  recover({
+  try {
     resourceScope {
       val openAIConfig = OpenAIConfig()
       val openAiClient: OpenAIClient = KtorOpenAIClient(openAIConfig)
       val logger = KotlinLogging.logger("AutoAI")
       val embeddings = OpenAIEmbeddings(openAIConfig, openAiClient, logger)
       val vectorStore = LocalVectorStore(embeddings)
-      val scope = AIScope(openAiClient, vectorStore, embeddings, logger, this, this@recover)
+      val scope = AIScope(openAiClient, vectorStore, embeddings, logger, this)
       block(scope)
     }
-  }) {
-    orElse(it)
+  } catch (e: AIError) {
+    orElse(e)
   }
 
 /**
@@ -82,9 +72,6 @@ suspend fun <A> AIScope(block: suspend AIScope.() -> A, orElse: suspend (AIError
 suspend inline fun <reified A> AI<A>.toEither(): Either<AIError, A> =
   ai { invoke().right() }.getOrElse { it.left() }
 
-// TODO: Allow traced transformation of Raise errors
-class AIException(message: String) : RuntimeException(message)
-
 /**
  * Run the [AI] value to produce [A]. this method initialises all the dependencies required to run
  * the [AI] value and once it finishes it closes all the resources.
@@ -95,7 +82,7 @@ class AIException(message: String) : RuntimeException(message)
  * @see getOrElse for an operator that allow directly handling the [AIError] case instead of
  *   throwing.
  */
-suspend inline fun <reified A> AI<A>.getOrThrow(): A = getOrElse { throw AIException(it.reason) }
+suspend inline fun <reified A> AI<A>.getOrThrow(): A = getOrElse { throw it }
 
 /**
  * The [AIScope] is the context in which [AI] values are run. It encapsulates all the dependencies
@@ -109,9 +96,8 @@ class AIScope(
   val context: VectorStore,
   internal val embeddings: Embeddings,
   private val logger: KLogger,
-  resourceScope: ResourceScope,
-  raise: Raise<AIError>,
-) : ResourceScope by resourceScope, Raise<AIError> by raise {
+  resourceScope: ResourceScope
+) : ResourceScope by resourceScope {
 
   /**
    * Allows invoking [AI] values in the context of this [AIScope].
@@ -169,8 +155,7 @@ class AIScope(
         CombinedVectorStore(newStore, this@AIScope.context),
         this@AIScope.embeddings,
         this@AIScope.logger,
-        this,
-        this@AIScope
+        this
       )
       .block()
   }

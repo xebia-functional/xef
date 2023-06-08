@@ -10,7 +10,6 @@ import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.header
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
-import io.ktor.http.Url
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 
@@ -20,13 +19,13 @@ inline fun <reified A> HttpRequestBuilder.configure(token: String, request: A): 
   setBody(request)
 }
 
-suspend fun ResourceScope.httpClient(baseUrl: Url): HttpClient =
+suspend fun ResourceScope.httpClient(baseUrl: String): HttpClient =
   install({
     HttpClient {
       install(HttpTimeout)
       install(ContentNegotiation) { json() }
       install(HttpRequestRetry)
-      defaultRequest { url(baseUrl.toString()) }
+      defaultRequest { url(baseUrl) }
     }
   }) { client, _ ->
     client.close()

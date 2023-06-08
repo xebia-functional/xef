@@ -9,5 +9,5 @@ suspend fun main() {
     val art: AI<ASCIIArt> = ai {
         prompt("ASCII art of a cat dancing")
     }
-    println(art.getOrElse { ASCIIArt("¯\\_(ツ)_/¯" + "\n" + it.reason) })
+    println(art.getOrElse { ASCIIArt("¯\\_(ツ)_/¯" + "\n" + it.message) })
 }
