@@ -45,11 +45,7 @@ fun Project.configureBuildAndTestTask(
             }
           }
           ModuleType.SINGLEPLATFORM -> {
-            commandLine(
-              gradleCommand,
-              "build",
-              *buildExcludeOptions(multiPlatformModules.filterNot { it == "xef-core" })
-            )
+            commandLine(gradleCommand, "build", *buildExcludeOptions(multiPlatformModules))
           }
         }
       }

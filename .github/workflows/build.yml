@@ -46,6 +46,7 @@ jobs:
         uses: gradle/gradle-build-action@v2
         with:
           arguments: buildAndTestSinglep -Pplatform=${{ matrix.platform }}
+        if: ${{ matrix.platform == 'jvm' }}
 
       - name: Upload reports
         if: failure()
