@@ -37,7 +37,6 @@ scala = "3.3.0"
 arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
 arrow-fx-coroutines = { module = "io.arrow-kt:arrow-fx-coroutines", version.ref = "arrow" }
 arrow-fx-stm = { module = "io.arrow-kt:arrow-fx-stm", version.ref = "arrow" }
-arrow-resilience = { module = "io.arrow-kt:arrow-resilience", version.ref = "arrow" }
 open-ai = { module = "com.theokanning.openai-gpt3-java:service", version.ref = "openai" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-json" }
 kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref="kotlinx-coroutines" }
@@ -82,8 +81,7 @@ scala-lang = { module = "org.scala-lang:scala3-library_3", version.ref = "scala"
 [bundles]
 arrow = [
     "arrow-core",
-    "arrow-fx-coroutines",
-    "arrow-resilience"
+    "arrow-fx-coroutines"
 ]
 ktor-client = [
     "ktor-client",

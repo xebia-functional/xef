@@ -5,7 +5,7 @@ import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.llm.openai.LLMModel
 import io.circe.Decoder
 import io.circe.parser.parse
-import com.xebia.functional.xef.auto.{AIException, AIKt, Agent as KtAgent}
+import com.xebia.functional.xef.auto.{AIKt, Agent as KtAgent}
 import com.xebia.functional.xef.pdf.PDFLoaderKt
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.scala.textsplitters.TextSplitter
@@ -24,7 +24,7 @@ def ai[A](block: AI[A]): A =
 
         block
       },
-      (e: AIError, _) => throw AIException(e.getReason),
+      (e: AIError, _) => throw e,
       cont
     )
   }
