@@ -4,9 +4,9 @@ import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.plugins.BasePluginExtension
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
-import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
+import org.gradle.kotlin.dsl.findByType
 import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.register
 import org.gradle.plugins.signing.SigningExtension
@@ -16,20 +16,31 @@ class ScalaPublishingConventionsPlugin : Plugin<Project> {
     val scaladocJarTask: TaskProvider<Jar> = tasks.register<Jar>("scaladocJar") {
       group = BasePlugin.BUILD_GROUP
       tasks.findByName("scaladoc")?.let { dependsOn(it) }
+        ?: errorMessage("The scaladoc task was not found. The Javadoc jar file won't contain any documentation")
       archiveClassifier.set("javadoc")
       from("$buildDir/docs/scaladoc")
     }
 
-    extensions.configure(PublishingExtension::class.java) {
+    val publishingExtension: PublishingExtension =
+      extensions.findByType<PublishingExtension>()
+        ?: throw IllegalStateException("The Maven Publish plugin is required to publish the build artifacts")
+
+    val signingExtension: SigningExtension =
+      extensions.findByType<SigningExtension>()
+        ?: throw IllegalStateException("The Signing plugin is required to digitally sign the built artifacts")
+
+    val basePluginExtension: BasePluginExtension =
+      extensions.findByType<BasePluginExtension>()
+        ?: throw IllegalStateException("The Base plugin is required to configure the name of artifacts")
+
+    publishingExtension.run {
       publications {
-        register("maven", MavenPublication::class) {
+        register<MavenPublication>("maven") {
           val scala3Suffix = "_3"
+
+          artifactId = basePluginExtension.archivesName.get() + scala3Suffix
           from(components["java"])
           artifact(scaladocJarTask)
-
-          extensions.findByType(BasePluginExtension::class.java)?.let {
-            artifactId = it.archivesName.get() + scala3Suffix
-          }
 
           pom {
             name.set(project.properties["pom.name"]?.toString())
@@ -60,16 +71,16 @@ class ScalaPublishingConventionsPlugin : Plugin<Project> {
       }
     }
 
-    extensions.configure(SigningExtension::class.java) {
+    signingExtension.run {
       val isLocal = gradle.startParameter.taskNames.any { it.contains("publishToMavenLocal", ignoreCase = true) }
-      val signingKeyId: String? = System.getenv("SIGNING_KEY_ID")
-      val signingKey: String? = System.getenv("SIGNING_KEY")
-      val signingPassphrase: String? = System.getenv("SIGNING_KEY_PASSPHRASE")
+      val signingKeyId: String? = configValue("signing.keyId", "SIGNING_KEY_ID")
+      val signingKey: String? = configValue("signing.key", "SIGNING_KEY")
+      val signingPassphrase: String? = configValue("signing.passphrase", "SIGNING_KEY_PASSPHRASE")
 
       isRequired = !isLocal
       useGpgCmd()
       useInMemoryPgpKeys(signingKeyId, signingKey, signingPassphrase)
-      extensions.findByType(PublishingExtension::class.java)?.let { sign(it.publications) }
+      sign(publishingExtension.publications)
     }
   }
 }
