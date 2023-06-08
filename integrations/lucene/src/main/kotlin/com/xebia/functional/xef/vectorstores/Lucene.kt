@@ -18,7 +18,7 @@ open class Lucene(
   private val writer: IndexWriter,
   private val embeddings: Embeddings?,
   private val similarity: VectorSimilarityFunction = VectorSimilarityFunction.EUCLIDEAN
-) : VectorStore {
+) : VectorStore, AutoCloseable {
 
   private val requestConfig =
     RequestConfig(EmbeddingModel.TextEmbeddingAda002, RequestConfig.Companion.User("user"))

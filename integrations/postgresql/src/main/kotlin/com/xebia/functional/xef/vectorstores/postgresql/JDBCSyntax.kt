@@ -2,61 +2,87 @@ package com.xebia.functional.xef.vectorstores.postgresql
 
 import arrow.core.raise.NullableRaise
 import arrow.core.raise.nullable
-import arrow.fx.coroutines.ResourceScope
-import arrow.fx.coroutines.autoCloseable
-import arrow.fx.coroutines.resourceScope
 import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.sql.Types
 import javax.sql.DataSource
 
-suspend fun <A> DataSource.connection(block: suspend JDBCSyntax.() -> A): A = resourceScope {
-  val conn = autoCloseable { connection }
-  JDBCSyntax(conn, this).block()
-}
-
-class JDBCSyntax(conn: Connection, resourceScope: ResourceScope) :
-  ResourceScope by resourceScope, Connection by conn {
-
-  suspend fun prepareStatement(
-    sql: String,
-    binders: (SqlPreparedStatement.() -> Unit)? = null
-  ): PreparedStatement = autoCloseable {
-    prepareStatement(sql).apply { if (binders != null) SqlPreparedStatement(this).binders() }
+inline fun <A> DataSource.connection(block: JDBCSyntax.() -> A): A =
+  connection.use { conn ->
+    JDBCSyntax(conn).block()
   }
 
-  suspend fun update(
-    sql: String,
-    binders: (SqlPreparedStatement.() -> Unit)? = null,
-  ): Unit {
-    val statement = prepareStatement(sql, binders)
-    statement.executeUpdate()
-  }
+class JDBCSyntax(val conn: Connection) : Connection by conn {
 
-  suspend fun <A> queryOneOrNull(
+  inline fun prepareStatement(
     sql: String,
-    binders: (SqlPreparedStatement.() -> Unit)? = null,
+    binders: (SqlPreparedStatement.() -> Unit)
+  ): PreparedStatement =
+    conn.prepareStatement(sql).apply { SqlPreparedStatement(this).binders() }
+
+  fun update(sql: String): Unit =
+    prepareStatement(sql).use { statement ->
+      statement.executeUpdate()
+    }
+
+  inline fun update(
+    sql: String,
+    binders: (SqlPreparedStatement.() -> Unit)
+  ): Unit =
+    prepareStatement(sql, binders).use { statement ->
+      statement.executeUpdate()
+    }
+
+  inline fun <A> queryOneOrNull(
+    sql: String,
     mapper: NullableSqlCursor.() -> A
-  ): A? {
-    val statement = prepareStatement(sql, binders)
-    val rs = autoCloseable { statement.executeQuery() }
-    return if (rs.next()) nullable { mapper(NullableSqlCursor(rs, this)) } else null
-  }
-
-  suspend fun <A> queryAsList(
-    sql: String,
-    binders: (SqlPreparedStatement.() -> Unit)? = null,
-    mapper: NullableSqlCursor.() -> A?
-  ): List<A> {
-    val statement = prepareStatement(sql, binders)
-    val rs = autoCloseable { statement.executeQuery() }
-    return buildList {
-      while (rs.next()) {
-        nullable { mapper(NullableSqlCursor(rs, this)) }?.let(::add)
+  ): A? =
+    prepareStatement(sql).use { statement ->
+      statement.executeQuery().use { rs ->
+        if (rs.next()) nullable { mapper(NullableSqlCursor(rs, this)) } else null
       }
     }
-  }
+
+  inline fun <A> queryOneOrNull(
+    sql: String,
+    binders: (SqlPreparedStatement.() -> Unit),
+    mapper: NullableSqlCursor.() -> A
+  ): A? =
+    prepareStatement(sql, binders).use { statement ->
+      statement.executeQuery().use { rs ->
+        if (rs.next()) nullable { mapper(NullableSqlCursor(rs, this)) } else null
+      }
+    }
+
+  inline fun <A> queryAsList(
+    sql: String,
+    mapper: NullableSqlCursor.() -> A?
+  ): List<A> =
+    prepareStatement(sql).use { statement ->
+      statement.executeQuery().use { rs ->
+        buildList {
+          while (rs.next()) {
+            nullable { mapper(NullableSqlCursor(rs, this)) }?.let(::add)
+          }
+        }
+      }
+    }
+
+  inline fun <A> queryAsList(
+    sql: String,
+    binders: (SqlPreparedStatement.() -> Unit),
+    mapper: NullableSqlCursor.() -> A?
+  ): List<A> =
+    prepareStatement(sql, binders).use { statement ->
+      statement.executeQuery().use { rs ->
+        buildList {
+          while (rs.next()) {
+            nullable { mapper(NullableSqlCursor(rs, this)) }?.let(::add)
+          }
+        }
+      }
+    }
 
   class SqlPreparedStatement(private val preparedStatement: PreparedStatement) {
     private var index: Int = 1
@@ -100,8 +126,10 @@ class JDBCSyntax(conn: Connection, resourceScope: ResourceScope) :
     fun bytes(): ByteArray = raise.ensureNotNull(resultSet.getBytes(index++))
     fun long(): Long =
       raise.ensureNotNull(resultSet.getLong(index++).takeUnless { resultSet.wasNull() })
+
     fun double(): Double =
       raise.ensureNotNull(resultSet.getDouble(index++).takeUnless { resultSet.wasNull() })
+
     fun nextRow(): Boolean = resultSet.next()
   }
 }

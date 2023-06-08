@@ -5,8 +5,6 @@ import arrow.core.left
 import arrow.core.raise.Raise
 import arrow.core.raise.recover
 import arrow.core.right
-import arrow.fx.coroutines.ResourceScope
-import arrow.fx.coroutines.resourceScope
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.embeddings.Embeddings
 import com.xebia.functional.xef.embeddings.OpenAIEmbeddings
@@ -154,21 +152,18 @@ class AIScope(
    * [block] also runs on a _nested_ [resourceScope], meaning that all additional resources created
    * within [block] will be finalized after [block] finishes.
    */
-  @OptIn(ExperimentalStdlibApi::class)
   @AiDsl
   suspend fun <A> contextScope(store: suspend (Embeddings) -> VectorStore, block: AI<A>): A =
-    store(this@AIScope.embeddings).use { newStore ->
-      return AIScope(
-          this@AIScope.openAIClient,
-          CombinedVectorStore(newStore, this@AIScope.context),
-          this@AIScope.embeddings,
-          this@AIScope
-        )
-        .block()
-    }
+    AIScope(
+        this@AIScope.openAIClient,
+        CombinedVectorStore(store(this@AIScope.embeddings), this@AIScope.context),
+        this@AIScope.embeddings,
+        this@AIScope
+      )
+      .block()
 
   @AiDsl
-  suspend fun <A> contextScope(block: AI<A>): A = contextScope(LocalVectorStore::invoke, block)
+  suspend fun <A> contextScope(block: AI<A>): A = contextScope({ LocalVectorStore(it) }, block)
 
   /** Add new [docs] to the [context], and then executes the [block]. */
   @AiDsl

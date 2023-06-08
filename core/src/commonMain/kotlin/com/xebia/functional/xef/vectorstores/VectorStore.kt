@@ -3,7 +3,7 @@ package com.xebia.functional.xef.vectorstores
 import com.xebia.functional.xef.embeddings.Embedding
 import kotlin.jvm.JvmStatic
 
-interface VectorStore : AutoCloseable {
+interface VectorStore {
   /**
    * Add texts to the vector store after running them through the embeddings
    *
@@ -31,10 +31,6 @@ interface VectorStore : AutoCloseable {
    * @return list of Documents most similar to the embedding
    */
   suspend fun similaritySearchByVector(embedding: Embedding, limit: Int): List<String>
-
-  override fun close() {
-    // no-op
-  }
 
   companion object {
     @JvmStatic
