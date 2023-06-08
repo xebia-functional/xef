@@ -13,13 +13,7 @@ jobs:
   check:
     strategy:
       matrix:
-        include:
-          - os: macos-latest
-            jdk-version: 11
-          - os: ubuntu-latest
-            jdk-version: 19
-          - os: windows-latest
-            jdk-version: 11
+        os: [macos-latest, ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
 
@@ -32,7 +26,9 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
-          java-version: ${{ matrix.jdk-version }}
+          java-version: |
+            11
+            19
 
       - name: build
         uses: gradle/gradle-build-action@v2
