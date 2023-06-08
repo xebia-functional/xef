@@ -1,10 +1,9 @@
 package com.xebia.functional.xef.scala.auto
 
 import com.xebia.functional.xef.scala.auto.*
-import com.xebia.functional.xef.scala.auto.ScalaSerialDescriptorContext.given
 import io.circe.Decoder
 
-private final case class Colors(colors: List[String]) derives ScalaSerialDescriptor, Decoder
+private final case class Colors(colors: List[String]) derives SerialDescriptor, Decoder
 
 @main def runColors: Unit =
   ai {

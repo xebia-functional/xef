@@ -1,14 +1,13 @@
 package com.xebia.functional.xef.scala.auto
 
 import com.xebia.functional.xef.scala.auto.*
-import com.xebia.functional.xef.scala.auto.ScalaSerialDescriptorContext.given
 import com.xebia.functional.xef.scala.agents.DefaultSearch
 import io.circe.Decoder
 
 import java.text.SimpleDateFormat
 import java.util.Date
 
-private final case class BreakingNewsAboutCovid(summary: String) derives ScalaSerialDescriptor, Decoder
+private final case class BreakingNewsAboutCovid(summary: String) derives SerialDescriptor, Decoder
 
 @main def runBreakingNews: Unit =
   ai {

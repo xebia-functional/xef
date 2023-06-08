@@ -1,12 +1,11 @@
 package com.xebia.functional.xef.scala.auto
 
 import com.xebia.functional.xef.scala.auto.*
-import com.xebia.functional.xef.scala.auto.ScalaSerialDescriptorContext.given
 import io.circe.Decoder
 
-private final case class Moon(name: String, distanceFromPlanet: Double) derives ScalaSerialDescriptor, Decoder
+private final case class Moon(name: String, distanceFromPlanet: Double) derives SerialDescriptor, Decoder
 
-private final case class Planet(name: String, distanceFromSun: Double, moons: List[Moon]) derives ScalaSerialDescriptor, Decoder
+private final case class Planet(name: String, distanceFromSun: Double, moons: List[Moon]) derives SerialDescriptor, Decoder
 
 @main def runPlanet: Unit =
 

@@ -5,7 +5,7 @@ import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.llm.openai.LLMModel
 import io.circe.Decoder
 import io.circe.parser.parse
-import com.xebia.functional.xef.auto.{AIException, AIKt, Agent as KtAgent}
+import com.xebia.functional.xef.auto.{AIKt, Agent as KtAgent}
 import com.xebia.functional.xef.pdf.PDFLoaderKt
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.scala.textsplitters.TextSplitter
@@ -24,7 +24,7 @@ def ai[A](block: AI[A]): A =
 
         block
       },
-      (e: AIError, _) => throw AIException(e.getReason),
+      (e: AIError, _) => throw e,
       cont
     )
   }
@@ -34,7 +34,7 @@ extension [A](block: AI[A]) {
     Try(ai(block)).fold(orElse, v => v)
 }
 
-def prompt[A: Decoder: ScalaSerialDescriptor](
+def prompt[A: Decoder: SerialDescriptor](
     prompt: String,
     maxAttempts: Int = 5,
     llmModel: LLMModel = LLMModel.getGPT_3_5_TURBO,
@@ -49,7 +49,7 @@ def prompt[A: Decoder: ScalaSerialDescriptor](
     KtAgent.promptWithSerializer[A](
       scope.kt,
       prompt,
-      ScalaSerialDescriptor[A].serialDescriptor,
+      SerialDescriptor[A].serialDescriptor,
       (json: String) => parse(json).flatMap(Decoder[A].decodeJson(_)).fold(throw _, identity),
       maxAttempts,
       llmModel,
@@ -63,7 +63,7 @@ def prompt[A: Decoder: ScalaSerialDescriptor](
     )
   )
 
-def contextScope[A: Decoder: ScalaSerialDescriptor](docs: List[String])(block: AI[A])(using scope: AIScope): A =
+def contextScope[A: Decoder: SerialDescriptor](docs: List[String])(block: AI[A])(using scope: AIScope): A =
   LoomAdapter.apply(scope.kt.contextScopeWithDocs[A](docs.asJava, (_, _) => block, _))
 
 def promptMessage(
@@ -92,7 +92,7 @@ def pdf(
         case file: File => PDFLoaderKt.pdf(file, splitter.core, count)
     ).asScala.toList
 
-def image[A: Decoder: ScalaSerialDescriptor](
+def image[A: Decoder: SerialDescriptor](
     prompt: String,
     maxAttempts: Int = 5,
     user: String = "testing",
@@ -108,7 +108,7 @@ def image[A: Decoder: ScalaSerialDescriptor](
     KtAgent.imageWithSerializer[A](
       scope.kt,
       prompt,
-      ScalaSerialDescriptor[A].serialDescriptor,
+      SerialDescriptor[A].serialDescriptor,
       (json: String) => parse(json).flatMap(Decoder[A].decodeJson(_)).fold(throw _, identity),
       maxAttempts,
       user,

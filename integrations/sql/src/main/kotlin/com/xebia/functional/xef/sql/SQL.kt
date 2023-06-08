@@ -5,7 +5,7 @@ import com.xebia.functional.xef.auto.AiDsl
 import com.xebia.functional.xef.auto.promptMessage
 import com.xebia.functional.xef.sql.jdbc.JdbcConfig
 import com.xebia.functional.xef.textsplitters.TokenTextSplitter
-import io.github.oshai.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.ResultSet

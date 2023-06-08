@@ -3,7 +3,7 @@ package com.xebia.functional.xef.scala.auto
 import com.xebia.functional.xef.scala.auto.*
 import io.circe.Decoder
 
-private final case class Poem(title: String, content: String) derives ScalaSerialDescriptor, Decoder
+private final case class Poem(title: String, content: String) derives SerialDescriptor, Decoder
 
 @main def runPoem: Unit =
   ai {
