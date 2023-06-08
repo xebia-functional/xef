@@ -21,7 +21,7 @@ class KtorHuggingFaceClient(private val config: HuggingFaceConfig) :
   private val httpClient: HttpClient = HttpClient {
     install(HttpTimeout)
     install(ContentNegotiation) { json() }
-    defaultRequest { url(config.baseUrl.toString()) }
+    defaultRequest { url(config.baseUrl) }
   }
 
   override suspend fun generate(request: InferenceRequest, model: Model): List<Generation> {
