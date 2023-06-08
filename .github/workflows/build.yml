@@ -37,24 +37,15 @@ jobs:
           distribution: 'zulu'
           java-version: 19
 
-      - name: Setup Gradle
+      - name: Build and Test (multip)
         uses: gradle/gradle-build-action@v2
+        with:
+          arguments: buildAndTestMultip -Pplatform=${{ matrix.platform }}
 
-      - name: Build and Test (multip/no Windows)
-        run: ./gradlew buildAndTestMultip -Pplatform=${{ matrix.platform }} -PgradleCommand=./gradlew
-        if: ${{ matrix.platform != 'mingwX64' }}
-
-      - name: Build and Test (multip/Windows)
-        run: cmd.exe /c gradlew.bat buildAndTestMultip -Pplatform=${{ matrix.platform }} -PgradleCommand='gradlew.bat'
-        if: ${{ matrix.platform == 'mingwX64' }}
-
-      - name: Build and Test (singlep/No Windows)
-        run: ./gradlew buildAndTestSinglep -PgradleCommand=./gradlew
-        if: ${{ matrix.platform == 'jvm' && matrix.platform != 'mingwX64' }}
-
-      - name: Build and Test (singlep/Windows)
-        run: ./gradlew buildAndTestSinglep -PgradleCommand='gradlew.bat'
-        if: ${{ matrix.platform == 'jvm' && matrix.platform == 'mingwX64' }}
+      - name: Build and Test (singlep)
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: buildAndTestSinglep -Pplatform=${{ matrix.platform }}
 
       - name: Upload reports
         if: failure()

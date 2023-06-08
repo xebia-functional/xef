@@ -15,39 +15,53 @@ allprojects {
   group = property("project.group").toString()
 }
 
-tasks.register("buildAndTestMultip") {
-  val platform: String by project.extensions.extraProperties
-  val gradleCommand: String by project.extensions.extraProperties
+val multiPlatformModules = listOf(
+  "xef-core",
+  "xef-filesystem",
+  "xef-tokenizer"
+)
 
-  doLast {
-    project.exec {
-      commandLine(gradleCommand,
-        "spotlessCheck",
-        ":xef-core:${platform}Test",
-        ":xef-filesystem:${platform}Test",
-        ":xef-tokenizer:${platform}Test"
-      )
+fun Project.configureBuildAndTestTask(
+  taskName: String,
+  multiPlatformModules: List<String>,
+  singlePlatformCommand: String
+) {
+  val platform: String by extra
+
+  tasks.register(taskName) {
+    doLast {
+      project.exec {
+        val gradleCommand = getGradleCommand(platform)
+        commandLine(gradleCommand, "spotlessCheck")
+        if (multiPlatformModules.isNotEmpty()) {
+          multiPlatformModules.forEach { module ->
+            commandLine(gradleCommand, ":$module:${platform}Test")
+          }
+        } else {
+          val excludedModules = multiPlatformModules.map { ":$it:build" }
+          commandLine(gradleCommand, singlePlatformCommand, "-x", excludedModules.joinToString(" -x "))
+        }
+      }
     }
   }
 }
 
-tasks.register("buildAndTestSinglep") {
-  val gradleCommand: String by project.extensions.extraProperties
-
-  doLast {
-    project.exec {
-      commandLine(gradleCommand,
-        "spotlessCheck",
-        ":xef-lucene:build",
-        ":xef-pdf:build",
-        ":xef-postgresql:build",
-        ":xef-sql:build",
-        ":xef-kotlin-examples:build",
-        ":kotlin-loom:build",
-        ":xef-scala-examples:build",
-        ":xef-scala:build",
-        ":xef-scala-cats:build"
-      )
-    }
+fun getGradleCommand(platform: String): String {
+  return if (platform == "mingwX64") {
+    "gradlew.bat"
+  } else {
+    "./gradlew"
   }
 }
+
+configureBuildAndTestTask(
+  "buildAndTestMultip",
+  multiPlatformModules,
+  ""
+)
+
+configureBuildAndTestTask(
+  "buildAndTestSinglep",
+  multiPlatformModules,
+  "build"
+)
