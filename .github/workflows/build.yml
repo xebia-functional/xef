@@ -14,17 +14,21 @@ jobs:
 
     strategy:
       matrix:
-        include:
-          - platform: jvm
-            os: ubuntu-latest
-          - platform: js
-            os: ubuntu-latest
-          - platform: linuxX64
-            os: ubuntu-latest
-          - platform: macosX64
-            os: macos-latest
-          - platform: mingwX64
-            os: windows-latest
+        platform:
+          - jvm
+          - js
+          - linuxX64
+          - macosX64
+          - mingwX64
+      platformCommands:
+        multi:
+          jvm: ':xef-core:${{ matrix.platform }}Test :xef-filesystem:${{ matrix.platform }}Test :xef-tokenizer:${{ matrix.platform }}Test'
+          js: ':xef-core:${{ matrix.platform }}Test :xef-filesystem:${{ matrix.platform }}Test :xef-tokenizer:${{ matrix.platform }}Test'
+          linuxX64: ':xef-core:${{ matrix.platform }}Test :xef-filesystem:${{ matrix.platform }}Test :xef-tokenizer:${{ matrix.platform }}Test'
+          macosX64: ':xef-core:${{ matrix.platform }}Test :xef-filesystem:${{ matrix.platform }}Test :xef-tokenizer:${{ matrix.platform }}Test'
+          mingwX64: ':xef-core:${{ matrix.platform }}Test :xef-filesystem:${{ matrix.platform }}Test :xef-tokenizer:${{ matrix.platform }}Test'
+        single:
+          jvm: ':xef-lucene:build :xef-pdf:build :xef-postgresql:build :xef-sql:build :xef-kotlin-examples:build :kotlin-loom:build :xef-scala-examples:build :xef-scala:build :xef-scala-cats:build'
 
     steps:
       - uses: actions/checkout@v3
@@ -45,24 +49,20 @@ jobs:
 
       - name: Build Multi-platform Modules
         run: |
-          ./gradlew \
-            :xef-core:${{ matrix.platform }}Test \
-            :xef-filesystem:${{ matrix.platform }}Test \
-            :xef-tokenizer:${{ matrix.platform }}Test \
+          if [ "${{ runner.os }}" == "Windows" ]; then
+            ./gradlew.bat ${{ matrix.platformCommands['multi'] }}
+          else
+            ./gradlew ${{ matrix.platformCommands['multi'] }}
+          fi
 
       - name: Build Single-platform Modules
         if: matrix.platform == 'jvm'
         run: |
-          ./gradlew \
-            :xef-lucene:build \
-            :xef-pdf:build \
-            :xef-postgresql:build \
-            :xef-sql:build \
-            :xef-kotlin-examples:build \
-            :kotlin-loom:build \
-            :xef-scala-examples:build \
-            :xef-scala:build \
-            :xef-scala-cats:build
+          if [ "${{ runner.os }}" == "Windows" ]; then
+            ./gradlew.bat ${{ matrix.platformCommands['single'] }}
+          else
+            ./gradlew ${{ matrix.platformCommands['single'] }}
+          fi
 
       - name: Upload reports
         if: failure()
