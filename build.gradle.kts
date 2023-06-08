@@ -21,10 +21,15 @@ val multiPlatformModules = listOf(
   "xef-tokenizer"
 )
 
+enum class ModuleType {
+  MULTIPLATFORM,
+  SINGLEPLATFORM
+}
+
 fun Project.configureBuildAndTestTask(
   taskName: String,
-  multiPlatformModules: List<String>,
-  singlePlatformCommand: String
+  moduleType: ModuleType,
+  multiPlatformModules: List<String>
 ) {
   val platform: String by extra
 
@@ -33,17 +38,27 @@ fun Project.configureBuildAndTestTask(
       project.exec {
         val gradleCommand = getGradleCommand(platform)
         commandLine(gradleCommand, "spotlessCheck")
-        if (singlePlatformCommand.isEmpty()) {
-          multiPlatformModules.forEach { module ->
-            commandLine(gradleCommand, ":$module:${platform}Test")
+        when (moduleType) {
+          ModuleType.MULTIPLATFORM -> {
+            multiPlatformModules.forEach { module ->
+              commandLine(gradleCommand, ":$module:${platform}Test")
+            }
           }
-        } else {
-          val excludedModules = multiPlatformModules.map { ":$it:build" }
-          commandLine(gradleCommand, singlePlatformCommand, "-x", excludedModules.joinToString(" -x "))
+          ModuleType.SINGLEPLATFORM -> {
+            commandLine(
+              gradleCommand,
+              "build",
+              *buildExcludeOptions(multiPlatformModules.filterNot { it == "xef-core" })
+            )
+          }
         }
       }
     }
   }
+}
+
+fun Project.buildExcludeOptions(modules: List<String>): Array<String> {
+  return modules.flatMap { listOf("-x", ":$it:build") }.toTypedArray()
 }
 
 fun getGradleCommand(platform: String): String {
@@ -56,12 +71,12 @@ fun getGradleCommand(platform: String): String {
 
 configureBuildAndTestTask(
   "buildAndTestMultip",
-  multiPlatformModules,
-  ""
+  ModuleType.MULTIPLATFORM,
+  multiPlatformModules
 )
 
 configureBuildAndTestTask(
   "buildAndTestSinglep",
-  multiPlatformModules,
-  "build"
+  ModuleType.SINGLEPLATFORM,
+  multiPlatformModules
 )
