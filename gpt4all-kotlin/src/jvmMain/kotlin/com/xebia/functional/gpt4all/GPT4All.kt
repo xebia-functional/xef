@@ -5,43 +5,46 @@ import com.xebia.functional.gpt4all.libraries.LLModelContext
 import java.nio.file.Path
 
 interface GPT4All : AutoCloseable {
-    val gpt4allModel: GPT4AllModel
-
-    suspend fun createCompletion(prompt: String): CompletionResponse
-
-    suspend fun createChatCompletion(messages: List<Message>): ChatCompletionResponse
+    suspend fun createCompletion(request: CompletionRequest): CompletionResponse
+    suspend fun createChatCompletion(request: ChatCompletionRequest): ChatCompletionResponse
+    suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResponse
 
     companion object {
         operator fun invoke(
             path: Path,
-            modelType: LLModel.Type,
-            generationConfig: GenerationConfig = GenerationConfig()
+            modelType: LLModel.Type
         ): GPT4All = object : GPT4All {
-            override val gpt4allModel: GPT4AllModel = GPT4AllModel(path, modelType)
+            val gpt4allModel: GPT4AllModel = GPT4AllModel(path, modelType)
 
-            override suspend fun createCompletion(prompt: String): CompletionResponse {
-                val response: String = generateCompletion(prompt, generationConfig)
-                val name: String = gpt4allModel.llModel.name
-                return CompletionResponse(
-                    name,
-                    prompt.length,
-                    response.length,
-                    totalTokens = prompt.length + response.length,
-                    listOf(Completion(response))
-                )
-            }
+            override suspend fun createCompletion(request: CompletionRequest): CompletionResponse =
+                with(request) {
+                    val response: String = generateCompletion(prompt, generationConfig)
+                    val name: String = gpt4allModel.llModel.name
+                    return CompletionResponse(
+                        name,
+                        prompt.length,
+                        response.length,
+                        totalTokens = prompt.length + response.length,
+                        listOf(Completion(response))
+                    )
+                }
 
-            override suspend fun createChatCompletion(messages: List<Message>): ChatCompletionResponse {
-                val prompt: String = messages.buildPrompt()
-                val response: String = generateCompletion(prompt, generationConfig)
-                val name: String = gpt4allModel.llModel.name
-                return ChatCompletionResponse(
-                    name,
-                    prompt.length,
-                    response.length,
-                    totalTokens = prompt.length + response.length,
-                    listOf(Message(Message.Role.ASSISTANT, response))
-                )
+            override suspend fun createChatCompletion(request: ChatCompletionRequest): ChatCompletionResponse =
+                with(request) {
+                    val prompt: String = messages.buildPrompt()
+                    val response: String = generateCompletion(prompt, generationConfig)
+                    val name: String = gpt4allModel.llModel.name
+                    return ChatCompletionResponse(
+                        name,
+                        prompt.length,
+                        response.length,
+                        totalTokens = prompt.length + response.length,
+                        listOf(Message(com.xebia.functional.gpt4all.Message.Role.ASSISTANT, response))
+                    )
+                }
+
+            override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResponse {
+                TODO("Not yet implemented")
             }
 
             override fun close(): Unit = gpt4allModel.close()

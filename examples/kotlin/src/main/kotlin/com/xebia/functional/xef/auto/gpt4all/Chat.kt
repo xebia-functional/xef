@@ -2,10 +2,7 @@ package com.xebia.functional.xef.auto.gpt4all
 
 import arrow.core.raise.either
 import arrow.core.raise.ensure
-import com.xebia.functional.gpt4all.ChatCompletionResponse
-import com.xebia.functional.gpt4all.GPT4All
-import com.xebia.functional.gpt4all.LLModel
-import com.xebia.functional.gpt4all.Message
+import com.xebia.functional.gpt4all.*
 import com.xebia.functional.xef.AIError
 import java.nio.file.Path
 import java.util.*
@@ -37,10 +34,11 @@ suspend fun main() {
                         val promptMessage = Message(Message.Role.USER, prompt)
                         add(promptMessage)
 
-                        val chatCompletionResponse: ChatCompletionResponse = gpt4All.createChatCompletion(this)
-                        println("Response: ${chatCompletionResponse.choices[0].content}")
+                        val request = ChatCompletionRequest(this, GenerationConfig())
+                        val response: ChatCompletionResponse = gpt4All.createChatCompletion(request)
+                        println("Response: ${response.choices[0].content}")
 
-                        add(chatCompletionResponse.choices[0])
+                        add(response.choices[0])
                         print("Prompt: ")
                     }
                 }
