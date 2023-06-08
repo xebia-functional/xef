@@ -9,12 +9,22 @@ concurrency:
 
 jobs:
   check:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 15
 
     strategy:
       matrix:
-        platform: [ jvm, js, linuxX64, macosX64, mingwX64 ]
+        include:
+          - platform: jvm
+            os: ubuntu-latest
+          - platform: js
+            os: ubuntu-latest
+          - platform: linuxX64
+            os: ubuntu-latest
+          - platform: macosX64
+            os: macos-latest
+          - platform: mingwX64
+            os: windows-latest
 
     steps:
       - uses: actions/checkout@v3
@@ -29,6 +39,9 @@ jobs:
 
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
+
+      - name: Run Spotless Check
+        run: ./gradlew spotlessCheck
 
       - name: Build Multi-platform Modules
         run: |
