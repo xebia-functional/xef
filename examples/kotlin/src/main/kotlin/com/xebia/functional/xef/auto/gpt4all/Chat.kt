@@ -1,18 +1,17 @@
 package com.xebia.functional.xef.auto.gpt4all
 
+import arrow.core.raise.either
 import arrow.core.raise.ensure
 import com.xebia.functional.gpt4all.ChatCompletionResponse
 import com.xebia.functional.gpt4all.GPT4All
 import com.xebia.functional.gpt4all.LLModel
 import com.xebia.functional.gpt4all.Message
 import com.xebia.functional.xef.AIError
-import com.xebia.functional.xef.auto.ai
-import com.xebia.functional.xef.auto.getOrThrow
 import java.nio.file.Path
 import java.util.*
 
 suspend fun main() {
-    ai {
+    either {
         val resources = "models/gpt4all"
         val path = "$resources/ggml-gpt4all-j-v1.3-groovy.bin"
         val modelType = LLModel.Type.GPTJ
@@ -47,5 +46,5 @@ suspend fun main() {
                 }
             }
         }
-    }.getOrThrow()
+    }
 }
