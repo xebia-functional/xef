@@ -40,23 +40,20 @@ jobs:
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
 
-      - name: Run Spotless Check
-        run: ./gradlew spotlessCheck
-
       - name: Build and Test (multip/no Windows)
-        run: ./gradlew :xef-core:${{ matrix.platform }}Test :xef-filesystem:${{ matrix.platform }}Test :xef-tokenizer:${{ matrix.platform }}Test
+        run: ./gradlew buildAndTestMultip -Pplatform=${{ matrix.platform }} -PgradleCommand=./gradlew
         if: ${{ matrix.platform != 'mingwX64' }}
 
       - name: Build and Test (multip/Windows)
-        run: cmd.exe /c gradlew.bat :xef-core:${{ matrix.platform }}Test :xef-filesystem:${{ matrix.platform }}Test :xef-tokenizer:${{ matrix.platform }}Test
+        run: cmd.exe /c gradlew.bat buildAndTestMultip -Pplatform=${{ matrix.platform }} -PgradleCommand="cmd.exe /c gradlew.bat"
         if: ${{ matrix.platform == 'mingwX64' }}
 
       - name: Build and Test (singlep/No Windows)
-        run: ./gradlew :xef-lucene:build :xef-pdf:build :xef-postgresql:build :xef-sql:build :xef-kotlin-examples:build :kotlin-loom:build :xef-scala-examples:build :xef-scala:build :xef-scala-cats:build
+        run: ./gradlew buildAndTestSinglep -PgradleCommand=./gradlew
         if: ${{ matrix.platform == 'jvm' && matrix.platform != 'mingwX64' }}
 
       - name: Build and Test (singlep/Windows)
-        run: cmd.exe /c gradlew.bat :xef-lucene:build :xef-pdf:build :xef-postgresql:build :xef-sql:build :xef-kotlin-examples:build :kotlin-loom:build :xef-scala-examples:build :xef-scala:build :xef-scala-cats:build
+        run: ./gradlew buildAndTestSinglep -PgradleCommand="cmd.exe /c gradlew.bat"
         if: ${{ matrix.platform == 'jvm' && matrix.platform == 'mingwX64' }}
 
       - name: Upload reports

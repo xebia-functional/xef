@@ -14,3 +14,40 @@ plugins {
 allprojects {
   group = property("project.group").toString()
 }
+
+tasks.register("buildAndTestMultip") {
+  val platform: String by project.extensions.extraProperties
+  val gradleCommand: String by project.extensions.extraProperties
+
+  doLast {
+    project.exec {
+      commandLine(gradleCommand,
+        "spotlessCheck",
+        ":xef-core:${platform}Test",
+        ":xef-filesystem:${platform}Test",
+        ":xef-tokenizer:${platform}Test"
+      )
+    }
+  }
+}
+
+tasks.register("buildAndTestSinglep") {
+  val gradleCommand: String by project.extensions.extraProperties
+
+  doLast {
+    project.exec {
+      commandLine(gradleCommand,
+        "spotlessCheck",
+        ":xef-lucene:build",
+        ":xef-pdf:build",
+        ":xef-postgresql:build",
+        ":xef-sql:build",
+        ":xef-kotlin-examples:build",
+        ":kotlin-loom:build",
+        ":xef-scala-examples:build",
+        ":xef-scala:build",
+        ":xef-scala-cats:build"
+      )
+    }
+  }
+}
