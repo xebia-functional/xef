@@ -3,8 +3,6 @@
 
 package com.xebia.functional.xef.auto
 
-import arrow.core.raise.Raise
-import arrow.core.raise.ensure
 import com.xebia.functional.tokenizer.Encoding
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.tokenizer.truncateText
@@ -80,7 +78,7 @@ suspend fun AIScope.promptMessage(
   }
 }
 
-private fun Raise<AIError>.createPromptWithContextAwareOfTokens(
+private fun createPromptWithContextAwareOfTokens(
   ctxInfo: List<String>,
   modelType: ModelType,
   prompt: String,
@@ -93,8 +91,8 @@ private fun Raise<AIError>.createPromptWithContextAwareOfTokens(
   return if (ctxInfo.isNotEmpty() && remainingTokens > minResponseTokens) {
     val ctx: String = ctxInfo.joinToString("\n")
 
-    ensure(promptTokens < maxContextLength) {
-      raise(AIError.PromptExceedsMaxTokenLength(prompt, promptTokens, maxContextLength))
+    if (promptTokens >= maxContextLength) {
+      throw AIError.PromptExceedsMaxTokenLength(prompt, promptTokens, maxContextLength)
     }
     // truncate the context if it's too long based on the max tokens calculated considering the
     // existing prompt tokens
@@ -184,7 +182,7 @@ private suspend fun AIScope.promptWithContext(
   )
 }
 
-private fun AIScope.checkTotalLeftTokens(
+private fun checkTotalLeftTokens(
   modelType: ModelType,
   role: String,
   promptWithContext: String
@@ -196,7 +194,7 @@ private fun AIScope.checkTotalLeftTokens(
     val takenTokens: Int = roleTokens + promptTokens + padding
     val totalLeftTokens: Int = maxContextLength - takenTokens
     if (totalLeftTokens < 0) {
-      raise(AIError.PromptExceedsMaxTokenLength(promptWithContext, takenTokens, maxContextLength))
+      throw AIError.PromptExceedsMaxTokenLength(promptWithContext, takenTokens, maxContextLength)
     }
     logger.debug {
       "Tokens -- used: $takenTokens, model max: $maxContextLength, left: $totalLeftTokens"
@@ -209,7 +207,7 @@ private fun AIScope.checkTotalLeftChatTokens(messages: List<Message>, model: LLM
   val messagesTokens: Int = tokensFromMessages(messages, model)
   val totalLeftTokens: Int = maxContextLength - messagesTokens
   if (totalLeftTokens < 0) {
-    raise(AIError.MessagesExceedMaxTokenLength(messages, messagesTokens, maxContextLength))
+    throw AIError.MessagesExceedMaxTokenLength(messages, messagesTokens, maxContextLength)
   }
   logger.debug {
     "Tokens -- used: $messagesTokens, model max: $maxContextLength, left: $totalLeftTokens"
