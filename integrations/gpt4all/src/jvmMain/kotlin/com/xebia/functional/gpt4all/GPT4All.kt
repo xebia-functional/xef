@@ -39,7 +39,7 @@ interface GPT4All : AutoCloseable {
                         prompt.length,
                         response.length,
                         totalTokens = prompt.length + response.length,
-                        listOf(Message(com.xebia.functional.gpt4all.Message.Role.ASSISTANT, response))
+                        listOf(Message(Message.Role.ASSISTANT, response))
                     )
                 }
 
