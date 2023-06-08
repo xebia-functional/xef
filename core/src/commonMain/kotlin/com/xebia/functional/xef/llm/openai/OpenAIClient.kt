@@ -1,14 +1,12 @@
 package com.xebia.functional.xef.llm.openai
 
 import arrow.fx.coroutines.ResourceScope
-import arrow.resilience.retryOrElse
 import com.xebia.functional.xef.configure
 import com.xebia.functional.xef.env.OpenAIConfig
 import com.xebia.functional.xef.httpClient
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.plugins.timeout
 import io.ktor.client.request.post
 import io.ktor.client.statement.HttpResponse
@@ -40,10 +38,8 @@ data class ImagesGenerationResponse(val created: Long, val data: List<ImageGener
 
 @Serializable data class ImageGenerationUrl(val url: String)
 
-suspend fun ResourceScope.KtorOpenAIClient(
-  config: OpenAIConfig,
-  engine: HttpClientEngine? = null,
-): OpenAIClient = KtorOpenAIClient(httpClient(engine, config.baseUrl), config)
+suspend fun ResourceScope.KtorOpenAIClient(config: OpenAIConfig): OpenAIClient =
+  KtorOpenAIClient(httpClient(config.baseUrl), config)
 
 private class KtorOpenAIClient(
   private val httpClient: HttpClient,
@@ -52,25 +48,13 @@ private class KtorOpenAIClient(
 
   private val logger: KLogger = KotlinLogging.logger {}
 
-  suspend fun retry(block: suspend () -> HttpResponse): HttpResponse =
-    config.retryConfig
-      .schedule()
-      .log { error, retriesSoFar ->
-        logger.error(error) { "Open AI call failed. So far we have retried $retriesSoFar times." }
-      }
-      .retryOrElse({ block() }) { error, retries ->
-        logger.error(error) { "Open AI call failed. Giving up after $retries retries" }
-        throw error
-      }
-
   override suspend fun createCompletion(request: CompletionRequest): CompletionResult {
-    val response = retry {
+    val response =
       httpClient.post {
         url { path("completions") }
         configure(config.token, request)
         timeout { requestTimeoutMillis = config.requestTimeout.inWholeMilliseconds }
       }
-    }
 
     val body: CompletionResult = response.bodyOrError()
     with(body.usage) {
@@ -84,13 +68,13 @@ private class KtorOpenAIClient(
   override suspend fun createChatCompletion(
     request: ChatCompletionRequest
   ): ChatCompletionResponse {
-    val response = retry {
+    val response =
       httpClient.post {
         url { path("chat/completions") }
         configure(config.token, request)
         timeout { requestTimeoutMillis = config.requestTimeout.inWholeMilliseconds }
       }
-    }
+
     val body: ChatCompletionResponse = response.bodyOrError()
     with(body.usage) {
       logger.debug {
@@ -100,27 +84,23 @@ private class KtorOpenAIClient(
     return body
   }
 
-  override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult {
-    val response = retry {
-      httpClient.post {
+  override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult =
+    httpClient
+      .post {
         url { path("embeddings") }
         configure(config.token, request)
         timeout { requestTimeoutMillis = config.requestTimeout.inWholeMilliseconds }
       }
-    }
-    return response.bodyOrError()
-  }
+      .bodyOrError()
 
-  override suspend fun createImages(request: ImagesGenerationRequest): ImagesGenerationResponse {
-    val response = retry {
-      httpClient.post {
+  override suspend fun createImages(request: ImagesGenerationRequest): ImagesGenerationResponse =
+    httpClient
+      .post {
         url { path("images/generations") }
         configure(config.token, request)
         timeout { requestTimeoutMillis = config.requestTimeout.inWholeMilliseconds }
       }
-    }
-    return response.bodyOrError()
-  }
+      .bodyOrError()
 }
 
 private suspend inline fun <reified T> HttpResponse.bodyOrError(): T =

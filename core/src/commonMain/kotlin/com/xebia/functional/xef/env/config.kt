@@ -5,7 +5,6 @@ import arrow.core.raise.Raise
 import arrow.core.raise.catch
 import arrow.core.raise.recover
 import arrow.core.raise.zipOrAccumulate
-import arrow.resilience.Schedule
 import com.xebia.functional.xef.AIError
 import io.ktor.http.Url as KUrl
 import kotlin.time.Duration
@@ -17,15 +16,8 @@ data class OpenAIConfig(
   val token: String,
   val baseUrl: KUrl,
   val chunkSize: Int,
-  val retryConfig: RetryConfig,
   val requestTimeout: Duration
 )
-
-data class RetryConfig(val backoff: Duration, val maxRetries: Long) {
-  fun schedule(): Schedule<Throwable, Long> =
-    Schedule.recurs<Throwable>(maxRetries)
-      .zipLeft(Schedule.exponential<Throwable>(backoff).jittered(0.75, 1.25))
-}
 
 data class HuggingFaceConfig(val token: String, val baseUrl: KUrl)
 
@@ -44,7 +36,7 @@ fun Raise<AIError.Env.OpenAI>.OpenAIConfig(token: String? = null) =
       { env("OPENAI_MAX_RETRIES", default = 5) { it.toLongOrNull() } },
       { env("OPENAI_REQUEST_TIMEOUT", default = 30.seconds) { it.toIntOrNull()?.seconds } },
     ) { token2, baseUrl, chunkSize, backoff, maxRetries, requestTimeout ->
-      OpenAIConfig(token2, baseUrl, chunkSize, RetryConfig(backoff, maxRetries), requestTimeout)
+      OpenAIConfig(token2, baseUrl, chunkSize, requestTimeout)
     }
   }) { e: NonEmptyList<String> ->
     raise(AIError.Env.OpenAI(e))
