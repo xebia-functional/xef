@@ -33,7 +33,7 @@ fun Project.configureBuildAndTestTask(
       project.exec {
         val gradleCommand = getGradleCommand(platform)
         commandLine(gradleCommand, "spotlessCheck")
-        if (multiPlatformModules.isNotEmpty()) {
+        if (singlePlatformCommand.isEmpty()) {
           multiPlatformModules.forEach { module ->
             commandLine(gradleCommand, ":$module:${platform}Test")
           }
