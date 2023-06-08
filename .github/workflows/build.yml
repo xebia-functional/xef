@@ -43,19 +43,19 @@ jobs:
       - name: Run Spotless Check
         run: ./gradlew spotlessCheck
 
-      - name: Build and Test (multip) - JVM
+      - name: Build and Test (multip/no Windows)
         run: ./gradlew :xef-core:${{ matrix.platform }}Test :xef-filesystem:${{ matrix.platform }}Test :xef-tokenizer:${{ matrix.platform }}Test
         if: ${{ matrix.platform != 'mingwX64' }}
 
-      - name: Build and Test (multip) - Windows
+      - name: Build and Test (multip/Windows)
         run: gradlew.bat :xef-core:${{ matrix.platform }}Test :xef-filesystem:${{ matrix.platform }}Test :xef-tokenizer:${{ matrix.platform }}Test
         if: ${{ matrix.platform == 'mingwX64' }}
 
-      - name: Build and Test (singlep) - JVM
+      - name: Build and Test (singlep/No Windows)
         run: ./gradlew :xef-lucene:build :xef-pdf:build :xef-postgresql:build :xef-sql:build :xef-kotlin-examples:build :kotlin-loom:build :xef-scala-examples:build :xef-scala:build :xef-scala-cats:build
         if: ${{ matrix.platform == 'jvm' && matrix.platform != 'mingwX64' }}
 
-      - name: Build and Test (singlep) - Windows
+      - name: Build and Test (singlep/Windows)
         run: gradlew.bat :xef-lucene:build :xef-pdf:build :xef-postgresql:build :xef-sql:build :xef-kotlin-examples:build :kotlin-loom:build :xef-scala-examples:build :xef-scala:build :xef-scala-cats:build
         if: ${{ matrix.platform == 'jvm' && matrix.platform == 'mingwX64' }}
 
