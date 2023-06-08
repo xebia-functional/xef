@@ -149,3 +149,4 @@ kotlin-js-store/
 .env
 
 *.bin
+*.onnx

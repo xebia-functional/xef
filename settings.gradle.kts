@@ -55,6 +55,3 @@ project(":xef-sql").projectDir = file("integrations/sql")
 
 include("xef-gpt4all")
 project(":xef-gpt4all").projectDir = file("integrations/gpt4all")
-
-include("xef-kotlindl")
-project(":xef-kotlindl").projectDir = file("integrations/kotlindl")

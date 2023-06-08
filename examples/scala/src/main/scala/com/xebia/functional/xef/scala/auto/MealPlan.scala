@@ -2,12 +2,11 @@ package com.xebia.functional.xef.scala.auto
 
 import com.xebia.functional.xef.scala.agents.DefaultSearch
 import com.xebia.functional.xef.scala.auto.*
-import com.xebia.functional.xef.scala.auto.ScalaSerialDescriptorContext.given
 import io.circe.Decoder
 
-private final case class MealPlanRecipe(name: String, ingredients: List[String]) derives ScalaSerialDescriptor, Decoder
+private final case class MealPlanRecipe(name: String, ingredients: List[String]) derives SerialDescriptor, Decoder
 
-private final case class MealPlan(name: String, recipes: List[MealPlanRecipe]) derives ScalaSerialDescriptor, Decoder
+private final case class MealPlan(name: String, recipes: List[MealPlanRecipe]) derives SerialDescriptor, Decoder
 
 @main def runMealPlan: Unit =
   ai {

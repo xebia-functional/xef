@@ -1,10 +1,9 @@
 package com.xebia.functional.xef.scala.auto
 
 import com.xebia.functional.xef.scala.auto.*
-import com.xebia.functional.xef.scala.auto.ScalaSerialDescriptorContext.given
 import io.circe.Decoder
 
-private final case class Recipe(name: String, ingredients: List[String]) derives ScalaSerialDescriptor, Decoder
+private final case class Recipe(name: String, ingredients: List[String]) derives SerialDescriptor, Decoder
 
 @main def runRecipe: Unit =
   ai {
