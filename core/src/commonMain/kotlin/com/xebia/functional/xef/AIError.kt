@@ -2,47 +2,40 @@ package com.xebia.functional.xef
 
 import arrow.core.NonEmptyList
 import com.xebia.functional.xef.llm.openai.Message
+import kotlin.jvm.JvmOverloads
 
-sealed interface AIError {
-  val reason: String
+sealed class AIError @JvmOverloads constructor(message: String, cause: Throwable? = null) :
+  RuntimeException(message, cause) {
 
-  object NoResponse : AIError {
-    override val reason: String
-      get() = "No response from the AI"
-  }
+  class NoResponse : AIError("No response from the AI")
 
   data class MessagesExceedMaxTokenLength(
     val messages: List<Message>,
     val promptTokens: Int,
     val maxTokens: Int
-  ) : AIError {
-    override val reason: String =
+  ) :
+    AIError(
       "Prompt exceeds max token length: $promptTokens + $maxTokens = ${promptTokens + maxTokens}"
-  }
+    )
 
   data class PromptExceedsMaxTokenLength(
     val prompt: String,
     val promptTokens: Int,
     val maxTokens: Int
-  ) : AIError {
-    override val reason: String =
+  ) :
+    AIError(
       "Prompt exceeds max token length: $promptTokens + $maxTokens = ${promptTokens + maxTokens}"
-  }
+    )
 
-  data class JsonParsing(val result: String, val maxAttempts: Int, val cause: Throwable) : AIError {
-    override val reason: String
-      get() = "Failed to parse the JSON response after $maxAttempts attempts: $result"
-  }
+  data class JsonParsing(val result: String, val maxAttempts: Int, override val cause: Throwable) :
+    AIError("Failed to parse the JSON response after $maxAttempts attempts: $result", cause)
 
-  sealed interface Env : AIError {
-    data class OpenAI(val errors: NonEmptyList<String>) : Env {
-      override val reason: String
-        get() = "OpenAI Environment not found: ${errors.all.joinToString("\n")}"
-    }
+  sealed class Env @JvmOverloads constructor(message: String, cause: Throwable? = null) :
+    AIError(message, cause) {
+    data class OpenAI(val errors: NonEmptyList<String>) :
+      Env("OpenAI Environment not found: ${errors.all.joinToString("\n")}")
 
-    data class HuggingFace(val errors: NonEmptyList<String>) : Env {
-      override val reason: String
-        get() = "HuggingFace Environment not found: ${errors.all.joinToString("\n")}"
-    }
+    data class HuggingFace(val errors: NonEmptyList<String>) :
+      Env("HuggingFace Environment not found: ${errors.all.joinToString("\n")}")
   }
 }

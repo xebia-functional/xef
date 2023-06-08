@@ -45,7 +45,7 @@ class KtorOpenAIClient(private val config: OpenAIConfig) : OpenAIClient, AutoClo
   private val httpClient: HttpClient = HttpClient {
     install(HttpTimeout)
     install(ContentNegotiation) { json() }
-    defaultRequest { url(config.baseUrl.encodedPath) }
+    defaultRequest { url(config.baseUrl) }
   }
 
   private val logger: KLogger = KotlinLogging.logger {}
@@ -66,7 +66,7 @@ class KtorOpenAIClient(private val config: OpenAIConfig) : OpenAIClient, AutoClo
       httpClient.post {
         url { path("completions") }
         configure(config.token, request)
-        timeout { requestTimeoutMillis = config.requestTimeout.inWholeMilliseconds }
+        timeout { requestTimeoutMillis = config.requestTimeoutMillis }
       }
     }
 
@@ -86,7 +86,7 @@ class KtorOpenAIClient(private val config: OpenAIConfig) : OpenAIClient, AutoClo
       httpClient.post {
         url { path("chat/completions") }
         configure(config.token, request)
-        timeout { requestTimeoutMillis = config.requestTimeout.inWholeMilliseconds }
+        timeout { requestTimeoutMillis = config.requestTimeoutMillis }
       }
     }
     val body: ChatCompletionResponse = response.bodyOrError()
@@ -103,7 +103,7 @@ class KtorOpenAIClient(private val config: OpenAIConfig) : OpenAIClient, AutoClo
       httpClient.post {
         url { path("embeddings") }
         configure(config.token, request)
-        timeout { requestTimeoutMillis = config.requestTimeout.inWholeMilliseconds }
+        timeout { requestTimeoutMillis = config.requestTimeoutMillis }
       }
     }
     return response.bodyOrError()
@@ -114,7 +114,7 @@ class KtorOpenAIClient(private val config: OpenAIConfig) : OpenAIClient, AutoClo
       httpClient.post {
         url { path("images/generations") }
         configure(config.token, request)
-        timeout { requestTimeoutMillis = config.requestTimeout.inWholeMilliseconds }
+        timeout { requestTimeoutMillis = config.requestTimeoutMillis }
       }
     }
     return response.bodyOrError()
