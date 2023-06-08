@@ -2,6 +2,7 @@ package com.xebia.functional.xef.auto.gpt4all
 
 import arrow.core.raise.either
 import arrow.core.raise.ensure
+import arrow.core.raise.recover
 import com.xebia.functional.gpt4all.*
 import java.nio.file.Path
 import java.util.*
@@ -9,7 +10,7 @@ import java.util.*
 data class ChatError(val content: String)
 
 suspend fun main() {
-    either {
+    recover({
         val resources = "models/gpt4all"
         val path = "$resources/ggml-gpt4all-j-v1.3-groovy.bin"
         val modelType = LLModel.Type.GPTJ
@@ -45,5 +46,5 @@ suspend fun main() {
                 }
             }
         }
-    }
+    }) { println(it) }
 }
