@@ -40,6 +40,9 @@ project(":xef-scala-cats").projectDir = file("scala-cats")
 include("xef-tokenizer")
 project(":xef-tokenizer").projectDir = file("tokenizer")
 
+include("xef-gpt4all")
+project(":xef-gpt4all").projectDir = file("gpt4all-kotlin")
+
 // Integration modules
 include("xef-lucene")
 project(":xef-lucene").projectDir = file("integrations/lucene")
