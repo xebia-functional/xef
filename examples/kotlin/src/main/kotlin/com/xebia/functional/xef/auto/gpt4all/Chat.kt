@@ -2,7 +2,12 @@ package com.xebia.functional.xef.auto.gpt4all
 
 import arrow.core.raise.ensure
 import arrow.core.raise.recover
-import com.xebia.functional.gpt4all.*
+import com.xebia.functional.gpt4all.ChatCompletionRequest
+import com.xebia.functional.gpt4all.ChatCompletionResponse
+import com.xebia.functional.gpt4all.GenerationConfig
+import com.xebia.functional.gpt4all.Message
+import com.xebia.functional.gpt4all.llmodel.GPT4All
+import com.xebia.functional.gpt4all.llmodel.GPT4AllModel
 import java.nio.file.Path
 import java.util.*
 
@@ -11,8 +16,8 @@ data class ChatError(val content: String)
 suspend fun main() {
     recover({
         val resources = "models/gpt4all"
-        val path = "$resources/ggml-gpt4all-j-v1.3-groovy.bin"
-        val modelType = LLModel.Type.GPTJ
+        val path = "$resources/ggml-gpt4all-l13b-snoozy.bin"
+        val modelType = GPT4AllModel.Type.LLAMA
 
         val modelPath: Path = Path.of(path)
         ensure(modelPath.toFile().exists()) {

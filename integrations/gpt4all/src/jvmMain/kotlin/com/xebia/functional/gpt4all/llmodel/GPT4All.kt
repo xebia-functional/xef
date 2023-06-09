@@ -1,26 +1,31 @@
-package com.xebia.functional.gpt4all
+package com.xebia.functional.gpt4all.llmodel
 
 import com.sun.jna.platform.unix.LibCAPI
-import com.xebia.functional.gpt4all.libraries.LLModelContext
+import com.xebia.functional.gpt4all.*
+import com.xebia.functional.gpt4all.llmodel.libraries.LLModelContextParams
 import java.nio.file.Path
 
 interface GPT4All : AutoCloseable {
     suspend fun createCompletion(request: CompletionRequest): CompletionResponse
     suspend fun createChatCompletion(request: ChatCompletionRequest): ChatCompletionResponse
-    suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResponse
 
     companion object {
         operator fun invoke(
             path: Path,
-            modelType: LLModel.Type
+            modelType: GPT4AllModel.Type
         ): GPT4All = object : GPT4All {
-            val gpt4allModel: GPT4AllModel = GPT4AllModel(path, modelType)
+            val gpt4allModel: GPT4AllModel =
+                when(modelType) {
+                    GPT4AllModel.Type.LLAMA -> GPT4AllModel.LLAMA(path)
+                    GPT4AllModel.Type.GPTJ -> GPT4AllModel.GPTJ(path)
+                    GPT4AllModel.Type.MPT -> GPT4AllModel.MPT(path)
+            }
 
             override suspend fun createCompletion(request: CompletionRequest): CompletionResponse =
                 with(request) {
                     val response: String = generateCompletion(prompt, generationConfig)
                     return CompletionResponse(
-                        gpt4allModel.llModel.name,
+                        gpt4allModel.name,
                         prompt.length,
                         response.length,
                         totalTokens = prompt.length + response.length,
@@ -33,17 +38,13 @@ interface GPT4All : AutoCloseable {
                     val prompt: String = messages.buildPrompt()
                     val response: String = generateCompletion(prompt, generationConfig)
                     return ChatCompletionResponse(
-                        gpt4allModel.llModel.name,
+                        gpt4allModel.name,
                         prompt.length,
                         response.length,
                         totalTokens = prompt.length + response.length,
                         listOf(Message(Message.Role.ASSISTANT, response))
                     )
                 }
-
-            override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResponse {
-                TODO("Not yet implemented")
-            }
 
             override fun close(): Unit = gpt4allModel.close()
 
@@ -62,23 +63,25 @@ interface GPT4All : AutoCloseable {
                 prompt: String,
                 generationConfig: GenerationConfig
             ): String {
-                val context = LLModelContext(
-                    logits_size = LibCAPI.size_t(generationConfig.logitsSize.toLong()),
-                    tokens_size = LibCAPI.size_t(generationConfig.tokensSize.toLong()),
-                    n_past = generationConfig.nPast,
-                    n_ctx = generationConfig.nCtx,
-                    n_predict = generationConfig.nPredict,
-                    top_k = generationConfig.topK,
-                    top_p = generationConfig.topP.toFloat(),
-                    temp = generationConfig.temp.toFloat(),
-                    n_batch = generationConfig.nBatch,
-                    repeat_penalty = generationConfig.repeatPenalty.toFloat(),
-                    repeat_last_n = generationConfig.repeatLastN,
-                    context_erase = generationConfig.contextErase.toFloat()
-                )
-
-                return gpt4allModel.prompt(prompt, context)
+                val contextParams: LLModelContextParams = generationConfig.toLLModelContextParams()
+                return gpt4allModel.prompt(prompt, contextParams)
             }
         }
     }
 }
+
+private fun GenerationConfig.toLLModelContextParams(): LLModelContextParams =
+    LLModelContextParams(
+        logits_size = LibCAPI.size_t(logitsSize.toLong()),
+        tokens_size = LibCAPI.size_t(tokensSize.toLong()),
+        n_past = nPast,
+        n_ctx = nCtx,
+        n_predict = nPredict,
+        top_k = topK,
+        top_p = topP.toFloat(),
+        temp = temp.toFloat(),
+        n_batch = nBatch,
+        repeat_penalty = repeatPenalty.toFloat(),
+        repeat_last_n = repeatLastN,
+        context_erase = contextErase.toFloat()
+    )

@@ -1,4 +1,4 @@
-package com.xebia.functional.gpt4all.libraries
+package com.xebia.functional.gpt4all.llmodel.libraries
 
 import com.sun.jna.Callback
 import com.sun.jna.Library
@@ -6,23 +6,7 @@ import com.sun.jna.Pointer
 import com.sun.jna.Structure
 import com.sun.jna.platform.unix.LibCAPI
 
-@Structure.FieldOrder(
-    "logits",
-    "logits_size",
-    "tokens",
-    "tokens_size",
-    "n_past",
-    "n_ctx",
-    "n_predict",
-    "top_k",
-    "top_p",
-    "temp",
-    "n_batch",
-    "repeat_penalty",
-    "repeat_last_n",
-    "context_erase"
-)
-open class LLModelContext(
+class LLModelContextParams(
     @JvmField
     var logits: Pointer? = null,
     @JvmField
@@ -51,7 +35,25 @@ open class LLModelContext(
     var repeat_last_n: Int = 0,
     @JvmField
     var context_erase: Float = 0f
-) : Structure()
+) : Structure() {
+    override fun getFieldOrder(): List<String> =
+        listOf(
+            "logits",
+            "logits_size",
+            "tokens",
+            "tokens_size",
+            "n_past",
+            "n_ctx",
+            "n_predict",
+            "top_k",
+            "top_p",
+            "temp",
+            "n_batch",
+            "repeat_penalty",
+            "repeat_last_n",
+            "context_erase"
+        )
+}
 
 sealed interface LLModelLibrary : Library {
     fun llmodel_loadModel(model: Pointer?, modelPath: String?): Boolean
@@ -62,7 +64,7 @@ sealed interface LLModelLibrary : Library {
         promptCallback: LLModelResponseCallback,
         responseCallback: LLModelResponseCallback,
         recalculateCallback: LLModelRecalculateCallback,
-        context: LLModelContext?
+        contextParams: LLModelContextParams?
     )
 
     interface Llama : LLModelLibrary {
