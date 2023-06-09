@@ -3,12 +3,41 @@ package com.xebia.functional.xef.io
 
 import kotlinx.cinterop.refTo
 import kotlinx.cinterop.toKString
+import kotlinx.coroutines.runBlocking
 import platform.posix.*
 
 actual val CommandExecutor.Companion.DEFAULT: CommandExecutor
   get() = LinuxCommandExecutor
 
 object LinuxCommandExecutor : CommandExecutor {
+
+  override suspend fun platform(): Platform {
+    val uname =
+      try {
+        executeCommandAndCaptureOutput(
+          listOf("where", "uname"),
+          ExecuteCommandOptions(
+            directory = ".",
+            abortOnError = true,
+            redirectStderr = false,
+            trim = true,
+          ),
+        )
+        executeCommandAndCaptureOutput(
+          listOf("uname", "-m"),
+          ExecuteCommandOptions(
+            directory = ".",
+            abortOnError = true,
+            redirectStderr = true,
+            trim = true,
+          ),
+        )
+      } catch (e: Exception) {
+        ""
+      }
+
+    return Platform.LINUX(uname)
+  }
 
   /**
    * https://stackoverflow.com/questions/57123836/kotlin-native-execute-command-and-get-the-output

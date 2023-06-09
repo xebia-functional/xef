@@ -38,7 +38,7 @@ suspend inline fun <reified A> AIScope.prompt(
   user: String = "testing",
   echo: Boolean = false,
   n: Int = 1,
-  temperature: Double = 0.0,
+  temperature: Double = 0.5,
   bringFromContext: Int = 10
 ): A =
   prompt(
@@ -73,7 +73,7 @@ suspend inline fun <reified A> AIScope.prompt(
   user: String = "testing",
   echo: Boolean = false,
   n: Int = 1,
-  temperature: Double = 0.0,
+  temperature: Double = 0.5,
   bringFromContext: Int = 10
 ): A =
   prompt(
@@ -102,7 +102,7 @@ suspend fun <A> AIScope.prompt(
   user: String = "testing",
   echo: Boolean = false,
   n: Int = 1,
-  temperature: Double = 0.0,
+  temperature: Double = 0.5,
   bringFromContext: Int = 10,
   minResponseTokens: Int = 500,
 ): A =
@@ -131,7 +131,7 @@ suspend fun <A> AIScope.prompt(
   user: String = "testing",
   echo: Boolean = false,
   n: Int = 1,
-  temperature: Double = 0.0,
+  temperature: Double = 0.5,
   bringFromContext: Int = 10,
   minResponseTokens: Int = 500,
 ): A {

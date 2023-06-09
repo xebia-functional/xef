@@ -15,6 +15,34 @@ actual val CommandExecutor.Companion.DEFAULT: CommandExecutor
   get() = NodeCommandExecutor
 
 object NodeCommandExecutor : CommandExecutor {
+
+  override suspend fun platform(): Platform {
+      val uname =
+        try {
+          executeCommandAndCaptureOutput(
+            listOf("where", "uname"),
+            ExecuteCommandOptions(
+              directory = ".",
+              abortOnError = true,
+              redirectStderr = false,
+              trim = true,
+            ),
+          )
+          executeCommandAndCaptureOutput(
+            listOf("uname", "-m"),
+            ExecuteCommandOptions(
+              directory = ".",
+              abortOnError = true,
+              redirectStderr = true,
+              trim = true,
+            ),
+          )
+        } catch (e: Exception) {
+          ""
+        }
+      return Platform.LINUX(uname)
+  }
+
   override suspend fun executeCommandAndCaptureOutput(command: List<String>, options: ExecuteCommandOptions): String {
     val commandToExecute = command.joinToString(separator = " ") { arg ->
       if (arg.contains(" ")) "'$arg'" else arg

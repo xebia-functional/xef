@@ -1,5 +1,6 @@
 package com.xebia.functional.xef.loaders
 
+import io.github.oshai.KotlinLogging
 import it.skrape.core.htmlDocument
 import it.skrape.fetcher.BrowserFetcher
 import it.skrape.fetcher.response
@@ -9,7 +10,10 @@ import it.skrape.fetcher.skrape
 suspend fun ScrapeURLTextLoader(url: String): BaseLoader =
   object : BaseLoader {
 
+    private val logger = KotlinLogging.logger {}
+
     override suspend fun load(): List<String> = buildList {
+      logger.debug { "🔍: getting url content for `$url`" }
       skrape(BrowserFetcher) {
         request { this.url = url }
         response {

@@ -8,11 +8,16 @@ data class ExecuteCommandOptions(
   val trim: Boolean
 )
 
-enum class Platform {
-  LINUX, MACOS, WINDOWS,
+sealed class Platform(open val archName: String) {
+  data class LINUX(override val archName: String) : Platform(archName)
+  data class MACOS(override val archName: String) : Platform(archName)
+  data class WINDOWS(override val archName: String) : Platform(archName)
 }
 
 interface CommandExecutor {
+
+  suspend fun platform(): Platform
+
   suspend fun executeCommandAndCaptureOutput(
     command: List<String>,
     options: ExecuteCommandOptions

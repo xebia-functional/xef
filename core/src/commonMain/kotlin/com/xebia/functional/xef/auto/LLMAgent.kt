@@ -27,7 +27,7 @@ suspend fun AIScope.promptMessage(
   user: String = "testing",
   echo: Boolean = false,
   n: Int = 1,
-  temperature: Double = 0.0,
+  temperature: Double = 0.5,
   bringFromContext: Int = 10,
   minResponseTokens: Int = 500
 ): List<String> =
@@ -49,7 +49,7 @@ suspend fun AIScope.promptMessage(
   user: String = "testing",
   echo: Boolean = false,
   n: Int = 1,
-  temperature: Double = 0.0,
+  temperature: Double = 0.5,
   bringFromContext: Int = 10,
   minResponseTokens: Int
 ): List<String> {
@@ -119,7 +119,7 @@ private suspend fun AIScope.callCompletionEndpoint(
   user: String = "testing",
   echo: Boolean = false,
   n: Int = 1,
-  temperature: Double = 0.0,
+  temperature: Double = 0.5,
   bringFromContext: Int,
   minResponseTokens: Int
 ): List<String> {
@@ -146,7 +146,7 @@ private suspend fun AIScope.callChatEndpoint(
   model: LLMModel,
   user: String = "testing",
   n: Int = 1,
-  temperature: Double = 0.0,
+  temperature: Double = 0.5,
   bringFromContext: Int,
   minResponseTokens: Int
 ): List<String> {
