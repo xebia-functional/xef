@@ -8,6 +8,7 @@ import com.xebia.functional.xef.embeddings.Embeddings
 import com.xebia.functional.xef.embeddings.OpenAIEmbeddings
 import com.xebia.functional.xef.env.OpenAIConfig
 import com.xebia.functional.xef.llm.openai.KtorOpenAIClient
+import com.xebia.functional.xef.llm.openai.MockOpenAIClient
 import com.xebia.functional.xef.llm.openai.OpenAIClient
 import com.xebia.functional.xef.llm.openai.simpleMockAIClient
 import com.xebia.functional.xef.vectorstores.CombinedVectorStore
@@ -56,12 +57,11 @@ suspend fun <A> AIScope(block: suspend AIScope.() -> A, orElse: suspend (AIError
 
 @OptIn(ExperimentalTime::class)
 suspend fun <A> MockAIScope(
-  mockAI: (String) -> String,
+  mockClient: MockOpenAIClient,
   block: suspend AIScope.() -> A,
   orElse: suspend (AIError) -> A
 ): A =
   try {
-    val mockClient = simpleMockAIClient(mockAI)
     val embeddings = OpenAIEmbeddings(OpenAIConfig(), mockClient)
     val vectorStore = LocalVectorStore(embeddings)
     val scope = AIScope(mockClient, vectorStore, embeddings)
@@ -85,8 +85,15 @@ suspend inline fun <reified A> AI<A>.toEither(): Either<AIError, A> =
  * Run the [AI] value to produce _either_ an [AIError], or [A]. This method uses the [mockAI] to
  * compute the different responses.
  */
-suspend fun <A> AI<A>.mock(mockAI: (String) -> String): Either<AIError, A> =
+suspend fun <A> AI<A>.mock(mockAI: MockOpenAIClient): Either<AIError, A> =
   MockAIScope(mockAI, { invoke().right() }, { it.left() })
+
+/**
+ * Run the [AI] value to produce _either_ an [AIError], or [A]. This method uses the [mockAI] to
+ * compute the different responses.
+ */
+suspend fun <A> AI<A>.mock(mockAI: (String) -> String): Either<AIError, A> =
+  MockAIScope(simpleMockAIClient(mockAI), { invoke().right() }, { it.left() })
 
 /**
  * Run the [AI] value to produce [A]. this method initialises all the dependencies required to run
