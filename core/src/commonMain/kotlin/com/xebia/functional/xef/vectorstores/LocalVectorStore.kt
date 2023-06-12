@@ -13,7 +13,7 @@ private data class State(
   val precomputedEmbeddings: Map<String, Embedding>
 ) {
   companion object {
-    fun empty(): State = State(emptyList(), mapOf())
+    fun empty(): State = State(emptyList(), emptyMap())
   }
 }
 
