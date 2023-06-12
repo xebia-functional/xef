@@ -5,13 +5,13 @@ class MockOpenAIClient(
     throw NotImplementedError("completion not implemented")
   },
   private val chatCompletion: (ChatCompletionRequest) -> ChatCompletionResponse = {
-    throw NotImplementedError("completion not implemented")
+    throw NotImplementedError("chat completion not implemented")
   },
   private val embeddings: (EmbeddingRequest) -> EmbeddingResult = {
-    throw NotImplementedError("completion not implemented")
+    throw NotImplementedError("embeddings not implemented")
   },
   private val images: (ImagesGenerationRequest) -> ImagesGenerationResponse = {
-    throw NotImplementedError("completion not implemented")
+    throw NotImplementedError("images not implemented")
   },
 ) : OpenAIClient {
   override suspend fun createCompletion(request: CompletionRequest): CompletionResult =
