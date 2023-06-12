@@ -2,7 +2,6 @@ package com.xebia.functional.xef.auto
 
 import arrow.core.Either
 import arrow.core.left
-import arrow.core.raise.Raise
 import arrow.core.right
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.embeddings.Embeddings
@@ -20,7 +19,7 @@ import kotlin.time.ExperimentalTime
 
 /**
  * An [AI] value represents an action relying on artificial intelligence that can be run to produce
- * an [A]. This value is _lazy_ and can be combined with other `AI` values using [AIScope.invoke],
+ * an `A`. This value is _lazy_ and can be combined with other `AI` values using [AIScope.invoke],
  * and thus forms a monadic DSL.
  *
  * All [AI] actions that are composed together using [AIScope.invoke] share the same [VectorStore],
@@ -71,7 +70,7 @@ suspend inline fun <reified A> AI<A>.toEither(): Either<AIError, A> =
  *
  * This operator is **terminal** meaning it runs and completes the _chain_ of `AI` actions.
  *
- * @throws AIException in case something went wrong.
+ * @throws AIError in case something went wrong.
  * @see getOrElse for an operator that allow directly handling the [AIError] case instead of
  *   throwing.
  */
@@ -80,14 +79,11 @@ suspend inline fun <reified A> AI<A>.getOrThrow(): A = getOrElse { throw it }
 /**
  * The [AIScope] is the context in which [AI] values are run. It encapsulates all the dependencies
  * required to run [AI] values, and provides convenient syntax for writing [AI] based programs.
- *
- * It exposes the [ResourceScope] so you can easily add your own resources with the scope of the
- * [AI] program, and [Raise] of [AIError] in case you want to compose any [Raise] based actions.
  */
 class AIScope(
   val openAIClient: OpenAIClient,
   val context: VectorStore,
-  internal val embeddings: Embeddings
+  val embeddings: Embeddings
 ) {
 
   /**
@@ -131,21 +127,23 @@ class AIScope(
   }
 
   /**
-   * Creates a new scoped [VectorStore] using [store], which is scoped to the [block] lambda. The
-   * [block] also runs on a _nested_ [resourceScope], meaning that all additional resources created
-   * within [block] will be finalized after [block] finishes.
+   * Creates a nested scope that combines the provided [store] with the outer _store_. This is done
+   * using [CombinedVectorStore].
+   *
+   * **Note:** if the implementation of [VectorStore] is relying on resources you're manually
+   * responsible for closing any potential resources.
    */
   @AiDsl
-  suspend fun <A> contextScope(store: suspend (Embeddings) -> VectorStore, block: AI<A>): A =
+  suspend fun <A> contextScope(store: VectorStore, block: AI<A>): A =
     AIScope(
         this@AIScope.openAIClient,
-        CombinedVectorStore(store(this@AIScope.embeddings), this@AIScope.context),
+        CombinedVectorStore(store, this@AIScope.context),
         this@AIScope.embeddings
       )
       .block()
 
   @AiDsl
-  suspend fun <A> contextScope(block: AI<A>): A = contextScope({ LocalVectorStore(it) }, block)
+  suspend fun <A> contextScope(block: AI<A>): A = contextScope(LocalVectorStore(embeddings), block)
 
   /** Add new [docs] to the [context], and then executes the [block]. */
   @AiDsl
