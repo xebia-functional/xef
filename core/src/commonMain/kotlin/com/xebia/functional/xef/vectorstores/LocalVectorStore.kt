@@ -8,7 +8,10 @@ import com.xebia.functional.xef.llm.openai.EmbeddingModel
 import com.xebia.functional.xef.llm.openai.RequestConfig
 import kotlin.math.sqrt
 
-private data class State(val documents: List<String>, val precomputedEmbeddings: Map<String, Embedding>) {
+private data class State(
+  val documents: List<String>,
+  val precomputedEmbeddings: Map<String, Embedding>
+) {
   companion object {
     fun empty(): State = State(emptyList(), mapOf())
   }
@@ -17,10 +20,8 @@ private data class State(val documents: List<String>, val precomputedEmbeddings:
 private typealias AtomicState = Atomic<State>
 
 class LocalVectorStore
-private constructor(
-  private val embeddings: Embeddings,
-  private val state: AtomicState
-) : VectorStore {
+private constructor(private val embeddings: Embeddings, private val state: AtomicState) :
+  VectorStore {
 
   companion object {
     suspend operator fun invoke(embeddings: Embeddings) =
@@ -50,11 +51,14 @@ private constructor(
 
   override suspend fun similaritySearchByVector(embedding: Embedding, limit: Int): List<String> {
     val state0 = state.get()
-    return state0.documents.asSequence().mapNotNull { doc -> state0.precomputedEmbeddings[doc]?.let { doc to it } }
+    return state0.documents
+      .asSequence()
+      .mapNotNull { doc -> state0.precomputedEmbeddings[doc]?.let { doc to it } }
       .map { (doc, embedding) -> doc to embedding.cosineSimilarity(embedding) }
       .sortedByDescending { (_, similarity) -> similarity }
       .take(limit)
-      .map { (document, _) -> document }.toList()
+      .map { (document, _) -> document }
+      .toList()
   }
 
   private fun Embedding.cosineSimilarity(other: Embedding): Double {
