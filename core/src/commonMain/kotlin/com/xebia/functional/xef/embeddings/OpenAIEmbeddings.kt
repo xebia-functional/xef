@@ -5,15 +5,11 @@ import com.xebia.functional.xef.env.OpenAIConfig
 import com.xebia.functional.xef.llm.openai.EmbeddingRequest
 import com.xebia.functional.xef.llm.openai.OpenAIClient
 import com.xebia.functional.xef.llm.openai.RequestConfig
-import io.github.oshai.kotlinlogging.KLogger
 import kotlin.time.ExperimentalTime
 
 @ExperimentalTime
-class OpenAIEmbeddings(
-  private val config: OpenAIConfig,
-  private val oaiClient: OpenAIClient,
-  private val logger: KLogger
-) : Embeddings {
+class OpenAIEmbeddings(private val config: OpenAIConfig, private val oaiClient: OpenAIClient) :
+  Embeddings {
 
   override suspend fun embedDocuments(
     texts: List<String>,
