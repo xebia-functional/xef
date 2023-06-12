@@ -7,9 +7,7 @@ class MockOpenAIClient(
   private val chatCompletion: (ChatCompletionRequest) -> ChatCompletionResponse = {
     throw NotImplementedError("chat completion not implemented")
   },
-  private val embeddings: (EmbeddingRequest) -> EmbeddingResult = {
-    throw NotImplementedError("embeddings not implemented")
-  },
+  private val embeddings: (EmbeddingRequest) -> EmbeddingResult = ::nullEmbeddings,
   private val images: (ImagesGenerationRequest) -> ImagesGenerationResponse = {
     throw NotImplementedError("images not implemented")
   },
@@ -23,6 +21,11 @@ class MockOpenAIClient(
     embeddings(request)
   override suspend fun createImages(request: ImagesGenerationRequest): ImagesGenerationResponse =
     images(request)
+}
+
+fun nullEmbeddings(request: EmbeddingRequest): EmbeddingResult {
+  val results = request.input.mapIndexed { index, s -> Embedding(s, listOf(0F), index) }
+  return EmbeddingResult(request.model, "", results, Usage.ZERO)
 }
 
 fun simpleMockAIClient(execute: (String) -> String): MockOpenAIClient =
