@@ -37,7 +37,9 @@ interface VectorStore {
     val EMPTY: VectorStore =
       object : VectorStore {
         override suspend fun addTexts(texts: List<String>) {}
+
         override suspend fun similaritySearch(query: String, limit: Int): List<String> = emptyList()
+
         override suspend fun similaritySearchByVector(
           embedding: Embedding,
           limit: Int

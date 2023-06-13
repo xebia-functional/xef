@@ -21,8 +21,11 @@ import kotlinx.serialization.json.Json
 
 interface OpenAIClient {
   suspend fun createCompletion(request: CompletionRequest): CompletionResult
+
   suspend fun createChatCompletion(request: ChatCompletionRequest): ChatCompletionResponse
+
   suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult
+
   suspend fun createImages(request: ImagesGenerationRequest): ImagesGenerationResponse
 }
 
