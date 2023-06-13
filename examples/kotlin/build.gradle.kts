@@ -16,7 +16,7 @@ java {
 }
 
 dependencies {
-  implementation(projects.xefCore)
+  implementation(projects.xefKotlin)
   implementation(projects.xefFilesystem)
   implementation(projects.xefPdf)
   implementation(projects.xefSql)
