@@ -1,28 +1,30 @@
 package com.xebia.functional.xef.llm.openai
 
-import arrow.fx.coroutines.ResourceScope
-import arrow.resilience.retryOrElse
 import com.xebia.functional.xef.configure
 import com.xebia.functional.xef.env.OpenAIConfig
-import com.xebia.functional.xef.httpClient
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.HttpClientEngine
+import io.ktor.client.call.body
+import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.plugins.timeout
 import io.ktor.client.request.post
 import io.ktor.client.statement.HttpResponse
-import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.path
+import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 
 interface OpenAIClient {
   suspend fun createCompletion(request: CompletionRequest): CompletionResult
+
   suspend fun createChatCompletion(request: ChatCompletionRequest): ChatCompletionResponse
+
   suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult
+
   suspend fun createImages(request: ImagesGenerationRequest): ImagesGenerationResponse
 }
 
@@ -40,37 +42,24 @@ data class ImagesGenerationResponse(val created: Long, val data: List<ImageGener
 
 @Serializable data class ImageGenerationUrl(val url: String)
 
-suspend fun ResourceScope.KtorOpenAIClient(
-  config: OpenAIConfig,
-  engine: HttpClientEngine? = null,
-): OpenAIClient = KtorOpenAIClient(httpClient(engine, config.baseUrl), config)
+@OptIn(ExperimentalStdlibApi::class)
+class KtorOpenAIClient(private val config: OpenAIConfig) : OpenAIClient, AutoCloseable {
 
-private class KtorOpenAIClient(
-  private val httpClient: HttpClient,
-  private val config: OpenAIConfig
-) : OpenAIClient {
+  private val httpClient: HttpClient = HttpClient {
+    install(HttpTimeout)
+    install(ContentNegotiation) { json() }
+    defaultRequest { url(config.baseUrl) }
+  }
 
   private val logger: KLogger = KotlinLogging.logger {}
 
-  suspend fun retry(block: suspend () -> HttpResponse): HttpResponse =
-    config.retryConfig
-      .schedule()
-      .log { error, retriesSoFar ->
-        logger.error(error) { "Open AI call failed. So far we have retried $retriesSoFar times." }
-      }
-      .retryOrElse({ block() }) { error, retries ->
-        logger.error(error) { "Open AI call failed. Giving up after $retries retries" }
-        throw error
-      }
-
   override suspend fun createCompletion(request: CompletionRequest): CompletionResult {
-    val response = retry {
+    val response =
       httpClient.post {
         url { path("completions") }
         configure(config.token, request)
         timeout { requestTimeoutMillis = config.requestTimeoutMillis }
       }
-    }
 
     val body: CompletionResult = response.bodyOrError()
     with(body.usage) {
@@ -84,13 +73,13 @@ private class KtorOpenAIClient(
   override suspend fun createChatCompletion(
     request: ChatCompletionRequest
   ): ChatCompletionResponse {
-    val response = retry {
+    val response =
       httpClient.post {
         url { path("chat/completions") }
         configure(config.token, request)
         timeout { requestTimeoutMillis = config.requestTimeoutMillis }
       }
-    }
+
     val body: ChatCompletionResponse = response.bodyOrError()
     with(body.usage) {
       logger.debug {
@@ -100,32 +89,29 @@ private class KtorOpenAIClient(
     return body
   }
 
-  override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult {
-    val response = retry {
-      httpClient.post {
+  override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult =
+    httpClient
+      .post {
         url { path("embeddings") }
         configure(config.token, request)
         timeout { requestTimeoutMillis = config.requestTimeoutMillis }
       }
-    }
-    return response.bodyOrError()
-  }
+      .bodyOrError()
 
-  override suspend fun createImages(request: ImagesGenerationRequest): ImagesGenerationResponse {
-    val response = retry {
-      httpClient.post {
+  override suspend fun createImages(request: ImagesGenerationRequest): ImagesGenerationResponse =
+    httpClient
+      .post {
         url { path("images/generations") }
         configure(config.token, request)
         timeout { requestTimeoutMillis = config.requestTimeoutMillis }
       }
-    }
-    return response.bodyOrError()
-  }
+      .bodyOrError()
+
+  override fun close() = httpClient.close()
 }
 
 private suspend inline fun <reified T> HttpResponse.bodyOrError(): T =
-  if (status == HttpStatusCode.OK) Json.decodeFromString(bodyAsText())
-  else throw OpenAIClientException(status, Json.decodeFromString(bodyAsText()))
+  if (status == HttpStatusCode.OK) body() else throw OpenAIClientException(status, body())
 
 class OpenAIClientException(val httpStatusCode: HttpStatusCode, val error: Error) :
   IllegalStateException(
