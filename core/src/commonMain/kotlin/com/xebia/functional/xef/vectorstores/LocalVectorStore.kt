@@ -1,24 +1,31 @@
 package com.xebia.functional.xef.vectorstores
 
-import arrow.fx.stm.TMap
-import arrow.fx.stm.TVar
-import arrow.fx.stm.atomically
+import arrow.atomic.Atomic
+import arrow.atomic.getAndUpdate
 import com.xebia.functional.xef.embeddings.Embedding
 import com.xebia.functional.xef.embeddings.Embeddings
 import com.xebia.functional.xef.llm.openai.EmbeddingModel
 import com.xebia.functional.xef.llm.openai.RequestConfig
 import kotlin.math.sqrt
 
+private data class State(
+  val documents: List<String>,
+  val precomputedEmbeddings: Map<String, Embedding>
+) {
+  companion object {
+    fun empty(): State = State(emptyList(), emptyMap())
+  }
+}
+
+private typealias AtomicState = Atomic<State>
+
 class LocalVectorStore
-private constructor(
-  private val embeddings: Embeddings,
-  private val documents: TVar<List<String>>,
-  private val precomputedEmbeddings: TMap<String, Embedding>
-) : VectorStore {
+private constructor(private val embeddings: Embeddings, private val state: AtomicState) :
+  VectorStore {
 
   companion object {
     suspend operator fun invoke(embeddings: Embeddings) =
-      LocalVectorStore(embeddings, TVar.new(emptyList()), TMap.new())
+      LocalVectorStore(embeddings, Atomic(State.empty()))
   }
 
   private val requestConfig =
@@ -28,9 +35,11 @@ private constructor(
     val embeddingsList =
       embeddings.embedDocuments(texts, chunkSize = null, requestConfig = requestConfig)
     texts.zip(embeddingsList) { text, embedding ->
-      atomically {
-        documents.modify { it + text }
-        precomputedEmbeddings.insert(text, embedding)
+      state.getAndUpdate { prevState ->
+        State(
+          documents = prevState.documents + text,
+          prevState.precomputedEmbeddings + Pair(text, embedding)
+        )
       }
     }
   }
@@ -40,14 +49,17 @@ private constructor(
     return queryEmbedding?.let { similaritySearchByVector(it, limit) }.orEmpty()
   }
 
-  override suspend fun similaritySearchByVector(embedding: Embedding, limit: Int): List<String> =
-    atomically {
-        documents.read().mapNotNull { doc -> precomputedEmbeddings[doc]?.let { doc to it } }
-      }
+  override suspend fun similaritySearchByVector(embedding: Embedding, limit: Int): List<String> {
+    val state0 = state.get()
+    return state0.documents
+      .asSequence()
+      .mapNotNull { doc -> state0.precomputedEmbeddings[doc]?.let { doc to it } }
       .map { (doc, embedding) -> doc to embedding.cosineSimilarity(embedding) }
       .sortedByDescending { (_, similarity) -> similarity }
       .take(limit)
       .map { (document, _) -> document }
+      .toList()
+  }
 
   private fun Embedding.cosineSimilarity(other: Embedding): Double {
     val dotProduct = this.data.zip(other.data).sumOf { (a, b) -> (a * b).toDouble() }
