@@ -11,10 +11,8 @@ which states the following:
 
 // TODO: We should consider a fork and maintain it ourselves.
  */
-import kotlin.jvm.JvmOverloads
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialInfo
-import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.descriptors.PolymorphicKind
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -50,24 +48,6 @@ enum class JsonType(jsonType: String) {
   val json = JsonPrimitive(jsonType)
 
   override fun toString(): String = json.content
-}
-
-@OptIn(ExperimentalSerializationApi::class)
-fun SerialDescriptor.sample(): JsonElement {
-  val properties =
-    elementNames.zip(elementDescriptors).associate { (name, descriptor) ->
-      name to
-        when (descriptor.kind.jsonType) {
-          JsonType.ARRAY -> JsonArray(listOf(descriptor.sample()))
-          JsonType.NUMBER -> JsonUnquotedLiteral("<number>")
-          JsonType.STRING -> JsonUnquotedLiteral("<string>")
-          JsonType.BOOLEAN -> JsonUnquotedLiteral("<true | false>")
-          JsonType.OBJECT -> descriptor.sample()
-          JsonType.OBJECT_SEALED -> descriptor.sample()
-          JsonType.OBJECT_MAP -> descriptor.sample()
-        }
-    }
-  return JsonObject(properties)
 }
 
 @Target()
@@ -133,52 +113,12 @@ annotation class JsonSchema {
   annotation class NoDefinition
 }
 
-/**
- * Adds a `$schema` property with the provided [url] that points to the Json Schema, this can be a
- * File location or a HTTP URL
- *
- * This is so when you serialize your [value] it will use [url] as it's Json Schema for code
- * completion.
- */
-fun <T> Json.encodeWithSchema(serializer: SerializationStrategy<T>, value: T, url: String): String {
-  val json = encodeToJsonElement(serializer, value) as JsonObject
-  val append = mapOf("\$schema" to JsonPrimitive(url))
+fun encodeJsonSchema(descriptor: SerialDescriptor): String =
+  Json.encodeToString(JsonObject.serializer(), buildJsonSchema(descriptor))
 
-  return encodeToString(JsonObject.serializer(), JsonObject(append + json))
-}
-
-/**
- * Stringifies the provided [descriptor] with [buildJsonSchema]
- *
- * @param generateDefinitions Should this generate definitions by default
- */
-fun Json.encodeToSchema(descriptor: SerialDescriptor, generateDefinitions: Boolean = true): String {
-  return encodeToString(JsonObject.serializer(), buildJsonSchema(descriptor, generateDefinitions))
-}
-
-/**
- * Stringifies the provided [serializer] with [buildJsonSchema], same as doing
- *
- * ```kotlin
- * json.encodeToSchema(serializer.descriptor)
- * ```
- *
- * @param generateDefinitions Should this generate definitions by default
- */
-fun Json.encodeToSchema(
-  serializer: SerializationStrategy<*>,
-  generateDefinitions: Boolean = true
-): String {
-  return encodeToSchema(serializer.descriptor, generateDefinitions)
-}
-
-/**
- * Creates a Json Schema using the provided [descriptor]
- *
- * @param autoDefinitions automatically generate definitions by default
- */
-@JvmOverloads
-fun buildJsonSchema(descriptor: SerialDescriptor, autoDefinitions: Boolean = false): JsonObject {
+/** Creates a Json Schema using the provided [descriptor] */
+private fun buildJsonSchema(descriptor: SerialDescriptor): JsonObject {
+  val autoDefinitions = false
   val prepend = mapOf("\$schema" to JsonPrimitive("http://json-schema.org/draft-07/schema"))
   val definitions = JsonSchemaDefinitions(autoDefinitions)
   val root = descriptor.createJsonSchema(descriptor.annotations, definitions)
@@ -187,26 +127,11 @@ fun buildJsonSchema(descriptor: SerialDescriptor, autoDefinitions: Boolean = fal
   return JsonObject(prepend + root + append)
 }
 
-/**
- * Creates a Json Schema using the provided [serializer], same as doing
- * `jsonSchema(serializer.descriptor)`
- *
- * @param generateDefinitions Should this generate definitions by default
- */
-fun buildJsonSchema(
-  serializer: SerializationStrategy<*>,
-  generateDefinitions: Boolean = true
-): JsonObject {
-  return buildJsonSchema(serializer.descriptor, generateDefinitions)
-}
-
-@PublishedApi
-internal inline val SerialDescriptor.jsonLiteral
+private inline val SerialDescriptor.jsonLiteral
   inline get() = kind.jsonType.json
 
-@PublishedApi
-internal val SerialKind.jsonType: JsonType
-  get() =
+private inline val SerialKind.jsonType: JsonType
+  inline get() =
     when (this) {
       StructureKind.LIST -> JsonType.ARRAY
       StructureKind.MAP -> JsonType.OBJECT_MAP
@@ -224,12 +149,10 @@ internal val SerialKind.jsonType: JsonType
       else -> JsonType.OBJECT
     }
 
-internal inline fun <reified T> List<Annotation>.lastOfInstance(): T? {
-  return filterIsInstance<T>().lastOrNull()
-}
+private inline fun <reified T> List<Annotation>.lastOfInstance(): T? =
+  filterIsInstance<T>().lastOrNull()
 
-@PublishedApi
-internal fun SerialDescriptor.jsonSchemaObject(definitions: JsonSchemaDefinitions): JsonObject {
+private fun SerialDescriptor.jsonSchemaObject(definitions: JsonSchemaDefinitions): JsonObject {
   val properties = mutableMapOf<String, JsonElement>()
   val required = mutableListOf<JsonPrimitive>()
 
@@ -255,7 +178,7 @@ internal fun SerialDescriptor.jsonSchemaObject(definitions: JsonSchemaDefinition
   }
 }
 
-internal fun SerialDescriptor.jsonSchemaObjectMap(definitions: JsonSchemaDefinitions): JsonObject {
+private fun SerialDescriptor.jsonSchemaObjectMap(definitions: JsonSchemaDefinitions): JsonObject {
   return jsonSchemaElement(annotations, skipNullCheck = false) {
     val (key, value) = elementDescriptors.toList()
 
@@ -265,8 +188,7 @@ internal fun SerialDescriptor.jsonSchemaObjectMap(definitions: JsonSchemaDefinit
   }
 }
 
-@PublishedApi
-internal fun SerialDescriptor.jsonSchemaObjectSealed(
+private fun SerialDescriptor.jsonSchemaObjectSealed(
   definitions: JsonSchemaDefinitions
 ): JsonObject {
   val properties = mutableMapOf<String, JsonElement>()
@@ -319,20 +241,17 @@ internal fun SerialDescriptor.jsonSchemaObjectSealed(
   }
 }
 
-@PublishedApi
-internal fun SerialDescriptor.jsonSchemaArray(
+private fun SerialDescriptor.jsonSchemaArray(
   annotations: List<Annotation> = listOf(),
   definitions: JsonSchemaDefinitions
-): JsonObject {
-  return jsonSchemaElement(annotations) {
+): JsonObject =
+  jsonSchemaElement(annotations) {
     val type = getElementDescriptor(0)
 
     it["items"] = type.createJsonSchema(getElementAnnotations(0), definitions)
   }
-}
 
-@PublishedApi
-internal fun SerialDescriptor.jsonSchemaString(
+private fun SerialDescriptor.jsonSchemaString(
   annotations: List<Annotation> = listOf()
 ): JsonObject {
   return jsonSchemaElement(annotations) {
@@ -349,11 +268,10 @@ internal fun SerialDescriptor.jsonSchemaString(
   }
 }
 
-@PublishedApi
-internal fun SerialDescriptor.jsonSchemaNumber(
+private fun SerialDescriptor.jsonSchemaNumber(
   annotations: List<Annotation> = listOf()
-): JsonObject {
-  return jsonSchemaElement(annotations) {
+): JsonObject =
+  jsonSchemaElement(annotations) {
     val value =
       when (kind) {
         PrimitiveKind.FLOAT,
@@ -376,17 +294,12 @@ internal fun SerialDescriptor.jsonSchemaNumber(
       it["maximum"] = max
     }
   }
-}
 
-@PublishedApi
-internal fun SerialDescriptor.jsonSchemaBoolean(
+private fun SerialDescriptor.jsonSchemaBoolean(
   annotations: List<Annotation> = listOf()
-): JsonObject {
-  return jsonSchemaElement(annotations)
-}
+): JsonObject = jsonSchemaElement(annotations)
 
-@PublishedApi
-internal fun SerialDescriptor.createJsonSchema(
+private fun SerialDescriptor.createJsonSchema(
   annotations: List<Annotation>,
   definitions: JsonSchemaDefinitions
 ): JsonObject {
@@ -404,8 +317,7 @@ internal fun SerialDescriptor.createJsonSchema(
   }
 }
 
-@PublishedApi
-internal fun JsonObjectBuilder.applyJsonSchemaDefaults(
+private fun JsonObjectBuilder.applyJsonSchemaDefaults(
   descriptor: SerialDescriptor,
   annotations: List<Annotation>,
   skipNullCheck: Boolean = false,
@@ -436,7 +348,7 @@ internal fun JsonObjectBuilder.applyJsonSchemaDefaults(
   }
 }
 
-internal inline fun SerialDescriptor.jsonSchemaElement(
+private inline fun SerialDescriptor.jsonSchemaElement(
   annotations: List<Annotation>,
   skipNullCheck: Boolean = false,
   skipTypeCheck: Boolean = false,
@@ -452,19 +364,20 @@ internal inline fun SerialDescriptor.jsonSchemaElement(
   }
 }
 
-internal inline fun buildJson(builder: (JsonObjectBuilder) -> Unit): JsonObject {
-  return JsonObject(JsonObjectBuilder().apply(builder).content)
-}
+private inline fun buildJson(builder: (JsonObjectBuilder) -> Unit): JsonObject =
+  JsonObject(JsonObjectBuilder().apply(builder).content)
 
-internal class JsonObjectBuilder(val content: MutableMap<String, JsonElement> = linkedMapOf()) :
+private class JsonObjectBuilder(val content: MutableMap<String, JsonElement> = linkedMapOf()) :
   MutableMap<String, JsonElement> by content {
   operator fun set(key: String, value: Iterable<String>) =
     set(key, JsonArray(value.map(::JsonPrimitive)))
+
   operator fun set(key: String, value: String?) = set(key, JsonPrimitive(value))
+
   operator fun set(key: String, value: Number?) = set(key, JsonPrimitive(value))
 }
 
-internal class JsonSchemaDefinitions(private val isEnabled: Boolean = true) {
+private class JsonSchemaDefinitions(private val isEnabled: Boolean = true) {
   private val definitions: MutableMap<String, JsonObject> = mutableMapOf()
   private val creator: MutableMap<String, () -> JsonObject> = mutableMapOf()
 

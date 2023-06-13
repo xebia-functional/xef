@@ -114,7 +114,11 @@ data class Usage(
   @SerialName("prompt_tokens") val promptTokens: Long,
   @SerialName("completion_tokens") val completionTokens: Long? = null,
   @SerialName("total_tokens") val totalTokens: Long
-)
+) {
+  companion object {
+    val ZERO: Usage = Usage(0, 0, 0)
+  }
+}
 
 data class LLMModel(val name: String, val kind: Kind, val modelType: ModelType) {
   enum class Kind {

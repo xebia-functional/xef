@@ -56,16 +56,18 @@ kotlin {
   mingwX64()
 
   sourceSets {
+    all {
+      languageSettings.optIn("kotlin.ExperimentalStdlibApi")
+    }
+
     val commonMain by getting {
       dependencies {
         api(libs.bundles.arrow)
 
         api(libs.bundles.ktor.client)
         api(projects.xefTokenizer)
-        implementation(libs.arrow.fx.stm)
 
-        // TODO split to a separate module
-        implementation(libs.kotlinx.serialization.json)
+        // implementation(libs.arrow.fx.stm)
 
         implementation(libs.uuid)
         implementation(libs.klogging)
