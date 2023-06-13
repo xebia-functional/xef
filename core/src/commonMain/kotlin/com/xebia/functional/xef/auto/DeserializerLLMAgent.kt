@@ -5,7 +5,6 @@ package com.xebia.functional.xef.auto
 
 import arrow.core.nonFatalOrThrow
 import arrow.core.raise.catch
-import arrow.core.raise.ensureNotNull
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.auto.serialization.buildJsonSchema
 import com.xebia.functional.xef.llm.openai.LLMModel
@@ -172,14 +171,14 @@ suspend fun <A> AIScope.tryDeserialize(
   agent: AI<List<String>>
 ): A {
   (0 until maxDeserializationAttempts).forEach { currentAttempts ->
-    val result = ensureNotNull(agent().firstOrNull()) { AIError.NoResponse }
+    val result = agent().firstOrNull() ?: throw AIError.NoResponse()
     catch({
       return@tryDeserialize serializer(result)
     }) { e: Throwable ->
       if (currentAttempts == maxDeserializationAttempts)
-        raise(AIError.JsonParsing(result, maxDeserializationAttempts, e.nonFatalOrThrow()))
-      // else continue with the next attempt
+        throw AIError.JsonParsing(result, maxDeserializationAttempts, e.nonFatalOrThrow())
+      // TODO else log attempt ?
     }
   }
-  raise(AIError.NoResponse)
+  throw AIError.NoResponse()
 }

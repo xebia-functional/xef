@@ -19,13 +19,13 @@ class PGVectorStore(
   private val chunckSize: Int?
 ) : VectorStore {
 
-  suspend fun JDBCSyntax.getCollection(collectionName: String): PGCollection =
+  private fun JDBCSyntax.getCollection(collectionName: String): PGCollection =
     queryOneOrNull(getCollection, { bind(collectionName) }) {
       PGCollection(UUID(string()), string())
     }
       ?: throw IllegalStateException("Collection '$collectionName' not found")
 
-  suspend fun JDBCSyntax.deleteCollection() {
+  private fun JDBCSyntax.deleteCollection() {
     if (preDeleteCollection) {
       val collection = getCollection(collectionName)
       update(deleteCollectionDocs) { bind(collection.uuid.toString()) }
@@ -33,7 +33,7 @@ class PGVectorStore(
     }
   }
 
-  suspend fun initialDbSetup(): Unit =
+  fun initialDbSetup(): Unit =
     dataSource.connection {
       update(addVectorExtension)
       update(createCollectionsTable)
@@ -41,7 +41,7 @@ class PGVectorStore(
       deleteCollection()
     }
 
-  suspend fun createCollection(): Unit =
+  fun createCollection(): Unit =
     dataSource.connection {
       val xa = UUID.generateUUID()
       update(addNewCollection) {

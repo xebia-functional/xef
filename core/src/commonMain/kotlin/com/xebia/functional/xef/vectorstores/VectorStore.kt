@@ -1,6 +1,7 @@
 package com.xebia.functional.xef.vectorstores
 
 import com.xebia.functional.xef.embeddings.Embedding
+import kotlin.jvm.JvmStatic
 
 interface VectorStore {
   /**
@@ -32,6 +33,7 @@ interface VectorStore {
   suspend fun similaritySearchByVector(embedding: Embedding, limit: Int): List<String>
 
   companion object {
+    @JvmStatic
     val EMPTY: VectorStore =
       object : VectorStore {
         override suspend fun addTexts(texts: List<String>) {}
