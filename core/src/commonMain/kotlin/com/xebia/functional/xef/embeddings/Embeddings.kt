@@ -10,6 +10,7 @@ interface Embeddings {
     chunkSize: Int?,
     requestConfig: RequestConfig
   ): List<Embedding>
+
   suspend fun embedQuery(text: String, requestConfig: RequestConfig): List<Embedding>
 
   companion object

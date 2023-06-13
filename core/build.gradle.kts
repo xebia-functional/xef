@@ -56,6 +56,10 @@ kotlin {
   mingwX64()
 
   sourceSets {
+    all {
+      languageSettings.optIn("kotlin.ExperimentalStdlibApi")
+    }
+
     val commonMain by getting {
       dependencies {
         api(libs.bundles.arrow)

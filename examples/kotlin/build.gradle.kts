@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
   id(libs.plugins.kotlin.jvm.get().pluginId)
   id(libs.plugins.kotlinx.serialization.get().pluginId)
@@ -23,6 +21,7 @@ dependencies {
   implementation(projects.xefPdf)
   implementation(projects.xefSql)
   implementation(projects.xefTokenizer)
+  implementation(projects.xefGpt4all)
   implementation(libs.kotlinx.serialization.json)
   implementation(libs.logback)
   implementation(libs.klogging)
@@ -30,4 +29,10 @@ dependencies {
   implementation(libs.okio)
   implementation(libs.jdbc.mysql.connector)
   api(libs.bundles.ktor.client)
+}
+
+tasks.getByName<Copy>("processResources") {
+  dependsOn(projects.xefGpt4all.dependencyProject.tasks.getByName("jvmProcessResources"))
+  from("${projects.xefGpt4all.dependencyProject.buildDir}/processedResources/jvm/main")
+  into("$buildDir/resources/main")
 }

@@ -373,6 +373,7 @@ private class JsonObjectBuilder(val content: MutableMap<String, JsonElement> = l
     set(key, JsonArray(value.map(::JsonPrimitive)))
 
   operator fun set(key: String, value: String?) = set(key, JsonPrimitive(value))
+
   operator fun set(key: String, value: Number?) = set(key, JsonPrimitive(value))
 }
 

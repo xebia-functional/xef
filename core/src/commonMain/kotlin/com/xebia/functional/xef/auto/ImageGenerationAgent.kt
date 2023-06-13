@@ -82,7 +82,7 @@ suspend fun <A> AIScope.image(
   minResponseTokens: Int = 500
 ): A {
   val imageResponse = images(prompt, user, 1, size, bringFromContext)
-  val url = imageResponse.data.firstOrNull() ?: raise(AIError.NoResponse)
+  val url = imageResponse.data.firstOrNull() ?: throw AIError.NoResponse()
   return prompt(
     Prompt(
       """|Instructions: Format this [URL] and [PROMPT] information in the desired JSON response format
