@@ -14,11 +14,14 @@ class MockOpenAIClient(
 ) : OpenAIClient {
   override suspend fun createCompletion(request: CompletionRequest): CompletionResult =
     completion(request)
+
   override suspend fun createChatCompletion(
     request: ChatCompletionRequest
   ): ChatCompletionResponse = chatCompletion(request)
+
   override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult =
     embeddings(request)
+
   override suspend fun createImages(request: ImagesGenerationRequest): ImagesGenerationResponse =
     images(request)
 }
