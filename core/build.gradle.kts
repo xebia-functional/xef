@@ -66,7 +66,6 @@ kotlin {
 
         api(libs.bundles.ktor.client)
         api(projects.xefTokenizer)
-        implementation(libs.arrow.fx.stm)
 
         // TODO split to a separate module
         implementation(libs.kotlinx.serialization.json)
