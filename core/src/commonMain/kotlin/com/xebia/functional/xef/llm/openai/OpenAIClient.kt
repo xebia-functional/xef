@@ -86,6 +86,9 @@ class KtorOpenAIClient(private val config: OpenAIConfig) : OpenAIClient, AutoClo
         timeout { requestTimeoutMillis = config.requestTimeoutMillis }
       }
 
+    val stringResponse = response.bodyAsText()
+    println(stringResponse)
+
     val body: ChatCompletionResponseWithFunctions = response.bodyOrError()
     with(body.usage) {
       logger.debug {

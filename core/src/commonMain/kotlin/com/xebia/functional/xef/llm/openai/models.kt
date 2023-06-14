@@ -87,7 +87,7 @@ data class ChatCompletionRequestWithFunctions(
   @SerialName("frequency_penalty") val frequencyPenalty: Double = 0.0,
   @SerialName("logit_bias") val logitBias: Map<String, Int> = emptyMap(),
   val user: String?,
-  //@SerialName("function_call") val functionCall: Map<String, String>? = null,
+  @SerialName("function_call") val functionCall: Map<String, String>,
 )
 
 @Serializable
@@ -146,7 +146,8 @@ data class Message(
 
 @Serializable
 data class MessageWithFunctionCall(
-  val role: String, val content: String,
+  val role: String,
+  val content: String? = null,
   @SerialName("function_call") val functionCall: FunctionCall,
   val name: String? = Role.assistant.name
 )

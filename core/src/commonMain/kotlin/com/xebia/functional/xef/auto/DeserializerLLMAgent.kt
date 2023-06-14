@@ -9,6 +9,8 @@ import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.llm.openai.functions.CFunction
 import com.xebia.functional.xef.llm.openai.LLMModel
 import com.xebia.functional.xef.prompt.Prompt
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlin.jvm.JvmMultifileClass
 import kotlin.jvm.JvmName
 
@@ -47,11 +49,13 @@ suspend fun <A> AIScope.tryDeserialize(
   maxDeserializationAttempts: Int,
   agent: AI<List<String>>
 ): A {
+  val logger = KotlinLogging.logger {  }
   (0 until maxDeserializationAttempts).forEach { currentAttempts ->
     val result = agent().firstOrNull() ?: throw AIError.NoResponse()
     catch({
       return@tryDeserialize serializer(result)
     }) { e: Throwable ->
+      logger.error(e) { "Error deserializing response: $result\n${e.message}" }
       if (currentAttempts == maxDeserializationAttempts)
         throw AIError.JsonParsing(result, maxDeserializationAttempts, e.nonFatalOrThrow())
       // TODO else log attempt ?

@@ -203,7 +203,7 @@ private suspend fun AIScope.callChatEndpointWithFunctionsSupport(
       temperature = temperature,
       maxTokens = maxTokens,
       functions = functions,
-      //functionCall = null
+      functionCall = mapOf("name" to (firstFnName ?: ""))
     )
   return openAIClient.createChatCompletionWithFunctions(request).choices.map { it.message.functionCall }
 }
@@ -258,6 +258,16 @@ private fun AIScope.checkTotalLeftChatTokens(messages: List<Message>, model: LLM
 
 private fun tokensFromMessages(messages: List<Message>, model: LLMModel): Int =
   when (model) {
+    LLMModel.GPT_3_5_TURBO_FUNCTIONS -> {
+      val paddingTokens = 200
+      // TODO 200 tokens reserved for function calls, what is a better way to count these?
+      val fallbackModel: LLMModel = LLMModel.GPT_3_5_TURBO
+      logger.debug {
+        "Warning: ${model.name} may change over time. " +
+          "Returning messages num tokens assuming ${fallbackModel.name} + $paddingTokens padding tokens."
+      }
+      tokensFromMessages(messages, fallbackModel) + paddingTokens
+    }
     LLMModel.GPT_3_5_TURBO -> {
       val paddingTokens = 5 // otherwise if the model changes, it might later fail
       val fallbackModel: LLMModel = LLMModel.GPT_3_5_TURBO_0301
