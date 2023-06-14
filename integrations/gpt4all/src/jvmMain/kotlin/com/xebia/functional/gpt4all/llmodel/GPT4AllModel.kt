@@ -1,6 +1,7 @@
 package com.xebia.functional.gpt4all.llmodel
 
 import com.sun.jna.Pointer
+import com.xebia.functional.gpt4all.getModelName
 import com.xebia.functional.gpt4all.llama.libraries.LlamaLibrary
 import com.xebia.functional.gpt4all.llmodel.libraries.LLModelContextParams
 import com.xebia.functional.gpt4all.llmodel.libraries.LLModelLibrary
@@ -90,8 +91,3 @@ private fun LLModelLibrary.loadModel(path: Path): Pointer? =
         is LLModelLibrary.GPTJ -> llmodel_gptj_create()
         is LLModelLibrary.MPT -> llmodel_mpt_create()
     }.also { model -> llmodel_loadModel(model, path.toString()) }
-
-private fun Path.getModelName(): String =
-    toFile().name.split(
-        "\\.(?=[^.]+$)".toRegex()
-    ).dropLastWhile { it.isEmpty() }.toTypedArray()[0]

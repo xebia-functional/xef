@@ -15,6 +15,26 @@ data class GenerationConfig(
     val contextErase: Double = 0.5
 )
 
+data class LlamaLoraAdaptor(
+    val lora_adapter: String,
+    val lora_base: String?,
+    val n_threads: Int
+)
+
+data class LlamaConfig(
+    val model_path: String,
+    val n_ctx: Int = 2048,
+    val n_gpu_layers: Int = 0,
+    val seed: Int = 0,
+    val f16_kv: Boolean = true,
+    val logits_all: Boolean = false,
+    val vocab_only: Boolean = false,
+    val use_mlock: Boolean = false,
+    val embedding: Boolean = false,
+    val use_mmap: Boolean = true,
+    val lora: LlamaLoraAdaptor? = null
+)
+
 data class Completion(val content: String)
 
 data class Message(val role: Role, val content: String) {

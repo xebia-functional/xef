@@ -1,34 +1,16 @@
 package com.xebia.functional.gpt4all.llama
 
 import com.sun.jna.Pointer
+import com.xebia.functional.gpt4all.LlamaConfig
+import com.xebia.functional.gpt4all.LlamaLoraAdaptor
 import com.xebia.functional.gpt4all.llama.libraries.LlamaContextParams
 import com.xebia.functional.gpt4all.llama.libraries.LlamaLibrary
-
-data class LlamaLoraAdaptor(
-    val lora_adapter: String,
-    val lora_base: String?,
-    val n_threads: Int
-)
-
-data class ModelLoad(
-    val model_path: String,
-    val n_ctx: Int = 2048,
-    val n_gpu_layers: Int = 0,
-    val seed: Int = 0,
-    val f16_kv: Boolean = true,
-    val logits_all: Boolean = false,
-    val vocab_only: Boolean = false,
-    val use_mlock: Boolean = false,
-    val embedding: Boolean = false,
-    val use_mmap: Boolean = true,
-    val lora: LlamaLoraAdaptor? = null
-)
 
 interface LlamaContext {
     val pointer: Pointer
 
     companion object {
-        operator fun invoke(llamaLibrary: LlamaLibrary, params: ModelLoad): LlamaContext {
+        operator fun invoke(llamaLibrary: LlamaLibrary, params: LlamaConfig): LlamaContext {
             val loraParams: LlamaLoraAdaptor? = params.lora
             val modelPath: String = params.model_path
 
@@ -52,7 +34,7 @@ interface LlamaContext {
     }
 }
 
-private fun ModelLoad.toLlamaContextParams(): LlamaContextParams =
+private fun LlamaConfig.toLlamaContextParams(): LlamaContextParams =
     LlamaContextParams(
         n_ctx = n_ctx,
         n_parts = n_gpu_layers,

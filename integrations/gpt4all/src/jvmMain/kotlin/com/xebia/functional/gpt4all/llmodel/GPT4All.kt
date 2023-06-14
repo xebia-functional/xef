@@ -61,9 +61,9 @@ interface GPT4All : AutoCloseable {
 
             private fun generateCompletion(
                 prompt: String,
-                generationConfig: GenerationConfig
+                config: GenerationConfig
             ): String {
-                val contextParams: LLModelContextParams = generationConfig.toLLModelContextParams()
+                val contextParams: LLModelContextParams = config.toLLModelContextParams()
                 return gpt4allModel.prompt(prompt, contextParams)
             }
         }

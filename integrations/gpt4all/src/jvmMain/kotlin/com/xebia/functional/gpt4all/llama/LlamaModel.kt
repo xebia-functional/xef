@@ -1,41 +1,49 @@
 package com.xebia.functional.gpt4all.llama
 
-import com.sun.jna.Library
 import com.sun.jna.Memory
-import com.sun.jna.Native
-import com.sun.jna.Pointer
+import com.xebia.functional.gpt4all.LlamaConfig
+import com.xebia.functional.gpt4all.getModelName
 import com.xebia.functional.gpt4all.llama.libraries.LlamaLibrary
-import com.xebia.functional.gpt4all.llmodel.GPT4AllModel
-import java.nio.ByteBuffer
+import com.xebia.functional.gpt4all.loadLlamaLibrary
 import java.nio.file.Path
 
-//sealed interface LlamaModel : AutoCloseable {
-//    val library: LlamaLibrary
-//    val context: LlamaContext
-//
-//    fun embeddings(text: String): List<Int>
-//    fun tokenize(text: String):
-//}
-//
-//interface MPTModelInternal : GPT4AllModel {
-//
-//}
-//
-//
-//
-//private fun llamaTokenize(
-//    context: Pointer, text: String, addBos: Boolean
-//): List<Int> {
-//    val nMaxTokens = text.length + if (addBos) 1 else 0
-//    val cText = text.toByteArray()
-//    val textPointer = Memory(cText.size.toLong()).apply { write(0, cText, 0, cText.size) }
-//    val tokensPointer = Memory(nMaxTokens * Int.SIZE_BYTES.toLong())
-//    val n = llamaLibrary.llama_tokenize(context, textPointer, tokensPointer, nMaxTokens, addBos)
-//    check(n >= 0)
-//    return (0 until n).map { tokensPointer.getInt(it * Int.SIZE_BYTES.toLong()) }
-//
-//}
-//
+interface LlamaModel : AutoCloseable {
+    val library: LlamaLibrary
+    val context: LlamaContext
+    val name: String
+
+    fun embeddings(text: String): List<Float>
+    fun tokenize(text: String, addBos: Boolean): List<Int>
+
+    companion object {
+        operator fun invoke(
+            path: Path
+        ): LlamaModel = object : LlamaModel {
+            override val library: LlamaLibrary = loadLlamaLibrary()
+            override val context: LlamaContext = LlamaContext(library, LlamaConfig(path.toString()))
+            override val name: String = path.getModelName()
+
+            override fun embeddings(text: String): List<Float> {
+                TODO("Not yet implemented")
+            }
+
+            override fun tokenize(text: String, addBos: Boolean): List<Int> {
+                val nMaxTokens: Int = text.length + if (addBos) 1 else 0
+                val cText: ByteArray = text.toByteArray()
+                val textPointer: Memory = Memory(cText.size.toLong())
+                    .apply { write(0, cText, 0, cText.size) }
+                val tokensPointer = Memory(nMaxTokens * Int.SIZE_BYTES.toLong())
+                val n: Int = library.llama_tokenize(context.pointer, textPointer, tokensPointer, nMaxTokens, addBos)
+                check(n >= 0)
+                return (0 until n).map { tokensPointer.getInt(it * Int.SIZE_BYTES.toLong()) }
+            }
+
+            override fun close(): Unit =
+                library.llama_free(context.pointer)
+        }
+    }
+}
+
 //fun tokenize(context: LlamaContext, text: String, addBos: Boolean): List<Int> {
 //    val tokensSize: Int = text.length + if (addBos) 1 else 0
 //    val tokensPointer: Pointer = pointerFromTokenSize(tokensSize)
@@ -53,26 +61,21 @@ import java.nio.file.Path
 //    return tokens.toList()
 //}
 
-
-
-private fun GPT4AllModel.loadLlamaContext(path: Path): LlamaContext =
-    LlamaContext(llamaLibrary, ModelLoad(path.toString()))
-
-private fun IntArray.toPointer(): Pointer {
-    val size: Int = size * Native.getNativeSize(Int::class.java)
-    val pointer = Pointer(Native.malloc(size.toLong()))
-    pointer.write(0, this, 0, size)
-    return pointer
-}
-
-private fun pointerFromText(text: String): Pointer {
-    val textBytes: ByteArray = text.toByteArray()
-    val textBuffer: ByteBuffer = ByteBuffer.allocateDirect(textBytes.size)
-    textBuffer.put(textBytes)
-    textBuffer.flip()
-    return Native.getDirectBufferPointer(textBuffer)
-}
-
-private fun pointerFromTokenSize(size: Int): Pointer {
-    return Memory(size.toLong() * Native.getNativeSize(Long::class.java))
-}
+//private fun IntArray.toPointer(): Pointer {
+//    val size: Int = size * Native.getNativeSize(Int::class.java)
+//    val pointer = Pointer(Native.malloc(size.toLong()))
+//    pointer.write(0, this, 0, size)
+//    return pointer
+//}
+//
+//private fun pointerFromText(text: String): Pointer {
+//    val textBytes: ByteArray = text.toByteArray()
+//    val textBuffer: ByteBuffer = ByteBuffer.allocateDirect(textBytes.size)
+//    textBuffer.put(textBytes)
+//    textBuffer.flip()
+//    return Native.getDirectBufferPointer(textBuffer)
+//}
+//
+//private fun pointerFromTokenSize(size: Int): Pointer {
+//    return Memory(size.toLong() * Native.getNativeSize(Long::class.java))
+//}
