@@ -16,4 +16,4 @@ internal inline fun <reified T : Library> load(from: String): T = Native.load(fr
 internal fun Path.getModelName(): String =
     toFile().name.split(
         "\\.(?=[^.]+$)".toRegex()
-    ).dropLastWhile { it.isEmpty() }.toTypedArray()[0]
+    ).dropLastWhile { it.isEmpty() }.toList()[0]

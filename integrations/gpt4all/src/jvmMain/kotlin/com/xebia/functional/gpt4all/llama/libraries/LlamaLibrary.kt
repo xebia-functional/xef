@@ -7,9 +7,9 @@ import com.sun.jna.Structure
 
 class LlamaContextParams(
     @JvmField
-    var n_ctx: Int = 0,
+    var n_ctx: Int = 512,
     @JvmField
-    var n_parts: Int = 0,
+    var n_parts: Int = -1,
     @JvmField
     var seed: Int = 0,
     @JvmField
@@ -19,7 +19,7 @@ class LlamaContextParams(
     @JvmField
     var vocab_only: Boolean = false,
     @JvmField
-    var use_mmap: Boolean = false,
+    var use_mmap: Boolean = true,
     @JvmField
     var use_mlock: Boolean = false,
     @JvmField
@@ -71,6 +71,11 @@ interface LlamaLibrary : Library {
         n_max_tokens: Int,
         add_bos: Boolean
     ): Int
+
+    fun llama_token_to_str(
+        ctx: Pointer,
+        llama_token: Int
+    ): String
 
     fun llama_eval(
         ctx: Pointer,

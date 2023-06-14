@@ -61,7 +61,7 @@ interface GPT4All : AutoCloseable {
 
             private fun generateCompletion(
                 prompt: String,
-                config: GenerationConfig
+                config: GPT4AllGenerationConfig
             ): String {
                 val contextParams: LLModelContextParams = config.toLLModelContextParams()
                 return gpt4allModel.prompt(prompt, contextParams)
@@ -70,7 +70,7 @@ interface GPT4All : AutoCloseable {
     }
 }
 
-private fun GenerationConfig.toLLModelContextParams(): LLModelContextParams =
+private fun GPT4AllGenerationConfig.toLLModelContextParams(): LLModelContextParams =
     LLModelContextParams(
         logits_size = LibCAPI.size_t(logitsSize.toLong()),
         tokens_size = LibCAPI.size_t(tokensSize.toLong()),

@@ -37,7 +37,7 @@ interface LlamaContext {
 private fun LlamaConfig.toLlamaContextParams(): LlamaContextParams =
     LlamaContextParams(
         n_ctx = n_ctx,
-        n_parts = n_gpu_layers,
+        n_parts = n_parts,
         seed = seed,
         f16_kv = f16_kv,
         logits_all = logits_all,
