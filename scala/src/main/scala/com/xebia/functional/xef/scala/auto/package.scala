@@ -3,6 +3,7 @@ package com.xebia.functional.xef.scala.auto
 import com.xebia.functional.loom.LoomAdapter
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.llm.openai.LLMModel
+import com.xebia.functional.xef.llm.openai.functions.CFunction
 import io.circe.Decoder
 import io.circe.parser.parse
 import com.xebia.functional.xef.llm.openai.images.ImagesGenerationResponse
@@ -41,7 +42,7 @@ extension [A](block: AI[A]) {
 def prompt[A: Decoder: SerialDescriptor](
     prompt: String,
     maxAttempts: Int = 5,
-    llmModel: LLMModel = LLMModel.getGPT_3_5_TURBO,
+    llmModel: LLMModel = LLMModel.getGPT_3_5_TURBO_FUNCTIONS,
     user: String = "testing",
     echo: Boolean = false,
     n: Int = 1,
@@ -109,14 +110,15 @@ def images(
     temperature: Double = 0.0,
     minResponseTokens: Int = 500
 )(using scope: AIScope): List[String] =
-  LoomAdapter.apply[ImagesGenerationResponse](cont =>
-    KtAgent.images(
-      scope.kt,
-      prompt,
-      user,
-      n,
-      size,
-      bringFromContext,
-      cont
-    )
-  ).getData.asScala.map(_.getUrl).toList
+  LoomAdapter
+    .apply[ImagesGenerationResponse](cont =>
+      KtAgent.images(
+        scope.kt,
+        prompt,
+        user,
+        n,
+        size,
+        bringFromContext,
+        cont
+      )
+    ).getData.asScala.map(_.getUrl).toList

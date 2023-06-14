@@ -28,9 +28,7 @@ import kotlinx.serialization.descriptors.*
   ]
  */
 fun encodeFunctionSchema(serialDescriptor: SerialDescriptor): List<CFunction> {
-  return listOf(
-    generateCFunction(serialDescriptor)
-  )
+  return listOf(generateCFunction(serialDescriptor))
 }
 
 private fun generateCFunction(descriptor: SerialDescriptor): CFunction {
@@ -43,24 +41,24 @@ private fun generateCFunction(descriptor: SerialDescriptor): CFunction {
 internal fun functionName(descriptor: SerialDescriptor): String =
   descriptor.serialName.substringAfterLast(".")
 
-
 @OptIn(ExperimentalSerializationApi::class)
-private fun typeName(it: SerialDescriptor): String = when (it.kind) {
-  PolymorphicKind.OPEN -> "object"
-  PolymorphicKind.SEALED -> "object"
-  PrimitiveKind.BOOLEAN -> "boolean"
-  PrimitiveKind.BYTE -> "number"
-  PrimitiveKind.CHAR -> "character"
-  PrimitiveKind.DOUBLE -> "double"
-  PrimitiveKind.FLOAT -> "float"
-  PrimitiveKind.INT -> "number"
-  PrimitiveKind.LONG -> "number"
-  PrimitiveKind.SHORT -> "number"
-  PrimitiveKind.STRING -> "string"
-  SerialKind.CONTEXTUAL -> "object"
-  SerialKind.ENUM -> "enum"
-  StructureKind.CLASS -> "object"
-  StructureKind.LIST -> "array"
-  StructureKind.MAP -> "object"
-  StructureKind.OBJECT -> "object"
-}
+private fun typeName(it: SerialDescriptor): String =
+  when (it.kind) {
+    PolymorphicKind.OPEN -> "object"
+    PolymorphicKind.SEALED -> "object"
+    PrimitiveKind.BOOLEAN -> "boolean"
+    PrimitiveKind.BYTE -> "number"
+    PrimitiveKind.CHAR -> "character"
+    PrimitiveKind.DOUBLE -> "double"
+    PrimitiveKind.FLOAT -> "float"
+    PrimitiveKind.INT -> "number"
+    PrimitiveKind.LONG -> "number"
+    PrimitiveKind.SHORT -> "number"
+    PrimitiveKind.STRING -> "string"
+    SerialKind.CONTEXTUAL -> "object"
+    SerialKind.ENUM -> "enum"
+    StructureKind.CLASS -> "object"
+    StructureKind.LIST -> "array"
+    StructureKind.MAP -> "object"
+    StructureKind.OBJECT -> "object"
+  }

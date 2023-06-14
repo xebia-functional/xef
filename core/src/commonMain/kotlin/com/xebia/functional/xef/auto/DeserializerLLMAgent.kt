@@ -6,10 +6,9 @@ package com.xebia.functional.xef.auto
 import arrow.core.nonFatalOrThrow
 import arrow.core.raise.catch
 import com.xebia.functional.xef.AIError
-import com.xebia.functional.xef.llm.openai.functions.CFunction
 import com.xebia.functional.xef.llm.openai.LLMModel
+import com.xebia.functional.xef.llm.openai.functions.CFunction
 import com.xebia.functional.xef.prompt.Prompt
-import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlin.jvm.JvmMultifileClass
 import kotlin.jvm.JvmName
@@ -49,7 +48,7 @@ suspend fun <A> AIScope.tryDeserialize(
   maxDeserializationAttempts: Int,
   agent: AI<List<String>>
 ): A {
-  val logger = KotlinLogging.logger {  }
+  val logger = KotlinLogging.logger {}
   (0 until maxDeserializationAttempts).forEach { currentAttempts ->
     val result = agent().firstOrNull() ?: throw AIError.NoResponse()
     catch({

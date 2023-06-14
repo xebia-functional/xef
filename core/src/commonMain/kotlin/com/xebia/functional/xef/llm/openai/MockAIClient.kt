@@ -10,9 +10,11 @@ class MockOpenAIClient(
   private val chatCompletion: (ChatCompletionRequest) -> ChatCompletionResponse = {
     throw NotImplementedError("chat completion not implemented")
   },
-  private val chatCompletionRequestWithFunctions: (ChatCompletionRequestWithFunctions) -> ChatCompletionResponseWithFunctions = {
-    throw NotImplementedError("chat completion not implemented")
-  },
+  private val chatCompletionRequestWithFunctions:
+    (ChatCompletionRequestWithFunctions) -> ChatCompletionResponseWithFunctions =
+    {
+      throw NotImplementedError("chat completion not implemented")
+    },
   private val embeddings: (EmbeddingRequest) -> EmbeddingResult = ::nullEmbeddings,
   private val images: (ImagesGenerationRequest) -> ImagesGenerationResponse = {
     throw NotImplementedError("images not implemented")
@@ -25,8 +27,9 @@ class MockOpenAIClient(
     request: ChatCompletionRequest
   ): ChatCompletionResponse = chatCompletion(request)
 
-  override suspend fun createChatCompletionWithFunctions(request: ChatCompletionRequestWithFunctions): ChatCompletionResponseWithFunctions =
-    chatCompletionRequestWithFunctions(request)
+  override suspend fun createChatCompletionWithFunctions(
+    request: ChatCompletionRequestWithFunctions
+  ): ChatCompletionResponseWithFunctions = chatCompletionRequestWithFunctions(request)
 
   override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult =
     embeddings(request)

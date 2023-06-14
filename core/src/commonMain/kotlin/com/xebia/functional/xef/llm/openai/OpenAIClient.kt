@@ -22,7 +22,9 @@ interface OpenAIClient {
 
   suspend fun createChatCompletion(request: ChatCompletionRequest): ChatCompletionResponse
 
-  suspend fun createChatCompletionWithFunctions(request: ChatCompletionRequestWithFunctions): ChatCompletionResponseWithFunctions
+  suspend fun createChatCompletionWithFunctions(
+    request: ChatCompletionRequestWithFunctions
+  ): ChatCompletionResponseWithFunctions
 
   suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult
 
@@ -76,7 +78,9 @@ class KtorOpenAIClient(private val config: OpenAIConfig) : OpenAIClient, AutoClo
     return body
   }
 
-  override suspend fun createChatCompletionWithFunctions(request: ChatCompletionRequestWithFunctions): ChatCompletionResponseWithFunctions {
+  override suspend fun createChatCompletionWithFunctions(
+    request: ChatCompletionRequestWithFunctions
+  ): ChatCompletionResponseWithFunctions {
     println(Json.encodeToString(ChatCompletionRequestWithFunctions.serializer(), request))
 
     val response =

@@ -77,15 +77,16 @@ suspend fun AIScope.promptMessage(
       )
     LLMModel.Kind.ChatWithFunctions ->
       callChatEndpointWithFunctionsSupport(
-        prompt.message,
-        model,
-        functions,
-        user,
-        n,
-        temperature,
-        bringFromContext,
-        minResponseTokens
-      ).map { it.arguments }
+          prompt.message,
+          model,
+          functions,
+          user,
+          n,
+          temperature,
+          bringFromContext,
+          minResponseTokens
+        )
+        .map { it.arguments }
   }
 }
 
@@ -205,7 +206,9 @@ private suspend fun AIScope.callChatEndpointWithFunctionsSupport(
       functions = functions,
       functionCall = mapOf("name" to (firstFnName ?: ""))
     )
-  return openAIClient.createChatCompletionWithFunctions(request).choices.map { it.message.functionCall }
+  return openAIClient.createChatCompletionWithFunctions(request).choices.map {
+    it.message.functionCall
+  }
 }
 
 private suspend fun AIScope.promptWithContext(
