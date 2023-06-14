@@ -1,0 +1,10 @@
+package com.xebia.functional.xef.llm.openai.functions
+
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class CFunction(
+  val name: String,
+  val description: String,
+  val parameters: Parameters
+)

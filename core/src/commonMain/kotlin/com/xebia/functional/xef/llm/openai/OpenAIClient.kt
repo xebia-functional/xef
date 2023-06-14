@@ -2,20 +2,18 @@ package com.xebia.functional.xef.llm.openai
 
 import com.xebia.functional.xef.configure
 import com.xebia.functional.xef.env.OpenAIConfig
+import com.xebia.functional.xef.llm.openai.images.ImagesGenerationRequest
+import com.xebia.functional.xef.llm.openai.images.ImagesGenerationResponse
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.ktor.client.HttpClient
-import io.ktor.client.call.body
-import io.ktor.client.plugins.HttpTimeout
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.defaultRequest
-import io.ktor.client.plugins.timeout
-import io.ktor.client.request.post
-import io.ktor.client.statement.HttpResponse
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.path
+import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 interface OpenAIClient {
@@ -23,24 +21,12 @@ interface OpenAIClient {
 
   suspend fun createChatCompletion(request: ChatCompletionRequest): ChatCompletionResponse
 
+  suspend fun createChatCompletionWithFunctions(request: ChatCompletionRequestWithFunctions): ChatCompletionResponseWithFunctions
+
   suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult
 
   suspend fun createImages(request: ImagesGenerationRequest): ImagesGenerationResponse
 }
-
-@Serializable
-data class ImagesGenerationRequest(
-  val prompt: String,
-  @SerialName("n") val numberImages: Int = 1,
-  val size: String = "1024x1024",
-  @SerialName("response_format") val responseFormat: String = "url",
-  val user: String? = null
-)
-
-@Serializable
-data class ImagesGenerationResponse(val created: Long, val data: List<ImageGenerationUrl>)
-
-@Serializable data class ImageGenerationUrl(val url: String)
 
 @OptIn(ExperimentalStdlibApi::class)
 class KtorOpenAIClient(private val config: OpenAIConfig) : OpenAIClient, AutoCloseable {
@@ -81,6 +67,23 @@ class KtorOpenAIClient(private val config: OpenAIConfig) : OpenAIClient, AutoClo
       }
 
     val body: ChatCompletionResponse = response.bodyOrError()
+    with(body.usage) {
+      logger.debug {
+        "Chat Completion Tokens :: prompt: $promptTokens, completion: $completionTokens, total: $totalTokens"
+      }
+    }
+    return body
+  }
+
+  override suspend fun createChatCompletionWithFunctions(request: ChatCompletionRequestWithFunctions): ChatCompletionResponseWithFunctions {
+    val response =
+      httpClient.post {
+        url { path("chat/completions") }
+        configure(config.token, request)
+        timeout { requestTimeoutMillis = config.requestTimeoutMillis }
+      }
+
+    val body: ChatCompletionResponseWithFunctions = response.bodyOrError()
     with(body.usage) {
       logger.debug {
         "Chat Completion Tokens :: prompt: $promptTokens, completion: $completionTokens, total: $totalTokens"

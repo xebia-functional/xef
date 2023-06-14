@@ -11,7 +11,7 @@ private final case class Image(description: String, url: String) derives SerialD
   ai {
     val cadiz: Population = prompt("Population of Cádiz, Spain.")
     val seattle: Population = prompt("Population of Seattle, WA.")
-    val img: Image = image("A hybrid city of Cádiz, Spain and Seattle, US.")
-    println(img)
+    val imgs: List[String] = images("A hybrid city of Cádiz, Spain and Seattle, US.")
+    println(imgs.mkString("\n"))
     println(s"The population of Cádiz is ${cadiz.size} and the population of Seattle is ${seattle.size}")
   }.getOrElse(ex => println(ex.getMessage))

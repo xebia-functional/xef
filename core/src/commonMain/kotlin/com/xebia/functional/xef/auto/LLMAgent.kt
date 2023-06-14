@@ -7,11 +7,8 @@ import com.xebia.functional.tokenizer.Encoding
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.tokenizer.truncateText
 import com.xebia.functional.xef.AIError
-import com.xebia.functional.xef.llm.openai.ChatCompletionRequest
-import com.xebia.functional.xef.llm.openai.CompletionRequest
-import com.xebia.functional.xef.llm.openai.LLMModel
-import com.xebia.functional.xef.llm.openai.Message
-import com.xebia.functional.xef.llm.openai.Role
+import com.xebia.functional.xef.llm.openai.*
+import com.xebia.functional.xef.llm.openai.functions.CFunction
 import com.xebia.functional.xef.prompt.Prompt
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -24,6 +21,7 @@ private val logger: KLogger by lazy { KotlinLogging.logger {} }
 suspend fun AIScope.promptMessage(
   question: String,
   model: LLMModel = LLMModel.GPT_3_5_TURBO,
+  functions: List<CFunction> = emptyList(),
   user: String = "testing",
   echo: Boolean = false,
   n: Int = 1,
@@ -34,6 +32,7 @@ suspend fun AIScope.promptMessage(
   promptMessage(
     Prompt(question),
     model,
+    functions,
     user,
     echo,
     n,
@@ -46,6 +45,7 @@ suspend fun AIScope.promptMessage(
 suspend fun AIScope.promptMessage(
   prompt: Prompt,
   model: LLMModel = LLMModel.GPT_3_5_TURBO,
+  functions: List<CFunction> = emptyList(),
   user: String = "testing",
   echo: Boolean = false,
   n: Int = 1,
@@ -75,6 +75,17 @@ suspend fun AIScope.promptMessage(
         bringFromContext,
         minResponseTokens
       )
+    LLMModel.Kind.ChatWithFunctions ->
+      callChatEndpointWithFunctionsSupport(
+        prompt.message,
+        model,
+        functions,
+        user,
+        n,
+        temperature,
+        bringFromContext,
+        minResponseTokens
+      ).map { it.arguments }
   }
 }
 
@@ -162,9 +173,39 @@ private suspend fun AIScope.callChatEndpoint(
       messages = messages,
       n = n,
       temperature = temperature,
-      maxTokens = maxTokens
+      maxTokens = maxTokens,
+      functions = emptyList()
     )
   return openAIClient.createChatCompletion(request).choices.map { it.message.content }
+}
+
+private suspend fun AIScope.callChatEndpointWithFunctionsSupport(
+  prompt: String,
+  model: LLMModel,
+  functions: List<CFunction>,
+  user: String = "testing",
+  n: Int = 1,
+  temperature: Double = 0.0,
+  bringFromContext: Int,
+  minResponseTokens: Int
+): List<FunctionCall> {
+  val role: String = Role.system.name
+  val promptWithContext: String =
+    promptWithContext(prompt, bringFromContext, model.modelType, minResponseTokens)
+  val messages: List<Message> = listOf(Message(role, promptWithContext))
+  val maxTokens: Int = checkTotalLeftChatTokens(messages, model)
+  val request =
+    ChatCompletionRequestWithFunctions(
+      model = model.name,
+      user = user,
+      messages = messages,
+      n = n,
+      temperature = temperature,
+      maxTokens = maxTokens,
+      functions = functions,
+      functionCall = mapOf("name" to (functions.firstOrNull()?.name ?: "none"))
+    )
+  return openAIClient.createChatCompletionWithFunctions(request).choices.map { it.message.functionCall }
 }
 
 private suspend fun AIScope.promptWithContext(

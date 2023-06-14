@@ -3,10 +3,8 @@
 
 package com.xebia.functional.xef.auto
 
-import com.xebia.functional.xef.AIError
-import com.xebia.functional.xef.llm.openai.ImagesGenerationRequest
-import com.xebia.functional.xef.llm.openai.ImagesGenerationResponse
-import com.xebia.functional.xef.llm.openai.LLMModel
+import com.xebia.functional.xef.llm.openai.images.ImagesGenerationRequest
+import com.xebia.functional.xef.llm.openai.images.ImagesGenerationResponse
 import com.xebia.functional.xef.prompt.Prompt
 import kotlin.jvm.JvmMultifileClass
 import kotlin.jvm.JvmName
@@ -63,49 +61,4 @@ suspend fun AIScope.images(
       user = user
     )
   return openAIClient.createImages(request)
-}
-
-@AiDsl
-@JvmName("imageWithSerializer")
-suspend fun <A> AIScope.image(
-  prompt: Prompt,
-  jsonSchema: String,
-  serializer: (json: String) -> A,
-  maxDeserializationAttempts: Int = 5,
-  user: String = "testing",
-  size: String = "1024x1024",
-  bringFromContext: Int = 10,
-  model: LLMModel = LLMModel.GPT_3_5_TURBO,
-  echo: Boolean = false,
-  n: Int = 1,
-  temperature: Double = 0.0,
-  minResponseTokens: Int = 500
-): A {
-  val imageResponse = images(prompt, user, 1, size, bringFromContext)
-  val url = imageResponse.data.firstOrNull() ?: throw AIError.NoResponse()
-  return prompt(
-    Prompt(
-      """|Instructions: Format this [URL] and [PROMPT] information in the desired JSON response format
-       |specified at the end of the message.
-       |[URL]:
-       |```
-       |$url
-       |```
-       |[PROMPT]:
-       |```
-       |$prompt
-       |```"""
-        .trimMargin()
-    ),
-    jsonSchema,
-    serializer,
-    maxDeserializationAttempts,
-    model,
-    user,
-    echo,
-    n,
-    temperature,
-    bringFromContext,
-    minResponseTokens
-  )
 }
