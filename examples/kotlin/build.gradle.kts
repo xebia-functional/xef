@@ -22,6 +22,7 @@ dependencies {
   implementation(projects.xefSql)
   implementation(projects.xefTokenizer)
   implementation(projects.xefGpt4all)
+  implementation(projects.xefLlamaCpp)
   implementation(libs.kotlinx.serialization.json)
   implementation(libs.logback)
   implementation(libs.klogging)
@@ -32,7 +33,7 @@ dependencies {
 }
 
 tasks.getByName<Copy>("processResources") {
-  dependsOn(projects.xefGpt4all.dependencyProject.tasks.getByName("jvmProcessResources"))
-  from("${projects.xefGpt4all.dependencyProject.buildDir}/processedResources/jvm/main")
+  from(projects.xefGpt4all.dependencyProject.file("src/main/resources"))
+  from(projects.xefLlamaCpp.dependencyProject.file("src/main/resources"))
   into("$buildDir/resources/main")
 }

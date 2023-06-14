@@ -1,4 +1,4 @@
-package com.xebia.functional.gpt4all.llmodel.libraries
+package com.xebia.functional.gpt4all.libraries
 
 import com.sun.jna.Callback
 import com.sun.jna.Library

@@ -1,12 +1,9 @@
-package com.xebia.functional.gpt4all.llmodel
+package com.xebia.functional.gpt4all
 
 import com.sun.jna.Pointer
-import com.xebia.functional.gpt4all.getModelName
-import com.xebia.functional.gpt4all.llama.libraries.LlamaLibrary
-import com.xebia.functional.gpt4all.llmodel.libraries.LLModelContextParams
-import com.xebia.functional.gpt4all.llmodel.libraries.LLModelLibrary
-import com.xebia.functional.gpt4all.loadLLModelLibrary
-import com.xebia.functional.gpt4all.loadLlamaLibrary
+import com.xebia.functional.gpt4all.libraries.LLModelContextParams
+import com.xebia.functional.gpt4all.libraries.LLModelLibrary
+import com.xebia.functional.gpt4all.libraries.LlamaLibrary
 import java.nio.file.Path
 
 sealed interface GPT4AllModel : AutoCloseable {

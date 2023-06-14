@@ -55,3 +55,6 @@ project(":xef-sql").projectDir = file("integrations/sql")
 
 include("xef-gpt4all")
 project(":xef-gpt4all").projectDir = file("integrations/gpt4all")
+
+include("xef-llama-cpp")
+project(":xef-llama-cpp").projectDir = file("integrations/llama-cpp")

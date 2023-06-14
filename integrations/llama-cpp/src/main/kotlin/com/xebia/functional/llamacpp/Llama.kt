@@ -1,8 +1,5 @@
-package com.xebia.functional.gpt4all.llama
+package com.xebia.functional.llamacpp
 
-import com.xebia.functional.gpt4all.Embedding
-import com.xebia.functional.gpt4all.EmbeddingRequest
-import com.xebia.functional.gpt4all.EmbeddingResponse
 import java.nio.file.Path
 
 interface Llama : AutoCloseable {

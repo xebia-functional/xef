@@ -1,8 +1,7 @@
-package com.xebia.functional.gpt4all.llmodel
+package com.xebia.functional.gpt4all
 
 import com.sun.jna.platform.unix.LibCAPI
-import com.xebia.functional.gpt4all.*
-import com.xebia.functional.gpt4all.llmodel.libraries.LLModelContextParams
+import com.xebia.functional.gpt4all.libraries.LLModelContextParams
 import java.nio.file.Path
 
 interface GPT4All : AutoCloseable {
@@ -61,7 +60,7 @@ interface GPT4All : AutoCloseable {
 
             private fun generateCompletion(
                 prompt: String,
-                config: GPT4AllGenerationConfig
+                config: GenerationConfig
             ): String {
                 val contextParams: LLModelContextParams = config.toLLModelContextParams()
                 return gpt4allModel.prompt(prompt, contextParams)
@@ -70,7 +69,7 @@ interface GPT4All : AutoCloseable {
     }
 }
 
-private fun GPT4AllGenerationConfig.toLLModelContextParams(): LLModelContextParams =
+private fun GenerationConfig.toLLModelContextParams(): LLModelContextParams =
     LLModelContextParams(
         logits_size = LibCAPI.size_t(logitsSize.toLong()),
         tokens_size = LibCAPI.size_t(tokensSize.toLong()),

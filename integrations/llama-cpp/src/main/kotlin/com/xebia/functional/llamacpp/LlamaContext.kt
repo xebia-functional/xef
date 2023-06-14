@@ -1,10 +1,8 @@
-package com.xebia.functional.gpt4all.llama
+package com.xebia.functional.llamacpp
 
 import com.sun.jna.Pointer
-import com.xebia.functional.gpt4all.LlamaConfig
-import com.xebia.functional.gpt4all.LlamaLoraAdaptor
-import com.xebia.functional.gpt4all.llama.libraries.LlamaContextParams
-import com.xebia.functional.gpt4all.llama.libraries.LlamaLibrary
+import com.xebia.functional.llamacpp.libraries.LlamaContextParams
+import com.xebia.functional.llamacpp.libraries.LlamaLibrary
 
 interface LlamaContext {
     val pointer: Pointer
@@ -37,7 +35,6 @@ interface LlamaContext {
 private fun LlamaConfig.toLlamaContextParams(): LlamaContextParams =
     LlamaContextParams(
         n_ctx = n_ctx,
-        n_parts = n_parts,
         seed = seed,
         f16_kv = f16_kv,
         logits_all = logits_all,

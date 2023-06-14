@@ -1,4 +1,4 @@
-package com.xebia.functional.gpt4all.llama.libraries
+package com.xebia.functional.llamacpp.libraries
 
 import com.sun.jna.Callback
 import com.sun.jna.Library
@@ -9,9 +9,15 @@ class LlamaContextParams(
     @JvmField
     var n_ctx: Int = 512,
     @JvmField
-    var n_parts: Int = -1,
+    var n_batch: Int = 512,
     @JvmField
-    var seed: Int = 0,
+    var gpu_layers: Int = 0,
+    @JvmField
+    var main_gpu: Int = 0,
+    @JvmField
+    var tensor_split: FloatArray = floatArrayOf(0f),
+    @JvmField
+    var seed: Int = -1,
     @JvmField
     var f16_kv: Boolean = false,
     @JvmField
@@ -33,7 +39,10 @@ class LlamaContextParams(
     override fun getFieldOrder(): List<String> =
         listOf(
             "n_ctx",
-            "n_parts",
+            "n_batch",
+            "gpu_layers",
+            "main_gpu",
+            "tensor_split",
             "seed",
             "f16_kv",
             "logits_all",
@@ -86,4 +95,6 @@ interface LlamaLibrary : Library {
     ): Int
 
     fun llama_free(ctx: Pointer): Unit
+
+    fun llama_token_bos(): Int
 }
