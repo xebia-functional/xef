@@ -15,6 +15,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 
 interface OpenAIClient {
   suspend fun createCompletion(request: CompletionRequest): CompletionResult
@@ -76,6 +77,8 @@ class KtorOpenAIClient(private val config: OpenAIConfig) : OpenAIClient, AutoClo
   }
 
   override suspend fun createChatCompletionWithFunctions(request: ChatCompletionRequestWithFunctions): ChatCompletionResponseWithFunctions {
+    println(Json.encodeToString(ChatCompletionRequestWithFunctions.serializer(), request))
+
     val response =
       httpClient.post {
         url { path("chat/completions") }

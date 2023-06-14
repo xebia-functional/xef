@@ -61,7 +61,8 @@ tailrec fun processDescriptor(
 @OptIn(ExperimentalSerializationApi::class)
 private fun generateCFunction(descriptor: SerialDescriptor): CFunction {
   val parameters = processDescriptor(descriptor)
-  return CFunction(functionName(descriptor), "Generated function for ${descriptor.serialName}", parameters)
+  val fnName = functionName(descriptor)
+  return CFunction(fnName, "Generated function for $fnName", parameters)
 }
 
 @OptIn(ExperimentalSerializationApi::class)

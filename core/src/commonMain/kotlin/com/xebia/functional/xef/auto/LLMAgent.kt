@@ -173,8 +173,7 @@ private suspend fun AIScope.callChatEndpoint(
       messages = messages,
       n = n,
       temperature = temperature,
-      maxTokens = maxTokens,
-      functions = emptyList()
+      maxTokens = maxTokens
     )
   return openAIClient.createChatCompletion(request).choices.map { it.message.content }
 }
@@ -183,13 +182,14 @@ private suspend fun AIScope.callChatEndpointWithFunctionsSupport(
   prompt: String,
   model: LLMModel,
   functions: List<CFunction>,
-  user: String = "testing",
+  user: String = "function",
   n: Int = 1,
   temperature: Double = 0.0,
   bringFromContext: Int,
   minResponseTokens: Int
 ): List<FunctionCall> {
-  val role: String = Role.system.name
+  val role: String = Role.user.name
+  val firstFnName: String? = functions.firstOrNull()?.name
   val promptWithContext: String =
     promptWithContext(prompt, bringFromContext, model.modelType, minResponseTokens)
   val messages: List<Message> = listOf(Message(role, promptWithContext))
@@ -203,7 +203,7 @@ private suspend fun AIScope.callChatEndpointWithFunctionsSupport(
       temperature = temperature,
       maxTokens = maxTokens,
       functions = functions,
-      functionCall = mapOf("name" to (functions.firstOrNull()?.name ?: "none"))
+      //functionCall = null
     )
   return openAIClient.createChatCompletionWithFunctions(request).choices.map { it.message.functionCall }
 }

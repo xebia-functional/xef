@@ -60,7 +60,6 @@ data class CompletionRequest(
 data class ChatCompletionRequest(
   val model: String,
   val messages: List<Message>,
-  val functions: List<CFunction> = emptyList(),
   val temperature: Double = 0.0,
   @SerialName("top_p") val topP: Double = 1.0,
   val n: Int = 1,
@@ -88,7 +87,7 @@ data class ChatCompletionRequestWithFunctions(
   @SerialName("frequency_penalty") val frequencyPenalty: Double = 0.0,
   @SerialName("logit_bias") val logitBias: Map<String, Int> = emptyMap(),
   val user: String?,
-  @SerialName("function_call") val functionCall: Map<String, String>,
+  //@SerialName("function_call") val functionCall: Map<String, String>? = null,
 )
 
 @Serializable
@@ -135,7 +134,8 @@ data class FunctionCall(
 enum class Role {
   system,
   user,
-  assistant
+  assistant,
+  function
 }
 
 @Serializable
