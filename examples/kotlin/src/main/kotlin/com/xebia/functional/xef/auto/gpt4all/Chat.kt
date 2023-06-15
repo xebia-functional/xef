@@ -11,8 +11,8 @@ data class ChatError(val content: String)
 suspend fun main() {
     recover({
         val resources = "models/gpt4all"
-        val path = "$resources/ggml-gpt4all-l13b-snoozy.bin"
-        val modelType = GPT4AllModel.Type.LLAMA
+        val path = "$resources/ggml-gpt4all-j-v1.3-groovy.bin"
+        val modelType = GPT4AllModel.Type.GPTJ
 
         val modelPath: Path = Path.of(path)
         ensure(modelPath.toFile().exists()) {

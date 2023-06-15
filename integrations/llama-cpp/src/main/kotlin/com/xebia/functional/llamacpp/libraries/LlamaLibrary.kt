@@ -29,7 +29,7 @@ class LlamaContextParams(
     @JvmField
     var use_mlock: Boolean = false,
     @JvmField
-    var embedding: Boolean = false,
+    var embedding: Boolean = true,
     @JvmField
     var progress_callback: LlamaProgressCallback? = null,
     @JvmField

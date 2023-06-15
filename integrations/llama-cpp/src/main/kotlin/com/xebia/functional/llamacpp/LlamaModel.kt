@@ -1,6 +1,7 @@
 package com.xebia.functional.llamacpp
 
 import com.sun.jna.Memory
+import com.sun.jna.Pointer
 import com.xebia.functional.llamacpp.libraries.LlamaLibrary
 import java.nio.file.Path
 
@@ -60,7 +61,7 @@ interface LlamaModel : AutoCloseable {
 
             private fun LlamaLibrary.getEmbeddings(): List<Float> {
                 val size: Int = llama_n_embd(context.pointer)
-                val pointer = llama_get_embeddings(context.pointer)
+                val pointer: Pointer = llama_get_embeddings(context.pointer)
                 val embeddings: FloatArray = FloatArray(size).also { embeddings ->
                     pointer.read(0, embeddings, 0, size)
                 }
