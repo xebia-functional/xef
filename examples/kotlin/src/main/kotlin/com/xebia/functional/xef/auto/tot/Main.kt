@@ -5,7 +5,7 @@ import com.xebia.functional.xef.auto.getOrThrow
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class KotlinSourceCode(val sources: String)
+data class FinalSolution(val solution: String)
 
 suspend fun main() = ai {
   val problem = Problem("""|
@@ -27,11 +27,11 @@ suspend fun main() = ai {
   """.trimMargin())
   val maxRounds = 5
 
-  val solution = solve<KotlinSourceCode>(problem, maxRounds)
+  val solution = solve<FinalSolution>(problem, maxRounds)
 
   println("✅ Final solution: ${solution.answer}")
   println("✅ Solution validity: ${solution.isValid}")
   println("✅ Solution reasoning: ${solution.reasoning}")
-  println("✅ Solution code: ${solution.value?.sources}")
+  println("✅ Solution code: ${solution.value?.solution}")
 }.getOrThrow()
 

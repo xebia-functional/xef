@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.auto
 
 import com.xebia.functional.xef.AIError
-import com.xebia.functional.xef.llm.openai.ImagesGenerationResponse
+import com.xebia.functional.xef.llm.openai.images.ImagesGenerationResponse
 import com.xebia.functional.xef.prompt.Prompt
 
 /**
