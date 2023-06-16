@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.auto
 
-import com.xebia.functional.xef.auto.serialization.encodeJsonSchema
+import com.xebia.functional.xef.auto.serialization.functions.encodeFunctionSchema
 import com.xebia.functional.xef.llm.openai.LLMModel
 import com.xebia.functional.xef.prompt.Prompt
 import kotlinx.serialization.KSerializer
@@ -24,7 +24,7 @@ suspend inline fun <reified A> AIScope.prompt(
     isLenient = true
   },
   maxDeserializationAttempts: Int = 5,
-  model: LLMModel = LLMModel.GPT_3_5_TURBO,
+  model: LLMModel = LLMModel.GPT_3_5_TURBO_FUNCTIONS,
   user: String = "testing",
   echo: Boolean = false,
   n: Int = 1,
@@ -59,7 +59,7 @@ suspend inline fun <reified A> AIScope.prompt(
     isLenient = true
   },
   maxDeserializationAttempts: Int = 5,
-  model: LLMModel = LLMModel.GPT_3_5_TURBO,
+  model: LLMModel = LLMModel.GPT_3_5_TURBO_FUNCTIONS,
   user: String = "testing",
   echo: Boolean = false,
   n: Int = 1,
@@ -88,17 +88,18 @@ suspend fun <A> AIScope.prompt(
     isLenient = true
   },
   maxDeserializationAttempts: Int = 5,
-  model: LLMModel = LLMModel.GPT_3_5_TURBO,
+  model: LLMModel = LLMModel.GPT_3_5_TURBO_FUNCTIONS,
   user: String = "testing",
   echo: Boolean = false,
   n: Int = 1,
   temperature: Double = 0.0,
   bringFromContext: Int = 10,
   minResponseTokens: Int = 500,
-): A =
-  prompt(
+): A {
+  val functions = encodeFunctionSchema(serializer.descriptor)
+  return prompt(
     prompt,
-    encodeJsonSchema(serializer.descriptor),
+    functions,
     { json.decodeFromString(serializer, it) },
     maxDeserializationAttempts,
     model,
@@ -109,3 +110,4 @@ suspend fun <A> AIScope.prompt(
     bringFromContext,
     minResponseTokens
   )
+}

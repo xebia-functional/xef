@@ -25,7 +25,8 @@ enum class ModelType(
   GPT_4("gpt-4", CL100K_BASE, 8192),
   GPT_4_32K("gpt-4-32k", CL100K_BASE, 32768),
   GPT_3_5_TURBO("gpt-3.5-turbo", CL100K_BASE, 4097),
-
+  GPT_3_5_TURBO_16_K("gpt-3.5-turbo-16k", CL100K_BASE, 4097 * 4),
+  GPT_3_5_TURBO_FUNCTIONS("gpt-3.5-turbo-0613", CL100K_BASE, 4097),
   // text
   TEXT_DAVINCI_003("text-davinci-003", P50K_BASE, 4097),
   TEXT_DAVINCI_002("text-davinci-002", P50K_BASE, 4097),

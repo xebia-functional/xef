@@ -1,6 +1,7 @@
 package com.xebia.functional.xef.llm.openai
 
 import com.xebia.functional.tokenizer.ModelType
+import com.xebia.functional.xef.llm.openai.functions.CFunction
 import kotlin.jvm.JvmInline
 import kotlin.jvm.JvmStatic
 import kotlinx.serialization.SerialName
@@ -71,6 +72,24 @@ data class ChatCompletionRequest(
 )
 
 @Serializable
+data class ChatCompletionRequestWithFunctions(
+  val model: String,
+  val messages: List<Message>,
+  val functions: List<CFunction> = emptyList(),
+  val temperature: Double = 0.0,
+  @SerialName("top_p") val topP: Double = 1.0,
+  val n: Int = 1,
+  val stream: Boolean = false,
+  val stop: List<String>? = null,
+  @SerialName("max_tokens") val maxTokens: Int? = null,
+  @SerialName("presence_penalty") val presencePenalty: Double = 0.0,
+  @SerialName("frequency_penalty") val frequencyPenalty: Double = 0.0,
+  @SerialName("logit_bias") val logitBias: Map<String, Int> = emptyMap(),
+  val user: String?,
+  @SerialName("function_call") val functionCall: Map<String, String>,
+)
+
+@Serializable
 data class ChatCompletionResponse(
   val id: String,
   val `object`: String,
@@ -81,20 +100,48 @@ data class ChatCompletionResponse(
 )
 
 @Serializable
+data class ChatCompletionResponseWithFunctions(
+  val id: String,
+  val `object`: String,
+  val created: Long,
+  val model: String,
+  val usage: Usage,
+  val choices: List<ChoiceWithFunctions>
+)
+
+@Serializable
+data class ChoiceWithFunctions(
+  val message: MessageWithFunctionCall,
+  @SerialName("finish_reason") val finishReason: String,
+  val index: Int
+)
+
+@Serializable
 data class Choice(
   val message: Message,
   @SerialName("finish_reason") val finishReason: String,
   val index: Int
 )
 
+@Serializable data class FunctionCall(val name: String, val arguments: String)
+
 enum class Role {
   system,
   user,
-  assistant
+  assistant,
+  function
 }
 
 @Serializable
 data class Message(val role: String, val content: String, val name: String? = Role.assistant.name)
+
+@Serializable
+data class MessageWithFunctionCall(
+  val role: String,
+  val content: String? = null,
+  @SerialName("function_call") val functionCall: FunctionCall,
+  val name: String? = Role.assistant.name
+)
 
 @Serializable
 data class EmbeddingRequest(val model: String, val input: List<String>, val user: String)
@@ -123,7 +170,8 @@ data class Usage(
 data class LLMModel(val name: String, val kind: Kind, val modelType: ModelType) {
   enum class Kind {
     Completion,
-    Chat
+    Chat,
+    ChatWithFunctions,
   }
 
   companion object {
@@ -134,6 +182,10 @@ data class LLMModel(val name: String, val kind: Kind, val modelType: ModelType) 
     @JvmStatic val GPT_4_32K = LLMModel("gpt-4-32k", Kind.Chat, ModelType.GPT_4_32K)
 
     @JvmStatic val GPT_3_5_TURBO = LLMModel("gpt-3.5-turbo", Kind.Chat, ModelType.GPT_3_5_TURBO)
+
+    @JvmStatic
+    val GPT_3_5_TURBO_FUNCTIONS =
+      LLMModel("gpt-3.5-turbo-0613", Kind.ChatWithFunctions, ModelType.GPT_3_5_TURBO_FUNCTIONS)
 
     @JvmStatic
     val GPT_3_5_TURBO_0301 = LLMModel("gpt-3.5-turbo-0301", Kind.Chat, ModelType.GPT_3_5_TURBO)

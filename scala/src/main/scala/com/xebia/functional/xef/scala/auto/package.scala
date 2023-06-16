@@ -3,13 +3,17 @@ package com.xebia.functional.xef.scala.auto
 import com.xebia.functional.loom.LoomAdapter
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.llm.openai.LLMModel
+import com.xebia.functional.xef.llm.openai.functions.CFunction
 import io.circe.Decoder
 import io.circe.parser.parse
+import com.xebia.functional.xef.llm.openai.images.ImagesGenerationResponse
 import com.xebia.functional.xef.auto.{AIKt, Agent as KtAgent}
-import com.xebia.functional.xef.auto.serialization.JsonSchemaKt
+import com.xebia.functional.xef.auto.serialization.functions.FunctionSchemaKt
 import com.xebia.functional.xef.pdf.PDFLoaderKt
 import com.xebia.functional.tokenizer.ModelType
+import com.xebia.functional.xef.llm.openai._
 import com.xebia.functional.xef.scala.textsplitters.TextSplitter
+import scala.jdk.CollectionConverters._
 
 import java.io.File
 import scala.jdk.CollectionConverters.*
@@ -38,7 +42,7 @@ extension [A](block: AI[A]) {
 def prompt[A: Decoder: SerialDescriptor](
     prompt: String,
     maxAttempts: Int = 5,
-    llmModel: LLMModel = LLMModel.getGPT_3_5_TURBO,
+    llmModel: LLMModel = LLMModel.getGPT_3_5_TURBO_FUNCTIONS,
     user: String = "testing",
     echo: Boolean = false,
     n: Int = 1,
@@ -50,7 +54,7 @@ def prompt[A: Decoder: SerialDescriptor](
     KtAgent.promptWithSerializer[A](
       scope.kt,
       prompt,
-      JsonSchemaKt.encodeJsonSchema(SerialDescriptor[A].serialDescriptor),
+      FunctionSchemaKt.encodeFunctionSchema(SerialDescriptor[A].serialDescriptor),
       (json: String) => parse(json).flatMap(Decoder[A].decodeJson(_)).fold(throw _, identity),
       maxAttempts,
       llmModel,
@@ -70,6 +74,7 @@ def contextScope[A: Decoder: SerialDescriptor](docs: List[String])(block: AI[A])
 def promptMessage(
     prompt: String,
     llmModel: LLMModel = LLMModel.getGPT_3_5_TURBO,
+    functions: List[CFunction] = List.empty,
     user: String = "testing",
     echo: Boolean = false,
     n: Int = 1,
@@ -79,7 +84,7 @@ def promptMessage(
 )(using scope: AIScope): List[String] =
   LoomAdapter
     .apply[java.util.List[String]](
-      KtAgent.promptMessage(scope.kt, prompt, llmModel, user, echo, n, temperature, bringFromContext, minResponseTokens, _)
+      KtAgent.promptMessage(scope.kt, prompt, llmModel, functions.asJava, user, echo, n, temperature, bringFromContext, minResponseTokens, _)
     ).asScala.toList
 
 def pdf(
@@ -93,7 +98,7 @@ def pdf(
         case file: File => PDFLoaderKt.pdf(file, splitter.core, count)
     ).asScala.toList
 
-def image[A: Decoder: SerialDescriptor](
+def images(
     prompt: String,
     maxAttempts: Int = 5,
     user: String = "testing",
@@ -104,22 +109,16 @@ def image[A: Decoder: SerialDescriptor](
     n: Int = 1,
     temperature: Double = 0.0,
     minResponseTokens: Int = 500
-)(using scope: AIScope): A =
-  LoomAdapter.apply(cont =>
-    KtAgent.imageWithSerializer[A](
-      scope.kt,
-      prompt,
-      JsonSchemaKt.encodeJsonSchema(SerialDescriptor[A].serialDescriptor),
-      (json: String) => parse(json).flatMap(Decoder[A].decodeJson(_)).fold(throw _, identity),
-      maxAttempts,
-      user,
-      size,
-      bringFromContext,
-      llmModel,
-      echo,
-      n,
-      temperature,
-      minResponseTokens,
-      cont
-    )
-  )
+)(using scope: AIScope): List[String] =
+  LoomAdapter
+    .apply[ImagesGenerationResponse](cont =>
+      KtAgent.images(
+        scope.kt,
+        prompt,
+        user,
+        n,
+        size,
+        bringFromContext,
+        cont
+      )
+    ).getData.asScala.map(_.getUrl).toList
