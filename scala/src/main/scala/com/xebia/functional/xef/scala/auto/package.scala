@@ -5,7 +5,7 @@ import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.llm.openai.LLMModel
 import io.circe.Decoder
 import io.circe.parser.parse
-import com.xebia.functional.xef.auto.{AIKt, Agent as KtAgent}
+import com.xebia.functional.xef.auto.AIKt
 import com.xebia.functional.xef.auto.serialization.JsonSchemaKt
 import com.xebia.functional.xef.pdf.PDFLoaderKt
 import com.xebia.functional.tokenizer.ModelType
@@ -47,8 +47,7 @@ def prompt[A: Decoder: SerialDescriptor](
     minResponseTokens: Int = 500
 )(using scope: AIScope): A =
   LoomAdapter.apply((cont) =>
-    KtAgent.promptWithSerializer[A](
-      scope.kt,
+    scope.kt.promptWithSerializer[A](
       prompt,
       JsonSchemaKt.encodeJsonSchema(SerialDescriptor[A].serialDescriptor),
       (json: String) => parse(json).flatMap(Decoder[A].decodeJson(_)).fold(throw _, identity),
@@ -79,7 +78,7 @@ def promptMessage(
 )(using scope: AIScope): List[String] =
   LoomAdapter
     .apply[java.util.List[String]](
-      KtAgent.promptMessage(scope.kt, prompt, llmModel, user, echo, n, temperature, bringFromContext, minResponseTokens, _)
+      scope.kt.promptMessage(prompt, llmModel, user, echo, n, temperature, bringFromContext, minResponseTokens, _)
     ).asScala.toList
 
 def pdf(
@@ -106,8 +105,7 @@ def image[A: Decoder: SerialDescriptor](
     minResponseTokens: Int = 500
 )(using scope: AIScope): A =
   LoomAdapter.apply(cont =>
-    KtAgent.imageWithSerializer[A](
-      scope.kt,
+    scope.kt.imageWithSerializer[A](
       prompt,
       JsonSchemaKt.encodeJsonSchema(SerialDescriptor[A].serialDescriptor),
       (json: String) => parse(json).flatMap(Decoder[A].decodeJson(_)).fold(throw _, identity),
