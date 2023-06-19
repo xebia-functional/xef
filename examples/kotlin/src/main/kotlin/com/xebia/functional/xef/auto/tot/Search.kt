@@ -1,7 +1,6 @@
 package com.xebia.functional.xef.auto.tot
 
 import com.xebia.functional.xef.auto.AIScope
-import com.xebia.functional.xef.auto.promptMessage
 
 suspend fun AIScope.generateSearchPrompts(problem: Problem): List<String> =
   promptMessage(

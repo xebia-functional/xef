@@ -4,17 +4,11 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import com.xebia.functional.xef.AIError
-import com.xebia.functional.xef.embeddings.Embeddings
 import com.xebia.functional.xef.embeddings.OpenAIEmbeddings
 import com.xebia.functional.xef.env.OpenAIConfig
-import com.xebia.functional.xef.llm.openai.KtorOpenAIClient
-import com.xebia.functional.xef.llm.openai.MockOpenAIClient
-import com.xebia.functional.xef.llm.openai.OpenAIClient
-import com.xebia.functional.xef.llm.openai.simpleMockAIClient
-import com.xebia.functional.xef.vectorstores.CombinedVectorStore
+import com.xebia.functional.xef.llm.openai.*
 import com.xebia.functional.xef.vectorstores.LocalVectorStore
 import com.xebia.functional.xef.vectorstores.VectorStore
-import kotlin.jvm.JvmName
 import kotlin.time.ExperimentalTime
 
 @DslMarker annotation class AiDsl
@@ -42,7 +36,7 @@ suspend inline fun <A> AI<A>.getOrElse(crossinline orElse: suspend (AIError) -> 
   AIScope(this) { orElse(it) }
 
 @OptIn(ExperimentalTime::class, ExperimentalStdlibApi::class)
-suspend fun <A> AIScope(block: suspend AIScope.() -> A, orElse: suspend (AIError) -> A): A =
+suspend fun <A> AIScope(block: AI<A>, orElse: suspend (AIError) -> A): A =
   try {
     val openAIConfig = OpenAIConfig()
     KtorOpenAIClient(openAIConfig).use { openAiClient ->
@@ -106,81 +100,3 @@ suspend fun <A> AI<A>.mock(mockAI: (String) -> String): Either<AIError, A> =
  *   throwing.
  */
 suspend inline fun <reified A> AI<A>.getOrThrow(): A = getOrElse { throw it }
-
-/**
- * The [AIScope] is the context in which [AI] values are run. It encapsulates all the dependencies
- * required to run [AI] values, and provides convenient syntax for writing [AI] based programs.
- */
-class AIScope(
-  val openAIClient: OpenAIClient,
-  val context: VectorStore,
-  val embeddings: Embeddings
-) {
-
-  /**
-   * Allows invoking [AI] values in the context of this [AIScope].
-   *
-   * ```kotlin
-   * data class CovidNews(val title: String, val content: String)
-   * val covidNewsToday = ai {
-   *   val now = LocalDateTime.now()
-   *   agent(search("$now covid-19 News")) {
-   *     prompt<CovidNews>("write a paragraph of about 300 words about the latest news on covid-19 on $now")
-   *   }
-   * }
-   *
-   * data class BreakingNews(val title: String, val content: String, val date: String)
-   *
-   * fun breakingNews(date: LocalDateTime): AI<BreakingNews> = ai {
-   *   agent(search("$date Breaking News")) {
-   *     prompt("Summarize all breaking news that happened on ${now.minusDays(it)} in about 300 words")
-   *   }
-   * }
-   *
-   * suspend fun AIScope.breakingNewsLastWeek(): List<BreakingNews> {
-   *   val now = LocalDateTime.now()
-   *   return (0..7).parMap { breakingNews(now.minusDays(it)).invoke() }
-   * }
-   *
-   * fun news(): AI<List<News>> = ai {
-   *   val covidNews = parZip(
-   *     { covidNewsToday() },
-   *     { breakingNewsLastWeek() }
-   *   ) { covidNews, breakingNews -> listOf(covidNews) + breakingNews }
-   * }
-   * ```
-   */
-  @AiDsl @JvmName("invokeAI") suspend operator fun <A> AI<A>.invoke(): A = invoke(this@AIScope)
-
-  @AiDsl
-  suspend fun extendContext(vararg docs: String) {
-    context.addTexts(docs.toList())
-  }
-
-  /**
-   * Creates a nested scope that combines the provided [store] with the outer _store_. This is done
-   * using [CombinedVectorStore].
-   *
-   * **Note:** if the implementation of [VectorStore] is relying on resources you're manually
-   * responsible for closing any potential resources.
-   */
-  @AiDsl
-  suspend fun <A> contextScope(store: VectorStore, block: AI<A>): A =
-    AIScope(
-        this@AIScope.openAIClient,
-        CombinedVectorStore(store, this@AIScope.context),
-        this@AIScope.embeddings
-      )
-      .block()
-
-  @AiDsl
-  suspend fun <A> contextScope(block: AI<A>): A = contextScope(LocalVectorStore(embeddings), block)
-
-  /** Add new [docs] to the [context], and then executes the [block]. */
-  @AiDsl
-  @JvmName("contextScopeWithDocs")
-  suspend fun <A> contextScope(docs: List<String>, block: AI<A>): A = contextScope {
-    extendContext(*docs.toTypedArray())
-    block(this)
-  }
-}
