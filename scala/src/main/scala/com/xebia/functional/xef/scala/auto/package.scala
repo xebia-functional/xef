@@ -6,14 +6,13 @@ import com.xebia.functional.xef.llm.openai.LLMModel
 import com.xebia.functional.xef.llm.openai.functions.CFunction
 import io.circe.Decoder
 import io.circe.parser.parse
-import com.xebia.functional.xef.llm.openai.images.ImagesGenerationResponse
 import com.xebia.functional.xef.auto.AIKt
 import com.xebia.functional.xef.auto.serialization.functions.FunctionSchemaKt
 import com.xebia.functional.xef.pdf.PDFLoaderKt
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.llm.openai._
 import com.xebia.functional.xef.scala.textsplitters.TextSplitter
-import scala.jdk.CollectionConverters._
+import com.xebia.functional.xef.llm.openai.images.*
 
 import java.io.File
 import scala.jdk.CollectionConverters.*
@@ -112,7 +111,6 @@ def images(
   LoomAdapter
     .apply[ImagesGenerationResponse](cont =>
       scope.kt.images(
-        scope.kt,
         prompt,
         user,
         n,

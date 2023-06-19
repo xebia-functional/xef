@@ -8,8 +8,10 @@ import com.xebia.functional.tokenizer.truncateText
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.embeddings.Embeddings
 import com.xebia.functional.xef.llm.openai.*
+import com.xebia.functional.xef.llm.openai.functions.CFunction
+import com.xebia.functional.xef.llm.openai.images.ImagesGenerationRequest
+import com.xebia.functional.xef.llm.openai.images.ImagesGenerationResponse
 import com.xebia.functional.xef.prompt.Prompt
-import com.xebia.functional.xef.prompt.append
 import com.xebia.functional.xef.vectorstores.CombinedVectorStore
 import com.xebia.functional.xef.vectorstores.LocalVectorStore
 import com.xebia.functional.xef.vectorstores.VectorStore
@@ -99,10 +101,10 @@ class AIScope(
   @JvmName("promptWithSerializer")
   suspend fun <A> prompt(
     prompt: Prompt,
-    jsonSchema: String,
+    functions: List<CFunction>,
     serializer: (json: String) -> A,
     maxDeserializationAttempts: Int = 5,
-    model: LLMModel = LLMModel.GPT_3_5_TURBO,
+    model: LLMModel = LLMModel.GPT_3_5_TURBO_FUNCTIONS,
     user: String = "testing",
     echo: Boolean = false,
     n: Int = 1,
@@ -110,45 +112,33 @@ class AIScope(
     bringFromContext: Int = 10,
     minResponseTokens: Int = 500,
   ): A {
-    val responseInstructions =
-      """
-        |
-        |Response Instructions: 
-        |1. Return the entire response in a single line with not additional lines or characters.
-        |2. When returning the response consider <string> values should be accordingly escaped so the json remains valid.
-        |3. Use the JSON schema to produce the result exclusively in valid JSON format.
-        |4. Pay attention to required vs non-required fields in the schema.
-        |5. Escape any invalid JSON characters in the response.
-        |JSON Schema:
-        |$jsonSchema
-        |Response:
-        """
-        .trimMargin()
-
     return tryDeserialize(serializer, maxDeserializationAttempts) {
       promptMessage(
-        prompt.append(responseInstructions),
-        model,
-        user,
-        echo,
-        n,
-        temperature,
-        bringFromContext,
-        minResponseTokens
+        prompt = prompt,
+        model = model,
+        functions = functions,
+        user = user,
+        echo = echo,
+        n = n,
+        temperature = temperature,
+        bringFromContext = bringFromContext,
+        minResponseTokens = minResponseTokens
       )
     }
   }
 
-  private suspend fun <A> tryDeserialize(
+  suspend fun <A> AIScope.tryDeserialize(
     serializer: (json: String) -> A,
     maxDeserializationAttempts: Int,
     agent: AI<List<String>>
   ): A {
+    val logger = KotlinLogging.logger {}
     (0 until maxDeserializationAttempts).forEach { currentAttempts ->
       val result = agent().firstOrNull() ?: throw AIError.NoResponse()
       catch({
         return@tryDeserialize serializer(result)
       }) { e: Throwable ->
+        logger.error(e) { "Error deserializing response: $result\n${e.message}" }
         if (currentAttempts == maxDeserializationAttempts)
           throw AIError.JsonParsing(result, maxDeserializationAttempts, e.nonFatalOrThrow())
         // TODO else log attempt ?
@@ -161,6 +151,7 @@ class AIScope(
   suspend fun promptMessage(
     question: String,
     model: LLMModel = LLMModel.GPT_3_5_TURBO,
+    functions: List<CFunction> = emptyList(),
     user: String = "testing",
     echo: Boolean = false,
     n: Int = 1,
@@ -171,6 +162,7 @@ class AIScope(
     promptMessage(
       Prompt(question),
       model,
+      functions,
       user,
       echo,
       n,
@@ -183,6 +175,7 @@ class AIScope(
   suspend fun promptMessage(
     prompt: Prompt,
     model: LLMModel = LLMModel.GPT_3_5_TURBO,
+    functions: List<CFunction> = emptyList(),
     user: String = "testing",
     echo: Boolean = false,
     n: Int = 1,
@@ -212,6 +205,18 @@ class AIScope(
           bringFromContext,
           minResponseTokens
         )
+      LLMModel.Kind.ChatWithFunctions ->
+        callChatEndpointWithFunctionsSupport(
+            prompt.message,
+            model,
+            functions,
+            user,
+            n,
+            temperature,
+            bringFromContext,
+            minResponseTokens
+          )
+          .map { it.arguments }
     }
   }
 
@@ -267,6 +272,38 @@ class AIScope(
         maxTokens = maxTokens
       )
     return openAIClient.createChatCompletion(request).choices.map { it.message.content }
+  }
+
+  private suspend fun callChatEndpointWithFunctionsSupport(
+    prompt: String,
+    model: LLMModel,
+    functions: List<CFunction>,
+    user: String = "function",
+    n: Int = 1,
+    temperature: Double = 0.0,
+    bringFromContext: Int,
+    minResponseTokens: Int
+  ): List<FunctionCall> {
+    val role: String = Role.user.name
+    val firstFnName: String? = functions.firstOrNull()?.name
+    val promptWithContext: String =
+      promptWithContext(prompt, bringFromContext, model.modelType, minResponseTokens)
+    val messages: List<Message> = listOf(Message(role, promptWithContext))
+    val maxTokens: Int = checkTotalLeftChatTokens(messages, model)
+    val request =
+      ChatCompletionRequestWithFunctions(
+        model = model.name,
+        user = user,
+        messages = messages,
+        n = n,
+        temperature = temperature,
+        maxTokens = maxTokens,
+        functions = functions,
+        functionCall = mapOf("name" to (firstFnName ?: ""))
+      )
+    return openAIClient.createChatCompletionWithFunctions(request).choices.map {
+      it.message.functionCall
+    }
   }
 
   private suspend fun promptWithContext(
@@ -432,7 +469,7 @@ class AIScope(
    * @param numberImages number of images to generate.
    * @param size the size of the images to generate.
    */
-  private suspend fun images(
+  suspend fun images(
     prompt: Prompt,
     user: String = "testing",
     numberImages: Int = 1,
@@ -460,50 +497,5 @@ class AIScope(
         user = user
       )
     return openAIClient.createImages(request)
-  }
-
-  @AiDsl
-  @JvmName("imageWithSerializer")
-  suspend fun <A> image(
-    prompt: Prompt,
-    jsonSchema: String,
-    serializer: (json: String) -> A,
-    maxDeserializationAttempts: Int = 5,
-    user: String = "testing",
-    size: String = "1024x1024",
-    bringFromContext: Int = 10,
-    model: LLMModel = LLMModel.GPT_3_5_TURBO,
-    echo: Boolean = false,
-    n: Int = 1,
-    temperature: Double = 0.0,
-    minResponseTokens: Int = 500
-  ): A {
-    val imageResponse = images(prompt, user, 1, size, bringFromContext)
-    val url = imageResponse.data.firstOrNull() ?: throw AIError.NoResponse()
-    return prompt(
-      Prompt(
-        """|Instructions: Format this [URL] and [PROMPT] information in the desired JSON response format
-       |specified at the end of the message.
-       |[URL]:
-       |```
-       |$url
-       |```
-       |[PROMPT]:
-       |```
-       |$prompt
-       |```"""
-          .trimMargin()
-      ),
-      jsonSchema,
-      serializer,
-      maxDeserializationAttempts,
-      model,
-      user,
-      echo,
-      n,
-      temperature,
-      bringFromContext,
-      minResponseTokens
-    )
   }
 }
