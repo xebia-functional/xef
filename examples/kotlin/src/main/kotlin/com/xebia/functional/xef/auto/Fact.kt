@@ -5,6 +5,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Fact(val topic: String, val content: String)
 
+@Serializable
+data class Riddle(val fact1: Fact, val fact2: Fact, val riddle: String)
+
 suspend fun main() {
     ai {
       val fact1: Fact = prompt("A fascinating fact about you")
@@ -17,7 +20,7 @@ suspend fun main() {
           Fact 2: ${fact2.content}
       """.trimIndent()
 
-      val riddle: String = prompt(riddlePrompt)
+      val riddle: Riddle = prompt(riddlePrompt)
 
       println("Riddle:\n\n${riddle}")
     }.getOrElse { println(it) }

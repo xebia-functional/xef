@@ -1,5 +1,8 @@
 package com.xebia.functional.xef.llm.openai
 
+import com.xebia.functional.xef.llm.openai.images.ImagesGenerationRequest
+import com.xebia.functional.xef.llm.openai.images.ImagesGenerationResponse
+
 class MockOpenAIClient(
   private val completion: (CompletionRequest) -> CompletionResult = {
     throw NotImplementedError("completion not implemented")
@@ -7,6 +10,11 @@ class MockOpenAIClient(
   private val chatCompletion: (ChatCompletionRequest) -> ChatCompletionResponse = {
     throw NotImplementedError("chat completion not implemented")
   },
+  private val chatCompletionRequestWithFunctions:
+    (ChatCompletionRequestWithFunctions) -> ChatCompletionResponseWithFunctions =
+    {
+      throw NotImplementedError("chat completion not implemented")
+    },
   private val embeddings: (EmbeddingRequest) -> EmbeddingResult = ::nullEmbeddings,
   private val images: (ImagesGenerationRequest) -> ImagesGenerationResponse = {
     throw NotImplementedError("images not implemented")
@@ -18,6 +26,10 @@ class MockOpenAIClient(
   override suspend fun createChatCompletion(
     request: ChatCompletionRequest
   ): ChatCompletionResponse = chatCompletion(request)
+
+  override suspend fun createChatCompletionWithFunctions(
+    request: ChatCompletionRequestWithFunctions
+  ): ChatCompletionResponseWithFunctions = chatCompletionRequestWithFunctions(request)
 
   override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult =
     embeddings(request)
