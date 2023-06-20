@@ -6,7 +6,10 @@ import arrow.core.right
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.embeddings.OpenAIEmbeddings
 import com.xebia.functional.xef.env.OpenAIConfig
-import com.xebia.functional.xef.llm.openai.*
+import com.xebia.functional.xef.llm.openai.AIClient
+import com.xebia.functional.xef.llm.openai.LLMModel
+import com.xebia.functional.xef.llm.openai.MockOpenAIClient
+import com.xebia.functional.xef.llm.openai.simpleMockAIClient
 import com.xebia.functional.xef.vectorstores.LocalVectorStore
 import com.xebia.functional.xef.vectorstores.VectorStore
 import kotlin.time.ExperimentalTime
@@ -19,7 +22,7 @@ import kotlin.time.ExperimentalTime
  * and thus forms a monadic DSL.
  *
  * All [AI] actions that are composed together using [AIScope.invoke] share the same [VectorStore],
- * [OpenAIEmbeddings] and [OpenAIClient] instances.
+ * [OpenAIEmbeddings] and [AIClient] instances.
  */
 typealias AI<A> = suspend AIScope.() -> A
 
@@ -32,19 +35,14 @@ inline fun <A> ai(noinline block: suspend AIScope.() -> A): AI<A> = block
  *
  * This operator is **terminal** meaning it runs and completes the _chain_ of `AI` actions.
  */
-suspend inline fun <A> AI<A>.getOrElse(crossinline orElse: suspend (AIError) -> A): A =
-  AIScope(this) { orElse(it) }
+suspend inline fun <A> AI<A>.getOrElse(
+  runtime: AIRuntime<A> = AIRuntime.openAI(),
+  crossinline orElse: suspend (AIError) -> A
+): A = AIScope(runtime, this) { orElse(it) }
 
-@OptIn(ExperimentalTime::class, ExperimentalStdlibApi::class)
-suspend fun <A> AIScope(block: AI<A>, orElse: suspend (AIError) -> A): A =
+suspend fun <A> AIScope(runtime: AIRuntime<A>, block: AI<A>, orElse: suspend (AIError) -> A): A =
   try {
-    val openAIConfig = OpenAIConfig()
-    KtorOpenAIClient(openAIConfig).use { openAiClient ->
-      val embeddings = OpenAIEmbeddings(openAIConfig, openAiClient)
-      val vectorStore = LocalVectorStore(embeddings)
-      val scope = AIScope(openAiClient, vectorStore, embeddings)
-      block(scope)
-    }
+    runtime.runtime(block)
   } catch (e: AIError) {
     orElse(e)
   }
@@ -58,7 +56,14 @@ suspend fun <A> MockAIScope(
   try {
     val embeddings = OpenAIEmbeddings(OpenAIConfig(), mockClient)
     val vectorStore = LocalVectorStore(embeddings)
-    val scope = AIScope(mockClient, vectorStore, embeddings)
+    val scope =
+      AIScope(
+        LLMModel.GPT_3_5_TURBO,
+        LLMModel.GPT_3_5_TURBO_FUNCTIONS,
+        mockClient,
+        vectorStore,
+        embeddings
+      )
     block(scope)
   } catch (e: AIError) {
     orElse(e)

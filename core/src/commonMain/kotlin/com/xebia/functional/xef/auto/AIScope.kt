@@ -24,10 +24,19 @@ import kotlin.jvm.JvmName
  * required to run [AI] values, and provides convenient syntax for writing [AI] based programs.
  */
 class AIScope(
-  val openAIClient: OpenAIClient,
+  val defaultModel: LLMModel,
+  val defaultSerializationModel: LLMModel,
+  val AIClient: AIClient,
   val context: VectorStore,
   val embeddings: Embeddings,
-  val logger: KLogger = KotlinLogging.logger {}
+  val maxDeserializationAttempts: Int = 3,
+  val user: String = "user",
+  val echo: Boolean = false,
+  val temperature: Double = 0.4,
+  val numberOfPredictions: Int = 1,
+  val docsInContext: Int = 20,
+  val minResponseTokens: Int = 500,
+  val logger: KLogger = KotlinLogging.logger {},
 ) {
 
   /**
@@ -80,9 +89,11 @@ class AIScope(
   @AiDsl
   suspend fun <A> contextScope(store: VectorStore, block: AI<A>): A =
     AIScope(
-        this@AIScope.openAIClient,
+        defaultModel,
+        defaultSerializationModel,
+        this@AIScope.AIClient,
         CombinedVectorStore(store, this@AIScope.context),
-        this@AIScope.embeddings
+        this@AIScope.embeddings,
       )
       .block()
 
@@ -103,14 +114,14 @@ class AIScope(
     prompt: Prompt,
     functions: List<CFunction>,
     serializer: (json: String) -> A,
-    maxDeserializationAttempts: Int = 5,
-    model: LLMModel = LLMModel.GPT_3_5_TURBO_FUNCTIONS,
-    user: String = "testing",
-    echo: Boolean = false,
-    n: Int = 1,
-    temperature: Double = 0.0,
-    bringFromContext: Int = 10,
-    minResponseTokens: Int = 500,
+    maxDeserializationAttempts: Int = this.maxDeserializationAttempts,
+    model: LLMModel = defaultSerializationModel,
+    user: String = this.user,
+    echo: Boolean = this.echo,
+    numberOfPredictions: Int = this.numberOfPredictions,
+    temperature: Double = this.temperature,
+    bringFromContext: Int = this.docsInContext,
+    minResponseTokens: Int = this.minResponseTokens,
   ): A {
     return tryDeserialize(serializer, maxDeserializationAttempts) {
       promptMessage(
@@ -119,7 +130,7 @@ class AIScope(
         functions = functions,
         user = user,
         echo = echo,
-        n = n,
+        numberOfPredictions = numberOfPredictions,
         temperature = temperature,
         bringFromContext = bringFromContext,
         minResponseTokens = minResponseTokens
@@ -150,14 +161,14 @@ class AIScope(
   @AiDsl
   suspend fun promptMessage(
     question: String,
-    model: LLMModel = LLMModel.GPT_3_5_TURBO,
+    model: LLMModel = defaultModel,
     functions: List<CFunction> = emptyList(),
-    user: String = "testing",
-    echo: Boolean = false,
-    n: Int = 1,
-    temperature: Double = 0.0,
-    bringFromContext: Int = 10,
-    minResponseTokens: Int = 500
+    user: String = this.user,
+    echo: Boolean = this.echo,
+    n: Int = this.numberOfPredictions,
+    temperature: Double = this.temperature,
+    bringFromContext: Int = this.docsInContext,
+    minResponseTokens: Int = this.minResponseTokens
   ): List<String> =
     promptMessage(
       Prompt(question),
@@ -174,13 +185,13 @@ class AIScope(
   @AiDsl
   suspend fun promptMessage(
     prompt: Prompt,
-    model: LLMModel = LLMModel.GPT_3_5_TURBO,
+    model: LLMModel = defaultModel,
     functions: List<CFunction> = emptyList(),
-    user: String = "testing",
-    echo: Boolean = false,
-    n: Int = 1,
-    temperature: Double = 0.0,
-    bringFromContext: Int = 10,
+    user: String = this.user,
+    echo: Boolean = this.echo,
+    numberOfPredictions: Int = this.numberOfPredictions,
+    temperature: Double = this.temperature,
+    bringFromContext: Int = this.docsInContext,
     minResponseTokens: Int
   ): List<String> {
     return when (model.kind) {
@@ -190,7 +201,7 @@ class AIScope(
           model,
           user,
           echo,
-          n,
+          numberOfPredictions,
           temperature,
           bringFromContext,
           minResponseTokens
@@ -200,7 +211,7 @@ class AIScope(
           prompt.message,
           model,
           user,
-          n,
+          numberOfPredictions,
           temperature,
           bringFromContext,
           minResponseTokens
@@ -211,7 +222,7 @@ class AIScope(
             model,
             functions,
             user,
-            n,
+            numberOfPredictions,
             temperature,
             bringFromContext,
             minResponseTokens
@@ -223,10 +234,10 @@ class AIScope(
   private suspend fun callCompletionEndpoint(
     prompt: String,
     model: LLMModel,
-    user: String = "testing",
-    echo: Boolean = false,
-    n: Int = 1,
-    temperature: Double = 0.0,
+    user: String,
+    echo: Boolean,
+    n: Int,
+    temperature: Double,
     bringFromContext: Int,
     minResponseTokens: Int
   ): List<String> {
@@ -245,15 +256,15 @@ class AIScope(
         temperature = temperature,
         maxTokens = maxTokens
       )
-    return openAIClient.createCompletion(request).choices.map { it.text }
+    return AIClient.createCompletion(request).choices.map { it.text }
   }
 
   private suspend fun callChatEndpoint(
     prompt: String,
     model: LLMModel,
-    user: String = "testing",
-    n: Int = 1,
-    temperature: Double = 0.0,
+    user: String,
+    n: Int,
+    temperature: Double,
     bringFromContext: Int,
     minResponseTokens: Int
   ): List<String> {
@@ -271,16 +282,16 @@ class AIScope(
         temperature = temperature,
         maxTokens = maxTokens
       )
-    return openAIClient.createChatCompletion(request).choices.map { it.message.content }
+    return AIClient.createChatCompletion(request).choices.map { it.message.content }
   }
 
   private suspend fun callChatEndpointWithFunctionsSupport(
     prompt: String,
     model: LLMModel,
     functions: List<CFunction>,
-    user: String = "function",
-    n: Int = 1,
-    temperature: Double = 0.0,
+    user: String,
+    n: Int,
+    temperature: Double,
     bringFromContext: Int,
     minResponseTokens: Int
   ): List<FunctionCall> {
@@ -301,7 +312,7 @@ class AIScope(
         functions = functions,
         functionCall = mapOf("name" to (firstFnName ?: ""))
       )
-    return openAIClient.createChatCompletionWithFunctions(request).choices.map {
+    return AIClient.createChatCompletionWithFunctions(request).choices.map {
       it.message.functionCall
     }
   }
@@ -391,6 +402,15 @@ class AIScope(
 
   private fun tokensFromMessages(messages: List<Message>, model: LLMModel): Int =
     when (model) {
+      LLMModel.GPT_3_5_TURBO_FUNCTIONS -> {
+        val paddingTokens = 200 // reserved for functions
+        val fallbackModel: LLMModel = LLMModel.GPT_3_5_TURBO_0301
+        logger.debug {
+          "Warning: ${model.name} may change over time. " +
+            "Returning messages num tokens assuming ${fallbackModel.name} + $paddingTokens padding tokens."
+        }
+        tokensFromMessages(messages, fallbackModel) + paddingTokens
+      }
       LLMModel.GPT_3_5_TURBO -> {
         val paddingTokens = 5 // otherwise if the model changes, it might later fail
         val fallbackModel: LLMModel = LLMModel.GPT_3_5_TURBO_0301
@@ -496,6 +516,6 @@ class AIScope(
         size = size,
         user = user
       )
-    return openAIClient.createImages(request)
+    return AIClient.createImages(request)
   }
 }

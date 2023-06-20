@@ -168,6 +168,7 @@ data class Usage(
 }
 
 data class LLMModel(val name: String, val kind: Kind, val modelType: ModelType) {
+
   enum class Kind {
     Completion,
     Chat,
@@ -182,6 +183,9 @@ data class LLMModel(val name: String, val kind: Kind, val modelType: ModelType) 
     @JvmStatic val GPT_4_32K = LLMModel("gpt-4-32k", Kind.Chat, ModelType.GPT_4_32K)
 
     @JvmStatic val GPT_3_5_TURBO = LLMModel("gpt-3.5-turbo", Kind.Chat, ModelType.GPT_3_5_TURBO)
+
+    @JvmStatic
+    val GPT_3_5_TURBO_16K = LLMModel("gpt-3.5-turbo-16k", Kind.Chat, ModelType.GPT_3_5_TURBO_16_K)
 
     @JvmStatic
     val GPT_3_5_TURBO_FUNCTIONS =

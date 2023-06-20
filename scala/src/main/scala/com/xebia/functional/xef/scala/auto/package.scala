@@ -7,6 +7,7 @@ import com.xebia.functional.xef.llm.openai.functions.CFunction
 import io.circe.Decoder
 import io.circe.parser.parse
 import com.xebia.functional.xef.auto.AIKt
+import com.xebia.functional.xef.auto.AIRuntime
 import com.xebia.functional.xef.auto.serialization.functions.FunctionSchemaKt
 import com.xebia.functional.xef.pdf.PDFLoaderKt
 import com.xebia.functional.tokenizer.ModelType
@@ -23,6 +24,7 @@ type AI[A] = AIScope ?=> A
 def ai[A](block: AI[A]): A =
   LoomAdapter.apply { cont =>
     AIKt.AIScope[A](
+      AIRuntime.openAI,
       { (coreAIScope, _) =>
         given AIScope = AIScope.fromCore(coreAIScope)
 
@@ -47,7 +49,7 @@ def prompt[A: Decoder: SerialDescriptor](
     n: Int = 1,
     temperature: Double = 0.0,
     bringFromContext: Int = 10,
-    minResponseTokens: Int = 500
+    minResponseTokens: Int = 400
 )(using scope: AIScope): A =
   LoomAdapter.apply((cont) =>
     scope.kt.promptWithSerializer[A](
