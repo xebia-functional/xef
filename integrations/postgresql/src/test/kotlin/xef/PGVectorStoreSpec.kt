@@ -2,8 +2,8 @@ package xef
 
 import com.xebia.functional.xef.embeddings.Embedding
 import com.xebia.functional.xef.embeddings.Embeddings
-import com.xebia.functional.xef.llm.openai.EmbeddingModel
-import com.xebia.functional.xef.llm.openai.RequestConfig
+import com.xebia.functional.xef.llm.models.embeddings.EmbeddingModel
+import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
 import com.xebia.functional.xef.vectorstores.PGVectorStore
 import com.xebia.functional.xef.vectorstores.postgresql.PGDistanceStrategy
 import com.zaxxer.hikari.HikariConfig

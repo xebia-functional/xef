@@ -4,8 +4,8 @@ import arrow.atomic.Atomic
 import arrow.atomic.getAndUpdate
 import com.xebia.functional.xef.embeddings.Embedding
 import com.xebia.functional.xef.embeddings.Embeddings
-import com.xebia.functional.xef.llm.openai.EmbeddingModel
-import com.xebia.functional.xef.llm.openai.RequestConfig
+import com.xebia.functional.xef.llm.models.embeddings.EmbeddingModel
+import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
 import kotlin.math.sqrt
 
 private data class State(

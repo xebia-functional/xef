@@ -1,9 +1,11 @@
 package com.xebia.functional.xef.auto
 
-import com.xebia.functional.xef.embeddings.OpenAIEmbeddings
-import com.xebia.functional.xef.env.OpenAIConfig
-import com.xebia.functional.xef.llm.openai.KtorOpenAIClient
-import com.xebia.functional.xef.llm.openai.LLMModel
+import com.aallam.openai.client.OpenAI
+import com.aallam.openai.client.OpenAIConfig
+import com.xebia.functional.xef.env.getenv
+import com.xebia.functional.xef.llm.LLMModel
+import com.xebia.functional.xef.llm.openai.OpenAIClient
+import com.xebia.functional.xef.llm.openai.OpenAIEmbeddings
 import com.xebia.functional.xef.vectorstores.LocalVectorStore
 import kotlin.jvm.JvmStatic
 import kotlin.time.ExperimentalTime
@@ -13,9 +15,14 @@ data class AIRuntime<A>(val runtime: suspend (block: AI<A>) -> A) {
     @OptIn(ExperimentalTime::class)
     @JvmStatic
     fun <A> openAI(): AIRuntime<A> = AIRuntime { block ->
-      val openAIConfig = OpenAIConfig()
-      KtorOpenAIClient(openAIConfig).use { openAiClient ->
-        val embeddings = OpenAIEmbeddings(openAIConfig, openAiClient)
+      val openAIConfig =
+        OpenAIConfig(
+          token =
+            requireNotNull(getenv("OPENAI_TOKEN")) { "OpenAI Token missing from environment." },
+        )
+      val openAI = OpenAI(openAIConfig)
+      OpenAIClient(openAI).use { openAiClient ->
+        val embeddings = OpenAIEmbeddings(openAiClient)
         val vectorStore = LocalVectorStore(embeddings)
         val scope =
           AIScope(

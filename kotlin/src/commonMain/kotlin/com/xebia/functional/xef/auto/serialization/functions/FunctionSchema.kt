@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.auto.serialization.functions
 
 import com.xebia.functional.xef.auto.serialization.buildJsonSchema
-import com.xebia.functional.xef.llm.openai.functions.CFunction
+import com.xebia.functional.xef.llm.models.functions.CFunction
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.descriptors.*
 

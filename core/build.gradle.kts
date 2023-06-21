@@ -67,7 +67,7 @@ kotlin {
         api(libs.bundles.ktor.client)
         api(projects.xefTokenizer)
 
-        // implementation(libs.arrow.fx.stm)
+        implementation(libs.openai.client)
 
         implementation(libs.uuid)
         implementation(libs.klogging)

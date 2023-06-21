@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.auto
 
 import com.xebia.functional.xef.auto.serialization.functions.encodeFunctionSchema
-import com.xebia.functional.xef.llm.openai.LLMModel
+import com.xebia.functional.xef.llm.LLMModel
 import com.xebia.functional.xef.prompt.Prompt
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException

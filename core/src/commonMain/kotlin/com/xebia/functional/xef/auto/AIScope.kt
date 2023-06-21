@@ -7,10 +7,17 @@ import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.tokenizer.truncateText
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.embeddings.Embeddings
-import com.xebia.functional.xef.llm.openai.*
-import com.xebia.functional.xef.llm.openai.functions.CFunction
-import com.xebia.functional.xef.llm.openai.images.ImagesGenerationRequest
-import com.xebia.functional.xef.llm.openai.images.ImagesGenerationResponse
+import com.xebia.functional.xef.llm.AIClient
+import com.xebia.functional.xef.llm.LLMModel
+import com.xebia.functional.xef.llm.models.chat.ChatCompletionRequest
+import com.xebia.functional.xef.llm.models.chat.ChatCompletionRequestWithFunctions
+import com.xebia.functional.xef.llm.models.chat.Message
+import com.xebia.functional.xef.llm.models.chat.Role
+import com.xebia.functional.xef.llm.models.functions.CFunction
+import com.xebia.functional.xef.llm.models.functions.FunctionCall
+import com.xebia.functional.xef.llm.models.images.ImagesGenerationRequest
+import com.xebia.functional.xef.llm.models.images.ImagesGenerationResponse
+import com.xebia.functional.xef.llm.models.text.CompletionRequest
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.vectorstores.CombinedVectorStore
 import com.xebia.functional.xef.vectorstores.LocalVectorStore
@@ -227,7 +234,7 @@ class AIScope(
             bringFromContext,
             minResponseTokens
           )
-          .map { it.arguments }
+          .mapNotNull { it.arguments }
     }
   }
 
@@ -282,7 +289,7 @@ class AIScope(
         temperature = temperature,
         maxTokens = maxTokens
       )
-    return AIClient.createChatCompletion(request).choices.map { it.message.content }
+    return AIClient.createChatCompletion(request).choices.mapNotNull { it.message?.content }
   }
 
   private suspend fun callChatEndpointWithFunctionsSupport(
@@ -312,8 +319,8 @@ class AIScope(
         functions = functions,
         functionCall = mapOf("name" to (firstFnName ?: ""))
       )
-    return AIClient.createChatCompletionWithFunctions(request).choices.map {
-      it.message.functionCall
+    return AIClient.createChatCompletionWithFunctions(request).choices.mapNotNull {
+      it.message?.functionCall
     }
   }
 
@@ -460,7 +467,7 @@ class AIScope(
   ): Int =
     messages.sumOf { message ->
       countTokens(message.role) +
-        countTokens(message.content) +
+        countTokens(message.content ?: "") +
         tokensPerMessage +
         (message.name?.let { tokensPerName } ?: 0)
     } + 3

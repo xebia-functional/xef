@@ -2,17 +2,25 @@ package com.xebia.functional.xef.vectorstores
 
 import com.xebia.functional.xef.embeddings.Embedding
 import com.xebia.functional.xef.embeddings.Embeddings
-import com.xebia.functional.xef.llm.openai.EmbeddingModel
-import com.xebia.functional.xef.llm.openai.RequestConfig
+import com.xebia.functional.xef.llm.models.embeddings.EmbeddingModel
+import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
 import org.apache.lucene.analysis.standard.StandardAnalyzer
-import org.apache.lucene.document.*
-import java.nio.file.Path
-import org.apache.lucene.index.*
+import org.apache.lucene.document.Document
+import org.apache.lucene.document.Field
+import org.apache.lucene.document.KnnFloatVectorField
+import org.apache.lucene.document.TextField
+import org.apache.lucene.index.DirectoryReader
+import org.apache.lucene.index.IndexWriter
+import org.apache.lucene.index.IndexWriterConfig
+import org.apache.lucene.index.VectorSimilarityFunction
 import org.apache.lucene.queries.mlt.MoreLikeThis
-import org.apache.lucene.search.*
+import org.apache.lucene.search.IndexSearcher
+import org.apache.lucene.search.KnnFloatVectorQuery
+import org.apache.lucene.search.TopDocs
 import org.apache.lucene.store.Directory
 import org.apache.lucene.store.MMapDirectory
 import java.io.StringReader
+import java.nio.file.Path
 
 open class Lucene(
   private val writer: IndexWriter,

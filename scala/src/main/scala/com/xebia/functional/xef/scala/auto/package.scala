@@ -2,8 +2,8 @@ package com.xebia.functional.xef.scala.auto
 
 import com.xebia.functional.loom.LoomAdapter
 import com.xebia.functional.xef.AIError
-import com.xebia.functional.xef.llm.openai.LLMModel
-import com.xebia.functional.xef.llm.openai.functions.CFunction
+import com.xebia.functional.xef.llm.LLMModel
+import com.xebia.functional.xef.llm.models.functions.CFunction
 import io.circe.Decoder
 import io.circe.parser.parse
 import com.xebia.functional.xef.auto.AIKt
@@ -13,7 +13,7 @@ import com.xebia.functional.xef.pdf.PDFLoaderKt
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.llm.openai._
 import com.xebia.functional.xef.scala.textsplitters.TextSplitter
-import com.xebia.functional.xef.llm.openai.images.*
+import com.xebia.functional.xef.llm.models.images.*
 
 import java.io.File
 import scala.jdk.CollectionConverters.*

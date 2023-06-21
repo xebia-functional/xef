@@ -4,11 +4,10 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import com.xebia.functional.xef.AIError
-import com.xebia.functional.xef.embeddings.OpenAIEmbeddings
-import com.xebia.functional.xef.env.OpenAIConfig
-import com.xebia.functional.xef.llm.openai.AIClient
-import com.xebia.functional.xef.llm.openai.LLMModel
+import com.xebia.functional.xef.llm.AIClient
+import com.xebia.functional.xef.llm.LLMModel
 import com.xebia.functional.xef.llm.openai.MockOpenAIClient
+import com.xebia.functional.xef.llm.openai.OpenAIEmbeddings
 import com.xebia.functional.xef.llm.openai.simpleMockAIClient
 import com.xebia.functional.xef.vectorstores.LocalVectorStore
 import com.xebia.functional.xef.vectorstores.VectorStore
@@ -54,7 +53,7 @@ suspend fun <A> MockAIScope(
   orElse: suspend (AIError) -> A
 ): A =
   try {
-    val embeddings = OpenAIEmbeddings(OpenAIConfig(), mockClient)
+    val embeddings = OpenAIEmbeddings(mockClient)
     val vectorStore = LocalVectorStore(embeddings)
     val scope =
       AIScope(

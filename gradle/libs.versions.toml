@@ -32,6 +32,7 @@ pdfbox = "2.0.28"
 mysql = "8.0.33"
 semverGradle = "0.5.0-alpha.2"
 scala = "3.3.0"
+openai-client-version = "3.3.0"
 
 [libraries]
 arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
@@ -76,6 +77,7 @@ assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 apache-pdf-box = { module = "org.apache.pdfbox:pdfbox", version.ref = "pdfbox" }
 jdbc-mysql-connector = { module = "mysql:mysql-connector-java", version.ref = "mysql" }
 scala-lang = { module = "org.scala-lang:scala3-library_3", version.ref = "scala" }
+openai-client = { module = "com.aallam.openai:openai-client", version.ref = "openai-client-version" }
 
 [bundles]
 arrow = [
