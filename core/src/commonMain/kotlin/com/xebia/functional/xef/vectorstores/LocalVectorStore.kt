@@ -54,7 +54,7 @@ private constructor(private val embeddings: Embeddings, private val state: Atomi
     return state0.documents
       .asSequence()
       .mapNotNull { doc -> state0.precomputedEmbeddings[doc]?.let { doc to it } }
-      .map { (doc, embedding) -> doc to embedding.cosineSimilarity(embedding) }
+      .map { (doc, e) -> doc to embedding.cosineSimilarity(e) }
       .sortedByDescending { (_, similarity) -> similarity }
       .take(limit)
       .map { (document, _) -> document }
