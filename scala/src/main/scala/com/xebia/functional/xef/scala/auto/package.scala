@@ -2,6 +2,7 @@ package com.xebia.functional.xef.scala.auto
 
 import com.xebia.functional.loom.LoomAdapter
 import com.xebia.functional.xef.AIError
+import com.xebia.functional.xef.llm.LLM
 import com.xebia.functional.xef.llm.LLMModel
 import com.xebia.functional.xef.llm.models.functions.CFunction
 import io.circe.Decoder
@@ -43,7 +44,7 @@ extension [A](block: AI[A]) {
 def prompt[A: Decoder: SerialDescriptor](
     prompt: String,
     maxAttempts: Int = 5,
-    llmModel: LLMModel = LLMModel.getGPT_3_5_TURBO_FUNCTIONS,
+    llmModel: LLM.ChatWithFunctions = LLMModel.getGPT_3_5_TURBO_FUNCTIONS,
     user: String = "testing",
     echo: Boolean = false,
     n: Int = 1,
@@ -73,7 +74,7 @@ def contextScope[A: Decoder: SerialDescriptor](docs: List[String])(block: AI[A])
 
 def promptMessage(
     prompt: String,
-    llmModel: LLMModel = LLMModel.getGPT_3_5_TURBO,
+    llmModel: LLM.Chat = LLMModel.getGPT_3_5_TURBO,
     functions: List[CFunction] = List.empty,
     user: String = "testing",
     echo: Boolean = false,
@@ -104,7 +105,7 @@ def images(
     user: String = "testing",
     size: String = "1024x1024",
     bringFromContext: Int = 10,
-    llmModel: LLMModel = LLMModel.getGPT_3_5_TURBO,
+    llmModel: LLM.Chat = LLMModel.getGPT_3_5_TURBO,
     echo: Boolean = false,
     n: Int = 1,
     temperature: Double = 0.0,

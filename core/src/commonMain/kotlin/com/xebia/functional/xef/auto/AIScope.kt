@@ -8,6 +8,7 @@ import com.xebia.functional.tokenizer.truncateText
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.embeddings.Embeddings
 import com.xebia.functional.xef.llm.AIClient
+import com.xebia.functional.xef.llm.LLM
 import com.xebia.functional.xef.llm.LLMModel
 import com.xebia.functional.xef.llm.models.chat.ChatCompletionRequest
 import com.xebia.functional.xef.llm.models.chat.ChatCompletionRequestWithFunctions
@@ -31,8 +32,8 @@ import kotlin.jvm.JvmName
  * required to run [AI] values, and provides convenient syntax for writing [AI] based programs.
  */
 class AIScope(
-  val defaultModel: LLMModel,
-  val defaultSerializationModel: LLMModel,
+  val defaultModel: LLM.Chat,
+  val defaultSerializationModel: LLM.ChatWithFunctions,
   val AIClient: AIClient,
   val context: VectorStore,
   val embeddings: Embeddings,
@@ -122,7 +123,7 @@ class AIScope(
     functions: List<CFunction>,
     serializer: (json: String) -> A,
     maxDeserializationAttempts: Int = this.maxDeserializationAttempts,
-    model: LLMModel = defaultSerializationModel,
+    model: LLM.ChatWithFunctions = defaultSerializationModel,
     user: String = this.user,
     echo: Boolean = this.echo,
     numberOfPredictions: Int = this.numberOfPredictions,
@@ -168,7 +169,7 @@ class AIScope(
   @AiDsl
   suspend fun promptMessage(
     question: String,
-    model: LLMModel = defaultModel,
+    model: LLM.Chat = defaultModel,
     functions: List<CFunction> = emptyList(),
     user: String = this.user,
     echo: Boolean = this.echo,
@@ -192,7 +193,7 @@ class AIScope(
   @AiDsl
   suspend fun promptMessage(
     prompt: Prompt,
-    model: LLMModel = defaultModel,
+    model: LLM.Chat = defaultModel,
     functions: List<CFunction> = emptyList(),
     user: String = this.user,
     echo: Boolean = this.echo,
@@ -201,29 +202,8 @@ class AIScope(
     bringFromContext: Int = this.docsInContext,
     minResponseTokens: Int
   ): List<String> {
-    return when (model.kind) {
-      LLMModel.Kind.Completion ->
-        callCompletionEndpoint(
-          prompt.message,
-          model,
-          user,
-          echo,
-          numberOfPredictions,
-          temperature,
-          bringFromContext,
-          minResponseTokens
-        )
-      LLMModel.Kind.Chat ->
-        callChatEndpoint(
-          prompt.message,
-          model,
-          user,
-          numberOfPredictions,
-          temperature,
-          bringFromContext,
-          minResponseTokens
-        )
-      LLMModel.Kind.ChatWithFunctions ->
+    return when (model) {
+      is LLM.ChatWithFunctions ->
         callChatEndpointWithFunctionsSupport(
             prompt.message,
             model,
@@ -235,6 +215,16 @@ class AIScope(
             minResponseTokens
           )
           .mapNotNull { it.arguments }
+      else ->
+        callChatEndpoint(
+          prompt.message,
+          model,
+          user,
+          numberOfPredictions,
+          temperature,
+          bringFromContext,
+          minResponseTokens
+        )
     }
   }
 
@@ -268,7 +258,7 @@ class AIScope(
 
   private suspend fun callChatEndpoint(
     prompt: String,
-    model: LLMModel,
+    model: LLM.Chat,
     user: String,
     n: Int,
     temperature: Double,
@@ -294,7 +284,7 @@ class AIScope(
 
   private suspend fun callChatEndpointWithFunctionsSupport(
     prompt: String,
-    model: LLMModel,
+    model: LLM.ChatWithFunctions,
     functions: List<CFunction>,
     user: String,
     n: Int,
@@ -394,7 +384,7 @@ class AIScope(
       totalLeftTokens
     }
 
-  private fun checkTotalLeftChatTokens(messages: List<Message>, model: LLMModel): Int {
+  private fun checkTotalLeftChatTokens(messages: List<Message>, model: LLM.Chat): Int {
     val maxContextLength: Int = model.modelType.maxContextLength
     val messagesTokens: Int = tokensFromMessages(messages, model)
     val totalLeftTokens: Int = maxContextLength - messagesTokens
@@ -407,11 +397,11 @@ class AIScope(
     return totalLeftTokens
   }
 
-  private fun tokensFromMessages(messages: List<Message>, model: LLMModel): Int =
+  private fun tokensFromMessages(messages: List<Message>, model: LLM.Chat): Int =
     when (model) {
       LLMModel.GPT_3_5_TURBO_FUNCTIONS -> {
         val paddingTokens = 200 // reserved for functions
-        val fallbackModel: LLMModel = LLMModel.GPT_3_5_TURBO_0301
+        val fallbackModel: LLM.Chat = LLMModel.GPT_3_5_TURBO_0301
         logger.debug {
           "Warning: ${model.name} may change over time. " +
             "Returning messages num tokens assuming ${fallbackModel.name} + $paddingTokens padding tokens."
@@ -420,7 +410,7 @@ class AIScope(
       }
       LLMModel.GPT_3_5_TURBO -> {
         val paddingTokens = 5 // otherwise if the model changes, it might later fail
-        val fallbackModel: LLMModel = LLMModel.GPT_3_5_TURBO_0301
+        val fallbackModel: LLM.Chat = LLMModel.GPT_3_5_TURBO_0301
         logger.debug {
           "Warning: ${model.name} may change over time. " +
             "Returning messages num tokens assuming ${fallbackModel.name} + $paddingTokens padding tokens."
@@ -430,7 +420,7 @@ class AIScope(
       LLMModel.GPT_4,
       LLMModel.GPT_4_32K -> {
         val paddingTokens = 5 // otherwise if the model changes, it might later fail
-        val fallbackModel: LLMModel = LLMModel.GPT_4_0314
+        val fallbackModel: LLM.Chat = LLMModel.GPT_4_0314
         logger.debug {
           "Warning: ${model.name} may change over time. " +
             "Returning messages num tokens assuming ${fallbackModel.name} + $paddingTokens padding tokens."
@@ -451,7 +441,7 @@ class AIScope(
         )
       else -> {
         val paddingTokens = 20
-        val fallbackModel: LLMModel = LLMModel.GPT_3_5_TURBO_0301
+        val fallbackModel: LLM.Chat = LLMModel.GPT_3_5_TURBO_0301
         logger.debug {
           "Warning: calculation of tokens is partially supported for ${model.name} . " +
             "Returning messages num tokens assuming ${fallbackModel.name} + $paddingTokens padding tokens."

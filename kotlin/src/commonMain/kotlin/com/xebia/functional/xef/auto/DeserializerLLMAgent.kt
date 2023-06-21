@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.auto
 
 import com.xebia.functional.xef.auto.serialization.functions.encodeFunctionSchema
-import com.xebia.functional.xef.llm.LLMModel
+import com.xebia.functional.xef.llm.LLM
 import com.xebia.functional.xef.prompt.Prompt
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
@@ -24,7 +24,7 @@ suspend inline fun <reified A> AIScope.prompt(
     isLenient = true
   },
   maxDeserializationAttempts: Int = this.maxDeserializationAttempts,
-  model: LLMModel = this.defaultSerializationModel,
+  model: LLM.ChatWithFunctions = this.defaultSerializationModel,
   user: String = this.user,
   echo: Boolean = this.echo,
   n: Int = this.numberOfPredictions,
@@ -59,7 +59,7 @@ suspend inline fun <reified A> AIScope.prompt(
     isLenient = true
   },
   maxDeserializationAttempts: Int = this.maxDeserializationAttempts,
-  model: LLMModel = this.defaultSerializationModel,
+  model: LLM.ChatWithFunctions = this.defaultSerializationModel,
   user: String = this.user,
   echo: Boolean = this.echo,
   n: Int = this.numberOfPredictions,
@@ -88,8 +88,8 @@ suspend fun <A> AIScope.prompt(
     isLenient = true
   },
   maxDeserializationAttempts: Int = this.maxDeserializationAttempts,
-  model: LLMModel = this.defaultSerializationModel,
-  user: String = "testing",
+  model: LLM.ChatWithFunctions = this.defaultSerializationModel,
+  user: String = this.user,
   echo: Boolean = this.echo,
   n: Int = this.numberOfPredictions,
   temperature: Double = this.temperature,
