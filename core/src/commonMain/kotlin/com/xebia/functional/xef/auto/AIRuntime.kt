@@ -14,10 +14,10 @@ data class AIRuntime<A>(val runtime: suspend (block: AI<A>) -> A) {
   companion object {
     @OptIn(ExperimentalTime::class)
     @JvmStatic
-    fun <A> openAI(): AIRuntime<A> = AIRuntime { block ->
+    fun <A> openAI(token: String? = null): AIRuntime<A> = AIRuntime { block ->
       val openAIConfig =
         OpenAIConfig(
-          token =
+          token = token ?:
             requireNotNull(getenv("OPENAI_TOKEN")) { "OpenAI Token missing from environment." },
         )
       val openAI = OpenAI(openAIConfig)
