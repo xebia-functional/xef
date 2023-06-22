@@ -106,15 +106,10 @@ def pdf(
 
 def images(
     prompt: String,
-    maxAttempts: Int = 5,
     user: String = "testing",
     size: String = "1024x1024",
     bringFromContext: Int = 10,
-    llmModel: LLMModel = LLMModel.getGPT_3_5_TURBO,
-    echo: Boolean = false,
     n: Int = 1,
-    temperature: Double = 0.0,
-    minResponseTokens: Int = 500
 )(using scope: AIScope): List[String] =
   LoomAdapter
     .apply[ImagesGenerationResponse](cont =>

@@ -1,8 +1,8 @@
 package com.xebia.functional.xef.auto.tot
 
-import com.xebia.functional.xef.auto.AIScope
+import com.xebia.functional.xef.auto.CoreAIScope
 
-suspend fun AIScope.generateSearchPrompts(problem: Problem): List<String> =
+suspend fun CoreAIScope.generateSearchPrompts(problem: Problem): List<String> =
   promptMessage(
     """|You are an expert SEO consultant.
     |You generate search prompts for a problem.
