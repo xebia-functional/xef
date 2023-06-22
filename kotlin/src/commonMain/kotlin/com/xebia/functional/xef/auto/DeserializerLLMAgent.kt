@@ -23,13 +23,13 @@ suspend inline fun <reified A> AIScope.prompt(
     ignoreUnknownKeys = true
     isLenient = true
   },
-  maxDeserializationAttempts: Int = 5,
-  model: LLMModel = LLMModel.GPT_3_5_TURBO_FUNCTIONS,
-  user: String = "testing",
-  echo: Boolean = false,
-  n: Int = 1,
-  temperature: Double = 0.0,
-  bringFromContext: Int = 10
+  maxDeserializationAttempts: Int = this.maxDeserializationAttempts,
+  model: LLMModel = this.defaultSerializationModel,
+  user: String = this.user,
+  echo: Boolean = this.echo,
+  n: Int = this.numberOfPredictions,
+  temperature: Double = this.temperature,
+  bringFromContext: Int = this.docsInContext
 ): A =
   prompt(
     Prompt(question),
@@ -58,13 +58,13 @@ suspend inline fun <reified A> AIScope.prompt(
     ignoreUnknownKeys = true
     isLenient = true
   },
-  maxDeserializationAttempts: Int = 5,
-  model: LLMModel = LLMModel.GPT_3_5_TURBO_FUNCTIONS,
-  user: String = "testing",
-  echo: Boolean = false,
-  n: Int = 1,
-  temperature: Double = 0.0,
-  bringFromContext: Int = 10
+  maxDeserializationAttempts: Int = this.maxDeserializationAttempts,
+  model: LLMModel = this.defaultSerializationModel,
+  user: String = this.user,
+  echo: Boolean = this.echo,
+  n: Int = this.numberOfPredictions,
+  temperature: Double = this.temperature,
+  bringFromContext: Int = this.docsInContext
 ): A =
   prompt(
     prompt,
@@ -87,14 +87,14 @@ suspend fun <A> AIScope.prompt(
     ignoreUnknownKeys = true
     isLenient = true
   },
-  maxDeserializationAttempts: Int = 5,
-  model: LLMModel = LLMModel.GPT_3_5_TURBO_FUNCTIONS,
+  maxDeserializationAttempts: Int = this.maxDeserializationAttempts,
+  model: LLMModel = this.defaultSerializationModel,
   user: String = "testing",
-  echo: Boolean = false,
-  n: Int = 1,
-  temperature: Double = 0.0,
-  bringFromContext: Int = 10,
-  minResponseTokens: Int = 500,
+  echo: Boolean = this.echo,
+  n: Int = this.numberOfPredictions,
+  temperature: Double = this.temperature,
+  bringFromContext: Int = this.docsInContext,
+  minResponseTokens: Int = this.minResponseTokens,
 ): A {
   val functions = encodeFunctionSchema(serializer.descriptor)
   return prompt(

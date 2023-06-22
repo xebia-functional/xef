@@ -2,7 +2,6 @@ package com.xebia.functional.xef.sql
 
 import com.xebia.functional.xef.auto.AIScope
 import com.xebia.functional.xef.auto.AiDsl
-import com.xebia.functional.xef.auto.promptMessage
 import com.xebia.functional.xef.sql.jdbc.JdbcConfig
 import com.xebia.functional.xef.textsplitters.TokenTextSplitter
 import io.github.oshai.kotlinlogging.KotlinLogging

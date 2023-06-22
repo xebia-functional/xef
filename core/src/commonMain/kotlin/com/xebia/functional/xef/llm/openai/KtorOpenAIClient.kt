@@ -15,24 +15,9 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-
-interface OpenAIClient {
-  suspend fun createCompletion(request: CompletionRequest): CompletionResult
-
-  suspend fun createChatCompletion(request: ChatCompletionRequest): ChatCompletionResponse
-
-  suspend fun createChatCompletionWithFunctions(
-    request: ChatCompletionRequestWithFunctions
-  ): ChatCompletionResponseWithFunctions
-
-  suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult
-
-  suspend fun createImages(request: ImagesGenerationRequest): ImagesGenerationResponse
-}
 
 @OptIn(ExperimentalStdlibApi::class)
-class KtorOpenAIClient(private val config: OpenAIConfig) : OpenAIClient, AutoCloseable {
+class KtorOpenAIClient(private val config: OpenAIConfig) : AIClient, AutoCloseable {
 
   private val httpClient: HttpClient = HttpClient {
     install(HttpTimeout)
@@ -81,7 +66,6 @@ class KtorOpenAIClient(private val config: OpenAIConfig) : OpenAIClient, AutoClo
   override suspend fun createChatCompletionWithFunctions(
     request: ChatCompletionRequestWithFunctions
   ): ChatCompletionResponseWithFunctions {
-    println(Json.encodeToString(ChatCompletionRequestWithFunctions.serializer(), request))
 
     val response =
       httpClient.post {
@@ -89,9 +73,6 @@ class KtorOpenAIClient(private val config: OpenAIConfig) : OpenAIClient, AutoClo
         configure(config.token, request)
         timeout { requestTimeoutMillis = config.requestTimeoutMillis }
       }
-
-    val stringResponse = response.bodyAsText()
-    println(stringResponse)
 
     val body: ChatCompletionResponseWithFunctions = response.bodyOrError()
     with(body.usage) {
@@ -123,7 +104,7 @@ class KtorOpenAIClient(private val config: OpenAIConfig) : OpenAIClient, AutoClo
   override fun close() = httpClient.close()
 }
 
-private suspend inline fun <reified T> HttpResponse.bodyOrError(): T =
+internal suspend inline fun <reified T> HttpResponse.bodyOrError(): T =
   if (status == HttpStatusCode.OK) body() else throw OpenAIClientException(status, body())
 
 class OpenAIClientException(val httpStatusCode: HttpStatusCode, val error: Error) :

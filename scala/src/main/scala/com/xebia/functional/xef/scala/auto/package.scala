@@ -6,14 +6,14 @@ import com.xebia.functional.xef.llm.openai.LLMModel
 import com.xebia.functional.xef.llm.openai.functions.CFunction
 import io.circe.Decoder
 import io.circe.parser.parse
-import com.xebia.functional.xef.llm.openai.images.ImagesGenerationResponse
-import com.xebia.functional.xef.auto.{AIKt, Agent as KtAgent}
+import com.xebia.functional.xef.auto.AIKt
+import com.xebia.functional.xef.auto.AIRuntime
 import com.xebia.functional.xef.auto.serialization.functions.FunctionSchemaKt
 import com.xebia.functional.xef.pdf.PDFLoaderKt
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.llm.openai._
 import com.xebia.functional.xef.scala.textsplitters.TextSplitter
-import scala.jdk.CollectionConverters._
+import com.xebia.functional.xef.llm.openai.images.*
 
 import java.io.File
 import scala.jdk.CollectionConverters.*
@@ -24,6 +24,7 @@ type AI[A] = AIScope ?=> A
 def ai[A](block: AI[A]): A =
   LoomAdapter.apply { cont =>
     AIKt.AIScope[A](
+      AIRuntime.openAI,
       { (coreAIScope, _) =>
         given AIScope = AIScope.fromCore(coreAIScope)
 
@@ -48,11 +49,10 @@ def prompt[A: Decoder: SerialDescriptor](
     n: Int = 1,
     temperature: Double = 0.0,
     bringFromContext: Int = 10,
-    minResponseTokens: Int = 500
+    minResponseTokens: Int = 400
 )(using scope: AIScope): A =
   LoomAdapter.apply((cont) =>
-    KtAgent.promptWithSerializer[A](
-      scope.kt,
+    scope.kt.promptWithSerializer[A](
       prompt,
       FunctionSchemaKt.encodeFunctionSchema(SerialDescriptor[A].serialDescriptor),
       (json: String) => parse(json).flatMap(Decoder[A].decodeJson(_)).fold(throw _, identity),
@@ -84,7 +84,7 @@ def promptMessage(
 )(using scope: AIScope): List[String] =
   LoomAdapter
     .apply[java.util.List[String]](
-      KtAgent.promptMessage(scope.kt, prompt, llmModel, functions.asJava, user, echo, n, temperature, bringFromContext, minResponseTokens, _)
+      scope.kt.promptMessage(prompt, llmModel, functions.asJava, user, echo, n, temperature, bringFromContext, minResponseTokens, _)
     ).asScala.toList
 
 def pdf(
@@ -112,8 +112,7 @@ def images(
 )(using scope: AIScope): List[String] =
   LoomAdapter
     .apply[ImagesGenerationResponse](cont =>
-      KtAgent.images(
-        scope.kt,
+      scope.kt.images(
         prompt,
         user,
         n,

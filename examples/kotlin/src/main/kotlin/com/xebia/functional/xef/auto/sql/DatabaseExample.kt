@@ -4,7 +4,6 @@ import arrow.core.raise.catch
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.auto.ai
 import com.xebia.functional.xef.auto.getOrThrow
-import com.xebia.functional.xef.auto.promptMessage
 import com.xebia.functional.xef.sql.SQL
 import com.xebia.functional.xef.sql.jdbc.JdbcConfig
 

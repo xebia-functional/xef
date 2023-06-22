@@ -19,7 +19,7 @@ class MockOpenAIClient(
   private val images: (ImagesGenerationRequest) -> ImagesGenerationResponse = {
     throw NotImplementedError("images not implemented")
   },
-) : OpenAIClient {
+) : AIClient {
   override suspend fun createCompletion(request: CompletionRequest): CompletionResult =
     completion(request)
 
