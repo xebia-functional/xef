@@ -14,12 +14,13 @@ data class AIRuntime<A>(val runtime: suspend (block: AI<A>) -> A) {
   companion object {
     @OptIn(ExperimentalTime::class)
     @JvmStatic
-    fun <A> openAI(token: String? = null): AIRuntime<A> = AIRuntime { block ->
+    fun <A> openAI(config: OpenAIConfig? = null): AIRuntime<A> = AIRuntime { block ->
       val openAIConfig =
-        OpenAIConfig(
-          token = token ?:
-            requireNotNull(getenv("OPENAI_TOKEN")) { "OpenAI Token missing from environment." },
-        )
+        config
+          ?: OpenAIConfig(
+            token =
+              requireNotNull(getenv("OPENAI_TOKEN")) { "OpenAI Token missing from environment." },
+          )
       val openAI = OpenAI(openAIConfig)
       OpenAIClient(openAI).use { openAiClient ->
         val embeddings = OpenAIEmbeddings(openAiClient)
