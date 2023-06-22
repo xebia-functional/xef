@@ -35,8 +35,8 @@ private constructor(private val embeddings: Embeddings, private val state: Atomi
     val embeddingsList =
       embeddings.embedDocuments(texts, chunkSize = null, requestConfig = requestConfig)
     state.getAndUpdate { prevState ->
-      val newEmbeddings = prevState.precomputedEmbeddings ++ texts.zip(embeddingsList)
-      State(prevState.documents ++ texts, newEmbeddings)
+      val newEmbeddings = prevState.precomputedEmbeddings + texts.zip(embeddingsList)
+      State(prevState.documents + texts, newEmbeddings)
     }
   }
 
