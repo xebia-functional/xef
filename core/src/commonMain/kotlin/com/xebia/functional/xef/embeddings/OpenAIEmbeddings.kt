@@ -15,27 +15,17 @@ class OpenAIEmbeddings(private val config: OpenAIConfig, private val oaiClient: 
     texts: List<String>,
     chunkSize: Int?,
     requestConfig: RequestConfig
-  ): List<Embedding> = chunkedEmbedDocuments(texts, chunkSize ?: config.chunkSize, requestConfig)
+  ): List<Embedding> {
+    suspend fun createEmbeddings(texts: List<String>): List<Embedding> {
+      val req = EmbeddingRequest(requestConfig.model.modelName, texts, requestConfig.user.id)
+      return oaiClient.createEmbeddings(req).data.map { Embedding(it.embedding) }
+    }
+    val lists: List<List<Embedding>> =
+      if (texts.isEmpty()) emptyList()
+      else texts.chunked(chunkSize ?: config.chunkSize).parMap { createEmbeddings(it) }
+    return lists.flatten()
+  }
 
   override suspend fun embedQuery(text: String, requestConfig: RequestConfig): List<Embedding> =
     if (text.isNotEmpty()) embedDocuments(listOf(text), null, requestConfig) else emptyList()
-
-  private suspend fun chunkedEmbedDocuments(
-    texts: List<String>,
-    chunkSize: Int,
-    requestConfig: RequestConfig
-  ): List<Embedding> =
-    if (texts.isEmpty()) emptyList()
-    else texts.chunked(chunkSize).parMap { createEmbeddingWithRetry(it, requestConfig) }.flatten()
-
-  private suspend fun createEmbeddingWithRetry(
-    texts: List<String>,
-    requestConfig: RequestConfig
-  ): List<Embedding> =
-    oaiClient
-      .createEmbeddings(
-        EmbeddingRequest(requestConfig.model.modelName, texts, requestConfig.user.id)
-      )
-      .data
-      .map { Embedding(it.embedding) }
 }
