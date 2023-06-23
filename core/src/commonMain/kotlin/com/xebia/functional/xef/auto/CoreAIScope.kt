@@ -38,7 +38,7 @@ class CoreAIScope(
   val docsInContext: Int = 20,
   val minResponseTokens: Int = 500,
   val logger: KLogger = KotlinLogging.logger {},
-) {
+) : AutoCloseable {
 
   /**
    * Allows invoking [AI] values in the context of this [CoreAIScope].
@@ -519,4 +519,6 @@ class CoreAIScope(
       )
     return AIClient.createImages(request)
   }
+
+  override fun close() = AIClient.close()
 }

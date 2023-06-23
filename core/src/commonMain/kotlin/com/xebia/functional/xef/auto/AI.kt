@@ -49,9 +49,9 @@ suspend fun <A> AIScope(runtime: AIRuntime<A>, block: AI<A>, orElse: suspend (AI
 
 @OptIn(ExperimentalTime::class)
 suspend fun <A> MockAIScope(
-    mockClient: MockOpenAIClient,
-    block: suspend CoreAIScope.() -> A,
-    orElse: suspend (AIError) -> A
+  mockClient: MockOpenAIClient,
+  block: suspend CoreAIScope.() -> A,
+  orElse: suspend (AIError) -> A
 ): A =
   try {
     val embeddings = OpenAIEmbeddings(OpenAIConfig(), mockClient)
