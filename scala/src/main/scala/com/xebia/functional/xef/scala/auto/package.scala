@@ -109,7 +109,7 @@ def images(
     user: String = "testing",
     size: String = "1024x1024",
     bringFromContext: Int = 10,
-    n: Int = 1,
+    n: Int = 1
 )(using scope: AIScope): List[String] =
   LoomAdapter
     .apply[ImagesGenerationResponse](cont =>
