@@ -12,8 +12,9 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 
 /**
- * Run a [question] describes the task you want to solve within the context of [CoreAIScope]. Returns a
- * value of [A] where [A] **has to be** annotated with [kotlinx.serialization.Serializable].
+ * Run a [question] describes the task you want to solve within the context of [CoreAIScope].
+ * Returns a value of [A] where [A] **has to be** annotated with
+ * [kotlinx.serialization.Serializable].
  *
  * @throws SerializationException if serializer cannot be created (provided [A] or its type argument
  *   is not serializable).
@@ -47,8 +48,8 @@ suspend inline fun <reified A> CoreAIScope.prompt(
   )
 
 /**
- * Run a [prompt] describes the task you want to solve within the context of [CoreAIScope]. Returns a
- * value of [A] where [A] **has to be** annotated with [kotlinx.serialization.Serializable].
+ * Run a [prompt] describes the task you want to solve within the context of [CoreAIScope]. Returns
+ * a value of [A] where [A] **has to be** annotated with [kotlinx.serialization.Serializable].
  *
  * @throws SerializationException if serializer cannot be created (provided [A] or its type argument
  *   is not serializable).
