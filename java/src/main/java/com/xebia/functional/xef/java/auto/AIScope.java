@@ -2,8 +2,10 @@ package com.xebia.functional.xef.java.auto;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 import com.xebia.functional.loom.LoomAdapter;
+import com.xebia.functional.xef.AIError;
 import com.xebia.functional.xef.auto.CoreAIScope;
 import com.xebia.functional.xef.embeddings.Embeddings;
 import com.xebia.functional.xef.embeddings.OpenAIEmbeddings;
@@ -59,7 +61,7 @@ public class AIScope implements AutoCloseable {
     }
 
     public <A> A prompt(String prompt, Class<A> cls) {
-        return prompt(prompt, cls, coreAIScope.getMaxDeserializationAttempts(), coreAIScope.getDefaultModel(), coreAIScope.getUser(), coreAIScope.getEcho(), coreAIScope.getNumberOfPredictions(), coreAIScope.getTemperature(), coreAIScope.getDocsInContext(), coreAIScope.getMinResponseTokens());
+        return prompt(prompt, cls, coreAIScope.getMaxDeserializationAttempts(), coreAIScope.getDefaultSerializationModel(), coreAIScope.getUser(), coreAIScope.getEcho(), coreAIScope.getNumberOfPredictions(), coreAIScope.getTemperature(), coreAIScope.getDocsInContext(), coreAIScope.getMinResponseTokens());
     }
 
     public <A> A prompt(String prompt, Class<A> cls, Integer maxAttempts, LLMModel llmModel, String user, Boolean echo, Integer n, Double temperature, Integer bringFromContext, Integer minResponseTokens) {
@@ -69,14 +71,18 @@ public class AIScope implements AutoCloseable {
             try {
                 return om.readValue(json, cls);
             } catch (JsonProcessingException e) {
+                // TODO AIError ex = new AIError.JsonParsing(json, maxAttempts, e);
                 throw new RuntimeException(e);
             }
         };
 
         String schema;
         try {
-            schema = om.writeValueAsString(schemaGen.generateSchema(cls));
+            JsonSchema jsonSchema = schemaGen.generateSchema(cls);
+            jsonSchema.setId(null);
+            schema = om.writeValueAsString(jsonSchema);
         } catch (JsonProcessingException e) {
+            // TODO AIError ex = new AIError.JsonParsing(json, maxAttempts, e);
             throw new RuntimeException(e);
         }
 

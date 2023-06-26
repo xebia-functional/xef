@@ -140,12 +140,11 @@ class CoreAIScope(
     }
   }
 
-  suspend fun <A> CoreAIScope.tryDeserialize(
+  suspend fun <A> tryDeserialize(
     serializer: (json: String) -> A,
     maxDeserializationAttempts: Int,
     agent: AI<List<String>>
   ): A {
-    val logger = KotlinLogging.logger {}
     (0 until maxDeserializationAttempts).forEach { currentAttempts ->
       val result = agent().firstOrNull() ?: throw AIError.NoResponse()
       catch({
