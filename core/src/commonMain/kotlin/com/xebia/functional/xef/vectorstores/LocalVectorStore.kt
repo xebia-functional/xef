@@ -22,11 +22,7 @@ private typealias AtomicState = Atomic<State>
 class LocalVectorStore
 private constructor(private val embeddings: Embeddings, private val state: AtomicState) :
   VectorStore {
-
-  companion object {
-    suspend operator fun invoke(embeddings: Embeddings) =
-      LocalVectorStore(embeddings, Atomic(State.empty()))
-  }
+  constructor(embeddings: Embeddings) : this(embeddings, Atomic(State.empty()))
 
   private val requestConfig =
     RequestConfig(EmbeddingModel.TextEmbeddingAda002, RequestConfig.Companion.User("user"))

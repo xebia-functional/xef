@@ -36,9 +36,10 @@ class CoreAIScope(
   val temperature: Double = 0.4,
   val numberOfPredictions: Int = 1,
   val docsInContext: Int = 20,
-  val minResponseTokens: Int = 500,
-  val logger: KLogger = KotlinLogging.logger {},
+  val minResponseTokens: Int = 500
 ) : AutoCloseable {
+
+  val logger: KLogger = KotlinLogging.logger {}
 
   /**
    * Allows invoking [AI] values in the context of this [CoreAIScope].
@@ -490,6 +491,7 @@ class CoreAIScope(
    * @param numberImages number of images to generate.
    * @param size the size of the images to generate.
    */
+  @JvmName("imagesPrompt")
   suspend fun images(
     prompt: Prompt,
     user: String = "testing",
