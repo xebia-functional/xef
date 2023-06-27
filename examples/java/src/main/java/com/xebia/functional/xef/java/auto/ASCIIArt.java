@@ -6,10 +6,9 @@ public class ASCIIArt {
     }
 
     public static void main(String[] args) {
-        AIScope.run((scope) -> {
+        try (AIScope scope = new AIScope()) {
             Art art = scope.prompt("ASCII art of a cat dancing", Art.class);
             System.out.println(art.art);
-            return null;
-        });
+        }
     }
 }

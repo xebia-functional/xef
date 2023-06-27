@@ -3,7 +3,7 @@ package com.xebia.functional.xef.llm.openai
 import com.xebia.functional.xef.llm.openai.images.ImagesGenerationRequest
 import com.xebia.functional.xef.llm.openai.images.ImagesGenerationResponse
 
-interface AIClient : AutoCloseable {
+interface AIClient {
   suspend fun createCompletion(request: CompletionRequest): CompletionResult
 
   suspend fun createChatCompletion(request: ChatCompletionRequest): ChatCompletionResponse

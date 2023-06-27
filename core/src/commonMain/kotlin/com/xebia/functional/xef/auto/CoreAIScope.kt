@@ -27,7 +27,7 @@ import kotlin.jvm.JvmName
 class CoreAIScope(
   val defaultModel: LLMModel,
   val defaultSerializationModel: LLMModel,
-  val AIClient: AIClient,
+  val aiClient: AIClient,
   val context: VectorStore,
   val embeddings: Embeddings,
   val maxDeserializationAttempts: Int = 3,
@@ -37,7 +37,7 @@ class CoreAIScope(
   val numberOfPredictions: Int = 1,
   val docsInContext: Int = 20,
   val minResponseTokens: Int = 500
-) : AutoCloseable {
+) {
 
   val logger: KLogger = KotlinLogging.logger {}
 
@@ -93,7 +93,7 @@ class CoreAIScope(
     CoreAIScope(
         defaultModel,
         defaultSerializationModel,
-        this@CoreAIScope.AIClient,
+        this@CoreAIScope.aiClient,
         CombinedVectorStore(store, this@CoreAIScope.context),
         this@CoreAIScope.embeddings,
       )
@@ -257,7 +257,7 @@ class CoreAIScope(
         temperature = temperature,
         maxTokens = maxTokens
       )
-    return AIClient.createCompletion(request).choices.map { it.text }
+    return aiClient.createCompletion(request).choices.map { it.text }
   }
 
   private suspend fun callChatEndpoint(
@@ -283,7 +283,7 @@ class CoreAIScope(
         temperature = temperature,
         maxTokens = maxTokens
       )
-    return AIClient.createChatCompletion(request).choices.map { it.message.content }
+    return aiClient.createChatCompletion(request).choices.map { it.message.content }
   }
 
   private suspend fun callChatEndpointWithFunctionsSupport(
@@ -313,7 +313,7 @@ class CoreAIScope(
         functions = functions,
         functionCall = mapOf("name" to (firstFnName ?: ""))
       )
-    return AIClient.createChatCompletionWithFunctions(request).choices.map {
+    return aiClient.createChatCompletionWithFunctions(request).choices.map {
       it.message.functionCall
     }
   }
@@ -518,8 +518,6 @@ class CoreAIScope(
         size = size,
         user = user
       )
-    return AIClient.createImages(request)
+    return aiClient.createImages(request)
   }
-
-  override fun close() = AIClient.close()
 }

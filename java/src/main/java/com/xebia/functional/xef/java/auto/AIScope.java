@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 import com.xebia.functional.loom.LoomAdapter;
-import com.xebia.functional.xef.AIError;
 import com.xebia.functional.xef.auto.CoreAIScope;
 import com.xebia.functional.xef.embeddings.Embeddings;
 import com.xebia.functional.xef.embeddings.OpenAIEmbeddings;
@@ -27,33 +26,32 @@ import java.util.Collections;
 import java.util.List;
 
 public class AIScope implements AutoCloseable {
-    private CoreAIScope coreAIScope;
-    private ObjectMapper om;
-    private JsonSchemaGenerator schemaGen;
+    private final CoreAIScope scope;
+    private final ObjectMapper om;
+    private final JsonSchemaGenerator schemaGen;
+    private final KtorOpenAIClient client;
+    private final Embeddings embeddings;
+    private final VectorStore vectorStore;
 
-    public AIScope(CoreAIScope coreAIScope) {
-        this.coreAIScope = coreAIScope;
-        this.om = new ObjectMapper();
-        this.schemaGen = new JsonSchemaGenerator(om);
-    }
-
-    public AIScope(CoreAIScope coreAIScope, ObjectMapper om) {
-        this.coreAIScope = coreAIScope;
+    public AIScope(ObjectMapper om, OpenAIConfig config) {
         this.om = om;
         this.schemaGen = new JsonSchemaGenerator(om);
+        this.client = new KtorOpenAIClient(config);
+        this.embeddings = new OpenAIEmbeddings(config, client);
+        this.vectorStore = new LocalVectorStore(embeddings);
+        this.scope = new CoreAIScope(LLMModel.getGPT_3_5_TURBO(), LLMModel.getGPT_3_5_TURBO_FUNCTIONS(), client, vectorStore, embeddings, 3, "user", false, 0.4, 1, 20, 500);
     }
 
-    public static <T> T run(Function1<AIScope, T> block) {
-        OpenAIConfig config = new OpenAIConfig();
-        KtorOpenAIClient client = new KtorOpenAIClient(config);
-        try {
-            Embeddings embeddings = new OpenAIEmbeddings(config, client);
-            VectorStore vectorStore = new LocalVectorStore(embeddings);
-            CoreAIScope scope = new CoreAIScope(LLMModel.getGPT_3_5_TURBO(), LLMModel.getGPT_3_5_TURBO_FUNCTIONS(), client, vectorStore, embeddings, 3, "user", false, 0.4, 1, 20, 500);
-            return block.invoke(new AIScope(scope));
-        } finally {
-            client.close();
-        }
+    public AIScope(ObjectMapper om) {
+        this(om, new OpenAIConfig());
+    }
+
+    public AIScope(OpenAIConfig config) {
+        this(new ObjectMapper(), config);
+    }
+
+    public AIScope() {
+        this(new ObjectMapper(), new OpenAIConfig());
     }
 
     private <T> T undefined() {
@@ -61,12 +59,10 @@ public class AIScope implements AutoCloseable {
     }
 
     public <A> A prompt(String prompt, Class<A> cls) {
-        return prompt(prompt, cls, coreAIScope.getMaxDeserializationAttempts(), coreAIScope.getDefaultSerializationModel(), coreAIScope.getUser(), coreAIScope.getEcho(), coreAIScope.getNumberOfPredictions(), coreAIScope.getTemperature(), coreAIScope.getDocsInContext(), coreAIScope.getMinResponseTokens());
+        return prompt(prompt, cls, scope.getMaxDeserializationAttempts(), scope.getDefaultSerializationModel(), scope.getUser(), scope.getEcho(), scope.getNumberOfPredictions(), scope.getTemperature(), scope.getDocsInContext(), scope.getMinResponseTokens());
     }
 
     public <A> A prompt(String prompt, Class<A> cls, Integer maxAttempts, LLMModel llmModel, String user, Boolean echo, Integer n, Double temperature, Integer bringFromContext, Integer minResponseTokens) {
-        ObjectMapper om = new ObjectMapper();
-
         Function1<? super String, ? extends A> decoder = (json) -> {
             try {
                 return om.readValue(json, cls);
@@ -91,7 +87,7 @@ public class AIScope implements AutoCloseable {
         );
 
         try {
-            return LoomAdapter.apply((continuation) -> coreAIScope.<A>promptWithSerializer(prompt, functions, decoder, maxAttempts, llmModel, user, echo, n, temperature, bringFromContext, minResponseTokens, continuation));
+            return LoomAdapter.apply((continuation) -> scope.<A>promptWithSerializer(prompt, functions, decoder, maxAttempts, llmModel, user, echo, n, temperature, bringFromContext, minResponseTokens, continuation));
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -99,7 +95,7 @@ public class AIScope implements AutoCloseable {
 
     public List<String> promptMessage(String prompt, LLMModel llmModel, List<CFunction> functions, String user, Boolean echo, Integer n, Double temperature, Integer bringFromContext, Integer minResponseTokens) {
         try {
-            return LoomAdapter.apply((continuation) -> coreAIScope.promptMessage(prompt, llmModel, functions, user, echo, n, temperature, bringFromContext, minResponseTokens, continuation));
+            return LoomAdapter.apply((continuation) -> scope.promptMessage(prompt, llmModel, functions, user, echo, n, temperature, bringFromContext, minResponseTokens, continuation));
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -107,7 +103,7 @@ public class AIScope implements AutoCloseable {
 
     public <T> T contextScope(List<String> docs) {
         try {
-            return LoomAdapter.apply(continuation -> coreAIScope.contextScopeWithDocs(docs, undefined(), continuation));
+            return LoomAdapter.apply(continuation -> scope.contextScopeWithDocs(docs, undefined(), continuation));
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -131,7 +127,7 @@ public class AIScope implements AutoCloseable {
 
     public List<String> images(String prompt, String user, String size, Integer bringFromContext, Integer n) {
         try {
-            ImagesGenerationResponse response = LoomAdapter.apply(continuation -> coreAIScope.images(prompt, user, n, size, bringFromContext, continuation));
+            ImagesGenerationResponse response = LoomAdapter.apply(continuation -> scope.images(prompt, user, n, size, bringFromContext, continuation));
 
             return CollectionsKt.map(response.getData(), ImageGenerationUrl::getUrl);
         } catch (InterruptedException e) {
@@ -142,6 +138,6 @@ public class AIScope implements AutoCloseable {
 
     @Override
     public void close() {
-        coreAIScope.close();
+        client.close();
     }
 }

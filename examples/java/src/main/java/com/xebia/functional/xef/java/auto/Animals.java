@@ -21,7 +21,7 @@ public class Animals {
     }
 
     public static void main(String[] args) {
-        AIScope.run((scope) -> {
+        try (AIScope scope = new AIScope()) {
             Animal animal = scope.prompt("A unique animal species.", Animal.class);
             Invention invention = scope.prompt("A groundbreaking invention from the 20th century.", Invention.class);
             String storyPrompt =
@@ -30,7 +30,6 @@ public class Animals {
                             "2. A groundbreaking invention from the 20th century called " + invention.name + " , invented by " + invention.inventor + " in " + invention.year + ", which serves the purpose of " + invention.purpose + ".";
             Story story = scope.prompt(storyPrompt, Story.class);
             System.out.println("Story about " + animal.name + " and " + invention.name + ": " + story.story);
-            return null;
-        });
+        }
     }
 }
