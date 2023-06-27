@@ -490,7 +490,6 @@ class CoreAIScope(
    * @param numberImages number of images to generate.
    * @param size the size of the images to generate.
    */
-  @JvmName("imagesPrompt")
   suspend fun images(
     prompt: Prompt,
     user: String = "testing",

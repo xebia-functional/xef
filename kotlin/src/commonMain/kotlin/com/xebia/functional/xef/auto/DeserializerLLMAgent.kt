@@ -12,16 +12,15 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 
 /**
- * Run a [question] describes the task you want to solve within the context of [CoreAIScope].
- * Returns a value of [A] where [A] **has to be** annotated with
- * [kotlinx.serialization.Serializable].
+ * Run a [question] describes the task you want to solve within the context of [AIScope]. Returns a
+ * value of [A] where [A] **has to be** annotated with [kotlinx.serialization.Serializable].
  *
  * @throws SerializationException if serializer cannot be created (provided [A] or its type argument
  *   is not serializable).
  * @throws IllegalArgumentException if any of [A]'s type arguments contains star projection.
  */
 @AiDsl
-suspend inline fun <reified A> CoreAIScope.prompt(
+suspend inline fun <reified A> AIScope.prompt(
   question: String,
   json: Json = Json {
     ignoreUnknownKeys = true
@@ -48,15 +47,15 @@ suspend inline fun <reified A> CoreAIScope.prompt(
   )
 
 /**
- * Run a [prompt] describes the task you want to solve within the context of [CoreAIScope]. Returns
- * a value of [A] where [A] **has to be** annotated with [kotlinx.serialization.Serializable].
+ * Run a [prompt] describes the task you want to solve within the context of [AIScope]. Returns a
+ * value of [A] where [A] **has to be** annotated with [kotlinx.serialization.Serializable].
  *
  * @throws SerializationException if serializer cannot be created (provided [A] or its type argument
  *   is not serializable).
  * @throws IllegalArgumentException if any of [A]'s type arguments contains star projection.
  */
 @AiDsl
-suspend inline fun <reified A> CoreAIScope.prompt(
+suspend inline fun <reified A> AIScope.prompt(
   prompt: Prompt,
   json: Json = Json {
     ignoreUnknownKeys = true
@@ -84,7 +83,7 @@ suspend inline fun <reified A> CoreAIScope.prompt(
   )
 
 @AiDsl
-suspend fun <A> CoreAIScope.prompt(
+suspend fun <A> AIScope.prompt(
   prompt: Prompt,
   serializer: KSerializer<A>,
   json: Json = Json {
