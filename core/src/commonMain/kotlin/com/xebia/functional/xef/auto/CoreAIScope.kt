@@ -27,7 +27,7 @@ import kotlin.jvm.JvmName
 class CoreAIScope(
   val defaultModel: LLMModel,
   val defaultSerializationModel: LLMModel,
-  val aiClient: AIClient,
+  val AIClient: AIClient,
   val context: VectorStore,
   val embeddings: Embeddings,
   val maxDeserializationAttempts: Int = 3,
@@ -93,7 +93,7 @@ class CoreAIScope(
     CoreAIScope(
         defaultModel,
         defaultSerializationModel,
-        this@CoreAIScope.aiClient,
+        this@CoreAIScope.AIClient,
         CombinedVectorStore(store, this@CoreAIScope.context),
         this@CoreAIScope.embeddings,
       )
@@ -257,7 +257,7 @@ class CoreAIScope(
         temperature = temperature,
         maxTokens = maxTokens
       )
-    return aiClient.createCompletion(request).choices.map { it.text }
+    return AIClient.createCompletion(request).choices.map { it.text }
   }
 
   private suspend fun callChatEndpoint(
@@ -283,7 +283,7 @@ class CoreAIScope(
         temperature = temperature,
         maxTokens = maxTokens
       )
-    return aiClient.createChatCompletion(request).choices.map { it.message.content }
+    return AIClient.createChatCompletion(request).choices.map { it.message.content }
   }
 
   private suspend fun callChatEndpointWithFunctionsSupport(
@@ -313,7 +313,7 @@ class CoreAIScope(
         functions = functions,
         functionCall = mapOf("name" to (firstFnName ?: ""))
       )
-    return aiClient.createChatCompletionWithFunctions(request).choices.map {
+    return AIClient.createChatCompletionWithFunctions(request).choices.map {
       it.message.functionCall
     }
   }
@@ -517,6 +517,6 @@ class CoreAIScope(
         size = size,
         user = user
       )
-    return aiClient.createImages(request)
+    return AIClient.createImages(request)
   }
 }
