@@ -27,7 +27,7 @@ import kotlin.jvm.JvmName
 class CoreAIScope(
   val defaultModel: LLMModel,
   val defaultSerializationModel: LLMModel,
-  val AIClient: AIClient,
+  val aiClient: AIClient,
   val context: VectorStore,
   val embeddings: Embeddings,
   val maxDeserializationAttempts: Int = 3,
@@ -93,7 +93,7 @@ class CoreAIScope(
     CoreAIScope(
         defaultModel,
         defaultSerializationModel,
-        this@CoreAIScope.AIClient,
+        this@CoreAIScope.aiClient,
         CombinedVectorStore(store, this@CoreAIScope.context),
         this@CoreAIScope.embeddings,
       )
@@ -278,11 +278,11 @@ class CoreAIScope(
 
     return when (model.kind) {
       LLMModel.Kind.Completion ->
-        AIClient.createCompletion(buildCompletionRequest()).choices.map { it.text }
+        aiClient.createCompletion(buildCompletionRequest()).choices.map { it.text }
       LLMModel.Kind.Chat ->
-        AIClient.createChatCompletion(buildChatRequest()).choices.map { it.message.content }
+        aiClient.createChatCompletion(buildChatRequest()).choices.map { it.message.content }
       LLMModel.Kind.ChatWithFunctions ->
-        AIClient.createChatCompletionWithFunctions(chatWithFunctionsRequest()).choices.map {
+        aiClient.createChatCompletionWithFunctions(chatWithFunctionsRequest()).choices.map {
           it.message.functionCall.arguments
         }
     }
@@ -410,6 +410,6 @@ class CoreAIScope(
         size = size,
         user = user
       )
-    return AIClient.createImages(request)
+    return aiClient.createImages(request)
   }
 }
