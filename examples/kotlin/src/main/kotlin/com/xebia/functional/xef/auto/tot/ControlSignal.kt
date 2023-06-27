@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.auto.tot
 
-import com.xebia.functional.xef.auto.AIScope
+import com.xebia.functional.xef.auto.CoreAIScope
 import com.xebia.functional.xef.auto.prompt
 import kotlinx.serialization.Serializable
 
@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 data class ControlSignal(val value: String)
 
 // Function to generate the control signal based on the memory of previous results
-internal suspend fun <A> AIScope.controlSignal(memory: Memory<A>): ControlSignal {
+internal suspend fun <A> CoreAIScope.controlSignal(memory: Memory<A>): ControlSignal {
   println("🧠 Generating control signal for problem: ${truncateText(memory.problem.description)}...")
   val guidancePrompt = """|
     |You are an expert advisor on information extraction.

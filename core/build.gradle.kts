@@ -15,6 +15,7 @@ plugins {
   alias(libs.plugins.dokka)
   alias(libs.plugins.arrow.gradle.publish)
   alias(libs.plugins.semver.gradle)
+  //id("com.xebia.asfuture").version("0.0.1")
 }
 
 java {

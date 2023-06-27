@@ -8,7 +8,7 @@ import com.xebia.functional.tokenizer.truncateText
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.embeddings.Embeddings
 import com.xebia.functional.xef.llm.openai.*
-import com.xebia.functional.xef.llm.openai.functions.CFunction
+import com.xebia.functional.xef.llm.openai.CFunction
 import com.xebia.functional.xef.llm.openai.images.ImagesGenerationRequest
 import com.xebia.functional.xef.llm.openai.images.ImagesGenerationResponse
 import com.xebia.functional.xef.prompt.Prompt
@@ -36,9 +36,10 @@ class CoreAIScope(
   val temperature: Double = 0.4,
   val numberOfPredictions: Int = 1,
   val docsInContext: Int = 20,
-  val minResponseTokens: Int = 500,
-  val logger: KLogger = KotlinLogging.logger {},
+  val minResponseTokens: Int = 500
 ) {
+
+  val logger: KLogger = KotlinLogging.logger {}
 
   /**
    * Allows invoking [AI] values in the context of this [CoreAIScope].
@@ -139,12 +140,11 @@ class CoreAIScope(
     }
   }
 
-  suspend fun <A> CoreAIScope.tryDeserialize(
+  suspend fun <A> tryDeserialize(
     serializer: (json: String) -> A,
     maxDeserializationAttempts: Int,
     agent: AI<List<String>>
   ): A {
-    val logger = KotlinLogging.logger {}
     (0 until maxDeserializationAttempts).forEach { currentAttempts ->
       val result = agent().firstOrNull() ?: throw AIError.NoResponse()
       catch({

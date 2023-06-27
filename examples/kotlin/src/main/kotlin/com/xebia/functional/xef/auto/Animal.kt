@@ -18,7 +18,7 @@ suspend fun main() {
 
       val storyPrompt = """
           Write a short story of 500 words that involves the following elements:
-  
+
           1. A unique animal species called ${animal.name} that lives in ${animal.habitat} and has a diet of ${animal.diet}.
           2. A groundbreaking invention from the 20th century called ${invention.name}, invented by ${invention.inventor} in ${invention.year}, which serves the purpose of ${invention.purpose}.
       """.trimIndent()
