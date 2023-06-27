@@ -117,7 +117,7 @@ fun encodeJsonSchema(descriptor: SerialDescriptor): String =
   Json.encodeToString(JsonObject.serializer(), buildJsonSchema(descriptor))
 
 /** Creates a Json Schema using the provided [descriptor] */
-internal fun buildJsonSchema(descriptor: SerialDescriptor): JsonObject {
+private fun buildJsonSchema(descriptor: SerialDescriptor): JsonObject {
   val autoDefinitions = false
   val prepend = mapOf("\$schema" to JsonPrimitive("http://json-schema.org/draft-07/schema"))
   val definitions = JsonSchemaDefinitions(autoDefinitions)
