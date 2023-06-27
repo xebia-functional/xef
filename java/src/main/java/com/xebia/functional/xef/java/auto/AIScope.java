@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
-import com.xebia.functional.loom.LoomAdapter;
 import com.xebia.functional.xef.auto.CoreAIScope;
 import com.xebia.functional.xef.embeddings.Embeddings;
 import com.xebia.functional.xef.embeddings.OpenAIEmbeddings;
@@ -18,12 +17,17 @@ import com.xebia.functional.xef.textsplitters.TextSplitter;
 import com.xebia.functional.xef.vectorstores.LocalVectorStore;
 import com.xebia.functional.xef.vectorstores.VectorStore;
 import kotlin.collections.CollectionsKt;
+import kotlin.coroutines.CoroutineContext;
 import kotlin.jvm.functions.Function1;
 import com.xebia.functional.xef.pdf.PDFLoaderKt;
+import kotlinx.coroutines.*;
+import kotlinx.coroutines.future.FutureKt;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public class AIScope implements AutoCloseable {
     private final CoreAIScope scope;
@@ -32,6 +36,7 @@ public class AIScope implements AutoCloseable {
     private final KtorOpenAIClient client;
     private final Embeddings embeddings;
     private final VectorStore vectorStore;
+    private final CoroutineScope coroutineScope = () -> Dispatchers.getDefault().plus(JobKt.Job(null));
 
     public AIScope(ObjectMapper om, OpenAIConfig config) {
         this.om = om;
@@ -58,11 +63,11 @@ public class AIScope implements AutoCloseable {
         throw new RuntimeException("Method is undefined");
     }
 
-    public <A> A prompt(String prompt, Class<A> cls) {
+    public <A> CompletableFuture<A> prompt(String prompt, Class<A> cls) {
         return prompt(prompt, cls, scope.getMaxDeserializationAttempts(), scope.getDefaultSerializationModel(), scope.getUser(), scope.getEcho(), scope.getNumberOfPredictions(), scope.getTemperature(), scope.getDocsInContext(), scope.getMinResponseTokens());
     }
 
-    public <A> A prompt(String prompt, Class<A> cls, Integer maxAttempts, LLMModel llmModel, String user, Boolean echo, Integer n, Double temperature, Integer bringFromContext, Integer minResponseTokens) {
+    public <A> CompletableFuture<A> prompt(String prompt, Class<A> cls, Integer maxAttempts, LLMModel llmModel, String user, Boolean echo, Integer n, Double temperature, Integer bringFromContext, Integer minResponseTokens) {
         Function1<? super String, ? extends A> decoder = (json) -> {
             try {
                 return om.readValue(json, cls);
@@ -86,58 +91,63 @@ public class AIScope implements AutoCloseable {
                 new CFunction(cls.getSimpleName(), "Generated function for " + cls.getSimpleName(), schema)
         );
 
-        try {
-            return LoomAdapter.apply((continuation) -> scope.<A>promptWithSerializer(prompt, functions, decoder, maxAttempts, llmModel, user, echo, n, temperature, bringFromContext, minResponseTokens, continuation));
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        return FutureKt.future(
+                coroutineScope,
+                coroutineScope.getCoroutineContext(),
+                CoroutineStart.DEFAULT,
+                (coroutineScope, continuation) -> scope.promptWithSerializer(prompt, functions, decoder, maxAttempts, llmModel, user, echo, n, temperature, bringFromContext, minResponseTokens, continuation)
+        );
     }
 
-    public List<String> promptMessage(String prompt, LLMModel llmModel, List<CFunction> functions, String user, Boolean echo, Integer n, Double temperature, Integer bringFromContext, Integer minResponseTokens) {
-        try {
-            return LoomAdapter.apply((continuation) -> scope.promptMessage(prompt, llmModel, functions, user, echo, n, temperature, bringFromContext, minResponseTokens, continuation));
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+    public CompletableFuture<List<String>> promptMessage(String prompt, LLMModel llmModel, List<CFunction> functions, String user, Boolean echo, Integer n, Double temperature, Integer bringFromContext, Integer minResponseTokens) {
+        return FutureKt.future(
+                coroutineScope,
+                coroutineScope.getCoroutineContext(),
+                CoroutineStart.DEFAULT,
+                (coroutineScope, continuation) -> scope.promptMessage(prompt, llmModel, functions, user, echo, n, temperature, bringFromContext, minResponseTokens, continuation)
+        );
     }
 
-    public <T> T contextScope(List<String> docs) {
-        try {
-            return LoomAdapter.apply(continuation -> scope.contextScopeWithDocs(docs, undefined(), continuation));
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+    public <T> CompletableFuture<T> contextScope(List<String> docs) {
+        return FutureKt.future(
+                coroutineScope,
+                coroutineScope.getCoroutineContext(),
+                CoroutineStart.DEFAULT,
+                (coroutineScope, continuation) -> scope.contextScopeWithDocs(docs, undefined(), continuation)
+        );
     }
 
-    public List<String> pdf(String url, TextSplitter splitter) {
-        try {
-            return LoomAdapter.apply(continuation -> PDFLoaderKt.pdf(url, splitter, continuation));
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+    public CompletableFuture<List<String>> pdf(String url, TextSplitter splitter) {
+        return FutureKt.future(
+                coroutineScope,
+                coroutineScope.getCoroutineContext(),
+                CoroutineStart.DEFAULT,
+                (coroutineScope, continuation) -> PDFLoaderKt.pdf(url, splitter, continuation)
+        );
     }
 
-    public List<String> pdf(File file, TextSplitter splitter) {
-        try {
-            return LoomAdapter.apply(continuation -> PDFLoaderKt.pdf(file, splitter, continuation));
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+    public CompletableFuture<List<String>> pdf(File file, TextSplitter splitter) {
+        return FutureKt.future(
+                coroutineScope,
+                coroutineScope.getCoroutineContext(),
+                CoroutineStart.DEFAULT,
+                (coroutineScope, continuation) -> PDFLoaderKt.pdf(file, splitter, continuation)
+        );
     }
 
-    public List<String> images(String prompt, String user, String size, Integer bringFromContext, Integer n) {
-        try {
-            ImagesGenerationResponse response = LoomAdapter.apply(continuation -> scope.images(prompt, user, n, size, bringFromContext, continuation));
-
-            return CollectionsKt.map(response.getData(), ImageGenerationUrl::getUrl);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-
+    public CompletableFuture<List<String>> images(String prompt, String user, String size, Integer bringFromContext, Integer n) {
+        CompletableFuture<ImagesGenerationResponse> future = FutureKt.future(
+                coroutineScope,
+                coroutineScope.getCoroutineContext(),
+                CoroutineStart.DEFAULT,
+                (coroutineScope, continuation) -> scope.images(prompt, user, n, size, bringFromContext, continuation)
+        );
+        return future.thenApply((response) -> CollectionsKt.map(response.getData(), ImageGenerationUrl::getUrl));
     }
 
     @Override
     public void close() {
         client.close();
+        CoroutineScopeKt.cancel(coroutineScope, null);
     }
 }

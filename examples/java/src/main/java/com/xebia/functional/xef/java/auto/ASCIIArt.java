@@ -1,14 +1,17 @@
 package com.xebia.functional.xef.java.auto;
 
+import java.util.concurrent.ExecutionException;
+
 public class ASCIIArt {
     public static class Art {
         public String art;
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws ExecutionException, InterruptedException {
         try (AIScope scope = new AIScope()) {
-            Art art = scope.prompt("ASCII art of a cat dancing", Art.class);
-            System.out.println(art.art);
+            scope.prompt("ASCII art of a cat dancing", Art.class)
+                    .thenAccept((art) -> System.out.println(art.art))
+                    .get();
         }
     }
 }
