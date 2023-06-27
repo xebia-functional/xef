@@ -20,10 +20,11 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlin.jvm.JvmName
 
 /**
- * The [AIScope] is the context in which [AI] values are run. It encapsulates all the dependencies
- * required to run [AI] values, and provides convenient syntax for writing [AI] based programs.
+ * The [CoreAIScope] is the context in which [AI] values are run. It encapsulates all the
+ * dependencies required to run [AI] values, and provides convenient syntax for writing [AI] based
+ * programs.
  */
-class AIScope(
+class CoreAIScope(
   val defaultModel: LLMModel,
   val defaultSerializationModel: LLMModel,
   val AIClient: AIClient,
@@ -40,7 +41,7 @@ class AIScope(
 ) {
 
   /**
-   * Allows invoking [AI] values in the context of this [AIScope].
+   * Allows invoking [AI] values in the context of this [CoreAIScope].
    *
    * ```kotlin
    * data class CovidNews(val title: String, val content: String)
@@ -72,7 +73,7 @@ class AIScope(
    * }
    * ```
    */
-  @AiDsl @JvmName("invokeAI") suspend operator fun <A> AI<A>.invoke(): A = invoke(this@AIScope)
+  @AiDsl @JvmName("invokeAI") suspend operator fun <A> AI<A>.invoke(): A = invoke(this@CoreAIScope)
 
   @AiDsl
   suspend fun extendContext(vararg docs: String) {
@@ -88,12 +89,12 @@ class AIScope(
    */
   @AiDsl
   suspend fun <A> contextScope(store: VectorStore, block: AI<A>): A =
-    AIScope(
+    CoreAIScope(
         defaultModel,
         defaultSerializationModel,
-        this@AIScope.AIClient,
-        CombinedVectorStore(store, this@AIScope.context),
-        this@AIScope.embeddings,
+        this@CoreAIScope.AIClient,
+        CombinedVectorStore(store, this@CoreAIScope.context),
+        this@CoreAIScope.embeddings,
       )
       .block()
 
@@ -138,7 +139,7 @@ class AIScope(
     }
   }
 
-  suspend fun <A> AIScope.tryDeserialize(
+  suspend fun <A> CoreAIScope.tryDeserialize(
     serializer: (json: String) -> A,
     maxDeserializationAttempts: Int,
     agent: AI<List<String>>
@@ -466,7 +467,7 @@ class AIScope(
     } + 3
 
   /**
-   * Run a [prompt] describes the images you want to generate within the context of [AIScope].
+   * Run a [prompt] describes the images you want to generate within the context of [CoreAIScope].
    * Returns a [ImagesGenerationResponse] containing time and urls with images generated.
    *
    * @param prompt a [Prompt] describing the images you want to generate.
@@ -482,7 +483,7 @@ class AIScope(
   ): ImagesGenerationResponse = images(Prompt(prompt), user, numberImages, size, bringFromContext)
 
   /**
-   * Run a [prompt] describes the images you want to generate within the context of [AIScope].
+   * Run a [prompt] describes the images you want to generate within the context of [CoreAIScope].
    * Returns a [ImagesGenerationResponse] containing time and urls with images generated.
    *
    * @param prompt a [Prompt] describing the images you want to generate.
