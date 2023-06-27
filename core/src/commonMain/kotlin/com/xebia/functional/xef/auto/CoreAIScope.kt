@@ -8,7 +8,7 @@ import com.xebia.functional.tokenizer.truncateText
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.embeddings.Embeddings
 import com.xebia.functional.xef.llm.openai.*
-import com.xebia.functional.xef.llm.openai.functions.CFunction
+import com.xebia.functional.xef.llm.openai.CFunction
 import com.xebia.functional.xef.llm.openai.images.ImagesGenerationRequest
 import com.xebia.functional.xef.llm.openai.images.ImagesGenerationResponse
 import com.xebia.functional.xef.prompt.Prompt

@@ -3,7 +3,7 @@ package com.xebia.functional.xef.scala.auto
 import com.xebia.functional.loom.LoomAdapter
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.llm.openai.LLMModel
-import com.xebia.functional.xef.llm.openai.functions.CFunction
+import com.xebia.functional.xef.llm.openai.CFunction
 import io.circe.Decoder
 import io.circe.parser.parse
 import com.xebia.functional.xef.auto.AIKt

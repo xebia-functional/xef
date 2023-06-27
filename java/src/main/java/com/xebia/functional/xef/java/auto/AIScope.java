@@ -11,7 +11,7 @@ import com.xebia.functional.xef.embeddings.OpenAIEmbeddings;
 import com.xebia.functional.xef.env.OpenAIConfig;
 import com.xebia.functional.xef.llm.openai.KtorOpenAIClient;
 import com.xebia.functional.xef.llm.openai.LLMModel;
-import com.xebia.functional.xef.llm.openai.functions.CFunction;
+import com.xebia.functional.xef.llm.openai.CFunction;
 import com.xebia.functional.xef.llm.openai.images.ImageGenerationUrl;
 import com.xebia.functional.xef.llm.openai.images.ImagesGenerationResponse;
 import com.xebia.functional.xef.textsplitters.TextSplitter;

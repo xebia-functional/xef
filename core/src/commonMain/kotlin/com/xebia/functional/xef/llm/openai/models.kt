@@ -1,7 +1,6 @@
 package com.xebia.functional.xef.llm.openai
 
 import com.xebia.functional.tokenizer.ModelType
-import com.xebia.functional.xef.llm.openai.functions.CFunction
 import kotlin.jvm.JvmInline
 import kotlin.jvm.JvmStatic
 import kotlinx.serialization.ExperimentalSerializationApi
