@@ -18,12 +18,12 @@ val config = JdbcConfig(
 )
 
 suspend fun main() = ai {
-  SQL.fromJdbcConfig(config) {
+  SQL.fromJdbcConfig(this, config).use { sql ->
     println("llmdb> Welcome to the LLMDB (An LLM interface to your SQL Database) !")
     println("llmdb> You can ask me questions about the database and I will try to answer them.")
     println("llmdb> You can type `exit` to exit the program.")
     println("llmdb> Loading recommended prompts...")
-    val interestingPrompts = getInterestingPromptsForDatabase()
+    val interestingPrompts = sql.getInterestingPromptsForDatabase()
     interestingPrompts.forEach {
       println("llmdb> ${it}")
     }
@@ -33,17 +33,19 @@ suspend fun main() = ai {
       val input = readln()
       if (input == "exit") break
       catch({
-        extendContext(*promptQuery(input).toTypedArray())
-        val result = promptMessage("""|
-          |You are a database assistant that helps users to query and summarize results from the database.
-          |Instructions:
-          |1. Summarize the information provided in the `Context` and follow to step 2.
-          |2. If the information relates to the `input` then answer the question otherwise return just the summary.
-          |```input
-          |$input
-          |```
-          |3. Try to answer and provide information with as much detail as you can
-        """.trimMargin(), bringFromContext = 200)
+        extendContext(*sql.promptQuery(input).toTypedArray())
+        val result = promptMessage(
+          """|
+      |You are a database assistant that helps users to query and summarize results from the database.
+      |Instructions:
+      |1. Summarize the information provided in the `Context` and follow to step 2.
+      |2. If the information relates to the `input` then answer the question otherwise return just the summary.
+      |```input
+      |$input
+      |```
+      |3. Try to answer and provide information with as much detail as you can
+    """.trimMargin(), bringFromContext = 200
+        )
         result.forEach {
           println("llmdb> ${it}")
         }

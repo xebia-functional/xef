@@ -10,13 +10,14 @@ import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.post
 import io.ktor.http.path
 import io.ktor.serialization.kotlinx.json.json
+import io.ktor.utils.io.core.Closeable
 
 interface HuggingFaceClient {
   suspend fun generate(request: InferenceRequest, model: Model): List<Generation>
 }
 
 class KtorHuggingFaceClient(private val config: HuggingFaceConfig) :
-  HuggingFaceClient, AutoCloseable {
+  HuggingFaceClient, Closeable {
 
   private val httpClient: HttpClient = HttpClient {
     install(HttpTimeout)

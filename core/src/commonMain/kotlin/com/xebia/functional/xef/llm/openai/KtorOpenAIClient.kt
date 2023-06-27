@@ -16,8 +16,7 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.Serializable
 
-@OptIn(ExperimentalStdlibApi::class)
-class KtorOpenAIClient(private val config: OpenAIConfig) : AIClient, AutoCloseable {
+class KtorOpenAIClient(private val config: OpenAIConfig) : AIClient, Closeable {
 
   private val httpClient: HttpClient = HttpClient {
     install(HttpTimeout)

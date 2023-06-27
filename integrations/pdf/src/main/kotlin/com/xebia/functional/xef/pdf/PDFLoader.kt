@@ -35,7 +35,7 @@ suspend fun pdf(
   return loader.loadAndSplit(splitter)
 }
 
-class PDFLoader(private val file: File) : BaseLoader {
+private class PDFLoader(private val file: File) : BaseLoader {
   override suspend fun load(): List<String> {
     val doc = PDDocument.load(file)
     return doc.use {

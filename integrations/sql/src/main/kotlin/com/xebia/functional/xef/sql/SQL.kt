@@ -5,6 +5,7 @@ import com.xebia.functional.xef.auto.AiDsl
 import com.xebia.functional.xef.sql.jdbc.JdbcConfig
 import com.xebia.functional.xef.textsplitters.TokenTextSplitter
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.utils.io.core.*
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.ResultSet
@@ -12,48 +13,51 @@ import java.util.Properties
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-interface SQL {
+interface SQL : Closeable {
 
   companion object {
-    suspend fun <A> fromJdbcConfig(config: JdbcConfig, block: suspend SQL.() -> A): A = JDBCSQLImpl(config).use {
-      block(it)
-    }
+    @JvmStatic
+    fun fromJdbcConfig(
+      scope: CoreAIScope,
+      config: JdbcConfig
+    ): SQL = JDBCSQLImpl(config, scope)
   }
 
   /**
    * Generates SQL from the DDL and input prompt
    */
   @AiDsl
-  suspend fun CoreAIScope.sql(ddl: String, input: String): List<String>
+  suspend fun sql(ddl: String, input: String): List<String>
 
   /**
    * Chooses a subset of tables from the list of [tableNames] based on the [prompt]
    */
   @AiDsl
-  suspend fun CoreAIScope.selectTablesForPrompt(tableNames: String, prompt: String): List<String>
+  suspend fun selectTablesForPrompt(tableNames: String, prompt: String): List<String>
 
   /**
    * Returns a list of documents found in the database for the given [prompt]
    */
   @AiDsl
-  suspend fun CoreAIScope.promptQuery(prompt: String): List<String>
+  suspend fun promptQuery(prompt: String): List<String>
 
   /**
    * Returns a recommendation of prompts that are interesting for the database
    * based on the internal ddl schema
    */
   @AiDsl
-  suspend fun CoreAIScope.getInterestingPromptsForDatabase(): List<String>
+  suspend fun getInterestingPromptsForDatabase(): List<String>
 
 }
 
 private class JDBCSQLImpl(
-  private val config: JdbcConfig
+  private val config: JdbcConfig,
+  private val scope: CoreAIScope
 ) : SQL, Connection by jdbcConnection(config) {
 
   val logger = KotlinLogging.logger {}
 
-  override suspend fun CoreAIScope.promptQuery(
+  override suspend fun promptQuery(
     prompt: String,
   ): List<String> {
     val tableNames = getTableNames().joinToString("\n")
@@ -66,9 +70,9 @@ private class JDBCSQLImpl(
     return documentsForQuery(prompt, sql)
   }
 
-  override suspend fun CoreAIScope.selectTablesForPrompt(
+  override suspend fun selectTablesForPrompt(
     tableNames: String, prompt: String
-  ): List<String> = promptMessage(
+  ): List<String> = scope.promptMessage(
     """|You are an AI assistant which selects the best tables from which the `goal` can be accomplished.
      |Select from this list of SQL `tables` the tables that you may need to solve the following `goal`
      |```tables
@@ -101,7 +105,7 @@ private class JDBCSQLImpl(
     }
   }
 
-  override suspend fun CoreAIScope.sql(ddl: String, input: String): List<String> = promptMessage(
+  override suspend fun sql(ddl: String, input: String): List<String> = scope.promptMessage(
     """|
        |You are an AI assistant which produces SQL SELECT queries in SQL format.
        |You only reply in valid SQL SELECT queries.
@@ -126,7 +130,7 @@ private class JDBCSQLImpl(
     """.trimMargin()
   )
 
-  override suspend fun CoreAIScope.getInterestingPromptsForDatabase(): List<String> = promptMessage(
+  override suspend fun getInterestingPromptsForDatabase(): List<String> = scope.promptMessage(
     """|You are an AI assistant which replies with a list of the best prompts based on the content of this database:
        |Instructions:
        |1. Select from this `ddl` 3 top prompts that the user could ask about this database
