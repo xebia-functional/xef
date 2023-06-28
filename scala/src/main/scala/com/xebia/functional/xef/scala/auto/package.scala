@@ -9,7 +9,7 @@ import io.circe.Decoder
 import io.circe.parser.parse
 import com.xebia.functional.xef.auto.AIKt
 import com.xebia.functional.xef.auto.AIRuntime
-import com.xebia.functional.xef.auto.serialization.functions.FunctionSchemaKt
+import com.xebia.functional.xef.auto.serialization.JsonSchemaKt
 import com.xebia.functional.xef.pdf.PDFLoaderKt
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.llm.openai._
@@ -55,7 +55,7 @@ def prompt[A: Decoder: SerialDescriptor](
   LoomAdapter.apply((cont) =>
     scope.kt.promptWithSerializer[A](
       prompt,
-      FunctionSchemaKt.encodeFunctionSchema(SerialDescriptor[A].serialDescriptor),
+      generateCFunctions.asJava,
       (json: String) => parse(json).flatMap(Decoder[A].decodeJson(_)).fold(throw _, identity),
       maxAttempts,
       llmModel,
@@ -68,6 +68,12 @@ def prompt[A: Decoder: SerialDescriptor](
       cont
     )
   )
+
+private def generateCFunctions[A: SerialDescriptor]: List[CFunction] =
+  val descriptor = SerialDescriptor[A].serialDescriptor
+  val serialName = descriptor.getSerialName
+  val fnName = serialName.substring(serialName.lastIndexOf("."), serialName.length)
+  List(CFunction(fnName, "Generated function for $fnName", JsonSchemaKt.encodeJsonSchema(descriptor)))
 
 def contextScope[A: Decoder: SerialDescriptor](docs: List[String])(block: AI[A])(using scope: AIScope): A =
   LoomAdapter.apply(scope.kt.contextScopeWithDocs[A](docs.asJava, (_, _) => block, _))
@@ -101,15 +107,10 @@ def pdf(
 
 def images(
     prompt: String,
-    maxAttempts: Int = 5,
     user: String = "testing",
     size: String = "1024x1024",
     bringFromContext: Int = 10,
-    llmModel: LLM.Chat = LLMModel.getGPT_3_5_TURBO,
-    echo: Boolean = false,
-    n: Int = 1,
-    temperature: Double = 0.0,
-    minResponseTokens: Int = 500
+    n: Int = 1
 )(using scope: AIScope): List[String] =
   LoomAdapter
     .apply[ImagesGenerationResponse](cont =>

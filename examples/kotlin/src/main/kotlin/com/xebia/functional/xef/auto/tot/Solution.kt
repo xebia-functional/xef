@@ -1,8 +1,6 @@
 package com.xebia.functional.xef.auto.tot
 
-import arrow.fx.coroutines.parMap
-import com.xebia.functional.xef.agents.search
-import com.xebia.functional.xef.auto.AIScope
+import com.xebia.functional.xef.auto.CoreAIScope
 import com.xebia.functional.xef.auto.prompt
 import com.xebia.functional.xef.prompt.Prompt
 import kotlinx.serialization.KSerializer
@@ -12,7 +10,7 @@ import kotlinx.serialization.Serializable
 data class Solution<out A>(val answer: String, val isValid: Boolean, val reasoning: String, val value: A? = null)
 
 // Function to prompt the AI for a solution
-internal suspend fun <A> AIScope.solution(
+internal suspend fun <A> CoreAIScope.solution(
   serializer: KSerializer<Solution<A>>,
   memory: Memory<A>,
   controlSignal: ControlSignal

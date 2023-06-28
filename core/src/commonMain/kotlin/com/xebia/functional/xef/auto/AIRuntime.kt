@@ -26,10 +26,10 @@ data class AIRuntime<A>(val runtime: suspend (block: AI<A>) -> A) {
         val embeddings = OpenAIEmbeddings(openAiClient)
         val vectorStore = LocalVectorStore(embeddings)
         val scope =
-          AIScope(
+          CoreAIScope(
             defaultModel = LLMModel.GPT_3_5_TURBO_16K,
             defaultSerializationModel = LLMModel.GPT_3_5_TURBO_FUNCTIONS,
-            AIClient = openAiClient,
+            aiClient = openAiClient,
             context = vectorStore,
             embeddings = embeddings
           )

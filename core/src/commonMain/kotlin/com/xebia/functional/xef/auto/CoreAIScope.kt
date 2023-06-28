@@ -28,13 +28,14 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlin.jvm.JvmName
 
 /**
- * The [AIScope] is the context in which [AI] values are run. It encapsulates all the dependencies
- * required to run [AI] values, and provides convenient syntax for writing [AI] based programs.
+ * The [CoreAIScope] is the context in which [AI] values are run. It encapsulates all the
+ * dependencies required to run [AI] values, and provides convenient syntax for writing [AI] based
+ * programs.
  */
-class AIScope(
+class CoreAIScope(
   val defaultModel: LLM.Chat,
-  val defaultSerializationModel: LLM.ChatWithFunctions,
-  val AIClient: AIClient,
+  val defaultSerializationModel: LLMModel,
+  val aiClient: AIClient,
   val context: VectorStore,
   val embeddings: Embeddings,
   val maxDeserializationAttempts: Int = 3,
@@ -43,12 +44,13 @@ class AIScope(
   val temperature: Double = 0.4,
   val numberOfPredictions: Int = 1,
   val docsInContext: Int = 20,
-  val minResponseTokens: Int = 500,
-  val logger: KLogger = KotlinLogging.logger {},
+  val minResponseTokens: Int = 500
 ) {
 
+  val logger: KLogger = KotlinLogging.logger {}
+
   /**
-   * Allows invoking [AI] values in the context of this [AIScope].
+   * Allows invoking [AI] values in the context of this [CoreAIScope].
    *
    * ```kotlin
    * data class CovidNews(val title: String, val content: String)
@@ -80,7 +82,7 @@ class AIScope(
    * }
    * ```
    */
-  @AiDsl @JvmName("invokeAI") suspend operator fun <A> AI<A>.invoke(): A = invoke(this@AIScope)
+  @AiDsl @JvmName("invokeAI") suspend operator fun <A> AI<A>.invoke(): A = invoke(this@CoreAIScope)
 
   @AiDsl
   suspend fun extendContext(vararg docs: String) {
@@ -96,12 +98,12 @@ class AIScope(
    */
   @AiDsl
   suspend fun <A> contextScope(store: VectorStore, block: AI<A>): A =
-    AIScope(
+    CoreAIScope(
         defaultModel,
         defaultSerializationModel,
-        this@AIScope.AIClient,
-        CombinedVectorStore(store, this@AIScope.context),
-        this@AIScope.embeddings,
+        this@CoreAIScope.aiClient,
+        CombinedVectorStore(store, this@CoreAIScope.context),
+        this@CoreAIScope.embeddings,
       )
       .block()
 
@@ -146,12 +148,11 @@ class AIScope(
     }
   }
 
-  suspend fun <A> AIScope.tryDeserialize(
+  suspend fun <A> tryDeserialize(
     serializer: (json: String) -> A,
     maxDeserializationAttempts: Int,
     agent: AI<List<String>>
   ): A {
-    val logger = KotlinLogging.logger {}
     (0 until maxDeserializationAttempts).forEach { currentAttempts ->
       val result = agent().firstOrNull() ?: throw AIError.NoResponse()
       catch({
@@ -202,131 +203,97 @@ class AIScope(
     bringFromContext: Int = this.docsInContext,
     minResponseTokens: Int
   ): List<String> {
-    return when (model) {
-      is LLM.ChatWithFunctions ->
-        callChatEndpointWithFunctionsSupport(
-            prompt.message,
-            model,
-            functions,
-            user,
-            numberOfPredictions,
-            temperature,
-            bringFromContext,
-            minResponseTokens
-          )
-          .mapNotNull { it.arguments }
-      else ->
-        callChatEndpoint(
-          prompt.message,
-          model,
-          user,
-          numberOfPredictions,
-          temperature,
-          bringFromContext,
-          minResponseTokens
-        )
-    }
-  }
 
-  private suspend fun callCompletionEndpoint(
-    prompt: String,
-    model: LLMModel,
-    user: String,
-    echo: Boolean,
-    n: Int,
-    temperature: Double,
-    bringFromContext: Int,
-    minResponseTokens: Int
-  ): List<String> {
     val promptWithContext: String =
-      promptWithContext(prompt, bringFromContext, model.modelType, minResponseTokens)
+      createPromptWithContextAwareOfTokens(
+        ctxInfo = context.similaritySearch(prompt.message, bringFromContext),
+        modelType = model.modelType,
+        prompt = prompt.message,
+        minResponseTokens = minResponseTokens
+      )
 
-    val maxTokens: Int = checkTotalLeftTokens(model.modelType, "", promptWithContext)
+    fun checkTotalLeftTokens(role: String): Int =
+      with(model.modelType) {
+        val roleTokens: Int = encoding.countTokens(role)
+        val padding = 20 // reserve 20 tokens for additional symbols around the context
+        val promptTokens: Int = encoding.countTokens(promptWithContext)
+        val takenTokens: Int = roleTokens + promptTokens + padding
+        val totalLeftTokens: Int = maxContextLength - takenTokens
+        if (totalLeftTokens < 0) {
+          throw AIError.PromptExceedsMaxTokenLength(
+            promptWithContext,
+            takenTokens,
+            maxContextLength
+          )
+        }
+        logger.debug {
+          "Tokens -- used: $takenTokens, model max: $maxContextLength, left: $totalLeftTokens"
+        }
+        totalLeftTokens
+      }
 
-    val request =
+    suspend fun buildCompletionRequest(): CompletionRequest =
       CompletionRequest(
         model = model.name,
         user = user,
         prompt = promptWithContext,
         echo = echo,
-        n = n,
+        n = numberOfPredictions,
         temperature = temperature,
-        maxTokens = maxTokens
+        maxTokens = checkTotalLeftTokens("")
       )
-    return AIClient.createCompletion(request).choices.map { it.text }
-  }
 
-  private suspend fun callChatEndpoint(
-    prompt: String,
-    model: LLM.Chat,
-    user: String,
-    n: Int,
-    temperature: Double,
-    bringFromContext: Int,
-    minResponseTokens: Int
-  ): List<String> {
-    val role: String = Role.system.name
-    val promptWithContext: String =
-      promptWithContext(prompt, bringFromContext, model.modelType, minResponseTokens)
-    val messages: List<Message> = listOf(Message(role, promptWithContext))
-    val maxTokens: Int = checkTotalLeftChatTokens(messages, model)
-    val request =
-      ChatCompletionRequest(
+    fun checkTotalLeftChatTokens(messages: List<Message>): Int {
+      val maxContextLength: Int = model.modelType.maxContextLength
+      val messagesTokens: Int = tokensFromMessages(messages, model)
+      val totalLeftTokens: Int = maxContextLength - messagesTokens
+      if (totalLeftTokens < 0) {
+        throw AIError.MessagesExceedMaxTokenLength(messages, messagesTokens, maxContextLength)
+      }
+      logger.debug {
+        "Tokens -- used: $messagesTokens, model max: $maxContextLength, left: $totalLeftTokens"
+      }
+      return totalLeftTokens
+    }
+
+    suspend fun buildChatRequest(): ChatCompletionRequest {
+      val messages: List<Message> = listOf(Message(Role.system.name, promptWithContext))
+      return ChatCompletionRequest(
         model = model.name,
         user = user,
         messages = messages,
-        n = n,
+        n = numberOfPredictions,
         temperature = temperature,
-        maxTokens = maxTokens
+        maxTokens = checkTotalLeftChatTokens(messages)
       )
-    return AIClient.createChatCompletion(request).choices.mapNotNull { it.message?.content }
-  }
+    }
 
-  private suspend fun callChatEndpointWithFunctionsSupport(
-    prompt: String,
-    model: LLM.ChatWithFunctions,
-    functions: List<CFunction>,
-    user: String,
-    n: Int,
-    temperature: Double,
-    bringFromContext: Int,
-    minResponseTokens: Int
-  ): List<FunctionCall> {
-    val role: String = Role.user.name
-    val firstFnName: String? = functions.firstOrNull()?.name
-    val promptWithContext: String =
-      promptWithContext(prompt, bringFromContext, model.modelType, minResponseTokens)
-    val messages: List<Message> = listOf(Message(role, promptWithContext))
-    val maxTokens: Int = checkTotalLeftChatTokens(messages, model)
-    val request =
-      ChatCompletionRequestWithFunctions(
+    suspend fun chatWithFunctionsRequest(): ChatCompletionRequestWithFunctions {
+      val role: String = Role.user.name
+      val firstFnName: String? = functions.firstOrNull()?.name
+      val messages: List<Message> = listOf(Message(role, promptWithContext))
+      return ChatCompletionRequestWithFunctions(
         model = model.name,
         user = user,
         messages = messages,
-        n = n,
+        n = numberOfPredictions,
         temperature = temperature,
-        maxTokens = maxTokens,
+        maxTokens = checkTotalLeftChatTokens(messages),
         functions = functions,
         functionCall = mapOf("name" to (firstFnName ?: ""))
       )
-    return AIClient.createChatCompletionWithFunctions(request).choices.mapNotNull {
-      it.message?.functionCall
     }
-  }
 
-  private suspend fun promptWithContext(
-    prompt: String,
-    bringFromContext: Int,
-    modelType: ModelType,
-    minResponseTokens: Int
-  ): String {
-    val ctxInfo: List<String> = context.similaritySearch(prompt, bringFromContext)
-    return createPromptWithContextAwareOfTokens(
-      ctxInfo = ctxInfo,
-      modelType = modelType,
-      prompt = prompt,
-      minResponseTokens = minResponseTokens
-    )
+    return when (model.kind) {
+      LLMModel.Kind.Completion ->
+        aiClient.createCompletion(buildCompletionRequest()).choices.map { it.text }
+      LLMModel.Kind.Chat ->
+        aiClient.createChatCompletion(buildChatRequest()).choices.map { it.message.content }
+      LLMModel.Kind.ChatWithFunctions ->
+        aiClient.createChatCompletionWithFunctions(chatWithFunctionsRequest()).choices.map {
+          it.message.functionCall.arguments
+        }
+    }
   }
 
   private fun createPromptWithContextAwareOfTokens(
@@ -364,106 +331,44 @@ class AIScope(
     } else prompt
   }
 
-  private fun checkTotalLeftTokens(
-    modelType: ModelType,
-    role: String,
-    promptWithContext: String
-  ): Int =
-    with(modelType) {
-      val roleTokens: Int = encoding.countTokens(role)
-      val padding = 20 // reserve 20 tokens for additional symbols around the context
-      val promptTokens: Int = encoding.countTokens(promptWithContext)
-      val takenTokens: Int = roleTokens + promptTokens + padding
-      val totalLeftTokens: Int = maxContextLength - takenTokens
-      if (totalLeftTokens < 0) {
-        throw AIError.PromptExceedsMaxTokenLength(promptWithContext, takenTokens, maxContextLength)
-      }
+  private fun tokensFromMessages(messages: List<Message>, model: LLMModel): Int {
+    fun Encoding.countTokensFromMessages(tokensPerMessage: Int, tokensPerName: Int): Int =
+      messages.sumOf { message ->
+        countTokens(message.role) +
+          countTokens(message.content) +
+          tokensPerMessage +
+          (message.name?.let { tokensPerName } ?: 0)
+      } + 3
+
+    fun fallBackTo(fallbackModel: LLMModel, paddingTokens: Int): Int {
       logger.debug {
-        "Tokens -- used: $takenTokens, model max: $maxContextLength, left: $totalLeftTokens"
+        "Warning: ${model.name} may change over time. " +
+          "Returning messages num tokens assuming ${fallbackModel.name} + $paddingTokens padding tokens."
       }
-      totalLeftTokens
+      return tokensFromMessages(messages, fallbackModel) + paddingTokens
     }
 
-  private fun checkTotalLeftChatTokens(messages: List<Message>, model: LLM.Chat): Int {
-    val maxContextLength: Int = model.modelType.maxContextLength
-    val messagesTokens: Int = tokensFromMessages(messages, model)
-    val totalLeftTokens: Int = maxContextLength - messagesTokens
-    if (totalLeftTokens < 0) {
-      throw AIError.MessagesExceedMaxTokenLength(messages, messagesTokens, maxContextLength)
+    return when (model) {
+      LLMModel.GPT_3_5_TURBO_FUNCTIONS ->
+        // paddingToken = 200: reserved for functions
+        fallBackTo(fallbackModel = LLMModel.GPT_3_5_TURBO_0301, paddingTokens = 200)
+      LLMModel.GPT_3_5_TURBO ->
+        // otherwise if the model changes, it might later fail
+        fallBackTo(fallbackModel = LLMModel.GPT_3_5_TURBO_0301, paddingTokens = 5)
+      LLMModel.GPT_4,
+      LLMModel.GPT_4_32K ->
+        // otherwise if the model changes, it might later fail
+        fallBackTo(fallbackModel = LLMModel.GPT_4_0314, paddingTokens = 5)
+      LLMModel.GPT_3_5_TURBO_0301 ->
+        model.modelType.encoding.countTokensFromMessages(tokensPerMessage = 4, tokensPerName = 0)
+      LLMModel.GPT_4_0314 ->
+        model.modelType.encoding.countTokensFromMessages(tokensPerMessage = 3, tokensPerName = 2)
+      else -> fallBackTo(fallbackModel = LLMModel.GPT_3_5_TURBO_0301, paddingTokens = 20)
     }
-    logger.debug {
-      "Tokens -- used: $messagesTokens, model max: $maxContextLength, left: $totalLeftTokens"
-    }
-    return totalLeftTokens
   }
 
-  private fun tokensFromMessages(messages: List<Message>, model: LLM.Chat): Int =
-    when (model) {
-      LLMModel.GPT_3_5_TURBO_FUNCTIONS -> {
-        val paddingTokens = 200 // reserved for functions
-        val fallbackModel: LLM.Chat = LLMModel.GPT_3_5_TURBO_0301
-        logger.debug {
-          "Warning: ${model.name} may change over time. " +
-            "Returning messages num tokens assuming ${fallbackModel.name} + $paddingTokens padding tokens."
-        }
-        tokensFromMessages(messages, fallbackModel) + paddingTokens
-      }
-      LLMModel.GPT_3_5_TURBO -> {
-        val paddingTokens = 5 // otherwise if the model changes, it might later fail
-        val fallbackModel: LLM.Chat = LLMModel.GPT_3_5_TURBO_0301
-        logger.debug {
-          "Warning: ${model.name} may change over time. " +
-            "Returning messages num tokens assuming ${fallbackModel.name} + $paddingTokens padding tokens."
-        }
-        tokensFromMessages(messages, fallbackModel) + paddingTokens
-      }
-      LLMModel.GPT_4,
-      LLMModel.GPT_4_32K -> {
-        val paddingTokens = 5 // otherwise if the model changes, it might later fail
-        val fallbackModel: LLM.Chat = LLMModel.GPT_4_0314
-        logger.debug {
-          "Warning: ${model.name} may change over time. " +
-            "Returning messages num tokens assuming ${fallbackModel.name} + $paddingTokens padding tokens."
-        }
-        tokensFromMessages(messages, fallbackModel) + paddingTokens
-      }
-      LLMModel.GPT_3_5_TURBO_0301 ->
-        model.modelType.encoding.countTokensFromMessages(
-          messages,
-          tokensPerMessage = 4,
-          tokensPerName = 0
-        )
-      LLMModel.GPT_4_0314 ->
-        model.modelType.encoding.countTokensFromMessages(
-          messages,
-          tokensPerMessage = 3,
-          tokensPerName = 2
-        )
-      else -> {
-        val paddingTokens = 20
-        val fallbackModel: LLM.Chat = LLMModel.GPT_3_5_TURBO_0301
-        logger.debug {
-          "Warning: calculation of tokens is partially supported for ${model.name} . " +
-            "Returning messages num tokens assuming ${fallbackModel.name} + $paddingTokens padding tokens."
-        }
-        tokensFromMessages(messages, fallbackModel) + paddingTokens
-      }
-    }
-
-  private fun Encoding.countTokensFromMessages(
-    messages: List<Message>,
-    tokensPerMessage: Int,
-    tokensPerName: Int
-  ): Int =
-    messages.sumOf { message ->
-      countTokens(message.role) +
-        countTokens(message.content ?: "") +
-        tokensPerMessage +
-        (message.name?.let { tokensPerName } ?: 0)
-    } + 3
-
   /**
-   * Run a [prompt] describes the images you want to generate within the context of [AIScope].
+   * Run a [prompt] describes the images you want to generate within the context of [CoreAIScope].
    * Returns a [ImagesGenerationResponse] containing time and urls with images generated.
    *
    * @param prompt a [Prompt] describing the images you want to generate.
@@ -479,7 +384,7 @@ class AIScope(
   ): ImagesGenerationResponse = images(Prompt(prompt), user, numberImages, size, bringFromContext)
 
   /**
-   * Run a [prompt] describes the images you want to generate within the context of [AIScope].
+   * Run a [prompt] describes the images you want to generate within the context of [CoreAIScope].
    * Returns a [ImagesGenerationResponse] containing time and urls with images generated.
    *
    * @param prompt a [Prompt] describing the images you want to generate.
@@ -513,6 +418,6 @@ class AIScope(
         size = size,
         user = user
       )
-    return AIClient.createImages(request)
+    return aiClient.createImages(request)
   }
 }
