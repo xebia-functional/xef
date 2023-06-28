@@ -23,6 +23,4 @@ Check out some use case at the [Java examples](../examples/java) folder.
 
 How to run the examples (from IntelliJ IDEA):
 
-* Set Java version 19
-* Set VM options: "--enable-preview"
 * Set Env variable: "OPENAI_TOKEN=xxx"
