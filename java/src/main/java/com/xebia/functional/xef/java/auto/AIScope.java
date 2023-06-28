@@ -17,10 +17,13 @@ import com.xebia.functional.xef.textsplitters.TextSplitter;
 import com.xebia.functional.xef.vectorstores.LocalVectorStore;
 import com.xebia.functional.xef.vectorstores.VectorStore;
 import kotlin.collections.CollectionsKt;
-import kotlin.coroutines.CoroutineContext;
 import kotlin.jvm.functions.Function1;
 import com.xebia.functional.xef.pdf.PDFLoaderKt;
-import kotlinx.coroutines.*;
+import kotlinx.coroutines.CoroutineScope;
+import kotlinx.coroutines.CoroutineStart;
+import kotlinx.coroutines.ExecutorsKt;
+import kotlinx.coroutines.JobKt;
+import kotlinx.coroutines.CoroutineScopeKt;
 import kotlinx.coroutines.future.FutureKt;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,35 +31,40 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class AIScope implements AutoCloseable {
     private final CoreAIScope scope;
     private final ObjectMapper om;
     private final JsonSchemaGenerator schemaGen;
     private final KtorOpenAIClient client;
-    private final Embeddings embeddings;
-    private final VectorStore vectorStore;
-    private final CoroutineScope coroutineScope = () -> Dispatchers.getDefault().plus(JobKt.Job(null));
+    private final ExecutorService executorService;
+    private final CoroutineScope coroutineScope;
 
-    public AIScope(ObjectMapper om, OpenAIConfig config) {
+    public AIScope(ObjectMapper om, OpenAIConfig config, ExecutorService executorService) {
         this.om = om;
+        this.executorService = executorService;
+        this.coroutineScope = () -> ExecutorsKt.from(executorService).plus(JobKt.Job(null));
         this.schemaGen = new JsonSchemaGenerator(om);
         this.client = new KtorOpenAIClient(config);
-        this.embeddings = new OpenAIEmbeddings(config, client);
-        this.vectorStore = new LocalVectorStore(embeddings);
+        Embeddings embeddings = new OpenAIEmbeddings(config, client);
+        VectorStore vectorStore = new LocalVectorStore(embeddings);
         this.scope = new CoreAIScope(LLMModel.getGPT_3_5_TURBO(), LLMModel.getGPT_3_5_TURBO_FUNCTIONS(), client, vectorStore, embeddings, 3, "user", false, 0.4, 1, 20, 500);
     }
 
-    public AIScope(ObjectMapper om) {
-        this(om, new OpenAIConfig());
+    public AIScope(OpenAIConfig config) {
+        this(new ObjectMapper(), config, Executors.newCachedThreadPool(new AIScopeThreadFactory()));
     }
 
-    public AIScope(OpenAIConfig config) {
-        this(new ObjectMapper(), config);
+    public AIScope(OpenAIConfig config, ExecutorService executorService) {
+        this(new ObjectMapper(), config, executorService);
     }
 
     public AIScope() {
-        this(new ObjectMapper(), new OpenAIConfig());
+        this(new ObjectMapper(), new OpenAIConfig(), Executors.newCachedThreadPool(new AIScopeThreadFactory()));
     }
 
     private <T> T undefined() {
@@ -68,7 +76,7 @@ public class AIScope implements AutoCloseable {
     }
 
     public <A> CompletableFuture<A> prompt(String prompt, Class<A> cls, Integer maxAttempts, LLMModel llmModel, String user, Boolean echo, Integer n, Double temperature, Integer bringFromContext, Integer minResponseTokens) {
-        Function1<? super String, ? extends A> decoder = (json) -> {
+        Function1<? super String, ? extends A> decoder = json -> {
             try {
                 return om.readValue(json, cls);
             } catch (JsonProcessingException e) {
@@ -142,12 +150,25 @@ public class AIScope implements AutoCloseable {
                 CoroutineStart.DEFAULT,
                 (coroutineScope, continuation) -> scope.images(prompt, user, n, size, bringFromContext, continuation)
         );
-        return future.thenApply((response) -> CollectionsKt.map(response.getData(), ImageGenerationUrl::getUrl));
+        return future.thenApply(response -> CollectionsKt.map(response.getData(), ImageGenerationUrl::getUrl));
     }
 
     @Override
     public void close() {
         client.close();
         CoroutineScopeKt.cancel(coroutineScope, null);
+        executorService.close();
+    }
+
+    private static class AIScopeThreadFactory implements ThreadFactory {
+        private final AtomicInteger counter = new AtomicInteger();
+
+        @Override
+        public Thread newThread(@NotNull Runnable r) {
+            Thread t = new Thread(r);
+            t.setName("xef-ai-scope-worker-" + counter.getAndIncrement());
+            t.setDaemon(true);
+            return t;
+        }
     }
 }

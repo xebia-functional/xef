@@ -43,10 +43,10 @@ public class Animals {
     private static class Story {
         public Animal animal;
         public Invention invention;
-        public String story;
+        public String text;
 
         public void tell() {
-            System.out.println("Story about " + animal.name + " and " + invention.name + ": " + story);
+            System.out.println("Story about " + animal.name + " and " + invention.name + ": " + text);
         }
     }
 
@@ -54,8 +54,8 @@ public class Animals {
         try (AIScope scope = new AIScope()) {
             Animals animals = new Animals(scope);
             animals.uniqueAnimal()
-                    .thenCompose((animal) -> animals.groundbreakingInvention()
-                            .thenCompose((invention) -> animals.story(animal, invention)
+                    .thenCompose(animal -> animals.groundbreakingInvention()
+                            .thenCompose(invention -> animals.story(animal, invention)
                                     .thenAccept(Story::tell)
                             )).get();
         }
