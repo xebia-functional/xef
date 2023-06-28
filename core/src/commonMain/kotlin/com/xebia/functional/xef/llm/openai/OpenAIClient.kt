@@ -30,6 +30,7 @@ import com.xebia.functional.xef.llm.models.text.CompletionChoice
 import com.xebia.functional.xef.llm.models.text.CompletionRequest
 import com.xebia.functional.xef.llm.models.text.CompletionResult
 import com.xebia.functional.xef.llm.models.usage.Usage
+import kotlinx.serialization.json.Json
 
 class OpenAIClient(val openAI: OpenAI) : AIClient, AutoCloseable {
 
@@ -196,12 +197,14 @@ class OpenAIClient(val openAI: OpenAI) : AIClient, AutoCloseable {
       request.messages.map {
         ChatMessage(role = ChatRole(it.role), content = it.content, name = it.name)
       }
+
     functions =
       request.functions.map {
+        val schema = Json.parseToJsonElement(it.parameters)
         ChatCompletionFunction(
           name = it.name,
           description = it.description,
-          parameters = Parameters(it.parameters),
+          parameters = Parameters(schema),
         )
       }
     temperature = request.temperature

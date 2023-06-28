@@ -1,15 +1,15 @@
 package com.xebia.functional.xef.llm.openai
 
 import arrow.fx.coroutines.parMap
-import com.xebia.functional.xef.env.OpenAIConfig
-import com.xebia.functional.xef.llm.openai.AIClient
-import com.xebia.functional.xef.llm.openai.EmbeddingRequest
-import com.xebia.functional.xef.llm.openai.RequestConfig
+import com.xebia.functional.xef.embeddings.Embedding
+import com.xebia.functional.xef.embeddings.Embeddings
+import com.xebia.functional.xef.llm.AIClient
+import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
+import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
 import kotlin.time.ExperimentalTime
 
 @ExperimentalTime
-class OpenAIEmbeddings(private val config: OpenAIConfig, private val oaiClient: AIClient) :
-  Embeddings {
+class OpenAIEmbeddings(private val oaiClient: AIClient) : Embeddings {
 
   override suspend fun embedDocuments(
     texts: List<String>,
@@ -22,7 +22,7 @@ class OpenAIEmbeddings(private val config: OpenAIConfig, private val oaiClient: 
     }
     val lists: List<List<Embedding>> =
       if (texts.isEmpty()) emptyList()
-      else texts.chunked(chunkSize ?: config.chunkSize).parMap { createEmbeddings(it) }
+      else texts.chunked(chunkSize ?: 400).parMap { createEmbeddings(it) }
     return lists.flatten()
   }
 

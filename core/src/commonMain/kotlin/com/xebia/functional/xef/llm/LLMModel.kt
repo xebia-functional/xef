@@ -15,7 +15,9 @@ sealed interface LLM {
 
   interface Embedding : LLM
 
-  interface Images : LLM
+  interface Images : LLM {
+    suspend fun createImage()
+  }
 }
 
 sealed class LLMModel(override val name: String, override val modelType: ModelType) : LLM {

@@ -1,8 +1,8 @@
 package com.xebia.functional.xef.auto
 
 import com.xebia.functional.xef.auto.serialization.encodeJsonSchema
-import com.xebia.functional.xef.llm.openai.CFunction
-import com.xebia.functional.xef.llm.openai.LLMModel
+import com.xebia.functional.xef.llm.LLM
+import com.xebia.functional.xef.llm.models.functions.CFunction
 import com.xebia.functional.xef.prompt.Prompt
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer

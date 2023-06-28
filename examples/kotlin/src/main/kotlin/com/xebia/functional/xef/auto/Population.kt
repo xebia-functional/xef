@@ -13,9 +13,6 @@ data class Image(
 
 suspend fun main() =
     ai {
-        val cadiz: Population = prompt("Population of Cádiz, Spain.")
-        val seattle: Population = prompt("Population of Seattle, WA.")
-        val img: Image = image("A hybrid city of Cádiz, Spain and Seattle, US.")
+        val img: Image = image("")
         println(img)
-        println("The population of Cádiz is ${cadiz.size} and the population of Seattle is ${seattle.size}")
     }.getOrElse { println(it) }

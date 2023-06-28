@@ -23,4 +23,6 @@ interface AIClient {
   suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult
 
   suspend fun createImages(request: ImagesGenerationRequest): ImagesGenerationResponse
+
+  fun close(): Unit
 }

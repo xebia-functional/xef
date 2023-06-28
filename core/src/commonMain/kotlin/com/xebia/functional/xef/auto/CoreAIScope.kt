@@ -15,7 +15,6 @@ import com.xebia.functional.xef.llm.models.chat.ChatCompletionRequestWithFunctio
 import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.llm.models.chat.Role
 import com.xebia.functional.xef.llm.models.functions.CFunction
-import com.xebia.functional.xef.llm.models.functions.FunctionCall
 import com.xebia.functional.xef.llm.models.images.ImagesGenerationRequest
 import com.xebia.functional.xef.llm.models.images.ImagesGenerationResponse
 import com.xebia.functional.xef.llm.models.text.CompletionRequest
@@ -34,7 +33,7 @@ import kotlin.jvm.JvmName
  */
 class CoreAIScope(
   val defaultModel: LLM.Chat,
-  val defaultSerializationModel: LLMModel,
+  val defaultSerializationModel: LLM.ChatWithFunctions,
   val aiClient: AIClient,
   val context: VectorStore,
   val embeddings: Embeddings,
@@ -284,15 +283,15 @@ class CoreAIScope(
       )
     }
 
-    return when (model.kind) {
-      LLMModel.Kind.Completion ->
+    return when (model) {
+      is LLM.Completion ->
         aiClient.createCompletion(buildCompletionRequest()).choices.map { it.text }
-      LLMModel.Kind.Chat ->
-        aiClient.createChatCompletion(buildChatRequest()).choices.map { it.message.content }
-      LLMModel.Kind.ChatWithFunctions ->
-        aiClient.createChatCompletionWithFunctions(chatWithFunctionsRequest()).choices.map {
-          it.message.functionCall.arguments
+      is LLM.ChatWithFunctions ->
+        aiClient.createChatCompletionWithFunctions(chatWithFunctionsRequest()).choices.mapNotNull {
+          it.message?.functionCall?.arguments
         }
+      else ->
+        aiClient.createChatCompletion(buildChatRequest()).choices.mapNotNull { it.message?.content }
     }
   }
 
@@ -331,16 +330,16 @@ class CoreAIScope(
     } else prompt
   }
 
-  private fun tokensFromMessages(messages: List<Message>, model: LLMModel): Int {
+  private fun tokensFromMessages(messages: List<Message>, model: LLM): Int {
     fun Encoding.countTokensFromMessages(tokensPerMessage: Int, tokensPerName: Int): Int =
       messages.sumOf { message ->
         countTokens(message.role) +
-          countTokens(message.content) +
+          (message.content?.let { countTokens(it) } ?: 0) +
           tokensPerMessage +
           (message.name?.let { tokensPerName } ?: 0)
       } + 3
 
-    fun fallBackTo(fallbackModel: LLMModel, paddingTokens: Int): Int {
+    fun fallBackTo(fallbackModel: LLM, paddingTokens: Int): Int {
       logger.debug {
         "Warning: ${model.name} may change over time. " +
           "Returning messages num tokens assuming ${fallbackModel.name} + $paddingTokens padding tokens."

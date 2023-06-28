@@ -35,11 +35,11 @@ inline fun <A> ai(noinline block: suspend CoreAIScope.() -> A): AI<A> = block
  * This operator is **terminal** meaning it runs and completes the _chain_ of `AI` actions.
  */
 suspend inline fun <A> AI<A>.getOrElse(
-  runtime: AIRuntime<A> = AIRuntime.openAI(),
+  runtime: AIRuntime<A, *> = AIRuntime.defaults(),
   crossinline orElse: suspend (AIError) -> A
 ): A = AIScope(runtime, this) { orElse(it) }
 
-suspend fun <A> AIScope(runtime: AIRuntime<A>, block: AI<A>, orElse: suspend (AIError) -> A): A =
+suspend fun <A> AIScope(runtime: AIRuntime<A, *>, block: AI<A>, orElse: suspend (AIError) -> A): A =
   try {
     runtime.runtime(block)
   } catch (e: AIError) {

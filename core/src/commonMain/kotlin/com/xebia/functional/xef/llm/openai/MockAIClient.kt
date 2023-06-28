@@ -45,6 +45,8 @@ class MockOpenAIClient(
 
   override suspend fun createImages(request: ImagesGenerationRequest): ImagesGenerationResponse =
     images(request)
+
+  override fun close() {}
 }
 
 fun nullEmbeddings(request: EmbeddingRequest): EmbeddingResult {

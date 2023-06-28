@@ -12,6 +12,7 @@ import com.xebia.functional.xef.auto.AIRuntime
 import com.xebia.functional.xef.auto.serialization.JsonSchemaKt
 import com.xebia.functional.xef.pdf.PDFLoaderKt
 import com.xebia.functional.tokenizer.ModelType
+import com.xebia.functional.xef.llm._
 import com.xebia.functional.xef.llm.openai._
 import com.xebia.functional.xef.scala.textsplitters.TextSplitter
 import com.xebia.functional.xef.llm.models.images.*
@@ -25,7 +26,7 @@ type AI[A] = AIScope ?=> A
 def ai[A](block: AI[A]): A =
   LoomAdapter.apply { cont =>
     AIKt.AIScope[A](
-      AIRuntime.openAI,
+      AIRuntime.defaults[A](),
       { (coreAIScope, _) =>
         given AIScope = AIScope.fromCore(coreAIScope)
 
