@@ -3,7 +3,7 @@ package com.xebia.functional.xef.scala.auto
 import com.xebia.functional.loom.LoomAdapter
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.llm.openai.LLMModel
-import com.xebia.functional.xef.llm.openai.functions.CFunction
+import com.xebia.functional.xef.llm.openai.CFunction
 import io.circe.Decoder
 import io.circe.parser.parse
 import com.xebia.functional.xef.auto.AIKt
@@ -106,15 +106,10 @@ def pdf(
 
 def images(
     prompt: String,
-    maxAttempts: Int = 5,
     user: String = "testing",
     size: String = "1024x1024",
     bringFromContext: Int = 10,
-    llmModel: LLMModel = LLMModel.getGPT_3_5_TURBO,
-    echo: Boolean = false,
-    n: Int = 1,
-    temperature: Double = 0.0,
-    minResponseTokens: Int = 500
+    n: Int = 1
 )(using scope: AIScope): List[String] =
   LoomAdapter
     .apply[ImagesGenerationResponse](cont =>
