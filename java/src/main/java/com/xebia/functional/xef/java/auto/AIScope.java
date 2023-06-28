@@ -17,6 +17,7 @@ import com.xebia.functional.xef.textsplitters.TextSplitter;
 import com.xebia.functional.xef.vectorstores.LocalVectorStore;
 import com.xebia.functional.xef.vectorstores.VectorStore;
 import kotlin.collections.CollectionsKt;
+import kotlin.coroutines.Continuation;
 import kotlin.jvm.functions.Function1;
 import com.xebia.functional.xef.pdf.PDFLoaderKt;
 import kotlinx.coroutines.CoroutineScope;
@@ -99,65 +100,44 @@ public class AIScope implements AutoCloseable {
                 new CFunction(cls.getSimpleName(), "Generated function for " + cls.getSimpleName(), schema)
         );
 
-        return FutureKt.future(
-                coroutineScope,
-                coroutineScope.getCoroutineContext(),
-                CoroutineStart.DEFAULT,
-                (coroutineScope, continuation) -> scope.promptWithSerializer(prompt, functions, decoder, maxAttempts, llmModel, user, echo, n, temperature, bringFromContext, minResponseTokens, continuation)
-        );
+        return future(continuation -> scope.promptWithSerializer(prompt, functions, decoder, maxAttempts, llmModel, user, echo, n, temperature, bringFromContext, minResponseTokens, continuation));
     }
 
     public CompletableFuture<List<String>> promptMessage(String prompt, LLMModel llmModel, List<CFunction> functions, String user, Boolean echo, Integer n, Double temperature, Integer bringFromContext, Integer minResponseTokens) {
-        return FutureKt.future(
-                coroutineScope,
-                coroutineScope.getCoroutineContext(),
-                CoroutineStart.DEFAULT,
-                (coroutineScope, continuation) -> scope.promptMessage(prompt, llmModel, functions, user, echo, n, temperature, bringFromContext, minResponseTokens, continuation)
-        );
+        return future(continuation -> scope.promptMessage(prompt, llmModel, functions, user, echo, n, temperature, bringFromContext, minResponseTokens, continuation));
     }
 
     public <T> CompletableFuture<T> contextScope(List<String> docs) {
-        return FutureKt.future(
-                coroutineScope,
-                coroutineScope.getCoroutineContext(),
-                CoroutineStart.DEFAULT,
-                (coroutineScope, continuation) -> scope.contextScopeWithDocs(docs, undefined(), continuation)
-        );
+        return future(continuation -> scope.contextScopeWithDocs(docs, undefined(), continuation));
     }
 
     public CompletableFuture<List<String>> pdf(String url, TextSplitter splitter) {
-        return FutureKt.future(
-                coroutineScope,
-                coroutineScope.getCoroutineContext(),
-                CoroutineStart.DEFAULT,
-                (coroutineScope, continuation) -> PDFLoaderKt.pdf(url, splitter, continuation)
-        );
+        return future(continuation -> PDFLoaderKt.pdf(url, splitter, continuation));
     }
 
     public CompletableFuture<List<String>> pdf(File file, TextSplitter splitter) {
+        return future(continuation -> PDFLoaderKt.pdf(file, splitter, continuation));
+    }
+
+    public CompletableFuture<List<String>> images(String prompt, String user, String size, Integer bringFromContext, Integer n) {
+        return this.<ImagesGenerationResponse>future(continuation -> scope.images(prompt, user, n, size, bringFromContext, continuation))
+                .thenApply(response -> CollectionsKt.map(response.getData(), ImageGenerationUrl::getUrl));
+    }
+
+    private <A> CompletableFuture<A> future(Function1<? super Continuation<? super A>, ? extends Object> block) {
         return FutureKt.future(
                 coroutineScope,
                 coroutineScope.getCoroutineContext(),
                 CoroutineStart.DEFAULT,
-                (coroutineScope, continuation) -> PDFLoaderKt.pdf(file, splitter, continuation)
+                (coroutineScope, continuation) -> block.invoke(continuation)
         );
-    }
-
-    public CompletableFuture<List<String>> images(String prompt, String user, String size, Integer bringFromContext, Integer n) {
-        CompletableFuture<ImagesGenerationResponse> future = FutureKt.future(
-                coroutineScope,
-                coroutineScope.getCoroutineContext(),
-                CoroutineStart.DEFAULT,
-                (coroutineScope, continuation) -> scope.images(prompt, user, n, size, bringFromContext, continuation)
-        );
-        return future.thenApply(response -> CollectionsKt.map(response.getData(), ImageGenerationUrl::getUrl));
     }
 
     @Override
     public void close() {
         client.close();
         CoroutineScopeKt.cancel(coroutineScope, null);
-        executorService.close();
+        executorService.shutdown();
     }
 
     private static class AIScopeThreadFactory implements ThreadFactory {
