@@ -11,7 +11,7 @@ import com.xebia.functional.xef.llm.models.images.ImagesGenerationResponse
 import com.xebia.functional.xef.llm.models.text.CompletionRequest
 import com.xebia.functional.xef.llm.models.text.CompletionResult
 
-interface AIClient {
+interface AIClient : AutoCloseable {
   suspend fun createCompletion(request: CompletionRequest): CompletionResult
 
   suspend fun createChatCompletion(request: ChatCompletionRequest): ChatCompletionResponse
@@ -23,6 +23,4 @@ interface AIClient {
   suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult
 
   suspend fun createImages(request: ImagesGenerationRequest): ImagesGenerationResponse
-
-  fun close(): Unit
 }
