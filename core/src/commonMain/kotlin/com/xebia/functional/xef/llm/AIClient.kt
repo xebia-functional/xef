@@ -23,4 +23,6 @@ interface AIClient : AutoCloseable {
   suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult
 
   suspend fun createImages(request: ImagesGenerationRequest): ImagesGenerationResponse
+
+  override fun close() {}
 }
