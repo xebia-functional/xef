@@ -6,14 +6,13 @@ import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 import com.xebia.functional.xef.auto.AIRuntime;
 import com.xebia.functional.xef.auto.CoreAIScope;
-import com.xebia.functional.xef.embeddings.Embeddings;
+import com.xebia.functional.xef.auto.llm.openai.OpenAIRuntime;
 import com.xebia.functional.xef.llm.AIClient;
 import com.xebia.functional.xef.llm.LLM;
 import com.xebia.functional.xef.llm.LLMModel;
 import com.xebia.functional.xef.llm.models.functions.CFunction;
 import com.xebia.functional.xef.llm.models.images.ImageGenerationUrl;
 import com.xebia.functional.xef.llm.models.images.ImagesGenerationResponse;
-import com.xebia.functional.xef.llm.openai.OpenAIClient;
 import com.xebia.functional.xef.pdf.PDFLoaderKt;
 import com.xebia.functional.xef.textsplitters.TextSplitter;
 import com.xebia.functional.xef.vectorstores.LocalVectorStore;
@@ -57,7 +56,7 @@ public class AIScope implements AutoCloseable {
     }
 
     public AIScope() {
-        this(new ObjectMapper(), AIRuntime.defaults(), Executors.newCachedThreadPool(new AIScopeThreadFactory()));
+        this(new ObjectMapper(), OpenAIRuntime.defaults(), Executors.newCachedThreadPool(new AIScopeThreadFactory()));
     }
 
     private AIScope(CoreAIScope nested, AIScope outer) {

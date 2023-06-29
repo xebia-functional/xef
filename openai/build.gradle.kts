@@ -63,12 +63,8 @@ kotlin {
 
     val commonMain by getting {
       dependencies {
-        api(libs.bundles.arrow)
-
-        api(libs.bundles.ktor.client)
-        api(projects.xefTokenizer)
-
-        implementation(libs.uuid)
+        implementation(projects.xefCore)
+        implementation(libs.openai.client)
         implementation(libs.klogging)
       }
     }
@@ -83,18 +79,11 @@ kotlin {
 
     val jvmMain by getting {
       dependencies {
-        api(libs.ktor.client.cio)
         implementation(libs.logback)
-        implementation(libs.skrape)
-        implementation(libs.rss.reader)
       }
     }
 
-    val jsMain by getting {
-      dependencies {
-        api(libs.ktor.client.js)
-      }
-    }
+    val jsMain by getting
 
     val jvmTest by getting {
       dependencies {

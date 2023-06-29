@@ -1,10 +1,10 @@
 package com.xebia.functional.xef.auto
 
+import com.xebia.functional.xef.auto.llm.openai.MockAIScope
+import com.xebia.functional.xef.auto.llm.openai.simpleMockAIClient
 import com.xebia.functional.xef.embeddings.Embedding
 import com.xebia.functional.xef.embeddings.Embeddings
 import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
-import com.xebia.functional.xef.llm.openai.MockOpenAIClient
-import com.xebia.functional.xef.llm.openai.simpleMockAIClient
 
 suspend fun main() {
   val program = ai {
@@ -25,7 +25,7 @@ private fun fakeEmbeddings(): Embeddings = object : Embeddings {
     emptyList()
 }
 
-private fun <A> customRuntime(): AIRuntime<A, MockOpenAIClient> {
+private fun <A> customRuntime(): AIRuntime<A> {
   val client = simpleMockAIClient { it }
   return AIRuntime(client, fakeEmbeddings()) { block ->
     MockAIScope(

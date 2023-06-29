@@ -1,4 +1,4 @@
-package com.xebia.functional.xef.llm.openai
+package com.xebia.functional.xef.auto.llm.openai
 
 import arrow.fx.coroutines.parMap
 import com.xebia.functional.xef.embeddings.Embedding

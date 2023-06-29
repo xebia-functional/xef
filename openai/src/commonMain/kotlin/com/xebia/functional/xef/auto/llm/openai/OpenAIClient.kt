@@ -1,4 +1,4 @@
-package com.xebia.functional.xef.llm.openai
+package com.xebia.functional.xef.auto.llm.openai
 
 import com.aallam.openai.api.BetaOpenAI
 import com.aallam.openai.api.chat.*

@@ -1,6 +1,13 @@
-package com.xebia.functional.xef.llm.openai
+package com.xebia.functional.xef.auto.llm.openai
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
+import com.xebia.functional.xef.AIError
+import com.xebia.functional.xef.auto.AI
+import com.xebia.functional.xef.auto.CoreAIScope
 import com.xebia.functional.xef.llm.AIClient
+import com.xebia.functional.xef.llm.LLMModel
 import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.llm.models.embeddings.Embedding
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
@@ -11,6 +18,8 @@ import com.xebia.functional.xef.llm.models.text.CompletionChoice
 import com.xebia.functional.xef.llm.models.text.CompletionRequest
 import com.xebia.functional.xef.llm.models.text.CompletionResult
 import com.xebia.functional.xef.llm.models.usage.Usage
+import com.xebia.functional.xef.vectorstores.LocalVectorStore
+import kotlin.time.ExperimentalTime
 
 class MockOpenAIClient(
   private val completion: (CompletionRequest) -> CompletionResult = {
@@ -77,3 +86,39 @@ fun simpleMockAIClient(execute: (String) -> String): MockOpenAIClient =
       ChatCompletionResponse("FakeID123", "", 0, req.model, usage, responses)
     }
   )
+
+@OptIn(ExperimentalTime::class)
+suspend fun <A> MockAIScope(
+  mockClient: MockOpenAIClient,
+  block: suspend CoreAIScope.() -> A,
+  orElse: suspend (AIError) -> A
+): A =
+  try {
+    val embeddings = OpenAIEmbeddings(mockClient)
+    val vectorStore = LocalVectorStore(embeddings)
+    val scope =
+      CoreAIScope(
+        LLMModel.GPT_3_5_TURBO,
+        LLMModel.GPT_3_5_TURBO_FUNCTIONS,
+        mockClient,
+        vectorStore,
+        embeddings
+      )
+    block(scope)
+  } catch (e: AIError) {
+    orElse(e)
+  }
+
+/**
+ * Run the [AI] value to produce _either_ an [AIError], or [A]. This method uses the [mockAI] to
+ * compute the different responses.
+ */
+suspend fun <A> AI<A>.mock(mockAI: MockOpenAIClient): Either<AIError, A> =
+  MockAIScope(mockAI, { invoke().right() }, { it.left() })
+
+/**
+ * Run the [AI] value to produce _either_ an [AIError], or [A]. This method uses the [mockAI] to
+ * compute the different responses.
+ */
+suspend fun <A> AI<A>.mock(mockAI: (String) -> String): Either<AIError, A> =
+  MockAIScope(simpleMockAIClient(mockAI), { invoke().right() }, { it.left() })
