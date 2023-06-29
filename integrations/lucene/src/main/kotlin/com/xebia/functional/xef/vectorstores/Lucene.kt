@@ -29,7 +29,7 @@ open class Lucene(
 ) : VectorStore, AutoCloseable {
 
   private val requestConfig =
-    RequestConfig(EmbeddingModel.TextEmbeddingAda002, RequestConfig.Companion.User("user"))
+    RequestConfig(EmbeddingModel.TEXT_EMBEDDING_ADA_002, RequestConfig.Companion.User("user"))
 
   override suspend fun addTexts(texts: List<String>) {
     texts.forEach {

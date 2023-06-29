@@ -25,7 +25,7 @@ private constructor(private val embeddings: Embeddings, private val state: Atomi
   constructor(embeddings: Embeddings) : this(embeddings, Atomic(State.empty()))
 
   private val requestConfig =
-    RequestConfig(EmbeddingModel.TextEmbeddingAda002, RequestConfig.Companion.User("user"))
+    RequestConfig(EmbeddingModel.TEXT_EMBEDDING_ADA_002, RequestConfig.Companion.User("user"))
 
   override suspend fun addTexts(texts: List<String>) {
     val embeddingsList =
