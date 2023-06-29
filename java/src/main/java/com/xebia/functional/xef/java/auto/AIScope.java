@@ -60,8 +60,13 @@ public class AIScope implements AutoCloseable {
         this(new ObjectMapper(), AIRuntime.defaults(), Executors.newCachedThreadPool(new AIScopeThreadFactory()));
     }
 
-    private <T> T undefined() {
-        throw new RuntimeException("Method is undefined");
+    private AIScope(CoreAIScope nested, AIScope outer) {
+        this.om = outer.om;
+        this.executorService = outer.executorService;
+        this.coroutineScope = outer.coroutineScope;
+        this.schemaGen = outer.schemaGen;
+        this.client = outer.client;
+        this.scope = nested;
     }
 
     public <A> CompletableFuture<A> prompt(String prompt, Class<A> cls) {
@@ -99,8 +104,11 @@ public class AIScope implements AutoCloseable {
         return future(continuation -> scope.promptMessage(prompt, llmModel, functions, user, echo, n, temperature, bringFromContext, minResponseTokens, continuation));
     }
 
-    public <T> CompletableFuture<T> contextScope(List<String> docs) {
-        return future(continuation -> scope.contextScopeWithDocs(docs, undefined(), continuation));
+    public <A> CompletableFuture<A> contextScope(List<String> docs, Function1<AIScope, CompletableFuture<A>> f) {
+        return future(continuation -> scope.contextScopeWithDocs(docs, (coreAIScope, continuation1) -> {
+            AIScope nestedScope = new AIScope(coreAIScope, AIScope.this);
+            return FutureKt.await(f.invoke(nestedScope), continuation);
+        }, continuation));
     }
 
     public CompletableFuture<List<String>> pdf(String url, TextSplitter splitter) {
