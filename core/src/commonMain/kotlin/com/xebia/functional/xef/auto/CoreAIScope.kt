@@ -256,7 +256,7 @@ class CoreAIScope(
     }
 
     suspend fun buildChatRequest(): ChatCompletionRequest {
-      val messages: List<Message> = listOf(Message(Role.system.name, promptWithContext))
+      val messages: List<Message> = listOf(Message(Role.SYSTEM.name, promptWithContext))
       return ChatCompletionRequest(
         model = model.name,
         user = user,
@@ -268,7 +268,7 @@ class CoreAIScope(
     }
 
     suspend fun chatWithFunctionsRequest(): ChatCompletionRequestWithFunctions {
-      val role: String = Role.user.name
+      val role: String = Role.USER.name
       val firstFnName: String? = functions.firstOrNull()?.name
       val messages: List<Message> = listOf(Message(role, promptWithContext))
       return ChatCompletionRequestWithFunctions(

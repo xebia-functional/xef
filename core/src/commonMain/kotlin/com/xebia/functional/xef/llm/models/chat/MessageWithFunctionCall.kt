@@ -6,5 +6,5 @@ data class MessageWithFunctionCall(
   val role: String,
   val content: String? = null,
   val functionCall: FunctionCall?,
-  val name: String? = Role.assistant.name
+  val name: String? = Role.ASSISTANT.name
 )
