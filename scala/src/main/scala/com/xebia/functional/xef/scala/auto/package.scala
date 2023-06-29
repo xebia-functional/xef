@@ -74,7 +74,9 @@ def prompt[A: Decoder: SerialDescriptor](
 private def generateCFunctions[A: SerialDescriptor]: List[CFunction] =
   val descriptor = SerialDescriptor[A].serialDescriptor
   val serialName = descriptor.getSerialName
-  val fnName = serialName.substring(serialName.lastIndexOf("."), serialName.length)
+  val fnName =
+    if (serialName.contains(".")) serialName.substring(serialName.lastIndexOf("."), serialName.length)
+    else serialName
   List(CFunction(fnName, "Generated function for $fnName", JsonSchemaKt.encodeJsonSchema(descriptor)))
 
 def contextScope[A: Decoder: SerialDescriptor](docs: List[String])(block: AI[A])(using scope: AIScope): A =
