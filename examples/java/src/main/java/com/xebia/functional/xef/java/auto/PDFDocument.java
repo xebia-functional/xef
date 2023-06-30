@@ -11,29 +11,29 @@ import static com.xebia.functional.xef.textsplitters.TokenTextSplitterKt.TokenTe
 
 public class PDFDocument {
 
-    public static class AIResponse{
+    public static class AIResponse {
         public String answer;
         public String source;
     }
+
     private static final String pdfUrl = "https://people.cs.ksu.edu/~schmidt/705a/Scala/Programming-in-Scala.pdf";
 
+    private static CompletableFuture<Void> askQuestion(AIScope scope) {
+        System.out.println("Enter your question: ");
+        String line = System.console().readLine();
+        if (line == null) {
+            return CompletableFuture.completedFuture(null);
+        } else {
+            return scope.prompt(line, PDFDocument.AIResponse.class)
+                    .thenAccept((aiRes) -> System.out.println(aiRes.answer + "\n---\n" +
+                            aiRes.source + "\n---\n"));
+        }
+    }
+
     public static void main(String[] args) throws ExecutionException, InterruptedException {
-
         TextSplitter textSplitter = TokenTextSplitter(ModelType.GPT_3_5_TURBO, 100, 50);
-
         try (AIScope scope = new AIScope()) {
-            CompletableFuture<List<String>> pdf = scope.pdf(pdfUrl, textSplitter);
-//            scope.contextScope(pdf, ?)
-
-            while(true){
-                System.out.println("Enter your question: ");
-                String line = System.console().readLine();
-                if(line == null) break;
-                scope.prompt(line, PDFDocument.AIResponse.class)
-                        .thenAccept((aiRes) -> System.out.println(aiRes.answer + "\n---\n" +
-                                aiRes.source + "\n---\n"))
-                        .get();
-            }
+            scope.contextScope(scope.pdf(pdfUrl, textSplitter), PDFDocument::askQuestion).get();
         }
     }
 }

@@ -119,6 +119,13 @@ public class AIScope implements AutoCloseable {
         }, continuation));
     }
 
+    public <A> CompletableFuture<A> contextScope(CompletableFuture<List<String>> docs, Function1<AIScope, CompletableFuture<A>> f) {
+        return docs.thenCompose(d -> future(continuation -> scope.contextScopeWithDocs(d, (coreAIScope, continuation1) -> {
+            AIScope nestedScope = new AIScope(coreAIScope, AIScope.this);
+            return FutureKt.await(f.invoke(nestedScope), continuation);
+        }, continuation)));
+    }
+
     public CompletableFuture<List<String>> pdf(String url, TextSplitter splitter) {
         return future(continuation -> PDFLoaderKt.pdf(url, splitter, continuation));
     }
