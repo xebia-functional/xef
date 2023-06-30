@@ -1,7 +1,7 @@
 package com.xebia.functional.xef
 
 import arrow.core.NonEmptyList
-import com.xebia.functional.xef.llm.openai.Message
+import com.xebia.functional.xef.llm.models.chat.Message
 import kotlin.jvm.JvmOverloads
 
 sealed class AIError @JvmOverloads constructor(message: String, cause: Throwable? = null) :

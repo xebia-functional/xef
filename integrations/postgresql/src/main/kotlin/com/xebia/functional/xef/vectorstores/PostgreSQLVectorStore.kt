@@ -2,11 +2,11 @@ package com.xebia.functional.xef.vectorstores
 
 import com.xebia.functional.xef.embeddings.Embedding
 import com.xebia.functional.xef.embeddings.Embeddings
-import com.xebia.functional.xef.llm.openai.RequestConfig
+import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
 import com.xebia.functional.xef.vectorstores.postgresql.*
-import javax.sql.DataSource
 import kotlinx.uuid.UUID
 import kotlinx.uuid.generateUUID
+import javax.sql.DataSource
 
 class PGVectorStore(
   private val vectorSize: Int,

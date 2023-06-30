@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.embeddings
 
-import com.xebia.functional.xef.llm.openai.RequestConfig
+import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
 
 data class Embedding(val data: List<Float>)
 

@@ -25,7 +25,6 @@ internal suspend fun <A> CoreAIScope.critique(memory: Memory<A>, currentSolution
     |Instructions:
     |1. Provide a critique and determine if the answer truly accomplishes the goal.
     |
-    |${remindJSONSchema()}
   """.trimMargin()
   )
 }
