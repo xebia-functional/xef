@@ -52,7 +52,7 @@ public class AIScope implements AutoCloseable {
     }
 
     public AIScope(AIRuntime runtime, ExecutorService executorService) {
-        this(new ObjectMapper(), runtime, Executors.newCachedThreadPool(new AIScopeThreadFactory()));
+        this(new ObjectMapper(), runtime, executorService);
     }
 
     public AIScope() {
