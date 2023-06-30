@@ -107,6 +107,25 @@ public class AIScope implements AutoCloseable {
         return future(continuation -> scope.promptMessage(prompt, llmModel, functions, user, echo, n, temperature, bringFromContext, minResponseTokens, continuation));
     }
 
+    public CompletableFuture<Void> extendContext(String[] docs) {
+        return future(continuation -> scope.extendContext(docs, continuation))
+                .thenApply(unit -> null);
+    }
+
+    public <A> CompletableFuture<A> contextScope(Function1<AIScope, CompletableFuture<A>> f) {
+        return future(continuation -> scope.contextScope((coreAIScope, continuation1) -> {
+            AIScope nestedScope = new AIScope(coreAIScope, AIScope.this);
+            return FutureKt.await(f.invoke(nestedScope), continuation);
+        }, continuation));
+    }
+
+    public <A> CompletableFuture<A> contextScope(VectorStore store, Function1<AIScope, CompletableFuture<A>> f) {
+        return future(continuation -> scope.contextScope(store, (coreAIScope, continuation1) -> {
+            AIScope nestedScope = new AIScope(coreAIScope, AIScope.this);
+            return FutureKt.await(f.invoke(nestedScope), continuation);
+        }, continuation));
+    }
+
     public <A> CompletableFuture<A> contextScope(List<String> docs, Function1<AIScope, CompletableFuture<A>> f) {
         return future(continuation -> scope.contextScopeWithDocs(docs, (coreAIScope, continuation1) -> {
             AIScope nestedScope = new AIScope(coreAIScope, AIScope.this);
