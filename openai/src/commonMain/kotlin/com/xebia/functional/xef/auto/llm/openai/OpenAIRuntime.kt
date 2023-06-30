@@ -8,10 +8,10 @@ import com.aallam.openai.client.OpenAIConfig
 import com.xebia.functional.xef.auto.AIRuntime
 import com.xebia.functional.xef.auto.CoreAIScope
 import com.xebia.functional.xef.env.getenv
-import com.xebia.functional.xef.llm.LLMModel
 import com.xebia.functional.xef.vectorstores.LocalVectorStore
 import kotlin.jvm.JvmStatic
 import kotlin.time.ExperimentalTime
+import com.xebia.functional.xef.auto.llm.openai.OpenAI as XefOpenAI
 
 object OpenAIRuntime {
   @JvmStatic fun <A> defaults(): AIRuntime<A> = openAI(null)
@@ -26,17 +26,17 @@ object OpenAIRuntime {
           token =
             requireNotNull(getenv("OPENAI_TOKEN")) { "OpenAI Token missing from environment." },
         )
-    val openAI = OpenAI(openAIConfig)
-    val client = OpenAIClient(openAI)
+    val client = OpenAIClient(OpenAI(openAIConfig))
     val embeddings = OpenAIEmbeddings(client)
     return AIRuntime(client, embeddings) { block ->
       client.use { openAiClient ->
         val vectorStore = LocalVectorStore(embeddings)
+        val openAI = XefOpenAI(openAiClient)
         val scope =
           CoreAIScope(
-            defaultModel = LLMModel.GPT_3_5_TURBO_16K,
-            defaultSerializationModel = LLMModel.GPT_3_5_TURBO_FUNCTIONS,
-            aiClient = openAiClient,
+            defaultModel = openAI.GPT_3_5_TURBO_16K,
+            defaultSerializationModel = openAI.GPT_3_5_TURBO_FUNCTIONS,
+            defaultImageModel = openAI.DALLE_2,
             context = vectorStore,
             embeddings = embeddings
           )

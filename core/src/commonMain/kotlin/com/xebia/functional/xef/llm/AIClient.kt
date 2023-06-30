@@ -1,9 +1,6 @@
 package com.xebia.functional.xef.llm
 
-import com.xebia.functional.xef.llm.models.chat.ChatCompletionRequest
-import com.xebia.functional.xef.llm.models.chat.ChatCompletionRequestWithFunctions
-import com.xebia.functional.xef.llm.models.chat.ChatCompletionResponse
-import com.xebia.functional.xef.llm.models.chat.ChatCompletionResponseWithFunctions
+import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingResult
 import com.xebia.functional.xef.llm.models.images.ImagesGenerationRequest
@@ -12,17 +9,35 @@ import com.xebia.functional.xef.llm.models.text.CompletionRequest
 import com.xebia.functional.xef.llm.models.text.CompletionResult
 
 interface AIClient : AutoCloseable {
-  suspend fun createCompletion(request: CompletionRequest): CompletionResult
 
-  suspend fun createChatCompletion(request: ChatCompletionRequest): ChatCompletionResponse
+  interface Completion : AIClient {
+    suspend fun createCompletion(request: CompletionRequest): CompletionResult
+  }
 
-  suspend fun createChatCompletionWithFunctions(
-    request: ChatCompletionRequestWithFunctions
-  ): ChatCompletionResponseWithFunctions
+  interface Chat : AIClient {
+    suspend fun createChatCompletion(request: ChatCompletionRequest): ChatCompletionResponse
+    fun tokensFromMessages(messages: List<Message>): Int
+  }
 
-  suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult
+  interface ChatWithFunctions : Chat {
 
-  suspend fun createImages(request: ImagesGenerationRequest): ImagesGenerationResponse
+    suspend fun createChatCompletionWithFunctions(
+      request: ChatCompletionRequestWithFunctions
+    ): ChatCompletionResponseWithFunctions
+
+  }
+
+  interface Embeddings : AIClient {
+
+    suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult
+
+  }
+
+  interface Images {
+
+    suspend fun createImages(request: ImagesGenerationRequest): ImagesGenerationResponse
+
+  }
 
   override fun close() {}
 }

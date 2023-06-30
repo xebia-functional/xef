@@ -17,7 +17,11 @@ import com.aallam.openai.api.image.ImageURL
 import com.aallam.openai.api.image.imageCreation
 import com.aallam.openai.api.model.ModelId
 import com.aallam.openai.client.OpenAI
+import com.xebia.functional.tokenizer.Encoding
+import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.llm.AIClient
+import com.xebia.functional.xef.llm.LLM
+import com.xebia.functional.xef.llm.LLMModel
 import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.llm.models.embeddings.Embedding
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
@@ -32,7 +36,12 @@ import com.xebia.functional.xef.llm.models.text.CompletionResult
 import com.xebia.functional.xef.llm.models.usage.Usage
 import kotlinx.serialization.json.Json
 
-class OpenAIClient(val openAI: OpenAI) : AIClient, AutoCloseable {
+class OpenAIClient(val openAI: OpenAI) :
+  AIClient.ChatWithFunctions,
+  AIClient.Images,
+  AIClient.Completion,
+  AIClient.Embeddings,
+  AutoCloseable {
 
   override suspend fun createCompletion(request: CompletionRequest): CompletionResult {
     val response = openAI.completion(toCompletionRequest(request))
@@ -138,14 +147,14 @@ class OpenAIClient(val openAI: OpenAI) : AIClient, AutoCloseable {
   private fun chatCompletionChoiceWithFunctions(choice: ChatChoice): ChoiceWithFunctions =
     ChoiceWithFunctions(
       message =
-        choice.message?.let {
-          MessageWithFunctionCall(
-            role = it.role.role,
-            content = it.content,
-            name = it.name,
-            functionCall = it.functionCall?.let { FnCall(it.name, it.arguments) }
-          )
-        },
+      choice.message?.let {
+        MessageWithFunctionCall(
+          role = it.role.role,
+          content = it.content,
+          name = it.name,
+          functionCall = it.functionCall?.let { FnCall(it.name, it.arguments) }
+        )
+      },
       finishReason = choice.finishReason,
       index = choice.index,
     )
@@ -154,13 +163,13 @@ class OpenAIClient(val openAI: OpenAI) : AIClient, AutoCloseable {
   private fun chatCompletionChoice(choice: ChatChoice): Choice =
     Choice(
       message =
-        choice.message?.let {
-          Message(
-            role = it.role.role,
-            content = it.content,
-            name = it.name,
-          )
-        },
+      choice.message?.let {
+        Message(
+          role = it.role.role,
+          content = it.content,
+          name = it.name,
+        )
+      },
       finishReason = choice.finishReason,
       index = choice.index,
     )
@@ -222,13 +231,13 @@ class OpenAIClient(val openAI: OpenAI) : AIClient, AutoCloseable {
   private fun embeddingResult(response: EmbeddingResponse): EmbeddingResult =
     EmbeddingResult(
       data =
-        response.embeddings.map {
-          Embedding(
-            `object` = "embedding",
-            embedding = it.embedding.map { it.toFloat() },
-            index = it.index
-          )
-        },
+      response.embeddings.map {
+        Embedding(
+          `object` = "embedding",
+          embedding = it.embedding.map { it.toFloat() },
+          index = it.index
+        )
+      },
       usage = usage(response.usage)
     )
 
@@ -251,6 +260,43 @@ class OpenAIClient(val openAI: OpenAI) : AIClient, AutoCloseable {
       size = ImageSize(request.size)
       user = request.user
     }
+
+  override fun tokensFromMessages(messages: List<Message>): Int {
+    fun Encoding.countTokensFromMessages(tokensPerMessage: Int, tokensPerName: Int): Int =
+      messages.sumOf { message ->
+        countTokens(message.role) +
+          (message.content?.let { countTokens(it) } ?: 0) +
+          tokensPerMessage +
+          (message.name?.let { tokensPerName } ?: 0)
+      } + 3
+
+    fun fallBackTo(fallbackModel: LLM.Chat, paddingTokens: Int): Int {
+      return tokensFromMessages(messages, fallbackModel) + paddingTokens
+    }
+
+    return when (this) {
+      ModelType.GPT_3_5_TURBO_FUNCTIONS.GPT_3_5_TURBO_FUNCTIONS ->
+        // paddingToken = 200: reserved for functions
+        fallBackTo(fallbackModel = LLMModel.GPT_3_5_TURBO_0301, paddingTokens = 200)
+
+      LLMModel.GPT_3_5_TURBO ->
+        // otherwise if the model changes, it might later fail
+        fallBackTo(fallbackModel = LLMModel.GPT_3_5_TURBO_0301, paddingTokens = 5)
+
+      LLMModel.GPT_4,
+      LLMModel.GPT_4_32K ->
+        // otherwise if the model changes, it might later fail
+        fallBackTo(fallbackModel = LLMModel.GPT_4_0314, paddingTokens = 5)
+
+      LLMModel.GPT_3_5_TURBO_0301 ->
+        model.modelType.encoding.countTokensFromMessages(tokensPerMessage = 4, tokensPerName = 0)
+
+      LLMModel.GPT_4_0314 ->
+        model.modelType.encoding.countTokensFromMessages(tokensPerMessage = 3, tokensPerName = 2)
+
+      else -> fallBackTo(fallbackModel = LLMModel.GPT_3_5_TURBO_0301, paddingTokens = 20)
+    }
+  }
 
   override fun close() {
     openAI.close()

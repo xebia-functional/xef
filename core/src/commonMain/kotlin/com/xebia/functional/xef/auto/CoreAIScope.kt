@@ -34,7 +34,7 @@ import kotlin.jvm.JvmName
 class CoreAIScope(
   val defaultModel: LLM.Chat,
   val defaultSerializationModel: LLM.ChatWithFunctions,
-  val aiClient: AIClient,
+  val defaultImageModel: LLM.Images,
   val context: VectorStore,
   val embeddings: Embeddings,
   val maxDeserializationAttempts: Int = 3,
@@ -81,7 +81,9 @@ class CoreAIScope(
    * }
    * ```
    */
-  @AiDsl @JvmName("invokeAI") suspend operator fun <A> AI<A>.invoke(): A = invoke(this@CoreAIScope)
+  @AiDsl
+  @JvmName("invokeAI")
+  suspend operator fun <A> AI<A>.invoke(): A = invoke(this@CoreAIScope)
 
   @AiDsl
   suspend fun extendContext(vararg docs: String) {
@@ -98,12 +100,12 @@ class CoreAIScope(
   @AiDsl
   suspend fun <A> contextScope(store: VectorStore, block: AI<A>): A =
     CoreAIScope(
-        defaultModel,
-        defaultSerializationModel,
-        this@CoreAIScope.aiClient,
-        CombinedVectorStore(store, this@CoreAIScope.context),
-        this@CoreAIScope.embeddings,
-      )
+      defaultModel,
+      defaultSerializationModel,
+      defaultImageModel,
+      CombinedVectorStore(store, this@CoreAIScope.context),
+      this@CoreAIScope.embeddings,
+    )
       .block()
 
   @AiDsl
@@ -231,7 +233,7 @@ class CoreAIScope(
         totalLeftTokens
       }
 
-    suspend fun buildCompletionRequest(): CompletionRequest =
+    fun buildCompletionRequest(): CompletionRequest =
       CompletionRequest(
         model = model.name,
         user = user,
@@ -255,7 +257,7 @@ class CoreAIScope(
       return totalLeftTokens
     }
 
-    suspend fun buildChatRequest(): ChatCompletionRequest {
+    fun buildChatRequest(): ChatCompletionRequest {
       val messages: List<Message> = listOf(Message(Role.SYSTEM.name, promptWithContext))
       return ChatCompletionRequest(
         model = model.name,
@@ -267,7 +269,7 @@ class CoreAIScope(
       )
     }
 
-    suspend fun chatWithFunctionsRequest(): ChatCompletionRequestWithFunctions {
+    fun chatWithFunctionsRequest(): ChatCompletionRequestWithFunctions {
       val role: String = Role.USER.name
       val firstFnName: String? = functions.firstOrNull()?.name
       val messages: List<Message> = listOf(Message(role, promptWithContext))
@@ -284,14 +286,13 @@ class CoreAIScope(
     }
 
     return when (model) {
-      is LLM.Completion ->
-        aiClient.createCompletion(buildCompletionRequest()).choices.map { it.text }
       is LLM.ChatWithFunctions ->
-        aiClient.createChatCompletionWithFunctions(chatWithFunctionsRequest()).choices.mapNotNull {
+        model.client.createChatCompletionWithFunctions(chatWithFunctionsRequest()).choices.mapNotNull {
           it.message?.functionCall?.arguments
         }
+
       else ->
-        aiClient.createChatCompletion(buildChatRequest()).choices.mapNotNull { it.message?.content }
+        model.client.createChatCompletion(buildChatRequest()).choices.mapNotNull { it.message?.content }
     }
   }
 
@@ -330,42 +331,6 @@ class CoreAIScope(
     } else prompt
   }
 
-  private fun tokensFromMessages(messages: List<Message>, model: LLM): Int {
-    fun Encoding.countTokensFromMessages(tokensPerMessage: Int, tokensPerName: Int): Int =
-      messages.sumOf { message ->
-        countTokens(message.role) +
-          (message.content?.let { countTokens(it) } ?: 0) +
-          tokensPerMessage +
-          (message.name?.let { tokensPerName } ?: 0)
-      } + 3
-
-    fun fallBackTo(fallbackModel: LLM, paddingTokens: Int): Int {
-      logger.debug {
-        "Warning: ${model.name} may change over time. " +
-          "Returning messages num tokens assuming ${fallbackModel.name} + $paddingTokens padding tokens."
-      }
-      return tokensFromMessages(messages, fallbackModel) + paddingTokens
-    }
-
-    return when (model) {
-      LLMModel.GPT_3_5_TURBO_FUNCTIONS ->
-        // paddingToken = 200: reserved for functions
-        fallBackTo(fallbackModel = LLMModel.GPT_3_5_TURBO_0301, paddingTokens = 200)
-      LLMModel.GPT_3_5_TURBO ->
-        // otherwise if the model changes, it might later fail
-        fallBackTo(fallbackModel = LLMModel.GPT_3_5_TURBO_0301, paddingTokens = 5)
-      LLMModel.GPT_4,
-      LLMModel.GPT_4_32K ->
-        // otherwise if the model changes, it might later fail
-        fallBackTo(fallbackModel = LLMModel.GPT_4_0314, paddingTokens = 5)
-      LLMModel.GPT_3_5_TURBO_0301 ->
-        model.modelType.encoding.countTokensFromMessages(tokensPerMessage = 4, tokensPerName = 0)
-      LLMModel.GPT_4_0314 ->
-        model.modelType.encoding.countTokensFromMessages(tokensPerMessage = 3, tokensPerName = 2)
-      else -> fallBackTo(fallbackModel = LLMModel.GPT_3_5_TURBO_0301, paddingTokens = 20)
-    }
-  }
-
   /**
    * Run a [prompt] describes the images you want to generate within the context of [CoreAIScope].
    * Returns a [ImagesGenerationResponse] containing time and urls with images generated.
@@ -376,11 +341,12 @@ class CoreAIScope(
    */
   suspend fun images(
     prompt: String,
+    model: LLM.Images = defaultImageModel,
     user: String = "testing",
     numberImages: Int = 1,
     size: String = "1024x1024",
     bringFromContext: Int = 10
-  ): ImagesGenerationResponse = images(Prompt(prompt), user, numberImages, size, bringFromContext)
+  ): ImagesGenerationResponse = images(Prompt(prompt), model, user, numberImages, size, bringFromContext)
 
   /**
    * Run a [prompt] describes the images you want to generate within the context of [CoreAIScope].
@@ -392,6 +358,7 @@ class CoreAIScope(
    */
   suspend fun images(
     prompt: Prompt,
+    model: LLM.Images,
     user: String = "testing",
     numberImages: Int = 1,
     size: String = "1024x1024",
@@ -417,6 +384,6 @@ class CoreAIScope(
         size = size,
         user = user
       )
-    return aiClient.createImages(request)
+    return model.client.createImages(request)
   }
 }

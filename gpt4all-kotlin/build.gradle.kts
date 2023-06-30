@@ -30,7 +30,11 @@ kotlin {
   mingwX64()
 
   sourceSets {
-    val commonMain by getting {}
+    val commonMain by getting {
+      dependencies {
+        implementation(projects.xefCore)
+      }
+    }
 
     commonTest {
       dependencies {
