@@ -44,7 +44,6 @@ internal suspend fun <A> CoreAIScope.solution(
        |9. If the solution is not valid set the `isValid` field to `false` and the `value` field to `null`.
        |10. If the solution is valid set the `isValid` field to `true` and the `value` field to the value of the solution.
        |
-       |${remindJSONSchema()}
        |""".trimMargin()
   return prompt(Prompt(enhancedPrompt), serializer).also {
     println("🤖 Generated solution: ${truncateText(it.answer)}")

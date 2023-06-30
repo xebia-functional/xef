@@ -2,18 +2,21 @@ package com.xebia.functional.xef.scala.auto
 
 import com.xebia.functional.loom.LoomAdapter
 import com.xebia.functional.xef.AIError
-import com.xebia.functional.xef.llm.openai.LLMModel
-import com.xebia.functional.xef.llm.openai.CFunction
+import com.xebia.functional.xef.llm.LLM
+import com.xebia.functional.xef.llm.LLMModel
+import com.xebia.functional.xef.llm.models.functions.CFunction
 import io.circe.Decoder
 import io.circe.parser.parse
 import com.xebia.functional.xef.auto.AIKt
 import com.xebia.functional.xef.auto.AIRuntime
+import com.xebia.functional.xef.auto.llm.openai.OpenAIRuntime
 import com.xebia.functional.xef.auto.serialization.JsonSchemaKt
 import com.xebia.functional.xef.pdf.PDFLoaderKt
 import com.xebia.functional.tokenizer.ModelType
-import com.xebia.functional.xef.llm.openai._
+import com.xebia.functional.xef.llm._
+import com.xebia.functional.xef.auto.llm.openai._
 import com.xebia.functional.xef.scala.textsplitters.TextSplitter
-import com.xebia.functional.xef.llm.openai.images.*
+import com.xebia.functional.xef.llm.models.images.*
 
 import java.io.File
 import scala.jdk.CollectionConverters.*
@@ -24,7 +27,7 @@ type AI[A] = AIScope ?=> A
 def ai[A](block: AI[A]): A =
   LoomAdapter.apply { cont =>
     AIKt.AIScope[A](
-      AIRuntime.openAI,
+      OpenAIRuntime.defaults[A](),
       { (coreAIScope, _) =>
         given AIScope = AIScope.fromCore(coreAIScope)
 
@@ -43,7 +46,7 @@ extension [A](block: AI[A]) {
 def prompt[A: Decoder: SerialDescriptor](
     prompt: String,
     maxAttempts: Int = 5,
-    llmModel: LLMModel = LLMModel.getGPT_3_5_TURBO_FUNCTIONS,
+    llmModel: LLM.ChatWithFunctions = LLMModel.getGPT_3_5_TURBO_FUNCTIONS,
     user: String = "testing",
     echo: Boolean = false,
     n: Int = 1,
@@ -71,7 +74,9 @@ def prompt[A: Decoder: SerialDescriptor](
 private def generateCFunctions[A: SerialDescriptor]: List[CFunction] =
   val descriptor = SerialDescriptor[A].serialDescriptor
   val serialName = descriptor.getSerialName
-  val fnName = serialName.substring(serialName.lastIndexOf("."), serialName.length)
+  val fnName =
+    if (serialName.contains(".")) serialName.substring(serialName.lastIndexOf("."), serialName.length)
+    else serialName
   List(CFunction(fnName, "Generated function for $fnName", JsonSchemaKt.encodeJsonSchema(descriptor)))
 
 def contextScope[A: Decoder: SerialDescriptor](docs: List[String])(block: AI[A])(using scope: AIScope): A =
@@ -79,7 +84,7 @@ def contextScope[A: Decoder: SerialDescriptor](docs: List[String])(block: AI[A])
 
 def promptMessage(
     prompt: String,
-    llmModel: LLMModel = LLMModel.getGPT_3_5_TURBO,
+    llmModel: LLM.Chat = LLMModel.getGPT_3_5_TURBO,
     functions: List[CFunction] = List.empty,
     user: String = "testing",
     echo: Boolean = false,
