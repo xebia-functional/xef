@@ -20,7 +20,11 @@ import com.xebia.functional.xef.vectorstores.VectorStore;
 import kotlin.collections.CollectionsKt;
 import kotlin.coroutines.Continuation;
 import kotlin.jvm.functions.Function1;
-import kotlinx.coroutines.*;
+import kotlinx.coroutines.CoroutineScope;
+import kotlinx.coroutines.CoroutineScopeKt;
+import kotlinx.coroutines.ExecutorsKt;
+import kotlinx.coroutines.JobKt;
+import kotlinx.coroutines.CoroutineStart;
 import kotlinx.coroutines.future.FutureKt;
 import org.jetbrains.annotations.NotNull;
 
