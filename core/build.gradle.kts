@@ -64,10 +64,9 @@ kotlin {
     val commonMain by getting {
       dependencies {
         api(libs.bundles.arrow)
-
         api(libs.bundles.ktor.client)
         api(projects.xefTokenizer)
-
+        implementation(libs.openai.client)
         implementation(libs.uuid)
         implementation(libs.klogging)
       }

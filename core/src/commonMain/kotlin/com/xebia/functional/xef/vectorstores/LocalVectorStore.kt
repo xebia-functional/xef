@@ -2,11 +2,13 @@ package com.xebia.functional.xef.vectorstores
 
 import arrow.atomic.Atomic
 import arrow.atomic.getAndUpdate
+import com.aallam.openai.api.ExperimentalOpenAI
+import com.aallam.openai.api.embedding.Embedding as AllamEmbedding
+import com.aallam.openai.client.extension.distance
 import com.xebia.functional.xef.embeddings.Embedding
 import com.xebia.functional.xef.embeddings.Embeddings
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingModel
 import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
-import kotlin.math.sqrt
 
 private data class State(
   val documents: List<String>,
@@ -42,21 +44,18 @@ private constructor(private val embeddings: Embeddings, private val state: Atomi
   }
 
   override suspend fun similaritySearchByVector(embedding: Embedding, limit: Int): List<String> {
+    fun toAllam(e: Embedding): AllamEmbedding = AllamEmbedding(e.data.map { it.toDouble() }, 0)
+    val target = toAllam(embedding)
+    @OptIn(ExperimentalOpenAI::class)
+    fun distanceTo(e: Embedding): Double = target.distance(toAllam(e))
+
     val state0 = state.get()
     return state0.documents
       .asSequence()
-      .mapNotNull { doc -> state0.precomputedEmbeddings[doc]?.let { doc to it } }
-      .map { (doc, e) -> doc to embedding.cosineSimilarity(e) }
-      .sortedByDescending { (_, similarity) -> similarity }
+      .mapNotNull { doc -> state0.precomputedEmbeddings[doc]?.let { doc to distanceTo(it) } }
+      .sortedBy { it.second }
       .take(limit)
-      .map { (document, _) -> document }
+      .map { it.first }
       .toList()
-  }
-
-  private fun Embedding.cosineSimilarity(other: Embedding): Double {
-    val dotProduct = this.data.zip(other.data).sumOf { (a, b) -> (a * b).toDouble() }
-    val magnitudeA = sqrt(this.data.sumOf { (it * it).toDouble() })
-    val magnitudeB = sqrt(other.data.sumOf { (it * it).toDouble() })
-    return dotProduct / (magnitudeA * magnitudeB)
   }
 }
