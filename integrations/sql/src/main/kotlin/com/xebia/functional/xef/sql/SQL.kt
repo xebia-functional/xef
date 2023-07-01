@@ -68,7 +68,7 @@ private class JDBCSQLImpl(
 
   override suspend fun CoreAIScope.selectTablesForPrompt(
     tableNames: String, prompt: String
-  ): List<String> = promptMessage(
+  ): List<String> = config.model.promptMessage(
     """|You are an AI assistant which selects the best tables from which the `goal` can be accomplished.
      |Select from this list of SQL `tables` the tables that you may need to solve the following `goal`
      |```tables
@@ -93,7 +93,7 @@ private class JDBCSQLImpl(
       val results = resultSet.toDocuments(prompt)
       logger.debug { "Found: ${results.size} records" }
       val splitter = TokenTextSplitter(
-        modelType = config.llmModelType, chunkSize = config.llmModelType.maxContextLength / 2, chunkOverlap = 10
+        modelType = config.model.modelType, chunkSize = config.model.modelType.maxContextLength / 2, chunkOverlap = 10
       )
       val splitDocuments = splitter.splitDocuments(results)
       logger.debug { "Split into: ${splitDocuments.size} documents" }
@@ -101,7 +101,7 @@ private class JDBCSQLImpl(
     }
   }
 
-  override suspend fun CoreAIScope.sql(ddl: String, input: String): List<String> = promptMessage(
+  override suspend fun CoreAIScope.sql(ddl: String, input: String): List<String> = config.model.promptMessage(
     """|
        |You are an AI assistant which produces SQL SELECT queries in SQL format.
        |You only reply in valid SQL SELECT queries.
@@ -126,7 +126,7 @@ private class JDBCSQLImpl(
     """.trimMargin()
   )
 
-  override suspend fun CoreAIScope.getInterestingPromptsForDatabase(): List<String> = promptMessage(
+  override suspend fun CoreAIScope.getInterestingPromptsForDatabase(): List<String> = config.model.promptMessage(
     """|You are an AI assistant which replies with a list of the best prompts based on the content of this database:
        |Instructions:
        |1. Select from this `ddl` 3 top prompts that the user could ask about this database

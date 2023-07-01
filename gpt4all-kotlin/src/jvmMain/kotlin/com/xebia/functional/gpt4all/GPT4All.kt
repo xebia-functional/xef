@@ -2,29 +2,45 @@ package com.xebia.functional.gpt4all
 
 import com.sun.jna.platform.unix.LibCAPI
 import com.xebia.functional.gpt4all.libraries.LLModelContext
+import com.xebia.functional.tokenizer.EncodingType
+import com.xebia.functional.tokenizer.ModelType
+import com.xebia.functional.xef.llm.Chat
+import com.xebia.functional.xef.llm.Completion
+import com.xebia.functional.xef.llm.models.chat.*
+import com.xebia.functional.xef.llm.models.text.CompletionChoice
+import com.xebia.functional.xef.llm.models.text.CompletionRequest
+import com.xebia.functional.xef.llm.models.text.CompletionResult
+import com.xebia.functional.xef.llm.models.usage.Usage
 import java.nio.file.Path
+import java.util.*
+import kotlin.io.path.name
 
-interface GPT4All : AutoCloseable {
-    suspend fun createCompletion(request: CompletionRequest): CompletionResponse
-    suspend fun createChatCompletion(request: ChatCompletionRequest): ChatCompletionResponse
-    suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResponse
+interface GPT4All : AutoCloseable, Chat, Completion {
+
+    val gpt4allModel : GPT4AllModel
+
+    override fun close() {
+    }
 
     companion object {
         operator fun invoke(
             path: Path,
-            modelType: LLModel.Type
+            modelType: LLModel.Type,
+            generationConfig: GenerationConfig = GenerationConfig(),
         ): GPT4All = object : GPT4All {
-            val gpt4allModel: GPT4AllModel = GPT4AllModel(path, modelType)
 
-            override suspend fun createCompletion(request: CompletionRequest): CompletionResponse =
+            override val gpt4allModel = GPT4AllModel.invoke(path, modelType)
+
+            override suspend fun createCompletion(request: CompletionRequest): CompletionResult =
                 with(request) {
                     val response: String = generateCompletion(prompt, generationConfig)
-                    return CompletionResponse(
-                        gpt4allModel.llModel.name,
-                        prompt.length,
-                        response.length,
-                        totalTokens = prompt.length + response.length,
-                        listOf(Completion(response))
+                    return CompletionResult(
+                        UUID.randomUUID().toString(),
+                        path.name,
+                        System.currentTimeMillis(),
+                        path.name,
+                        listOf(CompletionChoice(response, 0, null, null)),
+                        Usage.ZERO
                     )
                 }
 
@@ -33,26 +49,31 @@ interface GPT4All : AutoCloseable {
                     val prompt: String = messages.buildPrompt()
                     val response: String = generateCompletion(prompt, generationConfig)
                     return ChatCompletionResponse(
-                        gpt4allModel.llModel.name,
-                        prompt.length,
-                        response.length,
-                        totalTokens = prompt.length + response.length,
-                        listOf(Message(com.xebia.functional.gpt4all.Message.Role.ASSISTANT, response))
+                        UUID.randomUUID().toString(),
+                        path.name,
+                        System.currentTimeMillis().toInt(),
+                        path.name,
+                        Usage.ZERO,
+                        listOf(Choice(Message(Role.ASSISTANT, response, Role.ASSISTANT.name), null, 0)),
                     )
                 }
 
-            override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResponse {
-                TODO("Not yet implemented")
+            override fun tokensFromMessages(messages: List<Message>): Int {
+                return 0
             }
 
+            override val name: String = path.name
+
             override fun close(): Unit = gpt4allModel.close()
+
+            override val modelType: ModelType = ModelType.LocalModel(name, EncodingType.CL100K_BASE, 4096)
 
             private fun List<Message>.buildPrompt(): String {
                 val messages: String = joinToString("") { message ->
                     when (message.role) {
-                        Message.Role.SYSTEM -> message.content
-                        Message.Role.USER -> "\n### Human: ${message.content}"
-                        Message.Role.ASSISTANT -> "\n### Response: ${message.content}"
+                        Role.SYSTEM -> message.content
+                        Role.USER -> "\n### Human: ${message.content}"
+                        Role.ASSISTANT -> "\n### Response: ${message.content}"
                     }
                 }
                 return "$messages\n### Response:"
@@ -82,3 +103,5 @@ interface GPT4All : AutoCloseable {
         }
     }
 }
+
+

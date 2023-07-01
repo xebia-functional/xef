@@ -48,6 +48,7 @@ kotlin {
     val jvmMain by getting {
       dependencies {
         implementation("net.java.dev.jna:jna-platform:5.13.0")
+        implementation("ai.djl:api:0.22.1")
       }
     }
 

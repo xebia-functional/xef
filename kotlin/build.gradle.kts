@@ -39,7 +39,6 @@ kotlin {
     val commonMain by getting {
       dependencies {
           api(projects.xefCore)
-          api(projects.xefOpenai)
       }
     }
   }
