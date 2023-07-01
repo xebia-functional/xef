@@ -3,7 +3,6 @@ package com.xebia.functional.xef.java.auto;
 import com.xebia.functional.tokenizer.ModelType;
 import com.xebia.functional.xef.textsplitters.TextSplitter;
 
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
