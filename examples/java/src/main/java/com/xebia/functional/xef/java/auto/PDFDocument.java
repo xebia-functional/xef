@@ -23,9 +23,11 @@ public class PDFDocument {
         if (line == null) {
             return CompletableFuture.completedFuture(null);
         } else {
-            return scope.prompt(line, PDFDocument.AIResponse.class)
+            scope.prompt(line, AIResponse.class)
                     .thenAccept((aiRes) -> System.out.println(aiRes.answer + "\n---\n" +
                             aiRes.source + "\n---\n"));
+
+            return askQuestion(scope);
         }
     }
 
