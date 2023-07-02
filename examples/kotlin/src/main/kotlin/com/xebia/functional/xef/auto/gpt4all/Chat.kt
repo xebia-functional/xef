@@ -4,15 +4,10 @@ import com.xebia.functional.gpt4all.GPT4All
 import com.xebia.functional.gpt4all.LLModel
 import com.xebia.functional.gpt4all.getOrThrow
 import com.xebia.functional.gpt4all.huggingFaceUrl
-import com.xebia.functional.tokenizer.ModelType
-import com.xebia.functional.xef.agents.scrapeUrlContent
 import com.xebia.functional.xef.auto.PromptConfiguration
 import com.xebia.functional.xef.auto.ai
 import com.xebia.functional.xef.auto.llm.openai.OpenAI
-import com.xebia.functional.xef.auto.llm.openai.image
 import com.xebia.functional.xef.pdf.pdf
-import com.xebia.functional.xef.textsplitters.TokenTextSplitter
-import kotlinx.serialization.Serializable
 import java.nio.file.Path
 
 suspend fun main() {

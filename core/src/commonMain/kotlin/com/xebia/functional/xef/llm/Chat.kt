@@ -80,8 +80,13 @@ interface Chat : LLM {
 
     return when (this) {
       is ChatWithFunctions ->
-        createChatCompletionWithFunctions(chatWithFunctionsRequest()).choices.mapNotNull {
-          it.message?.functionCall?.arguments
+        // we only support functions for now with GPT_3_5_TURBO_FUNCTIONS
+        if (modelType == ModelType.GPT_3_5_TURBO_FUNCTIONS) {
+          createChatCompletionWithFunctions(chatWithFunctionsRequest()).choices.mapNotNull {
+            it.message?.functionCall?.arguments
+          }
+        } else {
+          createChatCompletion(buildChatRequest()).choices.mapNotNull { it.message?.content }
         }
       else -> createChatCompletion(buildChatRequest()).choices.mapNotNull { it.message?.content }
     }
