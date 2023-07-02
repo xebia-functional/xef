@@ -5,7 +5,6 @@ plugins {
 
 repositories {
   mavenCentral()
-  maven(url = uri("https://packages.jetbrains.team/maven/p/ki/maven"))
 }
 
 java {
