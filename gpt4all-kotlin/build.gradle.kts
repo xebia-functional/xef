@@ -8,6 +8,7 @@ plugins {
 
 repositories {
   mavenCentral()
+  maven(url = uri("https://packages.jetbrains.team/maven/p/ki/maven"))
 }
 
 java {
@@ -20,14 +21,10 @@ java {
 
 kotlin {
   jvm()
+
   js(IR) {
     browser()
-    nodejs()
   }
-  linuxX64()
-  macosX64()
-  macosArm64()
-  mingwX64()
 
   sourceSets {
     val commonMain by getting {
@@ -48,8 +45,11 @@ kotlin {
     val jvmMain by getting {
       dependencies {
         implementation("net.java.dev.jna:jna-platform:5.13.0")
-        implementation("ai.djl:api:0.22.1")
+        implementation("ai.djl.huggingface:tokenizers:+")
       }
+    }
+
+    val jsMain by getting {
     }
 
     val jvmTest by getting {
@@ -58,23 +58,6 @@ kotlin {
       }
     }
 
-    js {
-      nodejs {}
-      browser {}
-    }
-
-    val linuxX64Main by getting
-    val macosX64Main by getting
-    val macosArm64Main by getting
-    val mingwX64Main by getting
-
-    create("nativeMain") {
-      dependsOn(commonMain)
-      linuxX64Main.dependsOn(this)
-      macosX64Main.dependsOn(this)
-      macosArm64Main.dependsOn(this)
-      mingwX64Main.dependsOn(this)
-    }
   }
 }
 

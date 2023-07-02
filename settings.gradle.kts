@@ -3,6 +3,7 @@ dependencyResolutionManagement {
     repositories {
         mavenCentral()
         maven(url = "https://oss.sonatype.org/content/repositories/snapshots/")
+        maven(url = "https://packages.jetbrains.team/maven/p/ki/maven/")
     }
 }
 

@@ -33,22 +33,9 @@ interface Images : LLM {
     size: String = "1024x1024",
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
   ): ImagesGenerationResponse {
-    val ctxInfo = context.similaritySearch(prompt.message, promptConfiguration.docsInContext)
-    val promptWithContext =
-      if (ctxInfo.isNotEmpty()) {
-        """|Instructions: Use the [Information] below delimited by 3 backticks to accomplish
-       |the [Objective] at the end of the prompt.
-       |Try to match the data returned in the [Objective] with this [Information] as best as you can.
-       |[Information]:
-       |```
-       |${ctxInfo.joinToString("\n")}
-       |```
-       |$prompt"""
-          .trimMargin()
-      } else prompt.message
     val request =
       ImagesGenerationRequest(
-        prompt = promptWithContext,
+        prompt = prompt.message,
         numberImages = numberImages,
         size = size,
         user = promptConfiguration.user

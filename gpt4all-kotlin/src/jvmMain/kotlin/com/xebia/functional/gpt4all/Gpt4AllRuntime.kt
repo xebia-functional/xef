@@ -42,7 +42,7 @@ suspend inline fun <reified A> AI<A>.toEither(): Either<AIError, A> =
 
 suspend fun <A> AIScope(block: AI<A>, orElse: suspend (AIError) -> A): A =
   try {
-    val scope = CoreAIScope(UniversalEmbeddings)
+    val scope = CoreAIScope(HuggingFaceLocalEmbeddings.DEFAULT)
     block(scope)
   } catch (e: AIError) {
     orElse(e)

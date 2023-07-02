@@ -5,6 +5,7 @@ plugins {
 
 repositories {
   mavenCentral()
+  maven(url = uri("https://packages.jetbrains.team/maven/p/ki/maven"))
 }
 
 java {
@@ -37,3 +38,5 @@ tasks.getByName<Copy>("processResources") {
   from("${projects.xefGpt4all.dependencyProject.buildDir}/processedResources/jvm/main")
   into("$buildDir/resources/main")
 }
+
+
