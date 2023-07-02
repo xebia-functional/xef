@@ -1,7 +1,6 @@
 package com.xebia.functional.xef.auto.manual
 
 import com.xebia.functional.gpt4all.HuggingFaceLocalEmbeddings
-import com.xebia.functional.xef.agents.search
 import com.xebia.functional.xef.auto.llm.openai.OpenAI
 import com.xebia.functional.xef.pdf.pdf
 import com.xebia.functional.xef.vectorstores.LocalVectorStore
