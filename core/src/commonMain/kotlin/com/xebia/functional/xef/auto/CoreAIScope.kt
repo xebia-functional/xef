@@ -99,14 +99,15 @@ class CoreAIScope(
     functions: List<CFunction>,
     serializer: (json: String) -> A,
     promptConfiguration: PromptConfiguration,
-  ): A =
-    prompt(
+  ): A {
+    return prompt(
       prompt = Prompt(prompt),
       context = context,
       functions = functions,
       serializer = serializer,
       promptConfiguration = promptConfiguration,
     )
+  }
 
   @AiDsl
   suspend fun Chat.promptMessage(

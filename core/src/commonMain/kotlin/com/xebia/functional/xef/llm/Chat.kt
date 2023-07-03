@@ -51,28 +51,33 @@ interface Chat : LLM {
       return totalLeftTokens
     }
 
-    val userMessage = Message(Role.USER, promptWithContext, Role.USER.name)
-    fun buildChatRequest(): ChatCompletionRequest =
-      ChatCompletionRequest(
+    fun buildChatRequest(): ChatCompletionRequest {
+      val messages: List<Message> = listOf(Message(Role.USER, promptWithContext, Role.USER.name))
+      return ChatCompletionRequest(
         model = name,
         user = promptConfiguration.user,
-        messages = listOf(userMessage),
+        messages = messages,
         n = promptConfiguration.numberOfPredictions,
         temperature = promptConfiguration.temperature,
-        maxTokens = checkTotalLeftChatTokens(listOf(userMessage))
+        maxTokens = checkTotalLeftChatTokens(messages),
+        streamToStandardOut = promptConfiguration.streamToStandardOut
       )
+    }
 
-    fun chatWithFunctionsRequest(): ChatCompletionRequestWithFunctions =
-      ChatCompletionRequestWithFunctions(
+    fun chatWithFunctionsRequest(): ChatCompletionRequestWithFunctions {
+      val firstFnName: String? = functions.firstOrNull()?.name
+      val messages: List<Message> = listOf(Message(Role.USER, promptWithContext, Role.USER.name))
+      return ChatCompletionRequestWithFunctions(
         model = name,
         user = promptConfiguration.user,
-        messages = listOf(userMessage),
+        messages = messages,
         n = promptConfiguration.numberOfPredictions,
         temperature = promptConfiguration.temperature,
-        maxTokens = checkTotalLeftChatTokens(listOf(userMessage)),
+        maxTokens = checkTotalLeftChatTokens(messages),
         functions = functions,
-        functionCall = mapOf("name" to (functions.firstOrNull()?.name ?: ""))
+        functionCall = mapOf("name" to (firstFnName ?: ""))
       )
+    }
 
     return when (this) {
       is ChatWithFunctions ->
