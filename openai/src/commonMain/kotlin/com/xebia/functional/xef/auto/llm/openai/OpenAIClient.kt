@@ -16,8 +16,10 @@ import com.aallam.openai.api.image.ImageSize
 import com.aallam.openai.api.image.ImageURL
 import com.aallam.openai.api.image.imageCreation
 import com.aallam.openai.api.model.ModelId
-import com.aallam.openai.client.OpenAI
-import com.xebia.functional.xef.llm.AIClient
+import com.aallam.openai.client.OpenAI as OpenAIClient
+import com.xebia.functional.tokenizer.Encoding
+import com.xebia.functional.tokenizer.ModelType
+import com.xebia.functional.xef.llm.*
 import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.llm.models.embeddings.Embedding
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
@@ -32,10 +34,16 @@ import com.xebia.functional.xef.llm.models.text.CompletionResult
 import com.xebia.functional.xef.llm.models.usage.Usage
 import kotlinx.serialization.json.Json
 
-class OpenAIClient(val openAI: OpenAI) : AIClient, AutoCloseable {
+class OpenAIModel(
+  private val openAI: OpenAI,
+  override val name: String,
+  override val modelType: ModelType
+) : Chat, ChatWithFunctions, Images, Completion, Embeddings, AutoCloseable {
+
+  private val client = OpenAIClient(openAI.token)
 
   override suspend fun createCompletion(request: CompletionRequest): CompletionResult {
-    val response = openAI.completion(toCompletionRequest(request))
+    val response = client.completion(toCompletionRequest(request))
     return completionResult(response)
   }
 
@@ -43,7 +51,7 @@ class OpenAIClient(val openAI: OpenAI) : AIClient, AutoCloseable {
   override suspend fun createChatCompletion(
     request: ChatCompletionRequest
   ): ChatCompletionResponse {
-    val response = openAI.chatCompletion(toChatCompletionRequest(request))
+    val response = client.chatCompletion(toChatCompletionRequest(request))
     return chatCompletionResult(response)
   }
 
@@ -51,18 +59,18 @@ class OpenAIClient(val openAI: OpenAI) : AIClient, AutoCloseable {
   override suspend fun createChatCompletionWithFunctions(
     request: ChatCompletionRequestWithFunctions
   ): ChatCompletionResponseWithFunctions {
-    val response = openAI.chatCompletion(toChatCompletionRequestWithFunctions(request))
+    val response = client.chatCompletion(toChatCompletionRequestWithFunctions(request))
     return chatCompletionResultWithFunctions(response)
   }
 
   override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult {
-    val response = openAI.embeddings(toEmbeddingRequest(request))
+    val response = client.embeddings(toEmbeddingRequest(request))
     return embeddingResult(response)
   }
 
   @OptIn(BetaOpenAI::class)
   override suspend fun createImages(request: ImagesGenerationRequest): ImagesGenerationResponse {
-    val response = openAI.imageURL(toImageCreationRequest(request))
+    val response = client.imageURL(toImageCreationRequest(request))
     return imageResult(response)
   }
 
@@ -156,14 +164,32 @@ class OpenAIClient(val openAI: OpenAI) : AIClient, AutoCloseable {
       message =
         choice.message?.let {
           Message(
-            role = it.role.role,
-            content = it.content,
-            name = it.name,
+            role = toRole(it),
+            content = it.content ?: "",
+            name = it.name ?: "",
           )
         },
       finishReason = choice.finishReason,
       index = choice.index,
     )
+
+  @OptIn(BetaOpenAI::class)
+  private fun toRole(it: ChatMessage) =
+    when (it.role) {
+      ChatRole.User -> Role.USER
+      ChatRole.Assistant -> Role.ASSISTANT
+      ChatRole.System -> Role.SYSTEM
+      ChatRole.Function -> Role.SYSTEM
+      else -> Role.ASSISTANT
+    }
+
+  @OptIn(BetaOpenAI::class)
+  private fun fromRole(it: Role) =
+    when (it) {
+      Role.USER -> ChatRole.User
+      Role.ASSISTANT -> ChatRole.Assistant
+      Role.SYSTEM -> ChatRole.System
+    }
 
   @OptIn(BetaOpenAI::class)
   private fun toChatCompletionRequest(request: ChatCompletionRequest): OpenAIChatCompletionRequest =
@@ -172,7 +198,7 @@ class OpenAIClient(val openAI: OpenAI) : AIClient, AutoCloseable {
       messages =
         request.messages.map {
           ChatMessage(
-            role = ChatRole(it.role),
+            role = fromRole(it.role),
             content = it.content,
             name = it.name,
           )
@@ -195,7 +221,7 @@ class OpenAIClient(val openAI: OpenAI) : AIClient, AutoCloseable {
     model = ModelId(request.model)
     messages =
       request.messages.map {
-        ChatMessage(role = ChatRole(it.role), content = it.content, name = it.name)
+        ChatMessage(role = fromRole(it.role), content = it.content, name = it.name)
       }
 
     functions =
@@ -252,7 +278,39 @@ class OpenAIClient(val openAI: OpenAI) : AIClient, AutoCloseable {
       user = request.user
     }
 
+  override fun tokensFromMessages(messages: List<Message>): Int {
+    fun Encoding.countTokensFromMessages(tokensPerMessage: Int, tokensPerName: Int): Int =
+      messages.sumOf { message ->
+        countTokens(message.role.name) +
+          countTokens(message.content) +
+          tokensPerMessage +
+          tokensPerName
+      } + 3
+
+    fun fallBackTo(fallbackModel: Chat, paddingTokens: Int): Int {
+      return fallbackModel.tokensFromMessages(messages) + paddingTokens
+    }
+
+    return when (this) {
+      openAI.GPT_3_5_TURBO_FUNCTIONS ->
+        // paddingToken = 200: reserved for functions
+        fallBackTo(fallbackModel = openAI.GPT_3_5_TURBO_0301, paddingTokens = 200)
+      openAI.GPT_3_5_TURBO ->
+        // otherwise if the model changes, it might later fail
+        fallBackTo(fallbackModel = openAI.GPT_3_5_TURBO_0301, paddingTokens = 5)
+      openAI.GPT_4,
+      openAI.GPT_4_32K ->
+        // otherwise if the model changes, it might later fail
+        fallBackTo(fallbackModel = openAI.GPT_4_0314, paddingTokens = 5)
+      openAI.GPT_3_5_TURBO_0301 ->
+        modelType.encoding.countTokensFromMessages(tokensPerMessage = 4, tokensPerName = 0)
+      openAI.GPT_4_0314 ->
+        modelType.encoding.countTokensFromMessages(tokensPerMessage = 3, tokensPerName = 2)
+      else -> fallBackTo(fallbackModel = openAI.GPT_3_5_TURBO_0301, paddingTokens = 20)
+    }
+  }
+
   override fun close() {
-    openAI.close()
+    client.close()
   }
 }

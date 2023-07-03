@@ -1,3 +1,5 @@
+@file:JvmName("Loader")
+@file:JvmMultifileClass
 package com.xebia.functional.xef.pdf
 
 import com.xebia.functional.tokenizer.ModelType
@@ -25,7 +27,6 @@ suspend fun pdf(
     }
     pdf(file, splitter)
   }
-
 
 suspend fun pdf(
   file: File,

@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.sql.jdbc
 
-import com.xebia.functional.tokenizer.ModelType
+import com.xebia.functional.xef.llm.Chat
 
 class JdbcConfig(
   val vendor: String,
@@ -9,7 +9,7 @@ class JdbcConfig(
   val password: String,
   val port: Int,
   val database: String,
-  val llmModelType: ModelType,
+  val model: Chat
 ) {
   fun toJDBCUrl(): String = "jdbc:$vendor://$host:$port/$database"
 }
