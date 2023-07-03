@@ -13,6 +13,7 @@ which states the following:
 
 // TODO: We should consider a fork and maintain it ourselves.
  */
+import com.xebia.functional.xef.auto.Description
 import kotlin.jvm.JvmMultifileClass
 import kotlin.jvm.JvmName
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -56,12 +57,6 @@ enum class JsonType(jsonType: String) {
 
 @Target()
 annotation class JsonSchema {
-  /** Description of this property */
-  @SerialInfo
-  @Repeatable
-  @Retention(AnnotationRetention.BINARY)
-  @Target(AnnotationTarget.PROPERTY, AnnotationTarget.FIELD)
-  annotation class Description(val lines: Array<out String>)
 
   /** Enum-like values for non-enum string */
   @SerialInfo
@@ -342,9 +337,7 @@ private fun JsonObjectBuilder.applyJsonSchemaDefaults(
 
   if (annotations.isNotEmpty()) {
     val description =
-      annotations.filterIsInstance<JsonSchema.Description>().joinToString("\n") {
-        it.lines.joinToString("\n")
-      }
+      annotations.filterIsInstance<Description>().joinToString("\n") { it.lines.joinToString("\n") }
 
     if (description.isNotEmpty()) {
       this["description"] = description
