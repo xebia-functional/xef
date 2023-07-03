@@ -1,6 +1,8 @@
 package com.xebia.functional.xef.auto
 
 import com.xebia.functional.xef.agents.search
+import com.xebia.functional.xef.auto.llm.openai.getOrElse
+import com.xebia.functional.xef.auto.llm.openai.promptMessage
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 suspend fun main() {

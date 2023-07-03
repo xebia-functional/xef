@@ -1,6 +1,8 @@
+@file:JvmName("Json")
+@file:JvmMultifileClass
 @file:OptIn(ExperimentalSerializationApi::class)
 
-package com.xebia.functional.xef.auto.serialization
+package com.xebia.functional.xef.auto.llm.openai
 
 /*
 Ported over from https://github.com/Ricky12Awesome/json-schema-serialization
@@ -11,6 +13,8 @@ which states the following:
 
 // TODO: We should consider a fork and maintain it ourselves.
  */
+import kotlin.jvm.JvmMultifileClass
+import kotlin.jvm.JvmName
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialInfo
 import kotlinx.serialization.descriptors.PolymorphicKind

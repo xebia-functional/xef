@@ -3,13 +3,13 @@ package com.xebia.functional.xef.auto.llm.openai
 import arrow.fx.coroutines.parMap
 import com.xebia.functional.xef.embeddings.Embedding
 import com.xebia.functional.xef.embeddings.Embeddings
-import com.xebia.functional.xef.llm.AIClient
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
 import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
 import kotlin.time.ExperimentalTime
 
 @ExperimentalTime
-class OpenAIEmbeddings(private val oaiClient: AIClient) : Embeddings {
+class OpenAIEmbeddings(private val oaiClient: com.xebia.functional.xef.llm.Embeddings) :
+  Embeddings {
 
   override suspend fun embedDocuments(
     texts: List<String>,

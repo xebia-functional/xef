@@ -3,7 +3,7 @@ package com.xebia.functional.xef.llm.models.text
 data class CompletionRequest(
   val model: String,
   val user: String,
-  val prompt: String? = null,
+  val prompt: String,
   val suffix: String? = null,
   val maxTokens: Int? = null,
   val temperature: Double? = null,

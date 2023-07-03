@@ -7,7 +7,6 @@ interface GPT4AllModel : AutoCloseable {
     val llModel: LLModel
 
     fun prompt(prompt: String, context: LLModelContext): String
-    fun embeddings(prompt: String): List<Float>
 
     companion object {
         operator fun invoke(
@@ -33,8 +32,6 @@ interface GPT4AllModel : AutoCloseable {
                     )
                     responseBuffer.trim().toString()
                 }
-
-            override fun embeddings(prompt: String): List<Float> = TODO("Not yet implemented")
 
             override fun close(): Unit = llModel.close()
         }

@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.auto.tot
 
 import com.xebia.functional.xef.auto.CoreAIScope
-import com.xebia.functional.xef.auto.prompt
+import com.xebia.functional.xef.auto.llm.openai.prompt
 import kotlinx.serialization.Serializable
 
 @Serializable
