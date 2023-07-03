@@ -2,8 +2,7 @@ package com.xebia.functional.gpt4all
 
 import ai.djl.training.util.DownloadUtils
 import ai.djl.training.util.ProgressBar
-import com.sun.jna.platform.unix.LibCAPI
-import com.xebia.functional.gpt4all.libraries.LLModelContext
+import com.hexadevlabs.gpt4all.LLModel
 import com.xebia.functional.tokenizer.EncodingType
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.llm.Chat
@@ -13,16 +12,13 @@ import com.xebia.functional.xef.llm.models.text.CompletionChoice
 import com.xebia.functional.xef.llm.models.text.CompletionRequest
 import com.xebia.functional.xef.llm.models.text.CompletionResult
 import com.xebia.functional.xef.llm.models.usage.Usage
-import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.StandardCopyOption
 import java.util.*
 import kotlin.io.path.name
 
-interface GPT4All : AutoCloseable, Chat, Completion {
 
-  val gpt4allModel: GPT4AllModel
+interface GPT4All : AutoCloseable, Chat, Completion {
 
   override fun close() {
   }
@@ -31,22 +27,26 @@ interface GPT4All : AutoCloseable, Chat, Completion {
 
     operator fun invoke(
       url: String,
-      path: Path,
-      modelType: LLModel.Type,
-      generationConfig: GenerationConfig = GenerationConfig(),
+      path: Path
     ): GPT4All = object : GPT4All {
 
       init {
         if (!Files.exists(path)) {
-          DownloadUtils.download(url, path.toFile().absolutePath , ProgressBar())
+          DownloadUtils.download(url, path.toFile().absolutePath, ProgressBar())
         }
       }
 
-      override val gpt4allModel = GPT4AllModel.invoke(path, modelType)
+      val llModel = LLModel(path)
 
       override suspend fun createCompletion(request: CompletionRequest): CompletionResult =
         with(request) {
-          val response: String = generateCompletion(prompt, generationConfig)
+
+          val config = LLModel.config()
+            .withTopP(request.topP?.toFloat() ?: 0.4f)
+            .withTemp(request.temperature?.toFloat() ?: 0f)
+            .withRepeatPenalty(request.frequencyPenalty.toFloat())
+            .build()
+          val response: String = generateCompletion(prompt, config, request.streamToStandardOut)
           return CompletionResult(
             UUID.randomUUID().toString(),
             path.name,
@@ -60,7 +60,12 @@ interface GPT4All : AutoCloseable, Chat, Completion {
       override suspend fun createChatCompletion(request: ChatCompletionRequest): ChatCompletionResponse =
         with(request) {
           val prompt: String = messages.buildPrompt()
-          val response: String = generateCompletion(prompt, generationConfig)
+          val config = LLModel.config()
+            .withTopP(request.topP.toFloat() ?: 0.4f)
+            .withTemp(request.temperature.toFloat() ?: 0f)
+            .withRepeatPenalty(request.frequencyPenalty.toFloat())
+            .build()
+          val response: String = generateCompletion(prompt, config, request.streamToStandardOut)
           return ChatCompletionResponse(
             UUID.randomUUID().toString(),
             path.name,
@@ -77,7 +82,7 @@ interface GPT4All : AutoCloseable, Chat, Completion {
 
       override val name: String = path.name
 
-      override fun close(): Unit = gpt4allModel.close()
+      override fun close(): Unit = llModel.close()
 
       override val modelType: ModelType = ModelType.LocalModel(name, EncodingType.CL100K_BASE, 4096)
 
@@ -94,27 +99,12 @@ interface GPT4All : AutoCloseable, Chat, Completion {
 
       private fun generateCompletion(
         prompt: String,
-        generationConfig: GenerationConfig
+        config: LLModel.GenerationConfig,
+        stream: Boolean,
       ): String {
-        val context = LLModelContext(
-          logits_size = LibCAPI.size_t(generationConfig.logitsSize.toLong()),
-          tokens_size = LibCAPI.size_t(generationConfig.tokensSize.toLong()),
-          n_past = generationConfig.nPast,
-          n_ctx = generationConfig.nCtx,
-          n_predict = generationConfig.nPredict,
-          top_k = generationConfig.topK,
-          top_p = generationConfig.topP.toFloat(),
-          temp = generationConfig.temp.toFloat(),
-          n_batch = generationConfig.nBatch,
-          repeat_penalty = generationConfig.repeatPenalty.toFloat(),
-          repeat_last_n = generationConfig.repeatLastN,
-          context_erase = generationConfig.contextErase.toFloat()
-        )
-
-        return gpt4allModel.prompt(prompt, context)
+        return llModel.generate(prompt, config, stream)
       }
     }
-
 
   }
 }

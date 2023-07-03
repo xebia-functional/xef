@@ -17,4 +17,5 @@ data class CompletionRequest(
   val frequencyPenalty: Double = 0.0,
   val bestOf: Int = 1,
   val logitBias: Map<String, Int> = emptyMap(),
+  val streamToStandardOut: Boolean = false
 )

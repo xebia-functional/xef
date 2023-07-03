@@ -59,7 +59,8 @@ interface Chat : LLM {
         messages = messages,
         n = promptConfiguration.numberOfPredictions,
         temperature = promptConfiguration.temperature,
-        maxTokens = checkTotalLeftChatTokens(messages)
+        maxTokens = checkTotalLeftChatTokens(messages),
+        streamToStandardOut = promptConfiguration.streamToStandardOut
       )
     }
 

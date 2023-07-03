@@ -4,6 +4,7 @@ plugins {
   alias(libs.plugins.spotless)
   alias(libs.plugins.arrow.gradle.publish)
   alias(libs.plugins.semver.gradle)
+  alias(libs.plugins.kotlinx.serialization)
 }
 
 repositories {
@@ -19,7 +20,25 @@ java {
 }
 
 kotlin {
-  jvm()
+  jvm {
+    compilations {
+      val integrationTest by compilations.creating {
+        // Create a test task to run the tests produced by this compilation:
+        tasks.register<Test>("integrationTest") {
+          description = "Run the integration tests"
+          group = "verification"
+          classpath = compileDependencyFiles + runtimeDependencyFiles + output.allOutputs
+          testClassesDirs = output.classesDirs
+
+          testLogging {
+            events("passed")
+          }
+        }
+      }
+      val test by compilations.getting
+      integrationTest.associateWith(test)
+    }
+  }
 
   js(IR) {
     browser()
@@ -43,7 +62,7 @@ kotlin {
 
     val jvmMain by getting {
       dependencies {
-        implementation("net.java.dev.jna:jna-platform:5.13.0")
+        implementation("com.hexadevlabs:gpt4all-java-binding:+")
         implementation("ai.djl.huggingface:tokenizers:+")
       }
     }
@@ -57,6 +76,15 @@ kotlin {
       }
     }
 
+  }
+}
+
+tasks.withType<Test>().configureEach {
+  maxParallelForks = Runtime.getRuntime().availableProcessors()
+  useJUnitPlatform()
+  testLogging {
+    setExceptionFormat("full")
+    setEvents(listOf("passed", "skipped", "failed", "standardOut", "standardError"))
   }
 }
 
