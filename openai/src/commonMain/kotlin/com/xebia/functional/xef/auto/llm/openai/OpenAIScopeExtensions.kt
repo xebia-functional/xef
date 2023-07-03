@@ -39,6 +39,19 @@ suspend inline fun <reified A> CoreAIScope.prompt(
   )
 
 @AiDsl
+suspend inline fun <reified A> CoreAIScope.prompt(
+  prompt: Prompt,
+  model: ChatWithFunctions = OpenAI.DEFAULT_SERIALIZATION,
+  promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS,
+): A =
+  prompt(
+    model = model,
+    prompt = prompt,
+    serializer = serializer<A>(),
+    promptConfiguration = promptConfiguration
+  )
+
+@AiDsl
 suspend inline fun <reified A> CoreAIScope.image(
   prompt: String,
   model: ChatWithFunctions = OpenAI.DEFAULT_SERIALIZATION,
