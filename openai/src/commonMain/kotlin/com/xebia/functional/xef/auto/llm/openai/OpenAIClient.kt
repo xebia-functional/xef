@@ -8,7 +8,6 @@ import com.aallam.openai.api.completion.CompletionRequest as OpenAICompletionReq
 import com.aallam.openai.api.completion.TextCompletion
 import com.aallam.openai.api.completion.completionRequest
 import com.aallam.openai.api.core.Usage as OpenAIUsage
-import com.aallam.openai.api.embedding.EmbeddingRequest as OpenAIEmbeddingRequest
 import com.aallam.openai.api.embedding.EmbeddingResponse
 import com.aallam.openai.api.embedding.embeddingRequest
 import com.aallam.openai.api.image.ImageCreation
@@ -52,7 +51,14 @@ class OpenAIModel(
     request: ChatCompletionRequest
   ): ChatCompletionResponse {
     val response = client.chatCompletion(toChatCompletionRequest(request))
-    return chatCompletionResult(response)
+    return ChatCompletionResponse(
+      id = response.id,
+      `object` = response.model.id,
+      created = response.created,
+      model = response.model.id,
+      choices = response.choices.map { chatCompletionChoice(it) },
+      usage = usage(response.usage)
+    )
   }
 
   @OptIn(BetaOpenAI::class)
@@ -60,19 +66,45 @@ class OpenAIModel(
     request: ChatCompletionRequestWithFunctions
   ): ChatCompletionResponseWithFunctions {
     val response = client.chatCompletion(toChatCompletionRequestWithFunctions(request))
-    return chatCompletionResultWithFunctions(response)
+
+    fun chatCompletionChoiceWithFunctions(choice: ChatChoice): ChoiceWithFunctions =
+      ChoiceWithFunctions(
+        message =
+          choice.message?.let {
+            MessageWithFunctionCall(
+              role = it.role.role,
+              content = it.content,
+              name = it.name,
+              functionCall = it.functionCall?.let { FnCall(it.name, it.arguments) }
+            )
+          },
+        finishReason = choice.finishReason,
+        index = choice.index,
+      )
+
+    return ChatCompletionResponseWithFunctions(
+      id = response.id,
+      `object` = response.model.id,
+      created = response.created,
+      model = response.model.id,
+      choices = response.choices.map { chatCompletionChoiceWithFunctions(it) },
+      usage = usage(response.usage)
+    )
   }
 
   override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult {
-    val response = client.embeddings(toEmbeddingRequest(request))
-    return embeddingResult(response)
+    val openAIRequest = embeddingRequest {
+      model = ModelId(request.model)
+      input = request.input
+      user = request.user
+    }
+
+    return embeddingResult(client.embeddings(openAIRequest))
   }
 
   @OptIn(BetaOpenAI::class)
-  override suspend fun createImages(request: ImagesGenerationRequest): ImagesGenerationResponse {
-    val response = client.imageURL(toImageCreationRequest(request))
-    return imageResult(response)
-  }
+  override suspend fun createImages(request: ImagesGenerationRequest): ImagesGenerationResponse =
+    imageResult(client.imageURL(toImageCreationRequest(request)))
 
   private fun toCompletionRequest(request: CompletionRequest): OpenAICompletionRequest =
     completionRequest {
@@ -116,46 +148,6 @@ class OpenAIModel(
       promptTokens = usage?.promptTokens,
       completionTokens = usage?.completionTokens,
       totalTokens = usage?.totalTokens,
-    )
-
-  @OptIn(BetaOpenAI::class)
-  private fun chatCompletionResult(response: ChatCompletion): ChatCompletionResponse =
-    ChatCompletionResponse(
-      id = response.id,
-      `object` = response.model.id,
-      created = response.created,
-      model = response.model.id,
-      choices = response.choices.map { chatCompletionChoice(it) },
-      usage = usage(response.usage)
-    )
-
-  @OptIn(BetaOpenAI::class)
-  private fun chatCompletionResultWithFunctions(
-    response: ChatCompletion
-  ): ChatCompletionResponseWithFunctions =
-    ChatCompletionResponseWithFunctions(
-      id = response.id,
-      `object` = response.model.id,
-      created = response.created,
-      model = response.model.id,
-      choices = response.choices.map { chatCompletionChoiceWithFunctions(it) },
-      usage = usage(response.usage)
-    )
-
-  @OptIn(BetaOpenAI::class)
-  private fun chatCompletionChoiceWithFunctions(choice: ChatChoice): ChoiceWithFunctions =
-    ChoiceWithFunctions(
-      message =
-        choice.message?.let {
-          MessageWithFunctionCall(
-            role = it.role.role,
-            content = it.content,
-            name = it.name,
-            functionCall = it.functionCall?.let { FnCall(it.name, it.arguments) }
-          )
-        },
-      finishReason = choice.finishReason,
-      index = choice.index,
     )
 
   @OptIn(BetaOpenAI::class)
@@ -257,13 +249,6 @@ class OpenAIModel(
         },
       usage = usage(response.usage)
     )
-
-  private fun toEmbeddingRequest(request: EmbeddingRequest): OpenAIEmbeddingRequest =
-    embeddingRequest {
-      model = ModelId(request.model)
-      input = request.input
-      user = request.user
-    }
 
   @OptIn(BetaOpenAI::class)
   private fun imageResult(response: List<ImageURL>): ImagesGenerationResponse =

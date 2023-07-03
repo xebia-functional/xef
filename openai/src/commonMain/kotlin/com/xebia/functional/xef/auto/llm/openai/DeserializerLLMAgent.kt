@@ -61,16 +61,14 @@ suspend fun <A> CoreAIScope.prompt(
     isLenient = true
   },
   promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS,
-): A {
-  val functions = generateCFunction(serializer.descriptor)
-  return model.prompt(
+): A =
+  model.prompt(
     prompt,
     context,
-    functions,
+    generateCFunction(serializer.descriptor),
     { json.decodeFromString(serializer, it) },
     promptConfiguration
   )
-}
 
 @OptIn(ExperimentalSerializationApi::class)
 private fun generateCFunction(descriptor: SerialDescriptor): List<CFunction> {
