@@ -16,11 +16,10 @@ class HuggingFaceLocalEmbeddings(name: String, artifact: String) : com.xebia.fun
   override val name: String = HuggingFaceLocalEmbeddings::class.java.canonicalName
 
   override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult {
-    val embeddings = tokenizer.batchEncode(request.input)
-    return EmbeddingResult(
-      data = embedings.mapIndexed { n, em -> Embedding("embedding", em.ids.map { it.toFloat() }, n) },
-      usage = Usage.ZERO
-    )
+    val embeddings = tokenizer.batchEncode(request.input).mapIndexed { ix, em ->
+      Embedding("embedding", em.ids.map { it.toFloat() }, ix)
+    }
+    return EmbeddingResult(embeddings, Usage.ZERO)
   }
 
   override suspend fun embedDocuments(
@@ -28,9 +27,7 @@ class HuggingFaceLocalEmbeddings(name: String, artifact: String) : com.xebia.fun
     chunkSize: Int?,
     requestConfig: RequestConfig
   ): List<XefEmbedding> =
-    tokenizer.batchEncode(texts).mapIndexed { n, em ->
-      XefEmbedding(em.ids.map { it.toFloat() })
-    }
+    tokenizer.batchEncode(texts).map { em -> XefEmbedding(em.ids.map { it.toFloat() }) }
 
   override suspend fun embedQuery(text: String, requestConfig: RequestConfig): List<XefEmbedding> =
     embedDocuments(listOf(text), null, requestConfig)

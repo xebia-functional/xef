@@ -24,8 +24,8 @@ interface ChatWithFunctions : Chat {
     functions: List<CFunction>,
     serializer: (json: String) -> A,
     promptConfiguration: PromptConfiguration,
-  ): A {
-    return tryDeserialize(serializer, promptConfiguration.maxDeserializationAttempts) {
+  ): A =
+    tryDeserialize(serializer, promptConfiguration.maxDeserializationAttempts) {
       promptMessage(
         prompt = Prompt(prompt),
         context = context,
@@ -33,7 +33,6 @@ interface ChatWithFunctions : Chat {
         promptConfiguration
       )
     }
-  }
 
   @AiDsl
   suspend fun <A> prompt(
@@ -42,11 +41,10 @@ interface ChatWithFunctions : Chat {
     functions: List<CFunction>,
     serializer: (json: String) -> A,
     promptConfiguration: PromptConfiguration,
-  ): A {
-    return tryDeserialize(serializer, promptConfiguration.maxDeserializationAttempts) {
+  ): A =
+    tryDeserialize(serializer, promptConfiguration.maxDeserializationAttempts) {
       promptMessage(prompt = prompt, context = context, functions = functions, promptConfiguration)
     }
-  }
 
   private suspend fun <A> tryDeserialize(
     serializer: (json: String) -> A,

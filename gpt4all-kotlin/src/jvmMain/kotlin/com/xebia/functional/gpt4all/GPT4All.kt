@@ -46,7 +46,7 @@ interface GPT4All : AutoCloseable, Chat, Completion {
 
       override suspend fun createCompletion(request: CompletionRequest): CompletionResult =
         with(request) {
-          val response: String = generateCompletion(prompt, generationConfig)
+          val response: String = gpt4allModel.prompt(prompt, llmModelContext(generationConfig))
           return CompletionResult(
             UUID.randomUUID().toString(),
             path.name,
@@ -59,8 +59,8 @@ interface GPT4All : AutoCloseable, Chat, Completion {
 
       override suspend fun createChatCompletion(request: ChatCompletionRequest): ChatCompletionResponse =
         with(request) {
-          val prompt: String = messages.buildPrompt()
-          val response: String = generateCompletion(prompt, generationConfig)
+          val response: String =
+            gpt4allModel.prompt(messages.buildPrompt(), llmModelContext(generationConfig))
           return ChatCompletionResponse(
             UUID.randomUUID().toString(),
             path.name,
@@ -71,9 +71,7 @@ interface GPT4All : AutoCloseable, Chat, Completion {
           )
         }
 
-      override fun tokensFromMessages(messages: List<Message>): Int {
-        return 0
-      }
+      override fun tokensFromMessages(messages: List<Message>): Int = 0
 
       override val name: String = path.name
 
@@ -92,31 +90,25 @@ interface GPT4All : AutoCloseable, Chat, Completion {
         return "$messages\n### Response:"
       }
 
-      private fun generateCompletion(
-        prompt: String,
-        generationConfig: GenerationConfig
-      ): String {
-        val context = LLModelContext(
-          logits_size = LibCAPI.size_t(generationConfig.logitsSize.toLong()),
-          tokens_size = LibCAPI.size_t(generationConfig.tokensSize.toLong()),
-          n_past = generationConfig.nPast,
-          n_ctx = generationConfig.nCtx,
-          n_predict = generationConfig.nPredict,
-          top_k = generationConfig.topK,
-          top_p = generationConfig.topP.toFloat(),
-          temp = generationConfig.temp.toFloat(),
-          n_batch = generationConfig.nBatch,
-          repeat_penalty = generationConfig.repeatPenalty.toFloat(),
-          repeat_last_n = generationConfig.repeatLastN,
-          context_erase = generationConfig.contextErase.toFloat()
-        )
-
-        return gpt4allModel.prompt(prompt, context)
-      }
+      private fun llmModelContext(generationConfig: GenerationConfig): LLModelContext =
+        with(generationConfig) {
+          LLModelContext(
+            logits_size = LibCAPI.size_t(logitsSize.toLong()),
+            tokens_size = LibCAPI.size_t(tokensSize.toLong()),
+            n_past = nPast,
+            n_ctx = nCtx,
+            n_predict = nPredict,
+            top_k = topK,
+            top_p = topP.toFloat(),
+            temp = temp.toFloat(),
+            n_batch = nBatch,
+            repeat_penalty = repeatPenalty.toFloat(),
+            repeat_last_n = repeatLastN,
+            context_erase = contextErase.toFloat()
+          )
+        }
     }
-
 
   }
 }
-
 
