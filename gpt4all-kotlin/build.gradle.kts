@@ -62,8 +62,8 @@ kotlin {
 
     val jvmMain by getting {
       dependencies {
-        implementation("com.hexadevlabs:gpt4all-java-binding:+")
-        implementation("ai.djl.huggingface:tokenizers:+")
+        implementation(libs.gpt4all.java.bindings)
+        implementation(libs.ai.djl.huggingface.tokenizers)
       }
     }
 
