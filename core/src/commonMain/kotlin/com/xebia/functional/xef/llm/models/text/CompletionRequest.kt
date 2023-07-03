@@ -3,7 +3,7 @@ package com.xebia.functional.xef.llm.models.text
 data class CompletionRequest(
   val model: String,
   val user: String,
-  val prompt: String? = null,
+  val prompt: String,
   val suffix: String? = null,
   val maxTokens: Int? = null,
   val temperature: Double? = null,
@@ -17,4 +17,5 @@ data class CompletionRequest(
   val frequencyPenalty: Double = 0.0,
   val bestOf: Int = 1,
   val logitBias: Map<String, Int> = emptyMap(),
+  val streamToStandardOut: Boolean = false
 )

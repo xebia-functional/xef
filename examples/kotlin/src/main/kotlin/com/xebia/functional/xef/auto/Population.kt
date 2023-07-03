@@ -1,5 +1,7 @@
 package com.xebia.functional.xef.auto
 
+import com.xebia.functional.xef.auto.llm.openai.getOrElse
+import com.xebia.functional.xef.auto.llm.openai.image
 import kotlinx.serialization.Serializable
 
 @Serializable

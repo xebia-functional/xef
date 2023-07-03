@@ -1,7 +1,8 @@
 package com.xebia.functional.xef.auto.tot
 
 import com.xebia.functional.xef.auto.CoreAIScope
-import com.xebia.functional.xef.auto.prompt
+import com.xebia.functional.xef.auto.llm.openai.OpenAI
+import com.xebia.functional.xef.auto.llm.openai.prompt
 import com.xebia.functional.xef.prompt.Prompt
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -45,7 +46,7 @@ internal suspend fun <A> CoreAIScope.solution(
        |10. If the solution is valid set the `isValid` field to `true` and the `value` field to the value of the solution.
        |
        |""".trimMargin()
-  return prompt(Prompt(enhancedPrompt), serializer).also {
+  return prompt(OpenAI.DEFAULT_SERIALIZATION, Prompt(enhancedPrompt), serializer).also {
     println("🤖 Generated solution: ${truncateText(it.answer)}")
   }
 }

@@ -12,5 +12,6 @@ data class ChatCompletionRequest(
   val presencePenalty: Double = 0.0,
   val frequencyPenalty: Double = 0.0,
   val logitBias: Map<String, Int> = emptyMap(),
-  val user: String?
+  val user: String?,
+  val streamToStandardOut: Boolean = false,
 )

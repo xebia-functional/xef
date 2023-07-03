@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.auto.tot
 
 import com.xebia.functional.xef.auto.ai
-import com.xebia.functional.xef.auto.getOrThrow
+import com.xebia.functional.xef.auto.llm.openai.getOrThrow
 import kotlinx.serialization.Serializable
 
 @Serializable
