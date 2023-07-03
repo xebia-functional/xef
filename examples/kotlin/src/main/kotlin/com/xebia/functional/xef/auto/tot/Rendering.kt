@@ -9,15 +9,6 @@ fun truncateText(text: String, limit: Int = 150): String {
   }.replace("\n", " ")
 }
 
-internal fun remindJSONSchema(): String =
-  """|IMPORTANT INSTRUCTIONS:
-     |1. Provide your response in application/json output in the json schema provided below.
-     |2. If you don't provide your response in the json schema provided below, 
-     |   the program will fail and someone may get hurt.
-     |3. I repeat, if you don't provide your response in the json schema provided below,
-     |   the program will fail and someone may get hurt.
-     |""".trimMargin()
-
 internal fun renderHistory(memory: Memory<*>): String = """|```history
     |${
   memory.history.joinToString("\n") {

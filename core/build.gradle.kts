@@ -15,6 +15,7 @@ plugins {
   alias(libs.plugins.dokka)
   alias(libs.plugins.arrow.gradle.publish)
   alias(libs.plugins.semver.gradle)
+  //id("com.xebia.asfuture").version("0.0.1")
 }
 
 java {
@@ -66,8 +67,6 @@ kotlin {
 
         api(libs.bundles.ktor.client)
         api(projects.xefTokenizer)
-
-        // implementation(libs.arrow.fx.stm)
 
         implementation(libs.uuid)
         implementation(libs.klogging)

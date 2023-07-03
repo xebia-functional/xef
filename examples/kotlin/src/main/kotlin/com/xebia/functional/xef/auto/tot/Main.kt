@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.auto.tot
 
 import com.xebia.functional.xef.auto.ai
-import com.xebia.functional.xef.auto.getOrThrow
+import com.xebia.functional.xef.auto.llm.openai.getOrThrow
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -15,7 +15,7 @@ suspend fun main() = ai {
     |3. You never use `for` `while` or loops in general, prefer tail recursion.
     |4. You never use mutable state.
     |
-    |Find the problems in this code and provide a Github suggestion code fence with the `diff` to fix it.
+    |This code is unsafe. Find the problems in this code and provide a Github suggestion code fence with the `diff` to fix it.
     |
     |```kotlin
     |fun access(list: List<Int>, index: Int): Int {

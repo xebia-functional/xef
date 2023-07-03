@@ -22,6 +22,7 @@ dependencies {
   implementation(projects.xefSql)
   implementation(projects.xefTokenizer)
   implementation(projects.xefGpt4all)
+  implementation(projects.xefOpenai)
   implementation(libs.kotlinx.serialization.json)
   implementation(libs.logback)
   implementation(libs.klogging)
@@ -36,3 +37,5 @@ tasks.getByName<Copy>("processResources") {
   from("${projects.xefGpt4all.dependencyProject.buildDir}/processedResources/jvm/main")
   into("$buildDir/resources/main")
 }
+
+

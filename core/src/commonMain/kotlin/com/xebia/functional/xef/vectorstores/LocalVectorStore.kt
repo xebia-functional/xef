@@ -4,8 +4,8 @@ import arrow.atomic.Atomic
 import arrow.atomic.getAndUpdate
 import com.xebia.functional.xef.embeddings.Embedding
 import com.xebia.functional.xef.embeddings.Embeddings
-import com.xebia.functional.xef.llm.openai.EmbeddingModel
-import com.xebia.functional.xef.llm.openai.RequestConfig
+import com.xebia.functional.xef.llm.models.embeddings.EmbeddingModel
+import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
 import kotlin.math.sqrt
 
 private data class State(
@@ -22,14 +22,10 @@ private typealias AtomicState = Atomic<State>
 class LocalVectorStore
 private constructor(private val embeddings: Embeddings, private val state: AtomicState) :
   VectorStore {
-
-  companion object {
-    suspend operator fun invoke(embeddings: Embeddings) =
-      LocalVectorStore(embeddings, Atomic(State.empty()))
-  }
+  constructor(embeddings: Embeddings) : this(embeddings, Atomic(State.empty()))
 
   private val requestConfig =
-    RequestConfig(EmbeddingModel.TextEmbeddingAda002, RequestConfig.Companion.User("user"))
+    RequestConfig(EmbeddingModel.TEXT_EMBEDDING_ADA_002, RequestConfig.Companion.User("user"))
 
   override suspend fun addTexts(texts: List<String>) {
     val embeddingsList =

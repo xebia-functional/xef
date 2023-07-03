@@ -1,9 +1,8 @@
 package com.xebia.functional.xef.auto.tot
 
-import arrow.fx.coroutines.parMap
-import com.xebia.functional.xef.agents.search
-import com.xebia.functional.xef.auto.AIScope
-import com.xebia.functional.xef.auto.prompt
+import com.xebia.functional.xef.auto.CoreAIScope
+import com.xebia.functional.xef.auto.llm.openai.OpenAI
+import com.xebia.functional.xef.auto.llm.openai.prompt
 import com.xebia.functional.xef.prompt.Prompt
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -12,7 +11,7 @@ import kotlinx.serialization.Serializable
 data class Solution<out A>(val answer: String, val isValid: Boolean, val reasoning: String, val value: A? = null)
 
 // Function to prompt the AI for a solution
-internal suspend fun <A> AIScope.solution(
+internal suspend fun <A> CoreAIScope.solution(
   serializer: KSerializer<Solution<A>>,
   memory: Memory<A>,
   controlSignal: ControlSignal
@@ -46,9 +45,8 @@ internal suspend fun <A> AIScope.solution(
        |9. If the solution is not valid set the `isValid` field to `false` and the `value` field to `null`.
        |10. If the solution is valid set the `isValid` field to `true` and the `value` field to the value of the solution.
        |
-       |${remindJSONSchema()}
        |""".trimMargin()
-  return prompt(Prompt(enhancedPrompt), serializer).also {
+  return prompt(OpenAI.DEFAULT_SERIALIZATION, Prompt(enhancedPrompt), serializer).also {
     println("🤖 Generated solution: ${truncateText(it.answer)}")
   }
 }
