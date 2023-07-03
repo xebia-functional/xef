@@ -37,3 +37,5 @@ tasks.getByName<Copy>("processResources") {
   from("${projects.xefGpt4all.dependencyProject.buildDir}/processedResources/jvm/main")
   into("$buildDir/resources/main")
 }
+
+

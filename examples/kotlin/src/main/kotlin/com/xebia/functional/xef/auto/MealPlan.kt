@@ -1,6 +1,8 @@
 package com.xebia.functional.xef.auto
 
 import com.xebia.functional.xef.agents.search
+import com.xebia.functional.xef.auto.llm.openai.getOrElse
+import com.xebia.functional.xef.auto.llm.openai.prompt
 import kotlinx.serialization.Serializable
 
 @Serializable

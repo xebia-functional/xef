@@ -3,11 +3,11 @@ package com.xebia.functional.xef.auto.llm.openai
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.auto.AI
 import com.xebia.functional.xef.auto.CoreAIScope
-import com.xebia.functional.xef.llm.AIClient
-import com.xebia.functional.xef.llm.LLMModel
+import com.xebia.functional.xef.llm.*
 import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.llm.models.embeddings.Embedding
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
@@ -37,7 +37,11 @@ class MockOpenAIClient(
   private val images: (ImagesGenerationRequest) -> ImagesGenerationResponse = {
     throw NotImplementedError("images not implemented")
   },
-) : AIClient {
+) : ChatWithFunctions, Images, Completion, Embeddings {
+
+  override val name: String = "mock"
+  override val modelType: ModelType = ModelType.GPT_3_5_TURBO
+
   override suspend fun createCompletion(request: CompletionRequest): CompletionResult =
     completion(request)
 
@@ -54,6 +58,8 @@ class MockOpenAIClient(
 
   override suspend fun createImages(request: ImagesGenerationRequest): ImagesGenerationResponse =
     images(request)
+
+  override fun tokensFromMessages(messages: List<Message>): Int = 0
 
   override fun close() {}
 }
@@ -78,7 +84,7 @@ fun simpleMockAIClient(execute: (String) -> String): MockOpenAIClient =
       val responses =
         req.messages.mapIndexed { ix, msg ->
           val response = execute(msg.content ?: "")
-          Choice(Message(msg.role, response), "end", ix)
+          Choice(Message(msg.role, response, msg.role.name), "end", ix)
         }
       val requestTokens = req.messages.sumOf { it.content?.split(' ')?.size ?: 0 }
       val responseTokens = responses.sumOf { it.message?.content?.split(' ')?.size ?: 0 }
@@ -96,14 +102,7 @@ suspend fun <A> MockAIScope(
   try {
     val embeddings = OpenAIEmbeddings(mockClient)
     val vectorStore = LocalVectorStore(embeddings)
-    val scope =
-      CoreAIScope(
-        LLMModel.GPT_3_5_TURBO,
-        LLMModel.GPT_3_5_TURBO_FUNCTIONS,
-        mockClient,
-        vectorStore,
-        embeddings
-      )
+    val scope = CoreAIScope(embeddings, vectorStore)
     block(scope)
   } catch (e: AIError) {
     orElse(e)

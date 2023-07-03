@@ -1,23 +1,11 @@
 package com.xebia.functional.xef.auto
 
-import arrow.core.nonFatalOrThrow
-import arrow.core.raise.catch
-import com.xebia.functional.tokenizer.Encoding
-import com.xebia.functional.tokenizer.ModelType
-import com.xebia.functional.tokenizer.truncateText
-import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.embeddings.Embeddings
-import com.xebia.functional.xef.llm.AIClient
-import com.xebia.functional.xef.llm.LLM
-import com.xebia.functional.xef.llm.LLMModel
-import com.xebia.functional.xef.llm.models.chat.ChatCompletionRequest
-import com.xebia.functional.xef.llm.models.chat.ChatCompletionRequestWithFunctions
-import com.xebia.functional.xef.llm.models.chat.Message
-import com.xebia.functional.xef.llm.models.chat.Role
+import com.xebia.functional.xef.llm.Chat
+import com.xebia.functional.xef.llm.ChatWithFunctions
+import com.xebia.functional.xef.llm.Images
 import com.xebia.functional.xef.llm.models.functions.CFunction
-import com.xebia.functional.xef.llm.models.images.ImagesGenerationRequest
 import com.xebia.functional.xef.llm.models.images.ImagesGenerationResponse
-import com.xebia.functional.xef.llm.models.text.CompletionRequest
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.vectorstores.CombinedVectorStore
 import com.xebia.functional.xef.vectorstores.LocalVectorStore
@@ -32,18 +20,8 @@ import kotlin.jvm.JvmName
  * programs.
  */
 class CoreAIScope(
-  val defaultModel: LLM.Chat,
-  val defaultSerializationModel: LLM.ChatWithFunctions,
-  val aiClient: AIClient,
-  val context: VectorStore,
   val embeddings: Embeddings,
-  val maxDeserializationAttempts: Int = 3,
-  val user: String = "user",
-  val echo: Boolean = false,
-  val temperature: Double = 0.4,
-  val numberOfPredictions: Int = 1,
-  val docsInContext: Int = 20,
-  val minResponseTokens: Int = 500
+  val context: VectorStore = LocalVectorStore(embeddings),
 ) {
 
   val logger: KLogger = KotlinLogging.logger {}
@@ -98,11 +76,8 @@ class CoreAIScope(
   @AiDsl
   suspend fun <A> contextScope(store: VectorStore, block: AI<A>): A =
     CoreAIScope(
-        defaultModel,
-        defaultSerializationModel,
-        this@CoreAIScope.aiClient,
-        CombinedVectorStore(store, this@CoreAIScope.context),
         this@CoreAIScope.embeddings,
+        CombinedVectorStore(store, this@CoreAIScope.context),
       )
       .block()
 
@@ -119,252 +94,27 @@ class CoreAIScope(
 
   @AiDsl
   @JvmName("promptWithSerializer")
-  suspend fun <A> prompt(
-    prompt: Prompt,
+  suspend fun <A> ChatWithFunctions.prompt(
+    prompt: String,
     functions: List<CFunction>,
     serializer: (json: String) -> A,
-    maxDeserializationAttempts: Int = this.maxDeserializationAttempts,
-    model: LLM.ChatWithFunctions = defaultSerializationModel,
-    user: String = this.user,
-    echo: Boolean = this.echo,
-    numberOfPredictions: Int = this.numberOfPredictions,
-    temperature: Double = this.temperature,
-    bringFromContext: Int = this.docsInContext,
-    minResponseTokens: Int = this.minResponseTokens,
+    promptConfiguration: PromptConfiguration,
   ): A {
-    return tryDeserialize(serializer, maxDeserializationAttempts) {
-      promptMessage(
-        prompt = prompt,
-        model = model,
-        functions = functions,
-        user = user,
-        echo = echo,
-        numberOfPredictions = numberOfPredictions,
-        temperature = temperature,
-        bringFromContext = bringFromContext,
-        minResponseTokens = minResponseTokens
-      )
-    }
-  }
-
-  suspend fun <A> tryDeserialize(
-    serializer: (json: String) -> A,
-    maxDeserializationAttempts: Int,
-    agent: AI<List<String>>
-  ): A {
-    (0 until maxDeserializationAttempts).forEach { currentAttempts ->
-      val result = agent().firstOrNull() ?: throw AIError.NoResponse()
-      catch({
-        return@tryDeserialize serializer(result)
-      }) { e: Throwable ->
-        logger.error(e) { "Error deserializing response: $result\n${e.message}" }
-        if (currentAttempts == maxDeserializationAttempts)
-          throw AIError.JsonParsing(result, maxDeserializationAttempts, e.nonFatalOrThrow())
-        // TODO else log attempt ?
-      }
-    }
-    throw AIError.NoResponse()
-  }
-
-  @AiDsl
-  suspend fun promptMessage(
-    question: String,
-    model: LLM.Chat = defaultModel,
-    functions: List<CFunction> = emptyList(),
-    user: String = this.user,
-    echo: Boolean = this.echo,
-    n: Int = this.numberOfPredictions,
-    temperature: Double = this.temperature,
-    bringFromContext: Int = this.docsInContext,
-    minResponseTokens: Int = this.minResponseTokens
-  ): List<String> =
-    promptMessage(
-      Prompt(question),
-      model,
-      functions,
-      user,
-      echo,
-      n,
-      temperature,
-      bringFromContext,
-      minResponseTokens
+    return prompt(
+      prompt = Prompt(prompt),
+      context = context,
+      functions = functions,
+      serializer = serializer,
+      promptConfiguration = promptConfiguration,
     )
+  }
 
   @AiDsl
-  suspend fun promptMessage(
-    prompt: Prompt,
-    model: LLM.Chat = defaultModel,
+  suspend fun Chat.promptMessage(
+    question: String,
     functions: List<CFunction> = emptyList(),
-    user: String = this.user,
-    echo: Boolean = this.echo,
-    numberOfPredictions: Int = this.numberOfPredictions,
-    temperature: Double = this.temperature,
-    bringFromContext: Int = this.docsInContext,
-    minResponseTokens: Int
-  ): List<String> {
-
-    val promptWithContext: String =
-      createPromptWithContextAwareOfTokens(
-        ctxInfo = context.similaritySearch(prompt.message, bringFromContext),
-        modelType = model.modelType,
-        prompt = prompt.message,
-        minResponseTokens = minResponseTokens
-      )
-
-    fun checkTotalLeftTokens(role: String): Int =
-      with(model.modelType) {
-        val roleTokens: Int = encoding.countTokens(role)
-        val padding = 20 // reserve 20 tokens for additional symbols around the context
-        val promptTokens: Int = encoding.countTokens(promptWithContext)
-        val takenTokens: Int = roleTokens + promptTokens + padding
-        val totalLeftTokens: Int = maxContextLength - takenTokens
-        if (totalLeftTokens < 0) {
-          throw AIError.PromptExceedsMaxTokenLength(
-            promptWithContext,
-            takenTokens,
-            maxContextLength
-          )
-        }
-        logger.debug {
-          "Tokens -- used: $takenTokens, model max: $maxContextLength, left: $totalLeftTokens"
-        }
-        totalLeftTokens
-      }
-
-    suspend fun buildCompletionRequest(): CompletionRequest =
-      CompletionRequest(
-        model = model.name,
-        user = user,
-        prompt = promptWithContext,
-        echo = echo,
-        n = numberOfPredictions,
-        temperature = temperature,
-        maxTokens = checkTotalLeftTokens("")
-      )
-
-    fun checkTotalLeftChatTokens(messages: List<Message>): Int {
-      val maxContextLength: Int = model.modelType.maxContextLength
-      val messagesTokens: Int = tokensFromMessages(messages, model)
-      val totalLeftTokens: Int = maxContextLength - messagesTokens
-      if (totalLeftTokens < 0) {
-        throw AIError.MessagesExceedMaxTokenLength(messages, messagesTokens, maxContextLength)
-      }
-      logger.debug {
-        "Tokens -- used: $messagesTokens, model max: $maxContextLength, left: $totalLeftTokens"
-      }
-      return totalLeftTokens
-    }
-
-    suspend fun buildChatRequest(): ChatCompletionRequest {
-      val messages: List<Message> = listOf(Message(Role.SYSTEM.name, promptWithContext))
-      return ChatCompletionRequest(
-        model = model.name,
-        user = user,
-        messages = messages,
-        n = numberOfPredictions,
-        temperature = temperature,
-        maxTokens = checkTotalLeftChatTokens(messages)
-      )
-    }
-
-    suspend fun chatWithFunctionsRequest(): ChatCompletionRequestWithFunctions {
-      val role: String = Role.USER.name
-      val firstFnName: String? = functions.firstOrNull()?.name
-      val messages: List<Message> = listOf(Message(role, promptWithContext))
-      return ChatCompletionRequestWithFunctions(
-        model = model.name,
-        user = user,
-        messages = messages,
-        n = numberOfPredictions,
-        temperature = temperature,
-        maxTokens = checkTotalLeftChatTokens(messages),
-        functions = functions,
-        functionCall = mapOf("name" to (firstFnName ?: ""))
-      )
-    }
-
-    return when (model) {
-      is LLM.Completion ->
-        aiClient.createCompletion(buildCompletionRequest()).choices.map { it.text }
-      is LLM.ChatWithFunctions ->
-        aiClient.createChatCompletionWithFunctions(chatWithFunctionsRequest()).choices.mapNotNull {
-          it.message?.functionCall?.arguments
-        }
-      else ->
-        aiClient.createChatCompletion(buildChatRequest()).choices.mapNotNull { it.message?.content }
-    }
-  }
-
-  private fun createPromptWithContextAwareOfTokens(
-    ctxInfo: List<String>,
-    modelType: ModelType,
-    prompt: String,
-    minResponseTokens: Int,
-  ): String {
-    val maxContextLength: Int = modelType.maxContextLength
-    val promptTokens: Int = modelType.encoding.countTokens(prompt)
-    val remainingTokens: Int = maxContextLength - promptTokens - minResponseTokens
-
-    return if (ctxInfo.isNotEmpty() && remainingTokens > minResponseTokens) {
-      val ctx: String = ctxInfo.joinToString("\n")
-
-      if (promptTokens >= maxContextLength) {
-        throw AIError.PromptExceedsMaxTokenLength(prompt, promptTokens, maxContextLength)
-      }
-      // truncate the context if it's too long based on the max tokens calculated considering the
-      // existing prompt tokens
-      // alternatively we could summarize the context, but that's not implemented yet
-      val ctxTruncated: String = modelType.encoding.truncateText(ctx, remainingTokens)
-
-      """|```Context
-         |${ctxTruncated}
-         |```
-         |The context is related to the question try to answer the `goal` as best as you can
-         |or provide information about the found content
-         |```goal
-         |${prompt}
-         |```
-         |ANSWER:
-         |"""
-        .trimMargin()
-    } else prompt
-  }
-
-  private fun tokensFromMessages(messages: List<Message>, model: LLM): Int {
-    fun Encoding.countTokensFromMessages(tokensPerMessage: Int, tokensPerName: Int): Int =
-      messages.sumOf { message ->
-        countTokens(message.role) +
-          (message.content?.let { countTokens(it) } ?: 0) +
-          tokensPerMessage +
-          (message.name?.let { tokensPerName } ?: 0)
-      } + 3
-
-    fun fallBackTo(fallbackModel: LLM, paddingTokens: Int): Int {
-      logger.debug {
-        "Warning: ${model.name} may change over time. " +
-          "Returning messages num tokens assuming ${fallbackModel.name} + $paddingTokens padding tokens."
-      }
-      return tokensFromMessages(messages, fallbackModel) + paddingTokens
-    }
-
-    return when (model) {
-      LLMModel.GPT_3_5_TURBO_FUNCTIONS ->
-        // paddingToken = 200: reserved for functions
-        fallBackTo(fallbackModel = LLMModel.GPT_3_5_TURBO_0301, paddingTokens = 200)
-      LLMModel.GPT_3_5_TURBO ->
-        // otherwise if the model changes, it might later fail
-        fallBackTo(fallbackModel = LLMModel.GPT_3_5_TURBO_0301, paddingTokens = 5)
-      LLMModel.GPT_4,
-      LLMModel.GPT_4_32K ->
-        // otherwise if the model changes, it might later fail
-        fallBackTo(fallbackModel = LLMModel.GPT_4_0314, paddingTokens = 5)
-      LLMModel.GPT_3_5_TURBO_0301 ->
-        model.modelType.encoding.countTokensFromMessages(tokensPerMessage = 4, tokensPerName = 0)
-      LLMModel.GPT_4_0314 ->
-        model.modelType.encoding.countTokensFromMessages(tokensPerMessage = 3, tokensPerName = 2)
-      else -> fallBackTo(fallbackModel = LLMModel.GPT_3_5_TURBO_0301, paddingTokens = 20)
-    }
-  }
+    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
+  ): List<String> = promptMessage(Prompt(question), context, functions, promptConfiguration)
 
   /**
    * Run a [prompt] describes the images you want to generate within the context of [CoreAIScope].
@@ -374,13 +124,12 @@ class CoreAIScope(
    * @param numberImages number of images to generate.
    * @param size the size of the images to generate.
    */
-  suspend fun images(
+  suspend fun Images.images(
     prompt: String,
-    user: String = "testing",
     numberImages: Int = 1,
     size: String = "1024x1024",
-    bringFromContext: Int = 10
-  ): ImagesGenerationResponse = images(Prompt(prompt), user, numberImages, size, bringFromContext)
+    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
+  ): ImagesGenerationResponse = this.images(Prompt(prompt), numberImages, size, promptConfiguration)
 
   /**
    * Run a [prompt] describes the images you want to generate within the context of [CoreAIScope].
@@ -390,33 +139,10 @@ class CoreAIScope(
    * @param numberImages number of images to generate.
    * @param size the size of the images to generate.
    */
-  suspend fun images(
+  suspend fun Images.images(
     prompt: Prompt,
-    user: String = "testing",
     numberImages: Int = 1,
     size: String = "1024x1024",
-    bringFromContext: Int = 10
-  ): ImagesGenerationResponse {
-    val ctxInfo = context.similaritySearch(prompt.message, bringFromContext)
-    val promptWithContext =
-      if (ctxInfo.isNotEmpty()) {
-        """|Instructions: Use the [Information] below delimited by 3 backticks to accomplish
-         |the [Objective] at the end of the prompt.
-         |Try to match the data returned in the [Objective] with this [Information] as best as you can.
-         |[Information]:
-         |```
-         |${ctxInfo.joinToString("\n")}
-         |```
-         |$prompt"""
-          .trimMargin()
-      } else prompt.message
-    val request =
-      ImagesGenerationRequest(
-        prompt = promptWithContext,
-        numberImages = numberImages,
-        size = size,
-        user = user
-      )
-    return aiClient.createImages(request)
-  }
+    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
+  ): ImagesGenerationResponse = images(prompt, context, numberImages, size, promptConfiguration)
 }

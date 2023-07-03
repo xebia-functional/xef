@@ -1,6 +1,10 @@
-package com.xebia.functional.xef.auto
+package com.xebia.functional.xef.auto.llm.openai
 
 import com.xebia.functional.xef.AIError
+import com.xebia.functional.xef.auto.CoreAIScope
+import com.xebia.functional.xef.auto.PromptConfiguration
+import com.xebia.functional.xef.llm.ChatWithFunctions
+import com.xebia.functional.xef.llm.Images
 import com.xebia.functional.xef.llm.models.images.ImagesGenerationResponse
 import com.xebia.functional.xef.prompt.Prompt
 
@@ -12,14 +16,16 @@ import com.xebia.functional.xef.prompt.Prompt
  * @param size the size of the images to generate.
  */
 suspend inline fun <reified A> CoreAIScope.image(
+  imageModel: Images,
+  serializationModel: ChatWithFunctions,
   prompt: String,
-  user: String = "testing",
   size: String = "1024x1024",
-  bringFromContext: Int = 10
+  promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS,
 ): A {
-  val imageResponse = images(prompt, user, 1, size, bringFromContext)
+  val imageResponse = imageModel.images(prompt, context, 1, size, promptConfiguration)
   val url = imageResponse.data.firstOrNull() ?: throw AIError.NoResponse()
   return prompt<A>(
+    serializationModel,
     """|Instructions: Format this [URL] and [PROMPT] information in the desired JSON response format
        |specified at the end of the message.
        |[URL]: 
