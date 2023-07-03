@@ -20,6 +20,7 @@ import com.xebia.functional.xef.llm.models.text.CompletionResult
 import com.xebia.functional.xef.llm.models.usage.Usage
 import com.xebia.functional.xef.vectorstores.LocalVectorStore
 import kotlin.time.ExperimentalTime
+import kotlinx.coroutines.flow.Flow
 
 class MockOpenAIClient(
   private val completion: (CompletionRequest) -> CompletionResult = {
@@ -27,6 +28,9 @@ class MockOpenAIClient(
   },
   private val chatCompletion: (ChatCompletionRequest) -> ChatCompletionResponse = {
     throw NotImplementedError("chat completion not implemented")
+  },
+  private val chatCompletions: (ChatCompletionRequest) -> Flow<ChatCompletionChunk> = {
+    throw NotImplementedError("chat completions not implemented")
   },
   private val chatCompletionRequestWithFunctions:
     (ChatCompletionRequestWithFunctions) -> ChatCompletionResponseWithFunctions =
@@ -52,6 +56,10 @@ class MockOpenAIClient(
   override suspend fun createChatCompletionWithFunctions(
     request: ChatCompletionRequestWithFunctions
   ): ChatCompletionResponseWithFunctions = chatCompletionRequestWithFunctions(request)
+
+  override suspend fun createChatCompletions(
+    request: ChatCompletionRequest
+  ): Flow<ChatCompletionChunk> = chatCompletions(request)
 
   override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult =
     embeddings(request)

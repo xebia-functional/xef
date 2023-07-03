@@ -9,13 +9,71 @@ import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.llm.models.functions.CFunction
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.vectorstores.VectorStore
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 
 interface Chat : LLM {
   val modelType: ModelType
 
   suspend fun createChatCompletion(request: ChatCompletionRequest): ChatCompletionResponse
 
+  suspend fun createChatCompletions(request: ChatCompletionRequest): Flow<ChatCompletionChunk>
+
   fun tokensFromMessages(messages: List<Message>): Int
+
+  @AiDsl
+  suspend fun promptStreaming(
+    question: String,
+    context: VectorStore,
+    functions: List<CFunction> = emptyList(),
+    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
+  ): Flow<String> = promptStreaming(Prompt(question), context, functions, promptConfiguration)
+
+  @AiDsl
+  suspend fun promptStreaming(
+    prompt: Prompt,
+    context: VectorStore,
+    functions: List<CFunction> = emptyList(),
+    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
+  ): Flow<String> {
+
+    val promptWithContext: String =
+      createPromptWithContextAwareOfTokens(
+        ctxInfo = context.similaritySearch(prompt.message, promptConfiguration.docsInContext),
+        modelType = modelType,
+        prompt = prompt.message,
+        minResponseTokens = promptConfiguration.minResponseTokens
+      )
+
+    fun checkTotalLeftChatTokens(messages: List<Message>): Int {
+      val maxContextLength: Int = modelType.maxContextLength
+      val messagesTokens: Int = tokensFromMessages(messages)
+      val totalLeftTokens: Int = maxContextLength - messagesTokens
+      if (totalLeftTokens < 0) {
+        throw AIError.MessagesExceedMaxTokenLength(messages, messagesTokens, maxContextLength)
+      }
+      return totalLeftTokens
+    }
+
+    fun buildChatRequest(): ChatCompletionRequest {
+      val messages: List<Message> = listOf(Message(Role.USER, promptWithContext, Role.USER.name))
+      return ChatCompletionRequest(
+        model = name,
+        user = promptConfiguration.user,
+        messages = messages,
+        n = promptConfiguration.numberOfPredictions,
+        temperature = promptConfiguration.temperature,
+        maxTokens = checkTotalLeftChatTokens(messages),
+        streamToStandardOut = true
+      )
+    }
+
+    return flow {
+      createChatCompletions(buildChatRequest()).collect {
+        emit(it.choices.mapNotNull { it.delta?.content }.joinToString(""))
+      }
+    }
+  }
 
   @AiDsl
   suspend fun promptMessage(

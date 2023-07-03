@@ -2,7 +2,10 @@ package com.xebia.functional.xef.auto.llm.openai
 
 import com.aallam.openai.api.BetaOpenAI
 import com.aallam.openai.api.chat.*
+import com.aallam.openai.api.chat.ChatChunk as OpenAIChatChunk
+import com.aallam.openai.api.chat.ChatCompletionChunk as OpenAIChatCompletionChunk
 import com.aallam.openai.api.chat.ChatCompletionRequest as OpenAIChatCompletionRequest
+import com.aallam.openai.api.chat.ChatDelta as OpenAIChatDelta
 import com.aallam.openai.api.completion.Choice as OpenAIChoice
 import com.aallam.openai.api.completion.CompletionRequest as OpenAICompletionRequest
 import com.aallam.openai.api.completion.TextCompletion
@@ -21,6 +24,9 @@ import com.xebia.functional.tokenizer.Encoding
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.llm.*
 import com.xebia.functional.xef.llm.models.chat.*
+import com.xebia.functional.xef.llm.models.chat.ChatChunk
+import com.xebia.functional.xef.llm.models.chat.ChatCompletionChunk
+import com.xebia.functional.xef.llm.models.chat.ChatDelta
 import com.xebia.functional.xef.llm.models.embeddings.Embedding
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingResult
@@ -32,6 +38,8 @@ import com.xebia.functional.xef.llm.models.text.CompletionChoice
 import com.xebia.functional.xef.llm.models.text.CompletionRequest
 import com.xebia.functional.xef.llm.models.text.CompletionResult
 import com.xebia.functional.xef.llm.models.usage.Usage
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
 
 class OpenAIModel(
@@ -56,6 +64,14 @@ class OpenAIModel(
   }
 
   @OptIn(BetaOpenAI::class)
+  override suspend fun createChatCompletions(
+    request: ChatCompletionRequest
+  ): Flow<ChatCompletionChunk> {
+    val response = client.chatCompletions(toChatCompletionRequest(request))
+    return response.map { chatCompletionChunk(it) }
+  }
+
+  @OptIn(BetaOpenAI::class)
   override suspend fun createChatCompletionWithFunctions(
     request: ChatCompletionRequestWithFunctions
   ): ChatCompletionResponseWithFunctions {
@@ -73,6 +89,34 @@ class OpenAIModel(
     val response = client.imageURL(toImageCreationRequest(request))
     return imageResult(response)
   }
+
+  @OptIn(BetaOpenAI::class)
+  private fun chatCompletionChunk(response: OpenAIChatCompletionChunk): ChatCompletionChunk =
+    ChatCompletionChunk(
+      id = response.id,
+      created = response.created,
+      model = response.model.id,
+      choices = response.choices.map { chatChunk(it) },
+      usage = usage(response.usage)
+    )
+
+  @OptIn(BetaOpenAI::class)
+  private fun chatChunk(chunk: OpenAIChatChunk): ChatChunk =
+    ChatChunk(
+      index = chunk.index,
+      delta = chatDelta(chunk.delta),
+      finishReason = chunk.finishReason,
+    )
+
+  @OptIn(BetaOpenAI::class)
+  private fun chatDelta(delta: OpenAIChatDelta?): ChatDelta? =
+    delta?.let {
+      ChatDelta(
+        role = toRole(it.role),
+        content = it.content,
+        functionCall = it.functionCall?.let { FnCall(it.name, it.arguments) }
+      )
+    }
 
   private fun toCompletionRequest(request: CompletionRequest): OpenAICompletionRequest =
     completionRequest {
@@ -164,7 +208,7 @@ class OpenAIModel(
       message =
         choice.message?.let {
           Message(
-            role = toRole(it),
+            role = toRole(it.role),
             content = it.content ?: "",
             name = it.name ?: "",
           )
@@ -174,8 +218,8 @@ class OpenAIModel(
     )
 
   @OptIn(BetaOpenAI::class)
-  private fun toRole(it: ChatMessage) =
-    when (it.role) {
+  private fun toRole(it: ChatRole?) =
+    when (it) {
       ChatRole.User -> Role.USER
       ChatRole.Assistant -> Role.ASSISTANT
       ChatRole.System -> Role.SYSTEM
