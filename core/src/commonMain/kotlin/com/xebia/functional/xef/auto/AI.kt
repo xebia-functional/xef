@@ -11,6 +11,3 @@ import com.xebia.functional.xef.vectorstores.VectorStore
  * [VectorStore], [OpenAIEmbeddings] and [AIClient] instances.
  */
 typealias AI<A> = suspend CoreAIScope.() -> A
-
-/** A DSL block that makes it more convenient to construct [AI] values. */
-inline fun <A> ai(noinline block: suspend CoreAIScope.() -> A): AI<A> = block
