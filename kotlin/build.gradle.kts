@@ -11,7 +11,6 @@ plugins {
   alias(libs.plugins.kotlinx.serialization)
   alias(libs.plugins.spotless)
   alias(libs.plugins.dokka)
-  alias(libs.plugins.arrow.gradle.publish)
   alias(libs.plugins.semver.gradle)
 }
 
@@ -83,8 +82,4 @@ tasks {
       }
     }
   }
-}
-
-tasks.withType<AbstractPublishToMaven> {
-  dependsOn(tasks.withType<Sign>())
 }
