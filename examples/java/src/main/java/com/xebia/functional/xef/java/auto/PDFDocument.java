@@ -24,10 +24,11 @@ public class PDFDocument {
     private static CompletableFuture<Void> askQuestion(AIScope scope) {
         System.out.println("Enter your question: ");
 
-        if (readLine() == null) {
+        String line = readLine();
+        if (line == null) {
             return CompletableFuture.completedFuture(null);
         } else {
-            scope.prompt(readLine(), AIResponse.class)
+            scope.prompt(line, AIResponse.class)
                     .thenAccept((aiRes) -> System.out.println(aiRes.answer + "\n---\n" +
                             aiRes.source + "\n---\n"));
 
