@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.auto.tot
 
 import com.xebia.functional.xef.auto.CoreAIScope
-import com.xebia.functional.xef.auto.prompt
+import com.xebia.functional.xef.auto.llm.openai.prompt
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -25,7 +25,6 @@ internal suspend fun <A> CoreAIScope.critique(memory: Memory<A>, currentSolution
     |Instructions:
     |1. Provide a critique and determine if the answer truly accomplishes the goal.
     |
-    |${remindJSONSchema()}
   """.trimMargin()
   )
 }

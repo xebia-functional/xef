@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.auto.tot
 
 import com.xebia.functional.xef.auto.CoreAIScope
-import com.xebia.functional.xef.auto.prompt
+import com.xebia.functional.xef.auto.llm.openai.prompt
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -23,7 +23,6 @@ internal suspend fun <A> CoreAIScope.controlSignal(memory: Memory<A>): ControlSi
     |4. Ensure the guidance is actionable.
     |5. Ensure the guidance accounts for previous answers in the `history`.
     |
-    |${remindJSONSchema()}
   """.trimMargin()
   return prompt<ControlSignal>(guidancePrompt).also {
     println("🧠 Generated control signal: ${truncateText(it.value)}")

@@ -1,5 +1,7 @@
 package com.xebia.functional.xef.auto
 
+import com.xebia.functional.xef.auto.llm.openai.getOrThrow
+import com.xebia.functional.xef.auto.llm.openai.prompt
 import com.xebia.functional.xef.pdf.pdf
 import kotlinx.serialization.Serializable
 

@@ -27,6 +27,9 @@ project(":xef-filesystem").projectDir = file("filesystem")
 include("xef-tokenizer")
 project(":xef-tokenizer").projectDir = file("tokenizer")
 
+include("xef-openai")
+project(":xef-openai").projectDir = file("openai")
+
 include("xef-gpt4all")
 project(":xef-gpt4all").projectDir = file("gpt4all-kotlin")
 

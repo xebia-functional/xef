@@ -5,26 +5,24 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 import com.xebia.functional.xef.auto.CoreAIScope;
+import com.xebia.functional.xef.auto.PromptConfiguration;
+import com.xebia.functional.xef.auto.llm.openai.OpenAI;
+import com.xebia.functional.xef.auto.llm.openai.OpenAIEmbeddings;
 import com.xebia.functional.xef.embeddings.Embeddings;
-import com.xebia.functional.xef.embeddings.OpenAIEmbeddings;
-import com.xebia.functional.xef.env.OpenAIConfig;
-import com.xebia.functional.xef.llm.openai.KtorOpenAIClient;
-import com.xebia.functional.xef.llm.openai.LLMModel;
-import com.xebia.functional.xef.llm.openai.CFunction;
-import com.xebia.functional.xef.llm.openai.images.ImageGenerationUrl;
-import com.xebia.functional.xef.llm.openai.images.ImagesGenerationResponse;
+import com.xebia.functional.xef.llm.Chat;
+import com.xebia.functional.xef.llm.ChatWithFunctions;
+import com.xebia.functional.xef.llm.Images;
+import com.xebia.functional.xef.llm.models.functions.CFunction;
+import com.xebia.functional.xef.llm.models.images.ImageGenerationUrl;
+import com.xebia.functional.xef.llm.models.images.ImagesGenerationResponse;
+import com.xebia.functional.xef.pdf.Loader;
 import com.xebia.functional.xef.textsplitters.TextSplitter;
 import com.xebia.functional.xef.vectorstores.LocalVectorStore;
 import com.xebia.functional.xef.vectorstores.VectorStore;
 import kotlin.collections.CollectionsKt;
 import kotlin.coroutines.Continuation;
 import kotlin.jvm.functions.Function1;
-import com.xebia.functional.xef.pdf.PDFLoaderKt;
-import kotlinx.coroutines.CoroutineScope;
-import kotlinx.coroutines.CoroutineStart;
-import kotlinx.coroutines.ExecutorsKt;
-import kotlinx.coroutines.JobKt;
-import kotlinx.coroutines.CoroutineScopeKt;
+import kotlinx.coroutines.*;
 import kotlinx.coroutines.future.FutureKt;
 import org.jetbrains.annotations.NotNull;
 
@@ -41,31 +39,24 @@ public class AIScope implements AutoCloseable {
     private final CoreAIScope scope;
     private final ObjectMapper om;
     private final JsonSchemaGenerator schemaGen;
-    private final KtorOpenAIClient client;
     private final ExecutorService executorService;
     private final CoroutineScope coroutineScope;
 
-    public AIScope(ObjectMapper om, OpenAIConfig config, ExecutorService executorService) {
+    public AIScope(ObjectMapper om, Embeddings embeddings, ExecutorService executorService) {
         this.om = om;
         this.executorService = executorService;
         this.coroutineScope = () -> ExecutorsKt.from(executorService).plus(JobKt.Job(null));
         this.schemaGen = new JsonSchemaGenerator(om);
-        this.client = new KtorOpenAIClient(config);
-        Embeddings embeddings = new OpenAIEmbeddings(config, client);
         VectorStore vectorStore = new LocalVectorStore(embeddings);
-        this.scope = new CoreAIScope(LLMModel.getGPT_3_5_TURBO(), LLMModel.getGPT_3_5_TURBO_FUNCTIONS(), client, vectorStore, embeddings, 3, "user", false, 0.4, 1, 20, 500);
+        this.scope = new CoreAIScope(embeddings, vectorStore);
     }
 
-    public AIScope(OpenAIConfig config) {
-        this(new ObjectMapper(), config, Executors.newCachedThreadPool(new AIScopeThreadFactory()));
-    }
-
-    public AIScope(OpenAIConfig config, ExecutorService executorService) {
-        this(new ObjectMapper(), config, executorService);
+    public AIScope(Embeddings embeddings, ExecutorService executorService) {
+        this(new ObjectMapper(), embeddings, executorService);
     }
 
     public AIScope() {
-        this(new ObjectMapper(), new OpenAIConfig(), Executors.newCachedThreadPool(new AIScopeThreadFactory()));
+        this(new ObjectMapper(),new OpenAIEmbeddings(OpenAI.DEFAULT_EMBEDDING), Executors.newCachedThreadPool(new AIScopeThreadFactory()));
     }
 
     private AIScope(CoreAIScope nested, AIScope outer) {
@@ -73,15 +64,15 @@ public class AIScope implements AutoCloseable {
         this.executorService = outer.executorService;
         this.coroutineScope = outer.coroutineScope;
         this.schemaGen = outer.schemaGen;
-        this.client = outer.client;
         this.scope = nested;
     }
 
     public <A> CompletableFuture<A> prompt(String prompt, Class<A> cls) {
-        return prompt(prompt, cls, scope.getMaxDeserializationAttempts(), scope.getDefaultSerializationModel(), scope.getUser(), scope.getEcho(), scope.getNumberOfPredictions(), scope.getTemperature(), scope.getDocsInContext(), scope.getMinResponseTokens());
+        return prompt(prompt, cls, OpenAI.DEFAULT_SERIALIZATION, PromptConfiguration.DEFAULTS);
     }
 
-    public <A> CompletableFuture<A> prompt(String prompt, Class<A> cls, Integer maxAttempts, LLMModel llmModel, String user, Boolean echo, Integer n, Double temperature, Integer bringFromContext, Integer minResponseTokens) {
+
+    public <A> CompletableFuture<A> prompt(String prompt, Class<A> cls, ChatWithFunctions llmModel, PromptConfiguration promptConfiguration) {
         Function1<? super String, ? extends A> decoder = json -> {
             try {
                 return om.readValue(json, cls);
@@ -105,11 +96,11 @@ public class AIScope implements AutoCloseable {
                 new CFunction(cls.getSimpleName(), "Generated function for " + cls.getSimpleName(), schema)
         );
 
-        return future(continuation -> scope.promptWithSerializer(prompt, functions, decoder, maxAttempts, llmModel, user, echo, n, temperature, bringFromContext, minResponseTokens, continuation));
+        return future(continuation -> scope.promptWithSerializer(llmModel, prompt, functions, decoder, promptConfiguration, continuation));
     }
 
-    public CompletableFuture<List<String>> promptMessage(String prompt, LLMModel llmModel, List<CFunction> functions, String user, Boolean echo, Integer n, Double temperature, Integer bringFromContext, Integer minResponseTokens) {
-        return future(continuation -> scope.promptMessage(prompt, llmModel, functions, user, echo, n, temperature, bringFromContext, minResponseTokens, continuation));
+    public CompletableFuture<List<String>> promptMessage(Chat llmModel, String prompt, List<CFunction> functions, PromptConfiguration promptConfiguration) {
+        return future(continuation -> scope.promptMessage(llmModel, prompt, functions, promptConfiguration, continuation));
     }
 
     public <A> CompletableFuture<A> contextScope(List<String> docs, Function1<AIScope, CompletableFuture<A>> f) {
@@ -127,15 +118,15 @@ public class AIScope implements AutoCloseable {
     }
 
     public CompletableFuture<List<String>> pdf(String url, TextSplitter splitter) {
-        return future(continuation -> PDFLoaderKt.pdf(url, splitter, continuation));
+        return future(continuation -> Loader.pdf(url, splitter, continuation));
     }
 
     public CompletableFuture<List<String>> pdf(File file, TextSplitter splitter) {
-        return future(continuation -> PDFLoaderKt.pdf(file, splitter, continuation));
+        return future(continuation -> Loader.pdf(file, splitter, continuation));
     }
 
-    public CompletableFuture<List<String>> images(String prompt, String user, String size, Integer bringFromContext, Integer n) {
-        return this.<ImagesGenerationResponse>future(continuation -> scope.images(prompt, user, n, size, bringFromContext, continuation))
+    public CompletableFuture<List<String>> images(Images model, String prompt, Integer numberOfImages, String size, PromptConfiguration promptConfiguration) {
+        return this.<ImagesGenerationResponse>future(continuation -> scope.images(model, prompt, numberOfImages, size, promptConfiguration, continuation))
                 .thenApply(response -> CollectionsKt.map(response.getData(), ImageGenerationUrl::getUrl));
     }
 
@@ -150,7 +141,6 @@ public class AIScope implements AutoCloseable {
 
     @Override
     public void close() {
-        client.close();
         CoroutineScopeKt.cancel(coroutineScope, null);
         executorService.shutdown();
     }

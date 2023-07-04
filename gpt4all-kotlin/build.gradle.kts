@@ -4,6 +4,7 @@ plugins {
   alias(libs.plugins.spotless)
   alias(libs.plugins.arrow.gradle.publish)
   alias(libs.plugins.semver.gradle)
+  alias(libs.plugins.kotlinx.serialization)
 }
 
 repositories {
@@ -19,18 +20,36 @@ java {
 }
 
 kotlin {
-  jvm()
+  jvm {
+    compilations {
+      val integrationTest by compilations.creating {
+        // Create a test task to run the tests produced by this compilation:
+        tasks.register<Test>("integrationTest") {
+          description = "Run the integration tests"
+          group = "verification"
+          classpath = compileDependencyFiles + runtimeDependencyFiles + output.allOutputs
+          testClassesDirs = output.classesDirs
+
+          testLogging {
+            events("passed")
+          }
+        }
+      }
+      val test by compilations.getting
+      integrationTest.associateWith(test)
+    }
+  }
+
   js(IR) {
     browser()
-    nodejs()
   }
-  linuxX64()
-  macosX64()
-  macosArm64()
-  mingwX64()
 
   sourceSets {
-    val commonMain by getting {}
+    val commonMain by getting {
+      dependencies {
+        implementation(projects.xefCore)
+      }
+    }
 
     commonTest {
       dependencies {
@@ -43,8 +62,12 @@ kotlin {
 
     val jvmMain by getting {
       dependencies {
-        implementation("net.java.dev.jna:jna-platform:5.13.0")
+        implementation(libs.gpt4all.java.bindings)
+        implementation(libs.ai.djl.huggingface.tokenizers)
       }
+    }
+
+    val jsMain by getting {
     }
 
     val jvmTest by getting {
@@ -53,23 +76,15 @@ kotlin {
       }
     }
 
-    js {
-      nodejs {}
-      browser {}
-    }
+  }
+}
 
-    val linuxX64Main by getting
-    val macosX64Main by getting
-    val macosArm64Main by getting
-    val mingwX64Main by getting
-
-    create("nativeMain") {
-      dependsOn(commonMain)
-      linuxX64Main.dependsOn(this)
-      macosX64Main.dependsOn(this)
-      macosArm64Main.dependsOn(this)
-      mingwX64Main.dependsOn(this)
-    }
+tasks.withType<Test>().configureEach {
+  maxParallelForks = Runtime.getRuntime().availableProcessors()
+  useJUnitPlatform()
+  testLogging {
+    setExceptionFormat("full")
+    setEvents(listOf("passed", "skipped", "failed", "standardOut", "standardError"))
   }
 }
 
