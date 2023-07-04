@@ -111,7 +111,7 @@ interface GPT4All : AutoCloseable, Chat, Completion {
             val channel = Channel<String>(capacity = UNLIMITED)
 
             val outputStream = object : OutputStream() {
-                override fun write(b: Int) {
+              override fun write(b: Int) {
                 val c = b.toChar()
                 channel.trySend(c.toString())
               }
@@ -119,16 +119,16 @@ interface GPT4All : AutoCloseable, Chat, Completion {
 
             val printStream = PrintStream(outputStream, true, StandardCharsets.UTF_8)
 
-            val flow = channel.consumeAsFlow()
-              .map { text ->
-                ChatCompletionChunk(
-                  UUID.randomUUID().toString(),
-                  System.currentTimeMillis().toInt(),
-                  path.name,
-                  listOf(ChatChunk(delta = ChatDelta(Role.ASSISTANT, text))),
-                  Usage.ZERO,
-                )
-              }
+            fun toChunk(text: String?): ChatCompletionChunk =
+              ChatCompletionChunk(
+                UUID.randomUUID().toString(),
+                System.currentTimeMillis().toInt(),
+                path.name,
+                listOf(ChatChunk(delta = ChatDelta(Role.ASSISTANT, text))),
+                Usage.ZERO,
+              )
+
+            val flow = channel.consumeAsFlow().map { toChunk(it) }
 
             launch(Dispatchers.IO) {
               System.setOut(printStream) // Set the standard output to the print stream

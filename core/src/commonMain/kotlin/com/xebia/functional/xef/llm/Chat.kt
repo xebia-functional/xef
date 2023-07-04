@@ -45,7 +45,9 @@ interface Chat : LLM {
         minResponseTokens = promptConfiguration.minResponseTokens
       )
 
-    fun checkTotalLeftChatTokens(messages: List<Message>): Int {
+    val messages: List<Message> = listOf(Message(Role.USER, promptWithContext, Role.USER.name))
+
+    fun checkTotalLeftChatTokens(): Int {
       val maxContextLength: Int = modelType.maxContextLength
       val messagesTokens: Int = tokensFromMessages(messages)
       val totalLeftTokens: Int = maxContextLength - messagesTokens
@@ -55,21 +57,19 @@ interface Chat : LLM {
       return totalLeftTokens
     }
 
-    fun buildChatRequest(): ChatCompletionRequest {
-      val messages: List<Message> = listOf(Message(Role.USER, promptWithContext, Role.USER.name))
-      return ChatCompletionRequest(
+    val request: ChatCompletionRequest =
+      ChatCompletionRequest(
         model = name,
         user = promptConfiguration.user,
         messages = messages,
         n = promptConfiguration.numberOfPredictions,
         temperature = promptConfiguration.temperature,
-        maxTokens = checkTotalLeftChatTokens(messages),
+        maxTokens = checkTotalLeftChatTokens(),
         streamToStandardOut = true
       )
-    }
 
     return flow {
-      createChatCompletions(buildChatRequest()).collect {
+      createChatCompletions(request).collect {
         emit(it.choices.mapNotNull { it.delta?.content }.joinToString(""))
       }
     }
@@ -99,7 +99,9 @@ interface Chat : LLM {
         minResponseTokens = promptConfiguration.minResponseTokens
       )
 
-    fun checkTotalLeftChatTokens(messages: List<Message>): Int {
+    val messages: List<Message> = listOf(Message(Role.USER, promptWithContext, Role.USER.name))
+
+    fun checkTotalLeftChatTokens(): Int {
       val maxContextLength: Int = modelType.maxContextLength
       val messagesTokens: Int = tokensFromMessages(messages)
       val totalLeftTokens: Int = maxContextLength - messagesTokens
@@ -109,45 +111,40 @@ interface Chat : LLM {
       return totalLeftTokens
     }
 
-    fun buildChatRequest(): ChatCompletionRequest {
-      val messages: List<Message> = listOf(Message(Role.USER, promptWithContext, Role.USER.name))
-      return ChatCompletionRequest(
+    fun chatRequest(): ChatCompletionRequest =
+      ChatCompletionRequest(
         model = name,
         user = promptConfiguration.user,
         messages = messages,
         n = promptConfiguration.numberOfPredictions,
         temperature = promptConfiguration.temperature,
-        maxTokens = checkTotalLeftChatTokens(messages),
+        maxTokens = checkTotalLeftChatTokens(),
         streamToStandardOut = promptConfiguration.streamToStandardOut
       )
-    }
 
-    fun chatWithFunctionsRequest(): ChatCompletionRequestWithFunctions {
-      val firstFnName: String? = functions.firstOrNull()?.name
-      val messages: List<Message> = listOf(Message(Role.USER, promptWithContext, Role.USER.name))
-      return ChatCompletionRequestWithFunctions(
+    fun withFunctionsRequest(): ChatCompletionRequestWithFunctions =
+      ChatCompletionRequestWithFunctions(
         model = name,
         user = promptConfiguration.user,
         messages = messages,
         n = promptConfiguration.numberOfPredictions,
         temperature = promptConfiguration.temperature,
-        maxTokens = checkTotalLeftChatTokens(messages),
+        maxTokens = checkTotalLeftChatTokens(),
         functions = functions,
-        functionCall = mapOf("name" to (firstFnName ?: ""))
+        functionCall = mapOf("name" to (functions.firstOrNull()?.name ?: ""))
       )
-    }
 
     return when (this) {
       is ChatWithFunctions ->
         // we only support functions for now with GPT_3_5_TURBO_FUNCTIONS
         if (modelType == ModelType.GPT_3_5_TURBO_FUNCTIONS) {
-          createChatCompletionWithFunctions(chatWithFunctionsRequest()).choices.mapNotNull {
+          createChatCompletionWithFunctions(withFunctionsRequest()).choices.mapNotNull {
             it.message?.functionCall?.arguments
           }
         } else {
-          createChatCompletion(buildChatRequest()).choices.mapNotNull { it.message?.content }
+          createChatCompletion(chatRequest()).choices.mapNotNull { it.message?.content }
         }
-      else -> createChatCompletion(buildChatRequest()).choices.mapNotNull { it.message?.content }
+      else -> createChatCompletion(chatRequest()).choices.mapNotNull { it.message?.content }
     }
   }
 
