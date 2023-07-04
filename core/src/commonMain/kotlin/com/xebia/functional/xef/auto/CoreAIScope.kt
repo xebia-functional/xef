@@ -1,5 +1,6 @@
 package com.xebia.functional.xef.auto
 
+import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.embeddings.Embeddings
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.llm.ChatWithFunctions
@@ -108,6 +109,14 @@ class CoreAIScope(
       promptConfiguration = promptConfiguration,
     )
   }
+
+  @AiDsl
+  suspend fun Chat.promptMessage(
+    question: String,
+    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
+  ): String =
+    promptMessage(question, context, emptyList(), promptConfiguration).firstOrNull()
+      ?: throw AIError.NoResponse()
 
   @AiDsl
   suspend fun Chat.promptMessage(

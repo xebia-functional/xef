@@ -21,6 +21,15 @@ interface Chat : LLM {
   suspend fun promptMessage(
     question: String,
     context: VectorStore,
+    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
+  ): String =
+    promptMessage(Prompt(question), context, emptyList(), promptConfiguration).firstOrNull()
+      ?: throw AIError.NoResponse()
+
+  @AiDsl
+  suspend fun promptMessage(
+    question: String,
+    context: VectorStore,
     functions: List<CFunction> = emptyList(),
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
   ): List<String> = promptMessage(Prompt(question), context, functions, promptConfiguration)
