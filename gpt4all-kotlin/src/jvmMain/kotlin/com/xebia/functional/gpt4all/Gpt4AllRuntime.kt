@@ -24,7 +24,7 @@ suspend inline fun <A> AI<A>.getOrElse(crossinline orElse: suspend (AIError) -> 
  * @see getOrElse for an operator that allow directly handling the [AIError] case instead of
  *   throwing.
  */
-suspend inline fun <reified A> AI<A>.getOrThrow(): A = getOrElse { throw it }
+suspend inline fun <A> AI<A>.getOrThrow(): A = getOrElse { throw it }
 
 /**
  * Run the [AI] value to produce _either_ an [AIError], or [A]. this method initialises all the
@@ -34,7 +34,7 @@ suspend inline fun <reified A> AI<A>.getOrThrow(): A = getOrElse { throw it }
  *
  * @see getOrElse for an operator that allow directly handling the [AIError] case.
  */
-suspend inline fun <reified A> AI<A>.toEither(): Either<AIError, A> =
+suspend inline fun <A> AI<A>.toEither(): Either<AIError, A> =
   Either.catchOrThrow { getOrThrow() }
 
 suspend fun <A> AIScope(block: AI<A>, orElse: suspend (AIError) -> A): A =
