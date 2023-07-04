@@ -3,14 +3,10 @@
 package com.xebia.functional.xef.auto.llm.openai
 
 import arrow.core.Either
-import arrow.core.left
-import arrow.core.right
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.auto.AI
 import com.xebia.functional.xef.auto.CoreAIScope
-import com.xebia.functional.xef.auto.ai
 import kotlin.jvm.JvmName
-import kotlin.time.ExperimentalTime
 
 /**
  * Run the [AI] value to produce an [A], this method initialises all the dependencies required to
@@ -42,9 +38,8 @@ suspend inline fun <reified A> AI<A>.getOrThrow(): A = getOrElse { throw it }
  * @see getOrElse for an operator that allow directly handling the [AIError] case.
  */
 suspend inline fun <reified A> AI<A>.toEither(): Either<AIError, A> =
-  ai { invoke().right() }.getOrElse { it.left() }
+  Either.catchOrThrow { getOrThrow() }
 
-@OptIn(ExperimentalTime::class)
 suspend fun <A> AIScope(block: AI<A>, orElse: suspend (AIError) -> A): A =
   try {
     val scope = CoreAIScope(OpenAIEmbeddings(OpenAI.DEFAULT_EMBEDDING))
