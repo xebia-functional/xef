@@ -21,14 +21,13 @@ public class Employee {
         public Address address;
     }
 
-    String complexPrompt =
-        "|" +
-        "|Provide made up information for an Employee that includes their first name, last name, age, position, and their company's name and address (street, city, and country)." +
-        "|Use the information provided.".trim();
+    public static String complexPrompt =
+        "Provide made up information for an Employee that includes their first name, last name, age, position, and their company's name and address (street, city, and country).\n" +
+        "Use the information provided.";
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         try (AIScope scope = new AIScope()) {
-            scope.prompt("complexPrompt", Employee.class)
+            scope.prompt(complexPrompt, Employee.class)
                   .thenAccept(employeeData -> System.out.println(
                         "Employee Information:\n\n" +
                               "Name: " + employeeData.firstName + " " + employeeData.lastName + "\n" +
