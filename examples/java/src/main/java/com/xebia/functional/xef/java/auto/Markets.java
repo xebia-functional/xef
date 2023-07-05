@@ -10,6 +10,15 @@ public class Markets {
     public List<String> raisingStockSymbols;
     public List<String> decreasingStockSymbols;
 
+    @Override
+    public String toString() {
+        return "Markets{" +
+              "news='" + news + '\'' +
+              ", raisingStockSymbols=" + raisingStockSymbols +
+              ", decreasingStockSymbols=" + decreasingStockSymbols +
+              '}';
+    }
+
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         try (AIScope scope = new AIScope()) {
             DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/M/yyyy");

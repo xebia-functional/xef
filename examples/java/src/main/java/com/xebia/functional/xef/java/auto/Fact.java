@@ -1,48 +1,52 @@
 package com.xebia.functional.xef.java.auto;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 public class Fact {
 
-    private final AIScope scope;
+    private static class FactClass {
+        public String topic;
+        public String content;
 
-    public Fact(AIScope scope) {
-        this.scope = scope;
+        @Override
+        public String toString() {
+            return "FactClass{" +
+                  "topic='" + topic + '\'' +
+                  ", content='" + content + '\'' +
+                  '}';
+        }
     }
-
-    public String topic;
-    public String content;
 
     private static class Riddle {
-        public Fact fact1;
-        public Fact fact2;
+        public FactClass fact1;
+        public FactClass fact2;
         public String riddle;
+
+        @Override
+        public String toString() {
+            return "Riddle{" +
+                  "fact1=" + fact1 +
+                  ", fact2=" + fact2 +
+                  ", riddle='" + riddle + '\'' +
+                  '}';
+        }
     }
 
-    public CompletableFuture<Fact> firstFact() {
-        return scope.prompt("A fascinating fact about you", Fact.class);
-    }
 
-    public CompletableFuture<Fact> secondFact() {
-        return scope.prompt("An interesting fact about me", Fact.class);
-    }
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         try (AIScope scope = new AIScope()) {
-            Fact fact = new Fact(scope);
-            fact.firstFact()
-                  .thenCompose(fact1 -> fact1.secondFact()
-                        .thenCompose(fact2 -> {
-                            String riddlePrompt = ""+
-                                "Create a riddle that combines the following facts:" +
+            var fact1 = scope.prompt("A fascinating fact about you", FactClass.class).get();
+            var fact2 = scope.prompt("An interesting fact about me", FactClass.class).get();
 
-                                "Fact 1: " + fact1.content +
-                                "Fact 2: " + fact2.content;
-                                return fact.scope.prompt(riddlePrompt, Riddle.class)
-                                      .thenAccept(riddle -> System.out.println("Riddle:\n\n" + riddle));
-                        })
-                        ).get();
+            String riddlePrompt = ""+
+                "Create a riddle that combines the following facts:\n\n" +
+
+                "Fact 1: " + fact1.content + "\n" +
+                "Fact 2: " + fact2.content;
+
+            scope.prompt(riddlePrompt, Riddle.class)
+                  .thenAccept(riddle -> System.out.println("Riddle:\n\n" + riddle)).get();
         }
     }
 
