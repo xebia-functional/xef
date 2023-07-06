@@ -35,7 +35,7 @@ suspend fun ByteWriteChannel.writeAll(source: Source) {
 }
 
 suspend fun readUrlToSink(url: String, sink: Sink) {
-  HttpClient {  }.use {
+  HttpClient { expectSuccess = true }.use {
     val response = it.get(url)
     response.bodyAsChannel().readFully(sink)
   }
