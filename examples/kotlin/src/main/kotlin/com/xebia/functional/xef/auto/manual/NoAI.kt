@@ -32,7 +32,7 @@ suspend fun main() {
   vectorStore.addTexts(results)
 
   // Prompt the GPT4All model with a question and provide the vector store for context
-  val result: List<String> = gpt4All.use {
+  val result: String = gpt4All.use {
     it.promptMessage(
       question = "What is the Tree of Thoughts framework about?",
       context = vectorStore,

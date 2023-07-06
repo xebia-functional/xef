@@ -12,8 +12,7 @@ suspend fun main() {
   val userDir = System.getProperty("user.dir")
   val path = "$userDir/models/gpt4all/ggml-replit-code-v1-3b.bin"
 
-  val supportedModels = Gpt4AllModel.supportedModels()
-  supportedModels.forEach {
+  Gpt4AllModel.supportedModels.forEach {
     println("🤖 ${it.name} ${it.url?.let { "- $it" }}")
   }
 
