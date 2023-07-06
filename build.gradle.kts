@@ -15,7 +15,12 @@ allprojects {
   group = property("project.group").toString()
 }
 
-val multiPlatformModules = project.subprojects.map { it.name }
+fun isMultiplatformModule(project: Project): Boolean {
+  val kotlinPluginId = "libs.plugins.kotlin.multiplatform"
+  return project.buildFile.readText().contains(kotlinPluginId)
+}
+
+val multiPlatformModules = project.subprojects.filter { isMultiplatformModule(it) }.map { it.name }
 
 enum class ModuleType {
   MULTIPLATFORM,
