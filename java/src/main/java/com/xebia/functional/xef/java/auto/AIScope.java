@@ -99,8 +99,12 @@ public class AIScope implements AutoCloseable {
         return future(continuation -> scope.promptWithSerializer(llmModel, prompt, functions, decoder, promptConfiguration, continuation));
     }
 
-    public CompletableFuture<List<String>> promptMessage(Chat llmModel, String prompt, List<CFunction> functions, PromptConfiguration promptConfiguration) {
-        return future(continuation -> scope.promptMessage(llmModel, prompt, functions, promptConfiguration, continuation));
+    public CompletableFuture<String> promptMessage(Chat llmModel, String prompt, PromptConfiguration promptConfiguration) {
+        return future(continuation -> scope.promptMessage(llmModel, prompt, promptConfiguration, continuation));
+    }
+
+    public CompletableFuture<List<String>> promptMessages(Chat llmModel, String prompt, List<CFunction> functions, PromptConfiguration promptConfiguration) {
+        return future(continuation -> scope.promptMessages(llmModel, prompt, functions, promptConfiguration, continuation));
     }
 
     public <A> CompletableFuture<A> contextScope(List<String> docs, Function1<AIScope, CompletableFuture<A>> f) {

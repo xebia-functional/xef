@@ -73,12 +73,22 @@ def contextScope[A: Decoder: SerialDescriptor](docs: List[String])(block: AI[A])
 def promptMessage(
     prompt: String,
     llmModel: Chat = OpenAI.DEFAULT_CHAT,
+    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
+)(using scope: AIScope): String =
+  LoomAdapter
+    .apply[String](
+      scope.kt.promptMessage(llmModel, prompt, promptConfiguration, _)
+    )
+
+def promptMessages(
+    prompt: String,
+    llmModel: Chat = OpenAI.DEFAULT_CHAT,
     functions: List[CFunction] = List.empty,
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
 )(using scope: AIScope): List[String] =
   LoomAdapter
     .apply[java.util.List[String]](
-      scope.kt.promptMessage(llmModel, prompt, functions.asJava, promptConfiguration, _)
+      scope.kt.promptMessages(llmModel, prompt, functions.asJava, promptConfiguration, _)
     ).asScala.toList
 
 def pdf(

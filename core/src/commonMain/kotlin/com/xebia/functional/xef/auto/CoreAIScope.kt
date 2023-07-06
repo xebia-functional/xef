@@ -1,5 +1,6 @@
 package com.xebia.functional.xef.auto
 
+import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.embeddings.Embeddings
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.llm.ChatWithFunctions
@@ -112,9 +113,17 @@ class CoreAIScope(
   @AiDsl
   suspend fun Chat.promptMessage(
     question: String,
+    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
+  ): String =
+    promptMessages(question, context, emptyList(), promptConfiguration).firstOrNull()
+      ?: throw AIError.NoResponse()
+
+  @AiDsl
+  suspend fun Chat.promptMessages(
+    question: String,
     functions: List<CFunction> = emptyList(),
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-  ): List<String> = promptMessage(Prompt(question), context, functions, promptConfiguration)
+  ): List<String> = promptMessages(Prompt(question), context, functions, promptConfiguration)
 
   /**
    * Run a [prompt] describes the images you want to generate within the context of [CoreAIScope].
