@@ -2,26 +2,33 @@ package com.xebia.functional.xef.auto.llm.openai
 
 import com.aallam.openai.api.BetaOpenAI
 import com.aallam.openai.api.chat.*
+import com.aallam.openai.api.chat.ChatChunk as OpenAIChatChunk
+import com.aallam.openai.api.chat.ChatCompletionChunk as OpenAIChatCompletionChunk
 import com.aallam.openai.api.chat.ChatCompletionRequest as OpenAIChatCompletionRequest
+import com.aallam.openai.api.chat.ChatDelta as OpenAIChatDelta
 import com.aallam.openai.api.completion.Choice as OpenAIChoice
 import com.aallam.openai.api.completion.CompletionRequest as OpenAICompletionRequest
-import com.aallam.openai.api.completion.TextCompletion
 import com.aallam.openai.api.completion.completionRequest
 import com.aallam.openai.api.core.Usage as OpenAIUsage
+import com.aallam.openai.api.embedding.Embedding as OpenAIEmbedding
 import com.aallam.openai.api.embedding.EmbeddingRequest as OpenAIEmbeddingRequest
-import com.aallam.openai.api.embedding.EmbeddingResponse
 import com.aallam.openai.api.embedding.embeddingRequest
 import com.aallam.openai.api.image.ImageCreation
 import com.aallam.openai.api.image.ImageSize
-import com.aallam.openai.api.image.ImageURL
 import com.aallam.openai.api.image.imageCreation
 import com.aallam.openai.api.model.ModelId
-import com.aallam.openai.client.OpenAI
-import com.xebia.functional.xef.llm.AIClient
+import com.aallam.openai.client.OpenAI as OpenAIClient
+import com.xebia.functional.tokenizer.Encoding
+import com.xebia.functional.tokenizer.ModelType
+import com.xebia.functional.xef.llm.*
 import com.xebia.functional.xef.llm.models.chat.*
+import com.xebia.functional.xef.llm.models.chat.ChatChunk
+import com.xebia.functional.xef.llm.models.chat.ChatCompletionChunk
+import com.xebia.functional.xef.llm.models.chat.ChatDelta
 import com.xebia.functional.xef.llm.models.embeddings.Embedding
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingResult
+import com.xebia.functional.xef.llm.models.functions.CFunction
 import com.xebia.functional.xef.llm.models.functions.FunctionCall as FnCall
 import com.xebia.functional.xef.llm.models.images.ImageGenerationUrl
 import com.xebia.functional.xef.llm.models.images.ImagesGenerationRequest
@@ -30,40 +37,175 @@ import com.xebia.functional.xef.llm.models.text.CompletionChoice
 import com.xebia.functional.xef.llm.models.text.CompletionRequest
 import com.xebia.functional.xef.llm.models.text.CompletionResult
 import com.xebia.functional.xef.llm.models.usage.Usage
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
 
-class OpenAIClient(val openAI: OpenAI) : AIClient, AutoCloseable {
+class OpenAIModel(
+  private val openAI: OpenAI,
+  override val name: String,
+  override val modelType: ModelType
+) : Chat, ChatWithFunctions, Images, Completion, Embeddings, AutoCloseable {
+
+  private val client = OpenAIClient(openAI.token)
 
   override suspend fun createCompletion(request: CompletionRequest): CompletionResult {
-    val response = openAI.completion(toCompletionRequest(request))
-    return completionResult(response)
+    fun completionChoice(it: OpenAIChoice): CompletionChoice =
+      CompletionChoice(it.text, it.index, null, it.finishReason)
+
+    val response = client.completion(toCompletionRequest(request))
+    return CompletionResult(
+      id = response.id,
+      `object` = response.model.id,
+      created = response.created,
+      model = response.model.id,
+      choices = response.choices.map { completionChoice(it) },
+      usage = usage(response.usage)
+    )
   }
 
   @OptIn(BetaOpenAI::class)
   override suspend fun createChatCompletion(
     request: ChatCompletionRequest
   ): ChatCompletionResponse {
-    val response = openAI.chatCompletion(toChatCompletionRequest(request))
-    return chatCompletionResult(response)
+    fun chatMessage(cm: ChatMessage) =
+      Message(
+        role = toRole(cm.role),
+        content = cm.content ?: "",
+        name = cm.name ?: "",
+      )
+
+    fun toChoice(choice: ChatChoice): Choice =
+      Choice(
+        message = choice.message?.let { chatMessage(it) },
+        finishReason = choice.finishReason,
+        index = choice.index,
+      )
+
+    val response = client.chatCompletion(toChatCompletionRequest(request))
+    return ChatCompletionResponse(
+      id = response.id,
+      `object` = response.model.id,
+      created = response.created,
+      model = response.model.id,
+      choices = response.choices.map { toChoice(it) },
+      usage = usage(response.usage)
+    )
+  }
+
+  @OptIn(BetaOpenAI::class)
+  override suspend fun createChatCompletions(
+    request: ChatCompletionRequest
+  ): Flow<ChatCompletionChunk> {
+    fun chatDelta(delta: OpenAIChatDelta): ChatDelta =
+      ChatDelta(
+        role = toRole(delta.role),
+        content = delta.content,
+        functionCall = delta.functionCall?.let { FnCall(it.name, it.arguments) }
+      )
+
+    fun chatChunk(chunk: OpenAIChatChunk): ChatChunk =
+      ChatChunk(chunk.index, chunk.delta?.let { chatDelta(it) }, chunk.finishReason)
+
+    fun chatCompletionChunk(response: OpenAIChatCompletionChunk): ChatCompletionChunk =
+      ChatCompletionChunk(
+        id = response.id,
+        created = response.created,
+        model = response.model.id,
+        choices = response.choices.map { chatChunk(it) },
+        usage = usage(response.usage)
+      )
+
+    return client.chatCompletions(toChatCompletionRequest(request)).map { chatCompletionChunk(it) }
   }
 
   @OptIn(BetaOpenAI::class)
   override suspend fun createChatCompletionWithFunctions(
     request: ChatCompletionRequestWithFunctions
   ): ChatCompletionResponseWithFunctions {
-    val response = openAI.chatCompletion(toChatCompletionRequestWithFunctions(request))
-    return chatCompletionResultWithFunctions(response)
+    fun toOpenAI(cf: CFunction): ChatCompletionFunction =
+      ChatCompletionFunction(
+        name = cf.name,
+        description = cf.description,
+        parameters = Parameters(Json.parseToJsonElement(cf.parameters)),
+      )
+
+    fun toOpenAIChatMessage(it: Message) =
+      ChatMessage(role = fromRole(it.role), content = it.content, name = it.name)
+
+    val openAIRequest: OpenAIChatCompletionRequest = chatCompletionRequest {
+      model = ModelId(request.model)
+      messages = request.messages.map { toOpenAIChatMessage(it) }
+      functions = request.functions.map { toOpenAI(it) }
+      temperature = request.temperature
+      topP = request.topP
+      n = request.n
+      stop = request.stop
+      maxTokens = request.maxTokens
+      presencePenalty = request.presencePenalty
+      frequencyPenalty = request.frequencyPenalty
+      logitBias = request.logitBias
+      user = request.user
+      functionCall =
+        request.functionCall["name"]?.let { FunctionMode.Named(it) } ?: FunctionMode.Auto
+    }
+
+    fun fromOpenAI(it: ChatMessage): MessageWithFunctionCall =
+      MessageWithFunctionCall(
+        role = it.role.role,
+        content = it.content,
+        name = it.name,
+        functionCall = it.functionCall?.let { FnCall(it.name, it.arguments) }
+      )
+
+    fun choiceWithFunctions(choice: ChatChoice): ChoiceWithFunctions =
+      ChoiceWithFunctions(
+        message = choice.message?.let { fromOpenAI(it) },
+        finishReason = choice.finishReason,
+        index = choice.index,
+      )
+
+    fun fromResponse(response: ChatCompletion): ChatCompletionResponseWithFunctions =
+      ChatCompletionResponseWithFunctions(
+        id = response.id,
+        `object` = response.model.id,
+        created = response.created,
+        model = response.model.id,
+        choices = response.choices.map { choiceWithFunctions(it) },
+        usage = usage(response.usage)
+      )
+
+    return fromResponse(client.chatCompletion(openAIRequest))
   }
 
   override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult {
-    val response = openAI.embeddings(toEmbeddingRequest(request))
-    return embeddingResult(response)
+    val clientRequest: OpenAIEmbeddingRequest = embeddingRequest {
+      model = ModelId(request.model)
+      input = request.input
+      user = request.user
+    }
+
+    fun foo(it: OpenAIEmbedding): Embedding =
+      Embedding("embedding", it.embedding.map { it.toFloat() }, it.index)
+
+    val response = client.embeddings(clientRequest)
+    return EmbeddingResult(
+      data = response.embeddings.map { foo(it) },
+      usage = usage(response.usage)
+    )
   }
 
   @OptIn(BetaOpenAI::class)
   override suspend fun createImages(request: ImagesGenerationRequest): ImagesGenerationResponse {
-    val response = openAI.imageURL(toImageCreationRequest(request))
-    return imageResult(response)
+    val clientRequest: ImageCreation = imageCreation {
+      prompt = request.prompt
+      n = request.numberImages
+      size = ImageSize(request.size)
+      user = request.user
+    }
+
+    val response = client.imageURL(clientRequest)
+    return ImagesGenerationResponse(data = response.map { ImageGenerationUrl(it.url) })
   }
 
   private fun toCompletionRequest(request: CompletionRequest): OpenAICompletionRequest =
@@ -85,24 +227,6 @@ class OpenAIClient(val openAI: OpenAI) : AIClient, AutoCloseable {
       logitBias = request.logitBias
     }
 
-  private fun completionResult(response: TextCompletion): CompletionResult =
-    CompletionResult(
-      id = response.id,
-      `object` = response.model.id,
-      created = response.created,
-      model = response.model.id,
-      choices = response.choices.map { completionChoice(it) },
-      usage = usage(response.usage)
-    )
-
-  private fun completionChoice(it: OpenAIChoice): CompletionChoice =
-    CompletionChoice(
-      it.text,
-      it.index,
-      null,
-      it.finishReason,
-    )
-
   private fun usage(usage: OpenAIUsage?): Usage =
     Usage(
       promptTokens = usage?.promptTokens,
@@ -111,59 +235,22 @@ class OpenAIClient(val openAI: OpenAI) : AIClient, AutoCloseable {
     )
 
   @OptIn(BetaOpenAI::class)
-  private fun chatCompletionResult(response: ChatCompletion): ChatCompletionResponse =
-    ChatCompletionResponse(
-      id = response.id,
-      `object` = response.model.id,
-      created = response.created,
-      model = response.model.id,
-      choices = response.choices.map { chatCompletionChoice(it) },
-      usage = usage(response.usage)
-    )
+  private fun toRole(it: ChatRole?) =
+    when (it) {
+      ChatRole.User -> Role.USER
+      ChatRole.Assistant -> Role.ASSISTANT
+      ChatRole.System -> Role.SYSTEM
+      ChatRole.Function -> Role.SYSTEM
+      else -> Role.ASSISTANT
+    }
 
   @OptIn(BetaOpenAI::class)
-  private fun chatCompletionResultWithFunctions(
-    response: ChatCompletion
-  ): ChatCompletionResponseWithFunctions =
-    ChatCompletionResponseWithFunctions(
-      id = response.id,
-      `object` = response.model.id,
-      created = response.created,
-      model = response.model.id,
-      choices = response.choices.map { chatCompletionChoiceWithFunctions(it) },
-      usage = usage(response.usage)
-    )
-
-  @OptIn(BetaOpenAI::class)
-  private fun chatCompletionChoiceWithFunctions(choice: ChatChoice): ChoiceWithFunctions =
-    ChoiceWithFunctions(
-      message =
-        choice.message?.let {
-          MessageWithFunctionCall(
-            role = it.role.role,
-            content = it.content,
-            name = it.name,
-            functionCall = it.functionCall?.let { FnCall(it.name, it.arguments) }
-          )
-        },
-      finishReason = choice.finishReason,
-      index = choice.index,
-    )
-
-  @OptIn(BetaOpenAI::class)
-  private fun chatCompletionChoice(choice: ChatChoice): Choice =
-    Choice(
-      message =
-        choice.message?.let {
-          Message(
-            role = it.role.role,
-            content = it.content,
-            name = it.name,
-          )
-        },
-      finishReason = choice.finishReason,
-      index = choice.index,
-    )
+  private fun fromRole(it: Role) =
+    when (it) {
+      Role.USER -> ChatRole.User
+      Role.ASSISTANT -> ChatRole.Assistant
+      Role.SYSTEM -> ChatRole.System
+    }
 
   @OptIn(BetaOpenAI::class)
   private fun toChatCompletionRequest(request: ChatCompletionRequest): OpenAIChatCompletionRequest =
@@ -172,7 +259,7 @@ class OpenAIClient(val openAI: OpenAI) : AIClient, AutoCloseable {
       messages =
         request.messages.map {
           ChatMessage(
-            role = ChatRole(it.role),
+            role = fromRole(it.role),
             content = it.content,
             name = it.name,
           )
@@ -188,71 +275,39 @@ class OpenAIClient(val openAI: OpenAI) : AIClient, AutoCloseable {
       user = request.user
     }
 
-  @OptIn(BetaOpenAI::class)
-  private fun toChatCompletionRequestWithFunctions(
-    request: ChatCompletionRequestWithFunctions
-  ): OpenAIChatCompletionRequest = chatCompletionRequest {
-    model = ModelId(request.model)
-    messages =
-      request.messages.map {
-        ChatMessage(role = ChatRole(it.role), content = it.content, name = it.name)
-      }
+  override fun tokensFromMessages(messages: List<Message>): Int {
+    fun Encoding.countTokensFromMessages(tokensPerMessage: Int, tokensPerName: Int): Int =
+      messages.sumOf { message ->
+        countTokens(message.role.name) +
+          countTokens(message.content) +
+          tokensPerMessage +
+          tokensPerName
+      } + 3
 
-    functions =
-      request.functions.map {
-        val schema = Json.parseToJsonElement(it.parameters)
-        ChatCompletionFunction(
-          name = it.name,
-          description = it.description,
-          parameters = Parameters(schema),
-        )
-      }
-    temperature = request.temperature
-    topP = request.topP
-    n = request.n
-    stop = request.stop
-    maxTokens = request.maxTokens
-    presencePenalty = request.presencePenalty
-    frequencyPenalty = request.frequencyPenalty
-    logitBias = request.logitBias
-    user = request.user
-    functionCall = request.functionCall["name"]?.let { FunctionMode.Named(it) } ?: FunctionMode.Auto
+    fun fallBackTo(fallbackModel: Chat, paddingTokens: Int): Int {
+      return fallbackModel.tokensFromMessages(messages) + paddingTokens
+    }
+
+    return when (this) {
+      openAI.GPT_3_5_TURBO_FUNCTIONS ->
+        // paddingToken = 200: reserved for functions
+        fallBackTo(fallbackModel = openAI.GPT_3_5_TURBO_0301, paddingTokens = 200)
+      openAI.GPT_3_5_TURBO ->
+        // otherwise if the model changes, it might later fail
+        fallBackTo(fallbackModel = openAI.GPT_3_5_TURBO_0301, paddingTokens = 5)
+      openAI.GPT_4,
+      openAI.GPT_4_32K ->
+        // otherwise if the model changes, it might later fail
+        fallBackTo(fallbackModel = openAI.GPT_4_0314, paddingTokens = 5)
+      openAI.GPT_3_5_TURBO_0301 ->
+        modelType.encoding.countTokensFromMessages(tokensPerMessage = 4, tokensPerName = 0)
+      openAI.GPT_4_0314 ->
+        modelType.encoding.countTokensFromMessages(tokensPerMessage = 3, tokensPerName = 2)
+      else -> fallBackTo(fallbackModel = openAI.GPT_3_5_TURBO_0301, paddingTokens = 20)
+    }
   }
 
-  private fun embeddingResult(response: EmbeddingResponse): EmbeddingResult =
-    EmbeddingResult(
-      data =
-        response.embeddings.map {
-          Embedding(
-            `object` = "embedding",
-            embedding = it.embedding.map { it.toFloat() },
-            index = it.index
-          )
-        },
-      usage = usage(response.usage)
-    )
-
-  private fun toEmbeddingRequest(request: EmbeddingRequest): OpenAIEmbeddingRequest =
-    embeddingRequest {
-      model = ModelId(request.model)
-      input = request.input
-      user = request.user
-    }
-
-  @OptIn(BetaOpenAI::class)
-  private fun imageResult(response: List<ImageURL>): ImagesGenerationResponse =
-    ImagesGenerationResponse(data = response.map { ImageGenerationUrl(it.url) })
-
-  @OptIn(BetaOpenAI::class)
-  private fun toImageCreationRequest(request: ImagesGenerationRequest): ImageCreation =
-    imageCreation {
-      prompt = request.prompt
-      n = request.numberImages
-      size = ImageSize(request.size)
-      user = request.user
-    }
-
   override fun close() {
-    openAI.close()
+    client.close()
   }
 }

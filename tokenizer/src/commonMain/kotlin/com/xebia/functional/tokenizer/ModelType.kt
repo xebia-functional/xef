@@ -3,15 +3,16 @@ package com.xebia.functional.tokenizer
 import com.xebia.functional.tokenizer.EncodingType.CL100K_BASE
 import com.xebia.functional.tokenizer.EncodingType.P50K_BASE
 import com.xebia.functional.tokenizer.EncodingType.R50K_BASE
+import kotlin.jvm.JvmStatic
 
-enum class ModelType(
+sealed class ModelType(
   /**
    * Returns the name of the model type as used by the OpenAI API.
    *
    * @return the name of the model type
    */
-  name: String,
-  val encodingType: EncodingType,
+  open val name: String,
+  open val encodingType: EncodingType,
   /**
    * Returns the maximum context length that is supported by this model type. Note that
    * the maximum context length consists of the amount of prompt tokens and the amount of
@@ -19,58 +20,61 @@ enum class ModelType(
    *
    * @return the maximum context length for this model type
    */
-  val maxContextLength: Int
+  open val maxContextLength: Int
 ) {
+
+  companion object {
+    @JvmStatic
+    val DEFAULT_SPLITTER_MODEL = GPT_3_5_TURBO
+  }
+
+  data class LocalModel(override val name: String, override val encodingType: EncodingType, override val maxContextLength: Int) : ModelType(name, encodingType, maxContextLength)
   // chat
-  GPT_4("gpt-4", CL100K_BASE, 8192),
-  GPT_4_32K("gpt-4-32k", CL100K_BASE, 32768),
-  GPT_3_5_TURBO("gpt-3.5-turbo", CL100K_BASE, 4097),
-  GPT_3_5_TURBO_16_K("gpt-3.5-turbo-16k", CL100K_BASE, 4097 * 4),
-  GPT_3_5_TURBO_FUNCTIONS("gpt-3.5-turbo-0613", CL100K_BASE, 4097),
+  object GPT_4 : ModelType("gpt-4", CL100K_BASE, 8192)
+  object GPT_4_32K : ModelType("gpt-4-32k", CL100K_BASE, 32768)
+  object GPT_3_5_TURBO : ModelType("gpt-3.5-turbo", CL100K_BASE, 4097)
+  object GPT_3_5_TURBO_16_K : ModelType("gpt-3.5-turbo-16k", CL100K_BASE, 4097 * 4)
+  object GPT_3_5_TURBO_FUNCTIONS : ModelType("gpt-3.5-turbo-0613", CL100K_BASE, 4097)
   // text
-  TEXT_DAVINCI_003("text-davinci-003", P50K_BASE, 4097),
-  TEXT_DAVINCI_002("text-davinci-002", P50K_BASE, 4097),
-  TEXT_DAVINCI_001("text-davinci-001", R50K_BASE, 2049),
-  TEXT_CURIE_001("text-curie-001", R50K_BASE, 2049),
-  TEXT_BABBAGE_001("text-babbage-001", R50K_BASE, 2049),
-  TEXT_ADA_001("text-ada-001", R50K_BASE, 2049),
-  DAVINCI("davinci", R50K_BASE, 2049),
-  CURIE("curie", R50K_BASE, 2049),
-  BABBAGE("babbage", R50K_BASE, 2049),
-  ADA("ada", R50K_BASE, 2049),
+  object TEXT_DAVINCI_003 : ModelType("text-davinci-003", P50K_BASE, 4097)
+  object TEXT_DAVINCI_002 : ModelType("text-davinci-002", P50K_BASE, 4097)
+  object TEXT_DAVINCI_001 : ModelType("text-davinci-001", R50K_BASE, 2049)
+  object TEXT_CURIE_001 : ModelType("text-curie-001", R50K_BASE, 2049)
+  object TEXT_BABBAGE_001 : ModelType("text-babbage-001", R50K_BASE, 2049)
+  object TEXT_ADA_001 : ModelType("text-ada-001", R50K_BASE, 2049)
+  object DAVINCI : ModelType("davinci", R50K_BASE, 2049)
+  object CURIE : ModelType("curie", R50K_BASE, 2049)
+  object BABBAGE : ModelType("babbage", R50K_BASE, 2049)
+  object ADA : ModelType("ada", R50K_BASE, 2049)
 
   // code
-  CODE_DAVINCI_002("code-davinci-002", P50K_BASE, 8001),
-  CODE_DAVINCI_001("code-davinci-001", P50K_BASE, 8001),
-  CODE_CUSHMAN_002("code-cushman-002", P50K_BASE, 2048),
-  CODE_CUSHMAN_001("code-cushman-001", P50K_BASE, 2048),
-  DAVINCI_CODEX("davinci-codex", P50K_BASE, 4096),
-  CUSHMAN_CODEX("cushman-codex", P50K_BASE, 2048),
+  object CODE_DAVINCI_002 : ModelType("code-davinci-002", P50K_BASE, 8001)
+  object CODE_DAVINCI_001 : ModelType("code-davinci-001", P50K_BASE, 8001)
+  object CODE_CUSHMAN_002 : ModelType("code-cushman-002", P50K_BASE, 2048)
+  object CODE_CUSHMAN_001 : ModelType("code-cushman-001", P50K_BASE, 2048)
+  object DAVINCI_CODEX : ModelType("davinci-codex", P50K_BASE, 4096)
+  object CUSHMAN_CODEX : ModelType("cushman-codex", P50K_BASE, 2048)
 
   // edit
-  TEXT_DAVINCI_EDIT_001("text-davinci-edit-001", EncodingType.P50K_EDIT, 3000),
-  CODE_DAVINCI_EDIT_001("code-davinci-edit-001", EncodingType.P50K_EDIT, 3000),
+  object TEXT_DAVINCI_EDIT_001 : ModelType("text-davinci-edit-001", EncodingType.P50K_EDIT, 3000)
+  object CODE_DAVINCI_EDIT_001 : ModelType("code-davinci-edit-001", EncodingType.P50K_EDIT, 3000)
 
   // embeddings
-  TEXT_EMBEDDING_ADA_002("text-embedding-ada-002", CL100K_BASE, 8191),
+  object TEXT_EMBEDDING_ADA_002 : ModelType("text-embedding-ada-002", CL100K_BASE, 8191)
 
   // old embeddings
-  TEXT_SIMILARITY_DAVINCI_001("text-similarity-davinci-001", R50K_BASE, 2046),
-  TEXT_SIMILARITY_CURIE_001("text-similarity-curie-001", R50K_BASE, 2046),
-  TEXT_SIMILARITY_BABBAGE_001("text-similarity-babbage-001", R50K_BASE, 2046),
-  TEXT_SIMILARITY_ADA_001("text-similarity-ada-001", R50K_BASE, 2046),
-  TEXT_SEARCH_DAVINCI_DOC_001("text-search-davinci-doc-001", R50K_BASE, 2046),
-  TEXT_SEARCH_CURIE_DOC_001("text-search-curie-doc-001", R50K_BASE, 2046),
-  TEXT_SEARCH_BABBAGE_DOC_001("text-search-babbage-doc-001", R50K_BASE, 2046),
-  TEXT_SEARCH_ADA_DOC_001("text-search-ada-doc-001", R50K_BASE, 2046),
-  CODE_SEARCH_BABBAGE_CODE_001("code-search-babbage-code-001", R50K_BASE, 2046),
-  CODE_SEARCH_ADA_CODE_001("code-search-ada-code-001", R50K_BASE, 2046);
+  object TEXT_SIMILARITY_DAVINCI_001 : ModelType("text-similarity-davinci-001", R50K_BASE, 2046)
+  object TEXT_SIMILARITY_CURIE_001 : ModelType("text-similarity-curie-001", R50K_BASE, 2046)
+  object TEXT_SIMILARITY_BABBAGE_001 : ModelType("text-similarity-babbage-001", R50K_BASE, 2046)
+  object TEXT_SIMILARITY_ADA_001 : ModelType("text-similarity-ada-001", R50K_BASE, 2046)
+  object TEXT_SEARCH_DAVINCI_DOC_001 : ModelType("text-search-davinci-doc-001", R50K_BASE, 2046)
+  object TEXT_SEARCH_CURIE_DOC_001 : ModelType("text-search-curie-doc-001", R50K_BASE, 2046)
+  object TEXT_SEARCH_BABBAGE_DOC_001 : ModelType("text-search-babbage-doc-001", R50K_BASE, 2046)
+  object TEXT_SEARCH_ADA_DOC_001 : ModelType("text-search-ada-doc-001", R50K_BASE, 2046)
+  object CODE_SEARCH_BABBAGE_CODE_001 : ModelType("code-search-babbage-code-001", R50K_BASE, 2046)
+  object CODE_SEARCH_ADA_CODE_001 : ModelType("code-search-ada-code-001", R50K_BASE, 2046)
 
   inline val encoding: Encoding
     inline get() = encodingType.encoding
 
-  companion object {
-    fun fromName(name: String): ModelType? =
-      values().firstOrNull { it.name == name }
-  }
 }
