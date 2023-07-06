@@ -23,19 +23,19 @@ interface Chat : LLM {
     context: VectorStore,
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
   ): String =
-    promptMessage(Prompt(question), context, emptyList(), promptConfiguration).firstOrNull()
+    promptMessages(Prompt(question), context, emptyList(), promptConfiguration).firstOrNull()
       ?: throw AIError.NoResponse()
 
   @AiDsl
-  suspend fun promptMessage(
+  suspend fun promptMessages(
     question: String,
     context: VectorStore,
     functions: List<CFunction> = emptyList(),
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-  ): List<String> = promptMessage(Prompt(question), context, functions, promptConfiguration)
+  ): List<String> = promptMessages(Prompt(question), context, functions, promptConfiguration)
 
   @AiDsl
-  suspend fun promptMessage(
+  suspend fun promptMessages(
     prompt: Prompt,
     context: VectorStore,
     functions: List<CFunction> = emptyList(),

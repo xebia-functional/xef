@@ -18,15 +18,17 @@ data class Gpt4AllModel(
   val type: String,
   val description: String,
   val disableGUI: String? = null,
-  val url: String? = null
+  val url: String? = null,
+  val promptTemplate: String? = null,
+  val systemPrompt: String? = null,
 ) {
   companion object {
     private val url = "https://raw.githubusercontent.com/nomic-ai/gpt4all/main/gpt4all-chat/metadata/models.json"
-    fun supportedModels(): List<Gpt4AllModel> {
+    val supportedModels : List<Gpt4AllModel> by lazy {
       // fetch the content as string from https://raw.githubusercontent.com/nomic-ai/gpt4all/main/gpt4all-chat/metadata/models.json
       val json = URL(url).readText()
       // parse the json string into a list of Model objects
-      return Json.decodeFromString<List<Gpt4AllModel>>(json)
+      Json.decodeFromString<List<Gpt4AllModel>>(json)
     }
   }
 }

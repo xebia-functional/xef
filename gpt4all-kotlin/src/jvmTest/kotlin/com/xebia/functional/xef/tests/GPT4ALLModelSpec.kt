@@ -7,6 +7,6 @@ import io.kotest.matchers.ints.shouldBeGreaterThan
 class GPT4ALLModelSpec :
   StringSpec({
     "should return a list of supported models by GPT4ALL" {
-      Gpt4AllModel.supportedModels().size shouldBeGreaterThan 0
+      Gpt4AllModel.supportedModels.size shouldBeGreaterThan 0
     }
   })

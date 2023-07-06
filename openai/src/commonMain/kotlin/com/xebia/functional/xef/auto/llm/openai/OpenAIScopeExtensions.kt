@@ -22,7 +22,7 @@ suspend fun CoreAIScope.promptMessage(
   model: Chat = OpenAI.DEFAULT_CHAT,
   functions: List<CFunction> = emptyList(),
   promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS,
-): List<String> = model.promptMessage(prompt, context, functions, promptConfiguration)
+): List<String> = model.promptMessages(prompt, context, functions, promptConfiguration)
 
 @AiDsl
 suspend fun CoreAIScope.promptMessage(
@@ -30,7 +30,7 @@ suspend fun CoreAIScope.promptMessage(
   model: Chat = OpenAI.DEFAULT_CHAT,
   functions: List<CFunction> = emptyList(),
   promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS,
-): List<String> = model.promptMessage(prompt, context, functions, promptConfiguration)
+): List<String> = model.promptMessages(prompt, context, functions, promptConfiguration)
 
 @AiDsl
 suspend inline fun <reified A> CoreAIScope.prompt(

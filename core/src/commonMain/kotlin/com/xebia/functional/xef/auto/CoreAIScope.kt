@@ -115,15 +115,15 @@ class CoreAIScope(
     question: String,
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
   ): String =
-    promptMessage(question, context, emptyList(), promptConfiguration).firstOrNull()
+    promptMessages(question, context, emptyList(), promptConfiguration).firstOrNull()
       ?: throw AIError.NoResponse()
 
   @AiDsl
-  suspend fun Chat.promptMessage(
+  suspend fun Chat.promptMessages(
     question: String,
     functions: List<CFunction> = emptyList(),
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-  ): List<String> = promptMessage(Prompt(question), context, functions, promptConfiguration)
+  ): List<String> = promptMessages(Prompt(question), context, functions, promptConfiguration)
 
   /**
    * Run a [prompt] describes the images you want to generate within the context of [CoreAIScope].

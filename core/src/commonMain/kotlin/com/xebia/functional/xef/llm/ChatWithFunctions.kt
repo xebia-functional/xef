@@ -26,7 +26,7 @@ interface ChatWithFunctions : Chat {
     promptConfiguration: PromptConfiguration,
   ): A {
     return tryDeserialize(serializer, promptConfiguration.maxDeserializationAttempts) {
-      promptMessage(
+      promptMessages(
         prompt = Prompt(prompt),
         context = context,
         functions = functions,
@@ -44,7 +44,7 @@ interface ChatWithFunctions : Chat {
     promptConfiguration: PromptConfiguration,
   ): A {
     return tryDeserialize(serializer, promptConfiguration.maxDeserializationAttempts) {
-      promptMessage(prompt = prompt, context = context, functions = functions, promptConfiguration)
+      promptMessages(prompt = prompt, context = context, functions = functions, promptConfiguration)
     }
   }
 
