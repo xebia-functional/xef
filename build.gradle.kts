@@ -15,11 +15,7 @@ allprojects {
   group = property("project.group").toString()
 }
 
-val multiPlatformModules = listOf(
-  "xef-core",
-  "xef-filesystem",
-  "xef-tokenizer"
-)
+val multiPlatformModules = project.subprojects.map { it.name }
 
 enum class ModuleType {
   MULTIPLATFORM,
