@@ -1,10 +1,10 @@
 package com.xebia.functional.xef.java.auto;
 
+import static java.util.stream.Collectors.toList;
+
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-
-import static java.util.stream.Collectors.toList;
 
 public class Planets {
     static class Planet {

@@ -1,9 +1,9 @@
 package com.xebia.functional.xef.java.auto.tot;
 
+import static com.xebia.functional.xef.java.auto.tot.Rendering.truncateText;
+
 import com.xebia.functional.xef.java.auto.AIScope;
 import kotlinx.serialization.KSerializer;
-
-import static com.xebia.functional.xef.java.auto.tot.Rendering.truncateText;
 
 public class Solutions{
 

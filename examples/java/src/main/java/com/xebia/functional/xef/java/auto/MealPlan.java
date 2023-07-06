@@ -1,6 +1,7 @@
 package com.xebia.functional.xef.java.auto;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 public class MealPlan {
@@ -28,11 +29,14 @@ public class MealPlan {
               '}';
     }
 
+    private static CompletableFuture<Void> mealPlan(AIScope scope) {
+        return scope.prompt("Meal plan for the week for a person with gall bladder stones that includes 5 recipes.", MealPlan.class)
+              .thenAccept(mealPlan -> System.out.println(mealPlan));
+    }
+
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         try (AIScope scope = new AIScope()) {
-            scope.prompt("Meal plan for the week for a person with gall bladder stones that includes 5 recipes.", MealPlan.class)
-                  .thenAccept(mealPlan -> System.out.println(mealPlan))
-                  .get();
+            scope.contextScope(scope.search("gall bladder stones meals").get(), MealPlan::mealPlan).get();
         }
     }
 }

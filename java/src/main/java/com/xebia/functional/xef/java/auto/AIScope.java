@@ -15,6 +15,7 @@ import com.xebia.functional.xef.llm.Images;
 import com.xebia.functional.xef.llm.models.functions.CFunction;
 import com.xebia.functional.xef.llm.models.images.ImageGenerationUrl;
 import com.xebia.functional.xef.llm.models.images.ImagesGenerationResponse;
+import com.xebia.functional.xef.agents.Search;
 import com.xebia.functional.xef.pdf.Loader;
 import com.xebia.functional.xef.textsplitters.TextSplitter;
 import com.xebia.functional.xef.vectorstores.LocalVectorStore;
@@ -128,6 +129,10 @@ public class AIScope implements AutoCloseable {
     public CompletableFuture<List<String>> images(Images model, String prompt, Integer numberOfImages, String size, PromptConfiguration promptConfiguration) {
         return this.<ImagesGenerationResponse>future(continuation -> scope.images(model, prompt, numberOfImages, size, promptConfiguration, continuation))
                 .thenApply(response -> CollectionsKt.map(response.getData(), ImageGenerationUrl::getUrl));
+    }
+
+    public CompletableFuture<List<String>> search(String prompt) {
+        return future(continuation -> Search.search(prompt, continuation));
     }
 
     private <A> CompletableFuture<A> future(Function1<? super Continuation<? super A>, ? extends Object> block) {

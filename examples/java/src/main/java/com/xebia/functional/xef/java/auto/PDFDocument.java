@@ -1,15 +1,14 @@
 package com.xebia.functional.xef.java.auto;
 
+import static com.xebia.functional.xef.textsplitters.TokenTextSplitterKt.TokenTextSplitter;
+
 import com.xebia.functional.tokenizer.ModelType;
 import com.xebia.functional.xef.textsplitters.TextSplitter;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-
-import static com.xebia.functional.xef.textsplitters.TokenTextSplitterKt.TokenTextSplitter;
 
 public class PDFDocument {
 

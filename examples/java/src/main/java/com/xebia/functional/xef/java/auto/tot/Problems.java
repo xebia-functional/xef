@@ -1,11 +1,11 @@
 package com.xebia.functional.xef.java.auto.tot;
 
+import static com.xebia.functional.xef.java.auto.tot.ControlSignals.controlSignal;
+import static com.xebia.functional.xef.java.auto.tot.Rendering.truncateText;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
-
-import static com.xebia.functional.xef.java.auto.tot.ControlSignals.controlSignal;
-import static com.xebia.functional.xef.java.auto.tot.Rendering.truncateText;
 
 public class Problems {
 
