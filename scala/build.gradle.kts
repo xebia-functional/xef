@@ -10,7 +10,8 @@ plugins {
 }
 
 dependencies {
-    implementation(projects.xefKotlin)
+    implementation(projects.xefCore)
+    implementation(projects.xefOpenai)
     implementation(projects.kotlinLoom)
 
     // TODO split to separate Scala library

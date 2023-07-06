@@ -16,6 +16,10 @@
         <appender-ref ref="NOOP"/>
     </root>
 
+    <logger name="ai.djl" level="debug">
+        <appender-ref ref="STDOUT" />
+    </logger>
+
     <logger name="com.xebia.functional.xef" level="debug">
         <appender-ref ref="STDOUT" />
     </logger>

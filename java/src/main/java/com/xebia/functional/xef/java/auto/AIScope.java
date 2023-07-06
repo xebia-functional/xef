@@ -4,27 +4,25 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
-import com.xebia.functional.xef.auto.AIRuntime;
 import com.xebia.functional.xef.auto.CoreAIScope;
-import com.xebia.functional.xef.auto.llm.openai.OpenAIRuntime;
-import com.xebia.functional.xef.llm.AIClient;
-import com.xebia.functional.xef.llm.LLM;
-import com.xebia.functional.xef.llm.LLMModel;
+import com.xebia.functional.xef.auto.PromptConfiguration;
+import com.xebia.functional.xef.auto.llm.openai.OpenAI;
+import com.xebia.functional.xef.auto.llm.openai.OpenAIEmbeddings;
+import com.xebia.functional.xef.embeddings.Embeddings;
+import com.xebia.functional.xef.llm.Chat;
+import com.xebia.functional.xef.llm.ChatWithFunctions;
+import com.xebia.functional.xef.llm.Images;
 import com.xebia.functional.xef.llm.models.functions.CFunction;
 import com.xebia.functional.xef.llm.models.images.ImageGenerationUrl;
 import com.xebia.functional.xef.llm.models.images.ImagesGenerationResponse;
-import com.xebia.functional.xef.pdf.PDFLoaderKt;
+import com.xebia.functional.xef.pdf.Loader;
 import com.xebia.functional.xef.textsplitters.TextSplitter;
 import com.xebia.functional.xef.vectorstores.LocalVectorStore;
 import com.xebia.functional.xef.vectorstores.VectorStore;
 import kotlin.collections.CollectionsKt;
 import kotlin.coroutines.Continuation;
 import kotlin.jvm.functions.Function1;
-import kotlinx.coroutines.CoroutineScope;
-import kotlinx.coroutines.CoroutineScopeKt;
-import kotlinx.coroutines.ExecutorsKt;
-import kotlinx.coroutines.JobKt;
-import kotlinx.coroutines.CoroutineStart;
+import kotlinx.coroutines.*;
 import kotlinx.coroutines.future.FutureKt;
 import org.jetbrains.annotations.NotNull;
 
@@ -41,26 +39,24 @@ public class AIScope implements AutoCloseable {
     private final CoreAIScope scope;
     private final ObjectMapper om;
     private final JsonSchemaGenerator schemaGen;
-    private final AIClient client;
     private final ExecutorService executorService;
     private final CoroutineScope coroutineScope;
 
-    public AIScope(ObjectMapper om, AIRuntime runtime, ExecutorService executorService) {
+    public AIScope(ObjectMapper om, Embeddings embeddings, ExecutorService executorService) {
         this.om = om;
         this.executorService = executorService;
         this.coroutineScope = () -> ExecutorsKt.from(executorService).plus(JobKt.Job(null));
         this.schemaGen = new JsonSchemaGenerator(om);
-        this.client = runtime.getClient();
-        VectorStore vectorStore = new LocalVectorStore(runtime.getEmbeddings());
-        this.scope = new CoreAIScope(LLMModel.getGPT_3_5_TURBO(), LLMModel.getGPT_3_5_TURBO_FUNCTIONS(), client, vectorStore, runtime.getEmbeddings(), 3, "user", false, 0.4, 1, 20, 500);
+        VectorStore vectorStore = new LocalVectorStore(embeddings);
+        this.scope = new CoreAIScope(embeddings, vectorStore);
     }
 
-    public AIScope(AIRuntime runtime, ExecutorService executorService) {
-        this(new ObjectMapper(), runtime, executorService);
+    public AIScope(Embeddings embeddings, ExecutorService executorService) {
+        this(new ObjectMapper(), embeddings, executorService);
     }
 
     public AIScope() {
-        this(new ObjectMapper(), OpenAIRuntime.defaults(), Executors.newCachedThreadPool(new AIScopeThreadFactory()));
+        this(new ObjectMapper(),new OpenAIEmbeddings(OpenAI.DEFAULT_EMBEDDING), Executors.newCachedThreadPool(new AIScopeThreadFactory()));
     }
 
     private AIScope(CoreAIScope nested, AIScope outer) {
@@ -68,15 +64,15 @@ public class AIScope implements AutoCloseable {
         this.executorService = outer.executorService;
         this.coroutineScope = outer.coroutineScope;
         this.schemaGen = outer.schemaGen;
-        this.client = outer.client;
         this.scope = nested;
     }
 
     public <A> CompletableFuture<A> prompt(String prompt, Class<A> cls) {
-        return prompt(prompt, cls, scope.getMaxDeserializationAttempts(), scope.getDefaultSerializationModel(), scope.getUser(), scope.getEcho(), scope.getNumberOfPredictions(), scope.getTemperature(), scope.getDocsInContext(), scope.getMinResponseTokens());
+        return prompt(prompt, cls, OpenAI.DEFAULT_SERIALIZATION, PromptConfiguration.DEFAULTS);
     }
 
-    public <A> CompletableFuture<A> prompt(String prompt, Class<A> cls, Integer maxAttempts, LLM.ChatWithFunctions llmModel, String user, Boolean echo, Integer n, Double temperature, Integer bringFromContext, Integer minResponseTokens) {
+
+    public <A> CompletableFuture<A> prompt(String prompt, Class<A> cls, ChatWithFunctions llmModel, PromptConfiguration promptConfiguration) {
         Function1<? super String, ? extends A> decoder = json -> {
             try {
                 return om.readValue(json, cls);
@@ -100,30 +96,15 @@ public class AIScope implements AutoCloseable {
                 new CFunction(cls.getSimpleName(), "Generated function for " + cls.getSimpleName(), schema)
         );
 
-        return future(continuation -> scope.promptWithSerializer(prompt, functions, decoder, maxAttempts, llmModel, user, echo, n, temperature, bringFromContext, minResponseTokens, continuation));
+        return future(continuation -> scope.promptWithSerializer(llmModel, prompt, functions, decoder, promptConfiguration, continuation));
     }
 
-    public CompletableFuture<List<String>> promptMessage(String prompt, LLM.Chat llmModel, List<CFunction> functions, String user, Boolean echo, Integer n, Double temperature, Integer bringFromContext, Integer minResponseTokens) {
-        return future(continuation -> scope.promptMessage(prompt, llmModel, functions, user, echo, n, temperature, bringFromContext, minResponseTokens, continuation));
+    public CompletableFuture<String> promptMessage(Chat llmModel, String prompt, PromptConfiguration promptConfiguration) {
+        return future(continuation -> scope.promptMessage(llmModel, prompt, promptConfiguration, continuation));
     }
 
-    public CompletableFuture<Void> extendContext(String[] docs) {
-        return future(continuation -> scope.extendContext(docs, continuation))
-                .thenApply(unit -> null);
-    }
-
-    public <A> CompletableFuture<A> contextScope(Function1<AIScope, CompletableFuture<A>> f) {
-        return future(continuation -> scope.contextScope((coreAIScope, continuation1) -> {
-            AIScope nestedScope = new AIScope(coreAIScope, AIScope.this);
-            return FutureKt.await(f.invoke(nestedScope), continuation);
-        }, continuation));
-    }
-
-    public <A> CompletableFuture<A> contextScope(VectorStore store, Function1<AIScope, CompletableFuture<A>> f) {
-        return future(continuation -> scope.contextScope(store, (coreAIScope, continuation1) -> {
-            AIScope nestedScope = new AIScope(coreAIScope, AIScope.this);
-            return FutureKt.await(f.invoke(nestedScope), continuation);
-        }, continuation));
+    public CompletableFuture<List<String>> promptMessages(Chat llmModel, String prompt, List<CFunction> functions, PromptConfiguration promptConfiguration) {
+        return future(continuation -> scope.promptMessages(llmModel, prompt, functions, promptConfiguration, continuation));
     }
 
     public <A> CompletableFuture<A> contextScope(List<String> docs, Function1<AIScope, CompletableFuture<A>> f) {
@@ -134,15 +115,15 @@ public class AIScope implements AutoCloseable {
     }
 
     public CompletableFuture<List<String>> pdf(String url, TextSplitter splitter) {
-        return future(continuation -> PDFLoaderKt.pdf(url, splitter, continuation));
+        return future(continuation -> Loader.pdf(url, splitter, continuation));
     }
 
     public CompletableFuture<List<String>> pdf(File file, TextSplitter splitter) {
-        return future(continuation -> PDFLoaderKt.pdf(file, splitter, continuation));
+        return future(continuation -> Loader.pdf(file, splitter, continuation));
     }
 
-    public CompletableFuture<List<String>> images(String prompt, String user, String size, Integer bringFromContext, Integer n) {
-        return this.<ImagesGenerationResponse>future(continuation -> scope.images(prompt, user, n, size, bringFromContext, continuation))
+    public CompletableFuture<List<String>> images(Images model, String prompt, Integer numberOfImages, String size, PromptConfiguration promptConfiguration) {
+        return this.<ImagesGenerationResponse>future(continuation -> scope.images(model, prompt, numberOfImages, size, promptConfiguration, continuation))
                 .thenApply(response -> CollectionsKt.map(response.getData(), ImageGenerationUrl::getUrl));
     }
 
@@ -157,7 +138,6 @@ public class AIScope implements AutoCloseable {
 
     @Override
     public void close() {
-        client.close();
         CoroutineScopeKt.cancel(coroutineScope, null);
         executorService.shutdown();
     }
