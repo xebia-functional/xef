@@ -5,6 +5,7 @@ import com.xebia.functional.gpt4all.Gpt4AllModel
 import com.xebia.functional.gpt4all.getOrThrow
 import com.xebia.functional.xef.auto.PromptConfiguration
 import com.xebia.functional.xef.auto.ai
+import kotlinx.coroutines.flow.onCompletion
 import java.nio.file.Path
 
 suspend fun main() {
@@ -27,20 +28,25 @@ suspend fun main() {
 
   ai {
     println("🤖 Context loaded: $context")
+    // hack until https://github.com/nomic-ai/gpt4all/pull/1126 is accepted or merged
+    val out = System.out
     GPT4All.use { gpT4All: GPT4All ->
-      println("🤖 Generating prompt for context")
       while (true) {
-        println("🤖 Enter your prompt: ")
+        print("\n🤖 Enter your question: ")
         val userInput = readlnOrNull() ?: break
-        gpT4All.promptMessage(
+        gpT4All.promptStreaming(
           userInput,
+          context,
           promptConfiguration = PromptConfiguration {
             docsInContext(2)
             streamToStandardOut(true)
-          })
+          }).onCompletion {
+          println("\n🤖 Done")
+        }.collect {
+          out.print(it)
+        }
       }
     }
   }.getOrThrow()
 }
-
 

@@ -9,13 +9,71 @@ import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.llm.models.functions.CFunction
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.vectorstores.VectorStore
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 
 interface Chat : LLM {
   val modelType: ModelType
 
   suspend fun createChatCompletion(request: ChatCompletionRequest): ChatCompletionResponse
 
+  suspend fun createChatCompletions(request: ChatCompletionRequest): Flow<ChatCompletionChunk>
+
   fun tokensFromMessages(messages: List<Message>): Int
+
+  @AiDsl
+  suspend fun promptStreaming(
+    question: String,
+    context: VectorStore,
+    functions: List<CFunction> = emptyList(),
+    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
+  ): Flow<String> = promptStreaming(Prompt(question), context, functions, promptConfiguration)
+
+  @AiDsl
+  suspend fun promptStreaming(
+    prompt: Prompt,
+    context: VectorStore,
+    functions: List<CFunction> = emptyList(),
+    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
+  ): Flow<String> {
+
+    val promptWithContext: String =
+      createPromptWithContextAwareOfTokens(
+        ctxInfo = context.similaritySearch(prompt.message, promptConfiguration.docsInContext),
+        modelType = modelType,
+        prompt = prompt.message,
+        minResponseTokens = promptConfiguration.minResponseTokens
+      )
+
+    val messages: List<Message> = listOf(Message(Role.USER, promptWithContext, Role.USER.name))
+
+    fun checkTotalLeftChatTokens(): Int {
+      val maxContextLength: Int = modelType.maxContextLength
+      val messagesTokens: Int = tokensFromMessages(messages)
+      val totalLeftTokens: Int = maxContextLength - messagesTokens
+      if (totalLeftTokens < 0) {
+        throw AIError.MessagesExceedMaxTokenLength(messages, messagesTokens, maxContextLength)
+      }
+      return totalLeftTokens
+    }
+
+    val request: ChatCompletionRequest =
+      ChatCompletionRequest(
+        model = name,
+        user = promptConfiguration.user,
+        messages = messages,
+        n = promptConfiguration.numberOfPredictions,
+        temperature = promptConfiguration.temperature,
+        maxTokens = checkTotalLeftChatTokens(),
+        streamToStandardOut = true
+      )
+
+    return flow {
+      createChatCompletions(request).collect {
+        emit(it.choices.mapNotNull { it.delta?.content }.joinToString(""))
+      }
+    }
+  }
 
   @AiDsl
   suspend fun promptMessage(
@@ -50,7 +108,9 @@ interface Chat : LLM {
         minResponseTokens = promptConfiguration.minResponseTokens
       )
 
-    fun checkTotalLeftChatTokens(messages: List<Message>): Int {
+    val messages: List<Message> = listOf(Message(Role.USER, promptWithContext, Role.USER.name))
+
+    fun checkTotalLeftChatTokens(): Int {
       val maxContextLength: Int = modelType.maxContextLength
       val messagesTokens: Int = tokensFromMessages(messages)
       val totalLeftTokens: Int = maxContextLength - messagesTokens
@@ -60,45 +120,40 @@ interface Chat : LLM {
       return totalLeftTokens
     }
 
-    fun buildChatRequest(): ChatCompletionRequest {
-      val messages: List<Message> = listOf(Message(Role.USER, promptWithContext, Role.USER.name))
-      return ChatCompletionRequest(
+    fun chatRequest(): ChatCompletionRequest =
+      ChatCompletionRequest(
         model = name,
         user = promptConfiguration.user,
         messages = messages,
         n = promptConfiguration.numberOfPredictions,
         temperature = promptConfiguration.temperature,
-        maxTokens = checkTotalLeftChatTokens(messages),
+        maxTokens = checkTotalLeftChatTokens(),
         streamToStandardOut = promptConfiguration.streamToStandardOut
       )
-    }
 
-    fun chatWithFunctionsRequest(): ChatCompletionRequestWithFunctions {
-      val firstFnName: String? = functions.firstOrNull()?.name
-      val messages: List<Message> = listOf(Message(Role.USER, promptWithContext, Role.USER.name))
-      return ChatCompletionRequestWithFunctions(
+    fun withFunctionsRequest(): ChatCompletionRequestWithFunctions =
+      ChatCompletionRequestWithFunctions(
         model = name,
         user = promptConfiguration.user,
         messages = messages,
         n = promptConfiguration.numberOfPredictions,
         temperature = promptConfiguration.temperature,
-        maxTokens = checkTotalLeftChatTokens(messages),
+        maxTokens = checkTotalLeftChatTokens(),
         functions = functions,
-        functionCall = mapOf("name" to (firstFnName ?: ""))
+        functionCall = mapOf("name" to (functions.firstOrNull()?.name ?: ""))
       )
-    }
 
     return when (this) {
       is ChatWithFunctions ->
         // we only support functions for now with GPT_3_5_TURBO_FUNCTIONS
         if (modelType == ModelType.GPT_3_5_TURBO_FUNCTIONS) {
-          createChatCompletionWithFunctions(chatWithFunctionsRequest()).choices.mapNotNull {
+          createChatCompletionWithFunctions(withFunctionsRequest()).choices.mapNotNull {
             it.message?.functionCall?.arguments
           }
         } else {
-          createChatCompletion(buildChatRequest()).choices.mapNotNull { it.message?.content }
+          createChatCompletion(chatRequest()).choices.mapNotNull { it.message?.content }
         }
-      else -> createChatCompletion(buildChatRequest()).choices.mapNotNull { it.message?.content }
+      else -> createChatCompletion(chatRequest()).choices.mapNotNull { it.message?.content }
     }
   }
 

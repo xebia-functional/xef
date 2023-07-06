@@ -12,6 +12,18 @@ import com.xebia.functional.xef.llm.models.text.CompletionChoice
 import com.xebia.functional.xef.llm.models.text.CompletionRequest
 import com.xebia.functional.xef.llm.models.text.CompletionResult
 import com.xebia.functional.xef.llm.models.usage.Usage
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.Channel.Factory.CONFLATED
+import kotlinx.coroutines.channels.Channel.Factory.RENDEZVOUS
+import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.launch
+import java.io.*
+import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
@@ -76,6 +88,60 @@ interface GPT4All : AutoCloseable, Chat, Completion {
           )
         }
 
+      /**
+       * Creates chat completions based on the given ChatCompletionRequest.
+       *
+       * hacks the System.out until https://github.com/nomic-ai/gpt4all/pull/1126 is accepted or merged
+       *
+       * @param request The ChatCompletionRequest containing the necessary information for creating completions.
+       * @return A Flow of ChatCompletionChunk objects representing the generated chat completions.
+       */
+      override suspend fun createChatCompletions(request: ChatCompletionRequest): Flow<ChatCompletionChunk> =
+        with(request) {
+          val prompt: String = messages.buildPrompt()
+          val config = LLModel.config()
+            .withTopP(request.topP.toFloat())
+            .withTemp(request.temperature.toFloat())
+            .withRepeatPenalty(request.frequencyPenalty.toFloat())
+            .build()
+
+          val originalOut = System.out // Save the original standard output
+
+          return coroutineScope {
+            val channel = Channel<String>(capacity = UNLIMITED)
+
+            val outputStream = object : OutputStream() {
+              override fun write(b: Int) {
+                val c = b.toChar()
+                channel.trySend(c.toString())
+              }
+            }
+
+            val printStream = PrintStream(outputStream, true, StandardCharsets.UTF_8)
+
+            fun toChunk(text: String?): ChatCompletionChunk =
+              ChatCompletionChunk(
+                UUID.randomUUID().toString(),
+                System.currentTimeMillis().toInt(),
+                path.name,
+                listOf(ChatChunk(delta = ChatDelta(Role.ASSISTANT, text))),
+                Usage.ZERO,
+              )
+
+            val flow = channel.consumeAsFlow().map { toChunk(it) }
+
+            launch(Dispatchers.IO) {
+              System.setOut(printStream) // Set the standard output to the print stream
+              generateCompletion(prompt, config, request.streamToStandardOut)
+              channel.close()
+            }
+
+            flow.onCompletion {
+              System.setOut(originalOut) // Restore the original standard output
+            }
+          }
+        }
+
       override fun tokensFromMessages(messages: List<Message>): Int {
         return 0
       }
@@ -108,5 +174,3 @@ interface GPT4All : AutoCloseable, Chat, Completion {
 
   }
 }
-
-
