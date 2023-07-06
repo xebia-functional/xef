@@ -23,6 +23,7 @@ dependencies {
   implementation(projects.xefTokenizer)
   implementation(projects.xefGpt4all)
   implementation(projects.xefOpenai)
+  implementation(projects.xefGoogleCloud)
   implementation(libs.kotlinx.serialization.json)
   implementation(libs.logback)
   implementation(libs.klogging)

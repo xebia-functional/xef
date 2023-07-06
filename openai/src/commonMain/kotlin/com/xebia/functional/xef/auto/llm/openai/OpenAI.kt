@@ -5,8 +5,9 @@ import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.env.getenv
 import kotlin.jvm.JvmField
+import kotlin.jvm.JvmStatic
 
-class OpenAI(internal val token: String) {
+class OpenAI(internal val token: String, internal val host: OpenAIHost) {
   val GPT_4 = OpenAIModel(this, "gpt-4", ModelType.GPT_4)
 
   val GPT_4_0314 = OpenAIModel(this, "gpt-4-0314", ModelType.GPT_4)
@@ -41,10 +42,15 @@ class OpenAI(internal val token: String) {
 
     fun openAITokenFromEnv(): String {
       return getenv("OPENAI_TOKEN")
-        ?: throw AIError.Env.OpenAI(nonEmptyListOf("missing OPENAI_TOKEN env var"))
+        ?: throw AIError.Env.AuthInfoMissing(nonEmptyListOf("missing OPENAI_TOKEN env var"))
     }
 
-    @JvmField val DEFAULT = OpenAI(openAITokenFromEnv())
+    @JvmField val DEFAULT = OpenAI(openAITokenFromEnv(), OpenAIHost.OpenAI)
+
+    @JvmStatic
+    fun azure(resourceName: String, deploymentId: String, apiVersion: String): OpenAI {
+      return OpenAI(openAITokenFromEnv(), OpenAIHost.Azure(resourceName, deploymentId, apiVersion))
+    }
 
     @JvmField val DEFAULT_CHAT = DEFAULT.GPT_3_5_TURBO_16K
 

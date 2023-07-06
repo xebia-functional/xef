@@ -40,7 +40,17 @@ class OpenAIModel(
   override val modelType: ModelType
 ) : Chat, ChatWithFunctions, Images, Completion, Embeddings, AutoCloseable {
 
-  private val client = OpenAIClient(openAI.token)
+  private val client = OpenAIClient(
+    token = openAI.token,
+    host = when (val host = openAI.host) {
+      is OpenAIHost.OpenAI -> com.aallam.openai.client.OpenAIHost.OpenAI
+      is OpenAIHost.Azure -> com.aallam.openai.client.OpenAIHost.azure(
+        resourceName = host.resourceName,
+        deploymentId = host.deploymentId,
+        apiVersion = host.apiVersion,
+      )
+    },
+  )
 
   override suspend fun createCompletion(request: CompletionRequest): CompletionResult {
     val response = client.completion(toCompletionRequest(request))

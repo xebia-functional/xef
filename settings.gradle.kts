@@ -76,3 +76,6 @@ project(":xef-java").projectDir = file("java")
 include("xef-java-examples")
 project(":xef-java-examples").projectDir = file("examples/java")
 //</editor-fold>
+
+include("xef-google-cloud")
+project(":xef-google-cloud").projectDir = file("integrations/google-cloud")

@@ -1,8 +1,10 @@
 package com.xebia.functional.xef
 
 import arrow.core.NonEmptyList
+import arrow.core.nonEmptyListOf
 import com.xebia.functional.xef.llm.models.chat.Message
 import kotlin.jvm.JvmOverloads
+import kotlin.jvm.JvmStatic
 
 sealed class AIError @JvmOverloads constructor(message: String, cause: Throwable? = null) :
   RuntimeException(message, cause) {
@@ -32,10 +34,14 @@ sealed class AIError @JvmOverloads constructor(message: String, cause: Throwable
 
   sealed class Env @JvmOverloads constructor(message: String, cause: Throwable? = null) :
     AIError(message, cause) {
-    data class OpenAI(val errors: NonEmptyList<String>) :
-      Env("OpenAI Environment not found: ${errors.all.joinToString("\n")}")
+    data class AuthInfoMissing(val errors: NonEmptyList<String>) :
+      Env("OpenAI Environment not found: ${errors.all.joinToString("\n")}") {
+        companion object {
 
-    data class HuggingFace(val errors: NonEmptyList<String>) :
-      Env("HuggingFace Environment not found: ${errors.all.joinToString("\n")}")
+          @JvmStatic
+          operator fun invoke(error: String): AuthInfoMissing =
+            AuthInfoMissing(nonEmptyListOf(error))
+        }
+      }
   }
 }
