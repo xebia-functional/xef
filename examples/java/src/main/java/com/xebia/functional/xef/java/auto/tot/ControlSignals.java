@@ -1,7 +1,5 @@
 package com.xebia.functional.xef.java.auto.tot;
 
-import com.xebia.functional.xef.java.auto.AIScope;
-
 import java.util.concurrent.CompletableFuture;
 
 import static com.xebia.functional.xef.java.auto.tot.Rendering.renderHistory;
@@ -15,7 +13,7 @@ public class ControlSignals {
 
     public static <A> CompletableFuture<ControlSignal> controlSignal(Problems.Memory<A> memory){
         System.out.println("\uD83E\uDDE0 Generating control signal for problem:" + truncateText(memory.problem.description) + "...");
-        String guidancePrompt = "\n" +
+        String guidancePrompt =
                 "    You are an expert advisor on information extraction.\n" +
                 "    You generate guidance for a problem.\n" +
                 "    " + renderHistory(memory) + "\n" +
@@ -29,9 +27,8 @@ public class ControlSignals {
                 "    5. Ensure the guidance accounts for previous answers in the `history`.\n" +
                 "    \n" +
                 "  ";
-        try (AIScope scope = new AIScope()) {
-            return scope.prompt(guidancePrompt, ControlSignal.class);
-        }
+
+            return memory.getAiScope().prompt(guidancePrompt, ControlSignal.class);
     }
 
 }

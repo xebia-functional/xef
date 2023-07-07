@@ -1,5 +1,6 @@
 package com.xebia.functional.xef.java.auto.tot;
 
+import com.xebia.functional.xef.java.auto.AIScope;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -19,8 +20,9 @@ public class Problems {
     }
 
     public static <S> Solutions.Solution<S> solve(Problem problem, int maxRounds) {
-        Memory<S> initialMemory = new Memory<>(problem, new ArrayList<>());
-        return solveRec(maxRounds, initialMemory);
+        try(Memory<S> initialMemory = new Memory<>(problem, new ArrayList<>())) {
+            return solveRec(maxRounds, initialMemory);
+        }
     }
 
     private static <S> Solutions.Solution<S> solveRec(int remainingRounds, Memory<S> sMemory) {
@@ -79,20 +81,40 @@ public class Problems {
         }
     }
 
-    static class Memory<A> {
+    static class Memory<A> implements AutoCloseable {
 
         public Problem problem;
         public List<Solutions.Solution<A>> history;
 
+        private static AIScope aiScope = null;
+
         public Memory(Problem problem, List<Solutions.Solution<A>> history) {
             this.problem = problem;
             this.history = history;
+            checkAIScope();
         }
 
         public Memory<A> addResult(Solutions.Solution<A> result) {
             List<Solutions.Solution<A>> historyUpdate = Stream.concat(this.history.stream(), Stream.of(result)).toList();
+            checkAIScope();
             return new Memory<A>(this.problem, historyUpdate);
         }
 
+        private static void checkAIScope() {
+            if(aiScope == null){
+                aiScope = new AIScope();
+            }
+        }
+
+        public static AIScope getAiScope() {
+            return aiScope;
+        }
+
+        public void close(){
+            if(aiScope != null) {
+                aiScope.close();
+                aiScope = null;
+            }
+        }
     }
 }

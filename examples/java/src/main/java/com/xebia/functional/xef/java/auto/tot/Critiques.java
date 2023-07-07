@@ -1,7 +1,5 @@
 package com.xebia.functional.xef.java.auto.tot;
 
-import com.xebia.functional.xef.java.auto.AIScope;
-
 import java.util.concurrent.CompletableFuture;
 
 import static com.xebia.functional.xef.java.auto.tot.Rendering.truncateText;
@@ -33,8 +31,7 @@ public class Critiques {
                 "    1. Provide a critique and determine if the answer truly accomplishes the goal.\n" +
                 "    \n" +
                 "  ";
-        try (AIScope scope = new AIScope()) {
-                return scope.prompt(prompt, Critique.class);
-        }
+
+        return memory.getAiScope().prompt(prompt, Critique.class);
     }
 }

@@ -3,9 +3,6 @@ package com.xebia.functional.xef.java.auto.tot;
 import static com.xebia.functional.xef.java.auto.tot.Rendering.renderHistory;
 import static com.xebia.functional.xef.java.auto.tot.Rendering.truncateText;
 
-import com.xebia.functional.xef.java.auto.AIScope;
-import kotlinx.serialization.KSerializer;
-
 public class Solutions{
 
     static class Solution<A>{
@@ -57,8 +54,8 @@ public class Solutions{
                 "       10. If the solution is valid set the `isValid` field to `true` and the `value` field to the value of the solution.\n" +
                 "       \n";
 
-        try (AIScope scope = new AIScope()) {
-            return scope.prompt(enhancedPrompt, Solution.class).get();
+        try {
+            return memory.getAiScope().prompt(enhancedPrompt, Solution.class).get();
         } catch (Exception e) {
             System.err.printf("Solutions.solution enhancedPrompt threw exception: %s - %s\n",
                     e.getClass().getName(), e.getMessage());
