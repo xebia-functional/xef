@@ -1,11 +1,16 @@
 package com.xebia.functional.xef.java.auto.tot;
 
-import static com.xebia.functional.xef.java.auto.tot.ControlSignals.controlSignal;
-import static com.xebia.functional.xef.java.auto.tot.Rendering.truncateText;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
+
+import static com.xebia.functional.xef.java.auto.tot.Checker.checkSolution;
+import static com.xebia.functional.xef.java.auto.tot.ControlSignals.controlSignal;
+import static com.xebia.functional.xef.java.auto.tot.Critiques.critique;
+import static com.xebia.functional.xef.java.auto.tot.Rendering.truncateText;
+import static com.xebia.functional.xef.java.auto.tot.Solutions.solution;
 
 public class Problems {
 
@@ -15,33 +20,69 @@ public class Problems {
 
     public static <S> Solutions.Solution<S> solve(Problem problem, int maxRounds) {
         Memory<S> initialMemory = new Memory<>(problem, new ArrayList<>());
-        return solveRec(problem, maxRounds, initialMemory);
+        return solveRec(maxRounds, initialMemory);
     }
 
-    private static <S> Solutions.Solution<S> solveRec(Problem problem, int remainingRounds, Memory<S> sMemory) {
+    private static <S> Solutions.Solution<S> solveRec(int remainingRounds, Memory<S> sMemory) {
         if(remainingRounds <= 0){
             System.out.println("❌ Maximum rounds reached. Unable to find a solution.");
             return Solutions.makeSolution("", false, "No Response", null);
         } else{
             System.out.println("🌱 Solving problem: " +
                     truncateText(sMemory.problem.description, 100) +
-            " (Remaining rounds: $remainingRounds)...");
+                    " (Remaining rounds: " + remainingRounds + "...");
 
-            ControlSignals.ControlSignal controlSignal = controlSignal(sMemory);
-            Solutions.Solution<S> response = Solutions.solution(null, sMemory, controlSignal);
-            Solutions.Solution<S> result = Checker.checkSolution(response);
+            ControlSignals.ControlSignal controlSignal = getControlSignal(sMemory);
+            Solutions.Solution<S> response = solution(sMemory, controlSignal);
+            Solutions.Solution<S> result = checkSolution(response);
             Memory updatedMemory = sMemory.addResult(result);
             if(result.isValid){
-                //TODO
+                System.out.println("✅ Solution found: " + truncateText(result.answer) + "!");
+                Critiques.Critique critique = getCritique(result, updatedMemory);
+                if(critique != null && critique.answerTrulyAccomplishesTheGoal){
+                    System.out.println("❌ Solution does not accomplish the goal: " + truncateText(result.answer) + "!");
+                    System.out.println("⏪ Backtracking...");
+                    return solveRec(remainingRounds - 1, updatedMemory);
+                }
+                else {
+                    return  result;
+                }
+            }
+            else{
+                System.out.println("⏪ Backtracking...");
+                return solveRec(remainingRounds - 1, updatedMemory);
             }
         }
-        return null;
+    }
+
+    @Nullable
+    private static <S> ControlSignals.ControlSignal getControlSignal(Memory<S> sMemory) {
+        try {
+            ControlSignals.ControlSignal controlSignal = controlSignal(sMemory).get();
+            System.out.println("\uD83E\uDDE0 Generated control signal: " + truncateText(controlSignal.value));
+            return controlSignal;
+        } catch (Exception e) {
+            System.err.printf("ControlSignals.controlSignal prompt threw exception: %s - %s\n",
+                    e.getClass().getName(), e.getMessage());
+            return null;
+        }
+    }
+
+    @Nullable
+    private static <S> Critiques.Critique getCritique(Solutions.Solution<S> result, Memory<S> updatedMemory) {
+        try {
+            return critique(updatedMemory, result).get();
+        } catch (Exception e) {
+            System.err.printf("Critiques.critique prompt threw exception: %s - %s\n",
+                    e.getClass().getName(), e.getMessage());
+            return null;
+        }
     }
 
     static class Memory<A> {
 
         public Problem problem;
-        public List<Solutions.Solution<A>> history = new ArrayList<>();
+        public List<Solutions.Solution<A>> history;
 
         public Memory(Problem problem, List<Solutions.Solution<A>> history) {
             this.problem = problem;
