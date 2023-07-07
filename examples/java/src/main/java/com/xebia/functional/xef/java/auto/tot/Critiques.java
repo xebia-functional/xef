@@ -1,5 +1,11 @@
 package com.xebia.functional.xef.java.auto.tot;
 
+import com.xebia.functional.xef.java.auto.AIScope;
+
+import java.util.concurrent.CompletableFuture;
+
+import static com.xebia.functional.xef.java.auto.tot.Rendering.truncateText;
+
 public class Critiques {
 
     static class Critique {
@@ -8,9 +14,27 @@ public class Critiques {
         boolean answerTrulyAccomplishesTheGoal;
     }
 
-    public <A> Critique critique(Problems.Memory<A> memory, Solutions.Solution<A> solution){
+    public static <A> CompletableFuture<Critique> critique(Problems.Memory<A> memory, Solutions.Solution<A> currentSolution){
+        System.out.println("🕵️ Critiquing solution: " + truncateText(currentSolution.answer) + "...");
 
-        //TODO
-        return null;
+        String prompt =
+                "    You are an expert advisor critiquing a solution.\n" +
+                "    \n" +
+                "    Previous history:\n" +
+                "    " + Rendering.renderHistory(memory) + "\n" +
+                "    \n" +
+                "    You are given the following problem:\n" +
+                "    " + memory.problem.description + "\n" +
+                "    \n" +
+                "    You are given the following solution:\n" +
+                "    " + currentSolution.answer + "\n" +
+                "    \n" +
+                "    Instructions:\n" +
+                "    1. Provide a critique and determine if the answer truly accomplishes the goal.\n" +
+                "    \n" +
+                "  ";
+        try (AIScope scope = new AIScope()) {
+                return scope.prompt(prompt, Critique.class);
+        }
     }
 }
