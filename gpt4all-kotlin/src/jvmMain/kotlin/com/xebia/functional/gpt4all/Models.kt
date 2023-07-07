@@ -26,7 +26,7 @@ data class Gpt4AllModel(
       // fetch the content as string from https://raw.githubusercontent.com/nomic-ai/gpt4all/main/gpt4all-chat/metadata/models.json
       val json = URL(url).readText()
       // parse the json string into a list of Model objects
-      return Json.decodeFromString<List<Gpt4AllModel>>(json)
+      return Json{ ignoreUnknownKeys = true }.decodeFromString<List<Gpt4AllModel>>(json)
     }
   }
 }
