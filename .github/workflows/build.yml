@@ -9,8 +9,22 @@ concurrency:
 
 jobs:
   check:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 15
+
+    strategy:
+      matrix:
+        include:
+          - platform: jvm
+            os: ubuntu-latest
+          - platform: js
+            os: ubuntu-latest
+          - platform: linuxX64
+            os: ubuntu-latest
+          - platform: macosX64
+            os: macos-latest
+          - platform: mingwX64
+            os: windows-latest
 
     steps:
       - uses: actions/checkout@v3
@@ -23,10 +37,16 @@ jobs:
           distribution: 'zulu'
           java-version: 19
 
-      - name: build
+      - name: Build and Test (multip)
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: build --full-stacktrace
+          arguments: buildAndTestMultip -Pplatform=${{ matrix.platform }}
+
+      - name: Build and Test (singlep)
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: buildAndTestSinglep -Pplatform=${{ matrix.platform }}
+        if: ${{ matrix.platform == 'jvm' }}
 
       - name: Upload reports
         if: failure()
