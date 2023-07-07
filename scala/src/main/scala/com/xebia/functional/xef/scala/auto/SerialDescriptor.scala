@@ -8,6 +8,9 @@ import java.lang.annotation.Annotation
 import java.util
 import scala.compiletime.{constValue, erasedValue, summonInline}
 import scala.deriving.*
+import scala.jdk.CollectionConverters.*
+import com.xebia.functional.xef.scala.auto.{getAnnotations => getAnnots}
+import scala.reflect.ClassTag
 
 trait SerialDescriptor[A]:
   def serialDescriptor: KtSerialDescriptor
@@ -37,20 +40,22 @@ object SerialDescriptor extends SerialDescriptorInstances:
     case _: (Unit *: t) => KotlinXSerializers.unit.getDescriptor :: getSerialDescriptor[t]
     case _: (h *: t) => summonInline[SerialDescriptor[h]].serialDescriptor :: getSerialDescriptor[t]
 
-  inline final def derived[A](using m: Mirror.Of[A]): SerialDescriptor[A] = new SerialDescriptor[A]:
+  inline final def derived[A](using m: Mirror.Of[A], klass: ClassTag[A]): SerialDescriptor[A] = new SerialDescriptor[A]:
     val serialDescriptorImpl: KtSerialDescriptor = new KtSerialDescriptor:
       val labels = getElemsLabel[m.MirroredElemLabels]
       val serialDescriptors = getSerialDescriptor[m.MirroredElemTypes]
+      private val annotations: Map[String, List[Annotation]] = getAnnots[A]
 
-      override def getElementIndex(name: String): Int = labels.indexOf(name)
+      override def getElementIndex(name: String): Int =
+        labels.indexOf(name)
 
-      // We're going to ignore annotations for now, it's not relevant for JsonSchema
-      override def getElementAnnotations(index: Int): util.List[Annotation] = java.util.ArrayList(0)
+      override def getElementAnnotations(index: Int): util.List[Annotation] =
+        annotations.getOrElse(getElementName(index), List.empty).asJava
 
       override def getElementDescriptor(index: Int): KtSerialDescriptor = serialDescriptors(index)
 
-      // We're going to ignore annotations for now, it's not relevant for JsonSchema
-      override def getAnnotations: util.List[Annotation] = java.util.ArrayList(0)
+      override def getAnnotations: util.List[Annotation] =
+        annotations.flatMap(_._2).toList.asJava
 
       override def getElementsCount: Int = labels.size
 

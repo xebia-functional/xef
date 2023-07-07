@@ -7,6 +7,10 @@ import munit.FunSuite
 import scala.collection.immutable.HashSet
 import scala.compiletime.summonInline
 import scala.reflect.ClassTag
+import java.lang.annotation.Annotation
+import scala.annotation.StaticAnnotation
+import scala.jdk.CollectionConverters.*
+import java.lang.{annotation => jla}
 
 class SerialDescriptorSpec extends FunSuite:
 
@@ -66,3 +70,45 @@ class SerialDescriptorSpec extends FunSuite:
     final case class Country(country: String) derives SerialDescriptor
     assert(Either.catchNonFatal(SerialDescriptor[Person].serialDescriptor).isRight)
   }
+
+  test("Should capture the annotations for an element"):
+    case class MyAnnotation(name: String) extends StaticAnnotation
+
+    final case class AnnotatedPerson(@MyAnnotation("firstName") @TestJavaAnnotation(name = "givenName") name: String) derives SerialDescriptor
+    assert(Either.catchNonFatal(SerialDescriptor[AnnotatedPerson].serialDescriptor).isRight)
+    assertEquals(
+      Either
+        .catchNonFatal:
+          SerialDescriptor[AnnotatedPerson]
+        .map: sd =>
+          sd.serialDescriptor
+            .getElementAnnotations(0)
+            .asScala.toList.map: (a: jla.Annotation @unchecked) =>
+              if (a.isInstanceOf[WrappedAnnotation[MyAnnotation]])
+                a.asInstanceOf[WrappedAnnotation[MyAnnotation]].a.name
+              else
+                a.asInstanceOf[TestJavaAnnotation].name(),
+      Right(List("givenName", "firstName"))
+    )
+
+  test("Should capture the annotations for a subtype of a sum type"):
+    case class MyAnnotation(name: String) extends StaticAnnotation
+    sealed trait Color derives SerialDescriptor
+    @MyAnnotation("favorite") case object Red extends Color derives SerialDescriptor
+    case object Green extends Color derives SerialDescriptor
+    case object Blue extends Color derives SerialDescriptor
+    assert(Either.catchNonFatal(SerialDescriptor[Color].serialDescriptor).isRight)
+    assertEquals(
+      Either
+        .catchNonFatal:
+          SerialDescriptor[Color]
+        .map: sd =>
+          sd.serialDescriptor
+            .getElementAnnotations(0)
+            .asScala.toList.map: (a: jla.Annotation @unchecked) =>
+              if (a.isInstanceOf[WrappedAnnotation[MyAnnotation]])
+                a.asInstanceOf[WrappedAnnotation[MyAnnotation]].a.name
+              else
+                a.asInstanceOf[TestJavaAnnotation].name(),
+      Right(List("favorite"))
+    )
