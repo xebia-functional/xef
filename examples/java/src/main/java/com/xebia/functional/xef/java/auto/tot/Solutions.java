@@ -1,5 +1,6 @@
 package com.xebia.functional.xef.java.auto.tot;
 
+import static com.xebia.functional.xef.java.auto.tot.Rendering.renderHistory;
 import static com.xebia.functional.xef.java.auto.tot.Rendering.truncateText;
 
 import com.xebia.functional.xef.java.auto.AIScope;
@@ -24,8 +25,7 @@ public class Solutions{
         return solution;
     }
 
-    public static <C> Solution<C> solution(KSerializer<Solution<C>> serializer,
-                                           Problems.Memory<C> memory,
+    public static <C> Solution<C> solution(Problems.Memory<C> memory,
                                            ControlSignals.ControlSignal controlSignal){
         System.out.println("\uD83D\uDD0D Generating solution for problem: " + truncateText(memory.problem.description) + "...");
         //ai emoji
@@ -33,14 +33,14 @@ public class Solutions{
 
         String enhancedPrompt =
                 "       Given previous history:\n" +
-                "       ${renderHistory(memory)}\n" +
+                "       " + renderHistory(memory) + "\n" +
                 "       Given the goal: \n" +
                 "       ```goal\n" +
-                "       ${memory.problem.description} \n" +
+                "       " + memory.problem.description + " \n" +
                 "       ```\n" +
                 "       and considering the guidance: \n" +
                 "       ```guidance\n" +
-                "       ${controlSignal.value}\n" +
+                "       " + controlSignal.value + "\n" +
                 "       ```\n" +
                 "       \n" +
                 "       Instructions:\n" +
@@ -60,6 +60,8 @@ public class Solutions{
         try (AIScope scope = new AIScope()) {
             return scope.prompt(enhancedPrompt, Solution.class).get();
         } catch (Exception e) {
+            System.err.printf("Solutions.solution enhancedPrompt threw exception: %s - %s\n",
+                    e.getClass().getName(), e.getMessage());
             return null;
         }
     }
