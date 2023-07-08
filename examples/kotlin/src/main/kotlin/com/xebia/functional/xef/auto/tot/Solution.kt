@@ -16,7 +16,6 @@ internal suspend fun <A> CoreAIScope.solution(
   memory: Memory<A>,
   controlSignal: ControlSignal
 ): Solution<A> {
-  println("🔍 Generating solution for problem: ${truncateText(memory.problem.description)}...")
   //ai emoji
   println("🤖 Generating solution for problem: ${truncateText(memory.problem.description)}...")
   val enhancedPrompt =
