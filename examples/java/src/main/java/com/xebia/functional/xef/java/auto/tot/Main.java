@@ -6,7 +6,7 @@ public class Main {
 
     public static void main(String[] args) {
         Problems.Problem problem = new Problems.Problem();
-        problem.description =
+        problem.description = Rendering.trimMargin(
                 "    You are an expert functional programmer.\n" +
                 "    1. You never throw exceptions.\n" +
                 "    2. You never use null.\n" +
@@ -21,7 +21,7 @@ public class Main {
                 "    }\n" +
                 "    ```\n" +
                 "    \n" +
-                "    Return a concise solution that fixes the problems in the code.";
+                "    Return a concise solution that fixes the problems in the code.");
 
 
         Solutions.Solution<FinalSolution> solve = Problems.solve(problem, MAX_ROUNDS);
