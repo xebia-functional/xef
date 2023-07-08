@@ -24,7 +24,6 @@ public class Solutions{
 
     public static <C> Solution<C> solution(Problems.Memory<C> memory,
                                            ControlSignals.ControlSignal controlSignal){
-        System.out.println("\uD83D\uDD0D Generating solution for problem: " + truncateText(memory.problem.description) + "...");
         //ai emoji
         System.out.println("\uD83E\uDD16 Generating solution for problem: " + truncateText(memory.problem.description) + "...");
 
