@@ -29,7 +29,7 @@ public class Main {
         System.out.println("✅ Final solution: " + solve.answer);
         System.out.println("✅ Solution validity: " + solve.isValid);
         System.out.println("✅ Solution reasoning: " + solve.reasoning);
-        System.out.println("✅ Solution code: " + solve.value.solution);
+        System.out.println("✅ Solution code: " + solve.value);
     }
 
     static class FinalSolution {
