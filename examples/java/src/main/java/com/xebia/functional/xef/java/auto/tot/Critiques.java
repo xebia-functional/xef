@@ -7,9 +7,9 @@ import static com.xebia.functional.xef.java.auto.tot.Rendering.truncateText;
 public class Critiques {
 
     static class Critique {
-        String answer;
-        String reasoning;
-        boolean answerTrulyAccomplishesTheGoal;
+        public String answer;
+        public String reasoning;
+        public boolean answerTrulyAccomplishesTheGoal;
     }
 
     public static <A> CompletableFuture<Critique> critique(Problems.Memory<A> memory, Solutions.Solution<A> currentSolution){
