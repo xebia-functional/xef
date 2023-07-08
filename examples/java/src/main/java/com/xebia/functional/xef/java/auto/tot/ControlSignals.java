@@ -8,7 +8,7 @@ import static com.xebia.functional.xef.java.auto.tot.Rendering.truncateText;
 public class ControlSignals {
 
     static class ControlSignal {
-        String value;
+        public String value;
     }
 
     public static <A> CompletableFuture<ControlSignal> controlSignal(Problems.Memory<A> memory){
