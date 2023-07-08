@@ -47,7 +47,7 @@ public class Problems {
                     return solveRec(remainingRounds - 1, updatedMemory);
                 }
                 else {
-                    return  result;
+                    return result;
                 }
             }
             else{
