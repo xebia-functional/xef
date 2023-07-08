@@ -15,7 +15,7 @@ public class Critiques {
     public static <A> CompletableFuture<Critique> critique(Problems.Memory<A> memory, Solutions.Solution<A> currentSolution){
         System.out.println("🕵️ Critiquing solution: " + truncateText(currentSolution.answer) + "...");
 
-        String prompt =
+        String prompt = Rendering.trimMargin(
                 "    You are an expert advisor critiquing a solution.\n" +
                 "    \n" +
                 "    Previous history:\n" +
@@ -29,8 +29,7 @@ public class Critiques {
                 "    \n" +
                 "    Instructions:\n" +
                 "    1. Provide a critique and determine if the answer truly accomplishes the goal.\n" +
-                "    \n" +
-                "  ";
+                "    \n");
 
         return memory.getAiScope().prompt(prompt, Critique.class);
     }
