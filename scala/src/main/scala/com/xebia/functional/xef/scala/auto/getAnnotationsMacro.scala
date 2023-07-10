@@ -25,72 +25,26 @@ def getAnnotationsImpl[A: Type](using
     Quotes
 ): Expr[List[(String, List[Annotation])]] = {
   import quotes.reflect.*
-  Expr.ofList(
-    (TypeRepr
-      .of[A]
-      .typeSymbol
-      .declarations ++
-      TypeRepr
-        .of[A]
-        .typeSymbol
-        .caseFields ++
-      TypeRepr
-        .of[A]
-        .typeSymbol
-        .children ++
-      TypeRepr
-        .of[A]
-        .typeSymbol
-        .declaredFields ++
-      TypeRepr
-        .of[A]
-        .typeSymbol
-        .declaredMethods ++
-      TypeRepr
-        .of[A]
-        .typeSymbol
-        .declaredTypes ++
-      TypeRepr
-        .of[A]
-        .typeSymbol
-        .fieldMembers ++
-      TypeRepr
-        .of[A]
-        .typeSymbol
-        .methodMembers ++
-      TypeRepr
-        .of[A]
-        .typeSymbol
-        .paramSymss
-        .flatten ++
-      TypeRepr
-        .of[A]
-        .typeSymbol
-        .primaryConstructor
-        .paramSymss
-        .flatten ++
-      TypeRepr
-        .of[A]
-        .typeSymbol
-        .typeMembers).distinct.map(term => (term, term.annotations)).map { (term, ats) =>
-      Expr.ofTuple(
-        (
-          Expr(term.name),
-          Expr.ofList(
-            ats
-              .filterNot { ter =>
-                TypeRepr
-                  .of[jla.Annotation]
-                  .classSymbol
-                  .map(ter.tpe.derivesFrom)
-                  .getOrElse(false)
-              }
-              .map[Expr[Annotation]] { at =>
-                at.asExprOf[Annotation]
-              }
-          )
-        )
-      )
-    }
-  )
+  val allSymbols: List[Symbol] = List(
+    TypeRepr.of[A].typeSymbol.declarations,
+    TypeRepr.of[A].typeSymbol.caseFields,
+    TypeRepr.of[A].typeSymbol.children,
+    TypeRepr.of[A].typeSymbol.declaredFields,
+    TypeRepr.of[A].typeSymbol.declaredMethods,
+    TypeRepr.of[A].typeSymbol.declaredTypes,
+    TypeRepr.of[A].typeSymbol.fieldMembers,
+    TypeRepr.of[A].typeSymbol.methodMembers,
+    TypeRepr.of[A].typeSymbol.paramSymss.flatten,
+    TypeRepr.of[A].typeSymbol.primaryConstructor.paramSymss.flatten,
+    TypeRepr.of[A].typeSymbol.typeMembers
+  ).flatten.distinct
+
+  def isDerived(ter: Term): Boolean =
+    TypeRepr.of[jla.Annotation].classSymbol.exists(ter.tpe.derivesFrom)
+
+  def toAnnotations(sym: Symbol): Expr[List[Annotation]] =
+    Expr.ofList(sym.annotations.filterNot(isDerived).map(_.asExprOf[Annotation]))
+
+  Expr.ofList(allSymbols.map(sym => Expr.ofTuple(Expr(sym.name) -> toAnnotations(sym))))
+
 }
