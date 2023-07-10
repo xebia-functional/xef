@@ -44,17 +44,14 @@ inline def getAnnotations[A](using
 
   val classAnnotations = List((klass.getName(), klass.getAnnotations().toList))
 
-  val constructorAnnotations = klass
-    .getConstructors()
-    .toList
-    .headOption
-    .map { constructor =>
-      constructor.getParameters().toList.map { param =>
+  val constructorAnnotations = {
+    val constructors = klass.getConstructors()
+    if (constructors.length == 0) List.empty 
+    else 
+      constructors(0).getParameters().toList.map { param =>
         (param.getName(), param.getAnnotations().toList)
       }
-    }
-    .getOrElse(List.empty)
-
+  }
   val fieldsAnnotations = klass
     .getDeclaredFields()
     .toList
