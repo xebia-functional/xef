@@ -1,6 +1,6 @@
 [versions]
 arrow = "1.2.0-RC"
-arrowGradle = "0.12.0-rc.3"
+arrowGradle = "0.12.0-rc.4"
 kotlin = "1.8.22"
 openai = "0.14.0"
 kotlinx-json = "1.5.1"
