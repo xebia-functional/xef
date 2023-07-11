@@ -23,7 +23,7 @@ public class Solutions{
     }
 
     public static <C> Solution<C> solution(Problems.Memory<C> memory,
-                                           ControlSignals.ControlSignal controlSignal){
+                                        ControlSignals.ControlSignal controlSignal){
         //ai emoji
         System.out.println("\uD83E\uDD16 Generating solution for problem: " + truncateText(memory.problem.description) + "...");
 
@@ -54,7 +54,7 @@ public class Solutions{
                 "       \n";
 
         try {
-            return memory.getAiScope().prompt(enhancedPrompt, Solution.class).get();
+            return Problems.Memory.getAiScope().prompt(enhancedPrompt, Solution.class).get();
         } catch (Exception e) {
             System.err.printf("Solutions.solution enhancedPrompt threw exception: %s - %s\n",
                     e.getClass().getName(), e.getMessage());
