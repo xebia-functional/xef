@@ -1,17 +1,19 @@
 @file:Suppress("DSL_SCOPE_VIOLATION")
 
 plugins {
-    java
+    `java-library`
     alias(libs.plugins.semver.gradle)
     alias(libs.plugins.spotless)
 }
 
 dependencies {
-    implementation(projects.xefCore)
-    implementation(projects.xefOpenai)
-    implementation(projects.xefPdf)
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.15.2")
-    implementation("com.fasterxml.jackson.module:jackson-module-jsonSchema:2.15.2")
+    api(projects.xefCore)
+    api(projects.xefOpenai)
+    api(projects.xefPdf)
+    api(libs.jackson)
+    api(libs.jackson.schema)
+    api(libs.jackson.schema.jakarta)
+    api(libs.jakarta.validation)
 }
 
 tasks.withType<Test>().configureEach {
