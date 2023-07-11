@@ -8,7 +8,7 @@ import static com.xebia.functional.xef.java.auto.tot.Rendering.truncateText;
 public class ControlSignals {
 
     static class ControlSignal {
-        public String value;
+        public String value = "";
     }
 
     public static <A> CompletableFuture<ControlSignal> controlSignal(Problems.Memory<A> memory){
@@ -27,7 +27,7 @@ public class ControlSignals {
                 "    5. Ensure the guidance accounts for previous answers in the `history`.\n" +
                 "    \n");
 
-            return memory.getAiScope().prompt(guidancePrompt, ControlSignal.class);
+            return Problems.Memory.getAiScope().prompt(guidancePrompt, ControlSignal.class);
     }
 
 }
