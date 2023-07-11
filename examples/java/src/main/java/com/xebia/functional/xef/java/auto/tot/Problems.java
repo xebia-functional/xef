@@ -37,7 +37,7 @@ public class Problems {
             ControlSignals.ControlSignal controlSignal = getControlSignal(sMemory);
             Solutions.Solution<S> response = solution(sMemory, controlSignal);
             Solutions.Solution<S> result = checkSolution(response);
-            Memory updatedMemory = sMemory.addResult(result);
+            Memory<S> updatedMemory = sMemory.addResult(result);
             if(result.isValid){
                 System.out.println("✅ Solution found: " + truncateText(result.answer) + "!");
                 Critiques.Critique critique = getCritique(result, updatedMemory);
@@ -57,7 +57,6 @@ public class Problems {
         }
     }
 
-    @Nullable
     private static <S> ControlSignals.ControlSignal getControlSignal(Memory<S> sMemory) {
         try {
             ControlSignals.ControlSignal controlSignal = controlSignal(sMemory).get();
@@ -66,7 +65,7 @@ public class Problems {
         } catch (Exception e) {
             System.err.printf("ControlSignals.controlSignal prompt threw exception: %s - %s\n",
                     e.getClass().getName(), e.getMessage());
-            return null;
+            return new ControlSignals.ControlSignal();
         }
     }
 
@@ -97,7 +96,7 @@ public class Problems {
         public Memory<A> addResult(Solutions.Solution<A> result) {
             List<Solutions.Solution<A>> historyUpdate = Stream.concat(this.history.stream(), Stream.of(result)).toList();
             checkAIScope();
-            return new Memory<A>(this.problem, historyUpdate);
+            return new Memory<>(this.problem, historyUpdate);
         }
 
         private static void checkAIScope() {
