@@ -6,7 +6,7 @@ import java.util.stream.Collectors;
 public class Rendering {
 
     public static String trimMargin(String input){
-        return Arrays.stream(input.split("\n")).map(it -> it.trim()).collect(Collectors.joining("\n"));
+        return Arrays.stream(input.split("\n")).map(String::trim).collect(Collectors.joining("\n"));
     }
 
     public static String truncateText(String answer) {
@@ -25,7 +25,7 @@ public class Rendering {
     public static <A> String renderHistory(Problems.Memory<A> memory){
         return trimMargin("   ```history \n\n" +
                 memory.history.stream()
-                .map(it -> renderHistoryItem(it))
+                .map(Rendering::renderHistoryItem)
                 .collect(Collectors.joining("\n")) +
                 "```");
     }
