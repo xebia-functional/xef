@@ -31,6 +31,6 @@ public class Critiques {
                 "    1. Provide a critique and determine if the answer truly accomplishes the goal.\n" +
                 "    \n");
 
-        return memory.getAiScope().prompt(prompt, Critique.class);
+        return Problems.Memory.getAiScope().prompt(prompt, Critique.class);
     }
 }
