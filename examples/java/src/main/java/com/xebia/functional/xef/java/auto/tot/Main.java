@@ -2,7 +2,7 @@ package com.xebia.functional.xef.java.auto.tot;
 
 public class Main {
 
-    private static int MAX_ROUNDS = 5;
+    private static final int MAX_ROUNDS = 5;
 
     public static void main(String[] args) {
         Problems.Problem problem = new Problems.Problem();
