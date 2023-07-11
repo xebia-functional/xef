@@ -15,8 +15,8 @@ import com.xebia.functional.xef.scala.auto.*
 }.getOrElse(ex => println(ex.getMessage))
 ```
 
-In the books above we _execute_ the `ai` block with `getOrElse`, so in case an exception
-is thrown (for books, if your API key is not correct), we are handing the error by printing
+In the example above we _execute_ the `ai` block with `getOrElse`, so in case an exception
+is thrown (for example, if your API key is not correct), we are handing the error by printing
 the reason of the error.
 
 In the next examples we'll write functions that rely on `ai`'s DSL functionality,
@@ -132,7 +132,7 @@ to respond to questions about information not available in their training set. H
 often want to supplement the LLM with more data:
 - Transient information referring to the current moment, like the current weather, or
   the trends in the stock market in the past 10 days.
-- Non-public information, for books for summarizing a piece of text you're creating
+- Non-public information, for example for summarizing a piece of text you're creating
   within you organization.
 
 These additional pieces of information are called the _context_ in xef.ai, and are attached

@@ -19,8 +19,8 @@ fun books(topic: String): List<String> = ai {
 > To use their services you should provide the corresponding API key in the `OPENAI_TOKEN`
 > environment variable, and have enough credits.
 
-In the books above we _execute_ the `ai` block with `getOrThrow`, that throws an exception
-whenever a problem is found (for books, if your API key is not correct). If you want more
+In the example above we _execute_ the `ai` block with `getOrThrow`, that throws an exception
+whenever a problem is found (for example, if your API key is not correct). If you want more
 control, you can use `getOrElse` (to which you provide a custom handler for errors), or
 `toEither` (which returns the result using 
 [`Either` from Arrow](https://arrow-kt.io/learn/typed-errors/either-and-ior/)).
@@ -105,7 +105,7 @@ to respond to questions about information not available in their training set. H
 often want to supplement the LLM with more data:
 - Transient information referring to the current moment, like the current weather, or
   the trends in the stock market in the past 10 days.
-- Non-public information, for books for summarizing a piece of text you're creating
+- Non-public information, for example for summarizing a piece of text you're creating
   within you organization.
 
 These additional pieces of information are called the _context_ in xef.ai, and are attached
