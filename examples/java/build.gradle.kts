@@ -6,7 +6,6 @@ plugins {
 }
 
 dependencies {
-    implementation(projects.xefCore)
     implementation(projects.xefJava)
 }
 
