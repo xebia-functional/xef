@@ -7,7 +7,7 @@ public class DivergentTasks {
 
     public Long numberOfMedicalNeedlesInWorld;
 
-    private static CompletableFuture<Void> numberOfMedicalNedles(AIScope scope) {
+    private static CompletableFuture<Void> numberOfMedical(AIScope scope) {
         return scope.prompt("Provide the number of medical needles in the world", DivergentTasks.class)
               .thenAccept(numberOfNeedles -> System.out.println("Needles in world:\n" + numberOfNeedles.numberOfMedicalNeedlesInWorld));
     }
@@ -15,7 +15,7 @@ public class DivergentTasks {
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         try (AIScope scope = new AIScope()) {
             scope.contextScope(scope.search("Estimate amount of medical needles in the world").get(),
-                  DivergentTasks::numberOfMedicalNedles).get();
+                  DivergentTasks::numberOfMedical).get();
         }
     }
 

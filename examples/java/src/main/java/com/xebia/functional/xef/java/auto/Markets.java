@@ -20,7 +20,7 @@ public class Markets {
               '}';
     }
 
-    private static CompletableFuture<Void> sumaryOfStockMarket(AIScope scope) {
+    private static CompletableFuture<Void> stockMarketSumary(AIScope scope) {
         String news = "|" +
               "|Write a short summary of the stock market results given the provided context.";
 
@@ -35,7 +35,7 @@ public class Markets {
             var currentDate = dtf.format(now);
 
             scope.contextScope(scope.search(currentDate + "Stock market results, raising stocks, decreasing stocks").get(),
-                  Markets::sumaryOfStockMarket).get();
+                  Markets::stockMarketSumary).get();
         }
     }
 }
