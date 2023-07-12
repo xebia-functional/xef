@@ -25,7 +25,7 @@ public class PDFDocument {
         System.out.println("Enter your question: ");
 
         String line = readLine();
-        if (line == null) {
+        if (line == null || line.isBlank()) {
             return CompletableFuture.completedFuture(null);
         } else {
             scope.prompt(line, AIResponse.class)
