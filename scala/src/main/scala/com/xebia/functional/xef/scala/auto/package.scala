@@ -13,7 +13,6 @@ import com.xebia.functional.xef.pdf.Loader
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.llm._
 import com.xebia.functional.xef.auto.PromptConfiguration
-import com.xebia.functional.xef.auto.llm.openai._
 import com.xebia.functional.xef.scala.textsplitters.TextSplitter
 import com.xebia.functional.xef.llm.models.images.*
 import com.xebia.functional.xef.auto.llm.openai.OpenAI
