@@ -9,6 +9,9 @@ public class BreakingNews {
 
     public String summary;
 
+    static DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/M/yyyy");
+    static LocalDateTime now = LocalDateTime.now();
+
     @Override
     public String toString() {
         return "BreakingNews{" +
@@ -17,8 +20,6 @@ public class BreakingNews {
     }
 
     private static CompletableFuture<Void> writeParagraph(AIScope scope) {
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/M/yyyy");
-        LocalDateTime now = LocalDateTime.now();
         var currentDate = dtf.format(now);
 
         return scope.prompt("write a paragraph of about 300 words about: " + currentDate + " Covid News", BreakingNews.class)
@@ -27,8 +28,6 @@ public class BreakingNews {
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         try (AIScope scope = new AIScope()) {
-            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/M/yyyy");
-            LocalDateTime now = LocalDateTime.now();
             var currentDate = dtf.format(now);
             scope.contextScope(scope.search(currentDate + " Covid News").get(), BreakingNews::writeParagraph).get();
         }
