@@ -13,7 +13,7 @@ public class TouristAttractions {
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         try (AIScope scope = new AIScope()) {
             scope.prompt("Statue of Liberty location and history.", TouristAttraction.class)
-                    .thenAccept((statueOfLiberty) -> System.out.println(
+                    .thenAccept(statueOfLiberty -> System.out.println(
                             statueOfLiberty.name + "is located in " + statueOfLiberty.location +
                                     " and has the following history: " + statueOfLiberty.history
                             )

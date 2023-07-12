@@ -28,7 +28,7 @@ public class Planets {
     }
 
     private static String planetInfo(Planet planet){
-        List<String> moonList = planet.moons.stream().map(it -> "  - " + it.name + ": " + it.distanceFromPlanetInKm + " km away from " + planet.name).collect(toList());
+        List<String> moonList = planet.moons.stream().map(it -> "  - " + it.name + ": " + it.distanceFromPlanetInKm + " km away from " + planet.name).toList();
 
         return String.format("%s is %s million km away from the Sun.\n" +
                 "It has the following moons: \n" +

@@ -12,7 +12,7 @@ public class Persons {
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         try (AIScope scope = new AIScope()) {
             scope.prompt("What is your name and age?", Person.class)
-                    .thenAccept((person) -> System.out.println("Hello " + person.name + ", you are " + person.age + " years old."))
+                    .thenAccept(person -> System.out.println("Hello " + person.name + ", you are " + person.age + " years old."))
                     .get();
         }
     }

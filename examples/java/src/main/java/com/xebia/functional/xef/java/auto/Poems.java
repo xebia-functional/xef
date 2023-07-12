@@ -21,7 +21,7 @@ public class Poems {
                     "examples of poems on these themes: " + combinedPoems;
 
             scope.prompt(newPoemPrompt, Poem.class).
-                    thenAccept((poem) -> System.out.printf("New Poem:\n\n" + poem.content))
+                    thenAccept(poem -> System.out.printf("New Poem:\n\n" + poem.content))
                     .get();
         }
     }

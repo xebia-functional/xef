@@ -8,7 +8,7 @@ public class TopAttractions {
         public City city;
         public String attractionName;
         public String description;
-        public Weather weather;
+        public Weather weather = new Weather();
     }
 
     static class City {
@@ -25,7 +25,7 @@ public class TopAttractions {
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         try (AIScope scope = new AIScope()) {
             scope.prompt("Top attraction in Cádiz, Spain.", TopAttraction.class)
-                .thenAccept((attraction) -> System.out.println(
+                .thenAccept(attraction -> System.out.println(
                     "The top attraction in " + attraction.city.name + " is " + attraction.attractionName + "." +
                     "Here's a brief description: " + attraction.description + "." +
                     "The weather in " + attraction.city.name + " is " + attraction.weather.temperature + " degrees Celsius and " + attraction.weather.description + "."
