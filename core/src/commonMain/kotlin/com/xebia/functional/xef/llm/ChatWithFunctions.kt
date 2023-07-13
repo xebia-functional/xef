@@ -9,6 +9,7 @@ import com.xebia.functional.xef.llm.models.chat.ChatCompletionRequestWithFunctio
 import com.xebia.functional.xef.llm.models.chat.ChatCompletionResponseWithFunctions
 import com.xebia.functional.xef.llm.models.functions.CFunction
 import com.xebia.functional.xef.prompt.Prompt
+import com.xebia.functional.xef.vectorstores.ConversationId
 import com.xebia.functional.xef.vectorstores.VectorStore
 
 interface ChatWithFunctions : Chat {
@@ -21,6 +22,7 @@ interface ChatWithFunctions : Chat {
   suspend fun <A> prompt(
     prompt: String,
     context: VectorStore,
+    conversationId: ConversationId? = null,
     functions: List<CFunction>,
     serializer: (json: String) -> A,
     promptConfiguration: PromptConfiguration,
@@ -29,6 +31,7 @@ interface ChatWithFunctions : Chat {
       promptMessages(
         prompt = Prompt(prompt),
         context = context,
+        conversationId = conversationId,
         functions = functions,
         promptConfiguration
       )
@@ -39,12 +42,19 @@ interface ChatWithFunctions : Chat {
   suspend fun <A> prompt(
     prompt: Prompt,
     context: VectorStore,
+    conversationId: ConversationId? = null,
     functions: List<CFunction>,
     serializer: (json: String) -> A,
     promptConfiguration: PromptConfiguration,
   ): A {
     return tryDeserialize(serializer, promptConfiguration.maxDeserializationAttempts) {
-      promptMessages(prompt = prompt, context = context, functions = functions, promptConfiguration)
+      promptMessages(
+        prompt = prompt,
+        context = context,
+        conversationId = conversationId,
+        functions = functions,
+        promptConfiguration
+      )
     }
   }
 

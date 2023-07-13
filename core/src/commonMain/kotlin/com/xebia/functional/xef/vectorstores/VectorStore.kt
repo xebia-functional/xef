@@ -4,6 +4,11 @@ import com.xebia.functional.xef.embeddings.Embedding
 import kotlin.jvm.JvmStatic
 
 interface VectorStore {
+
+  suspend fun addMemories(memories: List<Memory>)
+
+  suspend fun memories(conversationId: ConversationId, limit: Int): List<Memory>
+
   /**
    * Add texts to the vector store after running them through the embeddings
    *
@@ -36,6 +41,12 @@ interface VectorStore {
     @JvmStatic
     val EMPTY: VectorStore =
       object : VectorStore {
+
+        override suspend fun addMemories(memories: List<Memory>) {}
+
+        override suspend fun memories(conversationId: ConversationId, limit: Int): List<Memory> =
+          emptyList()
+
         override suspend fun addTexts(texts: List<String>) {}
 
         override suspend fun similaritySearch(query: String, limit: Int): List<String> = emptyList()

@@ -9,11 +9,14 @@ import com.xebia.functional.xef.llm.models.functions.CFunction
 import com.xebia.functional.xef.llm.models.images.ImagesGenerationResponse
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.vectorstores.CombinedVectorStore
+import com.xebia.functional.xef.vectorstores.ConversationId
 import com.xebia.functional.xef.vectorstores.LocalVectorStore
 import com.xebia.functional.xef.vectorstores.VectorStore
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlin.jvm.JvmName
+import kotlinx.uuid.UUID
+import kotlinx.uuid.generateUUID
 
 /**
  * The [CoreAIScope] is the context in which [AI] values are run. It encapsulates all the
@@ -23,6 +26,7 @@ import kotlin.jvm.JvmName
 class CoreAIScope(
   val embeddings: Embeddings,
   val context: VectorStore = LocalVectorStore(embeddings),
+  val conversationId: ConversationId = ConversationId(UUID.generateUUID().toString()),
 ) {
 
   val logger: KLogger = KotlinLogging.logger {}
@@ -115,7 +119,8 @@ class CoreAIScope(
     question: String,
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
   ): String =
-    promptMessages(question, context, emptyList(), promptConfiguration).firstOrNull()
+    promptMessages(question, context, conversationId, emptyList(), promptConfiguration)
+      .firstOrNull()
       ?: throw AIError.NoResponse()
 
   @AiDsl
@@ -123,7 +128,8 @@ class CoreAIScope(
     question: String,
     functions: List<CFunction> = emptyList(),
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-  ): List<String> = promptMessages(Prompt(question), context, functions, promptConfiguration)
+  ): List<String> =
+    promptMessages(Prompt(question), context, conversationId, functions, promptConfiguration)
 
   /**
    * Run a [prompt] describes the images you want to generate within the context of [CoreAIScope].
