@@ -10,6 +10,7 @@ dependencies {
     api(projects.xefCore)
     api(projects.xefOpenai)
     api(projects.xefPdf)
+    api(projects.xefGpt4all)
     api(libs.jackson)
     api(libs.jackson.schema)
     api(libs.jackson.schema.jakarta)

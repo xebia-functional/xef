@@ -46,6 +46,7 @@ public class AIScope implements AutoCloseable {
     private final SchemaGenerator schemaGenerator;
     private final ExecutorService executorService;
     private final CoroutineScope coroutineScope;
+    private final VectorStore context;
 
     public AIScope(ObjectMapper om, Embeddings embeddings, ExecutorService executorService) {
         this.om = om;
@@ -59,8 +60,8 @@ public class AIScope implements AutoCloseable {
                 .with(module);
         SchemaGeneratorConfig config = configBuilder.build();
         this.schemaGenerator = new SchemaGenerator(config);
-        VectorStore vectorStore = new LocalVectorStore(embeddings);
-        this.scope = new CoreAIScope(embeddings, vectorStore);
+        context = new LocalVectorStore(embeddings);
+        this.scope = new CoreAIScope(embeddings, context);
     }
 
     public AIScope(Embeddings embeddings, ExecutorService executorService) {
@@ -77,6 +78,11 @@ public class AIScope implements AutoCloseable {
         this.coroutineScope = outer.coroutineScope;
         this.schemaGenerator = outer.schemaGenerator;
         this.scope = nested;
+        this.context = outer.context;
+    }
+
+    public VectorStore getContext() {
+        return context;
     }
 
     public <A> CompletableFuture<A> prompt(String prompt, Class<A> cls) {
