@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.victools.jsonschema.generator.*;
 import com.github.victools.jsonschema.module.jakarta.validation.JakartaValidationModule;
 import com.github.victools.jsonschema.module.jakarta.validation.JakartaValidationOption;
+import com.xebia.functional.xef.agents.Search;
 import com.xebia.functional.xef.auto.CoreAIScope;
 import com.xebia.functional.xef.auto.PromptConfiguration;
 import com.xebia.functional.xef.auto.llm.openai.OpenAI;
@@ -20,13 +21,6 @@ import com.xebia.functional.xef.pdf.Loader;
 import com.xebia.functional.xef.textsplitters.TextSplitter;
 import com.xebia.functional.xef.vectorstores.LocalVectorStore;
 import com.xebia.functional.xef.vectorstores.VectorStore;
-import kotlin.collections.CollectionsKt;
-import kotlin.coroutines.Continuation;
-import kotlin.jvm.functions.Function1;
-import kotlinx.coroutines.*;
-import kotlinx.coroutines.future.FutureKt;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
@@ -35,6 +29,16 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
+import kotlin.collections.CollectionsKt;
+import kotlin.coroutines.Continuation;
+import kotlin.jvm.functions.Function1;
+import kotlinx.coroutines.CoroutineScope;
+import kotlinx.coroutines.CoroutineScopeKt;
+import kotlinx.coroutines.CoroutineStart;
+import kotlinx.coroutines.ExecutorsKt;
+import kotlinx.coroutines.JobKt;
+import kotlinx.coroutines.future.FutureKt;
+import org.jetbrains.annotations.NotNull;
 
 public class AIScope implements AutoCloseable {
     private final CoreAIScope scope;
@@ -128,6 +132,10 @@ public class AIScope implements AutoCloseable {
     public CompletableFuture<List<String>> images(Images model, String prompt, Integer numberOfImages, String size, PromptConfiguration promptConfiguration) {
         return this.<ImagesGenerationResponse>future(continuation -> scope.images(model, prompt, numberOfImages, size, promptConfiguration, continuation))
                 .thenApply(response -> CollectionsKt.map(response.getData(), ImageGenerationUrl::getUrl));
+    }
+
+    public CompletableFuture<List<String>> search(String prompt) {
+        return future(continuation -> Search.search(prompt, continuation));
     }
 
     private <A> CompletableFuture<A> future(Function1<? super Continuation<? super A>, ? extends Object> block) {
