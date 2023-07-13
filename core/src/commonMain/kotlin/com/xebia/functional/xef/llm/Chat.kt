@@ -14,6 +14,8 @@ import com.xebia.functional.xef.vectorstores.VectorStore
 import io.ktor.util.date.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onEach
 
 interface Chat : LLM {
   val modelType: ModelType
@@ -78,9 +80,41 @@ interface Chat : LLM {
       )
 
     return flow {
-      createChatCompletions(request).collect {
-        emit(it.choices.mapNotNull { it.delta?.content }.joinToString(""))
-      }
+      val buffer = StringBuilder()
+      createChatCompletions(request)
+        .onEach {
+          it.choices.forEach { choice ->
+            val text = choice.delta?.content ?: ""
+            buffer.append(text)
+          }
+        }
+        .onCompletion { addMemoriesAfterStream(request, conversationId, buffer, context) }
+        .collect { emit(it.choices.mapNotNull { it.delta?.content }.joinToString("")) }
+    }
+  }
+
+  private suspend fun addMemoriesAfterStream(
+    request: ChatCompletionRequest,
+    conversationId: ConversationId?,
+    buffer: StringBuilder,
+    context: VectorStore
+  ) {
+    val lastRequestMessage = request.messages.lastOrNull()
+    if (conversationId != null && lastRequestMessage != null) {
+      val requestMemory =
+        Memory(
+          conversationId = conversationId,
+          content = lastRequestMessage,
+          timestamp = getTimeMillis()
+        )
+      val responseMemory =
+        Memory(
+          conversationId = conversationId,
+          content =
+            Message(role = Role.ASSISTANT, content = buffer.toString(), name = Role.ASSISTANT.name),
+          timestamp = getTimeMillis(),
+        )
+      context.addMemories(listOf(requestMemory, responseMemory))
     }
   }
 
