@@ -2,8 +2,10 @@ package com.xebia.functional.xef.java.auto;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
+import com.github.victools.jsonschema.generator.*;
+import com.github.victools.jsonschema.module.jakarta.validation.JakartaValidationModule;
+import com.github.victools.jsonschema.module.jakarta.validation.JakartaValidationOption;
+import com.xebia.functional.xef.agents.Search;
 import com.xebia.functional.xef.auto.CoreAIScope;
 import com.xebia.functional.xef.auto.PromptConfiguration;
 import com.xebia.functional.xef.auto.llm.openai.OpenAI;
@@ -20,13 +22,6 @@ import com.xebia.functional.xef.textsplitters.TextSplitter;
 import com.xebia.functional.xef.vectorstores.ConversationId;
 import com.xebia.functional.xef.vectorstores.LocalVectorStore;
 import com.xebia.functional.xef.vectorstores.VectorStore;
-import kotlin.collections.CollectionsKt;
-import kotlin.coroutines.Continuation;
-import kotlin.jvm.functions.Function1;
-import kotlinx.coroutines.*;
-import kotlinx.coroutines.future.FutureKt;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
@@ -36,11 +31,21 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
+import kotlin.collections.CollectionsKt;
+import kotlin.coroutines.Continuation;
+import kotlin.jvm.functions.Function1;
+import kotlinx.coroutines.CoroutineScope;
+import kotlinx.coroutines.CoroutineScopeKt;
+import kotlinx.coroutines.CoroutineStart;
+import kotlinx.coroutines.ExecutorsKt;
+import kotlinx.coroutines.JobKt;
+import kotlinx.coroutines.future.FutureKt;
+import org.jetbrains.annotations.NotNull;
 
 public class AIScope implements AutoCloseable {
     private final CoreAIScope scope;
     private final ObjectMapper om;
-    private final JsonSchemaGenerator schemaGen;
+    private final SchemaGenerator schemaGenerator;
     private final ExecutorService executorService;
     private final CoroutineScope coroutineScope;
 
@@ -48,7 +53,14 @@ public class AIScope implements AutoCloseable {
         this.om = om;
         this.executorService = executorService;
         this.coroutineScope = () -> ExecutorsKt.from(executorService).plus(JobKt.Job(null));
-        this.schemaGen = new JsonSchemaGenerator(om);
+        JakartaValidationModule module = new JakartaValidationModule(
+                JakartaValidationOption.NOT_NULLABLE_FIELD_IS_REQUIRED,
+                JakartaValidationOption.INCLUDE_PATTERN_EXPRESSIONS
+        );
+        SchemaGeneratorConfigBuilder configBuilder = new SchemaGeneratorConfigBuilder(SchemaVersion.DRAFT_7, OptionPreset.PLAIN_JSON)
+                .with(module);
+        SchemaGeneratorConfig config = configBuilder.build();
+        this.schemaGenerator = new SchemaGenerator(config);
         VectorStore vectorStore = new LocalVectorStore(embeddings);
         ConversationId conversationId = new ConversationId(UUID.randomUUID().toString());
         this.scope = new CoreAIScope(embeddings, vectorStore, conversationId);
@@ -59,21 +71,20 @@ public class AIScope implements AutoCloseable {
     }
 
     public AIScope() {
-        this(new ObjectMapper(),new OpenAIEmbeddings(OpenAI.DEFAULT_EMBEDDING), Executors.newCachedThreadPool(new AIScopeThreadFactory()));
+        this(new ObjectMapper(), new OpenAIEmbeddings(OpenAI.DEFAULT_EMBEDDING), Executors.newCachedThreadPool(new AIScopeThreadFactory()));
     }
 
     private AIScope(CoreAIScope nested, AIScope outer) {
         this.om = outer.om;
         this.executorService = outer.executorService;
         this.coroutineScope = outer.coroutineScope;
-        this.schemaGen = outer.schemaGen;
+        this.schemaGenerator = outer.schemaGenerator;
         this.scope = nested;
     }
 
     public <A> CompletableFuture<A> prompt(String prompt, Class<A> cls) {
         return prompt(prompt, cls, OpenAI.DEFAULT_SERIALIZATION, PromptConfiguration.DEFAULTS);
     }
-
 
     public <A> CompletableFuture<A> prompt(String prompt, Class<A> cls, ChatWithFunctions llmModel, PromptConfiguration promptConfiguration) {
         Function1<? super String, ? extends A> decoder = json -> {
@@ -85,21 +96,17 @@ public class AIScope implements AutoCloseable {
             }
         };
 
-        String schema;
-        try {
-            JsonSchema jsonSchema = schemaGen.generateSchema(cls);
-            jsonSchema.setId(null);
-            schema = om.writeValueAsString(jsonSchema);
-        } catch (JsonProcessingException e) {
-            // TODO AIError ex = new AIError.JsonParsing(json, maxAttempts, e);
-            throw new RuntimeException(e);
-        }
+        String schema = schemaGenerator.generateSchema(cls).toString();
 
         List<CFunction> functions = Collections.singletonList(
                 new CFunction(cls.getSimpleName(), "Generated function for " + cls.getSimpleName(), schema)
         );
 
         return future(continuation -> scope.promptWithSerializer(llmModel, prompt, functions, decoder, promptConfiguration, continuation));
+    }
+
+    public CompletableFuture<String> promptMessage(String prompt) {
+        return promptMessage(OpenAI.DEFAULT_CHAT, prompt, PromptConfiguration.DEFAULTS);
     }
 
     public CompletableFuture<String> promptMessage(Chat llmModel, String prompt, PromptConfiguration promptConfiguration) {
@@ -128,6 +135,10 @@ public class AIScope implements AutoCloseable {
     public CompletableFuture<List<String>> images(Images model, String prompt, Integer numberOfImages, String size, PromptConfiguration promptConfiguration) {
         return this.<ImagesGenerationResponse>future(continuation -> scope.images(model, prompt, numberOfImages, size, promptConfiguration, continuation))
                 .thenApply(response -> CollectionsKt.map(response.getData(), ImageGenerationUrl::getUrl));
+    }
+
+    public CompletableFuture<List<String>> search(String prompt) {
+        return future(continuation -> Search.search(prompt, continuation));
     }
 
     private <A> CompletableFuture<A> future(Function1<? super Continuation<? super A>, ? extends Object> block) {
