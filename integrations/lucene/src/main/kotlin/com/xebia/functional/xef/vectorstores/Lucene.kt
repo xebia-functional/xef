@@ -2,12 +2,15 @@ package com.xebia.functional.xef.vectorstores
 
 import com.xebia.functional.xef.embeddings.Embedding
 import com.xebia.functional.xef.embeddings.Embeddings
+import com.xebia.functional.xef.llm.models.chat.Message
+import com.xebia.functional.xef.llm.models.chat.Role
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingModel
 import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.document.Document
 import org.apache.lucene.document.Field
 import org.apache.lucene.document.KnnFloatVectorField
+import org.apache.lucene.document.LongField
 import org.apache.lucene.document.TextField
 import org.apache.lucene.index.DirectoryReader
 import org.apache.lucene.index.IndexWriter
@@ -30,6 +33,32 @@ open class Lucene(
 
   private val requestConfig =
     RequestConfig(EmbeddingModel.TEXT_EMBEDDING_ADA_002, RequestConfig.Companion.User("user"))
+
+  override suspend fun addMemories(memories: List<Memory>) {
+    memories.forEach {
+      val doc =
+        Document().apply {
+          add(TextField("conversationId", it.conversationId.value, Field.Store.YES))
+          add(TextField("content", it.content.content, Field.Store.YES))
+          add(TextField("role", it.content.role.name.lowercase(), Field.Store.YES))
+          add(LongField("timestamp", it.timestamp, Field.Store.YES))
+        }
+      writer.addDocument(doc)
+    }
+    writer.commit()
+  }
+
+  override suspend fun memories(conversationId: ConversationId, limit: Int): List<Memory> {
+    val reader = DirectoryReader.open(writer)
+    val mlt = MoreLikeThis(reader)
+    mlt.analyzer = StandardAnalyzer()
+    mlt.minTermFreq = 1
+    mlt.minDocFreq = 1
+    mlt.minWordLen = 3
+    val luceneQuery = mlt.like("conversationId", StringReader(conversationId.value))
+    val searcher = IndexSearcher(reader)
+    return IndexSearcher(reader).search(luceneQuery, limit).extractMemory(searcher)
+  }
 
   override suspend fun addTexts(texts: List<String>) {
     texts.forEach {
@@ -63,7 +92,22 @@ open class Lucene(
     return searcher.search(luceneQuery, limit).extract(searcher)
   }
 
-  fun TopDocs.extract(searcher: IndexSearcher): List<String> =
+  private fun TopDocs.extractMemory(searcher: IndexSearcher): List<Memory> =
+    scoreDocs.map {
+      val doc = searcher.storedFields().document(it.doc)
+      val role = Role.valueOf(doc.get("role").uppercase())
+      Memory(
+        conversationId = ConversationId(doc.get("conversationId")),
+        content = Message(
+          content = doc.get("content"),
+          role = role,
+          name = role.name
+        ),
+        timestamp = doc.get("timestamp").toLong()
+      )
+    }
+
+  private fun TopDocs.extract(searcher: IndexSearcher): List<String> =
     scoreDocs.map {
       searcher.storedFields().document(it.doc).get("contents")
     }
