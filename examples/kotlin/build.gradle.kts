@@ -29,7 +29,7 @@ dependencies {
   implementation(libs.bundles.arrow)
   implementation(libs.okio)
   implementation(libs.jdbc.mysql.connector)
-  api(libs.bundles.ktor.client)
+  api(libs.ktor.client)
 }
 
 tasks.getByName<Copy>("processResources") {
