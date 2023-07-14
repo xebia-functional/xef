@@ -17,6 +17,16 @@ val createCollections: String =
      );"""
     .trimIndent()
 
+val createMemoryTable: String =
+  """CREATE TABLE xef_memory (
+       uuid TEXT PRIMARY KEY,
+       conversation_id TEXT NOT NULL,
+       role TEXT NOT NULL,
+       content TEXT UNIQUE NOT NULL,
+       timestamp TIMESTAMP NOT NULL,
+     );"""
+    .trimIndent()
+
 val createEmbeddings: String =
   """CREATE TABLE xef_embeddings (
        uuid TEXT PRIMARY KEY,
@@ -44,6 +54,20 @@ fun createEmbeddingTable(vectorSize: Int): String =
      );"""
     .trimIndent()
 
+
+/*
+uuid TEXT PRIMARY KEY,
+       conversation_id TEXT NOT NULL,
+       role TEXT NOT NULL,
+       content TEXT UNIQUE NOT NULL,
+       timestamp TIMESTAMP NOT NULL,
+ */
+val addNewMemory: String =
+  """INSERT INTO xef_memory(uuid, conversation_id, role, content, timestamp)
+     VALUES (?, ?, ?, ?, ?)
+     ON CONFLICT DO NOTHING;"""
+    .trimIndent()
+
 val addNewCollection: String =
   """INSERT INTO xef_collections(uuid, name)
      VALUES (?, ?)
@@ -55,6 +79,11 @@ val deleteCollection: String =
      WHERE uuid = ?;"""
     .trimIndent()
 
+val deleteMemory: String =
+  """DELETE FROM xef_memory
+     WHERE uuid = ?;"""
+    .trimIndent()
+
 val getCollection: String =
   """SELECT * FROM xef_collections
      WHERE name = ?;"""
@@ -63,6 +92,12 @@ val getCollection: String =
 val getCollectionById: String =
   """SELECT * FROM xef_collections
      WHERE uuid = ?;"""
+    .trimIndent()
+
+val getMemoriesByConversationId: String =
+  """SELECT * FROM xef_memory
+     WHERE conversation_id = ?
+     ORDER BY timestamp DESC LIMIT ?;"""
     .trimIndent()
 
 val addNewDocument: String =

@@ -19,11 +19,13 @@ import com.xebia.functional.xef.llm.models.images.ImageGenerationUrl;
 import com.xebia.functional.xef.llm.models.images.ImagesGenerationResponse;
 import com.xebia.functional.xef.pdf.Loader;
 import com.xebia.functional.xef.textsplitters.TextSplitter;
+import com.xebia.functional.xef.vectorstores.ConversationId;
 import com.xebia.functional.xef.vectorstores.LocalVectorStore;
 import com.xebia.functional.xef.vectorstores.VectorStore;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -60,7 +62,8 @@ public class AIScope implements AutoCloseable {
         SchemaGeneratorConfig config = configBuilder.build();
         this.schemaGenerator = new SchemaGenerator(config);
         VectorStore vectorStore = new LocalVectorStore(embeddings);
-        this.scope = new CoreAIScope(embeddings, vectorStore);
+        ConversationId conversationId = new ConversationId(UUID.randomUUID().toString());
+        this.scope = new CoreAIScope(embeddings, vectorStore, conversationId);
     }
 
     public AIScope(Embeddings embeddings, ExecutorService executorService) {

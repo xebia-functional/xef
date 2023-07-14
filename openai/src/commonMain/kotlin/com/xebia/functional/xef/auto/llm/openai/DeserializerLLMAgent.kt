@@ -66,6 +66,7 @@ suspend fun <A> CoreAIScope.prompt(
   return model.prompt(
     prompt,
     context,
+    conversationId,
     functions,
     { json.decodeFromString(serializer, it) },
     promptConfiguration

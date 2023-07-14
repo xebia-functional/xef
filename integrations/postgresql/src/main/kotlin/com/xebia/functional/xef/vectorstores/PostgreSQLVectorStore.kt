@@ -2,6 +2,8 @@ package com.xebia.functional.xef.vectorstores
 
 import com.xebia.functional.xef.embeddings.Embedding
 import com.xebia.functional.xef.embeddings.Embeddings
+import com.xebia.functional.xef.llm.models.chat.Message
+import com.xebia.functional.xef.llm.models.chat.Role
 import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
 import com.xebia.functional.xef.vectorstores.postgresql.*
 import kotlinx.uuid.UUID
@@ -16,8 +18,45 @@ class PGVectorStore(
   private val distanceStrategy: PGDistanceStrategy,
   private val preDeleteCollection: Boolean,
   private val requestConfig: RequestConfig,
-  private val chunckSize: Int?
+  private val chunkSize: Int?
 ) : VectorStore {
+
+  override suspend fun addMemories(memories: List<Memory>) {
+    dataSource.connection {
+      memories.forEach { memory ->
+        update(addNewMemory) {
+          bind(UUID.generateUUID().toString())
+          bind(memory.conversationId.value)
+          bind(memory.content.role.name.lowercase())
+          bind(memory.content.content)
+          bind(memory.timestamp)
+        }
+      }
+    }
+  }
+
+  override suspend fun memories(conversationId: ConversationId, limit: Int): List<Memory> =
+    dataSource.connection {
+      queryAsList(getMemoriesByConversationId, {
+        bind(conversationId.value)
+        bind(limit)
+      }) {
+        val uuid = string()
+        val cId = string()
+        val role = string()
+        val content = string()
+        val timestamp = long()
+        Memory(
+          conversationId = ConversationId(cId),
+          content = Message(
+            role = Role.valueOf(role.uppercase()),
+            content = content,
+            name = "role",
+          ),
+          timestamp = timestamp,
+        )
+      }
+    }
 
   private fun JDBCSyntax.getCollection(collectionName: String): PGCollection =
     queryOneOrNull(getCollection, { bind(collectionName) }) {
@@ -37,6 +76,7 @@ class PGVectorStore(
     dataSource.connection {
       update(addVectorExtension)
       update(createCollectionsTable)
+      update(createMemoryTable)
       update(createEmbeddingTable(vectorSize))
       deleteCollection()
     }
@@ -52,7 +92,7 @@ class PGVectorStore(
 
   override suspend fun addTexts(texts: List<String>): Unit =
     dataSource.connection {
-      val embeddings = embeddings.embedDocuments(texts, chunckSize, requestConfig)
+      val embeddings = embeddings.embedDocuments(texts, chunkSize, requestConfig)
       val collection = getCollection(collectionName)
       texts.zip(embeddings) { text, embedding ->
         val uuid = UUID.generateUUID()

@@ -46,7 +46,7 @@ class PGVectorStoreSpec :
         preDeleteCollection = false,
         requestConfig =
           RequestConfig(EmbeddingModel.TEXT_EMBEDDING_ADA_002, RequestConfig.Companion.User("user")),
-        chunckSize = null
+        chunkSize = null
       )
 
     "initialDbSetup should configure the DB properly" { pg.initialDbSetup() }
