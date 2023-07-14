@@ -68,8 +68,7 @@ class PromptConfiguration(
 
     @JvmField val DEFAULTS = PromptConfiguration()
 
-    @JvmName("buildWithParams")
-    fun invokeWithDocsInContextAndStreamToStandardOut(docsInContext: Int, streamToStandardOut: Boolean) =
+    fun buildWithParams(docsInContext: Int, streamToStandardOut: Boolean) =
       PromptConfiguration(docsInContext = docsInContext, streamToStandardOut = streamToStandardOut)
   }
 }

@@ -8,7 +8,16 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import kotlin.Unit;
+import kotlin.coroutines.Continuation;
+import kotlinx.coroutines.flow.Flow;
+import kotlinx.coroutines.flow.FlowCollector;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+//import kotlinx.coroutines.flow.onCompletion;
 
 public class Chat {
     public static void main(String[] args) throws ExecutionException, InterruptedException, IOException {
@@ -42,7 +51,18 @@ public class Chat {
                     break;
                 }else{
                     var promptConfiguration = PromptConfiguration.Companion.buildWithParams(2, true);
-                    //var aux = gpt4all.promptStreaming(line, scope.getContext(), new ArrayList<>(), promptConfiguration);
+                    Flow<String> aux = scope.promptStreaming(gpt4all, line, scope.getContext(), promptConfiguration).get();
+                    /*aux.(new FlowCollector<String>() {
+                        @Nullable
+                        @Override
+                        public Object emit(String s,
+                              @NotNull Continuation<? super Unit> continuation) {
+                            System.out.println(s);
+                            return null;
+                        }
+                    });*/
+
+                    //var aux2 = gpt4all.promptStreaming(line, scope.getContext(), promptConfiguration);
                 }
             }
         }

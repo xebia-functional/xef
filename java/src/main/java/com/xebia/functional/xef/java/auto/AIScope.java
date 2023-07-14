@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.victools.jsonschema.generator.*;
 import com.github.victools.jsonschema.module.jakarta.validation.JakartaValidationModule;
 import com.github.victools.jsonschema.module.jakarta.validation.JakartaValidationOption;
+import com.xebia.functional.gpt4all.GPT4All;
 import com.xebia.functional.xef.agents.Search;
 import com.xebia.functional.xef.auto.CoreAIScope;
 import com.xebia.functional.xef.auto.PromptConfiguration;
@@ -22,6 +23,7 @@ import com.xebia.functional.xef.textsplitters.TextSplitter;
 import com.xebia.functional.xef.vectorstores.LocalVectorStore;
 import com.xebia.functional.xef.vectorstores.VectorStore;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -37,6 +39,7 @@ import kotlinx.coroutines.CoroutineScopeKt;
 import kotlinx.coroutines.CoroutineStart;
 import kotlinx.coroutines.ExecutorsKt;
 import kotlinx.coroutines.JobKt;
+import kotlinx.coroutines.flow.Flow;
 import kotlinx.coroutines.future.FutureKt;
 import org.jetbrains.annotations.NotNull;
 
@@ -125,13 +128,18 @@ public class AIScope implements AutoCloseable {
         return future(continuation -> scope.promptMessages(llmModel, prompt, functions, promptConfiguration, continuation));
     }
 
+    public CompletableFuture<Flow<String>> promptStreaming(GPT4All gpt4all, String line, VectorStore context, PromptConfiguration promptConfiguration) {
+        List<CFunction> list = new ArrayList<>();
+        //return future(continuation -> gpt4all.promptStreaming(line, context, null, CollectionsKt.emptyList(), promptConfiguration, continuation));
+        return future(continuation -> gpt4all.promptStreaming(line, context, promptConfiguration, continuation));
+    }
+
     public <A> CompletableFuture<A> contextScope(Function1<Embeddings, VectorStore> store, Function1<AIScope, CompletableFuture<A>> f) {
         return future(continuation -> scope.contextScope(store.invoke(scope.getEmbeddings()), (coreAIScope, continuation1) -> {
             AIScope nestedScope = new AIScope(coreAIScope, AIScope.this);
             return FutureKt.await(f.invoke(nestedScope), continuation);
         }, continuation));
     }
-
 
     public <A> CompletableFuture<A> contextScope(VectorStore store, Function1<AIScope, CompletableFuture<A>> f) {
         return future(continuation -> scope.contextScope(store, (coreAIScope, continuation1) -> {
