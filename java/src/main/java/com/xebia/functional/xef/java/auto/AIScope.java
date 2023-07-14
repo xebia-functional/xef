@@ -6,6 +6,7 @@ import com.github.victools.jsonschema.generator.*;
 import com.github.victools.jsonschema.module.jakarta.validation.JakartaValidationModule;
 import com.github.victools.jsonschema.module.jakarta.validation.JakartaValidationOption;
 import com.xebia.functional.gpt4all.GPT4All;
+import com.xebia.functional.gpt4all.port.KotlinPort;
 import com.xebia.functional.xef.agents.Search;
 import com.xebia.functional.xef.auto.CoreAIScope;
 import com.xebia.functional.xef.auto.PromptConfiguration;
@@ -39,7 +40,6 @@ import kotlinx.coroutines.CoroutineScopeKt;
 import kotlinx.coroutines.CoroutineStart;
 import kotlinx.coroutines.ExecutorsKt;
 import kotlinx.coroutines.JobKt;
-import kotlinx.coroutines.flow.Flow;
 import kotlinx.coroutines.future.FutureKt;
 import org.jetbrains.annotations.NotNull;
 
@@ -128,10 +128,10 @@ public class AIScope implements AutoCloseable {
         return future(continuation -> scope.promptMessages(llmModel, prompt, functions, promptConfiguration, continuation));
     }
 
-    public CompletableFuture<Flow<String>> promptStreaming(GPT4All gpt4all, String line, VectorStore context, PromptConfiguration promptConfiguration) {
+    public CompletableFuture<List<String>> promptStreaming(GPT4All gpt4all, String line, VectorStore context, PromptConfiguration promptConfiguration) {
         List<CFunction> list = new ArrayList<>();
         //return future(continuation -> gpt4all.promptStreaming(line, context, null, CollectionsKt.emptyList(), promptConfiguration, continuation));
-        return future(continuation -> gpt4all.promptStreaming(line, context, promptConfiguration, continuation));
+        return future(continuation -> KotlinPort.promptStreaming(gpt4all, line, context, promptConfiguration, continuation));
     }
 
     public <A> CompletableFuture<A> contextScope(Function1<Embeddings, VectorStore> store, Function1<AIScope, CompletableFuture<A>> f) {

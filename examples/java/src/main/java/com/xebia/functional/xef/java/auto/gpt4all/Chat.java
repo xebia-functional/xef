@@ -51,16 +51,12 @@ public class Chat {
                     break;
                 }else{
                     var promptConfiguration = PromptConfiguration.Companion.buildWithParams(2, true);
-                    Flow<String> aux = scope.promptStreaming(gpt4all, line, scope.getContext(), promptConfiguration).get();
-                    /*aux.(new FlowCollector<String>() {
-                        @Nullable
-                        @Override
-                        public Object emit(String s,
-                              @NotNull Continuation<? super Unit> continuation) {
-                            System.out.println(s);
-                            return null;
-                        }
-                    });*/
+                    List<String> aux = scope.promptStreaming(gpt4all, line, scope.getContext(), promptConfiguration).get();
+
+                    aux.forEach(it -> {
+                        System.out.print(it);
+                    });
+
 
                     //var aux2 = gpt4all.promptStreaming(line, scope.getContext(), promptConfiguration);
                 }

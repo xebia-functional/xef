@@ -30,14 +30,6 @@ interface Chat : LLM {
   suspend fun promptStreaming(
     question: String,
     context: VectorStore,
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-  ): Flow<String> =
-    promptStreaming(Prompt(question), context, null, emptyList(), promptConfiguration)
-
-  @AiDsl
-  suspend fun promptStreaming(
-    question: String,
-    context: VectorStore,
     conversationId: ConversationId? = null,
     functions: List<CFunction> = emptyList(),
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
