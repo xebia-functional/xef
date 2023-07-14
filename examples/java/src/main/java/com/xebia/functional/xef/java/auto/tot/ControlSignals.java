@@ -11,7 +11,7 @@ public class ControlSignals {
         public String value = "";
     }
 
-    public static <A> CompletableFuture<ControlSignal> controlSignal(Problems.Memory<A> memory){
+    public static CompletableFuture<ControlSignal> controlSignal(Problems.Memory memory){
         System.out.println("\uD83E\uDDE0 Generating control signal for problem:" + truncateText(memory.problem.description) + "...");
         String guidancePrompt = Rendering.trimMargin(
                 "    You are an expert advisor on information extraction.\n" +

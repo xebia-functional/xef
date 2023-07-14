@@ -5,16 +5,16 @@ import static com.xebia.functional.xef.java.auto.tot.Rendering.truncateText;
 
 public class Solutions{
 
-    static class Solution<A>{
+    static class Solution{
         public String answer;
         public boolean isValid;
         public String reasoning;
 
-        public A value;
+        public String value;
     }
 
-    public static <B> Solution<B> makeSolution(String answer, boolean isValid, String reasoning, B value) {
-        Solution<B> solution = new Solution<>();
+    public static Solution makeSolution(String answer, boolean isValid, String reasoning, String value) {
+        Solution solution = new Solution();
         solution.isValid = isValid;
         solution.answer = answer;
         solution.reasoning = reasoning;
@@ -22,7 +22,7 @@ public class Solutions{
         return solution;
     }
 
-    public static <C> Solution<C> solution(Problems.Memory<C> memory,
+    public static Solution solution(Problems.Memory memory,
                                         ControlSignals.ControlSignal controlSignal){
         //ai emoji
         System.out.println("\uD83E\uDD16 Generating solution for problem: " + truncateText(memory.problem.description) + "...");

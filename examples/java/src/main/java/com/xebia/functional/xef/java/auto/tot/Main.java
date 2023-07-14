@@ -24,16 +24,12 @@ public class Main {
                 "    Return a concise solution that fixes the problems in the code.");
 
 
-        Solutions.Solution<FinalSolution> solve = Problems.solve(problem, MAX_ROUNDS);
+        Solutions.Solution solve = Problems.solve(problem, MAX_ROUNDS);
 
         System.out.println("✅ Final solution: " + solve.answer);
         System.out.println("✅ Solution validity: " + solve.isValid);
         System.out.println("✅ Solution reasoning: " + solve.reasoning);
         System.out.println("✅ Solution code: " + solve.value);
-    }
-
-    static class FinalSolution {
-        public String solution;
     }
 
 }

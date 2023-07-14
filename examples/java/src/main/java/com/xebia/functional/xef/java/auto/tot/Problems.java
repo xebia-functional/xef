@@ -19,13 +19,13 @@ public class Problems {
         public String description;
     }
 
-    public static <S> Solutions.Solution<S> solve(Problem problem, int maxRounds) {
-        try(Memory<S> initialMemory = new Memory<>(problem, new ArrayList<>())) {
+    public static Solutions.Solution solve(Problem problem, int maxRounds) {
+        try(Memory initialMemory = new Memory(problem, new ArrayList<>())) {
             return solveRec(maxRounds, initialMemory);
         }
     }
 
-    private static <S> Solutions.Solution<S> solveRec(int remainingRounds, Memory<S> sMemory) {
+    private static Solutions.Solution solveRec(int remainingRounds, Memory sMemory) {
         if(remainingRounds <= 0){
             System.out.println("❌ Maximum rounds reached. Unable to find a solution.");
             return Solutions.makeSolution("", false, "No Response", null);
@@ -35,9 +35,9 @@ public class Problems {
                     " (Remaining rounds: " + remainingRounds + "...");
 
             ControlSignals.ControlSignal controlSignal = getControlSignal(sMemory);
-            Solutions.Solution<S> response = solution(sMemory, controlSignal);
-            Solutions.Solution<S> result = checkSolution(response);
-            Memory<S> updatedMemory = sMemory.addResult(result);
+            Solutions.Solution response = solution(sMemory, controlSignal);
+            Solutions.Solution result = checkSolution(response);
+            Memory updatedMemory = sMemory.addResult(result);
             if(result.isValid){
                 System.out.println("✅ Solution found: " + truncateText(result.answer) + "!");
                 Critiques.Critique critique = getCritique(result, updatedMemory);
@@ -57,7 +57,7 @@ public class Problems {
         }
     }
 
-    private static <S> ControlSignals.ControlSignal getControlSignal(Memory<S> sMemory) {
+    private static ControlSignals.ControlSignal getControlSignal(Memory sMemory) {
         try {
             ControlSignals.ControlSignal controlSignal = controlSignal(sMemory).get();
             System.out.println("\uD83E\uDDE0 Generated control signal: " + truncateText(controlSignal.value));
@@ -70,7 +70,7 @@ public class Problems {
     }
 
     @Nullable
-    private static <S> Critiques.Critique getCritique(Solutions.Solution<S> result, Memory<S> updatedMemory) {
+    private static Critiques.Critique getCritique(Solutions.Solution result, Memory updatedMemory) {
         try {
             return critique(updatedMemory, result).get();
         } catch (Exception e) {
@@ -80,23 +80,23 @@ public class Problems {
         }
     }
 
-    static class Memory<A> implements AutoCloseable {
+    static class Memory implements AutoCloseable {
 
         public Problem problem;
-        public List<Solutions.Solution<A>> history;
+        public List<Solutions.Solution> history;
 
         private static AIScope aiScope = null;
 
-        public Memory(Problem problem, List<Solutions.Solution<A>> history) {
+        public Memory(Problem problem, List<Solutions.Solution> history) {
             this.problem = problem;
             this.history = history;
             checkAIScope();
         }
 
-        public Memory<A> addResult(Solutions.Solution<A> result) {
-            List<Solutions.Solution<A>> historyUpdate = Stream.concat(this.history.stream(), Stream.of(result)).toList();
+        public Memory addResult(Solutions.Solution result) {
+            List<Solutions.Solution> historyUpdate = Stream.concat(this.history.stream(), Stream.of(result)).toList();
             checkAIScope();
-            return new Memory<>(this.problem, historyUpdate);
+            return new Memory(this.problem, historyUpdate);
         }
 
         private static void checkAIScope() {

@@ -22,7 +22,7 @@ public class Rendering {
         return answer.replace("\n", " ");
     }
 
-    public static <A> String renderHistory(Problems.Memory<A> memory){
+    public static String renderHistory(Problems.Memory memory){
         return trimMargin("   ```history \n\n" +
                 memory.history.stream()
                 .map(Rendering::renderHistoryItem)
@@ -30,7 +30,7 @@ public class Rendering {
                 "```");
     }
 
-    private static <S> String renderHistoryItem(Solutions.Solution<S> solution){
+    private static String renderHistoryItem(Solutions.Solution solution){
         return trimMargin(solution.answer + "\n" +
                 solution.reasoning + "\n" +
                 (solution.isValid ? "✅" : "❌") + "\n");
