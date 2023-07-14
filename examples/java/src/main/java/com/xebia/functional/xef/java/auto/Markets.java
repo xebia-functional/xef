@@ -34,7 +34,7 @@ public class Markets {
             LocalDateTime now = LocalDateTime.now();
             var currentDate = dtf.format(now);
 
-            scope.contextScope(scope.search(currentDate + "Stock market results, raising stocks, decreasing stocks").get(),
+            scope.contextScope(scope.search(currentDate + "Stock market results, raising stocks, decreasing stocks"),
                   Markets::stockMarketSummary).get();
         }
     }

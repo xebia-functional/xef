@@ -39,7 +39,7 @@ public class PDFDocument {
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         TextSplitter textSplitter = TokenTextSplitter(ModelType.getDEFAULT_SPLITTER_MODEL(), 100, 50);
         try (AIScope scope = new AIScope()) {
-            scope.contextScope(scope.pdf(PDF_URL, textSplitter).get(), PDFDocument::askQuestion).get();
+            scope.contextScope(scope.pdf(PDF_URL, textSplitter), PDFDocument::askQuestion).get();
         }
     }
 
