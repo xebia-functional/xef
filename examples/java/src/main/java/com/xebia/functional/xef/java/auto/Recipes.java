@@ -13,8 +13,8 @@ public class Recipes {
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         try (AIScope scope = new AIScope()) {
-            CompletableFuture<Recipe> recipe = scope.prompt("Recipe for chocolate chip cookies.", Recipe.class);
-            System.out.println("The recipe for " + recipe.get().name + " is " + recipe.get().ingredients );
+            Recipe recipe = scope.prompt("Recipe for chocolate chip cookies.", Recipe.class).get();
+            System.out.println("The recipe for " + recipe.name + " is " + recipe.ingredients );
         }
     }
 }
