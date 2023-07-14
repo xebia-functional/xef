@@ -9,7 +9,8 @@ class PromptConfiguration(
   val user: String = Role.USER.name,
   val temperature: Double = 0.4,
   val numberOfPredictions: Int = 1,
-  val docsInContext: Int = 20,
+  val docsInContext: Int = 5,
+  val memoryLimit: Int = 5,
   val minResponseTokens: Int = 500,
   val streamToStandardOut: Boolean = false
 ) {
@@ -23,6 +24,7 @@ class PromptConfiguration(
       private var docsInContext: Int = 20
       private var minResponseTokens: Int = 500
       private var streamToStandardOut: Boolean = false
+      private var memoryLimit: Int = 5
 
       fun maxDeserializationAttempts(maxDeserializationAttempts: Int) = apply {
         this.maxDeserializationAttempts = maxDeserializationAttempts
@@ -46,15 +48,18 @@ class PromptConfiguration(
         this.minResponseTokens = minResponseTokens
       }
 
+      fun memoryLimit(memoryLimit: Int) = apply { this.memoryLimit = memoryLimit }
+
       fun build() =
         PromptConfiguration(
-          maxDeserializationAttempts,
-          user,
-          temperature,
-          numberOfPredictions,
-          docsInContext,
-          minResponseTokens,
-          streamToStandardOut
+          maxDeserializationAttempts = maxDeserializationAttempts,
+          user = user,
+          temperature = temperature,
+          numberOfPredictions = numberOfPredictions,
+          docsInContext = docsInContext,
+          memoryLimit = memoryLimit,
+          minResponseTokens = minResponseTokens,
+          streamToStandardOut = streamToStandardOut,
         )
     }
 

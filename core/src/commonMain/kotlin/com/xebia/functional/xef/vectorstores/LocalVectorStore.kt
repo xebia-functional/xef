@@ -2,6 +2,7 @@ package com.xebia.functional.xef.vectorstores
 
 import arrow.atomic.Atomic
 import arrow.atomic.getAndUpdate
+import arrow.atomic.update
 import com.xebia.functional.xef.embeddings.Embedding
 import com.xebia.functional.xef.embeddings.Embeddings
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingModel
@@ -9,11 +10,12 @@ import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
 import kotlin.math.sqrt
 
 private data class State(
+  val orderedMemories: Map<ConversationId, List<Memory>>,
   val documents: List<String>,
   val precomputedEmbeddings: Map<String, Embedding>
 ) {
   companion object {
-    fun empty(): State = State(emptyList(), emptyMap())
+    fun empty(): State = State(emptyMap(), emptyList(), emptyMap())
   }
 }
 
@@ -27,12 +29,25 @@ private constructor(private val embeddings: Embeddings, private val state: Atomi
   private val requestConfig =
     RequestConfig(EmbeddingModel.TEXT_EMBEDDING_ADA_002, RequestConfig.Companion.User("user"))
 
+  override suspend fun addMemories(memories: List<Memory>) {
+    state.update { prevState ->
+      prevState.copy(
+        orderedMemories = prevState.orderedMemories + memories.groupBy { it.conversationId }
+      )
+    }
+  }
+
+  override suspend fun memories(conversationId: ConversationId, limit: Int): List<Memory> {
+    val memories = state.get().orderedMemories[conversationId]
+    return memories?.take(limit).orEmpty()
+  }
+
   override suspend fun addTexts(texts: List<String>) {
     val embeddingsList =
       embeddings.embedDocuments(texts, chunkSize = null, requestConfig = requestConfig)
     state.getAndUpdate { prevState ->
       val newEmbeddings = prevState.precomputedEmbeddings + texts.zip(embeddingsList)
-      State(prevState.documents + texts, newEmbeddings)
+      State(prevState.orderedMemories, prevState.documents + texts, newEmbeddings)
     }
   }
 
