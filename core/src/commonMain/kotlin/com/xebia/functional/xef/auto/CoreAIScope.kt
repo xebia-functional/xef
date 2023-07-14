@@ -15,16 +15,18 @@ import com.xebia.functional.xef.vectorstores.VectorStore
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlin.jvm.JvmName
+import kotlin.jvm.JvmOverloads
 import kotlinx.uuid.UUID
 import kotlinx.uuid.generateUUID
-import kotlin.jvm.JvmOverloads
 
 /**
  * The [CoreAIScope] is the context in which [AI] values are run. It encapsulates all the
  * dependencies required to run [AI] values, and provides convenient syntax for writing [AI] based
  * programs.
  */
-class CoreAIScope @JvmOverloads constructor(
+class CoreAIScope
+@JvmOverloads
+constructor(
   val embeddings: Embeddings,
   val context: VectorStore = LocalVectorStore(embeddings),
   val conversationId: ConversationId = ConversationId(UUID.generateUUID().toString()),
