@@ -15,8 +15,12 @@ import kotlinx.serialization.json.Json
 interface SQL {
 
   companion object {
-    suspend fun <A> fromJdbcConfig(config: JdbcConfig, block: suspend SQL.() -> A): A = JDBCSQLImpl(config).use {
+    suspend fun <A> fromJdbcConfig(config: JdbcConfig, block: suspend SQL.() -> A) : A = JDBCSQLImpl(config).use {
       block(it)
+    }
+
+    fun fromJdbcConfigSync(config: JdbcConfig): SQL {
+      return JDBCSQLImpl(config)
     }
   }
 

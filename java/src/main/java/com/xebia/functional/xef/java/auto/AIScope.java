@@ -18,6 +18,7 @@ import com.xebia.functional.xef.llm.models.functions.CFunction;
 import com.xebia.functional.xef.llm.models.images.ImageGenerationUrl;
 import com.xebia.functional.xef.llm.models.images.ImagesGenerationResponse;
 import com.xebia.functional.xef.pdf.Loader;
+import com.xebia.functional.xef.sql.SQL;
 import com.xebia.functional.xef.textsplitters.TextSplitter;
 import com.xebia.functional.xef.vectorstores.LocalVectorStore;
 import com.xebia.functional.xef.vectorstores.VectorStore;
@@ -166,6 +167,10 @@ public class AIScope implements AutoCloseable {
 
     public CompletableFuture<List<String>> search(String prompt) {
         return future(continuation -> Search.search(prompt, continuation));
+    }
+
+    public CompletableFuture<String> getInterestingPromptsForDatabase(SQL sql) {
+        return FutureKt.future(continuation -> sql.getInterestingPromptsForDatabase(continuation));
     }
 
     private <A> CompletableFuture<A> future(Function1<? super Continuation<? super A>, ? extends Object> block) {
