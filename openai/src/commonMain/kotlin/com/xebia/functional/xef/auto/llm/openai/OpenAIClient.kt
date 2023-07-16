@@ -16,7 +16,9 @@ import com.aallam.openai.api.embedding.embeddingRequest
 import com.aallam.openai.api.image.ImageCreation
 import com.aallam.openai.api.image.ImageSize
 import com.aallam.openai.api.image.imageCreation
+import com.aallam.openai.api.logging.LogLevel
 import com.aallam.openai.api.model.ModelId
+import com.aallam.openai.client.LoggingConfig
 import com.aallam.openai.client.OpenAI as OpenAIClient
 import com.xebia.functional.tokenizer.Encoding
 import com.xebia.functional.tokenizer.ModelType
@@ -47,7 +49,7 @@ class OpenAIModel(
   override val modelType: ModelType
 ) : Chat, ChatWithFunctions, Images, Completion, Embeddings, AutoCloseable {
 
-  private val client = OpenAIClient(openAI.token)
+  private val client = OpenAIClient(token = openAI.token, logging = LoggingConfig(LogLevel.None))
 
   override suspend fun createCompletion(request: CompletionRequest): CompletionResult {
     fun completionChoice(it: OpenAIChoice): CompletionChoice =

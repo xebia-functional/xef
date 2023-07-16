@@ -11,6 +11,9 @@ import com.xebia.functional.xef.llm.models.functions.CFunction
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.vectorstores.ConversationId
 import com.xebia.functional.xef.vectorstores.VectorStore
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.json.Json
+import kotlinx.uuid.Serializer
 
 interface ChatWithFunctions : Chat {
 
@@ -20,10 +23,24 @@ interface ChatWithFunctions : Chat {
 
   @AiDsl
   suspend fun <A> prompt(
+    prompt: Prompt,
+    context: VectorStore,
+    serializer: KSerializer<A>,
+    conversationId: ConversationId? = null,
+    functions: List<CFunction> = emptyList(),
+    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS,
+  ): A {
+    return prompt(prompt, context, conversationId, functions, { json ->
+      Json.decodeFromString(serializer, json)
+    }, promptConfiguration)
+  }
+
+  @AiDsl
+  suspend fun <A> prompt(
     prompt: String,
     context: VectorStore,
     conversationId: ConversationId? = null,
-    functions: List<CFunction>,
+    functions: List<CFunction> = emptyList(),
     serializer: (json: String) -> A,
     promptConfiguration: PromptConfiguration,
   ): A {
@@ -43,7 +60,7 @@ interface ChatWithFunctions : Chat {
     prompt: Prompt,
     context: VectorStore,
     conversationId: ConversationId? = null,
-    functions: List<CFunction>,
+    functions: List<CFunction> = emptyList(),
     serializer: (json: String) -> A,
     promptConfiguration: PromptConfiguration,
   ): A {
