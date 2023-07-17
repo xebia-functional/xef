@@ -18,13 +18,13 @@ suspend fun promptStreaming(
 ): List<String> {
     val promptStreaming = gpt4all.promptStreaming(Prompt(question), context, null, emptyList(), promptConfiguration)
 
-    val list: MutableList<String> = mutableListOf()
+    val answer: MutableList<String> = mutableListOf()
     promptStreaming.onCompletion {
         println("\n🤖 Done")
     }.collect {
+        answer.add(it)
         System.out.print(it)
-        list.add(it)
     }
 
-    return list
+    return answer
 }

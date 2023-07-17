@@ -24,7 +24,6 @@ import com.xebia.functional.xef.textsplitters.TextSplitter;
 import com.xebia.functional.xef.vectorstores.LocalVectorStore;
 import com.xebia.functional.xef.vectorstores.VectorStore;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -129,8 +128,6 @@ public class AIScope implements AutoCloseable {
     }
 
     public CompletableFuture<List<String>> promptStreaming(GPT4All gpt4all, String line, VectorStore context, PromptConfiguration promptConfiguration) {
-        List<CFunction> list = new ArrayList<>();
-        //return future(continuation -> gpt4all.promptStreaming(line, context, null, CollectionsKt.emptyList(), promptConfiguration, continuation));
         return future(continuation -> KotlinPort.promptStreaming(gpt4all, line, context, promptConfiguration, continuation));
     }
 
