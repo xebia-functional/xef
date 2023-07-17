@@ -84,7 +84,7 @@ import com.xebia.functional.xef.auto.*
 @Serializable
 data class Book(val title: String, val author: String)
 
-suspend fun AIScope.books(topic: String): List<Book> {
+suspend fun AIScope.books(topic: String): AI<List<Book>> {
   val prompt = buildPrompt {
     + "Give me a selection of books about the following topic:"
     + topic
@@ -108,7 +108,7 @@ often want to supplement the LLM with more data:
 - Non-public information, for example for summarizing a piece of text you're creating
   within you organization.
 
-These additional pieces of information are called the _context_ in xef.ai, and are attached
+These additional pieces of information are called the _contextScope_ in xef.ai, and are attached
 to every question to the LLM. Although you can add arbitrary strings to the context at any
 point, the most common mode of usage is using an _agent_ to consult an external service,
 and make its response part of the context. One such agent is `search`, which uses a web
@@ -117,8 +117,8 @@ search service to enrich that context.
 ```kotlin
 import com.xebia.functional.xef.auto.*
 
-suspend fun AIScope.whatToWear(place: String): List<String> =
-  context(search("Weather in $place")) {
+suspend fun AIScope.whatToWear(place: String): String =
+  contextScope(search("Weather in $place")) {
     promptMessage("Knowing this forecast, what clothes do you recommend I should wear?")
   }
 ```
@@ -136,5 +136,5 @@ suspend fun AIScope.whatToWear(place: String): List<String> =
 > import com.xebia.functional.xef.vectorstores
 > 
 > suspend fun AIScope.books(topic: String): List<Book> =
->   withContextStore(InMemoryLuceneBuilder(LUCENE_PATH)) { /* do stuff */ }
+>   contextScope(InMemoryLuceneBuilder(LUCENE_PATH)) { /* do stuff */ }
 > ```

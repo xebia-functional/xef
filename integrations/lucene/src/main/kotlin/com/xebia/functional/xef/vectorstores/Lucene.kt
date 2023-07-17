@@ -129,6 +129,7 @@ class DirectoryLucene(
   }
 }
 
+@JvmOverloads
 fun InMemoryLucene(
   path: Path,
   writerConfig: IndexWriterConfig = IndexWriterConfig(),
@@ -136,12 +137,13 @@ fun InMemoryLucene(
   similarity: VectorSimilarityFunction = VectorSimilarityFunction.EUCLIDEAN
 ): DirectoryLucene = DirectoryLucene(MMapDirectory(path), writerConfig, embeddings, similarity)
 
+@JvmOverloads
 fun InMemoryLuceneBuilder(
   path: Path,
   useAIEmbeddings: Boolean = true,
   writerConfig: IndexWriterConfig = IndexWriterConfig(),
   similarity: VectorSimilarityFunction = VectorSimilarityFunction.EUCLIDEAN
-): suspend (Embeddings) -> DirectoryLucene = { embeddings ->
+): (Embeddings) -> DirectoryLucene = { embeddings ->
   InMemoryLucene(path, writerConfig, embeddings.takeIf { useAIEmbeddings }, similarity)
 }
 

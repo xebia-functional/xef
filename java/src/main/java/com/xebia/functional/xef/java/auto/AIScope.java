@@ -19,18 +19,18 @@ import com.xebia.functional.xef.llm.models.images.ImageGenerationUrl;
 import com.xebia.functional.xef.llm.models.images.ImagesGenerationResponse;
 import com.xebia.functional.xef.pdf.Loader;
 import com.xebia.functional.xef.textsplitters.TextSplitter;
-import com.xebia.functional.xef.vectorstores.ConversationId;
 import com.xebia.functional.xef.vectorstores.LocalVectorStore;
 import com.xebia.functional.xef.vectorstores.VectorStore;
+
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import kotlin.collections.CollectionsKt;
 import kotlin.coroutines.Continuation;
 import kotlin.jvm.functions.Function1;
@@ -62,12 +62,16 @@ public class AIScope implements AutoCloseable {
         SchemaGeneratorConfig config = configBuilder.build();
         this.schemaGenerator = new SchemaGenerator(config);
         VectorStore vectorStore = new LocalVectorStore(embeddings);
-        ConversationId conversationId = new ConversationId(UUID.randomUUID().toString());
-        this.scope = new CoreAIScope(embeddings, vectorStore, conversationId);
+        this.scope = new CoreAIScope(embeddings, vectorStore);
     }
 
     public AIScope(Embeddings embeddings, ExecutorService executorService) {
         this(new ObjectMapper(), embeddings, executorService);
+    }
+
+
+    public AIScope(ExecutorService executorService) {
+        this(new ObjectMapper(), new OpenAIEmbeddings(OpenAI.DEFAULT_EMBEDDING), executorService);
     }
 
     public AIScope() {
@@ -115,6 +119,29 @@ public class AIScope implements AutoCloseable {
 
     public CompletableFuture<List<String>> promptMessages(Chat llmModel, String prompt, List<CFunction> functions, PromptConfiguration promptConfiguration) {
         return future(continuation -> scope.promptMessages(llmModel, prompt, functions, promptConfiguration, continuation));
+    }
+
+    public <A> CompletableFuture<A> contextScope(Function1<Embeddings, VectorStore> store, Function1<AIScope, CompletableFuture<A>> f) {
+        return future(continuation -> scope.contextScope(store.invoke(scope.getEmbeddings()), (coreAIScope, continuation1) -> {
+            AIScope nestedScope = new AIScope(coreAIScope, AIScope.this);
+            return FutureKt.await(f.invoke(nestedScope), continuation);
+        }, continuation));
+    }
+
+
+    public <A> CompletableFuture<A> contextScope(VectorStore store, Function1<AIScope, CompletableFuture<A>> f) {
+        return future(continuation -> scope.contextScope(store, (coreAIScope, continuation1) -> {
+            AIScope nestedScope = new AIScope(coreAIScope, AIScope.this);
+            return FutureKt.await(f.invoke(nestedScope), continuation);
+        }, continuation));
+    }
+
+    public <A> CompletableFuture<A> contextScope(CompletableFuture<List<String>> docs, Function1<AIScope, CompletableFuture<A>> f) {
+        return docs.thenCompose(d ->
+                future(continuation -> scope.contextScopeWithDocs(d, (coreAIScope, continuation1) -> {
+                    AIScope nestedScope = new AIScope(coreAIScope, AIScope.this);
+                    return FutureKt.await(f.invoke(nestedScope), continuation);
+                }, continuation)));
     }
 
     public <A> CompletableFuture<A> contextScope(List<String> docs, Function1<AIScope, CompletableFuture<A>> f) {
