@@ -8,7 +8,8 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 
 class StanceDetection(
   private val model: ChatWithFunctions,
-  private val scope: CoreAIScope
+  private val scope: CoreAIScope,
+  private val instructions: List<String> = emptyList()
 ) {
 
   private val logger = KotlinLogging.logger {}
@@ -16,11 +17,14 @@ class StanceDetection(
   suspend fun detectStance(text: String, target: String): StanceDetectionResult {
     logger.info { "🔍 Detecting stance of text: ${text.length} towards target: $target" }
     return callModel<StanceDetectionResult>(
-      model,
-      scope,
-      prompt = ExpertSystem(
-        system = "You are an expert in stance detection that can identify the stance of a given piece of text towards a specific target",
-        query = """|
+        model,
+        scope,
+        prompt =
+          ExpertSystem(
+            system =
+              "You are an expert in stance detection that can identify the stance of a given piece of text towards a specific target",
+            query =
+              """|
                 |Given the following text:
                 |```text
                 |${text}
@@ -29,14 +33,15 @@ class StanceDetection(
                 |```target
                 |${target}
                 |```
-            """.trimMargin(),
-        instructions = listOf(
-          "Identify the stance of the `text` towards the `target`",
-          "Your `RESPONSE` MUST be a `StanceDetectionResult` object, where the `stance` is one of `FAVOR`, `AGAINST`, `NEUTRAL`"
-        )
+            """
+                .trimMargin(),
+            instructions =
+              listOf(
+                "Identify the stance of the `text` towards the `target`",
+                "Your `RESPONSE` MUST be a `StanceDetectionResult` object, where the `stance` is one of `FAVOR`, `AGAINST`, `NEUTRAL`"
+              ) + instructions
+          )
       )
-    ).also {
-      logger.info { "🔍 Stance detection result: $it" }
-    }
+      .also { logger.info { "🔍 Stance detection result: $it" } }
   }
 }

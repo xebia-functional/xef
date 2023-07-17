@@ -8,7 +8,8 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 
 class FactChecking(
   private val model: ChatWithFunctions,
-  private val scope: CoreAIScope
+  private val scope: CoreAIScope,
+  private val instructions: List<String> = emptyList()
 ) {
 
   private val logger = KotlinLogging.logger {}
@@ -16,11 +17,14 @@ class FactChecking(
   suspend fun factCheck(statement: String, knownFacts: String): FactCheck {
     logger.info { "🔍 Fact-checking statement: $statement" }
     return callModel<FactCheck>(
-      model,
-      scope,
-      prompt = ExpertSystem(
-        system = "You are an expert in fact-checking that can verify the truthfulness of a statement based on the provided known facts",
-        query = """|
+        model,
+        scope,
+        prompt =
+          ExpertSystem(
+            system =
+              "You are an expert in fact-checking that can verify the truthfulness of a statement based on the provided known facts",
+            query =
+              """|
                 |Given the following known facts:
                 |```facts
                 |${knownFacts}
@@ -29,15 +33,15 @@ class FactChecking(
                 |```statement
                 |${statement}
                 |```
-            """.trimMargin(),
-        instructions = listOf(
-          "Fact-check the `statement` based on the `facts`",
-          "Your `RESPONSE` MUST be one of the following: `TRUE`, `FALSE`, `UNVERIFIABLE`"
-        )
+            """
+                .trimMargin(),
+            instructions =
+              listOf(
+                "Fact-check the `statement` based on the `facts`",
+                "Your `RESPONSE` MUST be one of the following: `TRUE`, `FALSE`, `UNVERIFIABLE`"
+              ) + instructions
+          )
       )
-    ).also {
-      logger.info { "🔍 Fact-check result: $it" }
-    }
+      .also { logger.info { "🔍 Fact-check result: $it" } }
   }
 }
-

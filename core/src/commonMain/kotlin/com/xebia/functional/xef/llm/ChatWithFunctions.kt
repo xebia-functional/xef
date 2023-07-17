@@ -8,12 +8,14 @@ import com.xebia.functional.xef.auto.PromptConfiguration
 import com.xebia.functional.xef.llm.models.chat.ChatCompletionRequestWithFunctions
 import com.xebia.functional.xef.llm.models.chat.ChatCompletionResponseWithFunctions
 import com.xebia.functional.xef.llm.models.functions.CFunction
+import com.xebia.functional.xef.llm.models.functions.encodeJsonSchema
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.vectorstores.ConversationId
 import com.xebia.functional.xef.vectorstores.VectorStore
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.json.Json
-import kotlinx.uuid.Serializer
 
 interface ChatWithFunctions : Chat {
 
@@ -21,18 +23,29 @@ interface ChatWithFunctions : Chat {
     request: ChatCompletionRequestWithFunctions
   ): ChatCompletionResponseWithFunctions
 
+  @OptIn(ExperimentalSerializationApi::class)
+  fun generateCFunction(descriptor: SerialDescriptor): List<CFunction> {
+    val fnName = descriptor.serialName.substringAfterLast(".")
+    return listOf(CFunction(fnName, "Generated function for $fnName", encodeJsonSchema(descriptor)))
+  }
+
   @AiDsl
   suspend fun <A> prompt(
     prompt: Prompt,
     context: VectorStore,
     serializer: KSerializer<A>,
     conversationId: ConversationId? = null,
-    functions: List<CFunction> = emptyList(),
+    functions: List<CFunction> = generateCFunction(serializer.descriptor),
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS,
   ): A {
-    return prompt(prompt, context, conversationId, functions, { json ->
-      Json.decodeFromString(serializer, json)
-    }, promptConfiguration)
+    return prompt(
+      prompt,
+      context,
+      conversationId,
+      functions,
+      { json -> Json.decodeFromString(serializer, json) },
+      promptConfiguration
+    )
   }
 
   @AiDsl

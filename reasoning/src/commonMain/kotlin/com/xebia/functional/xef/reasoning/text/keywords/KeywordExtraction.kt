@@ -8,7 +8,8 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 
 class KeywordExtraction(
   private val model: ChatWithFunctions,
-  private val scope: CoreAIScope
+  private val scope: CoreAIScope,
+  private val instructions: List<String> = emptyList()
 ) {
 
   private val logger = KotlinLogging.logger {}
@@ -16,23 +17,27 @@ class KeywordExtraction(
   suspend fun extractKeywords(text: String): KeywordExtractionResult {
     logger.info { "🔍 Extracting keywords from text: ${text.length}" }
     return callModel<KeywordExtractionResult>(
-      model,
-      scope,
-      prompt = ExpertSystem(
-        system = "You are an expert in keyword extraction that can identify and extract the key words or phrases from a piece of text",
-        query = """|
+        model,
+        scope,
+        prompt =
+          ExpertSystem(
+            system =
+              "You are an expert in keyword extraction that can identify and extract the key words or phrases from a piece of text",
+            query =
+              """|
                 |Given the following text:
                 |```text
                 |${text}
                 |```
-            """.trimMargin(),
-        instructions = listOf(
-          "Extract the key words or phrases from the `text`",
-          "Your `RESPONSE` MUST be a list of keywords or phrases"
-        )
+            """
+                .trimMargin(),
+            instructions =
+              listOf(
+                "Extract the key words or phrases from the `text`",
+                "Your `RESPONSE` MUST be a list of keywords or phrases"
+              ) + instructions
+          )
       )
-    ).also {
-      logger.info { "🔍 Keyword extraction result: $it" }
-    }
+      .also { logger.info { "🔍 Keyword extraction result: $it" } }
   }
 }

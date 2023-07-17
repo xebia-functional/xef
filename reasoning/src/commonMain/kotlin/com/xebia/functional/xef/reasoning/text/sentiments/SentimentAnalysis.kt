@@ -8,7 +8,8 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 
 class SentimentAnalysis(
   private val model: ChatWithFunctions,
-  private val scope: CoreAIScope
+  private val scope: CoreAIScope,
+  private val instructions: List<String> = emptyList()
 ) {
 
   private val logger = KotlinLogging.logger {}
@@ -16,23 +17,27 @@ class SentimentAnalysis(
   suspend fun analyzeSentiment(text: String): SentimentResult {
     logger.info { "🔍 Analyzing sentiment of text: ${text.length}" }
     return callModel<SentimentResult>(
-      model,
-      scope,
-      prompt = ExpertSystem(
-        system = "You are an expert sentiment analyzer that can classify a piece of text into positive, negative, or neutral sentiment",
-        query = """|
+        model,
+        scope,
+        prompt =
+          ExpertSystem(
+            system =
+              "You are an expert sentiment analyzer that can classify a piece of text into positive, negative, or neutral sentiment",
+            query =
+              """|
                 |Given the following text:
                 |```text
                 |${text}
                 |```
-            """.trimMargin(),
-        instructions = listOf(
-          "Analyze the `text` and determine the sentiment",
-          "Your `RESPONSE` MUST be one of the following: `POSITIVE`, `NEGATIVE`, `NEUTRAL`"
-        )
+            """
+                .trimMargin(),
+            instructions =
+              listOf(
+                "Analyze the `text` and determine the sentiment",
+                "Your `RESPONSE` MUST be one of the following: `POSITIVE`, `NEGATIVE`, `NEUTRAL`"
+              ) + instructions
+          )
       )
-    ).also {
-      logger.info { "🔍 Sentiment analysis result: $it" }
-    }
+      .also { logger.info { "🔍 Sentiment analysis result: $it" } }
   }
 }

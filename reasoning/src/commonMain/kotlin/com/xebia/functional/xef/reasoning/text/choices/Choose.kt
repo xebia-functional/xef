@@ -7,7 +7,7 @@ import com.xebia.functional.xef.reasoning.internals.callModel
 
 class Choose(
   private val model: ChatWithFunctions,
-  private val scope: CoreAIScope
+  private val scope: CoreAIScope,
 ) {
   suspend fun chooseBestOf(
     prompt: Prompt,
@@ -26,7 +26,8 @@ class Choose(
       |```choices
       |${choices.joinToString("\n")}
       |```
-    """.trimMargin()
+    """
+          .trimMargin()
       )
     )
 }

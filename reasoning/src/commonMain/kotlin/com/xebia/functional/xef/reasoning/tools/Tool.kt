@@ -5,8 +5,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Tool(
-  @Description(["The name of the tool"])
-  val name: String,
-  @Description(["The description of the tool"])
-  val description: String
+  @Description(["The name of the tool"]) val name: String,
+  @Description(["The description of the tool"]) val description: String
 )

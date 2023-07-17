@@ -5,6 +5,5 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ArgumentMiningResult(
-  @Description(["List of arguments mined from the text"])
-  val arguments: List<Argument>,
+  @Description(["List of arguments mined from the text"]) val arguments: List<Argument>,
 )

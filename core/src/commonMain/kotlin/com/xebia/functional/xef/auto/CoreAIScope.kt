@@ -111,8 +111,8 @@ constructor(
     return prompt(
       prompt = Prompt(prompt),
       context = context,
-      functions = functions,
       serializer = serializer,
+      functions = functions,
       promptConfiguration = promptConfiguration,
     )
   }

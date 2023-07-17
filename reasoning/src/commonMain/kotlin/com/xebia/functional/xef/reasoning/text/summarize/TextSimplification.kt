@@ -8,7 +8,8 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 
 class TextSimplification(
   private val model: ChatWithFunctions,
-  private val scope: CoreAIScope
+  private val scope: CoreAIScope,
+  private val instructions: List<String> = emptyList()
 ) {
 
   private val logger = KotlinLogging.logger {}
@@ -16,23 +17,27 @@ class TextSimplification(
   suspend fun simplifyText(text: String): SimplificationResult {
     logger.info { "🔍 Simplifying text: ${text.length}" }
     return callModel<SimplificationResult>(
-      model,
-      scope,
-      prompt = ExpertSystem(
-        system = "You are an expert in text simplification that can simplify a complex text into an easier to understand version",
-        query = """|
+        model,
+        scope,
+        prompt =
+          ExpertSystem(
+            system =
+              "You are an expert in text simplification that can simplify a complex text into an easier to understand version",
+            query =
+              """|
                 |Given the following text:
                 |```text
                 |${text}
                 |```
-            """.trimMargin(),
-        instructions = listOf(
-          "Simplify the `text`",
-          "Your `RESPONSE` MUST be a `SimplificationResult` object, where the `simplifiedText` is the simplified version of the input text"
-        )
+            """
+                .trimMargin(),
+            instructions =
+              listOf(
+                "Simplify the `text`",
+                "Your `RESPONSE` MUST be a `SimplificationResult` object, where the `simplifiedText` is the simplified version of the input text"
+              ) + instructions
+          )
       )
-    ).also {
-      logger.info { "🔍 Text simplification result: $it" }
-    }
+      .also { logger.info { "🔍 Text simplification result: $it" } }
   }
 }

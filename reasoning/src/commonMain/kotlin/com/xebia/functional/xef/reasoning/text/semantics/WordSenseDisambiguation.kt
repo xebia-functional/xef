@@ -8,7 +8,8 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 
 class WordSenseDisambiguation(
   private val model: ChatWithFunctions,
-  private val scope: CoreAIScope
+  private val scope: CoreAIScope,
+  private val instructions: List<String> = emptyList()
 ) {
 
   private val logger = KotlinLogging.logger {}
@@ -16,24 +17,27 @@ class WordSenseDisambiguation(
   suspend fun disambiguateSenses(text: String): WordSenses {
     logger.info { "🔍 Disambiguating word senses in text: $text" }
     return callModel<WordSenses>(
-      model,
-      scope,
-      prompt = ExpertSystem(
-        system = "You are an expert in word sense disambiguation that can identify the meaning of each word in a piece of text based on its context",
-        query = """|
+        model,
+        scope,
+        prompt =
+          ExpertSystem(
+            system =
+              "You are an expert in word sense disambiguation that can identify the meaning of each word in a piece of text based on its context",
+            query =
+              """|
                 |Given the following text:
                 |```text
                 |$text
                 |```
-            """.trimMargin(),
-        instructions = listOf(
-          "Identify the sense of each word in the `text`",
-          "Your `RESPONSE` MUST be a list of `WordSense` objects, where each object has the `word` and its `sense`"
-        )
+            """
+                .trimMargin(),
+            instructions =
+              listOf(
+                "Identify the sense of each word in the `text`",
+                "Your `RESPONSE` MUST be a list of `WordSense` objects, where each object has the `word` and its `sense`"
+              ) + instructions
+          )
       )
-    ).also {
-      logger.info { "🔍 Word sense disambiguation result: $it" }
-    }
+      .also { logger.info { "🔍 Word sense disambiguation result: $it" } }
   }
 }
-

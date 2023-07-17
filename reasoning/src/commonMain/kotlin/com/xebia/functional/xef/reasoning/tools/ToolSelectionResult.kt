@@ -5,6 +5,5 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ToolSelectionResult(
-  @Description(["The selected tool for the task"])
-  val tool: Tool,
+  @Description(["The selected tool for the task"]) val tool: Tool,
 )

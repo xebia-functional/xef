@@ -8,7 +8,8 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 
 class SemanticSimilarity(
   private val model: ChatWithFunctions,
-  private val scope: CoreAIScope
+  private val scope: CoreAIScope,
+  private val instructions: List<String> = emptyList()
 ) {
 
   private val logger = KotlinLogging.logger {}
@@ -16,11 +17,14 @@ class SemanticSimilarity(
   suspend fun evaluateSimilarity(text1: String, text2: String): SimilarityResult {
     logger.info { "🔍 Evaluating semantic similarity between two texts" }
     return callModel<SimilarityResult>(
-      model,
-      scope,
-      prompt = ExpertSystem(
-        system = "You are an expert in semantic similarity that can evaluate the similarity in meaning between two pieces of text",
-        query = """|
+        model,
+        scope,
+        prompt =
+          ExpertSystem(
+            system =
+              "You are an expert in semantic similarity that can evaluate the similarity in meaning between two pieces of text",
+            query =
+              """|
                 |Given the following texts:
                 |```text1
                 |${text1}
@@ -28,14 +32,15 @@ class SemanticSimilarity(
                 |```text2
                 |${text2}
                 |```
-            """.trimMargin(),
-        instructions = listOf(
-          "Evaluate the semantic similarity between `text1` and `text2`",
-          "Your `RESPONSE` MUST be a number between 0 (completely dissimilar) and 1 (completely similar)"
-        )
+            """
+                .trimMargin(),
+            instructions =
+              listOf(
+                "Evaluate the semantic similarity between `text1` and `text2`",
+                "Your `RESPONSE` MUST be a number between 0 (completely dissimilar) and 1 (completely similar)"
+              ) + instructions
+          )
       )
-    ).also {
-      logger.info { "🔍 Similarity result: $it" }
-    }
+      .also { logger.info { "🔍 Similarity result: $it" } }
   }
 }

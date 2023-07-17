@@ -8,7 +8,8 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 
 class LanguageDetection(
   private val model: ChatWithFunctions,
-  private val scope: CoreAIScope
+  private val scope: CoreAIScope,
+  private val instructions: List<String> = emptyList()
 ) {
 
   private val logger = KotlinLogging.logger {}
@@ -16,23 +17,27 @@ class LanguageDetection(
   suspend fun identifyLanguage(text: String): LanguageIdentificationResult {
     logger.info { "🔍 Identifying language of text: ${text.length}" }
     return callModel<LanguageIdentificationResult>(
-      model,
-      scope,
-      prompt = ExpertSystem(
-        system = "You are an expert in language identification that can identify the language of a given piece of text",
-        query = """|
+        model,
+        scope,
+        prompt =
+          ExpertSystem(
+            system =
+              "You are an expert in language identification that can identify the language of a given piece of text",
+            query =
+              """|
                 |Given the following text:
                 |```text
                 |${text}
                 |```
-            """.trimMargin(),
-        instructions = listOf(
-          "Identify the language of the `text`",
-          "Your `RESPONSE` MUST be a `LanguageIdentificationResult` object, where the `language` is the identified language of the input text"
-        )
+            """
+                .trimMargin(),
+            instructions =
+              listOf(
+                "Identify the language of the `text`",
+                "Your `RESPONSE` MUST be a `LanguageIdentificationResult` object, where the `language` is the identified language of the input text"
+              ) + instructions
+          )
       )
-    ).also {
-      logger.info { "🔍 Language identification result: $it" }
-    }
+      .also { logger.info { "🔍 Language identification result: $it" } }
   }
 }

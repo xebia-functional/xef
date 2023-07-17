@@ -7,7 +7,8 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 
 class CodeDocumentationGeneration(
   private val model: Chat,
-  private val scope: CoreAIScope
+  private val scope: CoreAIScope,
+  private val instructions: List<String> = emptyList()
 ) {
 
   private val logger = KotlinLogging.logger {}
@@ -18,19 +19,25 @@ class CodeDocumentationGeneration(
     val details = extractDetailsFromContent(content)
     val examples = extractExamplesFromContent(content)
 
-    return CodeDocumentation(title = "Code Documentation", outline = outline, details = details, examples = examples)
+    return CodeDocumentation(
+      title = "Code Documentation",
+      outline = outline,
+      details = details,
+      examples = examples
+    )
   }
 
   private suspend fun extractOutlineFromContent(content: String): String {
     logger.info { "Extracting outline from content" }
     return model.promptMessage(
       ExpertSystem(
-        system = "You are an expert in code documentation and can extract the outline from the provided content",
-        query = "Extract the outline from the following content:\n\n```\n$content\n```",
-        instructions = listOf(
-          "Your `RESPONSE` MUST be the outline of the code documentation"
+          system =
+            "You are an expert in code documentation and can extract the outline from the provided content",
+          query = "Extract the outline from the following content:\n\n```\n$content\n```",
+          instructions =
+            listOf("Your `RESPONSE` MUST be the outline of the code documentation") + instructions
         )
-      ).message,
+        .message,
       context = scope.context,
       conversationId = scope.conversationId
     )
@@ -40,12 +47,13 @@ class CodeDocumentationGeneration(
     logger.info { "Extracting details from content" }
     return model.promptMessage(
       ExpertSystem(
-        system = "You are an expert in code documentation and can extract the details from the provided content",
-        query = "Extract the details from the following content:\n\n```\n$content\n```",
-        instructions = listOf(
-          "Your `RESPONSE` MUST be the details of the code documentation"
+          system =
+            "You are an expert in code documentation and can extract the details from the provided content",
+          query = "Extract the details from the following content:\n\n```\n$content\n```",
+          instructions =
+            listOf("Your `RESPONSE` MUST be the details of the code documentation") + instructions
         )
-      ).message,
+        .message,
       context = scope.context,
       conversationId = scope.conversationId
     )
@@ -55,12 +63,15 @@ class CodeDocumentationGeneration(
     logger.info { "Extracting examples from content" }
     return model.promptMessage(
       ExpertSystem(
-        system = "You are an expert in code documentation and can extract the examples from the provided content",
-        query = "Extract the examples from the following content:\n\n```\n$content\n```",
-        instructions = listOf(
-          "Your `RESPONSE` MUST be a list of code examples inside triple backtick ``` code fences."
+          system =
+            "You are an expert in code documentation and can extract the examples from the provided content",
+          query = "Extract the examples from the following content:\n\n```\n$content\n```",
+          instructions =
+            listOf(
+              "Your `RESPONSE` MUST be a list of code examples inside triple backtick ``` code fences."
+            ) + instructions
         )
-      ).message,
+        .message,
       context = scope.context,
       conversationId = scope.conversationId
     )

@@ -6,4 +6,3 @@ data class CodeDocumentation(
   val details: String,
   val examples: String
 )
-

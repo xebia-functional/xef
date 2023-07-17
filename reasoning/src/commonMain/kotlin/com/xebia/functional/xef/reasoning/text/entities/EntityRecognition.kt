@@ -8,7 +8,8 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 
 class EntityRecognition(
   private val model: ChatWithFunctions,
-  private val scope: CoreAIScope
+  private val scope: CoreAIScope,
+  private val instructions: List<String> = emptyList()
 ) {
 
   private val logger = KotlinLogging.logger {}
@@ -16,11 +17,14 @@ class EntityRecognition(
   suspend fun recognizeEntities(text: String, entities: List<String>): EntityResults {
     logger.info { "🔍 Recognizing entities in text: ${text.length}" }
     return callModel<EntityResults>(
-      model,
-      scope,
-      prompt = ExpertSystem(
-        system = "You are an expert in entity recognition that can identify mentions of specific entities in a piece of text",
-        query = """|
+        model,
+        scope,
+        prompt =
+          ExpertSystem(
+            system =
+              "You are an expert in entity recognition that can identify mentions of specific entities in a piece of text",
+            query =
+              """|
                 |Given the following text:
                 |```text
                 |${text}
@@ -29,16 +33,15 @@ class EntityRecognition(
                 |```entities
                 |${entities.joinToString(", ")}
                 |```
-            """.trimMargin(),
-        instructions = listOf(
-          "Scan the `text` and identify mentions of the entities",
-          "Your `RESPONSE` MUST be a list of `EntityResult` objects, where each object has the `entity` and a shorted list of the `mentions` with up to 10 words in the text where the entity is mentioned"
-        )
+            """
+                .trimMargin(),
+            instructions =
+              listOf(
+                "Scan the `text` and identify mentions of the entities",
+                "Your `RESPONSE` MUST be a list of `EntityResult` objects, where each object has the `entity` and a shorted list of the `mentions` with up to 10 words in the text where the entity is mentioned"
+              ) + instructions
+          )
       )
-    ).also {
-      logger.info { "🔍 Entity recognition result: $it" }
-    }
+      .also { logger.info { "🔍 Entity recognition result: $it" } }
   }
 }
-
-
