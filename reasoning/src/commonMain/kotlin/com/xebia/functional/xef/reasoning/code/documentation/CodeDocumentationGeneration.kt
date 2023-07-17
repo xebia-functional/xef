@@ -3,15 +3,26 @@ package com.xebia.functional.xef.reasoning.code.documentation
 import com.xebia.functional.xef.auto.CoreAIScope
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.prompt.experts.ExpertSystem
+import com.xebia.functional.xef.reasoning.tools.Tool
+import com.xebia.functional.xef.reasoning.tools.ToolMetadata
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 class CodeDocumentationGeneration(
   private val model: Chat,
   private val scope: CoreAIScope,
   private val instructions: List<String> = emptyList()
-) {
+) : Tool<CodeDocumentation> {
 
   private val logger = KotlinLogging.logger {}
+
+  override val functions:
+    Map<ToolMetadata, suspend (input: String) -> Tool.Out<CodeDocumentation>> =
+    mapOf(
+      ToolMetadata(
+        name = "generateCodeDocumentation",
+        description = "Generate code documentation"
+      ) to ::generateCodeDocumentation
+    )
 
   suspend fun generateCodeDocumentation(content: String): CodeDocumentation {
     logger.info { "🔍 Generating code documentation" }

@@ -43,8 +43,24 @@ class Code(
   @JvmField val testGeneration: TestGeneration = TestGeneration(serializationModel, scope),
   @JvmField
   val vulnerabilityScanning: VulnerabilityScanning =
-    VulnerabilityScanning(serializationModel, scope)
+    VulnerabilityScanning(serializationModel, scope),
 ) {
+
+  val tools =
+    listOf(
+      antiPatternDetection,
+      apiUsageExampleGeneration,
+      bugDetection,
+      commentAnalyzer,
+      coreDocumentationGeneration,
+      duplicateCodeDetection,
+      performanceOptimization,
+      codeRefactoring,
+      codeBreakdown,
+      testGeneration,
+      vulnerabilityScanning
+    )
+
   companion object {
 
     @JvmStatic

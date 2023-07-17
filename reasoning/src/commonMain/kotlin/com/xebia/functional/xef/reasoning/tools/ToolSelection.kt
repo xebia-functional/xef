@@ -9,12 +9,25 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 class ToolSelection(
   private val model: ChatWithFunctions,
   private val scope: CoreAIScope,
+  private val tools: List<Tool<*>>,
+  val functions: Map<ToolMetadata, suspend (input: String) -> Tool.Out<*>> =
+    tools
+      .flatMap { tool -> tool.functions.map { function -> function.key to function.value } }
+      .toMap(),
   private val instructions: List<String> = emptyList()
 ) {
 
   private val logger = KotlinLogging.logger {}
 
-  suspend fun selectTool(task: String, tools: List<Tool>): ToolSelectionResult {
+  suspend inline fun <reified A> applyFunction(task: String): A? =
+    selectTool(task).let { toolSelectionResult ->
+      functions[toolSelectionResult.toolMetadata]?.invoke(task)?.let {
+        val output = it.toolOutput(toolSelectionResult.toolMetadata)
+        output.valueOrNull<A>()
+      }
+    }
+
+  suspend fun selectTool(task: String): ToolSelectionResult {
     logger.info { "🔍 Selecting tool for task: $task" }
     return callModel<ToolSelectionResult>(
         model,
@@ -31,7 +44,7 @@ class ToolSelection(
                 |```
                 |And the following tools:
                 |```tools
-                |${tools.joinToString("\n") { "${it.name}: ${it.description}" }}
+                |${functions.keys.joinToString("\n") { "${it.name}: ${it.description}" }}
                 |```
             """
                 .trimMargin(),

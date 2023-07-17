@@ -4,6 +4,7 @@ import com.xebia.functional.xef.auto.Description
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class ToolSelectionResult(
-  @Description(["The selected tool for the task"]) val toolMetadata: ToolMetadata,
+data class ToolMetadata(
+  @Description(["The name of the tool"]) val name: String,
+  @Description(["The description of the tool"]) val description: String
 )

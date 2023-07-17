@@ -4,15 +4,30 @@ import com.xebia.functional.xef.auto.CoreAIScope
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.prompt.experts.ExpertSystem
 import com.xebia.functional.xef.reasoning.internals.callModel
+import com.xebia.functional.xef.reasoning.tools.Tool
+import com.xebia.functional.xef.reasoning.tools.ToolMetadata
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 class APIUsageExampleGeneration(
   private val model: ChatWithFunctions,
   private val scope: CoreAIScope,
   private val instructions: List<String> = emptyList()
-) {
+) : Tool<APIUsageExampleGenerationResult> {
 
   private val logger = KotlinLogging.logger {}
+
+  override val functions:
+    Map<ToolMetadata, suspend (input: String) -> Tool.Out<APIUsageExampleGenerationResult>> =
+    mapOf(
+      ToolMetadata(
+        name = "generateUsageExamples",
+        description = "Generate usage examples for a list of APIs"
+      ) to ::generateUsageExamples
+    )
+
+  suspend fun generateUsageExamples(api: String): APIUsageExampleGenerationResult {
+    return generateUsageExamples(listOf(api))
+  }
 
   suspend fun generateUsageExamples(apis: List<String>): APIUsageExampleGenerationResult {
     logger.info { "🔍 Generating API usage examples" }

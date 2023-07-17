@@ -4,15 +4,24 @@ import com.xebia.functional.xef.auto.CoreAIScope
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.prompt.experts.ExpertSystem
 import com.xebia.functional.xef.reasoning.internals.callModel
+import com.xebia.functional.xef.reasoning.tools.Tool
+import com.xebia.functional.xef.reasoning.tools.ToolMetadata
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 class PerformanceOptimization(
   private val model: ChatWithFunctions,
   private val scope: CoreAIScope,
   private val instructions: List<String> = emptyList()
-) {
+) : Tool<PerformanceOptimizationResult> {
 
   private val logger = KotlinLogging.logger {}
+
+  override val functions:
+    Map<ToolMetadata, suspend (input: String) -> Tool.Out<PerformanceOptimizationResult>> =
+    mapOf(
+      ToolMetadata(name = "optimizePerformance", description = "Optimize code performance") to
+        ::optimizePerformance
+    )
 
   suspend fun optimizePerformance(code: String): PerformanceOptimizationResult {
     logger.info { "🔍 Optimizing code performance" }

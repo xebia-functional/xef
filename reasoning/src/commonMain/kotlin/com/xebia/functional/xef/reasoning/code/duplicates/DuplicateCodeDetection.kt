@@ -2,20 +2,28 @@ import com.xebia.functional.xef.auto.CoreAIScope
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.prompt.experts.ExpertSystem
 import com.xebia.functional.xef.reasoning.internals.callModel
+import com.xebia.functional.xef.reasoning.tools.Tool
+import com.xebia.functional.xef.reasoning.tools.ToolMetadata
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 class DuplicateCodeDetection(
   private val model: ChatWithFunctions,
   private val scope: CoreAIScope,
   private val instructions: List<String> = emptyList()
-) {
+) : Tool<DuplicateCodeDetectionResult> {
 
   private val logger = KotlinLogging.logger {}
 
-  suspend fun findDuplicateCode(
-    sourceCode: String,
-    similarityThreshold: Double
-  ): DuplicateCodeDetectionResult {
+  override val functions:
+    Map<ToolMetadata, suspend (input: String) -> Tool.Out<DuplicateCodeDetectionResult>> =
+    mapOf(
+      ToolMetadata(
+        name = "findDuplicateCode",
+        description = "Find duplicate code within the source"
+      ) to ::findDuplicateCode
+    )
+
+  suspend fun findDuplicateCode(sourceCode: String): DuplicateCodeDetectionResult {
     logger.info { "🔍 Finding duplicate code within the source" }
     return callModel<DuplicateCodeDetectionResult>(
         model,
