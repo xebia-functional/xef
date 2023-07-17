@@ -12,8 +12,6 @@ import com.xebia.functional.xef.vectorstores.CombinedVectorStore
 import com.xebia.functional.xef.vectorstores.ConversationId
 import com.xebia.functional.xef.vectorstores.LocalVectorStore
 import com.xebia.functional.xef.vectorstores.VectorStore
-import io.github.oshai.kotlinlogging.KLogger
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlin.jvm.JvmName
 import kotlin.jvm.JvmOverloads
 import kotlinx.uuid.UUID
@@ -31,8 +29,6 @@ constructor(
   val context: VectorStore = LocalVectorStore(embeddings),
   val conversationId: ConversationId = ConversationId(UUID.generateUUID().toString()),
 ) {
-
-  val logger: KLogger = KotlinLogging.logger {}
 
   /**
    * Allows invoking [AI] values in the context of this [CoreAIScope].
