@@ -41,6 +41,8 @@ class ScalaPublishingConventionsPlugin : Plugin<Project> {
           artifactId = basePluginExtension.archivesName.get() + scala3Suffix
           from(components["java"])
           artifact(scaladocJarTask)
+
+          pomConfiguration(project)
         }
       }
     }
