@@ -47,7 +47,7 @@ strategies.
 
 Libraries are published in Maven Central, under the `com.xebia` group.
 
-1. `xef-core` for Kotlin support, `xef-scala` for Scala.
+1. `xef-kotlin` for Kotlin support, `xef-scala` for Scala, `xef-java` for Java.
 2. The name of a library we provide integration for, like `xef-lucene`.
 
 <details>
@@ -67,7 +67,7 @@ Then add the library in the usual way.
 ```kotlin
 // In Gradle Kotlin 
 dependencies {
-    implementation("com.xebia:xef-core:<version>")
+    implementation("com.xebia:xef-kotlin:<version>")
 }
 ```
 
@@ -99,7 +99,7 @@ in your build, if you haven't done it before.
 ```xml
 <dependency>
    <groupId>com.xebia</groupId>
-   <artifactId>xef-core</artifactId>
+   <artifactId>xef-java</artifactId>
    <version>x.x.x</version>
    <type>pom</type>
    <scope>runtime</scope>
