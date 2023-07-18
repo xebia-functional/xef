@@ -1,9 +1,10 @@
 package com.xebia.functional.xef.java.auto.sql;
 
+import com.xebia.functional.xef.auto.PromptConfiguration;
 import com.xebia.functional.xef.auto.llm.openai.OpenAI;
 import com.xebia.functional.xef.auto.llm.openai.OpenAIModel;
+import com.xebia.functional.xef.java.auto.AIDatabase;
 import com.xebia.functional.xef.java.auto.AIScope;
-import com.xebia.functional.xef.sql.SQL;
 import com.xebia.functional.xef.sql.jdbc.JdbcConfig;
 import org.jetbrains.annotations.NotNull;
 
@@ -11,6 +12,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 public class DatabaseExample {
@@ -36,22 +38,22 @@ public class DatabaseExample {
     public static void main(String[] args) throws ExecutionException, InterruptedException {
 
         try (AIScope scope = new AIScope()) {
-            SQL sql = SQL.Companion.fromJdbcConfigSync(getJdbcConfig());
+            AIDatabase database = new AIDatabase(scope, getJdbcConfig());
             System.out.println("llmdb> Welcome to the LLMDB (An LLM interface to your SQL Database) !");
             System.out.println("llmdb> You can ask me questions about the database and I will try to answer them.");
             System.out.println("llmdb> You can type `exit` to exit the program.");
             System.out.println("llmdb> Loading recommended prompts...");
 
-            System.out.println(scope.getInterestingPromptsForDatabase(sql).get());
+            System.out.println(database.getInterestingPromptsForDatabase().get());
 
             while(true){
                 System.out.println("user> ");
                 String input = readLine();
-                if (input == "exit") break;
+                if (input.equals("exit")) break;
 
                 try {
-                    //TODO: Fix this
-                    Object result = MODEL.promptMessage("|\n" +
+                    //TODO: Fix this, add docsInContext(50)
+                    CompletableFuture<String> result = scope.promptMessage(MODEL, "|\n" +
                             "                You are a database assistant that helps users to query and summarize results from the database.\n" +
                             "                Instructions:\n" +
                             "                1. Summarize the information provided in the `Context` and follow to step 2.\n" +
@@ -60,8 +62,8 @@ public class DatabaseExample {
                             "                " + input + " \n" +
                             "                ```\n" +
                             "                3. Try to answer and provide information with as much detail as you can\n" +
-                            "              ", null, null, null, null);
-                    for (char c : String.valueOf(result).toCharArray()) {
+                            "              ", PromptConfiguration.DEFAULTS);
+                    for (char c : String.valueOf(result.get()).toCharArray()) {
                         System.out.println("llmdb> " + c);
                     }
                 }
