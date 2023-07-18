@@ -170,7 +170,7 @@ public class AIScope implements AutoCloseable {
     }
 
     public CompletableFuture<String> getInterestingPromptsForDatabase(SQL sql) {
-        return FutureKt.future(continuation -> sql.getInterestingPromptsForDatabase(continuation));
+        return future(continuation -> sql.getInterestingPromptsForDatabase(scope, continuation));
     }
 
     private <A> CompletableFuture<A> future(Function1<? super Continuation<? super A>, ? extends Object> block) {
