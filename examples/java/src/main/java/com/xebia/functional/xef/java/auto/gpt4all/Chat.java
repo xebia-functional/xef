@@ -25,7 +25,7 @@ public class Chat {
         });
 
         var url = "https://huggingface.co/nomic-ai/ggml-replit-code-v1-3b/resolve/main/ggml-replit-code-v1-3b.bin";
-        var modelPath= Path.of(path);
+        var modelPath = Path.of(path);
         var gpt4all = GPT4All.Companion.invoke(url, modelPath);
 
         System.out.println("🤖 GPT4All loaded: " + gpt4all);
@@ -37,16 +37,17 @@ public class Chat {
         try (AIScope scope = new AIScope()) {
             System.out.println("🤖 Context loaded: " + scope.getContext());
 
+            BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+
             while(true){
                 System.out.println("\n🤖 Enter your question: ");
 
-                BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
                 String line = br.readLine();
                 if (line == null || line.isBlank()) {
                     break;
                 }else{
-                    var promptConfiguration = PromptConfiguration.Companion.buildWithParams(2, true);
-                    List<String> answer = scope.promptStreaming(gpt4all, line, scope.getContext(), promptConfiguration).get();
+                    var promptConfiguration = new PromptConfiguration.Companion.Builder().docsInContext(2).streamToStandardOut(true).build();
+                    List<String> answer = scope.promptStreaming(gpt4all, line, promptConfiguration).get();
 
                     answer.forEach(it -> {
                         System.out.print(it);

@@ -127,8 +127,8 @@ public class AIScope implements AutoCloseable {
         return future(continuation -> scope.promptMessages(llmModel, prompt, functions, promptConfiguration, continuation));
     }
 
-    public CompletableFuture<List<String>> promptStreaming(GPT4All gpt4all, String line, VectorStore context, PromptConfiguration promptConfiguration) {
-        return future(continuation -> KotlinPort.promptStreaming(gpt4all, line, context, promptConfiguration, continuation));
+    public CompletableFuture<List<String>> promptStreaming(GPT4All gpt4all, String line, PromptConfiguration promptConfiguration) {
+        return future(continuation -> KotlinPort.promptStreaming(gpt4all, line, this.context, promptConfiguration, continuation));
     }
 
     public <A> CompletableFuture<A> contextScope(Function1<Embeddings, VectorStore> store, Function1<AIScope, CompletableFuture<A>> f) {

@@ -67,8 +67,5 @@ class PromptConfiguration(
     operator fun invoke(block: Builder.() -> Unit) = Builder().apply(block).build()
 
     @JvmField val DEFAULTS = PromptConfiguration()
-
-    fun buildWithParams(docsInContext: Int, streamToStandardOut: Boolean) =
-      PromptConfiguration(docsInContext = docsInContext, streamToStandardOut = streamToStandardOut)
   }
 }

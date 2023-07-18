@@ -23,7 +23,7 @@ suspend fun promptStreaming(
         println("\n🤖 Done")
     }.collect {
         answer.add(it)
-        System.out.print(it)
+        print(it)
     }
 
     return answer
