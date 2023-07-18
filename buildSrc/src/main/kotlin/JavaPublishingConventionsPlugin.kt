@@ -11,16 +11,8 @@ import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.register
 import org.gradle.plugins.signing.SigningExtension
 
-class ScalaPublishingConventionsPlugin : Plugin<Project> {
+class JavaPublishingConventionsPlugin : Plugin<Project> {
   override fun apply(project: Project): Unit = project.run {
-    val scaladocJarTask: TaskProvider<Jar> = tasks.register<Jar>("scaladocJar") {
-      group = BasePlugin.BUILD_GROUP
-      tasks.findByName("scaladoc")?.let { dependsOn(it) }
-        ?: errorMessage("The scaladoc task was not found. The Javadoc jar file won't contain any documentation")
-      archiveClassifier.set("javadoc")
-      from("$buildDir/docs/scaladoc")
-    }
-
     val publishingExtension: PublishingExtension =
       extensions.findByType<PublishingExtension>()
         ?: throw IllegalStateException("The Maven Publish plugin is required to publish the build artifacts")
@@ -36,12 +28,7 @@ class ScalaPublishingConventionsPlugin : Plugin<Project> {
     publishingExtension.run {
       publications {
         register<MavenPublication>("maven") {
-          val scala3Suffix = "_3"
-
-          artifactId = basePluginExtension.archivesName.get() + scala3Suffix
           from(components["java"])
-          artifact(scaladocJarTask)
-
           pomConfiguration(project)
         }
       }
