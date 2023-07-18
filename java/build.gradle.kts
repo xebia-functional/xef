@@ -11,6 +11,7 @@ dependencies {
     api(projects.xefOpenai)
     api(projects.xefPdf)
     api(projects.xefSql)
+    api(libs.jdbc.mysql.connector)
     api(libs.jackson)
     api(libs.jackson.schema)
     api(libs.jackson.schema.jakarta)
