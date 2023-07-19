@@ -8,8 +8,17 @@ import arrow.atomic.update
  */
 interface AutoClose : AutoCloseable {
   fun <A : AutoCloseable> autoClose(autoCloseable: A): A
+}
 
-  companion object : AutoClose {
+/** DSL method to use AutoClose */
+fun <A> autoClose(block: AutoClose.() -> A): A =
+  autoClose().use(block)
+
+/**
+ * Constructor for AutoClose to be use for interface delegation of already scoped classes.
+ */
+fun autoClose(): AutoClose =
+  object : AutoClose {
     private val finalizers: Atomic<List<() -> Unit>> = Atomic(emptyList())
 
     override fun <A : AutoCloseable> autoClose(autoCloseable: A): A {
@@ -23,11 +32,6 @@ interface AutoClose : AutoCloseable {
       }?.let { throw it }
     }
   }
-}
-
-/** DSL method to use AutoClose */
-fun <A> autoClose(block: AutoClose.() -> A): A =
-  AutoClose.use(block)
 
 private fun Throwable?.add(other: Throwable?): Throwable? =
   this?.apply {
