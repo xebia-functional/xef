@@ -29,7 +29,7 @@ constructor(
   val embeddings: Embeddings,
   val context: VectorStore = LocalVectorStore(embeddings),
   val conversationId: ConversationId = ConversationId(UUID.generateUUID().toString())
-) : AutoCloseable, AutoClose by AutoClose() {
+) : AutoCloseable, AutoClose by AutoClose {
 
   /**
    * Allows invoking [AI] values in the context of this [CoreAIScope].

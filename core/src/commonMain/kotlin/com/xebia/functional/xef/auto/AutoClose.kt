@@ -8,30 +8,26 @@ import arrow.atomic.update
  */
 interface AutoClose : AutoCloseable {
   fun <A : AutoCloseable> autoClose(autoCloseable: A): A
-}
 
-/** DSL method to use AutoClose */
-fun <A> autoClose(block: AutoClose.() -> A): A =
-  AutoClose().use(block)
-
-/**
- * Constructor for AutoClose to be use for interface delegation of already scoped classes.
- */
-fun AutoClose(): AutoClose =
-  object : AutoClose {
+  companion object : AutoClose {
     private val finalizers: Atomic<List<() -> Unit>> = Atomic(emptyList())
 
-    fun <A : AutoCloseable> autoClose(autoCloseable: A): A {
+    override fun <A : AutoCloseable> autoClose(autoCloseable: A): A {
       finalizers.update { prev -> prev + autoCloseable::close }
       return autoCloseable
     }
 
-    fun close() {
+    override fun close() {
       finalizers.get().fold<() -> Unit, Throwable?>(null) { acc, function ->
         acc.add(runCatching { function.invoke() }.exceptionOrNull())
       }?.let { throw it }
     }
   }
+}
+
+/** DSL method to use AutoClose */
+fun <A> autoClose(block: AutoClose.() -> A): A =
+  AutoClose.use(block)
 
 private fun Throwable?.add(other: Throwable?): Throwable? =
   this?.apply {
