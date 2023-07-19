@@ -47,7 +47,7 @@ strategies.
 
 Libraries are published in Maven Central, under the `com.xebia` group.
 
-1. `xef-core` for Kotlin support, `xef-scala` for Scala.
+1. `xef-kotlin` for Kotlin support, `xef-scala` for Scala, `xef-java` for Java.
 2. The name of a library we provide integration for, like `xef-lucene`.
 
 <details>
@@ -67,7 +67,7 @@ Then add the library in the usual way.
 ```kotlin
 // In Gradle Kotlin 
 dependencies {
-    implementation("com.xebia:xef-core:<version>")
+    implementation("com.xebia:xef-kotlin:<version>")
 }
 ```
 
@@ -90,12 +90,31 @@ libraryDependencies += "com.xebia" %% "xef-scala" % "<version>"
 
 </details>
 
+<details>
+<summary><img src="https://en.wikipedia.org/wiki/Apache_Maven#/media/File:Apache_Maven_logo.svg" height="15px" alt="Maven logo"> Maven</summary>
+
+Libraries are published in Maven Central. You may need to  add that repository explicitly
+in your build, if you haven't done it before.
+
+```xml
+<dependency>
+   <groupId>com.xebia</groupId>
+   <artifactId>xef-java</artifactId>
+   <version>x.x.x</version>
+   <type>pom</type>
+   <scope>runtime</scope>
+</dependency>
+```
+
+</details>
+
 ## 📖 Quick Introduction
 
 In this small introduction we look at the main features of xef, including the `ai` function.
 
 - [<img src="https://upload.wikimedia.org/wikipedia/commons/3/37/Kotlin_Icon_2021.svg" height="15px" alt="Kotlin logo"> Kotlin version](https://github.com/xebia-functional/xef/blob/main/docs/intro/kotlin.md)
 - [<img src="https://www.scala-lang.org/resources/img/frontpage/scala-spiral.png" height="15px" alt="Scala logo"> Scala version](https://github.com/xebia-functional/xef/blob/main/docs/intro/scala.md)
+- [<img src="https://en.wikipedia.org/wiki/Java_(programming_language)#/media/File:Java_programming_language_logo.svg" height="15px" alt="Java logo"> Java version](https://github.com/xebia-functional/xef/blob/main/docs/intro/java.md)
 
 ## 🚀 Examples
 
@@ -103,3 +122,4 @@ You can also have a look at the examples to have a feeling of how using the libr
 
 - [<img src="https://upload.wikimedia.org/wikipedia/commons/3/37/Kotlin_Icon_2021.svg" height="15px" alt="Kotlin logo"> Examples in Kotlin](https://github.com/xebia-functional/xef/tree/main/examples/kotlin/src/main/kotlin/com/xebia/functional/xef/auto)
 - [<img src="https://www.scala-lang.org/resources/img/frontpage/scala-spiral.png" height="15px" alt="Scala logo"> Examples in Scala](https://github.com/xebia-functional/xef/tree/main/examples/scala/src/main/scala/com/xebia/functional/xef/scala/auto)
+- [<img src="https://en.wikipedia.org/wiki/Java_(programming_language)#/media/File:Java_programming_language_logo.svg" height="15px" alt="Java logo"> Examples in Java](https://github.com/xebia-functional/xef/tree/main/examples/java/src/main/java/com/xebia/functional/xef/java/auto)

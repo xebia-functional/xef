@@ -2,6 +2,9 @@
 
 plugins {
     `java-library`
+    `maven-publish`
+    signing
+    `xef-java-publishing-conventions`
     alias(libs.plugins.semver.gradle)
     alias(libs.plugins.spotless)
 }
@@ -16,6 +19,15 @@ dependencies {
     api(libs.jakarta.validation)
 }
 
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
 tasks.withType<Test>().configureEach {
     useJUnit()
+}
+
+tasks.withType<AbstractPublishToMaven> {
+    dependsOn(tasks.withType<Sign>())
 }
