@@ -19,7 +19,10 @@ public class AIDatabase {
     public CompletableFuture<String> getInterestingPromptsForDatabase() {
 
         return scope.getInterestingPromptsForDatabase(sql);
-//        return scope.future(continuation -> sql.getInterestingPromptsForDatabase(scope.contextScope(), continuation));
     }
 
+
+    public Object promptMessage(String question, Object context, Object o1, Object o2, Object o3) {
+        return null;
+    }
 }
