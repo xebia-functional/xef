@@ -27,7 +27,8 @@ suspend fun main() = ai {
     println("llmdb> You can type `exit` to exit the program.")
     println("llmdb> Loading recommended prompts...")
     val interestingPrompts = getInterestingPromptsForDatabase()
-    interestingPrompts.split("\n").forEach{ println("llmdb> $it") }
+    interestingPrompts.split("\n").forEach{ it -> println("llmdb> $it") }
+
 
     while (true) {
       // a cli chat with the content
