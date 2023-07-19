@@ -1,5 +1,7 @@
 package com.xebia.functional.xef.auto
 
+import arrow.atomic.Atomic
+import arrow.atomic.update
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.embeddings.Embeddings
 import com.xebia.functional.xef.llm.Chat
@@ -28,7 +30,7 @@ constructor(
   val embeddings: Embeddings,
   val context: VectorStore = LocalVectorStore(embeddings),
   val conversationId: ConversationId = ConversationId(UUID.generateUUID().toString()),
-) {
+) : AutoCloseable {
 
   /**
    * Allows invoking [AI] values in the context of this [CoreAIScope].
@@ -159,4 +161,22 @@ constructor(
     size: String = "1024x1024",
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
   ): ImagesGenerationResponse = images(prompt, context, numberImages, size, promptConfiguration)
+
+  private val finalizers: Atomic<List<() -> Unit>> = Atomic(emptyList())
+
+  fun <A : AutoCloseable> autoClose(autoCloseable: A): A {
+    finalizers.update { prev -> prev + autoCloseable::close }
+    return autoCloseable
+  }
+
+  override fun close() {
+    finalizers.get().fold<() -> Unit, Throwable?>(null) { acc, function ->
+      acc.add(runCatching { function.invoke() }.exceptionOrNull())
+    }?.let { throw it }
+  }
+
+  private fun Throwable?.add(other: Throwable?): Throwable? =
+    this?.apply {
+      other?.let { addSuppressed(it) }
+    } ?: other
 }
