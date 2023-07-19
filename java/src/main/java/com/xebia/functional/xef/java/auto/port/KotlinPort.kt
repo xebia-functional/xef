@@ -1,6 +1,6 @@
 @file:JvmName("KotlinPort")
 
-package com.xebia.functional.gpt4all.port
+package com.xebia.functional.xef.java.auto.port
 
 import com.xebia.functional.gpt4all.GPT4All
 import com.xebia.functional.xef.auto.AiDsl
@@ -16,19 +16,4 @@ suspend fun promptStreaming(
     question: String,
     context: VectorStore,
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-): Publisher<String> {
-    val promptStreaming = gpt4all.promptStreaming(Prompt(question), context, null, emptyList(), promptConfiguration)
-
-    return promptStreaming.asPublisher()
-
-//    val answer: MutableList<String> = mutableListOf()
-//    promptStreaming.asPublisher()
-//    promptStreaming.onCompletion {
-//        println("\n🤖 Done")
-//    }.collect {
-//        answer.add(it)
-//        print(it)
-//    }
-//
-//    return answer
-}
+): Publisher<String> = gpt4all.promptStreaming(Prompt(question), context, null, emptyList(), promptConfiguration).asPublisher()

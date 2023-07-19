@@ -36,10 +36,10 @@ public class Chat {
          * to provide embeddings for docs in contextScope.
          */
 
-        try (AIScope scope = new AIScope()) {
-            System.out.println("🤖 Context loaded: " + scope.getContext());
+        try (AIScope scope = new AIScope();
+              BufferedReader br = new BufferedReader(new InputStreamReader(System.in))) {
 
-            BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+            System.out.println("🤖 Context loaded: " + scope.getContext());
 
             while(true){
                 System.out.println("\n🤖 Enter your question: ");
@@ -51,22 +51,17 @@ public class Chat {
                     var promptConfiguration = new PromptConfiguration.Companion.Builder().docsInContext(2).streamToStandardOut(true).build();
                     Publisher<String> answer = scope.promptStreaming(gpt4all, line, promptConfiguration).get();
 
-//                    answer.forEach(it -> {
-//                        System.out.print(it);
-//                    });
-
                     answer.subscribe(new Subscriber<String>() {
                         StringBuilder answer = new StringBuilder();
                         @Override
                         public void onSubscribe(Subscription s) {
-                            System.out.println("\n🤖 --> " + s);
+                            System.out.print("\n🤖 --> " + s);
                             s.request(Long.MAX_VALUE);
                         }
 
                         @Override
                         public void onNext(String s) {
                             answer.append(s);
-                            //System.out.print("prueba = " + s);
                         }
 
                         @Override

@@ -64,7 +64,6 @@ kotlin {
       dependencies {
         implementation(libs.gpt4all.java.bindings)
         implementation(libs.ai.djl.huggingface.tokenizers)
-        implementation(libs.kotlinx.coroutines.reactive)
       }
     }
 

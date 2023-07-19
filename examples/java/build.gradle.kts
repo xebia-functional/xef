@@ -7,7 +7,6 @@ plugins {
 
 dependencies {
     implementation(projects.xefJava)
-    implementation(libs.kotlinx.coroutines.reactive)
 }
 
 tasks.withType<Test>().configureEach {
