@@ -6,11 +6,14 @@ import com.xebia.functional.xef.auto.llm.openai.OpenAIModel;
 import com.xebia.functional.xef.java.auto.AIDatabase;
 import com.xebia.functional.xef.java.auto.AIScope;
 import com.xebia.functional.xef.sql.jdbc.JdbcConfig;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -35,6 +38,12 @@ public class DatabaseExample {
         return jdbcConfig;
     }
 
+    static final Function1<? super PromptConfiguration.Companion.Builder, Unit> promptConfiguration =
+            (Function1<PromptConfiguration.Companion.Builder, Unit>) builder -> {
+                builder.docsInContext(50);
+                return Unit.INSTANCE;
+            };
+
     public static void main(String[] args) throws ExecutionException, InterruptedException {
 
         try (AIScope scope = new AIScope()) {
@@ -44,15 +53,15 @@ public class DatabaseExample {
             System.out.println("llmdb> You can type `exit` to exit the program.");
             System.out.println("llmdb> Loading recommended prompts...");
 
-            System.out.println(database.getInterestingPromptsForDatabase().get());
+            Arrays.stream(database.getInterestingPromptsForDatabase().get()
+                    .split("\n")).forEach(it -> System.out.println("llmdb> " + it));
 
-            while(true){
+            while (true) {
                 System.out.println("user> ");
                 String input = readLine();
                 if (input.equals("exit")) break;
 
                 try {
-                    //TODO: Fix this, add docsInContext(50)
                     CompletableFuture<String> result = scope.promptMessage(MODEL, "|\n" +
                             "                You are a database assistant that helps users to query and summarize results from the database.\n" +
                             "                Instructions:\n" +
@@ -62,12 +71,10 @@ public class DatabaseExample {
                             "                " + input + " \n" +
                             "                ```\n" +
                             "                3. Try to answer and provide information with as much detail as you can\n" +
-                            "              ", PromptConfiguration.DEFAULTS);
-                    for (char c : String.valueOf(result.get()).toCharArray()) {
-                        System.out.println("llmdb> " + c);
-                    }
-                }
-                catch (Exception e){
+                            "              ", PromptConfiguration.Companion.build(promptConfiguration));
+
+                    System.out.println(result.get());
+                } catch (Exception e) {
                     System.out.println("llmdb> " + e.getMessage());
                     e.printStackTrace();
                 }
