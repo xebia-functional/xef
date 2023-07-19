@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import org.reactivestreams.Publisher;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 import kotlin.collections.CollectionsKt;
@@ -127,7 +128,7 @@ public class AIScope implements AutoCloseable {
         return future(continuation -> scope.promptMessages(llmModel, prompt, functions, promptConfiguration, continuation));
     }
 
-    public CompletableFuture<List<String>> promptStreaming(GPT4All gpt4all, String line, PromptConfiguration promptConfiguration) {
+    public CompletableFuture<Publisher<String>> promptStreaming(GPT4All gpt4all, String line, PromptConfiguration promptConfiguration) {
         return future(continuation -> KotlinPort.promptStreaming(gpt4all, line, this.context, promptConfiguration, continuation));
     }
 

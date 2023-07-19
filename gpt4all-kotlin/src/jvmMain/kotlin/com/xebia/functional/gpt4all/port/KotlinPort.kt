@@ -7,7 +7,8 @@ import com.xebia.functional.xef.auto.AiDsl
 import com.xebia.functional.xef.auto.PromptConfiguration
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.vectorstores.VectorStore
-import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.reactive.asPublisher
+import org.reactivestreams.Publisher
 
 @AiDsl
 suspend fun promptStreaming(
@@ -15,16 +16,19 @@ suspend fun promptStreaming(
     question: String,
     context: VectorStore,
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-): List<String> {
+): Publisher<String> {
     val promptStreaming = gpt4all.promptStreaming(Prompt(question), context, null, emptyList(), promptConfiguration)
 
-    val answer: MutableList<String> = mutableListOf()
-    promptStreaming.onCompletion {
-        println("\n🤖 Done")
-    }.collect {
-        answer.add(it)
-        print(it)
-    }
+    return promptStreaming.asPublisher()
 
-    return answer
+//    val answer: MutableList<String> = mutableListOf()
+//    promptStreaming.asPublisher()
+//    promptStreaming.onCompletion {
+//        println("\n🤖 Done")
+//    }.collect {
+//        answer.add(it)
+//        print(it)
+//    }
+//
+//    return answer
 }

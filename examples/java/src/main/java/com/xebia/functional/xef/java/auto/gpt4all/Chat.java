@@ -8,9 +8,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 
 public class Chat {
     public static void main(String[] args) throws ExecutionException, InterruptedException, IOException {
@@ -47,10 +49,36 @@ public class Chat {
                     break;
                 }else{
                     var promptConfiguration = new PromptConfiguration.Companion.Builder().docsInContext(2).streamToStandardOut(true).build();
-                    List<String> answer = scope.promptStreaming(gpt4all, line, promptConfiguration).get();
+                    Publisher<String> answer = scope.promptStreaming(gpt4all, line, promptConfiguration).get();
 
-                    answer.forEach(it -> {
-                        System.out.print(it);
+//                    answer.forEach(it -> {
+//                        System.out.print(it);
+//                    });
+
+                    answer.subscribe(new Subscriber<String>() {
+                        StringBuilder answer = new StringBuilder();
+                        @Override
+                        public void onSubscribe(Subscription s) {
+                            System.out.println("\n🤖 --> " + s);
+                            s.request(Long.MAX_VALUE);
+                        }
+
+                        @Override
+                        public void onNext(String s) {
+                            answer.append(s);
+                            //System.out.print("prueba = " + s);
+                        }
+
+                        @Override
+                        public void onError(Throwable t) {
+                            System.out.println(t);
+                        }
+
+                        @Override
+                        public void onComplete() {
+                            System.out.println("\n🤖 --> " + answer.toString());
+                            System.out.println("\n🤖 --> Done");
+                        }
                     });
                 }
             }
