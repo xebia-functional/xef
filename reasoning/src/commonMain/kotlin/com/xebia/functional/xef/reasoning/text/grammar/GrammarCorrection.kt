@@ -38,6 +38,6 @@ class GrammarCorrection(
               ) + instructions
           )
       )
-      .also { logger.info { "🔍 Grammar correction result: $it" } }
+      
   }
 }

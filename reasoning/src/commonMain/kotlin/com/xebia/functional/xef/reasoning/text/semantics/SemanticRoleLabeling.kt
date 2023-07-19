@@ -38,6 +38,6 @@ class SemanticRoleLabeling(
               ) + instructions
           )
       )
-      .also { logger.info { "🔍 Semantic role labeling result: $it" } }
+      
   }
 }

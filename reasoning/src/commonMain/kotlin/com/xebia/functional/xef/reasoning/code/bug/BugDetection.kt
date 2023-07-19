@@ -6,6 +6,7 @@ import com.xebia.functional.xef.prompt.experts.ExpertSystem
 import com.xebia.functional.xef.reasoning.internals.callModel
 import com.xebia.functional.xef.reasoning.tools.Tool
 import com.xebia.functional.xef.reasoning.tools.ToolMetadata
+import com.xebia.functional.xef.reasoning.tools.ToolOutput
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 class BugDetection(
@@ -19,6 +20,9 @@ class BugDetection(
   override val functions:
     Map<ToolMetadata, suspend (input: String) -> Tool.Out<BugDetectionResult>> =
     mapOf(ToolMetadata(name = "detectBugs", description = "Detect bugs in code") to ::detectBugs)
+
+  override suspend fun handle(input: ToolOutput<Any?>): Tool.Out<BugDetectionResult> =
+    detectBugs(input.toOutputString())
 
   suspend fun detectBugs(code: String): BugDetectionResult {
     logger.info { "🔍 Detecting bugs in code of length: ${code.length}" }
@@ -43,6 +47,6 @@ class BugDetection(
             ) + instructions
         )
       )
-      .also { logger.info { "🔍 Bug detection result: $it" } }
+      
   }
 }

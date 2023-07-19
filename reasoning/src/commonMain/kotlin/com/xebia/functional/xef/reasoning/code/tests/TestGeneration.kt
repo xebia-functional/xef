@@ -6,6 +6,7 @@ import com.xebia.functional.xef.prompt.experts.ExpertSystem
 import com.xebia.functional.xef.reasoning.internals.callModel
 import com.xebia.functional.xef.reasoning.tools.Tool
 import com.xebia.functional.xef.reasoning.tools.ToolMetadata
+import com.xebia.functional.xef.reasoning.tools.ToolOutput
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 class TestGeneration(
@@ -22,6 +23,9 @@ class TestGeneration(
       ToolMetadata(name = "generateTestCases", description = "Generate test cases") to
         ::generateTestCases
     )
+
+  override suspend fun handle(input: ToolOutput<Any?>): Tool.Out<TestGenerationResult> =
+    generateTestCases(input.toOutputString())
 
   suspend fun generateTestCases(code: String): TestGenerationResult {
     logger.info { "🔍 Generating test cases for code: ${code.length}" }
@@ -65,6 +69,6 @@ class TestGeneration(
               ) + instructions
           ),
       )
-      .also { logger.info { "🔍 Test case generation result: $it" } }
+      
   }
 }

@@ -38,6 +38,6 @@ class LanguageDetection(
               ) + instructions
           )
       )
-      .also { logger.info { "🔍 Language identification result: $it" } }
+      
   }
 }

@@ -42,6 +42,6 @@ class EntityRecognition(
               ) + instructions
           )
       )
-      .also { logger.info { "🔍 Entity recognition result: $it" } }
+      
   }
 }

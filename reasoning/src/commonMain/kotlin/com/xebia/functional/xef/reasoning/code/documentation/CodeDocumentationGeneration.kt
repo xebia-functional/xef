@@ -5,6 +5,7 @@ import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.prompt.experts.ExpertSystem
 import com.xebia.functional.xef.reasoning.tools.Tool
 import com.xebia.functional.xef.reasoning.tools.ToolMetadata
+import com.xebia.functional.xef.reasoning.tools.ToolOutput
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 class CodeDocumentationGeneration(
@@ -23,6 +24,9 @@ class CodeDocumentationGeneration(
         description = "Generate code documentation"
       ) to ::generateCodeDocumentation
     )
+
+  override suspend fun handle(input: ToolOutput<Any?>): Tool.Out<CodeDocumentation> =
+    generateCodeDocumentation(input.toOutputString())
 
   suspend fun generateCodeDocumentation(content: String): CodeDocumentation {
     logger.info { "🔍 Generating code documentation" }

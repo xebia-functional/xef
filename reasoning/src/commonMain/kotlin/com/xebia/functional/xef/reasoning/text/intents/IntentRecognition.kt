@@ -38,6 +38,6 @@ class IntentRecognition(
               ) + instructions
           )
       )
-      .also { logger.info { "🔍 Intent recognition result: $it" } }
+      
   }
 }

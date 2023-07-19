@@ -41,6 +41,6 @@ class SemanticSimilarity(
               ) + instructions
           )
       )
-      .also { logger.info { "🔍 Similarity result: $it" } }
+      
   }
 }

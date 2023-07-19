@@ -38,6 +38,6 @@ class TopicModeling(
               ) + instructions
           )
       )
-      .also { logger.info { "🔍 Topic extraction result: $it" } }
+      
   }
 }

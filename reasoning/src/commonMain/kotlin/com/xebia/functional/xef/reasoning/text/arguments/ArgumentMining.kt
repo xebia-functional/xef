@@ -38,6 +38,6 @@ class ArgumentMining(
               ) + instructions
           ),
       )
-      .also { logger.info { "🔍 Argument mining result: $it" } }
+      
   }
 }

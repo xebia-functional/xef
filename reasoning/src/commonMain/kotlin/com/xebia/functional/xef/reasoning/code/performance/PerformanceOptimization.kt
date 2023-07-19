@@ -6,6 +6,7 @@ import com.xebia.functional.xef.prompt.experts.ExpertSystem
 import com.xebia.functional.xef.reasoning.internals.callModel
 import com.xebia.functional.xef.reasoning.tools.Tool
 import com.xebia.functional.xef.reasoning.tools.ToolMetadata
+import com.xebia.functional.xef.reasoning.tools.ToolOutput
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 class PerformanceOptimization(
@@ -22,6 +23,9 @@ class PerformanceOptimization(
       ToolMetadata(name = "optimizePerformance", description = "Optimize code performance") to
         ::optimizePerformance
     )
+
+  override suspend fun handle(input: ToolOutput<Any?>): Tool.Out<PerformanceOptimizationResult> =
+    optimizePerformance(input.toOutputString())
 
   suspend fun optimizePerformance(code: String): PerformanceOptimizationResult {
     logger.info { "🔍 Optimizing code performance" }
@@ -50,6 +54,6 @@ class PerformanceOptimization(
               ) + instructions
           )
       )
-      .also { logger.info { "🔍 Performance optimization result: $it" } }
+      
   }
 }

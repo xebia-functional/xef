@@ -38,6 +38,6 @@ class SentimentAnalysis(
               ) + instructions
           )
       )
-      .also { logger.info { "🔍 Sentiment analysis result: $it" } }
+      
   }
 }

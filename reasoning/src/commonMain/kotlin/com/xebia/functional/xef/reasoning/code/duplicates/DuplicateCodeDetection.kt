@@ -4,6 +4,7 @@ import com.xebia.functional.xef.prompt.experts.ExpertSystem
 import com.xebia.functional.xef.reasoning.internals.callModel
 import com.xebia.functional.xef.reasoning.tools.Tool
 import com.xebia.functional.xef.reasoning.tools.ToolMetadata
+import com.xebia.functional.xef.reasoning.tools.ToolOutput
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 class DuplicateCodeDetection(
@@ -22,6 +23,9 @@ class DuplicateCodeDetection(
         description = "Find duplicate code within the source"
       ) to ::findDuplicateCode
     )
+
+  override suspend fun handle(input: ToolOutput<Any?>): Tool.Out<DuplicateCodeDetectionResult> =
+    findDuplicateCode(input.toOutputString())
 
   suspend fun findDuplicateCode(sourceCode: String): DuplicateCodeDetectionResult {
     logger.info { "🔍 Finding duplicate code within the source" }
@@ -48,6 +52,6 @@ class DuplicateCodeDetection(
               ) + instructions
           ),
       )
-      .also { logger.info { "🔍 Duplicate code detection result: $it" } }
+      
   }
 }

@@ -38,6 +38,6 @@ class TextSimplification(
               ) + instructions
           )
       )
-      .also { logger.info { "🔍 Text simplification result: $it" } }
+      
   }
 }

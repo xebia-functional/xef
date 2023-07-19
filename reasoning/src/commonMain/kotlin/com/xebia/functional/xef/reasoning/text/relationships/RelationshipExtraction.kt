@@ -38,6 +38,6 @@ class RelationshipExtraction(
               ) + instructions
           )
       )
-      .also { logger.info { "🔍 Relationship extraction result: $it" } }
+      
   }
 }

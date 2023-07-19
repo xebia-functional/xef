@@ -38,6 +38,6 @@ class EmotionDetection(
               ) + instructions
           ),
       )
-      .also { logger.info { "🔍 Emotion detection result: $it" } }
+      
   }
 }

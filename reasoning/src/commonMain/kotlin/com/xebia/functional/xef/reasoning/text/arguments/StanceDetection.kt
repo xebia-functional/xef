@@ -42,6 +42,6 @@ class StanceDetection(
               ) + instructions
           )
       )
-      .also { logger.info { "🔍 Stance detection result: $it" } }
+      
   }
 }

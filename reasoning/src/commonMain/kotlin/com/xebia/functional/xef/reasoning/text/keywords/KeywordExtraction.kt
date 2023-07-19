@@ -38,6 +38,6 @@ class KeywordExtraction(
               ) + instructions
           )
       )
-      .also { logger.info { "🔍 Keyword extraction result: $it" } }
+      
   }
 }

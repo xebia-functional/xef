@@ -42,6 +42,6 @@ class LanguageTranslation(
               ) + instructions
           )
       )
-      .also { logger.info { "🔍 Translation result: $it" } }
+      
   }
 }

@@ -38,6 +38,6 @@ class EventExtraction(
               ) + instructions
           )
       )
-      .also { logger.info { "🔍 Event extraction result: $it" } }
+      
   }
 }

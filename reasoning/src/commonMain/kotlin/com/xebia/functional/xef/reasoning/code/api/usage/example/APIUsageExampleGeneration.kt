@@ -6,6 +6,7 @@ import com.xebia.functional.xef.prompt.experts.ExpertSystem
 import com.xebia.functional.xef.reasoning.internals.callModel
 import com.xebia.functional.xef.reasoning.tools.Tool
 import com.xebia.functional.xef.reasoning.tools.ToolMetadata
+import com.xebia.functional.xef.reasoning.tools.ToolOutput
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 class APIUsageExampleGeneration(
@@ -24,6 +25,10 @@ class APIUsageExampleGeneration(
         description = "Generate usage examples for a list of APIs"
       ) to ::generateUsageExamples
     )
+
+  override suspend fun handle(input: ToolOutput<Any?>): Tool.Out<APIUsageExampleGenerationResult> {
+    return generateUsageExamples(input.toOutputString())
+  }
 
   suspend fun generateUsageExamples(api: String): APIUsageExampleGenerationResult {
     return generateUsageExamples(listOf(api))
@@ -55,6 +60,6 @@ class APIUsageExampleGeneration(
             ) + instructions
         )
       )
-      .also { logger.info { "🔍 API usage example generation result: $it" } }
+      
   }
 }

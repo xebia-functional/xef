@@ -44,6 +44,6 @@ class TextualEntailment(
               ) + instructions
           )
       )
-      .also { logger.info { "🔍 Textual entailment result: $it" } }
+      
   }
 }

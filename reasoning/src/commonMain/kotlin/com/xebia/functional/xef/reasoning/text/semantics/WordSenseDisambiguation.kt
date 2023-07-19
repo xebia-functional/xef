@@ -38,6 +38,6 @@ class WordSenseDisambiguation(
               ) + instructions
           )
       )
-      .also { logger.info { "🔍 Word sense disambiguation result: $it" } }
+      
   }
 }

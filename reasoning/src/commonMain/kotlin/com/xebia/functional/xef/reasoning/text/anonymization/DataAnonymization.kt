@@ -38,6 +38,6 @@ class DataAnonymization(
               ) + instructions
           ),
       )
-      .also { logger.info { "🔍 Anonymization result: $it" } }
+      
   }
 }

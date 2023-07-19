@@ -4,6 +4,7 @@ import com.xebia.functional.xef.prompt.experts.ExpertSystem
 import com.xebia.functional.xef.reasoning.internals.callModel
 import com.xebia.functional.xef.reasoning.tools.Tool
 import com.xebia.functional.xef.reasoning.tools.ToolMetadata
+import com.xebia.functional.xef.reasoning.tools.ToolOutput
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 class CodeBreakdown(
@@ -17,6 +18,9 @@ class CodeBreakdown(
   override val functions:
     Map<ToolMetadata, suspend (input: String) -> Tool.Out<CodeBreakdownResult>> =
     mapOf(ToolMetadata(name = "breakDownCode", description = "Break down code") to ::breakDownCode)
+
+  override suspend fun handle(input: ToolOutput<Any?>): Tool.Out<CodeBreakdownResult> =
+    breakDownCode(input.toOutputString())
 
   suspend fun breakDownCode(code: String): CodeBreakdownResult {
     logger.info { "🔍 Breaking down code into smaller functions" }
@@ -41,6 +45,6 @@ class CodeBreakdown(
             ) + instructions
         )
       )
-      .also { logger.info { "🔍 Code breakdown result: $it" } }
+      
   }
 }

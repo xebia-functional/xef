@@ -6,6 +6,7 @@ import com.xebia.functional.xef.prompt.experts.ExpertSystem
 import com.xebia.functional.xef.reasoning.internals.callModel
 import com.xebia.functional.xef.reasoning.tools.Tool
 import com.xebia.functional.xef.reasoning.tools.ToolMetadata
+import com.xebia.functional.xef.reasoning.tools.ToolOutput
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 class CodeRefactoring(
@@ -19,6 +20,9 @@ class CodeRefactoring(
   override val functions:
     Map<ToolMetadata, suspend (input: String) -> Tool.Out<RefactoringResult>> =
     mapOf(ToolMetadata(name = "refactorCode", description = "Refactor code") to ::refactorCode)
+
+  override suspend fun handle(input: ToolOutput<Any?>): Tool.Out<RefactoringResult> =
+    refactorCode(input.toOutputString())
 
   suspend fun refactorCode(code: String): RefactoringResult {
     logger.info { "🔍 Refactoring code" }
@@ -43,6 +47,6 @@ class CodeRefactoring(
             ) + instructions
         )
       )
-      .also { logger.info { "🔍 Refactoring result: $it" } }
+      
   }
 }

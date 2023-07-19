@@ -6,6 +6,7 @@ import com.xebia.functional.xef.prompt.experts.ExpertSystem
 import com.xebia.functional.xef.reasoning.internals.callModel
 import com.xebia.functional.xef.reasoning.tools.Tool
 import com.xebia.functional.xef.reasoning.tools.ToolMetadata
+import com.xebia.functional.xef.reasoning.tools.ToolOutput
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 class CommentAnalyzer(
@@ -22,6 +23,9 @@ class CommentAnalyzer(
       ToolMetadata(name = "analyzeComments", description = "Analyze code comments") to
         ::analyzeComments
     )
+
+  override suspend fun handle(input: ToolOutput<Any?>): Tool.Out<CommentAnalysisResult> =
+    analyzeComments(input.toOutputString())
 
   suspend fun analyzeComments(sourceCode: String): CommentAnalysisResult {
     logger.info { "🔍 Analyzing code comments" }
@@ -47,6 +51,6 @@ class CommentAnalyzer(
             ) + instructions
         )
       )
-      .also { logger.info { "🔍 Comment analysis result: $it" } }
+      
   }
 }

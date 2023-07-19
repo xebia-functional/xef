@@ -42,6 +42,6 @@ class FactChecking(
               ) + instructions
           )
       )
-      .also { logger.info { "🔍 Fact-check result: $it" } }
+      
   }
 }

@@ -69,7 +69,7 @@ suspend fun main() {
     code.tools
   )
 
-  val result = toolSelection.applyFunction<Any>("""|
+  val result = toolSelection.applyInferredTools("""|
     |Find bugs in this code:
     |```code
     |$sourceCode

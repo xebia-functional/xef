@@ -37,6 +37,6 @@ class CoreferenceResolution(
             ) + instructions
         ),
       )
-      .also { logger.info { "🔍 Coreference resolution result: $it" } }
+      
   }
 }

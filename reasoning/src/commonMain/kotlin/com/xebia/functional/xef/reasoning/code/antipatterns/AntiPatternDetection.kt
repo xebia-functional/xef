@@ -6,6 +6,7 @@ import com.xebia.functional.xef.prompt.experts.ExpertSystem
 import com.xebia.functional.xef.reasoning.internals.callModel
 import com.xebia.functional.xef.reasoning.tools.Tool
 import com.xebia.functional.xef.reasoning.tools.ToolMetadata
+import com.xebia.functional.xef.reasoning.tools.ToolOutput
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 class AntiPatternDetection(
@@ -22,6 +23,9 @@ class AntiPatternDetection(
       ToolMetadata(name = "detectAntiPatterns", description = "Detect anti-patterns in code") to
         ::detectAntiPatterns
     )
+
+  override suspend fun handle(input: ToolOutput<Any?>): Tool.Out<AntiPatternDetectionResult> =
+    detectAntiPatterns(input.toOutputString())
 
   suspend fun detectAntiPatterns(code: String): AntiPatternDetectionResult {
     logger.info { "🔍 Detecting anti-patterns in code" }
@@ -46,6 +50,6 @@ class AntiPatternDetection(
             ) + instructions
         ),
       )
-      .also { logger.info { "🔍 Anti-pattern detection result: $it" } }
+      
   }
 }

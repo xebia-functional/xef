@@ -1,9 +1,5 @@
 package com.xebia.functional.xef.reasoning.tools
 
-data class ToolOutput<A>(val metadata: ToolMetadata, val output: List<String>, val value: A) {
-  inline fun <reified B> valueOrNull(): B? = value as? B
-}
-
 interface Tool<A> {
   interface Out<A> {
     fun toolOutput(metadata: ToolMetadata): ToolOutput<A>
@@ -16,6 +12,8 @@ interface Tool<A> {
         }
     }
   }
+
+  suspend fun handle(input: ToolOutput<Any?>): Out<A>?
 
   val functions: Map<ToolMetadata, suspend (input: String) -> Out<A>>
 }
