@@ -1,10 +1,12 @@
 package com.xebia.functional.xef.java.auto.sql;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xebia.functional.xef.auto.PromptConfiguration;
 import com.xebia.functional.xef.auto.llm.openai.OpenAI;
 import com.xebia.functional.xef.auto.llm.openai.OpenAIModel;
 import com.xebia.functional.xef.java.auto.AIDatabase;
 import com.xebia.functional.xef.java.auto.AIScope;
+import com.xebia.functional.xef.java.auto.SharedExecution;
 import com.xebia.functional.xef.sql.jdbc.JdbcConfig;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
@@ -46,8 +48,9 @@ public class DatabaseExample {
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
 
-        try (AIScope scope = new AIScope()) {
-            AIDatabase database = new AIDatabase(scope, getJdbcConfig());
+        SharedExecution sharedExecution = new SharedExecution();
+        try (AIScope scope = new AIScope(new ObjectMapper(), sharedExecution)) {
+            AIDatabase database = new AIDatabase(getJdbcConfig(), sharedExecution);
             System.out.println("llmdb> Welcome to the LLMDB (An LLM interface to your SQL Database) !");
             System.out.println("llmdb> You can ask me questions about the database and I will try to answer them.");
             System.out.println("llmdb> You can type `exit` to exit the program.");
@@ -62,6 +65,7 @@ public class DatabaseExample {
                 if (input.equals("exit")) break;
 
                 try {
+                    database.extendContext(database.promptQuery(input).get());
                     CompletableFuture<String> result = scope.promptMessage(MODEL, "|\n" +
                             "                You are a database assistant that helps users to query and summarize results from the database.\n" +
                             "                Instructions:\n" +
