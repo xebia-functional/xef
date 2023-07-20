@@ -30,16 +30,17 @@ import java.nio.file.Path
 import java.util.*
 import kotlin.io.path.name
 
-class GPT4AllPromptConfiguration : PromptConfiguration() {
-    val topK: Int = 40
-    val topP: Float = 0.95f
-    val nPredict: Int = 4096
-    val nCtx: Int = 1024
-    val nPast: Int = 0
-    val nBatch: Int = 8
-    val repeatPenalty: Float = 1.1f
-    val repeatLastN: Int = 64
-    val contextErase: Float = 0.55f
+class GPT4AllPromptConfiguration(
+    val topK: Int = 40,
+    val topP: Float = 0.95f,
+    val nPredict: Int = 4096,
+    val nCtx: Int = 1024,
+    val nPast: Int = 0,
+    val nBatch: Int = 8,
+    val repeatPenalty: Float = 1.1f,
+    val repeatLastN: Int = 64,
+    val contextErase: Float = 0.55f,
+) : PromptConfiguration() {
 
     companion object {
         @JvmField
