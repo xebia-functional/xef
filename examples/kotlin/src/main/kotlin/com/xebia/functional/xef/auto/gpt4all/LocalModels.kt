@@ -43,7 +43,9 @@ suspend fun main() {
 
     ai {
         gpt4All.use { gptModel: GPT4All ->
-            val promptConfiguration: PromptConfiguration = GPT4AllPromptConfiguration()
+            val promptConfiguration: PromptConfiguration = GPT4AllPromptConfiguration(
+                topK = 40
+            )
             val res =
                 gptModel.promptMessage(userInput, context = this.context, promptConfiguration = promptConfiguration)
             println("\n🤖 Done")
