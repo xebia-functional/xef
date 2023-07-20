@@ -4,7 +4,7 @@ import com.xebia.functional.xef.llm.models.chat.Role
 import kotlin.jvm.JvmField
 import kotlin.jvm.JvmName
 
-class PromptConfiguration(
+open class PromptConfiguration(
   val maxDeserializationAttempts: Int = 3,
   val user: String = Role.USER.name,
   val temperature: Double = 0.4,
