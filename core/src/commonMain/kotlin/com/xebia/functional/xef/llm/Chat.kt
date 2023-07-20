@@ -242,7 +242,7 @@ interface Chat : LLM {
             Message(role = role, content = firstChoice.message?.content ?: "", name = role.name),
           timestamp = getTimeMillis()
         )
-      context.addMemories(listOf(requestMemory, firstChoiceMemory))
+      context.addMemories(listOf(firstChoiceMemory, requestMemory))
     }
   }
 
@@ -268,7 +268,7 @@ interface Chat : LLM {
             Message(role = role, content = firstChoice.message?.content ?: "", name = role.name),
           timestamp = getTimeMillis()
         )
-      context.addMemories(listOf(requestMemory, firstChoiceMemory))
+      context.addMemories(listOf(firstChoiceMemory, requestMemory))
     }
   }
 
