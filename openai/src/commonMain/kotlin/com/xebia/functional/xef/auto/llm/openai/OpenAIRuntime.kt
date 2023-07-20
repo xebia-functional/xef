@@ -41,9 +41,7 @@ suspend inline fun <A> AI<A>.toEither(): Either<AIError, A> = Either.catchOrThro
 
 suspend fun <A> AIScope(block: AI<A>, orElse: suspend (AIError) -> A): A =
   try {
-    CoreAIScope(OpenAIEmbeddings(OpenAI.DEFAULT_EMBEDDING)).use {
-      block(it)
-    }
+    CoreAIScope(OpenAIEmbeddings(OpenAI.DEFAULT_EMBEDDING)).use { block(it) }
   } catch (e: AIError) {
     orElse(e)
   }

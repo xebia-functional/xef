@@ -1,6 +1,5 @@
 package com.xebia.functional.xef.auto
 
-import com.xebia.functional.xef.auto.AutoClose
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.embeddings.Embeddings
 import com.xebia.functional.xef.llm.Chat
