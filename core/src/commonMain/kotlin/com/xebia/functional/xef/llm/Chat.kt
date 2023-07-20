@@ -76,7 +76,8 @@ interface Chat : LLM {
         n = promptConfiguration.numberOfPredictions,
         temperature = promptConfiguration.temperature,
         maxTokens = checkTotalLeftChatTokens(),
-        streamToStandardOut = true
+        streamToStandardOut = true,
+        promptConfiguration = promptConfiguration
       )
 
     return flow {
@@ -176,10 +177,9 @@ interface Chat : LLM {
         model = name,
         user = promptConfiguration.user,
         messages = messages,
-        n = promptConfiguration.numberOfPredictions,
-        temperature = promptConfiguration.temperature,
         maxTokens = checkTotalLeftChatTokens(),
-        streamToStandardOut = promptConfiguration.streamToStandardOut
+        streamToStandardOut = promptConfiguration.streamToStandardOut,
+        promptConfiguration = promptConfiguration
       )
 
     fun withFunctionsRequest(): ChatCompletionRequestWithFunctions =
@@ -187,11 +187,10 @@ interface Chat : LLM {
         model = name,
         user = promptConfiguration.user,
         messages = messages,
-        n = promptConfiguration.numberOfPredictions,
-        temperature = promptConfiguration.temperature,
         maxTokens = checkTotalLeftChatTokens(),
         functions = functions,
-        functionCall = mapOf("name" to (functions.firstOrNull()?.name ?: ""))
+        functionCall = mapOf("name" to (functions.firstOrNull()?.name ?: "")),
+        promptConfiguration = promptConfiguration
       )
 
     return when (this) {
