@@ -1,5 +1,6 @@
 package com.xebia.functional.xef.auto
 
+import com.xebia.functional.xef.auto.AutoClose
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.embeddings.Embeddings
 import com.xebia.functional.xef.llm.Chat
@@ -27,8 +28,8 @@ class CoreAIScope
 constructor(
   val embeddings: Embeddings,
   val context: VectorStore = LocalVectorStore(embeddings),
-  val conversationId: ConversationId = ConversationId(UUID.generateUUID().toString()),
-) {
+  val conversationId: ConversationId = ConversationId(UUID.generateUUID().toString())
+) : AutoCloseable, AutoClose by autoClose() {
 
   /**
    * Allows invoking [AI] values in the context of this [CoreAIScope].
