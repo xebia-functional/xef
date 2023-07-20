@@ -48,8 +48,6 @@ class OpenAI(internal val token: String) : AutoCloseable, AutoClose by autoClose
         ?: throw AIError.Env.OpenAI(nonEmptyListOf("missing OPENAI_TOKEN env var"))
     }
 
-    // TODO: Handle the lifetime of these values!
-
     @JvmField val DEFAULT = OpenAI(openAITokenFromEnv())
 
     @JvmField val DEFAULT_CHAT = DEFAULT.GPT_3_5_TURBO_16K
