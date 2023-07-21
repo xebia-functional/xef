@@ -7,7 +7,7 @@ import com.xebia.functional.xef.sql.jdbc.JdbcConfig;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-public class AIDatabase {
+public class AIDatabase implements AutoCloseable {
     private final CoreAIScope scope;
     private SQL sql;
     private ExecutionContext exec;
@@ -31,4 +31,8 @@ public class AIDatabase {
         return exec.future(continuation -> sql.promptQuery(scope, input, continuation));
     }
 
+    @Override
+    public void close() throws Exception {
+        exec.close();
+    }
 }
