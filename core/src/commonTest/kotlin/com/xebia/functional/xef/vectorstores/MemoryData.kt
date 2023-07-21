@@ -5,12 +5,10 @@ import com.xebia.functional.xef.llm.models.chat.Role
 
 val defaultConversationId = ConversationId("default-id")
 
-val messages1 = listOf(
-    Memory(defaultConversationId, Message(Role.USER, "Who is the best player in the world?", "USER"), 0),
-    Memory(defaultConversationId, Message(Role.ASSISTANT, "Magico Gonzalez", "ASSISTANT"), 0),
-)
-
-val messages2 = listOf(
-    Memory(defaultConversationId, Message(Role.USER, "Which is the most beautiful city in the world?", "USER"), 0),
-    Memory(defaultConversationId, Message(Role.ASSISTANT, "More than a city better an area, La Bahia de Cadiz", "ASSISTANT"), 0),
-)
+fun generateRandomMessages(n: Int, conversationId: ConversationId = defaultConversationId): List<Memory> =
+    (0..n).flatMap {
+        listOf(
+            Memory(conversationId, Message(Role.USER, "Question $it", "USER"), 0),
+            Memory(conversationId, Message(Role.ASSISTANT, "Response $it", "ASSISTANT"), 0),
+        )
+    }

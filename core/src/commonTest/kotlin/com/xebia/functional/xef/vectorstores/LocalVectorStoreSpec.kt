@@ -8,6 +8,9 @@ class LocalVectorStoreSpec :
         "memories function should return all of messages in the right order when the limit is greater than the number of stored messages" {
             val localVectorStore = LocalVectorStore(FakeEmbeddings())
 
+            val messages1 = generateRandomMessages(2)
+            val messages2 = generateRandomMessages(2)
+
             localVectorStore.addMemories(messages1)
             localVectorStore.addMemories(messages2)
 
@@ -21,14 +24,42 @@ class LocalVectorStoreSpec :
         "memories function should return the last n messages in the right order" {
             val localVectorStore = LocalVectorStore(FakeEmbeddings())
 
+            val limit = 2
+
+            val messages1 = generateRandomMessages(2)
+            val messages2 = generateRandomMessages(2)
+
             localVectorStore.addMemories(messages1)
             localVectorStore.addMemories(messages2)
 
-            val messages = localVectorStore.memories(defaultConversationId, 2)
+            val messages = localVectorStore.memories(defaultConversationId, limit)
 
-            val messagesExpected = (messages1 + messages2).takeLast(2)
+            val messagesExpected = (messages1 + messages2).takeLast(limit)
 
             messages shouldBe messagesExpected
+        }
+
+        "memories function should return the last n messages in the right order for a specific conversation id" {
+            val localVectorStore = LocalVectorStore(FakeEmbeddings())
+
+            val limit = 2
+
+            val firstId = ConversationId("first-id")
+            val secondId = ConversationId("second-id")
+
+            val messages1 = generateRandomMessages(4, firstId)
+            val messages2 = generateRandomMessages(3, secondId)
+
+            localVectorStore.addMemories(messages1 + messages2)
+
+            val messagesFirstId = localVectorStore.memories(firstId, limit)
+            val messagesFirstIdExpected = messages1.takeLast(limit)
+
+            val messagesSecondId = localVectorStore.memories(secondId, limit)
+            val messagesSecondIdExpected = messages2.takeLast(limit)
+
+            messagesFirstId shouldBe messagesFirstIdExpected
+            messagesSecondId shouldBe messagesSecondIdExpected
         }
 
     })
