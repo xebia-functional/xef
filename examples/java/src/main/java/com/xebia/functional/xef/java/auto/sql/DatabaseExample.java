@@ -7,7 +7,7 @@ import com.xebia.functional.xef.auto.llm.openai.OpenAIModel;
 import com.xebia.functional.xef.java.auto.AIDatabase;
 import com.xebia.functional.xef.java.auto.AIScope;
 import com.xebia.functional.xef.java.auto.ExecutionContext;
-import com.xebia.functional.xef.java.auto.util.Util;
+import com.xebia.functional.xef.java.auto.util.ConsoleUtil;
 import com.xebia.functional.xef.sql.jdbc.JdbcConfig;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
@@ -17,12 +17,12 @@ import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 public class DatabaseExample {
 
     private static final OpenAIModel MODEL = OpenAI.DEFAULT_CHAT;
     private static PrintStream out = System.out;
+    private static ConsoleUtil util = new ConsoleUtil();
 
     @NotNull
     private static JdbcConfig getJdbcConfig() {
@@ -44,7 +44,7 @@ public class DatabaseExample {
                 return Unit.INSTANCE;
             };
 
-    public static void main(String[] args) throws ExecutionException, InterruptedException {
+    public static void main(String[] args) throws Exception {
 
         ExecutionContext executionContext = new ExecutionContext();
         try (AIScope scope = new AIScope(new ObjectMapper(), executionContext)) {
@@ -60,7 +60,7 @@ public class DatabaseExample {
 
             while (true) {
                 out.println("user> ");
-                String input = Util.readLine();
+                String input = util.readLine();
                 if (input.equals("exit")) break;
 
                 try {
@@ -82,6 +82,9 @@ public class DatabaseExample {
                     e.printStackTrace();
                 }
             }
+        }
+        finally {
+            util.close();
         }
 
     }
