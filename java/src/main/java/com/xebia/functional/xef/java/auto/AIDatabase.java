@@ -10,12 +10,12 @@ import java.util.concurrent.CompletableFuture;
 public class AIDatabase {
     private final CoreAIScope scope;
     private SQL sql;
-    private SharedExecution exec;
+    private ExecutionContext exec;
 
-    public AIDatabase(JdbcConfig jdbcConfig, SharedExecution sharedExecution) {
+    public AIDatabase(JdbcConfig jdbcConfig, ExecutionContext executionContext) {
         sql = SQL.Companion.fromJdbcConfigSync(jdbcConfig);
-        this.exec = sharedExecution;
-        this.scope = sharedExecution.getCoreScope();
+        this.exec = executionContext;
+        this.scope = executionContext.getCoreScope();
     }
 
     public CompletableFuture<String> getInterestingPromptsForDatabase() {

@@ -32,12 +32,12 @@ import java.util.concurrent.CompletableFuture;
 public class AIScope implements AutoCloseable {
     private final CoreAIScope scope;
     private final ObjectMapper om;
-    private SharedExecution exec;
+    private ExecutionContext exec;
     private final SchemaGenerator schemaGenerator;
 
-    public AIScope(ObjectMapper om, SharedExecution sharedExecution) {
+    public AIScope(ObjectMapper om, ExecutionContext executionContext) {
         this.om = om;
-        this.exec = sharedExecution;
+        this.exec = executionContext;
         JakartaValidationModule module = new JakartaValidationModule(
                 JakartaValidationOption.NOT_NULLABLE_FIELD_IS_REQUIRED,
                 JakartaValidationOption.INCLUDE_PATTERN_EXPRESSIONS
@@ -46,15 +46,15 @@ public class AIScope implements AutoCloseable {
                 .with(module);
         SchemaGeneratorConfig config = configBuilder.build();
         this.schemaGenerator = new SchemaGenerator(config);
-        this.scope = sharedExecution.getCoreScope();
+        this.scope = executionContext.getCoreScope();
     }
 
-    public AIScope(SharedExecution sharedExecution) {
-        this(new ObjectMapper(), sharedExecution);
+    public AIScope(ExecutionContext executionContext) {
+        this(new ObjectMapper(), executionContext);
     }
 
     public AIScope() {
-        this(new ObjectMapper(), new SharedExecution());
+        this(new ObjectMapper(), new ExecutionContext());
     }
 
     private AIScope(CoreAIScope nested, AIScope outer) {

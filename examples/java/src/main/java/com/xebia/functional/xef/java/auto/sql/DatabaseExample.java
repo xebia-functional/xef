@@ -6,7 +6,7 @@ import com.xebia.functional.xef.auto.llm.openai.OpenAI;
 import com.xebia.functional.xef.auto.llm.openai.OpenAIModel;
 import com.xebia.functional.xef.java.auto.AIDatabase;
 import com.xebia.functional.xef.java.auto.AIScope;
-import com.xebia.functional.xef.java.auto.SharedExecution;
+import com.xebia.functional.xef.java.auto.ExecutionContext;
 import com.xebia.functional.xef.java.auto.util.Util;
 import com.xebia.functional.xef.sql.jdbc.JdbcConfig;
 import kotlin.Unit;
@@ -46,9 +46,9 @@ public class DatabaseExample {
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
 
-        SharedExecution sharedExecution = new SharedExecution();
-        try (AIScope scope = new AIScope(new ObjectMapper(), sharedExecution)) {
-            AIDatabase database = new AIDatabase(getJdbcConfig(), sharedExecution);
+        ExecutionContext executionContext = new ExecutionContext();
+        try (AIScope scope = new AIScope(new ObjectMapper(), executionContext)) {
+            AIDatabase database = new AIDatabase(getJdbcConfig(), executionContext);
 
             out.println("llmdb> Welcome to the LLMDB (An LLM interface to your SQL Database) !");
             out.println("llmdb> You can ask me questions about the database and I will try to answer them.");

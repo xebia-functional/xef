@@ -20,17 +20,17 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class SharedExecution implements AutoCloseable {
+public class ExecutionContext implements AutoCloseable {
 
     private final ExecutorService executorService;
     private final CoroutineScope coroutineScope;
     private final CoreAIScope scope;
 
-    public SharedExecution(){
-        this(Executors.newCachedThreadPool(new SharedExecution.AIScopeThreadFactory()),  new OpenAIEmbeddings(OpenAI.DEFAULT_EMBEDDING));
+    public ExecutionContext(){
+        this(Executors.newCachedThreadPool(new ExecutionContext.AIScopeThreadFactory()),  new OpenAIEmbeddings(OpenAI.DEFAULT_EMBEDDING));
     }
 
-    public SharedExecution(ExecutorService executorService, Embeddings embeddings) {
+    public ExecutionContext(ExecutorService executorService, Embeddings embeddings) {
         this.executorService = executorService;
         this.coroutineScope = () -> ExecutorsKt.from(executorService).plus(JobKt.Job(null));
         JakartaValidationModule module = new JakartaValidationModule(
