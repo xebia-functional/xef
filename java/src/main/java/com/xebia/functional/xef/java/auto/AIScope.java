@@ -60,6 +60,7 @@ public class AIScope implements AutoCloseable {
     private AIScope(CoreAIScope nested, AIScope outer) {
         this.om = outer.om;
         this.schemaGenerator = outer.schemaGenerator;
+        this.exec = outer.exec;
         this.scope = nested;
     }
 
