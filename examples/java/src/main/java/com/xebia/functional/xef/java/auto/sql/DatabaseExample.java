@@ -7,14 +7,13 @@ import com.xebia.functional.xef.auto.llm.openai.OpenAIModel;
 import com.xebia.functional.xef.java.auto.AIDatabase;
 import com.xebia.functional.xef.java.auto.AIScope;
 import com.xebia.functional.xef.java.auto.SharedExecution;
+import com.xebia.functional.xef.java.auto.util.Util;
 import com.xebia.functional.xef.sql.jdbc.JdbcConfig;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -22,8 +21,8 @@ import java.util.concurrent.ExecutionException;
 
 public class DatabaseExample {
 
-    private static final BufferedReader sysin = new BufferedReader(new InputStreamReader(System.in));
     private static final OpenAIModel MODEL = OpenAI.DEFAULT_CHAT;
+    private static PrintStream out = System.out;
 
     @NotNull
     private static JdbcConfig getJdbcConfig() {
@@ -36,8 +35,7 @@ public class DatabaseExample {
         String database = env.getOrDefault("XEF_SQL_DB_DATABASE", "database");
         OpenAIModel model = MODEL;
 
-        JdbcConfig jdbcConfig = new JdbcConfig(vendor, host, username, password, port, database, model);
-        return jdbcConfig;
+        return new JdbcConfig(vendor, host, username, password, port, database, model);
     }
 
     static final Function1<? super PromptConfiguration.Companion.Builder, Unit> promptConfiguration =
@@ -51,17 +49,18 @@ public class DatabaseExample {
         SharedExecution sharedExecution = new SharedExecution();
         try (AIScope scope = new AIScope(new ObjectMapper(), sharedExecution)) {
             AIDatabase database = new AIDatabase(getJdbcConfig(), sharedExecution);
-            System.out.println("llmdb> Welcome to the LLMDB (An LLM interface to your SQL Database) !");
-            System.out.println("llmdb> You can ask me questions about the database and I will try to answer them.");
-            System.out.println("llmdb> You can type `exit` to exit the program.");
-            System.out.println("llmdb> Loading recommended prompts...");
+
+            out.println("llmdb> Welcome to the LLMDB (An LLM interface to your SQL Database) !");
+            out.println("llmdb> You can ask me questions about the database and I will try to answer them.");
+            out.println("llmdb> You can type `exit` to exit the program.");
+            out.println("llmdb> Loading recommended prompts...");
 
             Arrays.stream(database.getInterestingPromptsForDatabase().get()
-                    .split("\n")).forEach(it -> System.out.println("llmdb> " + it));
+                    .split("\n")).forEach(it -> out.println("llmdb> " + it));
 
             while (true) {
-                System.out.println("user> ");
-                String input = readLine();
+                out.println("user> ");
+                String input = Util.readLine();
                 if (input.equals("exit")) break;
 
                 try {
@@ -77,9 +76,9 @@ public class DatabaseExample {
                             "                3. Try to answer and provide information with as much detail as you can\n" +
                             "              ", PromptConfiguration.Companion.build(promptConfiguration));
 
-                    System.out.println(result.get());
+                    out.println(result.get());
                 } catch (Exception e) {
-                    System.out.println("llmdb> " + e.getMessage());
+                    out.println("llmdb> " + e.getMessage());
                     e.printStackTrace();
                 }
             }
@@ -87,11 +86,5 @@ public class DatabaseExample {
 
     }
 
-    private static String readLine() {
-        try {
-            return sysin.readLine();
-        } catch (IOException e) {
-            return null;
-        }
-    }
+
 }
