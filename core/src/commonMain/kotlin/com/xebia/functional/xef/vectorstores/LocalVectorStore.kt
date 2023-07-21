@@ -31,15 +31,27 @@ private constructor(private val embeddings: Embeddings, private val state: Atomi
 
   override suspend fun addMemories(memories: List<Memory>) {
     state.update { prevState ->
+      val allNewMemories = memories.groupBy { it.conversationId }
+
+      val prevConversationIdsInNewMemories = prevState.orderedMemories.map { it.key }.intersect(allNewMemories.keys)
+
+      val prevMemoriesWithNewMessages = prevState.orderedMemories.map { (conversationId, memories) ->
+        conversationId to (memories + allNewMemories[conversationId].orEmpty())
+      }.toMap()
+
+      val allNewMemoriesWithoutPrevConversationId = allNewMemories.filterKeys {
+        !prevConversationIdsInNewMemories.contains(it)
+      }
+
       prevState.copy(
-        orderedMemories = prevState.orderedMemories + memories.groupBy { it.conversationId }
+        orderedMemories = prevMemoriesWithNewMessages + allNewMemoriesWithoutPrevConversationId
       )
     }
   }
 
   override suspend fun memories(conversationId: ConversationId, limit: Int): List<Memory> {
     val memories = state.get().orderedMemories[conversationId]
-    return memories?.take(limit).orEmpty()
+    return memories?.takeLast(limit).orEmpty()
   }
 
   override suspend fun addTexts(texts: List<String>) {

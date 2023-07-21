@@ -35,6 +35,14 @@ suspend fun main() {
             )
         println("Second question:\n $summarize")
 
+        val meaning: String =
+            promptMessage(
+                """
+                |What is the meaning of life?
+            """.trimMargin()
+            )
+        println("Third question:\n $meaning")
+
 
     }.getOrElse { println(it) }
 }

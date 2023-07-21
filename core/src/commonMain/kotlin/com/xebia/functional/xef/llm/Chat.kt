@@ -242,7 +242,7 @@ interface Chat : LLM {
             Message(role = role, content = firstChoice.message?.content ?: "", name = role.name),
           timestamp = getTimeMillis()
         )
-      context.addMemories(listOf(firstChoiceMemory, requestMemory))
+      context.addMemories(listOf(requestMemory, firstChoiceMemory))
     }
   }
 
@@ -268,12 +268,12 @@ interface Chat : LLM {
             Message(role = role, content = firstChoice.message?.content ?: "", name = role.name),
           timestamp = getTimeMillis()
         )
-      context.addMemories(listOf(firstChoiceMemory, requestMemory))
+      context.addMemories(listOf(requestMemory, firstChoiceMemory))
     }
   }
 
   private fun messages(memories: List<Memory>, promptWithContext: String): List<Message> =
-    memories.reversed().map { it.content } +
+    memories.map { it.content } +
       listOf(Message(Role.USER, promptWithContext, Role.USER.name))
 
   private suspend fun memories(
