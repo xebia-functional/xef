@@ -12,6 +12,7 @@ import com.xebia.functional.xef.vectorstores.CombinedVectorStore
 import com.xebia.functional.xef.vectorstores.ConversationId
 import com.xebia.functional.xef.vectorstores.LocalVectorStore
 import com.xebia.functional.xef.vectorstores.VectorStore
+import kotlinx.coroutines.flow.Flow
 import kotlin.jvm.JvmName
 import kotlin.jvm.JvmOverloads
 import kotlinx.uuid.UUID
@@ -129,6 +130,16 @@ constructor(
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
   ): List<String> =
     promptMessages(Prompt(question), context, conversationId, functions, promptConfiguration)
+
+  @AiDsl
+  suspend fun Chat.promptStreaming(
+    question: String,
+    context: VectorStore,
+    conversationId: ConversationId?,
+    functions: List<CFunction>,
+    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
+  ): Flow<String> =
+    promptStreaming(Prompt(question), context, conversationId, functions, promptConfiguration)
 
   /**
    * Run a [prompt] describes the images you want to generate within the context of [CoreAIScope].

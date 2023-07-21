@@ -7,6 +7,7 @@ plugins {
 
 dependencies {
     implementation(projects.xefJava)
+    implementation(projects.xefGpt4all)
 }
 
 tasks.withType<Test>().configureEach {

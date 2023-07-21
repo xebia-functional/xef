@@ -2,17 +2,19 @@ package com.xebia.functional.xef.java.auto;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.victools.jsonschema.generator.*;
+import com.github.victools.jsonschema.generator.OptionPreset;
+import com.github.victools.jsonschema.generator.SchemaGenerator;
+import com.github.victools.jsonschema.generator.SchemaGeneratorConfig;
+import com.github.victools.jsonschema.generator.SchemaGeneratorConfigBuilder;
+import com.github.victools.jsonschema.generator.SchemaVersion;
 import com.github.victools.jsonschema.module.jakarta.validation.JakartaValidationModule;
 import com.github.victools.jsonschema.module.jakarta.validation.JakartaValidationOption;
-import com.xebia.functional.gpt4all.GPT4All;
 import com.xebia.functional.xef.agents.Search;
 import com.xebia.functional.xef.auto.CoreAIScope;
 import com.xebia.functional.xef.auto.PromptConfiguration;
 import com.xebia.functional.xef.auto.llm.openai.OpenAI;
 import com.xebia.functional.xef.auto.llm.openai.OpenAIEmbeddings;
 import com.xebia.functional.xef.embeddings.Embeddings;
-import com.xebia.functional.xef.java.auto.port.KotlinPort;
 import com.xebia.functional.xef.llm.Chat;
 import com.xebia.functional.xef.llm.ChatWithFunctions;
 import com.xebia.functional.xef.llm.Images;
@@ -29,7 +31,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import org.reactivestreams.Publisher;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 import kotlin.collections.CollectionsKt;
@@ -40,6 +41,7 @@ import kotlinx.coroutines.CoroutineScopeKt;
 import kotlinx.coroutines.CoroutineStart;
 import kotlinx.coroutines.ExecutorsKt;
 import kotlinx.coroutines.JobKt;
+import kotlinx.coroutines.flow.Flow;
 import kotlinx.coroutines.future.FutureKt;
 import org.jetbrains.annotations.NotNull;
 
@@ -128,8 +130,8 @@ public class AIScope implements AutoCloseable {
         return future(continuation -> scope.promptMessages(llmModel, prompt, functions, promptConfiguration, continuation));
     }
 
-    public CompletableFuture<Publisher<String>> promptStreaming(GPT4All gpt4all, String line, PromptConfiguration promptConfiguration) {
-        return future(continuation -> KotlinPort.promptStreaming(gpt4all, line, this.context, promptConfiguration, continuation));
+    public CompletableFuture<Flow<String>> promptStreaming(Chat gpt4all, String line, PromptConfiguration promptConfiguration) {
+        return future(continuation -> scope.promptStreaming(gpt4all, line, this.context, null, Collections.emptyList(), promptConfiguration, continuation));
     }
 
     public <A> CompletableFuture<A> contextScope(Function1<Embeddings, VectorStore> store, Function1<AIScope, CompletableFuture<A>> f) {

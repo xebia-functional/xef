@@ -10,7 +10,8 @@ import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
-import org.reactivestreams.Publisher;
+import kotlinx.coroutines.flow.Flow;
+import kotlinx.coroutines.reactive.ReactiveFlowKt;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
@@ -49,10 +50,11 @@ public class Chat {
                     break;
                 }else{
                     var promptConfiguration = new PromptConfiguration.Companion.Builder().docsInContext(2).streamToStandardOut(true).build();
-                    Publisher<String> answer = scope.promptStreaming(gpt4all, line, promptConfiguration).get();
+                    Flow<String> answer = scope.promptStreaming(gpt4all, line, promptConfiguration).get();
 
-                    answer.subscribe(new Subscriber<String>() {
+                    ReactiveFlowKt.asPublisher(answer).subscribe(new Subscriber<String>() {
                         StringBuilder answer = new StringBuilder();
+
                         @Override
                         public void onSubscribe(Subscription s) {
                             System.out.print("\n🤖 --> " + s);
