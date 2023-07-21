@@ -18,7 +18,6 @@ dependencies {
     api(libs.jackson.schema.jakarta)
     api(libs.jakarta.validation)
     api(libs.kotlinx.coroutines.reactive)
-    //api("io.projectreactor:reactor-core:3.6.0-M1")
 }
 
 java {
