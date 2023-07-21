@@ -32,7 +32,7 @@ jobs:
       - name: Assemble
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: assemble -x:kotlin-loom:assemble -x:xef-scala:assemble -x:xef-scala-examples:assemble
+          arguments: assemble -x:kotlin-loom:assemble -x:xef-java-examples:assemble -x:xef-scala:assemble -x:xef-scala-examples:assemble
 
       - name: Upload reports
         if: failure()
