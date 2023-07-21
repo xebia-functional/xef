@@ -1,7 +1,5 @@
 package com.xebia.functional.xef.java.auto;
 
-import com.github.victools.jsonschema.module.jakarta.validation.JakartaValidationModule;
-import com.github.victools.jsonschema.module.jakarta.validation.JakartaValidationOption;
 import com.xebia.functional.xef.auto.CoreAIScope;
 import com.xebia.functional.xef.auto.llm.openai.OpenAI;
 import com.xebia.functional.xef.auto.llm.openai.OpenAIEmbeddings;
@@ -33,10 +31,6 @@ public class ExecutionContext implements AutoCloseable {
     public ExecutionContext(ExecutorService executorService, Embeddings embeddings) {
         this.executorService = executorService;
         this.coroutineScope = () -> ExecutorsKt.from(executorService).plus(JobKt.Job(null));
-        JakartaValidationModule module = new JakartaValidationModule(
-                JakartaValidationOption.NOT_NULLABLE_FIELD_IS_REQUIRED,
-                JakartaValidationOption.INCLUDE_PATTERN_EXPRESSIONS
-        );
         VectorStore vectorStore = new LocalVectorStore(embeddings);
         this.scope = new CoreAIScope(embeddings, vectorStore);
     }
