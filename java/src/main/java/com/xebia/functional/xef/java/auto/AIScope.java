@@ -13,7 +13,6 @@ import com.xebia.functional.xef.agents.Search;
 import com.xebia.functional.xef.auto.CoreAIScope;
 import com.xebia.functional.xef.auto.PromptConfiguration;
 import com.xebia.functional.xef.auto.llm.openai.OpenAI;
-import com.xebia.functional.xef.auto.llm.openai.OpenAIEmbeddings;
 import com.xebia.functional.xef.embeddings.Embeddings;
 import com.xebia.functional.xef.llm.Chat;
 import com.xebia.functional.xef.llm.ChatWithFunctions;
@@ -22,9 +21,13 @@ import com.xebia.functional.xef.llm.models.functions.CFunction;
 import com.xebia.functional.xef.llm.models.images.ImageGenerationUrl;
 import com.xebia.functional.xef.llm.models.images.ImagesGenerationResponse;
 import com.xebia.functional.xef.pdf.Loader;
+import com.xebia.functional.xef.sql.SQL;
 import com.xebia.functional.xef.textsplitters.TextSplitter;
-import com.xebia.functional.xef.vectorstores.LocalVectorStore;
 import com.xebia.functional.xef.vectorstores.VectorStore;
+import kotlin.collections.CollectionsKt;
+import kotlin.jvm.functions.Function1;
+import kotlinx.coroutines.future.FutureKt;
+
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
@@ -48,15 +51,15 @@ import org.jetbrains.annotations.NotNull;
 public class AIScope implements AutoCloseable {
     private final CoreAIScope scope;
     private final ObjectMapper om;
+    private ExecutionContext exec;
     private final SchemaGenerator schemaGenerator;
     private final ExecutorService executorService;
     private final CoroutineScope coroutineScope;
     private final VectorStore context;
 
-    public AIScope(ObjectMapper om, Embeddings embeddings, ExecutorService executorService) {
+    public AIScope(ObjectMapper om, ExecutionContext executionContext) {
         this.om = om;
-        this.executorService = executorService;
-        this.coroutineScope = () -> ExecutorsKt.from(executorService).plus(JobKt.Job(null));
+        this.exec = executionContext;
         JakartaValidationModule module = new JakartaValidationModule(
                 JakartaValidationOption.NOT_NULLABLE_FIELD_IS_REQUIRED,
                 JakartaValidationOption.INCLUDE_PATTERN_EXPRESSIONS
@@ -65,34 +68,22 @@ public class AIScope implements AutoCloseable {
                 .with(module);
         SchemaGeneratorConfig config = configBuilder.build();
         this.schemaGenerator = new SchemaGenerator(config);
-        context = new LocalVectorStore(embeddings);
-        this.scope = new CoreAIScope(embeddings, context);
+        this.scope = executionContext.getCoreScope();
     }
 
-    public AIScope(Embeddings embeddings, ExecutorService executorService) {
-        this(new ObjectMapper(), embeddings, executorService);
-    }
-
-
-    public AIScope(ExecutorService executorService) {
-        this(new ObjectMapper(), new OpenAIEmbeddings(OpenAI.DEFAULT_EMBEDDING), executorService);
+    public AIScope(ExecutionContext executionContext) {
+        this(new ObjectMapper(), executionContext);
     }
 
     public AIScope() {
-        this(new ObjectMapper(), new OpenAIEmbeddings(OpenAI.DEFAULT_EMBEDDING), Executors.newCachedThreadPool(new AIScopeThreadFactory()));
+        this(new ObjectMapper(), new ExecutionContext());
     }
 
     private AIScope(CoreAIScope nested, AIScope outer) {
         this.om = outer.om;
-        this.executorService = outer.executorService;
-        this.coroutineScope = outer.coroutineScope;
         this.schemaGenerator = outer.schemaGenerator;
+        this.exec = outer.exec;
         this.scope = nested;
-        this.context = outer.context;
-    }
-
-    public VectorStore getContext() {
-        return context;
     }
 
     public <A> CompletableFuture<A> prompt(String prompt, Class<A> cls) {
@@ -115,7 +106,7 @@ public class AIScope implements AutoCloseable {
                 new CFunction(cls.getSimpleName(), "Generated function for " + cls.getSimpleName(), schema)
         );
 
-        return future(continuation -> scope.promptWithSerializer(llmModel, prompt, functions, decoder, promptConfiguration, continuation));
+        return exec.future(continuation -> scope.promptWithSerializer(llmModel, prompt, functions, decoder, promptConfiguration, continuation));
     }
 
     public CompletableFuture<String> promptMessage(String prompt) {
@@ -123,11 +114,11 @@ public class AIScope implements AutoCloseable {
     }
 
     public CompletableFuture<String> promptMessage(Chat llmModel, String prompt, PromptConfiguration promptConfiguration) {
-        return future(continuation -> scope.promptMessage(llmModel, prompt, promptConfiguration, continuation));
+        return exec.future(continuation -> scope.promptMessage(llmModel, prompt, promptConfiguration, continuation));
     }
 
     public CompletableFuture<List<String>> promptMessages(Chat llmModel, String prompt, List<CFunction> functions, PromptConfiguration promptConfiguration) {
-        return future(continuation -> scope.promptMessages(llmModel, prompt, functions, promptConfiguration, continuation));
+        return exec.future(continuation -> scope.promptMessages(llmModel, prompt, functions, promptConfiguration, continuation));
     }
 
     public CompletableFuture<Flow<String>> promptStreaming(Chat gpt4all, String line, PromptConfiguration promptConfiguration) {
@@ -135,14 +126,14 @@ public class AIScope implements AutoCloseable {
     }
 
     public <A> CompletableFuture<A> contextScope(Function1<Embeddings, VectorStore> store, Function1<AIScope, CompletableFuture<A>> f) {
-        return future(continuation -> scope.contextScope(store.invoke(scope.getEmbeddings()), (coreAIScope, continuation1) -> {
+        return exec.future(continuation -> scope.contextScope(store.invoke(scope.getEmbeddings()), (coreAIScope, continuation1) -> {
             AIScope nestedScope = new AIScope(coreAIScope, AIScope.this);
             return FutureKt.await(f.invoke(nestedScope), continuation);
         }, continuation));
     }
 
     public <A> CompletableFuture<A> contextScope(VectorStore store, Function1<AIScope, CompletableFuture<A>> f) {
-        return future(continuation -> scope.contextScope(store, (coreAIScope, continuation1) -> {
+        return exec.future(continuation -> scope.contextScope(store, (coreAIScope, continuation1) -> {
             AIScope nestedScope = new AIScope(coreAIScope, AIScope.this);
             return FutureKt.await(f.invoke(nestedScope), continuation);
         }, continuation));
@@ -150,60 +141,43 @@ public class AIScope implements AutoCloseable {
 
     public <A> CompletableFuture<A> contextScope(CompletableFuture<List<String>> docs, Function1<AIScope, CompletableFuture<A>> f) {
         return docs.thenCompose(d ->
-                future(continuation -> scope.contextScopeWithDocs(d, (coreAIScope, continuation1) -> {
+                exec.future(continuation -> scope.contextScopeWithDocs(d, (coreAIScope, continuation1) -> {
                     AIScope nestedScope = new AIScope(coreAIScope, AIScope.this);
                     return FutureKt.await(f.invoke(nestedScope), continuation);
                 }, continuation)));
     }
 
     public <A> CompletableFuture<A> contextScope(List<String> docs, Function1<AIScope, CompletableFuture<A>> f) {
-        return future(continuation -> scope.contextScopeWithDocs(docs, (coreAIScope, continuation1) -> {
+        return exec.future(continuation -> scope.contextScopeWithDocs(docs, (coreAIScope, continuation1) -> {
             AIScope nestedScope = new AIScope(coreAIScope, AIScope.this);
             return FutureKt.await(f.invoke(nestedScope), continuation);
         }, continuation));
     }
 
     public CompletableFuture<List<String>> pdf(String url, TextSplitter splitter) {
-        return future(continuation -> Loader.pdf(url, splitter, continuation));
+        return exec.future(continuation -> Loader.pdf(url, splitter, continuation));
     }
 
     public CompletableFuture<List<String>> pdf(File file, TextSplitter splitter) {
-        return future(continuation -> Loader.pdf(file, splitter, continuation));
+        return exec.future(continuation -> Loader.pdf(file, splitter, continuation));
     }
 
     public CompletableFuture<List<String>> images(Images model, String prompt, Integer numberOfImages, String size, PromptConfiguration promptConfiguration) {
-        return this.<ImagesGenerationResponse>future(continuation -> scope.images(model, prompt, numberOfImages, size, promptConfiguration, continuation))
-                .thenApply(response -> CollectionsKt.map(response.getData(), ImageGenerationUrl::getUrl));
+        return exec.future(continuation -> scope.images(model, prompt, numberOfImages, size, promptConfiguration, continuation))
+                .thenApply(response -> CollectionsKt.map(((ImagesGenerationResponse)response).getData(), ImageGenerationUrl::getUrl));
     }
 
     public CompletableFuture<List<String>> search(String prompt) {
-        return future(continuation -> Search.search(prompt, continuation));
+        return exec.future(continuation -> Search.search(prompt, continuation));
     }
 
-    private <A> CompletableFuture<A> future(Function1<? super Continuation<? super A>, ? extends Object> block) {
-        return FutureKt.future(
-                coroutineScope,
-                coroutineScope.getCoroutineContext(),
-                CoroutineStart.DEFAULT,
-                (coroutineScope, continuation) -> block.invoke(continuation)
-        );
+    public CompletableFuture<String> getInterestingPromptsForDatabase(SQL sql) {
+        return exec.future(continuation -> sql.getInterestingPromptsForDatabase(scope, continuation));
     }
 
     @Override
-    public void close() {
-        CoroutineScopeKt.cancel(coroutineScope, null);
-        executorService.shutdown();
+    public void close(){
+        exec.close();
     }
 
-    private static class AIScopeThreadFactory implements ThreadFactory {
-        private final AtomicInteger counter = new AtomicInteger();
-
-        @Override
-        public Thread newThread(@NotNull Runnable r) {
-            Thread t = new Thread(r);
-            t.setName("xef-ai-scope-worker-" + counter.getAndIncrement());
-            t.setDaemon(true);
-            return t;
-        }
-    }
 }
