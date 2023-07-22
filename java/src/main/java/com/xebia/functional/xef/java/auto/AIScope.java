@@ -24,38 +24,20 @@ import com.xebia.functional.xef.pdf.Loader;
 import com.xebia.functional.xef.sql.SQL;
 import com.xebia.functional.xef.textsplitters.TextSplitter;
 import com.xebia.functional.xef.vectorstores.VectorStore;
-import kotlin.collections.CollectionsKt;
-import kotlin.jvm.functions.Function1;
-import kotlinx.coroutines.future.FutureKt;
-
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.atomic.AtomicInteger;
 import kotlin.collections.CollectionsKt;
-import kotlin.coroutines.Continuation;
 import kotlin.jvm.functions.Function1;
-import kotlinx.coroutines.CoroutineScope;
-import kotlinx.coroutines.CoroutineScopeKt;
-import kotlinx.coroutines.CoroutineStart;
-import kotlinx.coroutines.ExecutorsKt;
-import kotlinx.coroutines.JobKt;
 import kotlinx.coroutines.flow.Flow;
 import kotlinx.coroutines.future.FutureKt;
-import org.jetbrains.annotations.NotNull;
 
 public class AIScope implements AutoCloseable {
     private final CoreAIScope scope;
     private final ObjectMapper om;
     private ExecutionContext exec;
     private final SchemaGenerator schemaGenerator;
-    private final ExecutorService executorService;
-    private final CoroutineScope coroutineScope;
-    private final VectorStore context;
 
     public AIScope(ObjectMapper om, ExecutionContext executionContext) {
         this.om = om;
@@ -69,6 +51,10 @@ public class AIScope implements AutoCloseable {
         SchemaGeneratorConfig config = configBuilder.build();
         this.schemaGenerator = new SchemaGenerator(config);
         this.scope = executionContext.getCoreScope();
+    }
+
+    public ExecutionContext getExec() {
+        return exec;
     }
 
     public AIScope(ExecutionContext executionContext) {
@@ -122,7 +108,7 @@ public class AIScope implements AutoCloseable {
     }
 
     public CompletableFuture<Flow<String>> promptStreaming(Chat gpt4all, String line, PromptConfiguration promptConfiguration) {
-        return future(continuation -> scope.promptStreaming(gpt4all, line, this.context, null, Collections.emptyList(), promptConfiguration, continuation));
+        return exec.future(continuation -> scope.promptStreaming(gpt4all, line, exec.getContext(), null, Collections.emptyList(), promptConfiguration, continuation));
     }
 
     public <A> CompletableFuture<A> contextScope(Function1<Embeddings, VectorStore> store, Function1<AIScope, CompletableFuture<A>> f) {
