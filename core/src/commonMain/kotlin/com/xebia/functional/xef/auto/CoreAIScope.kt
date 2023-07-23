@@ -27,8 +27,8 @@ class CoreAIScope
 constructor(
   val embeddings: Embeddings,
   val context: VectorStore = LocalVectorStore(embeddings),
-  val conversationId: ConversationId = ConversationId(UUID.generateUUID().toString()),
-) {
+  val conversationId: ConversationId = ConversationId(UUID.generateUUID().toString())
+) : AutoCloseable, AutoClose by autoClose() {
 
   /**
    * Allows invoking [AI] values in the context of this [CoreAIScope].
