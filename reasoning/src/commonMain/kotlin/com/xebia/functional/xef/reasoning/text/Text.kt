@@ -2,61 +2,195 @@ package com.xebia.functional.xef.reasoning.text
 
 import com.xebia.functional.xef.auto.CoreAIScope
 import com.xebia.functional.xef.llm.Chat
-import com.xebia.functional.xef.llm.ChatWithFunctions
-import com.xebia.functional.xef.reasoning.text.anonymization.DataAnonymization
-import com.xebia.functional.xef.reasoning.text.arguments.ArgumentMining
-import com.xebia.functional.xef.reasoning.text.arguments.StanceDetection
-import com.xebia.functional.xef.reasoning.text.choices.Choose
-import com.xebia.functional.xef.reasoning.text.coreference.CoreferenceResolution
-import com.xebia.functional.xef.reasoning.text.emotions.EmotionDetection
-import com.xebia.functional.xef.reasoning.text.entities.EntityRecognition
-import com.xebia.functional.xef.reasoning.text.events.EventExtraction
-import com.xebia.functional.xef.reasoning.text.facts.FactChecking
-import com.xebia.functional.xef.reasoning.text.grammar.GrammarCorrection
-import com.xebia.functional.xef.reasoning.text.intents.IntentRecognition
-import com.xebia.functional.xef.reasoning.text.keywords.KeywordExtraction
-import com.xebia.functional.xef.reasoning.text.language.LanguageDetection
-import com.xebia.functional.xef.reasoning.text.language.LanguageTranslation
-import com.xebia.functional.xef.reasoning.text.relationships.RelationshipExtraction
-import com.xebia.functional.xef.reasoning.text.semantics.*
-import com.xebia.functional.xef.reasoning.text.sentiments.SentimentAnalysis
 import com.xebia.functional.xef.reasoning.text.summarize.Summarize
-import com.xebia.functional.xef.reasoning.text.summarize.TextSimplification
+import com.xebia.functional.xef.reasoning.tools.LLMTool
+import com.xebia.functional.xef.reasoning.tools.Tool
 import kotlin.jvm.JvmField
+import kotlin.jvm.JvmStatic
 
 class Text(
-  private val chatModel: Chat,
-  private val serializationModel: ChatWithFunctions,
+  private val model: Chat,
   private val scope: CoreAIScope,
-  @JvmField val dataAnonymization: DataAnonymization = DataAnonymization(serializationModel, scope),
-  @JvmField val argumentMining: ArgumentMining = ArgumentMining(serializationModel, scope),
-  @JvmField val stanceDetection: StanceDetection = StanceDetection(serializationModel, scope),
-  @JvmField val choose: Choose = Choose(serializationModel, scope),
   @JvmField
-  val coreferenceResolution: CoreferenceResolution =
-    CoreferenceResolution(serializationModel, scope),
-  @JvmField val emotionDetection: EmotionDetection = EmotionDetection(serializationModel, scope),
-  @JvmField val entityRecognition: EntityRecognition = EntityRecognition(serializationModel, scope),
-  @JvmField val eventExtraction: EventExtraction = EventExtraction(serializationModel, scope),
-  @JvmField val factChecking: FactChecking = FactChecking(serializationModel, scope),
-  @JvmField val grammarCorrection: GrammarCorrection = GrammarCorrection(serializationModel, scope),
-  @JvmField val intentRecognition: IntentRecognition = IntentRecognition(serializationModel, scope),
-  @JvmField val keywordExtraction: KeywordExtraction = KeywordExtraction(serializationModel, scope),
-  @JvmField val languageDetection: LanguageDetection = LanguageDetection(serializationModel, scope),
+  val dataAnonymization: LLMTool =
+    LLMTool.create(
+      name = "DataAnonymization",
+      description = "Anonymize data",
+      model = model,
+      scope = scope
+    ),
   @JvmField
-  val languageTranslation: LanguageTranslation = LanguageTranslation(serializationModel, scope),
+  val argumentMining: LLMTool =
+    LLMTool.create(
+      name = "ArgumentMining",
+      description = "Mine arguments",
+      model = model,
+      scope = scope
+    ),
   @JvmField
-  val relationshipExtraction: RelationshipExtraction =
-    RelationshipExtraction(serializationModel, scope),
+  val stanceDetection: LLMTool =
+    LLMTool.create(
+      name = "StanceDetection",
+      description = "Detect stance",
+      model = model,
+      scope = scope
+    ),
   @JvmField
-  val semanticRoleLabeling: SemanticRoleLabeling = SemanticRoleLabeling(serializationModel, scope),
-  @JvmField val textualEntailment: TextualEntailment = TextualEntailment(serializationModel, scope),
-  @JvmField val topicModeling: TopicModeling = TopicModeling(serializationModel, scope),
+  val coreferenceResolution: LLMTool =
+    LLMTool.create(
+      name = "CoreferenceResolution",
+      description = "Resolve coreferences",
+      model = model,
+      scope = scope
+    ),
   @JvmField
-  val wordSenseDisambiguation: WordSenseDisambiguation =
-    WordSenseDisambiguation(serializationModel, scope),
-  @JvmField val sentimentAnalysis: SentimentAnalysis = SentimentAnalysis(serializationModel, scope),
-  @JvmField val summarize: Summarize = Summarize(chatModel, scope),
+  val emotionDetection: LLMTool =
+    LLMTool.create(
+      name = "EmotionDetection",
+      description = "Detect emotions",
+      model = model,
+      scope = scope
+    ),
   @JvmField
-  val textSimplification: TextSimplification = TextSimplification(serializationModel, scope),
-) {}
+  val entityRecognition: LLMTool =
+    LLMTool.create(
+      name = "EntityRecognition",
+      description = "Recognize entities",
+      model = model,
+      scope = scope
+    ),
+  @JvmField
+  val eventExtraction: LLMTool =
+    LLMTool.create(
+      name = "EventExtraction",
+      description = "Extract events",
+      model = model,
+      scope = scope
+    ),
+  @JvmField
+  val factChecking: LLMTool =
+    LLMTool.create(
+      name = "FactChecking",
+      description = "Check facts",
+      model = model,
+      scope = scope
+    ),
+  @JvmField
+  val grammarCorrection: LLMTool =
+    LLMTool.create(
+      name = "GrammarCorrection",
+      description = "Correct grammar",
+      model = model,
+      scope = scope
+    ),
+  @JvmField
+  val intentRecognition: LLMTool =
+    LLMTool.create(
+      name = "IntentRecognition",
+      description = "Recognize intents",
+      model = model,
+      scope = scope
+    ),
+  @JvmField
+  val keywordExtraction: LLMTool =
+    LLMTool.create(
+      name = "KeywordExtraction",
+      description = "Extract keywords",
+      model = model,
+      scope = scope
+    ),
+  @JvmField
+  val languageDetection: LLMTool =
+    LLMTool.create(
+      name = "LanguageDetection",
+      description = "Detect language",
+      model = model,
+      scope = scope
+    ),
+  @JvmField
+  val relationshipExtraction: LLMTool =
+    LLMTool.create(
+      name = "RelationshipExtraction",
+      description = "Extract relationships",
+      model = model,
+      scope = scope
+    ),
+  @JvmField
+  val semanticRoleLabeling: LLMTool =
+    LLMTool.create(
+      name = "SemanticRoleLabeling",
+      description = "Label semantic roles",
+      model = model,
+      scope = scope
+    ),
+  @JvmField
+  val topicModeling: LLMTool =
+    LLMTool.create(
+      name = "TopicModeling",
+      description = "Model topics",
+      model = model,
+      scope = scope
+    ),
+  @JvmField
+  val wordSenseDisambiguation: LLMTool =
+    LLMTool.create(
+      name = "WordSenseDisambiguation",
+      description = "Disambiguate word senses",
+      model = model,
+      scope = scope
+    ),
+  @JvmField
+  val sentimentAnalysis: LLMTool =
+    LLMTool.create(
+      name = "SentimentAnalysis",
+      description = "Analyze sentiment",
+      model = model,
+      scope = scope
+    ),
+  @JvmField val summarize: Summarize = Summarize(model, scope),
+  @JvmField
+  val textSimplification: LLMTool =
+    LLMTool.create(
+      name = "TextSimplification",
+      description = "Simplify text",
+      model = model,
+      scope = scope
+    ),
+) {
+  val tools: List<Tool> =
+    listOf(
+      dataAnonymization,
+      argumentMining,
+      stanceDetection,
+      coreferenceResolution,
+      emotionDetection,
+      entityRecognition,
+      eventExtraction,
+      factChecking,
+      grammarCorrection,
+      intentRecognition,
+      keywordExtraction,
+      languageDetection,
+      languageTranslation("en"),
+      relationshipExtraction,
+      semanticRoleLabeling,
+      topicModeling,
+      wordSenseDisambiguation,
+      sentimentAnalysis,
+      summarize,
+      textSimplification,
+    )
+
+  fun languageTranslation(target: String): LLMTool =
+    LLMTool.create(
+      name = "LanguageTransalation",
+      description = "Trnaslate to $target",
+      model = model,
+      scope = scope
+    )
+
+  companion object {
+
+    @JvmStatic fun create(model: Chat, scope: CoreAIScope): Text = Text(model, scope)
+  }
+}

@@ -3,13 +3,12 @@ package com.xebia.functional.xef.auto.reasoning
 import com.xebia.functional.xef.auto.CoreAIScope
 import com.xebia.functional.xef.auto.llm.openai.OpenAI
 import com.xebia.functional.xef.auto.llm.openai.OpenAIEmbeddings
-import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.reasoning.text.Text
-import com.xebia.functional.xef.reasoning.text.choices.Choice
+import com.xebia.functional.xef.reasoning.text.summarize.SummaryLength
 
 suspend fun main() {
   val scope = CoreAIScope(OpenAIEmbeddings(OpenAI.DEFAULT_EMBEDDING))
-  val text = Text(chatModel = OpenAI.DEFAULT_CHAT, serializationModel = OpenAI.DEFAULT_SERIALIZATION, scope = scope)
+  val text = Text(model = OpenAI.DEFAULT_CHAT, scope = scope)
 
   val inputText = """
        The recent advancements in artificial intelligence have had a significant impact on various industries. 
@@ -18,107 +17,96 @@ suspend fun main() {
        In this example, we will explore various NLP tasks using the capabilities of the Xebia Xef AI Reasoning Framework.
     """.trimIndent()
 
-  val dataAnonymizationResult = text.dataAnonymization.anonymizeText(inputText)
+  val dataAnonymizationResult = text.dataAnonymization(inputText)
   println("Data Anonymization Result:")
-  println(dataAnonymizationResult.anonymizedText)
+  println(dataAnonymizationResult)
   println()
 
-  val argumentMiningResult = text.argumentMining.mineArguments(inputText)
-  println("Argument Mining Result:")
-  argumentMiningResult.arguments.forEach { println(it) }
-  println()
+  val argumentMiningResult = text.argumentMining(inputText)
+  val stanceDetectionResult = text.stanceDetection(inputText)
 
-  val stanceDetectionResult =
-    text.stanceDetection.detectStance(inputText, "The author likes Xebia's Xef AI Reasoning Framework")
-  println("Stance Detection Result:")
-  println(stanceDetectionResult.stance)
-  println()
+  val coreferenceResolutionResult = text.coreferenceResolution(inputText)
 
-  val chooseResult = text.choose.chooseBestOf(
-    Prompt(inputText),
-    listOf(Choice("Option 1"), Choice("Option 2"))
+  val emotionDetectionResult = text.emotionDetection(inputText)
+
+  val entityRecognitionResult = text.entityRecognition(
+    inputText
   )
-  println("Choice Result:")
-  println(chooseResult.choice)
-  println()
 
-  val coreferenceResolutionResult = text.coreferenceResolution.resolveCoreferences(inputText)
-  println("Coreference Resolution Result:")
-  println(coreferenceResolutionResult.coreferences)
-  println()
+  val eventExtractionResult = text.eventExtraction(inputText)
 
-  val emotionDetectionResult = text.emotionDetection.detectEmotion(inputText)
-  println("Emotion Detection Result:")
-  println(emotionDetectionResult.emotion)
-  println()
-
-  val entityRecognitionResult = text.entityRecognition.recognizeEntities(
-    inputText,
-    listOf("context", "location", "organization", "person", "product", "time", "company")
+  val factCheckingResult = text.factChecking(inputText
   )
-  println("Entity Recognition Result:")
-  entityRecognitionResult.results.forEach { println(it) }
-  println()
 
-  val eventExtractionResult = text.eventExtraction.extractEvents(inputText)
-  println("Event Extraction Result:")
-  eventExtractionResult.events.forEach { println(it) }
-  println()
+  val grammarCorrectionResult = text.grammarCorrection(inputText)
 
-  val factCheckingResult = text.factChecking.factCheck(
-    statement = inputText,
-    knownFacts = "Xef reasoning framework is cool!"
-  )
-  println("Fact Checking Result:")
-  println(factCheckingResult.result)
-  println()
+  val intentRecognitionResult = text.intentRecognition(inputText)
 
-  val grammarCorrectionResult = text.grammarCorrection.correctGrammar(inputText)
-  println("Grammar Correction Result:")
-  println(grammarCorrectionResult.correctedText)
-  println()
+  val keywordExtractionResult = text.keywordExtraction(inputText)
 
-  val intentRecognitionResult = text.intentRecognition.recognizeIntent(inputText)
-  println("Intent Recognition Result:")
-  println(intentRecognitionResult.intent)
-  println()
+  val languageDetectionResult = text.languageDetection(inputText)
 
-  val keywordExtractionResult = text.keywordExtraction.extractKeywords(inputText)
-  println("Keyword Extraction Result:")
-  keywordExtractionResult.keywords.forEach { println(it) }
-  println()
+  val languageTranslationResult = text.languageTranslation(inputText)
 
-  val languageDetectionResult = text.languageDetection.identifyLanguage(inputText)
-  println("Language Detection Result:")
-  println(languageDetectionResult.language)
-  println()
+  val relationshipExtractionResult = text.relationshipExtraction(inputText)
 
-  val languageTranslationResult = text.languageTranslation.translateText(inputText, "en")
-  println("Language Translation Result:")
-  println(languageTranslationResult.translation)
-  println()
-
-  val relationshipExtractionResult = text.relationshipExtraction.extractRelationships(inputText)
-  println("Relationship Extraction Result:")
-  relationshipExtractionResult.relationships.forEach { println(it) }
-  println()
-
-  val sentimentAnalysisResult = text.sentimentAnalysis.analyzeSentiment(inputText)
-  println("Sentiment Analysis Result:")
-  println(sentimentAnalysisResult.sentiment)
-  println()
+  val sentimentAnalysisResult = text.sentimentAnalysis(inputText)
 
   val summarizeResult = text.summarize.summarizeLargeText(
-    query = "summarize in neutral tone",
     text = inputText,
-    summaryLength = 50
+    summaryLength = SummaryLength.DEFAULT
   )
-  println("Text Summarization Result:")
+
+  val textSimplificationResult = text.textSimplification(inputText)
+
+  println()
+  println("Argument Mining Result:")
+  println(argumentMiningResult)
+  println()
+  println("Stance Detection Result:")
+  println(stanceDetectionResult)
+  println()
+  println("Coreference Resolution Result:")
+  println(coreferenceResolutionResult)
+  println()
+  println("Emotion Detection Result:")
+  println(emotionDetectionResult)
+  println()
+  println("Entity Recognition Result:")
+  println(entityRecognitionResult)
+  println()
+  println("Event Extraction Result:")
+  println(eventExtractionResult)
+  println()
+  println("Fact Checking Result:")
+  println(factCheckingResult)
+  println()
+  println("Grammar Correction Result:")
+  println(grammarCorrectionResult)
+  println()
+  println("Intent Recognition Result:")
+  println(intentRecognitionResult)
+  println()
+  println("Keyword Extraction Result:")
+  println(keywordExtractionResult)
+  println()
+  println("Language Detection Result:")
+  println(languageDetectionResult)
+  println()
+  println("Language Translation Result:")
+  println(languageTranslationResult)
+  println()
+  println("Relationship Extraction Result:")
+  println(relationshipExtractionResult)
+  println()
+  println("Sentiment Analysis Result:")
+  println(sentimentAnalysisResult)
+  println()
+  println("Summarize Result:")
   println(summarizeResult)
   println()
-
-  val textSimplificationResult = text.textSimplification.simplifyText(inputText)
   println("Text Simplification Result:")
-  println(textSimplificationResult.simplifiedText)
-  println()
+  println(textSimplificationResult)
+
+
 }

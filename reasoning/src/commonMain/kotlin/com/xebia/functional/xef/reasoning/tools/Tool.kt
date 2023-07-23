@@ -1,19 +1,8 @@
 package com.xebia.functional.xef.reasoning.tools
 
-interface Tool<A> {
-  interface Out<A> {
-    fun toolOutput(metadata: ToolMetadata): ToolOutput<A>
+interface Tool {
+  val name: String
+  val description: String
 
-    companion object {
-      fun <A> empty() =
-        object : Out<A?> {
-          override fun toolOutput(metadata: ToolMetadata): ToolOutput<A?> =
-            ToolOutput(metadata, emptyList(), null)
-        }
-    }
-  }
-
-  suspend fun handle(input: ToolOutput<Any?>): Out<A>?
-
-  val functions: Map<ToolMetadata, suspend (input: String) -> Out<A>>
+  suspend operator fun invoke(input: String): String
 }

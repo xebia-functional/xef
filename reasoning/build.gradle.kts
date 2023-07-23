@@ -15,6 +15,7 @@ plugins {
   alias(libs.plugins.dokka)
   alias(libs.plugins.arrow.gradle.publish)
   alias(libs.plugins.semver.gradle)
+  alias(libs.plugins.suspend.transform.plugin)
   //id("com.xebia.asfuture").version("0.0.1")
 }
 
@@ -64,7 +65,9 @@ kotlin {
     val commonMain by getting {
       dependencies {
         implementation(projects.xefCore)
+        implementation(libs.okio)
         implementation(libs.klogging)
+        implementation(libs.uuid)
       }
     }
 
@@ -79,6 +82,8 @@ kotlin {
     val jvmMain by getting {
       dependencies {
         implementation(libs.logback)
+        implementation(projects.xefPdf)
+        implementation(projects.xefFilesystem)
       }
     }
 
@@ -90,45 +95,15 @@ kotlin {
       }
     }
 
-    val linuxX64Main by getting {
-      dependencies {
-      }
-    }
-
-    val macosX64Main by getting {
-      dependencies {
-      }
-    }
-
-    val macosArm64Main by getting {
-      dependencies {
-      }
-    }
-
-    val mingwX64Main by getting {
-      dependencies {
-      }
-    }
-
-    val linuxX64Test by getting
-    val macosX64Test by getting
-    val macosArm64Test by getting
-    val mingwX64Test by getting
+    val linuxX64Main by getting
+    val macosX64Main by getting
+    val mingwX64Main by getting
 
     create("nativeMain") {
       dependsOn(commonMain)
       linuxX64Main.dependsOn(this)
       macosX64Main.dependsOn(this)
-      macosArm64Main.dependsOn(this)
       mingwX64Main.dependsOn(this)
-    }
-
-    create("nativeTest") {
-      dependsOn(commonTest)
-      linuxX64Test.dependsOn(this)
-      macosX64Test.dependsOn(this)
-      macosArm64Test.dependsOn(this)
-      mingwX64Test.dependsOn(this)
     }
   }
 }
@@ -171,6 +146,12 @@ tasks {
       }
     }
   }
+}
+
+suspendTransform {
+  enabled = true // default: true
+  includeRuntime = true // default: true
+  useJvmDefault()
 }
 
 tasks.withType<AbstractPublishToMaven> {

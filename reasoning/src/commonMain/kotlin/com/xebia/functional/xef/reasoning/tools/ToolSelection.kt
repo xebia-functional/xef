@@ -1,135 +1,114 @@
 package com.xebia.functional.xef.reasoning.tools
 
-import arrow.fx.coroutines.parMap
 import com.xebia.functional.xef.auto.CoreAIScope
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.prompt.experts.ExpertSystem
-import com.xebia.functional.xef.reasoning.internals.callModel
 import io.github.oshai.kotlinlogging.KotlinLogging
+import love.forte.plugin.suspendtrans.annotation.JvmAsync
+import love.forte.plugin.suspendtrans.annotation.JvmBlocking
 
 class ToolSelection(
   private val model: ChatWithFunctions,
   private val scope: CoreAIScope,
-  private val tools: List<Tool<*>>,
-  val functions: Map<ToolMetadata, suspend (input: String) -> Tool.Out<*>> =
-    tools
-      .flatMap { tool -> tool.functions.map { function -> function.key to function.value } }
-      .toMap(),
+  private val tools: List<Tool>,
   private val instructions: List<String> = emptyList()
-) {
+) : Tool {
 
   private val logger = KotlinLogging.logger {}
-//
-//  TODO apply selection over tools but allowing tool
-//  chains with multiple tools that pipe the inputs/outputs automatically to solve a problem
 
+  override val name: String = "Tool Selection"
+
+  override val description: String = "Select the best tool for the job"
+
+  override suspend fun invoke(input: String): String {
+    return when (val trace = applyInferredTools(input)) {
+      is ToolsExecutionTrace.Completed -> trace.output
+      ToolsExecutionTrace.Empty -> ""
+    }
+  }
+
+  @JvmBlocking
+  @JvmAsync
   suspend fun applyInferredTools(task: String): ToolsExecutionTrace {
     logger.info { "🔍 Applying inferred tools for task: $task" }
     val plan = createExecutionPlan(task)
     logger.info { "🔍 Applying execution plan with reasoning: ${plan.reasoning}" }
-    // partition steps between independent and dependent steps
-    val (parallel, sequential) = plan.steps.partition { step -> step.executionType == ExecutionType.Parallel }
-    // apply parallel steps
-    val parExecuted: Map<ToolExecutionStep, Tool.Out<*>> = parallel.parMap {
-      logger.info { "🔍 Applying parallel step: $it" }
-      it to (functions[it.tool]?.invoke(task) ?: Tool.Out.empty<Any?>())
-    }.toMap()
-    // apply sequential steps
-    // the previous state is calculated by the previous step only if there is a previous step
-    // otherwise the input is the task
-    val seqExecuted: Map<ToolExecutionStep, Tool.Out<*>> =
-      sequential.foldIndexed(emptyMap()) { index, acc, step ->
-        logger.info { "🔍 Applying sequential step: ${step.reasoning}" }
-        val previousStep = sequential.getOrNull(index - 1)
-        val previous = if (previousStep != null && index > 0) acc[previousStep] else Tool.Out.empty<Any?>()
-        acc + (step to (previous?.let {
-          previousStep?.let { s ->
-            functions[step.tool]?.invoke(
-              it.toolOutput(s.tool).toOutputString()
-            )
-          }
-        } ?: functions[step.tool]?.invoke(
-          task
-        ) ?: Tool.Out.empty()))
+    val stepsAndTools =
+      plan.steps.mapNotNull { step ->
+        val tool = tools.find { it.name == step.tool.name }
+        tool?.let { step to it }
       }
+    return when {
+      stepsAndTools.isEmpty() -> ToolsExecutionTrace.Empty
+      stepsAndTools.size == 1 -> {
+        val (step, tool) = stepsAndTools.first()
+        applyToolOnStep(tool, step, "", task)
+      }
+      else -> {
+        stepsAndTools.foldIndexed(ToolsExecutionTrace.Empty as ToolsExecutionTrace) {
+          index,
+          acc,
+          (step, tool) ->
+          when (acc) {
+            is ToolsExecutionTrace.Empty -> applyToolOnStep(tool, step, "", task)
+            is ToolsExecutionTrace.Completed -> {
+              val previousOutput = acc.output
+              val result = applyToolOnStep(tool, step, previousOutput, task)
+              acc.copy(results = acc.results + result.results, output = result.output)
+            }
+          }
+        }
+      }
+    }
+  }
 
-    val executions = parExecuted + seqExecuted
-
-    return if (executions.isEmpty()) ToolsExecutionTrace.EMPTY
-    else ToolsExecutionTrace(
-      executions,
-      executions.values.last()
-    )
-
+  private suspend fun applyToolOnStep(
+    tool: Tool,
+    step: ToolExecutionStep,
+    previousOutput: String,
+    input: String,
+  ): ToolsExecutionTrace.Completed {
+    logger.info { "🔍 Applying tool: ${tool.name} for step: ${step.reasoning}" }
+    val prompt =
+      """|
+      |Previous knowledge:
+      |$previousOutput
+      |original input:
+      |$input
+    """
+        .trimMargin()
+    val output = tool.invoke(prompt)
+    return ToolsExecutionTrace.Completed(results = mapOf(step to output), output = output)
   }
 
   suspend fun createExecutionPlan(task: String): ToolsExecutionPlan {
     logger.info { "🔍 Creating execution plan for task: $task" }
-    return callModel<ToolsExecutionPlan>(
-      model,
-      scope,
+    return model.prompt(
+      context = scope.context,
+      conversationId = scope.conversationId,
+      serializer = ToolsExecutionPlan.serializer(),
       prompt =
-      ExpertSystem(
-        system =
-        "You are an expert in tool selection that can choose the best tools for a specific task based on the tools descriptions",
-        query =
-        """|
+        ExpertSystem(
+          system =
+            "You are an expert in tool selection that can choose the best tools for a specific task based on the tools descriptions",
+          query =
+            """|
                 |Given the following task:
                 |```task
                 |${task}
                 |```
                 |And the following tools:
                 |```tools
-                |${functions.keys.joinToString("\n") { "${it.name}: ${it.description}" }}
+                |${(tools.map { ToolMetadata(it.name, it.description) }).joinToString("\n") { "${it.name}: ${it.description}" }}
                 |```
             """
-          .trimMargin(),
-        instructions =
-        listOf(
-          "Select the best execution plan with tools for the `task` based on the `tools`",
-          "Your `RESPONSE` MUST be a `ToolsExecutionPlan` object, where the `steps` determine how the execution plan will run the tools"
-        ) + instructions
-      )
+              .trimMargin(),
+          instructions =
+            listOf(
+              "Select the best execution plan with tools for the `task` based on the `tools`",
+              "Your `RESPONSE` MUST be a `ToolsExecutionPlan` object, where the `steps` determine how the execution plan will run the tools"
+            ) + instructions
+        )
     )
-      
-  }
-
-  suspend inline fun <reified A> applyFunction(task: String): A? =
-    selectTool(task).let { toolSelectionResult ->
-      functions[toolSelectionResult.toolMetadata]?.invoke(task)?.let {
-        val output = it.toolOutput(toolSelectionResult.toolMetadata)
-        output.valueOrNull<A>()
-      }
-    }
-
-  suspend fun selectTool(task: String): ToolSelectionResult {
-    logger.info { "🔍 Selecting tool for task: $task" }
-    return callModel<ToolSelectionResult>(
-      model,
-      scope,
-      prompt =
-      ExpertSystem(
-        system =
-        "You are an expert in tool selection that can choose the best tool for a specific task based on the tool descriptions",
-        query =
-        """|
-                |Given the following task:
-                |```task
-                |${task}
-                |```
-                |And the following tools:
-                |```tools
-                |${functions.keys.joinToString("\n") { "${it.name}: ${it.description}" }}
-                |```
-            """
-          .trimMargin(),
-        instructions =
-        listOf(
-          "Select the best tool for the `task` based on the `tools`",
-          "Your `RESPONSE` MUST be a `ToolSelectionResult` object, where the `tool` is the selected tool"
-        ) + instructions
-      )
-    )
-      
   }
 }

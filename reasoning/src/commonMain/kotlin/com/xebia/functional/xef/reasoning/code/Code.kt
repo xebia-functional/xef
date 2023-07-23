@@ -1,52 +1,107 @@
 package com.xebia.functional.xef.reasoning.code
 
-import CodeBreakdown
-import DuplicateCodeDetection
 import com.xebia.functional.xef.auto.CoreAIScope
 import com.xebia.functional.xef.llm.Chat
-import com.xebia.functional.xef.llm.ChatWithFunctions
-import com.xebia.functional.xef.reasoning.code.antipatterns.AntiPatternDetection
-import com.xebia.functional.xef.reasoning.code.api.usage.example.APIUsageExampleGeneration
-import com.xebia.functional.xef.reasoning.code.bug.BugDetection
-import com.xebia.functional.xef.reasoning.code.comments.CommentAnalyzer
-import com.xebia.functional.xef.reasoning.code.documentation.CodeDocumentationGeneration
-import com.xebia.functional.xef.reasoning.code.performance.PerformanceOptimization
-import com.xebia.functional.xef.reasoning.code.refactor.CodeRefactoring
-import com.xebia.functional.xef.reasoning.code.tests.TestGeneration
-import com.xebia.functional.xef.reasoning.code.vulnerabilities.VulnerabilityScanning
+import com.xebia.functional.xef.reasoning.tools.LLMTool
+import com.xebia.functional.xef.reasoning.tools.Tool
 import kotlin.jvm.JvmField
 import kotlin.jvm.JvmName
 import kotlin.jvm.JvmStatic
 
 class Code(
-  chatModel: Chat,
-  serializationModel: ChatWithFunctions,
+  model: Chat,
   scope: CoreAIScope,
   @JvmField
-  val antiPatternDetection: AntiPatternDetection = AntiPatternDetection(serializationModel, scope),
+  val antiPatternDetection: LLMTool =
+    LLMTool.create(
+      name = "AntiPatternDetection",
+      description = "Detect anti-patterns in code",
+      model = model,
+      scope = scope
+    ),
   @JvmField
-  val apiUsageExampleGeneration: APIUsageExampleGeneration =
-    APIUsageExampleGeneration(serializationModel, scope),
-  @JvmField val bugDetection: BugDetection = BugDetection(serializationModel, scope),
-  @JvmField val commentAnalyzer: CommentAnalyzer = CommentAnalyzer(serializationModel, scope),
+  val apiUsageExampleGeneration: LLMTool =
+    LLMTool.create(
+      name = "ApiUsageExampleGeneration",
+      description = "Generate API usage examples",
+      model = model,
+      scope = scope
+    ),
   @JvmField
-  val coreDocumentationGeneration: CodeDocumentationGeneration =
-    CodeDocumentationGeneration(chatModel, scope),
+  val bugDetection: LLMTool =
+    LLMTool.create(
+      name = "BugDetection",
+      description = "Detect bugs in code",
+      model = model,
+      scope = scope
+    ),
   @JvmField
-  val duplicateCodeDetection: DuplicateCodeDetection =
-    DuplicateCodeDetection(serializationModel, scope),
+  val commentAnalyzer: LLMTool =
+    LLMTool.create(
+      name = "CommentAnalyzer",
+      description = "Analyze comments in code",
+      model = model,
+      scope = scope
+    ),
   @JvmField
-  val performanceOptimization: PerformanceOptimization =
-    PerformanceOptimization(serializationModel, scope),
-  @JvmField val codeRefactoring: CodeRefactoring = CodeRefactoring(serializationModel, scope),
-  @JvmField val codeBreakdown: CodeBreakdown = CodeBreakdown(serializationModel, scope),
-  @JvmField val testGeneration: TestGeneration = TestGeneration(serializationModel, scope),
+  val coreDocumentationGeneration: LLMTool =
+    LLMTool.create(
+      name = "CoreDocumentationGeneration",
+      description = "Generate core documentation",
+      model = model,
+      scope = scope
+    ),
   @JvmField
-  val vulnerabilityScanning: VulnerabilityScanning =
-    VulnerabilityScanning(serializationModel, scope),
+  val duplicateCodeDetection: LLMTool =
+    LLMTool.create(
+      name = "DuplicateCodeDetection",
+      description = "Detect duplicate code",
+      model = model,
+      scope = scope
+    ),
+  @JvmField
+  val performanceOptimization: LLMTool =
+    LLMTool.create(
+      name = "PerformanceOptimization",
+      description = "Optimize performance",
+      model = model,
+      scope = scope
+    ),
+  @JvmField
+  val codeRefactoring: LLMTool =
+    LLMTool.create(
+      name = "CodeRefactoring",
+      description = "Refactor code",
+      model = model,
+      scope = scope
+    ),
+  @JvmField
+  val codeBreakdown: LLMTool =
+    LLMTool.create(
+      name = "CodeBreakdown",
+      description = "Breakdown code",
+      model = model,
+      scope = scope
+    ),
+  @JvmField
+  val testGeneration: LLMTool =
+    LLMTool.create(
+      name = "TestGeneration",
+      description = "Generate tests",
+      model = model,
+      scope = scope
+    ),
+  @JvmField
+  val vulnerabilityScanning: LLMTool =
+    LLMTool.create(
+      name = "VulnerabilityScanning",
+      description = "Scan for vulnerabilities",
+      model = model,
+      scope = scope
+    )
 ) {
 
-  val tools =
+  val tools: List<Tool> =
     listOf(
       antiPatternDetection,
       apiUsageExampleGeneration,
@@ -65,10 +120,6 @@ class Code(
 
     @JvmStatic
     @JvmName("create")
-    operator fun invoke(
-      chatModel: Chat,
-      serializationModel: ChatWithFunctions,
-      scope: CoreAIScope
-    ): Code = Code(chatModel, serializationModel, scope)
+    operator fun invoke(model: Chat, scope: CoreAIScope): Code = Code(model, scope)
   }
 }

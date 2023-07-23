@@ -7,7 +7,7 @@ import com.xebia.functional.xef.reasoning.code.Code
 
 suspend fun main() {
   val scope = CoreAIScope(OpenAIEmbeddings(OpenAI.DEFAULT_EMBEDDING))
-  val code = Code(chatModel = OpenAI.DEFAULT_CHAT, serializationModel = OpenAI.DEFAULT_SERIALIZATION, scope = scope)
+  val code = Code(model = OpenAI.DEFAULT_CHAT, scope = scope)
 
   val sourceCode = """
        import java.util.*
@@ -60,48 +60,15 @@ suspend fun main() {
 
     """.trimIndent()
 
-  val antiPatternDetectionResult = code.antiPatternDetection.detectAntiPatterns(sourceCode)
+  val antiPatternDetectionResult = code.antiPatternDetection(sourceCode)
   println("Detected Anti-Patterns:")
-  antiPatternDetectionResult.detectedAntiPatterns.forEach { println(it) }
-  println()
+  println(antiPatternDetectionResult)
 
-  val apiUsageExamplesResult = code.apiUsageExampleGeneration.generateUsageExamples(listOf("API1", "API2", "API3"))
-  println("Generated API Usage Examples:")
-  apiUsageExamplesResult.examples.forEach { println(it) }
-  println()
+  val codeBreakdownResult = code.codeBreakdown(sourceCode)
+  println("Code Breakdown:")
+  println(codeBreakdownResult)
 
-  val bugDetectionResult = code.bugDetection.detectBugs(sourceCode)
-  println("Detected Bugs:")
-  bugDetectionResult.bugs.forEach { println(it) }
-  println()
-
-  val commentAnalysisResult = code.commentAnalyzer.analyzeComments(sourceCode)
-  println("Code Comment Analysis:")
-  commentAnalysisResult.analyses.forEach { println(it) }
-  println()
-
-  val codeDocumentationResult = code.coreDocumentationGeneration.generateCodeDocumentation(sourceCode)
-  println("Generated Code Documentation:")
-  println(codeDocumentationResult)
-  println()
-
-  val codeRefactoringResult = code.codeRefactoring.refactorCode(sourceCode)
-  println("Code Refactoring Suggestions:")
-  codeRefactoringResult.refactoredCode.forEach { println(it) }
-  println()
-
-  val performanceOptimizationResult = code.performanceOptimization.optimizePerformance(sourceCode)
-  println("Performance Optimization Suggestions:")
-  performanceOptimizationResult.recommendations.forEach { println(it) }
-  println()
-
-  val testGenerationResult = code.testGeneration.generateTestCases(sourceCode)
-  println("Generated Test Cases:")
-  testGenerationResult.testCases.forEach { println(it) }
-  println()
-
-  val vulnerabilityScanningResult = code.vulnerabilityScanning.scanForVulnerabilities(sourceCode)
-  println("Vulnerability Scanning Results:")
-  vulnerabilityScanningResult.detectedVulnerabilities.forEach { println(it) }
-  println()
+  val codeDocumentationGenerationResult = code.coreDocumentationGeneration(sourceCode)
+  println("Code Documentation Generation:")
+  println(codeDocumentationGenerationResult)
 }
