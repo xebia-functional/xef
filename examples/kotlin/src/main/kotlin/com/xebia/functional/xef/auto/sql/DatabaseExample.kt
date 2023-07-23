@@ -27,9 +27,9 @@ suspend fun main() = ai {
     println("llmdb> You can type `exit` to exit the program.")
     println("llmdb> Loading recommended prompts...")
     val interestingPrompts = getInterestingPromptsForDatabase()
-    interestingPrompts.forEach {
-      println("llmdb> ${it}")
-    }
+    interestingPrompts.split("\n").forEach{ it -> println("llmdb> $it") }
+
+
     while (true) {
       // a cli chat with the content
       print("user> ")
@@ -52,9 +52,7 @@ suspend fun main() = ai {
             docsInContext(50)
           }
         )
-        result.forEach {
-          println("llmdb> ${it}")
-        }
+          println("llmdb> $result")
       }, { exception ->
         println("llmdb> ${exception.message}")
         exception.printStackTrace()
