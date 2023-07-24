@@ -14,7 +14,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable data class ExtractedPDFFile(val absolutePath: String)
 
-class ReadPDFFromFile(
+class ReadPDFFromFile @JvmOverloads constructor(
   private val chat: Chat,
   private val model: ChatWithFunctions,
   private val scope: CoreAIScope,
