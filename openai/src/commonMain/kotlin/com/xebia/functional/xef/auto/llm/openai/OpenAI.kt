@@ -15,23 +15,37 @@ class OpenAI(internal val token: String) : AutoCloseable, AutoClose by autoClose
 
   val GPT_4_32K by lazy { autoClose(OpenAIModel(this, "gpt-4-32k", ModelType.GPT_4_32K)) }
 
-  val GPT_3_5_TURBO by lazy { autoClose(OpenAIModel(this, "gpt-3.5-turbo", ModelType.GPT_3_5_TURBO)) }
+  val GPT_3_5_TURBO by lazy {
+    autoClose(OpenAIModel(this, "gpt-3.5-turbo", ModelType.GPT_3_5_TURBO))
+  }
 
-  val GPT_3_5_TURBO_16K by lazy { autoClose(OpenAIModel(this, "gpt-3.5-turbo-16k", ModelType.GPT_3_5_TURBO_16_K)) }
+  val GPT_3_5_TURBO_16K by lazy {
+    autoClose(OpenAIModel(this, "gpt-3.5-turbo-16k", ModelType.GPT_3_5_TURBO_16_K))
+  }
 
   val GPT_3_5_TURBO_FUNCTIONS by lazy {
     autoClose(OpenAIModel(this, "gpt-3.5-turbo-0613", ModelType.GPT_3_5_TURBO_FUNCTIONS))
   }
 
-  val GPT_3_5_TURBO_0301 by lazy { autoClose(OpenAIModel(this, "gpt-3.5-turbo-0301", ModelType.GPT_3_5_TURBO)) }
+  val GPT_3_5_TURBO_0301 by lazy {
+    autoClose(OpenAIModel(this, "gpt-3.5-turbo-0301", ModelType.GPT_3_5_TURBO))
+  }
 
-  val TEXT_DAVINCI_003 by lazy { autoClose(OpenAIModel(this, "text-davinci-003", ModelType.TEXT_DAVINCI_003)) }
+  val TEXT_DAVINCI_003 by lazy {
+    autoClose(OpenAIModel(this, "text-davinci-003", ModelType.TEXT_DAVINCI_003))
+  }
 
-  val TEXT_DAVINCI_002 by lazy { autoClose(OpenAIModel(this, "text-davinci-002", ModelType.TEXT_DAVINCI_002)) }
+  val TEXT_DAVINCI_002 by lazy {
+    autoClose(OpenAIModel(this, "text-davinci-002", ModelType.TEXT_DAVINCI_002))
+  }
 
-  val TEXT_CURIE_001 by lazy { autoClose(OpenAIModel(this, "text-curie-001", ModelType.TEXT_SIMILARITY_CURIE_001)) }
+  val TEXT_CURIE_001 by lazy {
+    autoClose(OpenAIModel(this, "text-curie-001", ModelType.TEXT_SIMILARITY_CURIE_001))
+  }
 
-  val TEXT_BABBAGE_001 by lazy { autoClose(OpenAIModel(this, "text-babbage-001", ModelType.TEXT_BABBAGE_001)) }
+  val TEXT_BABBAGE_001 by lazy {
+    autoClose(OpenAIModel(this, "text-babbage-001", ModelType.TEXT_BABBAGE_001))
+  }
 
   val TEXT_ADA_001 by lazy { autoClose(OpenAIModel(this, "text-ada-001", ModelType.TEXT_ADA_001)) }
 
