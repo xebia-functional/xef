@@ -30,8 +30,9 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import kotlin.collections.CollectionsKt;
 import kotlin.jvm.functions.Function1;
-import kotlinx.coroutines.flow.Flow;
 import kotlinx.coroutines.future.FutureKt;
+import kotlinx.coroutines.reactive.ReactiveFlowKt;
+import org.reactivestreams.Publisher;
 
 public class AIScope implements AutoCloseable {
     private final CoreAIScope scope;
@@ -107,8 +108,8 @@ public class AIScope implements AutoCloseable {
         return exec.future(continuation -> scope.promptMessages(llmModel, prompt, functions, promptConfiguration, continuation));
     }
 
-    public CompletableFuture<Flow<String>> promptStreaming(Chat gpt4all, String line, PromptConfiguration promptConfiguration) {
-        return exec.future(continuation -> scope.promptStreaming(gpt4all, line, exec.getContext(), null, Collections.emptyList(), promptConfiguration, continuation));
+    public Publisher<String> promptStreaming(Chat gpt4all, String line, PromptConfiguration promptConfiguration) {
+        return ReactiveFlowKt.asPublisher(scope.promptStreaming(gpt4all, line, exec.getContext(), null, Collections.emptyList(), promptConfiguration));
     }
 
     public <A> CompletableFuture<A> contextScope(Function1<Embeddings, VectorStore> store, Function1<AIScope, CompletableFuture<A>> f) {

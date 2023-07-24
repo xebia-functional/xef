@@ -132,7 +132,7 @@ constructor(
     promptMessages(Prompt(question), context, conversationId, functions, promptConfiguration)
 
   @AiDsl
-  suspend fun Chat.promptStreaming(
+  fun Chat.promptStreaming(
     question: String,
     context: VectorStore,
     conversationId: ConversationId?,

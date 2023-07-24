@@ -4,15 +4,13 @@ import com.xebia.functional.gpt4all.GPT4All;
 import com.xebia.functional.gpt4all.Gpt4AllModel;
 import com.xebia.functional.xef.auto.PromptConfiguration;
 import com.xebia.functional.xef.java.auto.AIScope;
-import com.xebia.functional.xef.java.auto.ExecutionContext;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
-import kotlinx.coroutines.flow.Flow;
-import kotlinx.coroutines.reactive.ReactiveFlowKt;
+import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
@@ -43,16 +41,16 @@ public class Chat {
 
             System.out.println("🤖 Context loaded: " + scope.getExec().getContext());
 
-            while(true){
-                System.out.println("\n🤖 Enter your question: ");
+            System.out.println("\n🤖 Enter your question: ");
 
+            while(true){
                 String line = br.readLine();
                 if (line.equals("exit")) break;
 
                 var promptConfiguration = new PromptConfiguration.Companion.Builder().docsInContext(2).streamToStandardOut(true).build();
-                Flow<String> answer = scope.promptStreaming(gpt4all, line, promptConfiguration).get();
+                Publisher<String> answer = scope.promptStreaming(gpt4all, line, promptConfiguration);
 
-                ReactiveFlowKt.asPublisher(answer).subscribe(new Subscriber<String>() {
+                answer.subscribe(new Subscriber<String>() {
                     StringBuilder answer = new StringBuilder();
 
                     @Override
@@ -75,6 +73,7 @@ public class Chat {
                     public void onComplete() {
                         System.out.println("\n🤖 --> " + answer.toString());
                         System.out.println("\n🤖 --> Done");
+                        System.out.println("\n🤖 Enter your question: ");
                     }
                 });
             }
