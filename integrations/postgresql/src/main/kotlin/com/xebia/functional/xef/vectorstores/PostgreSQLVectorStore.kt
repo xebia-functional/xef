@@ -83,9 +83,9 @@ class PGVectorStore(
 
   fun createCollection(): Unit =
     dataSource.connection {
-      val xa = UUID.generateUUID()
+      val uuid = UUID.generateUUID()
       update(addNewCollection) {
-        bind(xa.toString())
+        bind(uuid.toString())
         bind(collectionName)
       }
     }
