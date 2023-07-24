@@ -45,6 +45,7 @@ abstract class LLMTool(
 
   companion object {
     @JvmStatic
+    @JvmOverloads
     fun create(
       name: String,
       description: String,
