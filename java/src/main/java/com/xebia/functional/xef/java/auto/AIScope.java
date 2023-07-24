@@ -109,7 +109,7 @@ public class AIScope implements AutoCloseable {
     }
 
     public Publisher<String> promptStreaming(Chat gpt4all, String line, PromptConfiguration promptConfiguration) {
-        return ReactiveFlowKt.asPublisher(scope.promptStreaming(gpt4all, line, exec.getContext(), null, Collections.emptyList(), promptConfiguration));
+        return ReactiveFlowKt.asPublisher(scope.promptStreaming(gpt4all, line, exec.getContext(), scope.getConversationId(), Collections.emptyList(), promptConfiguration));
     }
 
     public <A> CompletableFuture<A> contextScope(Function1<Embeddings, VectorStore> store, Function1<AIScope, CompletableFuture<A>> f) {
