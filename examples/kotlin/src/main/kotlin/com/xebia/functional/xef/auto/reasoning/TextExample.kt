@@ -35,8 +35,7 @@ suspend fun main() {
 
   val eventExtractionResult = text.eventExtraction(inputText)
 
-  val factCheckingResult = text.factChecking(inputText
-  )
+  val factCheckingResult = text.factChecking(inputText)
 
   val grammarCorrectionResult = text.grammarCorrection(inputText)
 
