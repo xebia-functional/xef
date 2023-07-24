@@ -1,4 +1,4 @@
-# xef.ai for Scala
+# xef.ai for Java
 
 Build the project locally, from the project root:
 
