@@ -31,9 +31,8 @@ class Summarize(
   override val name: String = "Summarize"
   override val description: String = "Summarize text"
 
-  override suspend fun invoke(input: String): String {
-    return summarizeLargeText(text = input, summaryLength = summaryLength)
-  }
+  override suspend fun invoke(input: String): String =
+    summarizeLargeText(text = input, summaryLength = summaryLength)
 
   private suspend fun summarizeChunk(chunk: String, summaryLength: SummaryLength): String {
     val maxContextLength: Int =
