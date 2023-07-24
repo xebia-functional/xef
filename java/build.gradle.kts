@@ -19,6 +19,7 @@ dependencies {
     api(libs.jackson.schema)
     api(libs.jackson.schema.jakarta)
     api(libs.jakarta.validation)
+    api(libs.kotlinx.coroutines.reactive)
 }
 
 java {

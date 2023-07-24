@@ -2,7 +2,11 @@ package com.xebia.functional.xef.java.auto;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.victools.jsonschema.generator.*;
+import com.github.victools.jsonschema.generator.OptionPreset;
+import com.github.victools.jsonschema.generator.SchemaGenerator;
+import com.github.victools.jsonschema.generator.SchemaGeneratorConfig;
+import com.github.victools.jsonschema.generator.SchemaGeneratorConfigBuilder;
+import com.github.victools.jsonschema.generator.SchemaVersion;
 import com.github.victools.jsonschema.module.jakarta.validation.JakartaValidationModule;
 import com.github.victools.jsonschema.module.jakarta.validation.JakartaValidationOption;
 import com.xebia.functional.xef.agents.Search;
@@ -20,14 +24,15 @@ import com.xebia.functional.xef.pdf.Loader;
 import com.xebia.functional.xef.sql.SQL;
 import com.xebia.functional.xef.textsplitters.TextSplitter;
 import com.xebia.functional.xef.vectorstores.VectorStore;
-import kotlin.collections.CollectionsKt;
-import kotlin.jvm.functions.Function1;
-import kotlinx.coroutines.future.FutureKt;
-
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import kotlin.collections.CollectionsKt;
+import kotlin.jvm.functions.Function1;
+import kotlinx.coroutines.future.FutureKt;
+import kotlinx.coroutines.reactive.ReactiveFlowKt;
+import org.reactivestreams.Publisher;
 
 public class AIScope implements AutoCloseable {
     private final CoreAIScope scope;
@@ -47,6 +52,10 @@ public class AIScope implements AutoCloseable {
         SchemaGeneratorConfig config = configBuilder.build();
         this.schemaGenerator = new SchemaGenerator(config);
         this.scope = executionContext.getCoreScope();
+    }
+
+    public ExecutionContext getExec() {
+        return exec;
     }
 
     public AIScope(ExecutionContext executionContext) {
@@ -99,13 +108,16 @@ public class AIScope implements AutoCloseable {
         return exec.future(continuation -> scope.promptMessages(llmModel, prompt, functions, promptConfiguration, continuation));
     }
 
+    public Publisher<String> promptStreaming(Chat gpt4all, String line, PromptConfiguration promptConfiguration) {
+        return ReactiveFlowKt.asPublisher(scope.promptStreaming(gpt4all, line, exec.getContext(), scope.getConversationId(), Collections.emptyList(), promptConfiguration));
+    }
+
     public <A> CompletableFuture<A> contextScope(Function1<Embeddings, VectorStore> store, Function1<AIScope, CompletableFuture<A>> f) {
         return exec.future(continuation -> scope.contextScope(store.invoke(scope.getEmbeddings()), (coreAIScope, continuation1) -> {
             AIScope nestedScope = new AIScope(coreAIScope, AIScope.this);
             return FutureKt.await(f.invoke(nestedScope), continuation);
         }, continuation));
     }
-
 
     public <A> CompletableFuture<A> contextScope(VectorStore store, Function1<AIScope, CompletableFuture<A>> f) {
         return exec.future(continuation -> scope.contextScope(store, (coreAIScope, continuation1) -> {

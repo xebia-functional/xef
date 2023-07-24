@@ -6,23 +6,27 @@ import com.xebia.functional.xef.auto.llm.openai.OpenAIEmbeddings;
 import com.xebia.functional.xef.embeddings.Embeddings;
 import com.xebia.functional.xef.vectorstores.LocalVectorStore;
 import com.xebia.functional.xef.vectorstores.VectorStore;
-import kotlin.coroutines.Continuation;
-import kotlin.jvm.functions.Function1;
-import kotlinx.coroutines.*;
-import kotlinx.coroutines.future.FutureKt;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
+import kotlin.coroutines.Continuation;
+import kotlin.jvm.functions.Function1;
+import kotlinx.coroutines.CoroutineScope;
+import kotlinx.coroutines.CoroutineScopeKt;
+import kotlinx.coroutines.CoroutineStart;
+import kotlinx.coroutines.ExecutorsKt;
+import kotlinx.coroutines.JobKt;
+import kotlinx.coroutines.future.FutureKt;
+import org.jetbrains.annotations.NotNull;
 
 public class ExecutionContext implements AutoCloseable {
 
     private final ExecutorService executorService;
     private final CoroutineScope coroutineScope;
     private final CoreAIScope scope;
+    private final VectorStore context;
 
     public ExecutionContext(){
         this(Executors.newCachedThreadPool(new ExecutionContext.AIScopeThreadFactory()),  new OpenAIEmbeddings(OpenAI.DEFAULT_EMBEDDING));
@@ -31,8 +35,8 @@ public class ExecutionContext implements AutoCloseable {
     public ExecutionContext(ExecutorService executorService, Embeddings embeddings) {
         this.executorService = executorService;
         this.coroutineScope = () -> ExecutorsKt.from(executorService).plus(JobKt.Job(null));
-        VectorStore vectorStore = new LocalVectorStore(embeddings);
-        this.scope = new CoreAIScope(embeddings, vectorStore);
+        context = new LocalVectorStore(embeddings);
+        this.scope = new CoreAIScope(embeddings, context);
     }
 
     protected <A> CompletableFuture<A> future(Function1<? super Continuation<? super A>, ? extends Object> block) {
@@ -42,6 +46,10 @@ public class ExecutionContext implements AutoCloseable {
                 CoroutineStart.DEFAULT,
                 (coroutineScope, continuation) -> block.invoke(continuation)
         );
+    }
+
+    public VectorStore getContext() {
+        return context;
     }
 
     @Override
