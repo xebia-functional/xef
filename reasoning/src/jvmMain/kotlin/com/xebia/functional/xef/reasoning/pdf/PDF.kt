@@ -5,7 +5,7 @@ import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.reasoning.tools.Tool
 
-class PDF(
+class PDF @JvmOverloads constructor(
   chat: Chat,
   model: ChatWithFunctions,
   scope: CoreAIScope,
