@@ -13,7 +13,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable data class ExtractedUrl(val url: String)
 
-class ReadPDFFromUrl(
+class ReadPDFFromUrl @JvmOverloads constructor(
   private val chat: Chat,
   private val model: ChatWithFunctions,
   private val scope: CoreAIScope,
