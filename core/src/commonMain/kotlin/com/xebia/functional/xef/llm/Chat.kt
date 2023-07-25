@@ -44,7 +44,6 @@ interface Chat : LLM {
     functions: List<CFunction> = emptyList(),
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
   ): Flow<String> = flow {
-
     val memories: List<Memory> = memories(conversationId, context, promptConfiguration)
 
     val promptWithContext: String =
@@ -79,16 +78,16 @@ interface Chat : LLM {
         streamToStandardOut = true
       )
 
-      val buffer = StringBuilder()
-      createChatCompletions(request)
-        .onEach {
-          it.choices.forEach { choice ->
-            val text = choice.delta?.content ?: ""
-            buffer.append(text)
-          }
+    val buffer = StringBuilder()
+    createChatCompletions(request)
+      .onEach {
+        it.choices.forEach { choice ->
+          val text = choice.delta?.content ?: ""
+          buffer.append(text)
         }
-        .onCompletion { addMemoriesAfterStream(request, conversationId, buffer, context) }
-        .collect { emit(it.choices.mapNotNull { it.delta?.content }.joinToString("")) }
+      }
+      .onCompletion { addMemoriesAfterStream(request, conversationId, buffer, context) }
+      .collect { emit(it.choices.mapNotNull { it.delta?.content }.joinToString("")) }
   }
 
   private suspend fun addMemoriesAfterStream(
