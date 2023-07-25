@@ -89,7 +89,7 @@ class PGVectorStoreSpec :
       pg.similaritySearchByVector(Embedding(listOf(1.0f, 2.0f, 3.0f)), 1) shouldBe listOf("foo")
     }
 
-    "memories added in order should be obtained in the same order" {
+    "memories added in chronological order should be obtained in the same order" {
       val messages = 10
       val conversationId = ConversationId(UUID.generateUUID().toString())
       val memories = (0 until messages).flatMap {
