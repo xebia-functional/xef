@@ -30,9 +30,8 @@ interface ChatWithFunctions : Chat {
     return generateCFunction(fnName, encodeJsonSchema(descriptor))
   }
 
-  fun generateCFunction(fnName: String, schema: String): List<CFunction> {
-    return listOf(CFunction(fnName, "Generated function for $fnName", schema))
-  }
+  fun generateCFunction(fnName: String, schema: String): List<CFunction> =
+    listOf(CFunction(fnName, "Generated function for $fnName", schema))
 
   @AiDsl
   suspend fun <A> prompt(
