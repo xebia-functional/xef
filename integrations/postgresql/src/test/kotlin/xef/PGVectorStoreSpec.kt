@@ -63,6 +63,10 @@ class PGVectorStoreSpec :
 
     "createCollection should create collection" { pg.createCollection() }
 
+    "addTexts should not fail now that we created the collection" {
+      pg.addTexts(listOf("foo", "bar"))
+    }
+
     "similaritySearchByVector should return both documents" {
       pg.similaritySearchByVector(Embedding(listOf(4.0f, 5.0f, 6.0f)), 2) shouldBe
         listOf("bar", "foo")
