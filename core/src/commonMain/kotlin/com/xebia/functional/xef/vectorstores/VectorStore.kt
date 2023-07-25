@@ -21,7 +21,7 @@ interface VectorStore {
     else {
       val (h1, t1) = l1.let { Pair(it.first(), it.drop(1)) }
       val (h2, t2) = l2.let { Pair(it.first(), it.drop(1)) }
-      if (h1.timestamp < h2.timestamp) listOf(h1) + addOrdered(t1, l2)
+      if (h1.timestamp <= h2.timestamp) listOf(h1) + addOrdered(t1, l2)
       else listOf(h2) + addOrdered(l1, t2)
     }
   }
