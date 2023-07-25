@@ -51,7 +51,7 @@ class PGVectorStore(
           content = Message(
             role = Role.valueOf(role.uppercase()),
             content = content,
-            name = "role",
+            name = role,
           ),
           timestamp = timestamp,
         )
