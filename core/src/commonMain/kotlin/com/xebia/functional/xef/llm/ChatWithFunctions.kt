@@ -43,8 +43,7 @@ interface ChatWithFunctions : Chat {
     serializer: (json: String) -> A,
     functions: List<CFunction> = generateCFunction(serializerName, jsonSchema),
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS,
-  ): A =
-    prompt(prompt, context, conversationId, functions, serializer, promptConfiguration)
+  ): A = prompt(prompt, context, conversationId, functions, serializer, promptConfiguration)
 
   @AiDsl
   suspend fun <A> prompt(
