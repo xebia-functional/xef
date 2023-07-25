@@ -10,7 +10,7 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.kotest.core.extensions.install
 import io.kotest.core.spec.style.StringSpec
-import io.kotest.extensions.testcontainers.SharedTestContainerExtension
+import io.kotest.extensions.testcontainers.ContainerExtension
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.assertThrows
 import org.testcontainers.containers.PostgreSQLContainer
@@ -23,12 +23,12 @@ val postgres: PostgreSQLContainer<Nothing> =
 
 class PGVectorStoreSpec :
   StringSpec({
-    val container = install(SharedTestContainerExtension(postgres))
+    val container = install(ContainerExtension(postgres))
     val dataSource =
       autoClose(
         HikariDataSource(
           HikariConfig().apply {
-            jdbcUrl = container.jdbcUrl
+            jdbcUrl = container.jdbcUrl.replace("localhost", "0.0.0.0") // workaround: needs to be improved
             username = container.username
             password = container.password
             driverClassName = "org.postgresql.Driver"
@@ -105,4 +105,3 @@ private fun Embeddings.Companion.mock(
     override suspend fun embedQuery(text: String, requestConfig: RequestConfig): List<Embedding> =
       embedQuery(text, requestConfig)
   }
-
