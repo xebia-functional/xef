@@ -27,7 +27,7 @@ interface Chat : LLM {
   fun tokensFromMessages(messages: List<Message>): Int
 
   @AiDsl
-  suspend fun promptStreaming(
+  fun promptStreaming(
     question: String,
     context: VectorStore,
     conversationId: ConversationId? = null,
@@ -37,13 +37,13 @@ interface Chat : LLM {
     promptStreaming(Prompt(question), context, conversationId, functions, promptConfiguration)
 
   @AiDsl
-  suspend fun promptStreaming(
+  fun promptStreaming(
     prompt: Prompt,
     context: VectorStore,
     conversationId: ConversationId? = null,
     functions: List<CFunction> = emptyList(),
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-  ): Flow<String> {
+  ): Flow<String> = flow {
 
     val memories: List<Memory> = memories(conversationId, context, promptConfiguration)
 
@@ -79,7 +79,6 @@ interface Chat : LLM {
         streamToStandardOut = true
       )
 
-    return flow {
       val buffer = StringBuilder()
       createChatCompletions(request)
         .onEach {
@@ -90,7 +89,6 @@ interface Chat : LLM {
         }
         .onCompletion { addMemoriesAfterStream(request, conversationId, buffer, context) }
         .collect { emit(it.choices.mapNotNull { it.delta?.content }.joinToString("")) }
-    }
   }
 
   private suspend fun addMemoriesAfterStream(
