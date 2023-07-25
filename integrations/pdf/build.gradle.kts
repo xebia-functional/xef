@@ -20,6 +20,7 @@ dependencies {
     implementation(projects.xefCore)
     implementation(projects.xefTokenizer)
     implementation(libs.apache.pdf.box)
+    implementation(libs.ktor.client.cio)
 }
 
 tasks.withType<AbstractPublishToMaven> {

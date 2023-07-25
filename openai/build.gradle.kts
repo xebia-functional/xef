@@ -80,14 +80,19 @@ kotlin {
     val jvmMain by getting {
       dependencies {
         implementation(libs.logback)
+        api(libs.ktor.client.cio)
       }
     }
-
-    val jsMain by getting
 
     val jvmTest by getting {
       dependencies {
         implementation(libs.kotest.junit5)
+      }
+    }
+
+    val jsMain by getting {
+      dependencies {
+        api(libs.ktor.client.js)
       }
     }
 
