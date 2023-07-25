@@ -68,6 +68,7 @@ kotlin {
         api(libs.ktor.utils)
         api(projects.xefTokenizer)
 
+        implementation(libs.klogging)
         implementation(libs.uuid)
       }
     }

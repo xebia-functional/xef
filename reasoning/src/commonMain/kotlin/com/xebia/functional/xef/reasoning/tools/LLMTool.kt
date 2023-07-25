@@ -5,6 +5,7 @@ import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.prompt.experts.ExpertSystem
 import com.xebia.functional.xef.reasoning.internals.callModel
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlin.jvm.JvmOverloads
 import kotlin.jvm.JvmStatic
 
 abstract class LLMTool(

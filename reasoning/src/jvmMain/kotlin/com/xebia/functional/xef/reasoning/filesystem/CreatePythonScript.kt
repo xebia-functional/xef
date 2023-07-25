@@ -10,7 +10,9 @@ import com.xebia.functional.xef.reasoning.internals.callModel
 import com.xebia.functional.xef.reasoning.tools.Tool
 import okio.FileSystem
 
-class CreatePythonScript @JvmOverloads constructor(
+class CreatePythonScript
+@JvmOverloads
+constructor(
   private val model: Chat,
   private val scope: CoreAIScope,
   private val instructions: List<String> = emptyList()

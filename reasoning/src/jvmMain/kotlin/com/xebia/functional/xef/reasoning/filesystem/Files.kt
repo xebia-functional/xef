@@ -4,7 +4,9 @@ import com.xebia.functional.xef.auto.CoreAIScope
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.reasoning.tools.Tool
 
-class Files @JvmOverloads constructor(
+class Files
+@JvmOverloads
+constructor(
   private val model: ChatWithFunctions,
   private val scope: CoreAIScope,
   private val instructions: List<String> = emptyList(),

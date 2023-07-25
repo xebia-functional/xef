@@ -9,7 +9,9 @@ import com.xebia.functional.xef.reasoning.text.summarize.SummaryLength
 import com.xebia.functional.xef.reasoning.tools.LLMTool
 import com.xebia.functional.xef.reasoning.tools.Tool
 
-class Search @JvmOverloads constructor(
+class Search
+@JvmOverloads
+constructor(
   private val model: Chat,
   private val scope: CoreAIScope,
   private val summaryLength: SummaryLength = SummaryLength.DEFAULT,
