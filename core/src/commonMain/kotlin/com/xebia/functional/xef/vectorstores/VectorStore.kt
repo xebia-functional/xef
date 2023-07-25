@@ -13,6 +13,20 @@ interface VectorStore {
   suspend fun addMemories(memories: List<Memory>)
 
   /**
+   * Adds two ordered lists by timestamp into a single list ordered by timestamp.
+   */
+  fun addOrdered(l1: List<Memory>, l2: List<Memory>): List<Memory> {
+    return if (l1.isEmpty()) l2
+    else if (l2.isEmpty()) l1
+    else {
+      val (h1, t1) = l1.let { Pair(it.first(), it.drop(1)) }
+      val (h2, t2) = l2.let { Pair(it.first(), it.drop(1)) }
+      if (h1.timestamp < h2.timestamp) listOf(h1) + addOrdered(t1, l2)
+      else listOf(h2) + addOrdered(l1, t2)
+    }
+  }
+
+  /**
    * Returns the latest [limit] (chronologically ordered) messages stored.
    *
    * @param conversationId identifier of the conversation.
