@@ -1,15 +1,15 @@
 package com.xebia.functional.xef.auto.reasoning
 
-import com.xebia.functional.xef.auto.CoreAIScope
+import com.xebia.functional.xef.auto.ai
 import com.xebia.functional.xef.auto.llm.openai.OpenAI
-import com.xebia.functional.xef.auto.llm.openai.OpenAIEmbeddings
+import com.xebia.functional.xef.auto.llm.openai.getOrThrow
 import com.xebia.functional.xef.reasoning.code.Code
 
 suspend fun main() {
-  val scope = CoreAIScope(OpenAIEmbeddings(OpenAI.DEFAULT_EMBEDDING))
-  val code = Code(model = OpenAI.DEFAULT_CHAT, scope = scope)
+  ai {
+    val code = Code(model = OpenAI.DEFAULT_CHAT, scope = this)
 
-  val sourceCode = """
+    val sourceCode = """
        import java.util.*
 
        class ShoppingCart {
@@ -60,15 +60,16 @@ suspend fun main() {
 
     """.trimIndent()
 
-  val antiPatternDetectionResult = code.antiPatternDetection(sourceCode)
-  println("Detected Anti-Patterns:")
-  println(antiPatternDetectionResult)
+    val antiPatternDetectionResult = code.antiPatternDetection(sourceCode)
+    println("Detected Anti-Patterns:")
+    println(antiPatternDetectionResult)
 
-  val codeBreakdownResult = code.codeBreakdown(sourceCode)
-  println("Code Breakdown:")
-  println(codeBreakdownResult)
+    val codeBreakdownResult = code.codeBreakdown(sourceCode)
+    println("Code Breakdown:")
+    println(codeBreakdownResult)
 
-  val codeDocumentationGenerationResult = code.coreDocumentationGeneration(sourceCode)
-  println("Code Documentation Generation:")
-  println(codeDocumentationGenerationResult)
+    val codeDocumentationGenerationResult = code.coreDocumentationGeneration(sourceCode)
+    println("Code Documentation Generation:")
+    println(codeDocumentationGenerationResult)
+  }.getOrThrow()
 }
