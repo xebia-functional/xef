@@ -12,9 +12,9 @@ import com.xebia.functional.xef.vectorstores.CombinedVectorStore
 import com.xebia.functional.xef.vectorstores.ConversationId
 import com.xebia.functional.xef.vectorstores.LocalVectorStore
 import com.xebia.functional.xef.vectorstores.VectorStore
-import kotlinx.coroutines.flow.Flow
 import kotlin.jvm.JvmName
 import kotlin.jvm.JvmOverloads
+import kotlinx.coroutines.flow.Flow
 import kotlinx.uuid.UUID
 import kotlinx.uuid.generateUUID
 
