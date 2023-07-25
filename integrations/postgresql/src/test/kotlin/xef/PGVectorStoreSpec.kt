@@ -101,6 +101,17 @@ class PGVectorStoreSpec :
       pg.addMemories(memories)
       memories shouldBe pg.memories(conversationId, memories.size)
     }
+
+    "memories should be returned in chronological order" {
+      val messages = 10
+      val conversationId = ConversationId(UUID.generateUUID().toString())
+      val memories = (0 until messages).map {
+        Memory(conversationId, Message(Role.USER, "message $it", "user"), it.toLong())
+      }
+      pg.addMemories(memories.shuffled())
+
+      memories shouldBe pg.memories(conversationId, memories.size)
+    }
   })
 
 private fun Embeddings.Companion.mock(
