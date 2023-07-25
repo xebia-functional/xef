@@ -34,7 +34,7 @@ class PGVectorStoreSpec :
       autoClose(
         HikariDataSource(
           HikariConfig().apply {
-            jdbcUrl = container.jdbcUrl.replace("localhost", "0.0.0.0") // workaround: needs to be improved
+            jdbcUrl = container.jdbcUrl.replace("localhost", "0.0.0.0")
             username = container.username
             password = container.password
             driverClassName = "org.postgresql.Driver"
