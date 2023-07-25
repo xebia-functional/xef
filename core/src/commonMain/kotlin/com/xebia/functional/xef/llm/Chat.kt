@@ -1,6 +1,5 @@
 package com.xebia.functional.xef.llm
 
-import arrow.fx.coroutines.timeInMillis
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.tokenizer.truncateText
 import com.xebia.functional.xef.AIError
@@ -12,6 +11,7 @@ import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.vectorstores.ConversationId
 import com.xebia.functional.xef.vectorstores.Memory
 import com.xebia.functional.xef.vectorstores.VectorStore
+import io.ktor.util.date.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onCompletion
@@ -103,14 +103,14 @@ interface Chat : LLM {
         Memory(
           conversationId = conversationId,
           content = lastRequestMessage,
-          timestamp = timeInMillis()
+          timestamp = getTimeMillis()
         )
       val responseMemory =
         Memory(
           conversationId = conversationId,
           content =
             Message(role = Role.ASSISTANT, content = buffer.toString(), name = Role.ASSISTANT.name),
-          timestamp = timeInMillis(),
+          timestamp = getTimeMillis(),
         )
       context.addMemories(listOf(requestMemory, responseMemory))
     }
@@ -231,14 +231,14 @@ interface Chat : LLM {
         Memory(
           conversationId = conversationId,
           content = requestUserMessage,
-          timestamp = timeInMillis()
+          timestamp = getTimeMillis()
         )
       val firstChoiceMemory =
         Memory(
           conversationId = conversationId,
           content =
             Message(role = role, content = firstChoice.message?.content ?: "", name = role.name),
-          timestamp = timeInMillis()
+          timestamp = getTimeMillis()
         )
       context.addMemories(listOf(requestMemory, firstChoiceMemory))
     }
@@ -257,14 +257,14 @@ interface Chat : LLM {
         Memory(
           conversationId = conversationId,
           content = requestUserMessage,
-          timestamp = timeInMillis()
+          timestamp = getTimeMillis()
         )
       val firstChoiceMemory =
         Memory(
           conversationId = conversationId,
           content =
             Message(role = role, content = firstChoice.message?.content ?: "", name = role.name),
-          timestamp = timeInMillis()
+          timestamp = getTimeMillis()
         )
       context.addMemories(listOf(requestMemory, firstChoiceMemory))
     }
