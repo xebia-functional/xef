@@ -97,7 +97,7 @@ val getCollectionById: String =
 val getMemoriesByConversationId: String =
   """SELECT * FROM xef_memory
      WHERE conversation_id = ?
-     ORDER BY timestamp DESC LIMIT ?;""" // DESC -> ASC
+     ORDER BY timestamp ASC LIMIT ?;"""
     .trimIndent()
 
 val addNewDocument: String =
