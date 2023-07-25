@@ -34,9 +34,9 @@ private constructor(private val embeddings: Embeddings, private val state: Atomi
       prevState.copy(
         orderedMemories = memories.groupBy { it.conversationId }.let { memories ->
           (prevState.orderedMemories.keys + memories.keys).associateWith { key ->
-            val l1 = prevState.orderedMemories[key] ?: emptyList()
-            val l2 = memories[key] ?: emptyList()
-            l1 + l2
+            val l1 = prevState.orderedMemories[key] ?: emptyList() //ordered
+            val l2 = memories[key] ?: emptyList() //ordered
+            super.addOrdered(l1, l2)
           }
         }
       )
@@ -44,7 +44,7 @@ private constructor(private val embeddings: Embeddings, private val state: Atomi
   }
 
   override suspend fun memories(conversationId: ConversationId, limit: Int): List<Memory> {
-    val memories = state.get().orderedMemories[conversationId]
+    val memories = state.get().orderedMemories[conversationId] // not sorted here, we are sorting them in addMemories
     return memories?.takeLast(limit).orEmpty()
   }
 
