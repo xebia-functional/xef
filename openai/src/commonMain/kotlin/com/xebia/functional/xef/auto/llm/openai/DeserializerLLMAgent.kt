@@ -4,12 +4,9 @@ import com.xebia.functional.xef.auto.AiDsl
 import com.xebia.functional.xef.auto.CoreAIScope
 import com.xebia.functional.xef.auto.PromptConfiguration
 import com.xebia.functional.xef.llm.ChatWithFunctions
-import com.xebia.functional.xef.llm.models.functions.CFunction
 import com.xebia.functional.xef.prompt.Prompt
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 
@@ -62,7 +59,7 @@ suspend fun <A> CoreAIScope.prompt(
   },
   promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS,
 ): A {
-  val functions = generateCFunction(serializer.descriptor)
+  val functions = model.generateCFunction(serializer.descriptor)
   return model.prompt(
     prompt,
     context,
@@ -71,10 +68,4 @@ suspend fun <A> CoreAIScope.prompt(
     { json.decodeFromString(serializer, it) },
     promptConfiguration
   )
-}
-
-@OptIn(ExperimentalSerializationApi::class)
-private fun generateCFunction(descriptor: SerialDescriptor): List<CFunction> {
-  val fnName = descriptor.serialName.substringAfterLast(".")
-  return listOf(CFunction(fnName, "Generated function for $fnName", encodeJsonSchema(descriptor)))
 }

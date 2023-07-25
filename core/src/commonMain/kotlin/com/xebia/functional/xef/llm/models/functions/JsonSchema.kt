@@ -2,7 +2,7 @@
 @file:JvmMultifileClass
 @file:OptIn(ExperimentalSerializationApi::class)
 
-package com.xebia.functional.xef.auto.llm.openai
+package com.xebia.functional.xef.llm.models.functions
 
 /*
 Ported over from https://github.com/Ricky12Awesome/json-schema-serialization
