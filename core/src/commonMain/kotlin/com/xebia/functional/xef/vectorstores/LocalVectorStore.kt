@@ -36,7 +36,7 @@ private constructor(private val embeddings: Embeddings, private val state: Atomi
           (prevState.orderedMemories.keys + memories.keys).associateWith { key ->
             val l1 = prevState.orderedMemories[key] ?: emptyList() //ordered
             val l2 = memories[key] ?: emptyList() //ordered
-            super.addOrdered(l1, l2)
+            addOrdered(l1, l2)
           }
         }
       )
