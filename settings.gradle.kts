@@ -45,6 +45,9 @@ project(":xef-postgresql").projectDir = file("integrations/postgresql")
 
 include("xef-sql")
 project(":xef-sql").projectDir = file("integrations/sql")
+
+include("xef-gcp")
+project(":xef-gcp").projectDir = file("integrations/gcp")
 //</editor-fold>
 //</editor-fold>
 
