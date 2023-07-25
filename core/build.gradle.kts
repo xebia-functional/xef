@@ -82,6 +82,7 @@ kotlin {
 
     val jvmMain by getting {
       dependencies {
+        implementation(libs.ktor.http)
         implementation(libs.logback)
         implementation(libs.skrape)
         implementation(libs.rss.reader)
