@@ -23,7 +23,7 @@ val createMemoryTable: String =
        conversation_id TEXT NOT NULL,
        role TEXT NOT NULL,
        content TEXT UNIQUE NOT NULL,
-       timestamp TIMESTAMP NOT NULL,
+       timestamp BIGINT NOT NULL
      );"""
     .trimIndent()
 
@@ -97,7 +97,7 @@ val getCollectionById: String =
 val getMemoriesByConversationId: String =
   """SELECT * FROM xef_memory
      WHERE conversation_id = ?
-     ORDER BY timestamp DESC LIMIT ?;"""
+     ORDER BY timestamp ASC LIMIT ?;"""
     .trimIndent()
 
 val addNewDocument: String =
