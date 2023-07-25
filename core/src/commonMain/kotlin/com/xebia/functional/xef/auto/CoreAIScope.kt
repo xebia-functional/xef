@@ -28,7 +28,7 @@ class CoreAIScope
 constructor(
   val embeddings: Embeddings,
   val context: VectorStore = LocalVectorStore(embeddings),
-  val conversationId: ConversationId = ConversationId(UUID.generateUUID().toString())
+  val conversationId: ConversationId? = ConversationId(UUID.generateUUID().toString())
 ) : AutoCloseable, AutoClose by autoClose() {
 
   /**
@@ -108,8 +108,8 @@ constructor(
     return prompt(
       prompt = Prompt(prompt),
       context = context,
-      functions = functions,
       serializer = serializer,
+      functions = functions,
       promptConfiguration = promptConfiguration,
     )
   }

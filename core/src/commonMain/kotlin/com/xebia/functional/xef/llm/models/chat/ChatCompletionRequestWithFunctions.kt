@@ -16,5 +16,5 @@ data class ChatCompletionRequestWithFunctions(
   val frequencyPenalty: Double = 0.0,
   val logitBias: Map<String, Int> = emptyMap(),
   val user: String?,
-  val functionCall: Map<String, String>,
+  val functionCall: Map<String, String>
 )

@@ -8,7 +8,7 @@ import com.xebia.functional.xef.llm.Images
 import com.xebia.functional.xef.llm.models.functions.CFunction
 import io.circe.Decoder
 import io.circe.parser.parse
-import com.xebia.functional.xef.auto.llm.openai.Json
+import com.xebia.functional.xef.llm.models.functions.Json
 import com.xebia.functional.xef.pdf.Loader
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.llm._
