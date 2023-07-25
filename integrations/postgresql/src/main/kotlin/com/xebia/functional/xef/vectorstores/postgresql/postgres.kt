@@ -23,7 +23,7 @@ val createMemoryTable: String =
        conversation_id TEXT NOT NULL,
        role TEXT NOT NULL,
        content TEXT UNIQUE NOT NULL,
-       timestamp TIMESTAMP NOT NULL
+       timestamp BIGINT NOT NULL
      );"""
     .trimIndent()
 
