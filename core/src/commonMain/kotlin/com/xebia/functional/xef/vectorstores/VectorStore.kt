@@ -5,8 +5,19 @@ import kotlin.jvm.JvmStatic
 
 interface VectorStore {
 
+  /**
+   * Add memories to the vector store.
+   *
+   * @param memories List of memories to be stored. It's assumed that they are ordered by timestamp.
+   */
   suspend fun addMemories(memories: List<Memory>)
 
+  /**
+   * Returns the latest [limit] (chronologically ordered) messages stored.
+   *
+   * @param conversationId identifier of the conversation.
+   * @param limit maximum number of messages to retrieve.
+   */
   suspend fun memories(conversationId: ConversationId, limit: Int): List<Memory>
 
   /**
