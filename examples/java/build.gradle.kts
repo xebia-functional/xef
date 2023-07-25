@@ -7,6 +7,7 @@ plugins {
 
 dependencies {
     implementation(projects.xefJava)
+    implementation(projects.xefReasoning)
 }
 
 tasks.withType<Test>().configureEach {
