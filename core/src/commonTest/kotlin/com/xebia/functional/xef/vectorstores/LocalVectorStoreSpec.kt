@@ -8,8 +8,8 @@ class LocalVectorStoreSpec :
         "memories function should return all of messages in the right order when the limit is greater than the number of stored messages" {
             val localVectorStore = LocalVectorStore(FakeEmbeddings())
 
-            val messages1 = generateRandomMessages(2)
-            val messages2 = generateRandomMessages(2)
+            val messages1 = generateRandomMessages(4)
+            val messages2 = generateRandomMessages(3)
 
             localVectorStore.addMemories(messages1)
             localVectorStore.addMemories(messages2)
@@ -24,10 +24,10 @@ class LocalVectorStoreSpec :
         "memories function should return the last n messages in the right order" {
             val localVectorStore = LocalVectorStore(FakeEmbeddings())
 
-            val limit = 2
+            val limit = 3 * 2 // 3 couples of messages
 
-            val messages1 = generateRandomMessages(2)
-            val messages2 = generateRandomMessages(2)
+            val messages1 = generateRandomMessages(4)
+            val messages2 = generateRandomMessages(3)
 
             localVectorStore.addMemories(messages1)
             localVectorStore.addMemories(messages2)
@@ -42,13 +42,13 @@ class LocalVectorStoreSpec :
         "memories function should return the last n messages in the right order for a specific conversation id" {
             val localVectorStore = LocalVectorStore(FakeEmbeddings())
 
-            val limit = 2
+            val limit = 3 * 2
 
             val firstId = ConversationId("first-id")
             val secondId = ConversationId("second-id")
 
-            val messages1 = generateRandomMessages(4, firstId)
-            val messages2 = generateRandomMessages(3, secondId)
+            val messages1 = generateRandomMessages(4, conversationId = firstId)
+            val messages2 = generateRandomMessages(3, conversationId = secondId)
 
             localVectorStore.addMemories(messages1 + messages2)
 

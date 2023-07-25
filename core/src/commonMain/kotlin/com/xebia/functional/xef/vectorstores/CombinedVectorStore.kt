@@ -12,8 +12,8 @@ class CombinedVectorStore(private val top: VectorStore, private val bottom: Vect
   VectorStore by top {
 
   override suspend fun memories(conversationId: ConversationId, limit: Int): List<Memory> {
-    val topResults = top.memories(conversationId, limit)
-    val bottomResults = bottom.memories(conversationId, limit - topResults.size)
+    val bottomResults = bottom.memories(conversationId, limit)
+    val topResults = top.memories(conversationId, limit - bottomResults.size)
     return topResults + bottomResults
   }
 
