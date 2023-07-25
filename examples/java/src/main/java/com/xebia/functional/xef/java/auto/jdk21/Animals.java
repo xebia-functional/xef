@@ -1,6 +1,7 @@
 package com.xebia.functional.xef.java.auto.jdk21;
 
 import com.xebia.functional.xef.java.auto.AIScope;
+import com.xebia.functional.xef.java.auto.ExecutionContext;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -53,7 +54,7 @@ public class Animals {
     }
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
-        try (AIScope scope = new AIScope(Executors.newVirtualThreadPerTaskExecutor())) {
+        try (AIScope scope = new AIScope(new ExecutionContext(Executors.newVirtualThreadPerTaskExecutor()))) {
             Animals animals = new Animals(scope);
             animals.uniqueAnimal()
                     .thenCompose(animal -> animals.groundbreakingInvention()
