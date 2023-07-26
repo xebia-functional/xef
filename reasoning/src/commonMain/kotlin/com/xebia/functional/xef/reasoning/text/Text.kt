@@ -36,18 +36,6 @@ class Text(
       scope = scope
     ),
   @JvmField
-  val categoriesSelection: LLMTool =
-    LLMTool.create(
-      name = "CategoriesSelection",
-      description = "Return a list of categories",
-      model = model,
-      scope = scope,
-      instructions =
-        listOf(
-          "Return a list of categories for the `text`",
-        )
-    ),
-  @JvmField
   val coreferenceResolution: LLMTool =
     LLMTool.create(
       name = "CoreferenceResolution",
