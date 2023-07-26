@@ -6,6 +6,10 @@ suspend fun main() {
   val modelId = "codechat-bison@001"
   val token = "TOKEN"
   GcpClient(apiEndpoint, projectId, modelId, token).use {
-    it.promptMessage("How can I reverse a list in python?",).also(::println)
+    it
+      .promptMessage(
+        "How can I reverse a list in python?",
+      )
+      .also(::println)
   }
 }
