@@ -1,46 +1,21 @@
 package com.xebia.functional.xef.java.auto.jdk21;
 
 import com.xebia.functional.xef.java.auto.AIScope;
+import com.xebia.functional.xef.java.auto.ExecutionContext;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 
 public class Fact {
 
-    private static class FactClass {
-        public String topic;
-        public String content;
-
-        @Override
-        public String toString() {
-            return "FactClass{" +
-                  "topic='" + topic + '\'' +
-                  ", content='" + content + '\'' +
-                  '}';
-        }
-    }
-
-    private static class Riddle {
-        public FactClass fact1;
-        public FactClass fact2;
-        public String riddle;
-
-        @Override
-        public String toString() {
-            return "Riddle{" +
-                  "fact1=" + fact1 +
-                  ", fact2=" + fact2 +
-                  ", riddle='" + riddle + '\'' +
-                  '}';
-        }
-    }
-
-
+    public record FactRecord(String topic, String content){}
+    public record Riddle(FactRecord fact1, FactRecord fact2, String riddle){}
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
-        try (AIScope scope = new AIScope()) {
-            var fact1 = scope.prompt("A fascinating fact about you", FactClass.class).get();
-            var fact2 = scope.prompt("An interesting fact about me", FactClass.class).get();
+        try (AIScope scope = new AIScope(new ExecutionContext(Executors.newVirtualThreadPerTaskExecutor()))) {
+            var fact1 = scope.prompt("A fascinating fact about you", FactRecord.class).get();
+            var fact2 = scope.prompt("An interesting fact about me", FactRecord.class).get();
 
-            String riddlePrompt = ""+
+            var riddlePrompt = ""+
                 "Create a riddle that combines the following facts:\n\n" +
 
                 "Fact 1: " + fact1.content + "\n" +

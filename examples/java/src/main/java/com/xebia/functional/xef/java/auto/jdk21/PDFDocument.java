@@ -1,22 +1,19 @@
 package com.xebia.functional.xef.java.auto.jdk21;
 
+import static com.xebia.functional.xef.textsplitters.TokenTextSplitterKt.TokenTextSplitter;
+
 import com.xebia.functional.tokenizer.ModelType;
 import com.xebia.functional.xef.java.auto.AIScope;
+import com.xebia.functional.xef.java.auto.ExecutionContext;
 import com.xebia.functional.xef.java.auto.jdk21.util.ConsoleUtil;
-import com.xebia.functional.xef.textsplitters.TextSplitter;
-
 import java.util.concurrent.CompletableFuture;
-
-import static com.xebia.functional.xef.textsplitters.TokenTextSplitterKt.TokenTextSplitter;
+import java.util.concurrent.Executors;
 
 public class PDFDocument {
 
     private static ConsoleUtil util = new ConsoleUtil();
 
-    public static class AIResponse {
-        public String answer;
-        public String source;
-    }
+    public record AIResponse(String answer, String source){}
 
     private static final String PDF_URL = "https://people.cs.ksu.edu/~schmidt/705a/Scala/Programming-in-Scala.pdf";
 
@@ -24,7 +21,7 @@ public class PDFDocument {
         System.out.println("Enter your question (<return> to exit): ");
 
 
-        String line = util.readLine();
+        var line = util.readLine();
         if (line == null || line.isBlank()) {
             return CompletableFuture.completedFuture(null);
         } else {
@@ -38,8 +35,8 @@ public class PDFDocument {
 
     public static void main(String[] args) throws Exception {
 
-        TextSplitter textSplitter = TokenTextSplitter(ModelType.getDEFAULT_SPLITTER_MODEL(), 100, 50);
-        try (AIScope scope = new AIScope()) {
+        var textSplitter = TokenTextSplitter(ModelType.getDEFAULT_SPLITTER_MODEL(), 100, 50);
+        try (AIScope scope = new AIScope(new ExecutionContext(Executors.newVirtualThreadPerTaskExecutor()))) {
             scope.contextScope(scope.pdf(PDF_URL, textSplitter), PDFDocument::askQuestion).get();
         }
         finally {

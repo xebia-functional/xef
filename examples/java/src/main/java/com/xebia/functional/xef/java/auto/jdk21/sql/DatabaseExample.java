@@ -9,14 +9,13 @@ import com.xebia.functional.xef.java.auto.AIScope;
 import com.xebia.functional.xef.java.auto.ExecutionContext;
 import com.xebia.functional.xef.java.auto.jdk21.util.ConsoleUtil;
 import com.xebia.functional.xef.sql.jdbc.JdbcConfig;
+import java.io.PrintStream;
+import java.util.Arrays;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
-
-import java.io.PrintStream;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 public class DatabaseExample {
 
@@ -26,14 +25,14 @@ public class DatabaseExample {
 
     @NotNull
     private static JdbcConfig getJdbcConfig() {
-        Map<String, String> env = System.getenv();
-        String vendor = env.getOrDefault("XEF_SQL_DB_VENDOR", "mysql");
-        String host = env.getOrDefault("XEF_SQL_DB_HOST", "localhost");
-        String username = env.getOrDefault("XEF_SQL_DB_USER", "user");
-        String password = env.getOrDefault("XEF_SQL_DB_PASSWORD", "password");
-        int port = Integer.parseInt(env.getOrDefault("XEF_SQL_DB_PORT", "3306"));
-        String database = env.getOrDefault("XEF_SQL_DB_DATABASE", "database");
-        OpenAIModel model = MODEL;
+        var env = System.getenv();
+        var vendor = env.getOrDefault("XEF_SQL_DB_VENDOR", "mysql");
+        var host = env.getOrDefault("XEF_SQL_DB_HOST", "localhost");
+        var username = env.getOrDefault("XEF_SQL_DB_USER", "user");
+        var password = env.getOrDefault("XEF_SQL_DB_PASSWORD", "password");
+        var port = Integer.parseInt(env.getOrDefault("XEF_SQL_DB_PORT", "3306"));
+        var database = env.getOrDefault("XEF_SQL_DB_DATABASE", "database");
+        var model = MODEL;
 
         return new JdbcConfig(vendor, host, username, password, port, database, model);
     }
@@ -46,9 +45,9 @@ public class DatabaseExample {
 
     public static void main(String[] args) throws Exception {
 
-        ExecutionContext executionContext = new ExecutionContext();
-        try (AIScope scope = new AIScope(new ObjectMapper(), executionContext)) {
-            AIDatabase database = new AIDatabase(getJdbcConfig(), executionContext);
+        var executionContext = new ExecutionContext(Executors.newVirtualThreadPerTaskExecutor());
+        try (var scope = new AIScope(new ObjectMapper(), executionContext)) {
+            var database = new AIDatabase(getJdbcConfig(), executionContext);
 
             out.println("llmdb> Welcome to the LLMDB (An LLM interface to your SQL Database) !");
             out.println("llmdb> You can ask me questions about the database and I will try to answer them.");
@@ -60,7 +59,7 @@ public class DatabaseExample {
 
             while (true) {
                 out.println("user> ");
-                String input = util.readLine();
+                var input = util.readLine();
                 if (input.equals("exit")) break;
 
                 try {

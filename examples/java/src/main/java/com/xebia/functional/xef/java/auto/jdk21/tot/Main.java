@@ -24,7 +24,7 @@ public class Main {
                 "    Return a concise solution that fixes the problems in the code.");
 
 
-        Solutions.Solution<FinalSolution> solve = Problems.solve(problem, MAX_ROUNDS);
+        var solve = Problems.solve(problem, MAX_ROUNDS);
 
         System.out.println("✅ Final solution: " + solve.answer);
         System.out.println("✅ Solution validity: " + solve.isValid);

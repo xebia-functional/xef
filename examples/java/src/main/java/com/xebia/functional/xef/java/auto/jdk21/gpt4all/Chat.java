@@ -4,13 +4,14 @@ import com.xebia.functional.gpt4all.GPT4All;
 import com.xebia.functional.gpt4all.Gpt4AllModel;
 import com.xebia.functional.xef.auto.PromptConfiguration;
 import com.xebia.functional.xef.java.auto.AIScope;
+import com.xebia.functional.xef.java.auto.ExecutionContext;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
-import org.reactivestreams.Publisher;
+import java.util.concurrent.Executors;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
@@ -36,8 +37,8 @@ public class Chat {
          * to provide embeddings for docs in contextScope.
          */
 
-        try (AIScope scope = new AIScope();
-              BufferedReader br = new BufferedReader(new InputStreamReader(System.in))) {
+        try (var scope = new AIScope(new ExecutionContext(Executors.newVirtualThreadPerTaskExecutor()));
+              var br = new BufferedReader(new InputStreamReader(System.in))) {
 
             System.out.println("🤖 Context loaded: " + scope.getExec().getContext());
 
@@ -48,7 +49,7 @@ public class Chat {
                 if (line.equals("exit")) break;
 
                 var promptConfiguration = new PromptConfiguration.Companion.Builder().docsInContext(2).streamToStandardOut(true).build();
-                Publisher<String> answer = scope.promptStreaming(gpt4all, line, promptConfiguration);
+                var answer = scope.promptStreaming(gpt4all, line, promptConfiguration);
 
                 answer.subscribe(new Subscriber<String>() {
                     StringBuilder answer = new StringBuilder();

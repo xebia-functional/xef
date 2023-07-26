@@ -1,23 +1,21 @@
 package com.xebia.functional.xef.java.auto.jdk21;
 
 import com.xebia.functional.xef.java.auto.AIScope;
-import java.util.concurrent.CompletableFuture;
+import com.xebia.functional.xef.java.auto.ExecutionContext;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 
 public class Poems {
-    public static class Poem {
-        public String title;
-        public String content;
-    }
+    public record Poem(String title, String content){}
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
-        try (AIScope scope = new AIScope()) {
-            CompletableFuture<Poem> poem1 = scope.prompt("A short poem about the beauty of nature.", Poem.class);
-            CompletableFuture<Poem> poem2 = scope.prompt("A short poem about the power of technology.", Poem.class);
-            CompletableFuture<Poem> poem3 = scope.prompt("A short poem about the wisdom of artificial intelligence.", Poem.class);
+        try (AIScope scope = new AIScope(new ExecutionContext(Executors.newVirtualThreadPerTaskExecutor()))) {
+            var poem1 = scope.prompt("A short poem about the beauty of nature.", Poem.class).get();
+            var poem2 = scope.prompt("A short poem about the power of technology.", Poem.class).get();
+            var poem3 = scope.prompt("A short poem about the wisdom of artificial intelligence.", Poem.class).get();
 
-            String combinedPoems = String.format("%s\n\n%s\n\n%s", poem1.get().content, poem2.get().content, poem3.get().content);
-            String newPoemPrompt = "Write a new poem that combines ideas from the following themes: the beauty " +
+            var combinedPoems = String.format("%s\n\n%s\n\n%s", poem1.content, poem2.content, poem3.content);
+            var newPoemPrompt = "Write a new poem that combines ideas from the following themes: the beauty " +
                     "of nature, the power of technology, and the wisdom of artificial intelligence. Here are some " +
                     "examples of poems on these themes: " + combinedPoems;
 

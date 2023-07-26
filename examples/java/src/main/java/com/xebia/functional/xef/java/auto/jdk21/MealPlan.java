@@ -1,42 +1,24 @@
 package com.xebia.functional.xef.java.auto.jdk21;
 
 import com.xebia.functional.xef.java.auto.AIScope;
+import com.xebia.functional.xef.java.auto.ExecutionContext;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 
 public class MealPlan {
-    public String name;
-    public List<Recipe> recipes;
 
-    private static class Recipe {
-        public String name;
-        public List<String> ingredients;
-
-        @Override
-        public String toString() {
-            return "Recipe{" +
-                  "name='" + name + '\'' +
-                  ", ingredients=" + ingredients +
-                  '}';
-        }
-    }
-
-    @Override
-    public String toString() {
-        return "MealPlan{" +
-              "name='" + name + '\'' +
-              ", recipes=" + recipes +
-              '}';
-    }
+    public record MealPlanRecord(String name, List<Recipe> recipes){}
+    public record Recipe(String name, List<String> ingredients){}
 
     private static CompletableFuture<Void> mealPlan(AIScope scope) {
-        return scope.prompt("Meal plan for the week for a person with gall bladder stones that includes 5 recipes.", MealPlan.class)
+        return scope.prompt("Meal plan for the week for a person with gall bladder stones that includes 5 recipes.", MealPlanRecord.class)
               .thenAccept(mealPlan -> System.out.println(mealPlan));
     }
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
-        try (AIScope scope = new AIScope()) {
+        try (AIScope scope = new AIScope(new ExecutionContext(Executors.newVirtualThreadPerTaskExecutor()))) {
             scope.contextScope(scope.search("gall bladder stones meals"), MealPlan::mealPlan).get();
         }
     }

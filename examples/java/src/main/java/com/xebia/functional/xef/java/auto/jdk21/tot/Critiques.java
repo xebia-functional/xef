@@ -1,8 +1,8 @@
 package com.xebia.functional.xef.java.auto.jdk21.tot;
 
-import java.util.concurrent.CompletableFuture;
-
 import static com.xebia.functional.xef.java.auto.jdk21.tot.Rendering.truncateText;
+
+import java.util.concurrent.CompletableFuture;
 
 public class Critiques {
 
@@ -15,7 +15,7 @@ public class Critiques {
     public static <A> CompletableFuture<Critique> critique(Problems.Memory<A> memory, Solutions.Solution<A> currentSolution){
         System.out.println("🕵️ Critiquing solution: " + truncateText(currentSolution.answer) + "...");
 
-        String prompt = Rendering.trimMargin(
+        var prompt = Rendering.trimMargin(
                 "    You are an expert advisor critiquing a solution.\n" +
                 "    \n" +
                 "    Previous history:\n" +

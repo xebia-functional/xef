@@ -30,35 +30,22 @@ public class Animals {
         return scope.prompt(storyPrompt, Story.class);
     }
 
-    public static class Animal {
-        public String name;
-        public String habitat;
-        public String diet;
-    }
-
-    public static class Invention {
-        public String name;
-        public String inventor;
-        public int year;
-        public String purpose;
-    }
-
-    public static class Story {
-        public Animal animal;
-        public Invention invention;
-        public String text;
-
+    public record Animal(String name, String habitat, String diet){}
+    public record Invention(String name, String inventor, int year, String purpose){}
+    public record Story(Animal animal, Invention invention, String text){
         public void tell() {
             System.out.println("Story about " + animal.name + " and " + invention.name + ": " + text);
         }
     }
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
-        try (AIScope scope = new AIScope(new ExecutionContext())) {
+        try (AIScope scope = new AIScope(new ExecutionContext(Executors.newVirtualThreadPerTaskExecutor()))) {
             Animals animals = new Animals(scope);
             animals.uniqueAnimal()
-                    .thenCompose(animal -> animals.groundbreakingInvention()
-                            .thenCompose(invention -> animals.story(animal, invention)
+                    .thenCompose(animal ->
+                          animals.groundbreakingInvention()
+                            .thenCompose(invention ->
+                                  animals.story(animal, invention)
                                     .thenAccept(Story::tell)
                             )).get();
         }

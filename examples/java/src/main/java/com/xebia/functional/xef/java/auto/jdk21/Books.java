@@ -1,10 +1,11 @@
 package com.xebia.functional.xef.java.auto.jdk21;
 
 import com.xebia.functional.xef.java.auto.AIScope;
+import com.xebia.functional.xef.java.auto.ExecutionContext;
 import jakarta.validation.constraints.NotNull;
-
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 
 public class Books {
 
@@ -14,29 +15,14 @@ public class Books {
         this.scope = scope;
     }
 
-    public static class Book {
-        @NotNull public String title;
-        @NotNull public String author;
-        @NotNull public int year;
-        @NotNull public String genre;
-
-        @Override
-        public String toString() {
-            return "Book{" +
-                    "title='" + title + '\'' +
-                    ", author='" + author + '\'' +
-                    ", year=" + year +
-                    ", genre='" + genre + '\'' +
-                    '}';
-        }
-    }
+    public record Book(@NotNull String title, @NotNull String author, @NotNull int year, @NotNull String genre){}
 
     public CompletableFuture<Books.Book> bookSelection(String topic) {
         return scope.prompt("Give me a selection of books about " + topic, Books.Book.class);
     }
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
-        try (AIScope scope = new AIScope()) {
+        try (AIScope scope = new AIScope(new ExecutionContext(Executors.newVirtualThreadPerTaskExecutor()))) {
             Books books = new Books(scope);
             books.bookSelection("artificial intelligence")
                     .thenAccept(System.out::println)

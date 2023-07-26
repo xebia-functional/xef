@@ -1,34 +1,23 @@
 package com.xebia.functional.xef.java.auto.jdk21;
 
 import com.xebia.functional.xef.java.auto.AIScope;
+import com.xebia.functional.xef.java.auto.ExecutionContext;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 
-public class Employee {
+public class Employees {
 
-    public String firstName;
-    public String lastName;
-    public Integer age;
-    public String position;
-    public Company company;
-
-    private static class Address {
-        public String street;
-        public String city;
-        public String country;
-    }
-
-    private static class Company {
-        public String name;
-        public Address address;
-    }
+    public record Employee(String firstName, String lastName, Integer age, String position, Company company){}
+    public record Address(String street, String city, String country){}
+    public record Company(String name, Address address){}
 
     public static String complexPrompt =
         "Provide made up information for an Employee that includes their first name, last name, age, position, and their company's name and address (street, city, and country).\n" +
         "Use the information provided.";
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
-        try (AIScope scope = new AIScope()) {
-            scope.prompt(complexPrompt, Employee.class)
+        try (AIScope scope = new AIScope(new ExecutionContext(Executors.newVirtualThreadPerTaskExecutor()))) {
+            scope.prompt(complexPrompt, Employees.Employee.class)
                   .thenAccept(employeeData -> System.out.println(
                         "Employee Information:\n\n" +
                               "Name: " + employeeData.firstName + " " + employeeData.lastName + "\n" +

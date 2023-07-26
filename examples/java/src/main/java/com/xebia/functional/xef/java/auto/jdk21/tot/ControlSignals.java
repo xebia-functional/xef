@@ -1,9 +1,9 @@
 package com.xebia.functional.xef.java.auto.jdk21.tot;
 
-import java.util.concurrent.CompletableFuture;
-
 import static com.xebia.functional.xef.java.auto.jdk21.tot.Rendering.renderHistory;
 import static com.xebia.functional.xef.java.auto.jdk21.tot.Rendering.truncateText;
+
+import java.util.concurrent.CompletableFuture;
 
 public class ControlSignals {
 
@@ -13,7 +13,7 @@ public class ControlSignals {
 
     public static <A> CompletableFuture<ControlSignal> controlSignal(Problems.Memory<A> memory){
         System.out.println("\uD83E\uDDE0 Generating control signal for problem:" + truncateText(memory.problem.description) + "...");
-        String guidancePrompt = Rendering.trimMargin(
+        var guidancePrompt = Rendering.trimMargin(
                 "    You are an expert advisor on information extraction.\n" +
                 "    You generate guidance for a problem.\n" +
                 "    " + renderHistory(memory) + "\n" +

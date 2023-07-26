@@ -1,36 +1,20 @@
 package com.xebia.functional.xef.java.auto.jdk21;
 
 import com.xebia.functional.xef.java.auto.AIScope;
+import com.xebia.functional.xef.java.auto.ExecutionContext;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 public class ChessAI {
 
-    private static class ChessMove {
-        public String player;
-        public String move;
-
-        @Override
-        public String toString() {
-            return "ChessMove{" +
-                  "player='" + player + '\'' +
-                  ", move='" + move + '\'' +
-                  '}';
-        }
-    }
-
-    private static class ChessBoard {
-        public String board;
-    }
-
-    private static class GameState {
-        public Boolean ended;
-        public String winner;
-    }
+    public record ChessMove(String player, String move){}
+    public record ChessBoard(String board){}
+    public record GameState(Boolean ended, String winner){}
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
-        try (AIScope scope = new AIScope()) {
+        try (AIScope scope = new AIScope(new ExecutionContext(Executors.newVirtualThreadPerTaskExecutor()))) {
             var moves = new ArrayList<ChessMove>();
             var gameEnded = false;
             var winner = "";

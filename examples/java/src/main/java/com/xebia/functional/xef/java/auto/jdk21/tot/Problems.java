@@ -1,13 +1,14 @@
 package com.xebia.functional.xef.java.auto.jdk21.tot;
 
-import com.xebia.functional.xef.java.auto.AIScope;
-import org.jetbrains.annotations.Nullable;
+import static com.xebia.functional.xef.java.auto.jdk21.tot.Rendering.truncateText;
 
+import com.xebia.functional.xef.java.auto.AIScope;
+import com.xebia.functional.xef.java.auto.ExecutionContext;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
 import java.util.stream.Stream;
-
-import static com.xebia.functional.xef.java.auto.jdk21.tot.Rendering.truncateText;
+import org.jetbrains.annotations.Nullable;
 
 public class Problems {
 
@@ -97,7 +98,7 @@ public class Problems {
 
         private static void checkAIScope() {
             if(aiScope == null){
-                aiScope = new AIScope();
+                aiScope = new AIScope(new ExecutionContext(Executors.newVirtualThreadPerTaskExecutor()));
             }
         }
 
