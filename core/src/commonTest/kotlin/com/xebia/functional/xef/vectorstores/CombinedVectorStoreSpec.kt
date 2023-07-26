@@ -4,62 +4,120 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
 class CombinedVectorStoreSpec :
-    StringSpec({
-        "memories function should return all of messages combined in the right order" {
-            val topMessages = generateRandomMessages(4, append = "top")
-            val bottomMessages = generateRandomMessages(4, append = "bottom")
+  StringSpec({
+    "memories function should return all of messages combined in the right order" {
+      val topMessages = generateRandomMessages(4, append = "top", startTimestamp = 1000)
+      val bottomMessages = generateRandomMessages(4, append = "bottom", startTimestamp = 2000)
 
-            val combinedVectorStore = topMessages.combine(bottomMessages)
+      val combinedVectorStore = topMessages.combine(bottomMessages)
 
-            val messages = combinedVectorStore.memories(defaultConversationId, Int.MAX_VALUE)
+      val messages = combinedVectorStore.memories(defaultConversationId, Int.MAX_VALUE)
 
-            val messagesExpected = topMessages + bottomMessages
+      val messagesExpected = topMessages + bottomMessages
 
-            messages shouldBe messagesExpected
-        }
+      messages shouldBe messagesExpected
+    }
 
-        "memories function should return the last n combined messages in the right order" {
-            val topMessages = generateRandomMessages(4, append = "top")
-            val bottomMessages = generateRandomMessages(4, append = "bottom")
+    "memories function should return the last n combined messages in the right order" {
+      val topMessages = generateRandomMessages(4, append = "top", startTimestamp = 1000)
+      val bottomMessages = generateRandomMessages(4, append = "bottom", startTimestamp = 2000)
 
-            val combinedVectorStore = topMessages.combine(bottomMessages)
+      val combinedVectorStore = topMessages.combine(bottomMessages)
 
-            val messages = combinedVectorStore.memories(defaultConversationId, 6 * 2)
+      val messages = combinedVectorStore.memories(defaultConversationId, 6 * 2)
 
-            val messagesExpected = topMessages.takeLast(2 * 2) + bottomMessages
+      val messagesExpected = topMessages.takeLast(2 * 2) + bottomMessages
 
-            messages shouldBe messagesExpected
-        }
+      messages shouldBe messagesExpected
+    }
 
-        "memories function should return the messages with common conversation id combined in the right order" {
+    "memories function should return the messages with common conversation id combined in the right order" {
+      val topId = ConversationId("top-id")
+      val bottomId = ConversationId("bottom-id")
+      val commonId = ConversationId("common-id")
 
-            val topId = ConversationId("top-id")
-            val bottomId = ConversationId("bottom-id")
-            val commonId = ConversationId("common-id")
+      val topMessages =
+        generateRandomMessages(4, append = "top", conversationId = topId, startTimestamp = 1000)
+      val commonTopMessages =
+        generateRandomMessages(
+          4,
+          append = "common-top",
+          conversationId = commonId,
+          startTimestamp = 2000
+        )
 
-            val topMessages = generateRandomMessages(4, append = "top", conversationId = topId)
-            val commonTopMessages = generateRandomMessages(4, append = "common-top", conversationId = commonId)
+      val bottomMessages =
+        generateRandomMessages(
+          4,
+          append = "bottom",
+          conversationId = bottomId,
+          startTimestamp = 3000
+        )
+      val commonBottomMessages =
+        generateRandomMessages(
+          4,
+          append = "common-bottom",
+          conversationId = commonId,
+          startTimestamp = 4000
+        )
 
-            val bottomMessages = generateRandomMessages(4, append = "bottom", conversationId = bottomId)
-            val commonBottomMessages = generateRandomMessages(4, append = "common-bottom", conversationId = commonId)
+      val combinedVectorStore =
+        (topMessages + commonTopMessages).combine(bottomMessages + commonBottomMessages)
 
-            val combinedVectorStore = (topMessages + commonTopMessages).combine(bottomMessages + commonBottomMessages)
+      val messages = combinedVectorStore.memories(commonId, Int.MAX_VALUE)
 
-            val messages = combinedVectorStore.memories(commonId, Int.MAX_VALUE)
+      val messagesExpected = commonTopMessages + commonBottomMessages
 
-            val messagesExpected = commonTopMessages + commonBottomMessages
+      messages shouldBe messagesExpected
+    }
 
-            messages shouldBe messagesExpected
-        }
+    "adding messages to a combined vector store" {
+      val topId = ConversationId("top-id")
+      val bottomId = ConversationId("bottom-id")
+      val commonId = ConversationId("common-id")
 
-    })
+      val topMessages =
+        generateRandomMessages(4, append = "top", conversationId = topId, startTimestamp = 1000)
+      val commonTopMessages =
+        generateRandomMessages(
+          4,
+          append = "common-top",
+          conversationId = commonId,
+          startTimestamp = 2000
+        )
+
+      val bottomMessages =
+        generateRandomMessages(
+          4,
+          append = "bottom",
+          conversationId = bottomId,
+          startTimestamp = 3000
+        )
+      val commonBottomMessages =
+        generateRandomMessages(
+          4,
+          append = "common-bottom",
+          conversationId = commonId,
+          startTimestamp = 4000
+        )
+
+      val combinedVectorStore =
+        (topMessages + commonTopMessages).combine(bottomMessages + commonBottomMessages)
+
+      val newCommonMessages =
+        generateRandomMessages(4, append = "new", conversationId = commonId, startTimestamp = 5000)
+      combinedVectorStore.addMemories(newCommonMessages)
+
+      combinedVectorStore.memories(commonId, 4 * 2) shouldBe newCommonMessages
+    }
+  })
 
 suspend fun List<Memory>.combine(bottomMessages: List<Memory>): CombinedVectorStore {
-    val top = LocalVectorStore(FakeEmbeddings())
-    top.addMemories(this)
+  val top = LocalVectorStore(FakeEmbeddings())
+  top.addMemories(this)
 
-    val bottom = LocalVectorStore(FakeEmbeddings())
-    bottom.addMemories(bottomMessages)
+  val bottom = LocalVectorStore(FakeEmbeddings())
+  bottom.addMemories(bottomMessages)
 
-    return CombinedVectorStore(top, bottom)
+  return CombinedVectorStore(top, bottom)
 }

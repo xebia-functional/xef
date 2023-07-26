@@ -32,20 +32,23 @@ private constructor(private val embeddings: Embeddings, private val state: Atomi
   override suspend fun addMemories(memories: List<Memory>) {
     state.update { prevState ->
       prevState.copy(
-        orderedMemories = memories.groupBy { it.conversationId }.let { memories ->
-          (prevState.orderedMemories.keys + memories.keys).associateWith { key ->
-            val l1 = prevState.orderedMemories[key] ?: emptyList()
-            val l2 = memories[key] ?: emptyList()
-            l1 + l2
-          }
-        }
+        orderedMemories =
+          memories
+            .groupBy { it.conversationId }
+            .let { memories ->
+              (prevState.orderedMemories.keys + memories.keys).associateWith { key ->
+                val l1 = prevState.orderedMemories[key] ?: emptyList()
+                val l2 = memories[key] ?: emptyList()
+                l1 + l2
+              }
+            }
       )
     }
   }
 
   override suspend fun memories(conversationId: ConversationId, limit: Int): List<Memory> {
     val memories = state.get().orderedMemories[conversationId]
-    return memories?.takeLast(limit).orEmpty()
+    return memories?.takeLast(limit).orEmpty().sortedBy { it.timestamp }
   }
 
   override suspend fun addTexts(texts: List<String>) {

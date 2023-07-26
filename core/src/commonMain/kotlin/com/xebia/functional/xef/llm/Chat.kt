@@ -270,8 +270,7 @@ interface Chat : LLM {
   }
 
   private fun messages(memories: List<Memory>, promptWithContext: String): List<Message> =
-    memories.map { it.content } +
-      listOf(Message(Role.USER, promptWithContext, Role.USER.name))
+    memories.map { it.content } + listOf(Message(Role.USER, promptWithContext, Role.USER.name))
 
   private suspend fun memories(
     conversationId: ConversationId?,

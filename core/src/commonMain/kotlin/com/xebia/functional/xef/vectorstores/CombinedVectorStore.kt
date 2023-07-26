@@ -13,8 +13,8 @@ class CombinedVectorStore(private val top: VectorStore, private val bottom: Vect
 
   override suspend fun memories(conversationId: ConversationId, limit: Int): List<Memory> {
     val bottomResults = bottom.memories(conversationId, limit)
-    val topResults = top.memories(conversationId, limit - bottomResults.size)
-    return topResults + bottomResults
+    val topResults = top.memories(conversationId, limit)
+    return (topResults + bottomResults).sortedBy { it.timestamp }.takeLast(limit)
   }
 
   override suspend fun similaritySearch(query: String, limit: Int): List<String> {
