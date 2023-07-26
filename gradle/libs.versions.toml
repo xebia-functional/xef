@@ -51,6 +51,8 @@ kotlinx-coroutines-reactive = { module = "org.jetbrains.kotlinx:kotlinx-coroutin
 ktor-utils = { module = "io.ktor:ktor-utils", version.ref = "ktor" }
 ktor-http = { module = "io.ktor:ktor-http", version.ref = "ktor" }
 ktor-client ={ module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktor-client-content-negotiation ={ module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-client-serialization = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
 ktor-client-js = { module = "io.ktor:ktor-client-js", version.ref = "ktor" }
 ktor-client-winhttp = { module = "io.ktor:ktor-client-winhttp", version.ref = "ktor" }
@@ -94,6 +96,11 @@ jackson-schema-jakarta = { module = "com.github.victools:jsonschema-module-jakar
 jakarta-validation = { module = "jakarta.validation:jakarta.validation-api", version.ref = "jakarta" }
 
 [bundles]
+ktor-client = [
+    "ktor-client",
+    "ktor-client-content-negotiation",
+    "ktor-client-serialization"
+]
 arrow = [
     "arrow-core",
     "arrow-fx-coroutines"
