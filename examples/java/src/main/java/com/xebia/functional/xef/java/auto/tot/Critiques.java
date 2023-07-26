@@ -12,7 +12,7 @@ public class Critiques {
         public boolean answerTrulyAccomplishesTheGoal;
     }
 
-    public static <A> CompletableFuture<Critique> critique(Problems.Memory<A> memory, Solutions.Solution<A> currentSolution){
+    public static <A> CompletableFuture<? extends Critique> critique(Problems.Memory<A> memory, Solutions.Solution<A> currentSolution){
         System.out.println("🕵️ Critiquing solution: " + truncateText(currentSolution.answer) + "...");
 
         String prompt = Rendering.trimMargin(

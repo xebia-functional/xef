@@ -11,15 +11,16 @@ import io.circe.parser.parse
 import com.xebia.functional.xef.llm.models.functions.Json
 import com.xebia.functional.xef.pdf.Loader
 import com.xebia.functional.tokenizer.ModelType
-import com.xebia.functional.xef.llm._
+import com.xebia.functional.xef.llm.*
 import com.xebia.functional.xef.auto.PromptConfiguration
-import com.xebia.functional.xef.auto.llm.openai._
+import com.xebia.functional.xef.auto.llm.openai.*
 import com.xebia.functional.xef.scala.textsplitters.TextSplitter
 import com.xebia.functional.xef.llm.models.images.*
 import com.xebia.functional.xef.auto.llm.openai.OpenAI
 import com.xebia.functional.xef.auto.llm.openai.OpenAIRuntime
 
 import java.io.File
+import java.util.concurrent.CompletableFuture
 import scala.jdk.CollectionConverters.*
 import scala.util.*
 
@@ -49,14 +50,14 @@ def prompt[A: Decoder: SerialDescriptor](
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
 )(using scope: AIScope): A =
   LoomAdapter.apply((cont) =>
-    scope.kt.promptWithSerializer[A](
+    val f: CompletableFuture[A] = scope.kt.promptWithSerializerAsync[A](
       llmModel,
       prompt,
       generateCFunctions.asJava,
       (json: String) => parse(json).flatMap(Decoder[A].decodeJson(_)).fold(throw _, identity),
       promptConfiguration,
-      cont
     )
+    f.whenComplete((a, e) => if (e != null) cont.resumeWith(e) else cont.resumeWith(a))
   )
 
 private def generateCFunctions[A: SerialDescriptor]: List[CFunction] =

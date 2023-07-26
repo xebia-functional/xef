@@ -1,5 +1,7 @@
 package com.xebia.functional.xef.java.auto;
 
+import com.xebia.functional.xef.agents.SearchDocs;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -14,18 +16,18 @@ public class Markets {
     @Override
     public String toString() {
         return "Markets{" +
-              "news='" + news + '\'' +
-              ", raisingStockSymbols=" + raisingStockSymbols +
-              ", decreasingStockSymbols=" + decreasingStockSymbols +
-              '}';
+                "news='" + news + '\'' +
+                ", raisingStockSymbols=" + raisingStockSymbols +
+                ", decreasingStockSymbols=" + decreasingStockSymbols +
+                '}';
     }
 
     private static CompletableFuture<Void> stockMarketSummary(AIScope scope) {
         String news = "|" +
-              "|Write a short summary of the stock market results given the provided context.";
+                "|Write a short summary of the stock market results given the provided context.";
 
         return scope.prompt(news, Markets.class)
-              .thenAccept(markets -> System.out.println(markets));
+                .thenAccept(System.out::println);
     }
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
@@ -34,8 +36,10 @@ public class Markets {
             LocalDateTime now = LocalDateTime.now();
             var currentDate = dtf.format(now);
 
-            scope.contextScope(scope.search(currentDate + "Stock market results, raising stocks, decreasing stocks"),
-                  Markets::stockMarketSummary).get();
+            scope.contextScopeAsync(
+                    SearchDocs.search(currentDate + "Stock market results, raising stocks, decreasing stocks").get(),
+                    Markets::stockMarketSummary
+            ).get();
         }
     }
 }

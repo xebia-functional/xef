@@ -5,7 +5,14 @@ package com.xebia.functional.xef.auto.llm.openai
 import arrow.core.Either
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.auto.AI
+import com.xebia.functional.xef.auto.AutoClose
 import com.xebia.functional.xef.auto.CoreAIScope
+import com.xebia.functional.xef.auto.autoClose
+import com.xebia.functional.xef.embeddings.Embeddings
+import com.xebia.functional.xef.vectorstores.ConversationId
+import com.xebia.functional.xef.vectorstores.VectorStore
+import kotlinx.uuid.UUID
+import kotlinx.uuid.generateUUID
 import kotlin.jvm.JvmName
 
 /**
@@ -41,7 +48,13 @@ suspend inline fun <A> AI<A>.toEither(): Either<AIError, A> = Either.catchOrThro
 
 suspend fun <A> AIScope(block: AI<A>, orElse: suspend (AIError) -> A): A =
   try {
-    CoreAIScope(OpenAIEmbeddings(OpenAI.DEFAULT_EMBEDDING)).use { block(it) }
+    OpenAIScope().use { block(it) }
   } catch (e: AIError) {
     orElse(e)
   }
+
+private class OpenAIScope: CoreAIScope, AutoClose by autoClose() {
+  override val embeddings: Embeddings = OpenAIEmbeddings(OpenAI.DEFAULT_EMBEDDING)
+  override val context: VectorStore = com.xebia.functional.xef.vectorstores.LocalVectorStore(embeddings)
+  override val conversationId: ConversationId = ConversationId(UUID.generateUUID().toString())
+}

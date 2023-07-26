@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xebia.functional.xef.auto.PromptConfiguration;
 import com.xebia.functional.xef.auto.llm.openai.OpenAI;
 import com.xebia.functional.xef.auto.llm.openai.OpenAIModel;
-import com.xebia.functional.xef.java.auto.AIDatabase;
 import com.xebia.functional.xef.java.auto.AIScope;
 import com.xebia.functional.xef.java.auto.ExecutionContext;
 import com.xebia.functional.xef.java.auto.util.ConsoleUtil;
@@ -47,7 +46,7 @@ public class DatabaseExample {
     public static void main(String[] args) throws Exception {
 
         ExecutionContext executionContext = new ExecutionContext();
-        try (AIScope scope = new AIScope(new ObjectMapper(), executionContext)) {
+        try (AIScope scope = new AIScope(executionContext)) {
             AIDatabase database = new AIDatabase(getJdbcConfig(), executionContext);
 
             out.println("llmdb> Welcome to the LLMDB (An LLM interface to your SQL Database) !");

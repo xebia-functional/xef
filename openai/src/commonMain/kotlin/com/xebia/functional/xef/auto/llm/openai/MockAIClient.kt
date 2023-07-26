@@ -6,8 +6,13 @@ import arrow.core.right
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.auto.AI
+import com.xebia.functional.xef.auto.AutoClose
 import com.xebia.functional.xef.auto.CoreAIScope
-import com.xebia.functional.xef.llm.*
+import com.xebia.functional.xef.auto.autoClose
+import com.xebia.functional.xef.llm.ChatWithFunctions
+import com.xebia.functional.xef.llm.Completion
+import com.xebia.functional.xef.llm.Embeddings
+import com.xebia.functional.xef.llm.Images
 import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.llm.models.embeddings.Embedding
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
@@ -18,9 +23,11 @@ import com.xebia.functional.xef.llm.models.text.CompletionChoice
 import com.xebia.functional.xef.llm.models.text.CompletionRequest
 import com.xebia.functional.xef.llm.models.text.CompletionResult
 import com.xebia.functional.xef.llm.models.usage.Usage
+import com.xebia.functional.xef.vectorstores.ConversationId
 import com.xebia.functional.xef.vectorstores.LocalVectorStore
-import kotlin.time.ExperimentalTime
+import com.xebia.functional.xef.vectorstores.VectorStore
 import kotlinx.coroutines.flow.Flow
+import kotlin.time.ExperimentalTime
 
 class MockOpenAIClient(
   private val completion: (CompletionRequest) -> CompletionResult = {
@@ -110,7 +117,11 @@ suspend fun <A> MockAIScope(
   try {
     val embeddings = OpenAIEmbeddings(mockClient)
     val vectorStore = LocalVectorStore(embeddings)
-    val scope = CoreAIScope(embeddings, vectorStore)
+    val scope = object : CoreAIScope, AutoClose by autoClose() {
+      override val embeddings: com.xebia.functional.xef.embeddings.Embeddings = embeddings
+      override val context: VectorStore = vectorStore
+      override val conversationId: ConversationId? = null
+    }
     block(scope)
   } catch (e: AIError) {
     orElse(e)

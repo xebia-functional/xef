@@ -11,9 +11,9 @@ public class Poems {
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         try (AIScope scope = new AIScope()) {
-            CompletableFuture<Poem> poem1 = scope.prompt("A short poem about the beauty of nature.", Poem.class);
-            CompletableFuture<Poem> poem2 = scope.prompt("A short poem about the power of technology.", Poem.class);
-            CompletableFuture<Poem> poem3 = scope.prompt("A short poem about the wisdom of artificial intelligence.", Poem.class);
+            CompletableFuture<? extends Poem> poem1 = scope.prompt("A short poem about the beauty of nature.", Poem.class);
+            CompletableFuture<? extends Poem> poem2 = scope.prompt("A short poem about the power of technology.", Poem.class);
+            CompletableFuture<? extends Poem> poem3 = scope.prompt("A short poem about the wisdom of artificial intelligence.", Poem.class);
 
             String combinedPoems = String.format("%s\n\n%s\n\n%s", poem1.get().content, poem2.get().content, poem3.get().content);
             String newPoemPrompt = "Write a new poem that combines ideas from the following themes: the beauty " +

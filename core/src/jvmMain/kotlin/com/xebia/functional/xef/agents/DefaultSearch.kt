@@ -10,3 +10,4 @@ suspend fun search(prompt: String): List<String> =
     search = prompt,
     TokenTextSplitter(ModelType.GPT_3_5_TURBO, chunkSize = 100, chunkOverlap = 50)
   )
+

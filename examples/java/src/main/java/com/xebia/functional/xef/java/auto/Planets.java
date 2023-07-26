@@ -20,8 +20,8 @@ public class Planets {
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         try (AIScope scope = new AIScope()) {
-            CompletableFuture<Planet> earth = scope.prompt("Information about Earth and its moon.", Planet.class);
-            CompletableFuture<Planet> mars = scope.prompt("Information about Mars and its moons.", Planet.class);
+            CompletableFuture<? extends Planet> earth = scope.prompt("Information about Earth and its moon.", Planet.class);
+            CompletableFuture<? extends Planet> mars = scope.prompt("Information about Mars and its moons.", Planet.class);
 
             System.out.println("Celestial bodies information:\n\n" + planetInfo(earth.get()) + "\n\n" + planetInfo(mars.get()));
         }

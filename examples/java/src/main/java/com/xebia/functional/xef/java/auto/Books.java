@@ -30,7 +30,7 @@ public class Books {
         }
     }
 
-    public CompletableFuture<Books.Book> bookSelection(String topic) {
+    public CompletableFuture<? extends Books.Book> bookSelection(String topic) {
         return scope.prompt("Give me a selection of books about " + topic, Books.Book.class);
     }
 

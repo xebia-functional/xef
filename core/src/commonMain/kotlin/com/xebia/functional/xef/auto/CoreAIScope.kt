@@ -12,24 +12,28 @@ import com.xebia.functional.xef.vectorstores.CombinedVectorStore
 import com.xebia.functional.xef.vectorstores.ConversationId
 import com.xebia.functional.xef.vectorstores.LocalVectorStore
 import com.xebia.functional.xef.vectorstores.VectorStore
-import kotlin.jvm.JvmName
-import kotlin.jvm.JvmOverloads
 import kotlinx.coroutines.flow.Flow
-import kotlinx.uuid.UUID
-import kotlinx.uuid.generateUUID
 
 /**
  * The [CoreAIScope] is the context in which [AI] values are run. It encapsulates all the
  * dependencies required to run [AI] values, and provides convenient syntax for writing [AI] based
  * programs.
  */
-class CoreAIScope
-@JvmOverloads
-constructor(
-  val embeddings: Embeddings,
-  val context: VectorStore = LocalVectorStore(embeddings),
-  val conversationId: ConversationId? = ConversationId(UUID.generateUUID().toString())
-) : AutoCloseable, AutoClose by autoClose() {
+//class CoreAIScope
+//@JvmOverloads
+//constructor(
+//  val embeddings: Embeddings,
+//  val context: VectorStore = LocalVectorStore(embeddings),
+//  val conversationId: ConversationId? = ConversationId(UUID.generateUUID().toString())
+//) : AutoCloseable, AutoClose by autoClose() {
+
+interface CoreAIScope: AutoCloseable, AutoClose {
+
+  val embeddings: Embeddings
+
+  val context: VectorStore
+
+  val conversationId: ConversationId?
 
   /**
    * Allows invoking [AI] values in the context of this [CoreAIScope].
@@ -64,7 +68,7 @@ constructor(
    * }
    * ```
    */
-  @AiDsl @JvmName("invokeAI") suspend operator fun <A> AI<A>.invoke(): A = invoke(this@CoreAIScope)
+  @AiDsl suspend operator fun <A> AI<A>.invoke(): A = invoke(this@CoreAIScope)
 
   @AiDsl
   suspend fun extendContext(vararg docs: String) {
@@ -80,25 +84,23 @@ constructor(
    */
   @AiDsl
   suspend fun <A> contextScope(store: VectorStore, block: AI<A>): A =
-    CoreAIScope(
-        this@CoreAIScope.embeddings,
-        CombinedVectorStore(store, this@CoreAIScope.context),
-      )
-      .block()
+    object : CoreAIScope, AutoClose by autoClose() {
+      override val embeddings: Embeddings = this@CoreAIScope.embeddings
+      override val context: VectorStore = CombinedVectorStore(store, this@CoreAIScope.context)
+      override val conversationId: ConversationId? = this@CoreAIScope.conversationId
+    }.block()
 
   @AiDsl
   suspend fun <A> contextScope(block: AI<A>): A = contextScope(LocalVectorStore(embeddings), block)
 
   /** Add new [docs] to the [context], and then executes the [block]. */
   @AiDsl
-  @JvmName("contextScopeWithDocs")
   suspend fun <A> contextScope(docs: List<String>, block: AI<A>): A = contextScope {
     extendContext(*docs.toTypedArray())
     block(this)
   }
 
   @AiDsl
-  @JvmName("promptWithSerializer")
   suspend fun <A> ChatWithFunctions.prompt(
     prompt: String,
     functions: List<CFunction>,

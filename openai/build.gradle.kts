@@ -66,6 +66,7 @@ kotlin {
         implementation(projects.xefCore)
         implementation(libs.openai.client)
         implementation(libs.klogging)
+        implementation(libs.uuid)
       }
     }
 

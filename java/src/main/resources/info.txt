@@ -1,0 +1,2 @@
+this lib is a placeholder jar, its contents are provided by the jvm xef-core module
+where CompletableFuture and other types are exposed through the existing JDK deps.

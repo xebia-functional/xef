@@ -11,15 +11,15 @@ public class Animals {
         this.scope = scope;
     }
 
-    public CompletableFuture<Animal> uniqueAnimal() {
+    public CompletableFuture<? extends Animal> uniqueAnimal() {
         return scope.prompt("A unique animal species.", Animal.class);
     }
 
-    public CompletableFuture<Invention> groundbreakingInvention() {
+    public CompletableFuture<? extends Invention> groundbreakingInvention() {
         return scope.prompt("A groundbreaking invention from the 20th century.", Invention.class);
     }
 
-    public CompletableFuture<Story> story(Animal animal, Invention invention) {
+    public CompletableFuture<? extends Story> story(Animal animal, Invention invention) {
         String storyPrompt =
                 "Write a short story of 500 words that involves the following elements:" +
                         "1. A unique animal species called ${animal.name} that lives in " + animal.habitat + " and has a diet of " + animal.diet + "." +
