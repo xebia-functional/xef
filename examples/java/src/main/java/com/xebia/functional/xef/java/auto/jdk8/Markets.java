@@ -33,7 +33,7 @@ public class Markets {
         try (AIScope scope = new AIScope()) {
             DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/M/yyyy");
             LocalDateTime now = LocalDateTime.now();
-            var currentDate = dtf.format(now);
+            String currentDate = dtf.format(now);
 
             scope.contextScope(scope.search(currentDate + "Stock market results, raising stocks, decreasing stocks"),
                   Markets::stockMarketSummary).get();

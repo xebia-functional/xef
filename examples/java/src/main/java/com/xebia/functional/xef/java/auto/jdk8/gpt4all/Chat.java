@@ -8,6 +8,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import org.reactivestreams.Publisher;
@@ -16,19 +17,19 @@ import org.reactivestreams.Subscription;
 
 public class Chat {
     public static void main(String[] args) throws ExecutionException, InterruptedException, IOException {
-        var userDir = System.getProperty("user.dir");
-        var path = userDir + "/models/gpt4all/ggml-replit-code-v1-3b.bin";
+        String userDir = System.getProperty("user.dir");
+        String path = userDir + "/models/gpt4all/ggml-replit-code-v1-3b.bin";
 
-        var supportedModels = Gpt4AllModel.Companion.getSupportedModels();
+        List<Gpt4AllModel> supportedModels = Gpt4AllModel.Companion.getSupportedModels();
 
         supportedModels.forEach(it -> {
-            var url = (Objects.nonNull(it.getUrl())) ? " - " + it.getUrl() : "";
+            String url = (Objects.nonNull(it.getUrl())) ? " - " + it.getUrl() : "";
             System.out.println("🤖 " + it.getName() + url);
         });
 
-        var url = "https://huggingface.co/nomic-ai/ggml-replit-code-v1-3b/resolve/main/ggml-replit-code-v1-3b.bin";
-        var modelPath = Path.of(path);
-        var gpt4all = GPT4All.Companion.invoke(url, modelPath);
+        String url = "https://huggingface.co/nomic-ai/ggml-replit-code-v1-3b/resolve/main/ggml-replit-code-v1-3b.bin";
+        Path modelPath = Path.of(path);
+        GPT4All gpt4all = GPT4All.Companion.invoke(url, modelPath);
 
         System.out.println("🤖 GPT4All loaded: " + gpt4all);
         /**
@@ -47,7 +48,7 @@ public class Chat {
                 String line = br.readLine();
                 if (line.equals("exit")) break;
 
-                var promptConfiguration = new PromptConfiguration.Companion.Builder().docsInContext(2).streamToStandardOut(true).build();
+                PromptConfiguration promptConfiguration = new PromptConfiguration.Companion.Builder().docsInContext(2).streamToStandardOut(true).build();
                 Publisher<String> answer = scope.promptStreaming(gpt4all, line, promptConfiguration);
 
                 answer.subscribe(new Subscriber<String>() {

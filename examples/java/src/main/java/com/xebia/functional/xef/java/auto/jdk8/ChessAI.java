@@ -2,6 +2,7 @@ package com.xebia.functional.xef.java.auto.jdk8;
 
 import com.xebia.functional.xef.java.auto.AIScope;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
@@ -31,14 +32,14 @@ public class ChessAI {
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         try (AIScope scope = new AIScope()) {
-            var moves = new ArrayList<ChessMove>();
-            var gameEnded = false;
-            var winner = "";
+            List<ChessMove> moves = new ArrayList<>();
+            boolean gameEnded = false;
+            String winner = "";
 
             while (!gameEnded) {
-                var currentPlayer = ((moves.size() % 2) == 0) ? "Player 1 (White)" : "Player 2 (Black)";
+                String currentPlayer = ((moves.size() % 2) == 0) ? "Player 1 (White)" : "Player 2 (Black)";
 
-                var prompt = String.format("""
+                String prompt = String.format("""
                             |%s, it's your turn.
                             |Previous moves: %s
                             |Make your next move:""",
@@ -51,7 +52,7 @@ public class ChessAI {
                 // Update boardState according to move.move
                 // ...
 
-                var boardPrompt = String.format("""
+                String boardPrompt = String.format("""
                             Given the following chess moves: %s,
                             generate a chess board on a table with appropriate emoji representations for each move and piece.
                             Add a brief description of the move and it's implications""",
@@ -60,7 +61,7 @@ public class ChessAI {
                 ChessBoard chessBoard= scope.prompt(boardPrompt, ChessBoard.class).get();
                 System.out.println("Current board:\n" + chessBoard.board);
 
-                var gameStatePrompt = String.format("""
+                String gameStatePrompt = String.format("""
                             Given the following chess moves: %s,
                             has the game ended (win, draw, or stalemate)?""",
                       moves.stream().map(ChessMove::toString).collect(Collectors.joining(", ")));

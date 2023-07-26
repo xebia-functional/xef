@@ -37,8 +37,8 @@ public class Fact {
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         try (AIScope scope = new AIScope()) {
-            var fact1 = scope.prompt("A fascinating fact about you", FactClass.class).get();
-            var fact2 = scope.prompt("An interesting fact about me", FactClass.class).get();
+            FactClass fact1 = scope.prompt("A fascinating fact about you", FactClass.class).get();
+            FactClass fact2 = scope.prompt("An interesting fact about me", FactClass.class).get();
 
             String riddlePrompt = ""+
                 "Create a riddle that combines the following facts:\n\n" +
