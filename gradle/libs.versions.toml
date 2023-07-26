@@ -39,6 +39,7 @@ ai-djl = "0.23.0"
 jackson = "2.15.2"
 jsonschema = "4.31.1"
 jakarta = "3.0.2"
+suspend-transform = "0.3.1"
 
 [libraries]
 arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
@@ -48,8 +49,10 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref="kotlinx-coroutines" }
 kotlinx-coroutines-reactive = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-reactive", version.ref="kotlinx-coroutines-reactive" }
 ktor-utils = { module = "io.ktor:ktor-utils", version.ref = "ktor" }
+ktor-http = { module = "io.ktor:ktor-http", version.ref = "ktor" }
 ktor-client ={ module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
+ktor-client-js = { module = "io.ktor:ktor-client-js", version.ref = "ktor" }
 ktor-client-winhttp = { module = "io.ktor:ktor-client-winhttp", version.ref = "ktor" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 okio-fakefilesystem = { module = "com.squareup.okio:okio-fakefilesystem", version.ref = "okio" }
@@ -108,3 +111,4 @@ arrow-gradle-publish = { id = "io.arrow-kt.arrow-gradle-config-publish", version
 scala-multiversion  = { id = "com.adtran.scala-multiversion-plugin", version.ref = "scalaMultiversion" }
 kotest-multiplatform = { id = "io.kotest.multiplatform", version.ref = "kotest" }
 semver-gradle = { id="com.javiersc.semver", version.ref="semverGradle" }
+suspend-transform-plugin = { id="love.forte.plugin.suspend-transform", version.ref="suspend-transform" }
