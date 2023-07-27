@@ -2,16 +2,22 @@ package xef
 
 import com.xebia.functional.xef.embeddings.Embedding
 import com.xebia.functional.xef.embeddings.Embeddings
+import com.xebia.functional.xef.llm.models.chat.Message
+import com.xebia.functional.xef.llm.models.chat.Role
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingModel
 import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
+import com.xebia.functional.xef.vectorstores.ConversationId
+import com.xebia.functional.xef.vectorstores.Memory
 import com.xebia.functional.xef.vectorstores.PGVectorStore
 import com.xebia.functional.xef.vectorstores.postgresql.PGDistanceStrategy
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.kotest.core.extensions.install
 import io.kotest.core.spec.style.StringSpec
-import io.kotest.extensions.testcontainers.SharedTestContainerExtension
+import io.kotest.extensions.testcontainers.ContainerExtension
 import io.kotest.matchers.shouldBe
+import kotlinx.uuid.UUID
+import kotlinx.uuid.generateUUID
 import org.junit.jupiter.api.assertThrows
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.utility.DockerImageName
@@ -23,12 +29,12 @@ val postgres: PostgreSQLContainer<Nothing> =
 
 class PGVectorStoreSpec :
   StringSpec({
-    val container = install(SharedTestContainerExtension(postgres))
+    val container = install(ContainerExtension(postgres))
     val dataSource =
       autoClose(
         HikariDataSource(
           HikariConfig().apply {
-            jdbcUrl = container.jdbcUrl
+            jdbcUrl = container.jdbcUrl.replace("localhost", "0.0.0.0")
             username = container.username
             password = container.password
             driverClassName = "org.postgresql.Driver"
@@ -63,6 +69,10 @@ class PGVectorStoreSpec :
 
     "createCollection should create collection" { pg.createCollection() }
 
+    "addTexts should not fail now that we created the collection" {
+      pg.addTexts(listOf("foo", "bar"))
+    }
+
     "similaritySearchByVector should return both documents" {
       pg.similaritySearchByVector(Embedding(listOf(4.0f, 5.0f, 6.0f)), 2) shouldBe
         listOf("bar", "foo")
@@ -77,6 +87,19 @@ class PGVectorStoreSpec :
 
     "similaritySearchByVector should return document" {
       pg.similaritySearchByVector(Embedding(listOf(1.0f, 2.0f, 3.0f)), 1) shouldBe listOf("foo")
+    }
+
+    "memories added in chronological order should be obtained in the same order" {
+      val messages = 10
+      val conversationId = ConversationId(UUID.generateUUID().toString())
+      val memories = (0 until messages).flatMap {
+        listOf(
+          Memory(conversationId, Message(Role.USER, "question $it", "user"), 2 * it.toLong()),
+          Memory(conversationId, Message(Role.ASSISTANT, "answer $it", "assistant"), 2 * it.toLong() + 1)
+        )
+      }
+      pg.addMemories(memories)
+      memories shouldBe pg.memories(conversationId, memories.size)
     }
   })
 
@@ -105,4 +128,3 @@ private fun Embeddings.Companion.mock(
     override suspend fun embedQuery(text: String, requestConfig: RequestConfig): List<Embedding> =
       embedQuery(text, requestConfig)
   }
-
