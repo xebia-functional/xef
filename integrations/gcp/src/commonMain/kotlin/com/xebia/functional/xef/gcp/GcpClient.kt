@@ -3,8 +3,7 @@ package com.xebia.functional.xef.gcp
 import com.xebia.functional.xef.AIError
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.plugins.HttpRequestRetry
-import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.header
 import io.ktor.client.request.post
@@ -26,13 +25,17 @@ class GcpClient(
   private val token: String
 ) : AutoCloseable {
   private val http: HttpClient = HttpClient {
-    install(HttpTimeout)
+    install(HttpTimeout) {
+      requestTimeoutMillis = 60_000
+      connectTimeoutMillis = 60_000
+    }
     install(HttpRequestRetry)
     install(ContentNegotiation) {
       json(
         Json {
           encodeDefaults = false
           isLenient = true
+          ignoreUnknownKeys = true
         }
       )
     }
