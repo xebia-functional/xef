@@ -51,7 +51,7 @@ class PGVectorStore(
           content = Message(
             role = Role.valueOf(role.uppercase()),
             content = content,
-            name = "role",
+            name = role,
           ),
           timestamp = timestamp,
         )
@@ -83,9 +83,9 @@ class PGVectorStore(
 
   fun createCollection(): Unit =
     dataSource.connection {
-      val xa = UUID.generateUUID()
+      val uuid = UUID.generateUUID()
       update(addNewCollection) {
-        bind(xa.toString())
+        bind(uuid.toString())
         bind(collectionName)
       }
     }
