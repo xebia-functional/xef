@@ -49,7 +49,12 @@ class OpenAIModel(
   override val modelType: ModelType
 ) : Chat, ChatWithFunctions, Images, Completion, Embeddings, AutoCloseable {
 
-  private val client = OpenAIClient(token = openAI.token, logging = LoggingConfig(LogLevel.None))
+  private val client =
+    OpenAIClient(
+				token = openAI.token,
+      logging = LoggingConfig(LogLevel.None),
+      headers = mapOf("Authorization" to " Bearer $openAI.token")
+    )
 
   override suspend fun createCompletion(request: CompletionRequest): CompletionResult {
     fun completionChoice(it: OpenAIChoice): CompletionChoice =
