@@ -236,7 +236,12 @@ interface Chat : LLM {
         Memory(
           conversationId = conversationId,
           content =
-            Message(role = role, content = firstChoice.message?.content ?: "", name = role.name),
+            Message(
+              role = role,
+              content = firstChoice.message?.content
+                  ?: firstChoice.message?.functionCall?.arguments ?: "",
+              name = role.name
+            ), //
           timestamp = getTimeMillis()
         )
       context.addMemories(listOf(requestMemory, firstChoiceMemory))

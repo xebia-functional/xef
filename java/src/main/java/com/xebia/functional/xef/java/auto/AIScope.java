@@ -54,6 +54,10 @@ public class AIScope implements AutoCloseable {
         this.scope = executionContext.getCoreScope();
     }
 
+    public CoreAIScope getScope() {
+        return scope;
+    }
+
     public ExecutionContext getExec() {
         return exec;
     }

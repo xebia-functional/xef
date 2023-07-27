@@ -32,6 +32,10 @@ public class ExecutionContext implements AutoCloseable {
         this(Executors.newCachedThreadPool(new ExecutionContext.AIScopeThreadFactory()),  new OpenAIEmbeddings(OpenAI.DEFAULT_EMBEDDING));
     }
 
+    public ExecutionContext(ExecutorService executorService){
+        this(executorService,  new OpenAIEmbeddings(OpenAI.DEFAULT_EMBEDDING));
+    }
+
     public ExecutionContext(ExecutorService executorService, Embeddings embeddings) {
         this.executorService = executorService;
         this.coroutineScope = () -> ExecutorsKt.from(executorService).plus(JobKt.Job(null));
