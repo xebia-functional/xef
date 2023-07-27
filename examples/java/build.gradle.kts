@@ -11,6 +11,12 @@ dependencies {
     implementation(projects.xefGpt4all)
 }
 
-tasks.withType<Test>().configureEach {
-    useJUnit()
+val ENABLE_PREVIEW = "--enable-preview"
+
+tasks.withType<JavaCompile> {
+    options.compilerArgs.add(ENABLE_PREVIEW)
+}
+tasks.test {
+    useJUnitPlatform()
+    jvmArgs(ENABLE_PREVIEW)
 }
