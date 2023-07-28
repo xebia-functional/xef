@@ -36,15 +36,12 @@ fun Project.configureBuildAndTestTask(
 
   tasks.register(taskName) {
     doLast {
-      val gradleCommand = getGradleCommand(platform)
       project.exec {
-        commandLine(gradleCommand, "spotlessCheck")
-      }
-      project.exec {
+        val gradleCommand = getGradleCommand(platform)
         when (moduleType) {
           ModuleType.MULTIPLATFORM -> {
             multiPlatformModules.forEach { module ->
-              commandLine(gradleCommand, ":$module:${platform}Test")
+              commandLine(gradleCommand, "spotlessCheck", ":$module:${platform}Test")
             }
           }
           ModuleType.SINGLEPLATFORM -> {
