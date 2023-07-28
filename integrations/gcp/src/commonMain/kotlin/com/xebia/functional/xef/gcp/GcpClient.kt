@@ -21,7 +21,7 @@ import kotlinx.serialization.json.Json
 class GcpClient(
   private val apiEndpoint: String,
   private val projectId: String,
-  private val modelId: String,
+  val modelId: String,
   private val token: String
 ) : AutoCloseable {
   private val http: HttpClient = HttpClient {
