@@ -22,7 +22,7 @@ class GcpChat(apiEndpoint: String, projectId: String, modelId: String, token: St
 
   override val name: String = client.modelId
   override val modelType: ModelType =
-    ModelType.LocalModel(client.modelId, EncodingType.CL100K_BASE, 4096)
+    ModelType.LocalModel(client.modelId, EncodingType.CL100K_BASE, 2048)
 
   override suspend fun createCompletion(request: CompletionRequest): CompletionResult {
     val response: String =
