@@ -9,6 +9,7 @@ data class RequestConfig(val model: EmbeddingModel, val user: User) {
     fun apply(model: EmbeddingModel, userId: String): RequestConfig {
       return RequestConfig(model, User(userId))
     }
+
     @JvmInline value class User(val id: String)
   }
 }

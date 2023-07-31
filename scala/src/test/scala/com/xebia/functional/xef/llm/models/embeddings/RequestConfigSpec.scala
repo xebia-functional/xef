@@ -2,7 +2,6 @@ package com.xebia.functional.xef.llm.models.embeddings
 
 import munit.FunSuite
 
-
 class RequestConfigSpec extends FunSuite:
 
   test("Should create a RequestConfig through the static apply method") {
@@ -10,5 +9,3 @@ class RequestConfigSpec extends FunSuite:
 
     assertEquals(requestConfig.getModel, EmbeddingModel.TEXT_EMBEDDING_ADA_002)
   }
-
-
