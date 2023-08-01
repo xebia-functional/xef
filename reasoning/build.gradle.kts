@@ -69,7 +69,6 @@ kotlin {
         implementation(libs.klogging)
         implementation(libs.uuid)
         implementation(libs.bundles.ktor.client)
-        api(libs.ktor.client.cio)
       }
     }
 
@@ -92,7 +91,7 @@ kotlin {
 
     val jsMain by getting {
       dependencies {
-        api(libs.ktor.client.cio)
+        api(libs.ktor.client.js)
       }
     }
 
@@ -122,7 +121,7 @@ kotlin {
 
     val mingwX64Main by getting {
       dependencies {
-        api(libs.ktor.client.cio)
+        api(libs.ktor.client.winhttp)
       }
     }
 
