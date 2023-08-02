@@ -17,7 +17,6 @@ class ReActAgent(
 
   // chain [thoughts and observations]
   suspend fun createExecutionPlan(input: String, chain: Map<String, String>): AgentPlan {
-    logger.info { "🔍 Creating agent action for next task: $input" }
     val s: AgentPlan =
       model.prompt(
         context = scope.context,
@@ -26,7 +25,7 @@ class ReActAgent(
         prompt =
           ExpertSystem(
             system =
-              "You are an expert in tool selection that can choose the next tool for a specific task based on the tools descriptions",
+              "You are an expert in tool selection or providing final answers. You are given a `input` and a `chain` of thoughts and observations.",
             query =
               """|
                 |Given the following input:
@@ -59,8 +58,6 @@ class ReActAgent(
                 .trimMargin(),
             instructions =
               listOf(
-                "Select the next tool for the `input` based on the `tools` or `null` if your `thought` determines that the `input` has been properly answered",
-                "Your `RESPONSE` MUST be a `AgentPlan` object, where the `thought` determine if you need to run a tool or you have achieved your `finalAnswer`",
                 "If the `input` has been properly answered, then the `thought` MUST indicate that the final answer has been reached and the `finalAnswer` MUST include the final answer for the `input`",
                 "If the `input` is not answered in full then the `finalAnswer` MUST be `null` and the `tool` and `toolInput` MUST be provided for the next step",
               )
@@ -70,7 +67,7 @@ class ReActAgent(
   }
 
   suspend fun createInitialThought(input: String): Thought {
-    logger.info { "🔍 Creating initial thought for input: $input" }
+    logger.info { "🤔 $input" }
     return model.prompt(
       context = scope.context,
       conversationId = scope.conversationId,
@@ -111,17 +108,17 @@ class ReActAgent(
 
     val plan: AgentPlan = createExecutionPlan(input, chain)
 
-    logger.info { "🔍 Thought: ${plan.thought}" }
+    logger.info { "🤔 ${plan.thought}" }
 
     return when {
       plan.finalAnswer != null -> {
-        logger.info { "🔍 Final answer: ${plan.finalAnswer}" }
+        logger.info { "✅ ${plan.finalAnswer}" }
         plan.finalAnswer
       }
       plan.tool != null && plan.toolInput != null -> {
-        logger.info { "🔍 Tool selected: ${plan.tool} with input: ${plan.toolInput}" }
+        logger.info { "⚙️ ${plan.tool}[${plan.toolInput}]" }
         val observation: String? = tools.find { it.name == plan.tool }?.invoke(plan.toolInput)
-        logger.info { "🔍 Observation: $observation" }
+        logger.info { "🧐 $observation" }
         runRec(input, chain + (plan.thought to observation.orEmpty()))
       }
       else -> {

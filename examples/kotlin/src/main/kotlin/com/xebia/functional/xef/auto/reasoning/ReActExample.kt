@@ -28,7 +28,8 @@ suspend fun main() {
       ),
     )
 
-    val result = reActAgent.run("Who is Leo DiCaprio's girlfriend? What is their current age multiplied by 3?")
+    val result =
+      reActAgent.run("Who is Javi Pacheco from 47 Degrees?")
     println(result)
   }.getOrThrow()
 }
