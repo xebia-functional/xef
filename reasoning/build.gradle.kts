@@ -8,9 +8,9 @@ repositories {
 
 plugins {
   base
-  alias(libs.plugins.kotlin.multiplatform)
+  id(libs.plugins.kotlin.multiplatform.get().pluginId)
   alias(libs.plugins.kotest.multiplatform)
-  alias(libs.plugins.kotlinx.serialization)
+  id(libs.plugins.kotlinx.serialization.get().pluginId)
   alias(libs.plugins.spotless)
   alias(libs.plugins.dokka)
   alias(libs.plugins.arrow.gradle.publish)
@@ -68,6 +68,7 @@ kotlin {
         implementation(libs.okio)
         implementation(libs.klogging)
         implementation(libs.uuid)
+        implementation(libs.bundles.ktor.client)
       }
     }
 
@@ -84,10 +85,15 @@ kotlin {
         implementation(libs.logback)
         implementation(projects.xefPdf)
         implementation(projects.xefFilesystem)
+        api(libs.ktor.client.cio)
       }
     }
 
-    val jsMain by getting
+    val jsMain by getting {
+      dependencies {
+        api(libs.ktor.client.js)
+      }
+    }
 
     val jvmTest by getting {
       dependencies {
@@ -95,9 +101,29 @@ kotlin {
       }
     }
 
-    val linuxX64Main by getting
-    val macosX64Main by getting
-    val mingwX64Main by getting
+    val linuxX64Main by getting {
+      dependencies {
+        api(libs.ktor.client.cio)
+      }
+    }
+
+    val macosX64Main by getting {
+      dependencies {
+        api(libs.ktor.client.cio)
+      }
+    }
+
+    val macosArm64Main by getting {
+      dependencies {
+        api(libs.ktor.client.cio)
+      }
+    }
+
+    val mingwX64Main by getting {
+      dependencies {
+        api(libs.ktor.client.winhttp)
+      }
+    }
 
     create("nativeMain") {
       dependsOn(commonMain)
