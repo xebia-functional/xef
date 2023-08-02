@@ -1,5 +1,7 @@
 package com.xebia.functional.xef.reasoning.serpapi
 
+import com.xebia.functional.xef.auto.AutoClose
+import com.xebia.functional.xef.auto.autoClose
 import com.xebia.functional.xef.env.getenv
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -12,7 +14,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
-class SerpApiClient : AutoCloseable {
+class SerpApiClient : AutoCloseable, AutoClose by autoClose() {
 
   private val serpApiKey: String?
   private val SERP_API_KEY_NOT_FOUND = "Missing SERP_API_KEY env var"
