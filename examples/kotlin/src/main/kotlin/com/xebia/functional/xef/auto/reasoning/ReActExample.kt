@@ -29,7 +29,7 @@ suspend fun main() {
     )
 
     val result =
-      reActAgent.run("Who is Javi Pacheco from 47 Degrees?")
+      reActAgent.run("Gather the names of all citizens in the world")
     println(result)
   }.getOrThrow()
 }

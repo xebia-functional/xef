@@ -10,7 +10,8 @@ import kotlinx.serialization.Serializable
 class ReActAgent(
   private val model: ChatWithFunctions,
   private val scope: CoreAIScope,
-  private val tools: List<Tool>
+  private val tools: List<Tool>,
+  private val maxIterations: Int = 10,
 ) {
 
   private val logger = KotlinLogging.logger {}
@@ -104,7 +105,16 @@ class ReActAgent(
     )
   }
 
-  private tailrec suspend fun runRec(input: String, chain: Map<String, String>): String {
+  private tailrec suspend fun runRec(
+    input: String,
+    chain: Map<String, String>,
+    currentIteration: Int
+  ): String {
+
+    if (currentIteration > maxIterations) {
+      logger.info { "🤷‍ Max iterations reached" }
+      return "🤷‍ Max iterations reached"
+    }
 
     val plan: AgentPlan = createExecutionPlan(input, chain)
 
@@ -118,18 +128,27 @@ class ReActAgent(
       plan.tool != null && plan.toolInput != null -> {
         logger.info { "⚙️ ${plan.tool}[${plan.toolInput}]" }
         val observation: String? = tools.find { it.name == plan.tool }?.invoke(plan.toolInput)
-        logger.info { "🧐 $observation" }
-        runRec(input, chain + (plan.thought to observation.orEmpty()))
+        if (observation == null) {
+          logger.info { "🤷‍ Could not find ${plan.tool}" }
+          runRec(
+            input,
+            chain + (plan.thought to "Could not find ${plan.tool}"),
+            currentIteration + 1
+          )
+        } else {
+          logger.info { "🧐 $observation" }
+          runRec(input, chain + (plan.thought to observation), currentIteration + 1)
+        }
       }
       else -> {
-        runRec(input, chain)
+        runRec(input, chain, currentIteration + 1)
       }
     }
   }
 
   suspend fun run(input: String): String {
     val thought = createInitialThought(input)
-    return runRec(input, mapOf(input to thought.thought))
+    return runRec(input, mapOf(input to thought.thought), 0)
   }
 }
 
