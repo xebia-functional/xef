@@ -1,12 +1,10 @@
 package com.xebia.functional.xef.reasoning.search
 
-import com.xebia.functional.xef.agents.search
+import com.xebia.functional.xef.auto.AutoClose
 import com.xebia.functional.xef.auto.CoreAIScope
+import com.xebia.functional.xef.auto.autoClose
 import com.xebia.functional.xef.llm.Chat
-import com.xebia.functional.xef.reasoning.text.Text
-import com.xebia.functional.xef.reasoning.text.summarize.Summarize
-import com.xebia.functional.xef.reasoning.text.summarize.SummaryLength
-import com.xebia.functional.xef.reasoning.tools.LLMTool
+import com.xebia.functional.xef.reasoning.serpapi.SerpApiClient
 import com.xebia.functional.xef.reasoning.tools.Tool
 
 class Search
@@ -14,18 +12,24 @@ class Search
 constructor(
   private val model: Chat,
   private val scope: CoreAIScope,
-  private val summaryLength: SummaryLength = SummaryLength.DEFAULT,
-  private val instructions: List<String> = emptyList(),
-  private val keywordExtraction: LLMTool = Text(model, scope).keywordExtraction
-) : Tool {
+  private val client: SerpApiClient = SerpApiClient()
+) : Tool, AutoCloseable, AutoClose by autoClose() {
   override val name: String = "Search"
 
-  override val description: String = "Search the web for the best answer and summarize what's found"
+  override val description: String =
+    "Search the web for the best answer. The tool input is a simple string"
 
   override suspend fun invoke(input: String): String {
-    val keywords = keywordExtraction.invoke(input)
-    val docs = search(keywords)
-    val combinedDocs = docs.joinToString("\n")
-    return Summarize(model, scope, summaryLength, instructions).invoke(combinedDocs)
+    val docs = client.search(SerpApiClient.SearchData(input))
+    val innerDocs = docs.searchResults.mapNotNull { it.document }
+    scope.extendContext(*innerDocs.toTypedArray())
+    return model.promptMessage(
+      question = input,
+      context = scope.context,
+    )
+  }
+
+  override fun close() {
+    client.close()
   }
 }

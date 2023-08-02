@@ -10,21 +10,15 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
-class SerpApiClient : AutoCloseable, AutoClose by autoClose() {
+class SerpApiClient(private val serpApiKey: String? = getenv("SERP_API_KEY")) :
+  AutoCloseable, AutoClose by autoClose() {
 
-  private val serpApiKey: String?
   private val SERP_API_KEY_NOT_FOUND = "Missing SERP_API_KEY env var"
 
   init {
-    serpApiKey =
-      getenv("SERP_API_KEY")
-        ?: throw SerpApiClientException(HttpStatusCode.Unauthorized, SERP_API_KEY_NOT_FOUND)
-
-    if (serpApiKey.isEmpty())
+    if (serpApiKey.isNullOrBlank())
       throw SerpApiClientException(HttpStatusCode.Unauthorized, SERP_API_KEY_NOT_FOUND)
   }
 
@@ -50,34 +44,17 @@ class SerpApiClient : AutoCloseable, AutoClose by autoClose() {
     }
   }
 
-  data class SearchData(
-    val search: String,
-    val location: String? = null,
-    val language: String? = null,
-    val region: String? = null,
-    val googleDomain: String = "google.com"
-  )
-
-  @Serializable
-  data class SearchResults(@SerialName("organic_results") val searchResults: List<SearchResult>)
-
-  @Serializable
-  data class SearchResult(
-    val title: String,
-    @SerialName("snippet") val document: String,
-    @SerialName("link") val source: String
-  )
+  data class SearchData(val search: String, val engine: String? = "google")
 
   suspend fun search(searchData: SearchData): SearchResults {
-
-    return http
-      .get(
-        "https://serpapi.com/search.json?q=${searchData.search}&location=${searchData.location}&hl=${searchData.language}&gl=${searchData.region}" +
-          "&google_domain=${searchData.googleDomain}&api_key=${serpApiKey}"
+    val response =
+      http.get(
+        "https://serpapi.com/search.json?q=${searchData.search.encodeURLQueryComponent()}&engine=${searchData.engine}" +
+          "&api_key=${serpApiKey}"
       ) {
         contentType(ContentType.Application.Json)
       }
-      .body<SearchResults>()
+    return response.body<SearchResults>()
   }
 
   class SerpApiClientException(

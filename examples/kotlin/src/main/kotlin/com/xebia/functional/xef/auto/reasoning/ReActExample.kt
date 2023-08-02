@@ -3,10 +3,7 @@ package com.xebia.functional.xef.auto.reasoning
 import com.xebia.functional.xef.auto.ai
 import com.xebia.functional.xef.auto.llm.openai.OpenAI
 import com.xebia.functional.xef.auto.llm.openai.getOrThrow
-import com.xebia.functional.xef.reasoning.filesystem.Files
-import com.xebia.functional.xef.reasoning.pdf.PDF
 import com.xebia.functional.xef.reasoning.search.Search
-import com.xebia.functional.xef.reasoning.text.Text
 import com.xebia.functional.xef.reasoning.tools.LLMTool
 import com.xebia.functional.xef.reasoning.tools.ReActAgent
 
