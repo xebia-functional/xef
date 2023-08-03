@@ -16,67 +16,15 @@ class ReActAgent(
 
   private val logger = KotlinLogging.logger {}
 
-  // chain [thoughts and observations]
-  suspend fun createExecutionPlan(input: String, chain: Map<String, String>): AgentPlan {
-    val s: AgentPlan =
-      model.prompt(
-        context = scope.context,
-        conversationId = scope.conversationId,
-        serializer = AgentPlan.serializer(),
-        prompt =
-          ExpertSystem(
-            system =
-              "You are an expert in tool selection or providing final answers. You are given a `input` and a `chain` of thoughts and observations.",
-            query =
-              """|
-                |Given the following input:
-                |```input
-                |${input}
-                |```
-                |And the following tools:
-                |```tools
-                |${
-          (tools.map {
-            ToolMetadata(
-              it.name,
-              it.description
-            )
-          }).joinToString("\n") { "${it.name}: ${it.description}" }
-        }
-                |```
-                |And the following chain of thoughts and observations:
-                |```chain
-                |${
-          chain.map { (k, v) ->
-            """
-                    |Thought: $k 
-                    |Observation: $v
-                    """.trimMargin()
-          }.joinToString("\n")
-        }
-                |```
-            """
-                .trimMargin(),
-            instructions =
-              listOf(
-                "If the `input` has been properly answered, then the `thought` MUST indicate that the final answer has been reached and the `finalAnswer` MUST include the final answer for the `input`",
-                "If the `input` is not answered in full then the `finalAnswer` MUST be `null` and the `tool` and `toolInput` MUST be provided for the next step",
-              )
-          )
-      )
-    return s
-  }
-
-  suspend fun createInitialThought(input: String): Thought {
-    logger.info { "🤔 $input" }
-    return model.prompt(
+  private suspend fun createExecutionPlan(input: String, chain: List<ThoughtObservation>): AgentPlan {
+    val choice: AgentChoice = model.prompt(
       context = scope.context,
       conversationId = scope.conversationId,
-      serializer = Thought.serializer(),
+      serializer = AgentChoice.serializer(),
       prompt =
         ExpertSystem(
           system =
-            "You are an expert in providing more descriptive inputs for tasks that a user wants to execute",
+            "You are an expert in making choices.",
           query =
             """|
                 |Given the following input:
@@ -86,6 +34,139 @@ class ReActAgent(
                 |And the following tools:
                 |```tools
                 |${
+              (tools.map {
+                ToolMetadata(
+                  it.name,
+                  it.description
+                )
+              }).joinToString("\n") { "${it.name}: ${it.description}" }
+            }
+                |```
+                |And the following chain of thoughts and observations:
+                |```chain
+                |${
+              chain.map { (k, v) ->
+                """
+                    |Thought: $k 
+                    |Observation: $v
+                    """.trimMargin()
+              }.joinToString("\n")
+            }
+                |```
+            """
+              .trimMargin(),
+          instructions =
+            listOf(
+              "If the `input` has been answered, then you must choose `FINISH`",
+              "If the `input` is not answered in full and we could use some of the `tools` to solve it then you must choose `CONTINUE`"
+            )
+        )
+    )
+
+    return when (choice.choice) {
+      AgentChoiceType.CONTINUE -> {
+        model.prompt(
+          context = scope.context,
+          conversationId = scope.conversationId,
+          serializer = AgentAction.serializer(),
+          prompt =
+          ExpertSystem(
+            system =
+            "You are an expert in tool selection. You are given a `input` and a `chain` of thoughts and observations.",
+            query =
+            """|
+                |Given the following input:
+                |```input
+                |${input}
+                |```
+                |And the following tools:
+                |```tools
+                |${
+              (tools.map {
+                ToolMetadata(
+                  it.name,
+                  it.description
+                )
+              }).joinToString("\n") { "${it.name}: ${it.description}" }
+            }
+                |```
+                |And the following chain of thoughts and observations:
+                |```chain
+                |${
+              chain.map { (k, v) ->
+                """
+                    |Thought: $k 
+                    |Observation: $v
+                    """.trimMargin()
+              }.joinToString("\n")
+            }
+                |```
+            """
+              .trimMargin(),
+            instructions =
+            listOf(
+              "The `tool` and `toolInput` MUST be provided for the next step",
+            )
+          )
+        )
+      }
+      AgentChoiceType.FINISH -> {
+        model.prompt(
+          context = scope.context,
+          conversationId = scope.conversationId,
+          serializer = AgentFinish.serializer(),
+          prompt =
+          ExpertSystem(
+            system =
+            "You are an expert in providing answers",
+            query =
+            """|
+                |Given the following input:
+                |```input
+                |${input}
+                |```
+                |And the following chain of thoughts and observations:
+                |```chain
+                |${
+              chain.map { (k, v) ->
+                """
+                    |Thought: $k 
+                    |Observation: $v
+                    """.trimMargin()
+              }.joinToString("\n")
+            }
+                |```
+            """
+              .trimMargin(),
+            instructions =
+            listOf(
+              "Provide the final answer to the `input` in a sentence or paragraph",
+            )
+          )
+        )
+      }
+    }
+  }
+
+  private suspend fun createInitialThought(input: String): Thought {
+    logger.info { "🤔 $input" }
+    return model.prompt(
+      context = scope.context,
+      conversationId = scope.conversationId,
+      serializer = Thought.serializer(),
+      prompt =
+      ExpertSystem(
+        system =
+        "You are an expert in providing more descriptive inputs for tasks that a user wants to execute",
+        query =
+        """|
+                |Given the following input:
+                |```input
+                |${input}
+                |```
+                |And the following tools:
+                |```tools
+                |${
           (tools.map {
             ToolMetadata(
               it.name,
@@ -95,19 +176,19 @@ class ReActAgent(
         }
                 |```
             """
-              .trimMargin(),
-          instructions =
-            listOf(
-              "Create a prompt that serves as 'thought' of what to do next in order to accurately describe what the user wants to do",
-              "Your `RESPONSE` MUST be a `Thought` object, where the `thought` determines what the user should do next"
-            )
+          .trimMargin(),
+        instructions =
+        listOf(
+          "Create a prompt that serves as 'thought' of what to do next in order to accurately describe what the user wants to do",
+          "Your `RESPONSE` MUST be a `Thought` object, where the `thought` determines what the user should do next"
         )
+      )
     )
   }
 
   private tailrec suspend fun runRec(
     input: String,
-    chain: Map<String, String>,
+    chain: List<ThoughtObservation>,
     currentIteration: Int
   ): String {
 
@@ -118,58 +199,62 @@ class ReActAgent(
 
     val plan: AgentPlan = createExecutionPlan(input, chain)
 
-    logger.info { "🤔 ${plan.thought}" }
-
-    return when {
-      plan.finalAnswer != null -> {
-        logger.info { "✅ ${plan.finalAnswer}" }
-        plan.finalAnswer
-      }
-      plan.tool != null && plan.toolInput != null -> {
-        logger.info { "⚙️ ${plan.tool}[${plan.toolInput}]" }
+    return when (plan) {
+      is AgentAction -> {
+        logger.info { "🤔 ${plan.thought}" }
+        logger.info { "🛠 ${plan.tool}[${plan.toolInput}]" }
         val observation: String? = tools.find { it.name == plan.tool }?.invoke(plan.toolInput)
         if (observation == null) {
           logger.info { "🤷‍ Could not find ${plan.tool}" }
-          runRec(
-            input,
-            chain + (plan.thought to "Could not find ${plan.tool}"),
-            currentIteration + 1
-          )
+          runRec(input, chain, currentIteration + 1)
         } else {
-          logger.info { "🧐 $observation" }
-          runRec(input, chain + (plan.thought to observation), currentIteration + 1)
+          logger.info { "👀 $observation" }
+          runRec(input, chain + ThoughtObservation(plan.thought, observation), currentIteration + 1)
         }
       }
-      else -> {
-        runRec(input, chain, currentIteration + 1)
+      is AgentFinish -> {
+        logger.info { "✅ ${plan.finalAnswer}" }
+        plan.finalAnswer
       }
     }
   }
 
   suspend fun run(input: String): String {
     val thought = createInitialThought(input)
-    return runRec(input, mapOf(input to thought.thought), 0)
+    return runRec(input, listOf(ThoughtObservation(input, thought.thought)), 0)
   }
 }
 
+sealed class AgentPlan
+
 @Serializable
-data class AgentPlan(
-  @Description(
-    [
-      "Required. The reasoning behind the tool you are going to run or a conclusion indicating that you have reached your `finalAnswer`"
-    ]
-  )
+data class AgentAction(
+  @Description(["The reasoning behind the tool you are going to run"])
   val thought: String,
-  @Description(
-    ["The tool to execute the next step, `null` in the case you have reached your `finalAnswer`"]
-  )
-  val tool: String? = null,
-  @Description(
-    ["The input for the selected `tool` in the case you have not reached your `finalAnswer`"]
-  )
-  val toolInput: String? = null,
-  @Description(["The final answer that satisfies all concerns about the original `input`"])
-  val finalAnswer: String? = null
+  @Description(["The tool to execute the next step, one must be chosen from the `tools`"])
+  val tool: String,
+  @Description(["The input for the selected `tool`"])
+  val toolInput: String
+) : AgentPlan()
+
+@Serializable
+data class AgentFinish(
+  @Description(["The final answer that satisfies ALL the `input` expressed in one text sentence or paragraph"])
+  val finalAnswer: String
+) : AgentPlan()
+
+@Serializable
+data class AgentChoice(
+  @Description(["The choice of the agent to either `CONTINUE` or `FINISH`"])
+  val choice: AgentChoiceType
 )
 
-@Serializable data class Thought(val thought: String)
+enum class AgentChoiceType {
+  CONTINUE,
+  FINISH
+}
+
+@Serializable
+data class Thought(val thought: String)
+
+data class ThoughtObservation(val thought: String, val observation: String)

@@ -13,7 +13,7 @@ suspend fun main() {
     val serialization = OpenAI.DEFAULT_SERIALIZATION
     val math = LLMTool.create(
       name = "Calculator",
-      description = "Resolve math operations",
+      description = "Perform math operations and calculations processing them with an LLM model. The tool input is a simple string containing the operation to solve expressed in numbers and math symbols.",
       model = model,
       scope = this
     )
@@ -29,7 +29,7 @@ suspend fun main() {
     )
 
     val result =
-      reActAgent.run("Gather the names of all citizens in the world")
+      reActAgent.run("Who is Leonardo DiCaprio girlfriend and what is her age multiplied by 2?")
     println(result)
   }.getOrThrow()
 }

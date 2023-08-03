@@ -24,7 +24,13 @@ constructor(
     val innerDocs = docs.searchResults.mapNotNull { it.document }
     scope.extendContext(*innerDocs.toTypedArray())
     return model.promptMessage(
-      question = input,
+      question = """|
+        |Given the following input:
+        |```input
+        |${input}
+        |```
+        |Provide an answer to it given the context or reply with "No relevant results" if you don't know. 
+      """.trimMargin(),
       context = scope.context,
     )
   }

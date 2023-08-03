@@ -38,10 +38,6 @@ abstract class LLMTool(
             instructions = instructions
           )
       )
-      .also {
-        logger.info { "🔧 Finished running $name - $description" }
-        logger.info { "🔧 Output: $it" }
-      }
   }
 
   companion object {
