@@ -14,7 +14,7 @@ suspend fun main() {
         val answerByPageId = client.searchByPageId(searchDataByPageId)
 
         val searchDataByTitle = WikipediaClient.SearchDataByParam(
-            title = "Departments%20of%20Colombia"
+            title = "Departments of Colombia"
         )
         val answerByTitle = client.searchByTitle(searchDataByTitle)
 
