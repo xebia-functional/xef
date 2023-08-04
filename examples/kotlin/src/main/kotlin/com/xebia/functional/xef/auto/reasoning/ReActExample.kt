@@ -27,7 +27,6 @@ suspend fun main() {
         search,
       ),
     )
-
     val result =
       reActAgent.run("Who is Leonardo di Caprio? Who is his girlfriend? How old is she?")
     println(result)

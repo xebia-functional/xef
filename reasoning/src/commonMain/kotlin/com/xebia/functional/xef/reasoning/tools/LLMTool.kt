@@ -21,23 +21,23 @@ abstract class LLMTool(
     logger.info { "🔧 Running $name - $description" }
 
     return callModel(
-        model,
-        scope,
-        prompt =
-          ExpertSystem(
-            system = "You are an expert in `$name` ($description)",
-            query =
-              """|
+      model,
+      scope,
+      prompt =
+        ExpertSystem(
+          system = "You are an expert in `$name` ($description)",
+          query =
+            """|
                 |Given the following input:
                 |```input
                 |${input}
                 |```
                 |Produce an output that satisfies the tool `$name` ($description) operation.
             """
-                .trimMargin(),
-            instructions = instructions
-          )
-      )
+              .trimMargin(),
+          instructions = instructions
+        )
+    )
   }
 
   companion object {

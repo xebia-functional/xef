@@ -24,13 +24,15 @@ constructor(
     val innerDocs = docs.searchResults.mapNotNull { it.document }
     scope.extendContext(*innerDocs.toTypedArray())
     return model.promptMessage(
-      question = """|
+      question =
+        """|
         |Given the following input:
         |```input
         |${input}
         |```
         |Provide information that helps with the `input`. 
-      """.trimMargin(),
+      """
+          .trimMargin(),
       context = scope.context,
     )
   }
