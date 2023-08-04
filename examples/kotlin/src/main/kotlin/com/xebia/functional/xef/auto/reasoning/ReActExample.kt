@@ -29,7 +29,7 @@ suspend fun main() {
     )
 
     val result =
-      reActAgent.run("Who is Leonardo DiCaprio girlfriend and what is her age multiplied by 2?")
+      reActAgent.run("Who is Leonardo di Caprio? Who is his girlfriend? How old is she?")
     println(result)
   }.getOrThrow()
 }

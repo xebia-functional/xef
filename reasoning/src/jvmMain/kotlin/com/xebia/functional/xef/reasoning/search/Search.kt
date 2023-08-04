@@ -29,7 +29,7 @@ constructor(
         |```input
         |${input}
         |```
-        |Provide an answer to it given the context or reply with "No relevant results" if you don't know. 
+        |Provide information that helps with the `input`. 
       """.trimMargin(),
       context = scope.context,
     )
