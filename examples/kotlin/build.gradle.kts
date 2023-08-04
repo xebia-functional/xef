@@ -23,6 +23,7 @@ dependencies {
   implementation(projects.xefTokenizer)
   implementation(projects.xefGpt4all)
   implementation(projects.xefGcp)
+  implementation(projects.xefAws)
   implementation(projects.xefOpenai)
   implementation(projects.xefReasoning)
   implementation(libs.kotlinx.serialization.json)

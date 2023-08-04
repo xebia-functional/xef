@@ -48,6 +48,9 @@ project(":xef-sql").projectDir = file("integrations/sql")
 
 include("xef-gcp")
 project(":xef-gcp").projectDir = file("integrations/gcp")
+
+include("xef-aws")
+project(":xef-aws").projectDir = file("integrations/aws")
 //</editor-fold>
 //</editor-fold>
 
