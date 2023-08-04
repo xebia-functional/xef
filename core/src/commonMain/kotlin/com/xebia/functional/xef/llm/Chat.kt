@@ -138,26 +138,12 @@ interface Chat : LLM {
 
   @AiDsl
   suspend fun promptMessages(
-    prompt: Prompt,
+    messages: List<Message>,
     context: VectorStore,
     conversationId: ConversationId? = null,
     functions: List<CFunction> = emptyList(),
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
   ): List<String> {
-
-    val memories: List<Memory> = memories(conversationId, context, promptConfiguration)
-
-    val promptWithContext: String =
-      createPromptWithContextAwareOfTokens(
-        memories = memories,
-        ctxInfo = context.similaritySearch(prompt.message, promptConfiguration.docsInContext),
-        modelType = modelType,
-        prompt = prompt.message,
-        minResponseTokens = promptConfiguration.minResponseTokens
-      )
-
-    val messages: List<Message> = messages(memories, promptWithContext)
-
     fun checkTotalLeftChatTokens(): Int {
       val maxContextLength: Int = modelType.maxContextLength
       val messagesTokens: Int = tokensFromMessages(messages)
@@ -215,6 +201,31 @@ interface Chat : LLM {
           .mapNotNull { it.message?.content }
       }
     }
+  }
+
+  @AiDsl
+  suspend fun promptMessages(
+    prompt: Prompt,
+    context: VectorStore,
+    conversationId: ConversationId? = null,
+    functions: List<CFunction> = emptyList(),
+    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
+  ): List<String> {
+
+    val memories: List<Memory> = memories(conversationId, context, promptConfiguration)
+
+    val promptWithContext: String =
+      createPromptWithContextAwareOfTokens(
+        memories = memories,
+        ctxInfo = context.similaritySearch(prompt.message, promptConfiguration.docsInContext),
+        modelType = modelType,
+        prompt = prompt.message,
+        minResponseTokens = promptConfiguration.minResponseTokens
+      )
+
+    val messages: List<Message> = messages(memories, promptWithContext)
+
+    return promptMessages(messages, context, conversationId, functions, promptConfiguration)
   }
 
   private suspend fun List<ChoiceWithFunctions>.addChoiceWithFunctionsToMemory(

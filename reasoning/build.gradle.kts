@@ -15,7 +15,6 @@ plugins {
   alias(libs.plugins.dokka)
   alias(libs.plugins.arrow.gradle.publish)
   alias(libs.plugins.semver.gradle)
-  alias(libs.plugins.suspend.transform.plugin)
   //id("com.xebia.asfuture").version("0.0.1")
 }
 
@@ -172,12 +171,6 @@ tasks {
       }
     }
   }
-}
-
-suspendTransform {
-  enabled = true // default: true
-  includeRuntime = true // default: true
-  useJvmDefault()
 }
 
 tasks.withType<AbstractPublishToMaven> {
