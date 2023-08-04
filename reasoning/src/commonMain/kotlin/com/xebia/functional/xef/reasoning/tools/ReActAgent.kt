@@ -135,10 +135,10 @@ class ReActAgent(
                   |And the following chain of thoughts and observations:
                   |```chain
                   |${
-        chain.joinToString("\n") { (k, v) ->
+        chain.joinToString("\n") { c ->
           """
-                      |Thought: $k 
-                      |Observation: $v
+                      |Thought: ${c.thought} 
+                      |Observation: ${c.observation} 
                       """.trimMargin()
         }
       }
@@ -149,7 +149,7 @@ class ReActAgent(
             listOf(
               "Choose `CONTINUE` if you are not 100% certain that all elements in the original `input` question are answered completely by the info found in the `chain`",
               "Choose `CONTINUE` if the `chain` needs more information to be able to completely answer all elements in the `input` question",
-              "Choose `FINISH` if you are 100% certain that all elements in the `input` question are answered by the info found in the `chain`",
+              "Choose `FINISH` if you are 100% certain that all elements in the `input` question are answered by the info found in the `chain` and are not a list of steps to achieve the goal.",
             )
         )
     )
