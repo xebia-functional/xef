@@ -77,7 +77,7 @@ class WikipediaClient : AutoCloseable, AutoClose by autoClose() {
     }
 
     suspend fun searchByTitle(searchData: SearchDataByParam): Page {
-        return http.get("https://en.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&exintro&explaintext&redirects=1&titles=${searchData.title}") {
+        return http.get("https://en.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&exintro&explaintext&redirects=1&titles=${searchData.title?.encodeURLQueryComponent()}") {
             contentType(ContentType.Application.Json)
         }.body<SearchByParamResult>().searchResults.pages.firstNotNullOf { it.value }
     }
