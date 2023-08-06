@@ -9,11 +9,7 @@ suspend fun main() {
         val client = SerpApiClient()
 
         val searchData = SerpApiClient.SearchData(
-            search = "german+shepper",
-            location = "Villavicencio,+Meta,+Colombia",
-            language = "en",
-            region = "us",
-            googleDomain = "google.com"
+            search = "german+shepperd",
         )
 
         val answer = client.search(searchData)
