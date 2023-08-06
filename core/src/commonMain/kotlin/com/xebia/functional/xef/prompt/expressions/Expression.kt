@@ -60,7 +60,7 @@ class Expression(
                   .trimMargin(),
               instructions =
                 listOf(
-                  "Create a `ReplaceKeys` object `replacements` property of type `Map<String, String>` where the keys are the variable names and the values are the values to replace them with.",
+                  "Create a `ReplacedValues` object with the `replacements` where the keys are the variable names and the values are the values to replace them with.",
                 )
             )
             .message,
