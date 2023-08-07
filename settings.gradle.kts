@@ -87,3 +87,7 @@ project(":xef-reasoning").projectDir = file("reasoning")
 include("xef-java-examples")
 project(":xef-java-examples").projectDir = file("examples/java")
 //</editor-fold>
+
+//<editor-fold desc="Kotlin">
+include("xef-server")
+project(":xef-server").projectDir = file("server")
