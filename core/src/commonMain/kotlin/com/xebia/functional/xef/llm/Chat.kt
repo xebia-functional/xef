@@ -46,7 +46,7 @@ interface Chat : LLM {
   ): Flow<String> = flow {
     val memories: List<Memory> = memories(conversationId, context, promptConfiguration)
 
-    val promptWithContext: String =
+    val promptWithContext: List<Message> =
       createPromptWithContextAwareOfTokens(
         memories = memories,
         ctxInfo = context.similaritySearch(prompt.message, promptConfiguration.docsInContext),
@@ -55,7 +55,7 @@ interface Chat : LLM {
         minResponseTokens = promptConfiguration.minResponseTokens
       )
 
-    val messages: List<Message> = messages(memories, promptWithContext)
+    val messages: List<Message> = messagesFromMemory(memories) + promptWithContext
 
     fun checkTotalLeftChatTokens(): Int {
       val maxContextLength: Int = modelType.maxContextLength
@@ -138,7 +138,7 @@ interface Chat : LLM {
 
   @AiDsl
   suspend fun promptMessages(
-    prompt: Prompt,
+    messages: List<Message>,
     context: VectorStore,
     conversationId: ConversationId? = null,
     functions: List<CFunction> = emptyList(),
@@ -146,24 +146,14 @@ interface Chat : LLM {
   ): List<String> {
 
     val memories: List<Memory> = memories(conversationId, context, promptConfiguration)
-
-    val promptWithContext: String =
-      createPromptWithContextAwareOfTokens(
-        memories = memories,
-        ctxInfo = context.similaritySearch(prompt.message, promptConfiguration.docsInContext),
-        modelType = modelType,
-        prompt = prompt.message,
-        minResponseTokens = promptConfiguration.minResponseTokens
-      )
-
-    val messages: List<Message> = messages(memories, promptWithContext)
+    val allMessages = messagesFromMemory(memories) + messages
 
     fun checkTotalLeftChatTokens(): Int {
       val maxContextLength: Int = modelType.maxContextLength
-      val messagesTokens: Int = tokensFromMessages(messages)
+      val messagesTokens: Int = tokensFromMessages(allMessages)
       val totalLeftTokens: Int = maxContextLength - messagesTokens
       if (totalLeftTokens < 0) {
-        throw AIError.MessagesExceedMaxTokenLength(messages, messagesTokens, maxContextLength)
+        throw AIError.MessagesExceedMaxTokenLength(allMessages, messagesTokens, maxContextLength)
       }
       return totalLeftTokens
     }
@@ -215,6 +205,29 @@ interface Chat : LLM {
           .mapNotNull { it.message?.content }
       }
     }
+  }
+
+  @AiDsl
+  suspend fun promptMessages(
+    prompt: Prompt,
+    context: VectorStore,
+    conversationId: ConversationId? = null,
+    functions: List<CFunction> = emptyList(),
+    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
+  ): List<String> {
+
+    val memories: List<Memory> = memories(conversationId, context, promptConfiguration)
+
+    val promptWithContext: List<Message> =
+      createPromptWithContextAwareOfTokens(
+        memories = memories,
+        ctxInfo = context.similaritySearch(prompt.message, promptConfiguration.docsInContext),
+        modelType = modelType,
+        prompt = prompt.message,
+        minResponseTokens = promptConfiguration.minResponseTokens
+      )
+
+    return promptMessages(promptWithContext, context, conversationId, functions, promptConfiguration)
   }
 
   private suspend fun List<ChoiceWithFunctions>.addChoiceWithFunctionsToMemory(
@@ -274,8 +287,8 @@ interface Chat : LLM {
     }
   }
 
-  private fun messages(memories: List<Memory>, promptWithContext: String): List<Message> =
-    memories.map { it.content } + listOf(Message(Role.USER, promptWithContext, Role.USER.name))
+  private fun messagesFromMemory(memories: List<Memory>): List<Message> =
+    memories.map { it.content }
 
   private suspend fun memories(
     conversationId: ConversationId?,
@@ -288,13 +301,13 @@ interface Chat : LLM {
       emptyList()
     }
 
-  private fun createPromptWithContextAwareOfTokens(
+  private suspend fun createPromptWithContextAwareOfTokens(
     memories: List<Memory>,
     ctxInfo: List<String>,
     modelType: ModelType,
     prompt: String,
     minResponseTokens: Int,
-  ): String {
+  ): List<Message> {
     val maxContextLength: Int = modelType.maxContextLength
     val promptTokens: Int = modelType.encoding.countTokens(prompt)
     val memoryTokens = tokensFromMessages(memories.map { it.content })
@@ -311,17 +324,10 @@ interface Chat : LLM {
       // alternatively we could summarize the context, but that's not implemented yet
       val ctxTruncated: String = modelType.encoding.truncateText(ctx, remainingTokens)
 
-      """|```Context
-       |${ctxTruncated}
-       |```
-       |The context is related to the question try to answer the `goal` as best as you can
-       |or provide information about the found content
-       |```goal
-       |${prompt}
-       |```
-       |ANSWER:
-       |"""
-        .trimMargin()
-    } else prompt
+      listOf(
+        Message.assistantMessage { "Context: $ctxTruncated" },
+        Message.userMessage { prompt }
+      )
+    } else listOf(Message.userMessage { prompt })
   }
 }
