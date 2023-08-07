@@ -22,15 +22,15 @@ class Expression(
   private val generationKeys: MutableList<String> = mutableListOf()
 
   suspend fun system(message: suspend () -> String) {
-    messages.add(Message(role = Role.SYSTEM, content = message(), name = Role.SYSTEM.name))
+    messages.add(Message.systemMessage(message))
   }
 
   suspend fun user(message: suspend () -> String) {
-    messages.add(Message(role = Role.USER, content = message(), name = Role.USER.name))
+    messages.add(Message.userMessage(message))
   }
 
   suspend fun assistant(message: suspend () -> String) {
-    messages.add(Message(role = Role.ASSISTANT, content = message(), name = Role.ASSISTANT.name))
+    messages.add(Message.assistantMessage(message))
   }
 
   fun prompt(key: String): String {
@@ -74,6 +74,7 @@ class Expression(
         conversationId = scope.conversationId,
         promptConfiguration = promptConfiguration
       )
+    logger.info { "replaced: ${values.replacements.joinToString { it.key }}" }
     val replacedTemplate =
       messages.fold("") { acc, message ->
         val replacedMessage =
@@ -94,5 +95,6 @@ class Expression(
       model: ChatWithFunctions,
       block: suspend Expression.() -> Unit
     ): ExpressionResult = Expression(scope, model, block).run()
+
   }
 }
