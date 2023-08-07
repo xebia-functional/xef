@@ -2,7 +2,6 @@
 arrow = "1.2.0"
 arrowGradle = "0.12.0-rc.5"
 kotlin = "1.8.22"
-openai = "0.14.0"
 kotlinx-json = "1.5.1"
 ktor = "2.3.2"
 spotless = "6.20.0"
@@ -33,7 +32,7 @@ pdfbox = "2.0.29"
 mysql = "8.0.33"
 semverGradle = "0.5.0-rc.1"
 scala = "3.3.0"
-openai-client-version = "3.3.2"
+openai-client-version = "3.3.1"
 gpt4all-java = "1.1.5"
 ai-djl = "0.23.0"
 jackson = "2.15.2"
@@ -48,7 +47,6 @@ arrow-continuations = { module = "io.arrow-kt:arrow-continuations", version.ref 
 arrow-fx-coroutines = { module = "io.arrow-kt:arrow-fx-coroutines", version.ref = "arrow" }
 suspendApp-core = { module = "io.arrow-kt:suspendapp", version.ref = "suspendApp" }
 suspendApp-ktor = { module = "io.arrow-kt:suspendapp-ktor", version.ref = "suspendApp" }
-open-ai = { module = "com.theokanning.openai-gpt3-java:service", version.ref = "openai" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-json" }
 kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref="kotlinx-coroutines" }
 kotlinx-coroutines-reactive = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-reactive", version.ref="kotlinx-coroutines-reactive" }

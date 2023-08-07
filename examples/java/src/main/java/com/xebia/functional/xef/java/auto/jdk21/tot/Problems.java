@@ -98,7 +98,7 @@ public class Problems {
 
         private static void checkAIScope() {
             if(aiScope == null){
-                aiScope = new AIScope(new ExecutionContext(Executors.newVirtualThreadPerTaskExecutor()));
+                aiScope = new AIScope(new ExecutionContext(Executors.newSingleThreadExecutor()));
             }
         }
 
