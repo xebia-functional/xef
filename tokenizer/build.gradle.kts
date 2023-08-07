@@ -4,7 +4,7 @@ plugins {
   alias(libs.plugins.spotless)
   alias(libs.plugins.arrow.gradle.publish)
   alias(libs.plugins.semver.gradle)
-  id("com.goncalossilva.resources") version "0.3.2"
+  id("com.goncalossilva.resources") version "0.4.0"
 }
 
 repositories {
@@ -39,7 +39,7 @@ kotlin {
         implementation(libs.kotest.property)
         implementation(libs.kotest.framework)
         implementation(libs.kotest.assertions)
-        implementation("com.goncalossilva:resources:0.3.2")
+        implementation("com.goncalossilva:resources:0.4.0")
       }
     }
 
