@@ -4,8 +4,6 @@ import com.xebia.functional.xef.auto.CoreAIScope
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.prompt.experts.ExpertSystem
 import io.github.oshai.kotlinlogging.KotlinLogging
-import love.forte.plugin.suspendtrans.annotation.JvmAsync
-import love.forte.plugin.suspendtrans.annotation.JvmBlocking
 
 class ToolSelection(
   private val model: ChatWithFunctions,
@@ -27,8 +25,6 @@ class ToolSelection(
     }
   }
 
-  @JvmBlocking
-  @JvmAsync
   suspend fun applyInferredTools(task: String): ToolsExecutionTrace {
     logger.info { "🔍 Applying inferred tools for task: $task" }
     val plan = createExecutionPlan(task)

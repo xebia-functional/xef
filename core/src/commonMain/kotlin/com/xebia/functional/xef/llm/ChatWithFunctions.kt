@@ -7,6 +7,7 @@ import com.xebia.functional.xef.auto.AiDsl
 import com.xebia.functional.xef.auto.PromptConfiguration
 import com.xebia.functional.xef.llm.models.chat.ChatCompletionRequestWithFunctions
 import com.xebia.functional.xef.llm.models.chat.ChatCompletionResponseWithFunctions
+import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.llm.models.functions.CFunction
 import com.xebia.functional.xef.llm.models.functions.encodeJsonSchema
 import com.xebia.functional.xef.prompt.Prompt
@@ -44,6 +45,29 @@ interface ChatWithFunctions : Chat {
     functions: List<CFunction> = generateCFunction(serializerName, jsonSchema),
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS,
   ): A = prompt(prompt, context, conversationId, functions, serializer, promptConfiguration)
+
+  @AiDsl
+  suspend fun <A> prompt(
+    messages: List<Message>,
+    context: VectorStore,
+    serializer: KSerializer<A>,
+    conversationId: ConversationId? = null,
+    functions: List<CFunction> = generateCFunction(serializer.descriptor),
+    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS,
+  ): A {
+    return tryDeserialize(
+      { json -> Json.decodeFromString(serializer, json) },
+      promptConfiguration.maxDeserializationAttempts
+    ) {
+      promptMessages(
+        messages = messages,
+        context = context,
+        conversationId = conversationId,
+        functions = functions,
+        promptConfiguration
+      )
+    }
+  }
 
   @AiDsl
   suspend fun <A> prompt(

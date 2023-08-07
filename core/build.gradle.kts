@@ -67,7 +67,7 @@ kotlin {
         api(libs.kotlinx.serialization.json)
         api(libs.ktor.utils)
         api(projects.xefTokenizer)
-
+        implementation(libs.bundles.ktor.client)
         implementation(libs.klogging)
         implementation(libs.uuid)
       }
@@ -87,10 +87,15 @@ kotlin {
         implementation(libs.logback)
         implementation(libs.skrape)
         implementation(libs.rss.reader)
+        api(libs.ktor.client.cio)
       }
     }
 
-    val jsMain by getting
+    val jsMain by getting {
+      dependencies {
+        api(libs.ktor.client.js)
+      }
+    }
 
     val jvmTest by getting {
       dependencies {
@@ -98,10 +103,26 @@ kotlin {
       }
     }
 
-    val linuxX64Main by getting
-    val macosX64Main by getting
-    val macosArm64Main by getting
-    val mingwX64Main by getting
+    val linuxX64Main by getting {
+      dependencies {
+        implementation(libs.ktor.client.cio)
+      }
+    }
+    val macosX64Main by getting {
+      dependencies {
+        implementation(libs.ktor.client.cio)
+      }
+    }
+    val macosArm64Main by getting {
+      dependencies {
+        implementation(libs.ktor.client.cio)
+      }
+    }
+    val mingwX64Main by getting {
+      dependencies {
+        implementation(libs.ktor.client.winhttp)
+      }
+    }
     val linuxX64Test by getting
     val macosX64Test by getting
     val macosArm64Test by getting
