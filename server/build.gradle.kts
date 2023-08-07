@@ -23,6 +23,13 @@ dependencies {
     implementation(libs.klogging)
     implementation(libs.ktor.server.netty)
     implementation(libs.ktor.server.core)
+    implementation(libs.ktor.server.contentNegotiation)
+    implementation(libs.ktor.server.resources)
+    implementation(libs.ktor.server.cors)
+    implementation(libs.ktor.serialization.json)
+    implementation(libs.suspendApp.core)
+    implementation(libs.suspendApp.ktor)
+    implementation(libs.ktor.server.request.validation)
 }
 
 tasks.getByName<Copy>("processResources") {
