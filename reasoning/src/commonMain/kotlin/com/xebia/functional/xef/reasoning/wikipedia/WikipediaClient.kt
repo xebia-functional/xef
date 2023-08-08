@@ -69,7 +69,7 @@ class WikipediaClient : AutoCloseable, AutoClose by autoClose() {
   suspend fun search(searchData: SearchData): SearchResult {
     return http
       .get(
-        "https://en.wikipedia.org/w/api.php?format=json&action=query&list=search&srsearch=${searchData.search}"
+        "https://en.wikipedia.org/w/api.php?format=json&action=query&list=search&srsearch=${searchData.search.encodeURLQueryComponent()}"
       ) {
         contentType(ContentType.Application.Json)
       }
