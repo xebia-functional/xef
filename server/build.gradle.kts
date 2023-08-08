@@ -30,6 +30,7 @@ dependencies {
     implementation(libs.suspendApp.core)
     implementation(libs.suspendApp.ktor)
     implementation(libs.ktor.server.request.validation)
+    implementation(libs.openai.client)
 }
 
 tasks.getByName<Copy>("processResources") {
