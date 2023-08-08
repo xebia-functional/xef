@@ -95,6 +95,5 @@ class Expression(
       model: ChatWithFunctions,
       block: suspend Expression.() -> Unit
     ): ExpressionResult = Expression(scope, model, block).run()
-
   }
 }
