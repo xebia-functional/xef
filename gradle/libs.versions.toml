@@ -2,7 +2,6 @@
 arrow = "1.2.0"
 arrowGradle = "0.12.0-rc.5"
 kotlin = "1.8.22"
-openai = "0.14.0"
 kotlinx-json = "1.5.1"
 ktor = "2.3.2"
 spotless = "6.20.0"
@@ -17,8 +16,8 @@ testcontainers = "1.18.3"
 hikari = "5.0.1"
 dokka = "1.8.20"
 logback = "1.4.8"
-kotlinx-coroutines = "1.7.2"
-kotlinx-coroutines-reactive = "1.7.2"
+kotlinx-coroutines = "1.7.3"
+kotlinx-coroutines-reactive = "1.7.3"
 scalaMultiversion = "2.0.4"
 circe = "0.14.5"
 catsEffect = "3.6-0142603"
@@ -40,11 +39,14 @@ jackson = "2.15.2"
 jsonschema = "4.31.1"
 jakarta = "3.0.2"
 suspend-transform = "0.3.1"
+suspendApp = "0.4.0"
 
 [libraries]
 arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
+arrow-continuations = { module = "io.arrow-kt:arrow-continuations", version.ref = "arrow" }
 arrow-fx-coroutines = { module = "io.arrow-kt:arrow-fx-coroutines", version.ref = "arrow" }
-open-ai = { module = "com.theokanning.openai-gpt3-java:service", version.ref = "openai" }
+suspendApp-core = { module = "io.arrow-kt:suspendapp", version.ref = "suspendApp" }
+suspendApp-ktor = { module = "io.arrow-kt:suspendapp-ktor", version.ref = "suspendApp" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-json" }
 kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref="kotlinx-coroutines" }
 kotlinx-coroutines-reactive = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-reactive", version.ref="kotlinx-coroutines-reactive" }
@@ -56,6 +58,13 @@ ktor-client-serialization = { module = "io.ktor:ktor-serialization-kotlinx-json"
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
 ktor-client-js = { module = "io.ktor:ktor-client-js", version.ref = "ktor" }
 ktor-client-winhttp = { module = "io.ktor:ktor-client-winhttp", version.ref = "ktor" }
+ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor" }
+ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
+ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor" }
+ktor-server-contentNegotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor" }
+ktor-server-resources = { module = "io.ktor:ktor-server-resources", version.ref = "ktor" }
+ktor-server-cors = { module = "io.ktor:ktor-server-cors", version.ref = "ktor" }
+ktor-server-request-validation = { module = "io.ktor:ktor-server-request-validation", version.ref = "ktor" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 okio-fakefilesystem = { module = "com.squareup.okio:okio-fakefilesystem", version.ref = "okio" }
 okio-nodefilesystem = { module = "com.squareup.okio:okio-nodefilesystem", version.ref = "okio" }
@@ -65,6 +74,7 @@ kotest-property = { module = "io.kotest:kotest-property", version.ref = "kotest"
 kotest-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
 kotest-testcontainers = { module = "io.kotest.extensions:kotest-extensions-testcontainers", version.ref = "kotest-testcontainers" }
 kotest-assertions-arrow = { module = "io.kotest.extensions:kotest-assertions-arrow", version.ref = "kotest-arrow" }
+ktor-serialization-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
 uuid = { module = "app.softwork:kotlinx-uuid-core", version.ref = "uuid" }
 klogging = { module = "io.github.oshai:kotlin-logging", version.ref = "klogging"  }

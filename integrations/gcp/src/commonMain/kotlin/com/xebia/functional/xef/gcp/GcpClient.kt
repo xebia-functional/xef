@@ -1,6 +1,8 @@
 package com.xebia.functional.xef.gcp
 
 import com.xebia.functional.xef.AIError
+import com.xebia.functional.xef.auto.AutoClose
+import com.xebia.functional.xef.auto.autoClose
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.*
@@ -23,7 +25,7 @@ class GcpClient(
   private val projectId: String,
   val modelId: String,
   private val token: String
-) : AutoCloseable {
+) : AutoCloseable, AutoClose by autoClose() {
   private val http: HttpClient = HttpClient {
     install(HttpTimeout) {
       requestTimeoutMillis = 60_000
