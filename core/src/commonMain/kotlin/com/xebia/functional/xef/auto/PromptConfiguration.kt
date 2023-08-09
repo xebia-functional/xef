@@ -12,7 +12,6 @@ class PromptConfiguration(
   val docsInContext: Int = 5,
   val memoryLimit: Int = 5,
   val minResponseTokens: Int = 500,
-  val streamToStandardOut: Boolean = false
 ) {
   companion object {
 
@@ -23,15 +22,10 @@ class PromptConfiguration(
       private var numberOfPredictions: Int = 1
       private var docsInContext: Int = 20
       private var minResponseTokens: Int = 500
-      private var streamToStandardOut: Boolean = false
       private var memoryLimit: Int = 5
 
       fun maxDeserializationAttempts(maxDeserializationAttempts: Int) = apply {
         this.maxDeserializationAttempts = maxDeserializationAttempts
-      }
-
-      fun streamToStandardOut(streamToStandardOut: Boolean) = apply {
-        this.streamToStandardOut = streamToStandardOut
       }
 
       fun user(user: String) = apply { this.user = user }
@@ -59,7 +53,6 @@ class PromptConfiguration(
           docsInContext = docsInContext,
           memoryLimit = memoryLimit,
           minResponseTokens = minResponseTokens,
-          streamToStandardOut = streamToStandardOut,
         )
     }
 

@@ -39,7 +39,6 @@ suspend fun main() {
           context,
           promptConfiguration = PromptConfiguration {
             docsInContext(2)
-            streamToStandardOut(true)
           }).onCompletion {
           println("\n🤖 Done")
         }.collect {
