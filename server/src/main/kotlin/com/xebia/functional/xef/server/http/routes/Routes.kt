@@ -27,7 +27,7 @@ fun Routing.routes() {
                 it.toOpenAIModel()
             } ?: DEFAULT_CHAT
             val token = call.principal<UserIdPrincipal>()?.name ?: throw IllegalArgumentException("No token found")
-            val scope = CoreAIScope(OpenAIEmbeddings(OpenAI(token).TEXT_EMBEDDING_ADA_002))
+            val scope = CoreAIScope(OpenAIEmbeddings(OpenAI(token).GPT_3_5_TURBO_16K))
             val data = call.receive<ChatCompletionRequest>().toCore()
             response<String, Throwable> {
                 model.promptMessage(
