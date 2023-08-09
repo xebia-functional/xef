@@ -23,9 +23,7 @@ import com.xebia.functional.xef.llm.models.chat.ChatCompletionRequest as XefChat
 fun Routing.routes() {
     authenticate("auth-bearer") {
         post("/chat/completions") {
-            val model: Chat = call.request.headers["xef-model"]?.let {
-                it.toOpenAIModel()
-            } ?: DEFAULT_CHAT
+            val model: Chat = call.request.headers["xef-model"]?.toOpenAIModel() ?: DEFAULT_CHAT
             val token = call.principal<UserIdPrincipal>()?.name ?: throw IllegalArgumentException("No token found")
             val scope = CoreAIScope(OpenAIEmbeddings(OpenAI(token).GPT_3_5_TURBO_16K))
             val data = call.receive<ChatCompletionRequest>().toCore()
