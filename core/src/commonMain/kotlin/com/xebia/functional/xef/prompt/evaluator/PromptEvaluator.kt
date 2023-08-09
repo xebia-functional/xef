@@ -33,12 +33,13 @@ object PromptEvaluator {
     response: String,
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS,
   ): Score {
-    val result: List<String> = model.promptMessages(
-      messages =
-      listOf(
-        Message.systemMessage {
-          //language=markdown
-          """
+    val result: List<String> =
+      model.promptMessages(
+        messages =
+          listOf(
+            Message.systemMessage {
+              // language=markdown
+              """
           # PromptEvaluator
           
           # Roleplay as an evaluator for testing the performance of prompts over LLMs.
@@ -143,16 +144,17 @@ object PromptEvaluator {
           When asked to evaluate a prompt and its response, please carefully follow the
           instructions above and ensure that the evaluation is complete in all aspects. 📝
           Reply exclusively with the evaluation JSON object. 📤
-          """.trimIndent()
-        },
-        Message.userMessage { "Set Prompt = $prompt" },
-        Message.userMessage { "Set Response = $response" },
-        Message.userMessage { "Evaluate(Prompt, Response)" }
-      ),
-      context = scope.context,
-      conversationId = scope.conversationId,
-      promptConfiguration = promptConfiguration,
-    )
+          """
+                .trimIndent()
+            },
+            Message.userMessage { "Set Prompt = $prompt" },
+            Message.userMessage { "Set Response = $response" },
+            Message.userMessage { "Evaluate(Prompt, Response)" }
+          ),
+        context = scope.context,
+        conversationId = scope.conversationId,
+        promptConfiguration = promptConfiguration,
+      )
     val firstMessage = result.firstOrNull() ?: error("No messages returned from prompt")
     return Json.decodeFromString(Score.serializer(), firstMessage)
   }
