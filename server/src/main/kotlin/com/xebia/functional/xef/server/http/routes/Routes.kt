@@ -12,6 +12,7 @@ import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.llm.models.chat.Role
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -20,22 +21,25 @@ import com.xebia.functional.xef.llm.models.chat.ChatCompletionRequest as XefChat
 
 @OptIn(BetaOpenAI::class)
 fun Routing.routes() {
-    post("/chat/completions") {
-        val model: Chat = call.request.headers["xef-model"]?.let {
-            it.toOpenAIModel()
-        } ?: DEFAULT_CHAT
-        val scope = CoreAIScope(OpenAIEmbeddings(OpenAI.DEFAULT_EMBEDDING))
-        val data = call.receive<ChatCompletionRequest>().toCore()
-        response<String, Throwable> {
-            model.promptMessage(
-                question = data.messages.joinToString("\n") { "${it.role}: ${it.content}" },
-                context = scope.context,
-                promptConfiguration = PromptConfiguration(
-                    temperature = data.temperature,
-                    numberOfPredictions = data.n,
-                    user = data.user ?: ""
+    authenticate("auth-bearer") {
+        post("/chat/completions") {
+            val model: Chat = call.request.headers["xef-model"]?.let {
+                it.toOpenAIModel()
+            } ?: DEFAULT_CHAT
+            val token = call.principal<UserIdPrincipal>()?.name ?: throw IllegalArgumentException("No token found")
+            val scope = CoreAIScope(OpenAIEmbeddings(OpenAI(token).TEXT_EMBEDDING_ADA_002))
+            val data = call.receive<ChatCompletionRequest>().toCore()
+            response<String, Throwable> {
+                model.promptMessage(
+                    question = data.messages.joinToString("\n") { "${it.role}: ${it.content}" },
+                    context = scope.context,
+                    promptConfiguration = PromptConfiguration(
+                        temperature = data.temperature,
+                        numberOfPredictions = data.n,
+                        user = data.user ?: ""
+                    )
                 )
-            )
+            }
         }
     }
 }

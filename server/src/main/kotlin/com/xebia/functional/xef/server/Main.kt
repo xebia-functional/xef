@@ -7,6 +7,7 @@ import arrow.continuations.ktor.server
 import com.xebia.functional.xef.server.http.routes.routes
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
@@ -25,6 +26,13 @@ object Main {
                 }
                 install(ContentNegotiation) { json() }
                 install(Resources)
+                install(Authentication) {
+                    bearer("auth-bearer") {
+                        authenticate { tokenCredential ->
+                            UserIdPrincipal(tokenCredential.token)
+                        }
+                    }
+                }
                 routing { routes() }
             }
             awaitCancellation()

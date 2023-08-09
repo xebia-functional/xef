@@ -21,6 +21,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.logback)
     implementation(libs.klogging)
+    implementation(libs.ktor.server.auth)
     implementation(libs.ktor.server.netty)
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.contentNegotiation)
