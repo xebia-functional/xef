@@ -1,12 +1,13 @@
 package com.xebia.functional.xef.vectorstores
 
+import com.xebia.functional.xef.data.TestEmbeddings
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
 class LocalVectorStoreSpec :
   StringSpec({
     "memories function should return all of messages in the right order when the limit is greater than the number of stored messages" {
-      val localVectorStore = LocalVectorStore(FakeEmbeddings())
+      val localVectorStore = LocalVectorStore(TestEmbeddings())
 
       val messages1 = generateRandomMessages(4, startTimestamp = 1000)
       val messages2 = generateRandomMessages(3, startTimestamp = 2000)
@@ -22,7 +23,7 @@ class LocalVectorStoreSpec :
     }
 
     "memories function should return the last n messages in the right order" {
-      val localVectorStore = LocalVectorStore(FakeEmbeddings())
+      val localVectorStore = LocalVectorStore(TestEmbeddings())
 
       val limit = 3 * 2 // 3 couples of messages
 
@@ -40,7 +41,7 @@ class LocalVectorStoreSpec :
     }
 
     "memories function should return the last n messages in the right order for a specific conversation id" {
-      val localVectorStore = LocalVectorStore(FakeEmbeddings())
+      val localVectorStore = LocalVectorStore(TestEmbeddings())
 
       val limit = 3 * 2
 
