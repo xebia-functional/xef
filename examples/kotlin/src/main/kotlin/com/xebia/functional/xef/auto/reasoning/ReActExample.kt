@@ -3,6 +3,7 @@ package com.xebia.functional.xef.auto.reasoning
 import com.xebia.functional.xef.auto.ai
 import com.xebia.functional.xef.auto.llm.openai.OpenAI
 import com.xebia.functional.xef.auto.llm.openai.getOrThrow
+import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.reasoning.search.Search
 import com.xebia.functional.xef.reasoning.tools.LLMTool
 import com.xebia.functional.xef.reasoning.tools.ReActAgent
@@ -23,12 +24,17 @@ suspend fun main() {
       model = serialization,
       scope = this,
       tools = listOf(
-        math,
         search,
+        math,
       ),
     )
     val result =
-      reActAgent.run("Multiply the number of Leonardo di Caprio's girlfriends by the number of Metallica albums")
+      reActAgent.run(
+        listOf(
+          Message.userMessage {
+            "Find and multiply the number of Leonardo di Caprio's girlfriends by the number of Metallica albums"
+          })
+      )
     println(result)
   }.getOrThrow()
 }
