@@ -1,5 +1,6 @@
 package com.xebia.functional.xef.vectorstores
 
+import com.xebia.functional.xef.data.TestEmbeddings
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
@@ -113,10 +114,10 @@ class CombinedVectorStoreSpec :
   })
 
 suspend fun List<Memory>.combine(bottomMessages: List<Memory>): CombinedVectorStore {
-  val top = LocalVectorStore(FakeEmbeddings())
+  val top = LocalVectorStore(TestEmbeddings())
   top.addMemories(this)
 
-  val bottom = LocalVectorStore(FakeEmbeddings())
+  val bottom = LocalVectorStore(TestEmbeddings())
   bottom.addMemories(bottomMessages)
 
   return CombinedVectorStore(top, bottom)

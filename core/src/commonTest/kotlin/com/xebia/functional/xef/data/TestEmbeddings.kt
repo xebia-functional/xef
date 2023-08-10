@@ -1,10 +1,10 @@
-package com.xebia.functional.xef.vectorstores
+package com.xebia.functional.xef.data
 
 import com.xebia.functional.xef.embeddings.Embedding
 import com.xebia.functional.xef.embeddings.Embeddings
 import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
 
-class FakeEmbeddings : Embeddings {
+class TestEmbeddings : Embeddings {
   override suspend fun embedDocuments(
     texts: List<String>,
     chunkSize: Int?,
