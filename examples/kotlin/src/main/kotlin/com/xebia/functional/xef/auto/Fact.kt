@@ -11,7 +11,7 @@ data class Fact(val topic: String, val content: String)
 data class Riddle(val fact1: Fact, val fact2: Fact, val riddle: String)
 
 suspend fun main() {
-    ai {
+    conversation {
       val fact1: Fact = prompt("A fascinating fact about you")
       val fact2: Fact = prompt("An interesting fact about me")
 

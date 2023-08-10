@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.auto.prompts
 
-import com.xebia.functional.xef.auto.ai
+import com.xebia.functional.xef.auto.conversation
 import com.xebia.functional.xef.auto.llm.openai.getOrThrow
 import com.xebia.functional.xef.auto.llm.openai.prompt
 import com.xebia.functional.xef.prompt.experts.ExpertSystem
@@ -9,7 +9,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class FinalSolution(val resolvedCode: String)
 
-suspend fun main() = ai {
+suspend fun main() = conversation {
   val expert = functionProgrammerFix("""|
     |```kotlin
     |fun access(list: List<Int>, index: Int): Int {

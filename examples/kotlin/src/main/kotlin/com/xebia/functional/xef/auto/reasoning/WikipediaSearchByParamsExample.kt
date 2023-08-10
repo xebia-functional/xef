@@ -1,11 +1,11 @@
 package com.xebia.functional.xef.auto.reasoning
 
 import com.xebia.functional.gpt4all.getOrThrow
-import com.xebia.functional.xef.auto.ai
+import com.xebia.functional.xef.auto.conversation
 import com.xebia.functional.xef.reasoning.wikipedia.WikipediaClient
 
 suspend fun main() {
-    ai {
+    conversation {
         val client = WikipediaClient()
 
         val searchDataByPageId = WikipediaClient.SearchDataByParam(

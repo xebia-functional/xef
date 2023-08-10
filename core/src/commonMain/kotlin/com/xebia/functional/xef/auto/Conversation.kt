@@ -19,20 +19,20 @@ import kotlinx.uuid.UUID
 import kotlinx.uuid.generateUUID
 
 /**
- * The [CoreAIScope] is the context in which [AI] values are run. It encapsulates all the
+ * The [Conversation] is the context in which [AI] values are run. It encapsulates all the
  * dependencies required to run [AI] values, and provides convenient syntax for writing [AI] based
  * programs.
  */
-class CoreAIScope
+class Conversation
 @JvmOverloads
 constructor(
   val embeddings: Embeddings,
-  val context: VectorStore = LocalVectorStore(embeddings),
+  val store: VectorStore = LocalVectorStore(embeddings),
   val conversationId: ConversationId? = ConversationId(UUID.generateUUID().toString())
 ) : AutoCloseable, AutoClose by autoClose() {
 
   /**
-   * Allows invoking [AI] values in the context of this [CoreAIScope].
+   * Allows invoking [AI] values in the context of this [Conversation].
    *
    * ```kotlin
    * data class CovidNews(val title: String, val content: String)
@@ -64,11 +64,11 @@ constructor(
    * }
    * ```
    */
-  @AiDsl @JvmName("invokeAI") suspend operator fun <A> AI<A>.invoke(): A = invoke(this@CoreAIScope)
+  @AiDsl @JvmName("invokeAI") suspend operator fun <A> AI<A>.invoke(): A = invoke(this@Conversation)
 
   @AiDsl
   suspend fun extendContext(vararg docs: String) {
-    context.addTexts(docs.toList())
+    store.addTexts(docs.toList())
   }
 
   /**
@@ -80,16 +80,16 @@ constructor(
    */
   @AiDsl
   suspend fun <A> contextScope(store: VectorStore, block: AI<A>): A =
-    CoreAIScope(
-        this@CoreAIScope.embeddings,
-        CombinedVectorStore(store, this@CoreAIScope.context),
+    Conversation(
+        this@Conversation.embeddings,
+        CombinedVectorStore(store, this@Conversation.store),
       )
       .block()
 
   @AiDsl
   suspend fun <A> contextScope(block: AI<A>): A = contextScope(LocalVectorStore(embeddings), block)
 
-  /** Add new [docs] to the [context], and then executes the [block]. */
+  /** Add new [docs] to the [store], and then executes the [block]. */
   @AiDsl
   @JvmName("contextScopeWithDocs")
   suspend fun <A> contextScope(docs: List<String>, block: AI<A>): A = contextScope {
@@ -107,7 +107,7 @@ constructor(
   ): A {
     return prompt(
       prompt = Prompt(prompt),
-      context = context,
+      scope = this@Conversation,
       serializer = serializer,
       functions = functions,
       promptConfiguration = promptConfiguration,
@@ -119,8 +119,7 @@ constructor(
     question: String,
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
   ): String =
-    promptMessages(question, context, conversationId, emptyList(), promptConfiguration)
-      .firstOrNull()
+    promptMessages(question, this@Conversation, emptyList(), promptConfiguration).firstOrNull()
       ?: throw AIError.NoResponse()
 
   @AiDsl
@@ -129,20 +128,18 @@ constructor(
     functions: List<CFunction> = emptyList(),
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
   ): List<String> =
-    promptMessages(Prompt(question), context, conversationId, functions, promptConfiguration)
+    promptMessages(Prompt(question), this@Conversation, functions, promptConfiguration)
 
   @AiDsl
   fun Chat.promptStreaming(
     question: String,
-    context: VectorStore,
-    conversationId: ConversationId?,
     functions: List<CFunction>,
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
   ): Flow<String> =
-    promptStreaming(Prompt(question), context, conversationId, functions, promptConfiguration)
+    promptStreaming(Prompt(question), this@Conversation, functions, promptConfiguration)
 
   /**
-   * Run a [prompt] describes the images you want to generate within the context of [CoreAIScope].
+   * Run a [prompt] describes the images you want to generate within the context of [Conversation].
    * Returns a [ImagesGenerationResponse] containing time and urls with images generated.
    *
    * @param prompt a [Prompt] describing the images you want to generate.
@@ -157,7 +154,7 @@ constructor(
   ): ImagesGenerationResponse = this.images(Prompt(prompt), numberImages, size, promptConfiguration)
 
   /**
-   * Run a [prompt] describes the images you want to generate within the context of [CoreAIScope].
+   * Run a [prompt] describes the images you want to generate within the context of [Conversation].
    * Returns a [ImagesGenerationResponse] containing time and urls with images generated.
    *
    * @param prompt a [Prompt] describing the images you want to generate.
@@ -169,5 +166,5 @@ constructor(
     numberImages: Int = 1,
     size: String = "1024x1024",
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-  ): ImagesGenerationResponse = images(prompt, context, numberImages, size, promptConfiguration)
+  ): ImagesGenerationResponse = images(prompt, store, numberImages, size, promptConfiguration)
 }

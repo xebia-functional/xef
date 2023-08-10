@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.reasoning.tools
 
-import com.xebia.functional.xef.auto.CoreAIScope
+import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.auto.Description
 import com.xebia.functional.xef.auto.PromptConfiguration
 import com.xebia.functional.xef.llm.ChatWithFunctions
@@ -13,12 +13,10 @@ import kotlinx.serialization.Serializable
 
 class ReActAgent(
   private val model: ChatWithFunctions,
-  private val scope: CoreAIScope,
+  private val scope: Conversation,
   private val tools: List<Tool>,
   private val maxIterations: Int = 10,
 ) {
-
-  val conversationId = scope.conversationId
 
   private val logger = KotlinLogging.logger {}
 
@@ -42,8 +40,7 @@ class ReActAgent(
     chain: List<ThoughtObservation>
   ): AgentFinish =
     model.prompt(
-      context = scope.context,
-      conversationId = conversationId,
+      scope = scope,
       serializer = AgentFinish.serializer(),
       messages =
         listOf(
@@ -64,8 +61,7 @@ class ReActAgent(
     chain: List<ThoughtObservation>
   ): AgentAction =
     model.prompt(
-      context = scope.context,
-      conversationId = conversationId,
+      scope = scope,
       serializer = AgentAction.serializer(),
       messages =
         listOf(
@@ -110,8 +106,7 @@ class ReActAgent(
     chain: List<ThoughtObservation>
   ): AgentChoice =
     model.prompt(
-      context = scope.context,
-      conversationId = conversationId,
+      scope = scope,
       serializer = AgentChoice.serializer(),
       promptConfiguration = promptConfiguration,
       messages =
@@ -135,8 +130,7 @@ class ReActAgent(
     promptConfiguration: PromptConfiguration
   ): Thought {
     return model.prompt(
-      context = scope.context,
-      conversationId = conversationId,
+      scope = scope,
       serializer = Thought.serializer(),
       promptConfiguration = promptConfiguration,
       messages =

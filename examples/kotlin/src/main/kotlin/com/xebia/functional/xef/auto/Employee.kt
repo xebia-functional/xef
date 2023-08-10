@@ -14,7 +14,7 @@ data class Address(val street: String, val city: String, val country: String)
 data class Company(val name: String, val address: Address)
 
 suspend fun main() {
-    ai {
+    conversation {
       val complexPrompt =
         """|
                  |Provide made up information for an Employee that includes their first name, last name, age, position, and their company's name and address (street, city, and country).

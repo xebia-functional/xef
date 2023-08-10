@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.reasoning.filesystem
 
-import com.xebia.functional.xef.auto.CoreAIScope
+import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.io.DEFAULT
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.prompt.experts.ExpertSystem
@@ -11,7 +11,7 @@ import okio.FileSystem
 
 class ProduceTextFile(
   private val model: ChatWithFunctions,
-  private val scope: CoreAIScope,
+  private val scope: Conversation,
   private val instructions: List<String> = emptyList()
 ) : Tool {
   override val name: String = "Write output to Text file"
@@ -27,8 +27,7 @@ class ProduceTextFile(
             query = input,
             instructions = instructions,
           ),
-        context = scope.context,
-        conversationId = scope.conversationId,
+        scope = scope,
         serializer = TxtFile.serializer()
       )
     val uuid = UUID.generateUUID().toString(false)

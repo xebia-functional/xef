@@ -3,7 +3,7 @@ package com.xebia.functional.xef.server.http.routes
 import com.aallam.openai.api.BetaOpenAI
 import com.aallam.openai.api.chat.ChatCompletionRequest
 import com.aallam.openai.api.chat.ChatRole
-import com.xebia.functional.xef.auto.CoreAIScope
+import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.auto.PromptConfiguration
 import com.xebia.functional.xef.auto.llm.openai.*
 import com.xebia.functional.xef.auto.llm.openai.OpenAI.Companion.DEFAULT_CHAT
@@ -25,12 +25,12 @@ fun Routing.routes() {
         post("/chat/completions") {
             val model: Chat = call.request.headers["xef-model"]?.toOpenAIModel() ?: DEFAULT_CHAT
             val token = call.principal<UserIdPrincipal>()?.name ?: throw IllegalArgumentException("No token found")
-            val scope = CoreAIScope(OpenAIEmbeddings(OpenAI(token).GPT_3_5_TURBO_16K))
+            val scope = Conversation(OpenAIEmbeddings(OpenAI(token).GPT_3_5_TURBO_16K))
             val data = call.receive<ChatCompletionRequest>().toCore()
             response<String, Throwable> {
                 model.promptMessage(
                     question = data.messages.joinToString("\n") { "${it.role}: ${it.content}" },
-                    context = scope.context,
+                    scope = scope,
                     promptConfiguration = PromptConfiguration(
                         temperature = data.temperature,
                         numberOfPredictions = data.n,

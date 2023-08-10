@@ -15,7 +15,7 @@ data class MarketNews(
 )
 
 suspend fun main() {
-  ai {
+  conversation {
     val sdf = SimpleDateFormat("dd/M/yyyy")
     val currentDate = sdf.format(Date())
     contextScope(search("$currentDate Stock market results, raising stocks, decreasing stocks")) {

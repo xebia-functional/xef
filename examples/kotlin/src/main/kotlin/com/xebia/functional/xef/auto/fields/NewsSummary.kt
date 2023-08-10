@@ -2,7 +2,7 @@ package com.xebia.functional.xef.auto.fields
 
 import com.xebia.functional.xef.agents.search
 import com.xebia.functional.xef.auto.Description
-import com.xebia.functional.xef.auto.ai
+import com.xebia.functional.xef.auto.conversation
 import com.xebia.functional.xef.auto.llm.openai.getOrElse
 import com.xebia.functional.xef.auto.llm.openai.prompt
 import kotlinx.serialization.Serializable
@@ -26,7 +26,7 @@ data class NewsItems(
 
 
 suspend fun main() {
-    ai {
+    conversation {
         contextScope(search("Covid news on ${LocalDate.now()}")) {
             val news: NewsItems = prompt()
             println(news)

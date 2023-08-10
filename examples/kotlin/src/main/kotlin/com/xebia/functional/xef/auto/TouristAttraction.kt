@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 data class TouristAttraction(val name: String, val location: String, val history: String)
 
 suspend fun main() =
-    ai {
+    conversation {
         val statueOfLiberty: TouristAttraction = prompt("Statue of Liberty location and history.")
         println(
             """|${statueOfLiberty.name} is located in ${statueOfLiberty.location} and has the following history:
