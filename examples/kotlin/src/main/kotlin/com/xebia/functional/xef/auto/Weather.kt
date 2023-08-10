@@ -1,23 +1,22 @@
 package com.xebia.functional.xef.auto
 
 import com.xebia.functional.xef.agents.search
-import com.xebia.functional.xef.auto.llm.openai.getOrElse
+import com.xebia.functional.xef.auto.llm.openai.conversation
 import com.xebia.functional.xef.auto.llm.openai.promptMessage
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 suspend fun main() {
-    val logger = KotlinLogging.logger("Weather")
+  val logger = KotlinLogging.logger("Weather")
 
-    val question = "Knowing this forecast, what clothes do you recommend I should wear?"
-    val answer = getQuestionAnswer(question)
+  val question = "Knowing this forecast, what clothes do you recommend I should wear?"
+  val answer = getQuestionAnswer(question)
 
-    logger.info { answer }
+  logger.info { answer }
 }
 
 private suspend fun getQuestionAnswer(
-    question: String
+  question: String
 ): String = conversation {
-    contextScope(search("Weather in Cádiz, Spain")) {
-        promptMessage(question)
-    }
-}.getOrElse { throw IllegalStateException(it.message) }
+  addContext(search("Weather in Cádiz, Spain"))
+  promptMessage(question)
+}

@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.auto
 
-import com.xebia.functional.xef.auto.llm.openai.getOrElse
+import com.xebia.functional.xef.auto.llm.openai.conversation
 import com.xebia.functional.xef.auto.llm.openai.image
 import kotlinx.serialization.Serializable
 
@@ -17,4 +17,4 @@ suspend fun main() =
     conversation {
         val img: Image = image("")
         println(img)
-    }.getOrElse { println(it) }
+    }

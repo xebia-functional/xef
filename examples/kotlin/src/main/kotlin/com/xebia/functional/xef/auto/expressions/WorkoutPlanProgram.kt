@@ -1,9 +1,8 @@
 package com.xebia.functional.xef.auto.expressions
 
 import com.xebia.functional.xef.auto.Conversation
-import com.xebia.functional.xef.auto.conversation
 import com.xebia.functional.xef.auto.llm.openai.OpenAI
-import com.xebia.functional.xef.auto.llm.openai.getOrThrow
+import com.xebia.functional.xef.auto.llm.openai.conversation
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.prompt.expressions.Expression
 import com.xebia.functional.xef.prompt.expressions.ExpressionResult
@@ -72,5 +71,5 @@ suspend fun main() {
     println("--------------------")
     println(plan.result)
     println("--------------------")
-  }.getOrThrow()
+  }
 }

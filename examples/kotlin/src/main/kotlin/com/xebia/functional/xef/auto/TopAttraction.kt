@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.auto
 
-import com.xebia.functional.xef.auto.llm.openai.getOrElse
+import com.xebia.functional.xef.auto.llm.openai.conversation
 import com.xebia.functional.xef.auto.llm.openai.prompt
 import kotlinx.serialization.Serializable
 
@@ -22,4 +22,4 @@ suspend fun main() = conversation {
           |The weather in ${nearbyTopAttraction.city.name} is ${nearbyTopAttraction.weather.temperature} degrees Celsius and ${nearbyTopAttraction.weather.description}.
           |""".trimMargin()
   )
-}.getOrElse { println(it) }
+}

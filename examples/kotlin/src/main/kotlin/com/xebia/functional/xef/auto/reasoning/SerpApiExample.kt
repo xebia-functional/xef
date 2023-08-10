@@ -1,7 +1,6 @@
 package com.xebia.functional.xef.auto.reasoning
 
-import com.xebia.functional.gpt4all.getOrThrow
-import com.xebia.functional.xef.auto.conversation
+import com.xebia.functional.gpt4all.conversation
 import com.xebia.functional.xef.reasoning.serpapi.SerpApiClient
 
 suspend fun main() {
@@ -22,5 +21,5 @@ suspend fun main() {
                         "Source: ${it.source}\n"
             )
         }
-    }.getOrThrow()
+    }
 }

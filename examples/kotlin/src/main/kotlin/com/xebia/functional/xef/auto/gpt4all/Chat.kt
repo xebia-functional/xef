@@ -2,9 +2,8 @@ package com.xebia.functional.xef.auto.gpt4all
 
 import com.xebia.functional.gpt4all.GPT4All
 import com.xebia.functional.gpt4all.Gpt4AllModel
-import com.xebia.functional.gpt4all.getOrThrow
+import com.xebia.functional.gpt4all.conversation
 import com.xebia.functional.xef.auto.PromptConfiguration
-import com.xebia.functional.xef.auto.conversation
 import kotlinx.coroutines.flow.onCompletion
 import java.nio.file.Path
 
@@ -46,6 +45,6 @@ suspend fun main() {
         }
       }
     }
-  }.getOrThrow()
+  }
 }
 

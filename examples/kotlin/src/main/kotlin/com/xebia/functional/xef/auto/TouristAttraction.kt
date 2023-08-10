@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.auto
 
-import com.xebia.functional.xef.auto.llm.openai.getOrElse
+import com.xebia.functional.xef.auto.llm.openai.conversation
 import com.xebia.functional.xef.auto.llm.openai.prompt
 import kotlinx.serialization.Serializable
 
@@ -14,4 +14,4 @@ suspend fun main() =
             """|${statueOfLiberty.name} is located in ${statueOfLiberty.location} and has the following history:
                  |${statueOfLiberty.history}""".trimMargin()
         )
-    }.getOrElse { println(it) }
+    }

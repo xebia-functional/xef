@@ -28,6 +28,8 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+
+import kotlin.Unit;
 import kotlin.collections.CollectionsKt;
 import kotlin.jvm.functions.Function1;
 import kotlinx.coroutines.future.FutureKt;
@@ -116,33 +118,8 @@ public class AIScope implements AutoCloseable {
         return ReactiveFlowKt.asPublisher(scope.promptStreaming(gpt4all, line, Collections.emptyList(), promptConfiguration));
     }
 
-    public <A> CompletableFuture<A> contextScope(Function1<Embeddings, VectorStore> store, Function1<AIScope, CompletableFuture<A>> f) {
-        return exec.future(continuation -> scope.contextScope(store.invoke(scope.getEmbeddings()), (coreAIScope, continuation1) -> {
-            AIScope nestedScope = new AIScope(coreAIScope, AIScope.this);
-            return FutureKt.await(f.invoke(nestedScope), continuation);
-        }, continuation));
-    }
-
-    public <A> CompletableFuture<A> contextScope(VectorStore store, Function1<AIScope, CompletableFuture<A>> f) {
-        return exec.future(continuation -> scope.contextScope(store, (coreAIScope, continuation1) -> {
-            AIScope nestedScope = new AIScope(coreAIScope, AIScope.this);
-            return FutureKt.await(f.invoke(nestedScope), continuation);
-        }, continuation));
-    }
-
-    public <A> CompletableFuture<A> contextScope(CompletableFuture<List<String>> docs, Function1<AIScope, CompletableFuture<A>> f) {
-        return docs.thenCompose(d ->
-                exec.future(continuation -> scope.contextScopeWithDocs(d, (coreAIScope, continuation1) -> {
-                    AIScope nestedScope = new AIScope(coreAIScope, AIScope.this);
-                    return FutureKt.await(f.invoke(nestedScope), continuation);
-                }, continuation)));
-    }
-
-    public <A> CompletableFuture<A> contextScope(List<String> docs, Function1<AIScope, CompletableFuture<A>> f) {
-        return exec.future(continuation -> scope.contextScopeWithDocs(docs, (coreAIScope, continuation1) -> {
-            AIScope nestedScope = new AIScope(coreAIScope, AIScope.this);
-            return FutureKt.await(f.invoke(nestedScope), continuation);
-        }, continuation));
+    public CompletableFuture<? extends Unit> addContext(Iterable<String> docs) {
+        return exec.future(continuation -> scope.addContext(docs, continuation));
     }
 
     public CompletableFuture<List<String>> pdf(String url, TextSplitter splitter) {

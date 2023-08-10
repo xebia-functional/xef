@@ -1,7 +1,6 @@
 package com.xebia.functional.xef.auto.reasoning
 
-import com.xebia.functional.gpt4all.getOrThrow
-import com.xebia.functional.xef.auto.conversation
+import com.xebia.functional.gpt4all.conversation
 import com.xebia.functional.xef.reasoning.wikipedia.WikipediaClient
 
 suspend fun main() {
@@ -31,5 +30,5 @@ suspend fun main() {
                     "PageId: ${answerByTitle.pageId}\n" +
                     "Document: ${answerByTitle.document}\n"
         )
-    }.getOrThrow()
+    }
 }

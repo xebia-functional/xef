@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.auto
 
-import com.xebia.functional.xef.auto.llm.openai.getOrElse
+import com.xebia.functional.xef.auto.llm.openai.conversation
 import com.xebia.functional.xef.auto.llm.openai.prompt
 import kotlinx.serialization.Serializable
 
@@ -25,6 +25,6 @@ suspend fun main() {
       val riddle: Riddle = prompt(riddlePrompt)
 
       println("Riddle:\n\n${riddle}")
-    }.getOrElse { println(it) }
+    }
 }
 

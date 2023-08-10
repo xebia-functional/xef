@@ -1,7 +1,6 @@
 package com.xebia.functional.xef.auto.gpc
 
-import com.xebia.functional.gpt4all.getOrThrow
-import com.xebia.functional.xef.auto.conversation
+import com.xebia.functional.gpt4all.conversation
 import com.xebia.functional.xef.gcp.GcpChat
 
 suspend fun main() {
@@ -14,6 +13,6 @@ suspend fun main() {
       println("\n🤖 $answer")
     }
     println("\n🤖 Done")
-  }.getOrThrow()
+  }
 }
 

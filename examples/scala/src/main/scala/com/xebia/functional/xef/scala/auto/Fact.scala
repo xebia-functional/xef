@@ -8,7 +8,7 @@ private final case class Fact(topic: String, content: String) derives SerialDesc
 private final case class Riddle(content: String) derives SerialDescriptor, Decoder
 
 @main def runFact: Unit =
-  ai {
+  conversation {
     val fact1 = prompt[Fact]("A fascinating fact about you")
     val fact2 = prompt[Fact]("An interesting fact about me")
 
@@ -22,4 +22,4 @@ private final case class Riddle(content: String) derives SerialDescriptor, Decod
     val riddle = prompt[Riddle](riddlePrompt)
 
     println(s"Riddle:\n${riddle.content}")
-  }.getOrElse(ex => println(ex.getMessage))
+  }

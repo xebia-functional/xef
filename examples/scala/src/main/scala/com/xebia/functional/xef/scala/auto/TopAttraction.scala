@@ -12,7 +12,7 @@ private final case class TopAttraction(city: City, attractionName: String, descr
       Decoder
 
 @main def runTopAttraction: Unit =
-  ai {
+  conversation {
     val nearbyTopAttraction: TopAttraction = prompt("Top attraction in Cádiz, Spain.")
     println(
       s"""
@@ -21,4 +21,4 @@ private final case class TopAttraction(city: City, attractionName: String, descr
         |The weather in ${nearbyTopAttraction.city.name} is ${nearbyTopAttraction.weather.temperature} degrees Celsius and ${nearbyTopAttraction.weather.description}.
         |""".stripMargin
     )
-  }.getOrElse(ex => println(ex.getMessage))
+  }

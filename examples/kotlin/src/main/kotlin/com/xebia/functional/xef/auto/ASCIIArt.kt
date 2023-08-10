@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.auto
 
-import com.xebia.functional.xef.auto.llm.openai.getOrElse
+import com.xebia.functional.xef.auto.llm.openai.conversation
 import com.xebia.functional.xef.auto.llm.openai.prompt
 import kotlinx.serialization.Serializable
 
@@ -8,8 +8,8 @@ import kotlinx.serialization.Serializable
 data class ASCIIArt(val art: String)
 
 suspend fun main() {
-    val art: AI<ASCIIArt> = conversation {
+    val art: ASCIIArt = conversation {
         prompt( "ASCII art of a cat dancing")
     }
-    println(art.getOrElse { ASCIIArt("¯\\_(ツ)_/¯" + "\n" + it.message) })
+    println(art)
 }

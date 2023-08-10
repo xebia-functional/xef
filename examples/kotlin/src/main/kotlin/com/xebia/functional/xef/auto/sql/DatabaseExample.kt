@@ -4,7 +4,7 @@ import arrow.core.raise.catch
 import com.xebia.functional.xef.auto.PromptConfiguration
 import com.xebia.functional.xef.auto.conversation
 import com.xebia.functional.xef.auto.llm.openai.OpenAI
-import com.xebia.functional.xef.auto.llm.openai.getOrThrow
+import com.xebia.functional.xef.auto.llm.openai.conversation
 import com.xebia.functional.xef.sql.SQL
 import com.xebia.functional.xef.sql.jdbc.JdbcConfig
 
@@ -36,7 +36,7 @@ suspend fun main() = conversation {
       val input = readln()
       if (input == "exit") break
       catch({
-        extendContext(*promptQuery(input).toTypedArray())
+        addContext(*promptQuery(input).toTypedArray())
         val result = model.promptMessage(
           """|
                 |You are a database assistant that helps users to query and summarize results from the database.
@@ -59,5 +59,5 @@ suspend fun main() = conversation {
       })
     }
   }
-}.getOrThrow()
+}
 

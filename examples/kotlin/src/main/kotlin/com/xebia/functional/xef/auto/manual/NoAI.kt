@@ -6,6 +6,7 @@ import com.xebia.functional.gpt4all.huggingFaceUrl
 import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.auto.PromptConfiguration
 import com.xebia.functional.xef.pdf.pdf
+import com.xebia.functional.xef.vectorstores.LocalVectorStore
 import java.nio.file.Path
 
 suspend fun main() {
@@ -23,7 +24,7 @@ suspend fun main() {
 
   // Create an instance of the embeddings
   val embeddings = HuggingFaceLocalEmbeddings.DEFAULT
-  val scope = Conversation(embeddings)
+  val scope = Conversation(LocalVectorStore(embeddings))
 
   // Fetch and add texts from a PDF document to the vector store
   val results = pdf("https://arxiv.org/pdf/2305.10601.pdf")

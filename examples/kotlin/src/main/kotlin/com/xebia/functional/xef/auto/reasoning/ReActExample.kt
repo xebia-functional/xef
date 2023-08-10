@@ -2,7 +2,7 @@ package com.xebia.functional.xef.auto.reasoning
 
 import com.xebia.functional.xef.auto.conversation
 import com.xebia.functional.xef.auto.llm.openai.OpenAI
-import com.xebia.functional.xef.auto.llm.openai.getOrThrow
+import com.xebia.functional.xef.auto.llm.openai.conversation
 import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.reasoning.search.Search
 import com.xebia.functional.xef.reasoning.tools.LLMTool
@@ -36,5 +36,5 @@ suspend fun main() {
           })
       )
     println(result)
-  }.getOrThrow()
+  }
 }

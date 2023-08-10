@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.auto
 
-import com.xebia.functional.xef.auto.llm.openai.getOrElse
+import com.xebia.functional.xef.auto.llm.openai.conversation
 import com.xebia.functional.xef.auto.llm.openai.prompt
 import kotlinx.serialization.Serializable
 
@@ -23,4 +23,4 @@ suspend fun main() =
       }
 
       println("Celestial bodies information:\n\n${planetInfo(earth)}\n\n${planetInfo(mars)}")
-    }.getOrElse { println(it) }
+    }

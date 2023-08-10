@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.auto.prompts
 
 import com.xebia.functional.xef.auto.conversation
-import com.xebia.functional.xef.auto.llm.openai.getOrThrow
+import com.xebia.functional.xef.auto.llm.openai.conversation
 import com.xebia.functional.xef.auto.llm.openai.prompt
 import com.xebia.functional.xef.prompt.experts.ExpertSystem
 import kotlinx.serialization.Serializable
@@ -20,7 +20,7 @@ suspend fun main() = conversation {
   val solution: FinalSolution = prompt(expert)
 
   println("solution: ${solution}")
-}.getOrThrow()
+}
 
 private fun functionProgrammerFix(code: String) = ExpertSystem(
   system = "You are an expert functional programmer.",

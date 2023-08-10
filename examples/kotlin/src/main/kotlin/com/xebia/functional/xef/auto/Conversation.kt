@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.auto
 
-import com.xebia.functional.xef.auto.llm.openai.getOrElse
+import com.xebia.functional.xef.auto.llm.openai.conversation
 import com.xebia.functional.xef.auto.llm.openai.promptMessage
 
 suspend fun main() {
@@ -47,5 +47,5 @@ suspend fun main() {
         println("Response:\n $meaning")
 
 
-    }.getOrElse { println(it) }
+    }
 }

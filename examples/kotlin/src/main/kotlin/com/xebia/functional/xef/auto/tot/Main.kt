@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.auto.tot
 
 import com.xebia.functional.xef.auto.conversation
-import com.xebia.functional.xef.auto.llm.openai.getOrThrow
+import com.xebia.functional.xef.auto.llm.openai.conversation
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -33,5 +33,5 @@ suspend fun main() = conversation {
   println("✅ Solution validity: ${solution.isValid}")
   println("✅ Solution reasoning: ${solution.reasoning}")
   println("✅ Solution code: ${solution.value?.solution}")
-}.getOrThrow()
+}
 

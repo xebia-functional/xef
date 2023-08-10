@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.auto
 
-import com.xebia.functional.xef.auto.llm.openai.getOrElse
+import com.xebia.functional.xef.auto.llm.openai.conversation
 import com.xebia.functional.xef.auto.llm.openai.prompt
 import kotlinx.serialization.Serializable
 
@@ -24,4 +24,4 @@ suspend fun main() =
       val newPoem: Poem = prompt(newPoemPrompt)
 
       println("New Poem:\n\n${newPoem.content}")
-    }.getOrElse { println(it) }
+    }

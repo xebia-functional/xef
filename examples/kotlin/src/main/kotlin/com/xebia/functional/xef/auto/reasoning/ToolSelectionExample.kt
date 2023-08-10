@@ -2,7 +2,7 @@ package com.xebia.functional.xef.auto.reasoning
 
 import com.xebia.functional.xef.auto.conversation
 import com.xebia.functional.xef.auto.llm.openai.OpenAI
-import com.xebia.functional.xef.auto.llm.openai.getOrThrow
+import com.xebia.functional.xef.auto.llm.openai.conversation
 import com.xebia.functional.xef.reasoning.filesystem.Files
 import com.xebia.functional.xef.reasoning.pdf.PDF
 import com.xebia.functional.xef.reasoning.text.Text
@@ -33,5 +33,5 @@ suspend fun main() {
   """.trimMargin()
     )
     println(result)
-  }.getOrThrow()
+  }
 }

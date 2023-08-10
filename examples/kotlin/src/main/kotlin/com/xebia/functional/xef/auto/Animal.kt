@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.auto
 
-import com.xebia.functional.xef.auto.llm.openai.getOrElse
+import com.xebia.functional.xef.auto.llm.openai.conversation
 import com.xebia.functional.xef.auto.llm.openai.prompt
 import kotlinx.serialization.Serializable
 
@@ -28,5 +28,5 @@ suspend fun main() {
       val story: Story = prompt(storyPrompt)
 
       println("Story about ${animal.name} and ${invention.name}: ${story.shortStory}")
-    }.getOrElse { println(it) }
+    }
 }

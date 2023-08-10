@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.auto
 
-import com.xebia.functional.xef.auto.llm.openai.getOrElse
+import com.xebia.functional.xef.auto.llm.openai.conversation
 import com.xebia.functional.xef.auto.llm.openai.prompt
 import kotlinx.serialization.Serializable
 
@@ -31,5 +31,5 @@ suspend fun main() {
           "Company: ${employeeData.company.name}\n" +
           "Address: ${employeeData.company.address.street}, ${employeeData.company.address.city}, ${employeeData.company.address.country}"
       )
-    }.getOrElse { println(it) }
+    }
 }

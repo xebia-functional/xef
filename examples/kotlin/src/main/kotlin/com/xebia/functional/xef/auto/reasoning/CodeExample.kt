@@ -2,7 +2,7 @@ package com.xebia.functional.xef.auto.reasoning
 
 import com.xebia.functional.xef.auto.conversation
 import com.xebia.functional.xef.auto.llm.openai.OpenAI
-import com.xebia.functional.xef.auto.llm.openai.getOrThrow
+import com.xebia.functional.xef.auto.llm.openai.conversation
 import com.xebia.functional.xef.reasoning.code.Code
 
 suspend fun main() {
@@ -71,5 +71,5 @@ suspend fun main() {
     val codeDocumentationGenerationResult = code.coreDocumentationGeneration(sourceCode)
     println("Code Documentation Generation:")
     println(codeDocumentationGenerationResult)
-  }.getOrThrow()
+  }
 }

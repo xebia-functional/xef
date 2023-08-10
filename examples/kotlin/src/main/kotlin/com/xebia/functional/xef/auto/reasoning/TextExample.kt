@@ -2,7 +2,7 @@ package com.xebia.functional.xef.auto.reasoning
 
 import com.xebia.functional.xef.auto.conversation
 import com.xebia.functional.xef.auto.llm.openai.OpenAI
-import com.xebia.functional.xef.auto.llm.openai.getOrThrow
+import com.xebia.functional.xef.auto.llm.openai.conversation
 import com.xebia.functional.xef.reasoning.text.Text
 import com.xebia.functional.xef.reasoning.text.summarize.SummaryLength
 
@@ -107,6 +107,6 @@ suspend fun main() {
     println("Text Simplification Result:")
     println(textSimplificationResult)
 
-  }.getOrThrow()
+  }
 
 }

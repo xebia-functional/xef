@@ -10,7 +10,7 @@ private final case class Address(street: String, city: String, country: String) 
 private final case class Company(name: String, address: Address) derives SerialDescriptor, Decoder
 
 @main def runEmployee: Unit =
-  ai {
+  conversation {
     val complexPrompt =
       """
         |Provide made up information for an Employee that includes their first name, last name, age, position,
@@ -28,4 +28,4 @@ private final case class Company(name: String, address: Address) derives SerialD
          |Address: ${employeeData.company.address.street},${employeeData.company.address.city}, ${employeeData.company.address.country}
       """.stripMargin
     )
-  }.getOrElse(ex => println(ex.getMessage))
+  }
