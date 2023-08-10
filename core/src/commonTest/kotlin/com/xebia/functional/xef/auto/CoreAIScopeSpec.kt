@@ -66,7 +66,7 @@ class CoreAIScopeSpec :
 
       val memories = vectorStore.memories(conversationId, promptConfiguration.memoryLimit)
 
-      // The messages of the response doesn't contain the message response
+      // The messages in the request doesn't contain the message response
       val messagesSizePlusMessageResponse = lastRequest.messages.size + 1
 
       messagesSizePlusMessageResponse shouldBeLessThan memories.size
@@ -76,7 +76,7 @@ class CoreAIScopeSpec :
       | GPT Turbo 16K model has 16388 max context length
       | when the number of token in the conversation is less than 
       | the space allotted for the message history in the prompt configuration
-      | the request must send all messages in the conversation.
+      | the request must send all messages in the conversation
       |""" {
       val promptConfiguration = PromptConfiguration { memoryLimit(Int.MAX_VALUE) }
       val messages = generateRandomMessages(50, 40, 60)
@@ -105,7 +105,7 @@ class CoreAIScopeSpec :
 
       val memories = vectorStore.memories(conversationId, promptConfiguration.memoryLimit)
 
-      // The messages of the response doesn't contain the message response
+      // The messages in the request doesn't contain the message response
       val messagesSizePlusMessageResponse = lastRequest.messages.size + 1
 
       messagesSizePlusMessageResponse shouldBe memories.size
