@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.auto.expressions
 
-import com.xebia.functional.xef.auto.CoreAIScope
-import com.xebia.functional.xef.auto.ai
+import com.xebia.functional.xef.auto.Conversation
+import com.xebia.functional.xef.auto.conversation
 import com.xebia.functional.xef.auto.llm.openai.OpenAI
 import com.xebia.functional.xef.auto.llm.openai.getOrThrow
 import com.xebia.functional.xef.llm.ChatWithFunctions
@@ -12,7 +12,7 @@ import com.xebia.functional.xef.reasoning.tools.LLMTool
 import com.xebia.functional.xef.reasoning.tools.Tool
 
 suspend fun taskSplitter(
-  scope: CoreAIScope,
+  scope: Conversation,
   model: ChatWithFunctions,
   prompt: String,
   tools: List<Tool>
@@ -48,7 +48,7 @@ suspend fun taskSplitter(
 
 suspend fun main() {
 
-  ai {
+  conversation {
     val model = OpenAI.DEFAULT_SERIALIZATION
     val math = LLMTool.create(
       name = "Calculator",

@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.java.auto;
 
-import com.xebia.functional.xef.auto.CoreAIScope;
+import com.xebia.functional.xef.auto.Conversation;
 import com.xebia.functional.xef.auto.llm.openai.OpenAI;
 import com.xebia.functional.xef.auto.llm.openai.OpenAIEmbeddings;
 import com.xebia.functional.xef.embeddings.Embeddings;
@@ -25,7 +25,7 @@ public class ExecutionContext implements AutoCloseable {
 
     private final ExecutorService executorService;
     private final CoroutineScope coroutineScope;
-    private final CoreAIScope scope;
+    private final Conversation scope;
     private final VectorStore context;
 
     public ExecutionContext(){
@@ -40,7 +40,7 @@ public class ExecutionContext implements AutoCloseable {
         this.executorService = executorService;
         this.coroutineScope = () -> ExecutorsKt.from(executorService).plus(JobKt.Job(null));
         context = new LocalVectorStore(embeddings);
-        this.scope = new CoreAIScope(embeddings, context);
+        this.scope = new Conversation(embeddings, context);
     }
 
     protected <A> CompletableFuture<A> future(Function1<? super Continuation<? super A>, ? extends Object> block) {
@@ -62,7 +62,7 @@ public class ExecutionContext implements AutoCloseable {
         executorService.shutdown();
     }
 
-    public CoreAIScope getCoreScope() {
+    public Conversation getCoreScope() {
         return scope;
     }
 

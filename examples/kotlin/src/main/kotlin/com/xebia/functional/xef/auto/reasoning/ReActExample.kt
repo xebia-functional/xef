@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.auto.reasoning
 
-import com.xebia.functional.xef.auto.ai
+import com.xebia.functional.xef.auto.conversation
 import com.xebia.functional.xef.auto.llm.openai.OpenAI
 import com.xebia.functional.xef.auto.llm.openai.getOrThrow
 import com.xebia.functional.xef.llm.models.chat.Message
@@ -9,7 +9,7 @@ import com.xebia.functional.xef.reasoning.tools.LLMTool
 import com.xebia.functional.xef.reasoning.tools.ReActAgent
 
 suspend fun main() {
-  ai {
+  conversation {
     val model = OpenAI.DEFAULT_CHAT
     val serialization = OpenAI.DEFAULT_SERIALIZATION
     val math = LLMTool.create(

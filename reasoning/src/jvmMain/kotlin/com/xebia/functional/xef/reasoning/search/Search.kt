@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.reasoning.search
 
 import com.xebia.functional.xef.auto.AutoClose
-import com.xebia.functional.xef.auto.CoreAIScope
+import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.auto.autoClose
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.llm.models.chat.Message
@@ -12,7 +12,7 @@ class Search
 @JvmOverloads
 constructor(
   private val model: Chat,
-  private val scope: CoreAIScope,
+  private val scope: Conversation,
   private val maxResultsInContext: Int = 3,
   private val client: SerpApiClient = SerpApiClient()
 ) : Tool, AutoCloseable, AutoClose by autoClose() {
@@ -40,8 +40,7 @@ constructor(
                 "I will select the best search results and reply with information relevant to the `input`"
               }
             ),
-        context = scope.context,
-        conversationId = scope.conversationId,
+        scope = scope,
       )
       .firstOrNull()
       ?: "No results found"

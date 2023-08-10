@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.sql
 
-import com.xebia.functional.xef.auto.CoreAIScope
+import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.auto.AiDsl
 import com.xebia.functional.xef.sql.jdbc.JdbcConfig
 import com.xebia.functional.xef.textsplitters.TokenTextSplitter
@@ -28,26 +28,26 @@ interface SQL {
    * Generates SQL from the DDL and input prompt
    */
   @AiDsl
-  suspend fun CoreAIScope.sql(ddl: String, input: String): String
+  suspend fun Conversation.sql(ddl: String, input: String): String
 
   /**
    * Chooses a subset of tables from the list of [tableNames] based on the [prompt]
    */
   @AiDsl
-  suspend fun CoreAIScope.selectTablesForPrompt(tableNames: String, prompt: String): String
+  suspend fun Conversation.selectTablesForPrompt(tableNames: String, prompt: String): String
 
   /**
    * Returns a list of documents found in the database for the given [prompt]
    */
   @AiDsl
-  suspend fun CoreAIScope.promptQuery(prompt: String): List<String>
+  suspend fun Conversation.promptQuery(prompt: String): List<String>
 
   /**
    * Returns a recommendation of prompts that are interesting for the database
    * based on the internal ddl schema
    */
   @AiDsl
-  suspend fun CoreAIScope.getInterestingPromptsForDatabase(): String
+  suspend fun Conversation.getInterestingPromptsForDatabase(): String
 
 }
 
@@ -57,7 +57,7 @@ private class JDBCSQLImpl(
 
   val logger = KotlinLogging.logger {}
 
-  override suspend fun CoreAIScope.promptQuery(
+  override suspend fun Conversation.promptQuery(
     prompt: String,
   ): List<String> {
     val tableNames = getTableNames().joinToString("\n")
@@ -70,7 +70,7 @@ private class JDBCSQLImpl(
     return documentsForQuery(prompt, sql)
   }
 
-  override suspend fun CoreAIScope.selectTablesForPrompt(
+  override suspend fun Conversation.selectTablesForPrompt(
     tableNames: String, prompt: String
   ): String = config.model.promptMessage(
     """|You are an AI assistant which selects the best tables from which the `goal` can be accomplished.
@@ -105,7 +105,7 @@ private class JDBCSQLImpl(
     }
   }
 
-  override suspend fun CoreAIScope.sql(ddl: String, input: String): String = config.model.promptMessage(
+  override suspend fun Conversation.sql(ddl: String, input: String): String = config.model.promptMessage(
     """|
        |You are an AI assistant which produces SQL SELECT queries in SQL format.
        |You only reply in valid SQL SELECT queries.
@@ -130,7 +130,7 @@ private class JDBCSQLImpl(
     """.trimMargin()
   )
 
-  override suspend fun CoreAIScope.getInterestingPromptsForDatabase(): String = config.model.promptMessage(
+  override suspend fun Conversation.getInterestingPromptsForDatabase(): String = config.model.promptMessage(
     """|You are an AI assistant which replies with a list of the best prompts based on the content of this database:
        |Instructions:
        |1. Select from this `ddl` 3 top prompts that the user could ask about this database

@@ -4,7 +4,7 @@ import com.xebia.functional.gpt4all.GPT4All
 import com.xebia.functional.gpt4all.Gpt4AllModel
 import com.xebia.functional.gpt4all.getOrThrow
 import com.xebia.functional.xef.auto.PromptConfiguration
-import com.xebia.functional.xef.auto.ai
+import com.xebia.functional.xef.auto.conversation
 import kotlinx.coroutines.flow.onCompletion
 import java.nio.file.Path
 
@@ -26,8 +26,8 @@ suspend fun main() {
    * to provide embeddings for docs in contextScope.
    */
 
-  ai {
-    println("🤖 Context loaded: $context")
+  conversation {
+    println("🤖 Context loaded: $store")
     // hack until https://github.com/nomic-ai/gpt4all/pull/1126 is accepted or merged
     val out = System.out
     GPT4All.use { gpT4All: GPT4All ->
@@ -36,7 +36,7 @@ suspend fun main() {
         val userInput = readlnOrNull() ?: break
         gpT4All.promptStreaming(
           userInput,
-          context,
+          this,
           promptConfiguration = PromptConfiguration {
             docsInContext(2)
           }).onCompletion {

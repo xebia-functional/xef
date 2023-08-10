@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.reasoning.filesystem
 
-import com.xebia.functional.xef.auto.CoreAIScope
+import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.io.DEFAULT
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.prompt.Prompt
@@ -12,7 +12,7 @@ import okio.Path.Companion.toPath
 
 @Serializable data class ExtractedFile(val absolutePath: String)
 
-class ReadFile(private val model: ChatWithFunctions, private val scope: CoreAIScope) : Tool {
+class ReadFile(private val model: ChatWithFunctions, private val scope: Conversation) : Tool {
 
   private val logger = KotlinLogging.logger {}
 
@@ -33,8 +33,7 @@ class ReadFile(private val model: ChatWithFunctions, private val scope: CoreAISc
       """
               .trimMargin()
           ),
-        context = scope.context,
-        conversationId = scope.conversationId,
+        scope = scope,
         serializer = ExtractedFile.serializer()
       )
 

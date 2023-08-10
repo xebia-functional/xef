@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.reasoning.tools
 
-import com.xebia.functional.xef.auto.CoreAIScope
+import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.reasoning.internals.callModel
@@ -12,7 +12,7 @@ abstract class LLMTool(
   override val name: String,
   override val description: String,
   private val model: Chat,
-  private val scope: CoreAIScope,
+  private val scope: Conversation,
   private val instructions: List<String> = emptyList()
 ) : Tool {
   private val logger = KotlinLogging.logger {}
@@ -44,7 +44,7 @@ abstract class LLMTool(
       name: String,
       description: String,
       model: Chat,
-      scope: CoreAIScope,
+      scope: Conversation,
       instructions: List<String> = emptyList()
     ): LLMTool = object : LLMTool(name, description, model, scope, instructions) {}
   }

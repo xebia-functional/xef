@@ -1,13 +1,13 @@
 package com.xebia.functional.xef.auto.reasoning
 
-import com.xebia.functional.xef.auto.ai
+import com.xebia.functional.xef.auto.conversation
 import com.xebia.functional.xef.auto.llm.openai.OpenAI
 import com.xebia.functional.xef.auto.llm.openai.getOrThrow
 import com.xebia.functional.xef.reasoning.text.Text
 import com.xebia.functional.xef.reasoning.text.summarize.SummaryLength
 
 suspend fun main() {
-  ai {
+  conversation {
     val text = Text(model = OpenAI.DEFAULT_CHAT, scope = this)
 
     val inputText = """

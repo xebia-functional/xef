@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.java.auto;
 
-import com.xebia.functional.xef.auto.CoreAIScope;
+import com.xebia.functional.xef.auto.Conversation;
 import com.xebia.functional.xef.sql.SQL;
 import com.xebia.functional.xef.sql.jdbc.JdbcConfig;
 
@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class AIDatabase implements AutoCloseable {
-    private final CoreAIScope scope;
+    private final Conversation scope;
     private SQL sql;
     private ExecutionContext exec;
 

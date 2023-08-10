@@ -4,11 +4,11 @@ import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.tokenizer.truncateText
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.auto.AiDsl
+import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.auto.PromptConfiguration
 import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.llm.models.functions.CFunction
 import com.xebia.functional.xef.prompt.Prompt
-import com.xebia.functional.xef.vectorstores.ConversationId
 import com.xebia.functional.xef.vectorstores.Memory
 import com.xebia.functional.xef.vectorstores.VectorStore
 import io.ktor.util.date.*
@@ -29,28 +29,25 @@ interface Chat : LLM {
   @AiDsl
   fun promptStreaming(
     question: String,
-    context: VectorStore,
-    conversationId: ConversationId? = null,
+    scope: Conversation,
     functions: List<CFunction> = emptyList(),
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-  ): Flow<String> =
-    promptStreaming(Prompt(question), context, conversationId, functions, promptConfiguration)
+  ): Flow<String> = promptStreaming(Prompt(question), scope, functions, promptConfiguration)
 
   @AiDsl
   fun promptStreaming(
     prompt: Prompt,
-    context: VectorStore,
-    conversationId: ConversationId? = null,
+    scope: Conversation,
     functions: List<CFunction> = emptyList(),
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
   ): Flow<String> = flow {
-    val memories: List<Memory> = memories(conversationId, context, promptConfiguration)
+    val memories: List<Memory> = memories(scope, promptConfiguration)
 
     val messagesForRequest =
       fitMessagesByTokens(
         messagesFromMemory(memories),
         prompt.toMessages(),
-        context,
+        scope.store,
         modelType,
         promptConfiguration
       )
@@ -74,63 +71,51 @@ interface Chat : LLM {
           buffer.append(text)
         }
       }
-      .onCompletion { addMemoriesAfterStream(request, conversationId, buffer, context) }
+      .onCompletion { addMemoriesAfterStream(request, scope, buffer) }
       .collect { emit(it.choices.mapNotNull { it.delta?.content }.joinToString("")) }
   }
 
   @AiDsl
   suspend fun promptMessage(
     question: String,
-    context: VectorStore,
-    conversationId: ConversationId? = null,
+    scope: Conversation,
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
   ): String =
-    promptMessages(Prompt(question), context, conversationId, emptyList(), promptConfiguration)
-      .firstOrNull()
+    promptMessages(Prompt(question), scope, emptyList(), promptConfiguration).firstOrNull()
       ?: throw AIError.NoResponse()
 
   @AiDsl
   suspend fun promptMessages(
     question: String,
-    context: VectorStore,
-    conversationId: ConversationId? = null,
+    scope: Conversation,
     functions: List<CFunction> = emptyList(),
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-  ): List<String> =
-    promptMessages(Prompt(question), context, conversationId, functions, promptConfiguration)
+  ): List<String> = promptMessages(Prompt(question), scope, functions, promptConfiguration)
 
   @AiDsl
   suspend fun promptMessages(
     prompt: Prompt,
-    context: VectorStore,
-    conversationId: ConversationId? = null,
+    scope: Conversation,
     functions: List<CFunction> = emptyList(),
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
   ): List<String> {
-    return promptMessages(
-      prompt.toMessages(),
-      context,
-      conversationId,
-      functions,
-      promptConfiguration
-    )
+    return promptMessages(prompt.toMessages(), scope, functions, promptConfiguration)
   }
 
   @AiDsl
   suspend fun promptMessages(
     messages: List<Message>,
-    context: VectorStore,
-    conversationId: ConversationId? = null,
+    scope: Conversation,
     functions: List<CFunction> = emptyList(),
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
   ): List<String> {
 
-    val memories: List<Memory> = memories(conversationId, context, promptConfiguration)
+    val memories: List<Memory> = memories(scope, promptConfiguration)
     val messagesForRequest =
       fitMessagesByTokens(
         messagesFromMemory(memories),
         messages,
-        context,
+        scope.store,
         modelType,
         promptConfiguration
       )
@@ -164,21 +149,19 @@ interface Chat : LLM {
           val request = withFunctionsRequest()
           createChatCompletionWithFunctions(request)
             .choices
-            .addChoiceWithFunctionsToMemory(request, context, conversationId)
+            .addChoiceWithFunctionsToMemory(request, scope)
             .mapNotNull { it.message?.functionCall?.arguments }
         } else {
           val request = chatRequest()
-          createChatCompletion(request)
-            .choices
-            .addChoiceToMemory(request, context, conversationId)
-            .mapNotNull { it.message?.content }
+          createChatCompletion(request).choices.addChoiceToMemory(request, scope).mapNotNull {
+            it.message?.content
+          }
         }
       else -> {
         val request = chatRequest()
-        createChatCompletion(request)
-          .choices
-          .addChoiceToMemory(request, context, conversationId)
-          .mapNotNull { it.message?.content }
+        createChatCompletion(request).choices.addChoiceToMemory(request, scope).mapNotNull {
+          it.message?.content
+        }
       }
     }
   }
@@ -189,47 +172,45 @@ interface Chat : LLM {
 
   private suspend fun addMemoriesAfterStream(
     request: ChatCompletionRequest,
-    conversationId: ConversationId?,
+    scope: Conversation,
     buffer: StringBuilder,
-    context: VectorStore
   ) {
     val lastRequestMessage = request.messages.lastOrNull()
-    if (conversationId != null && lastRequestMessage != null) {
+    if (scope.conversationId != null && lastRequestMessage != null) {
       val requestMemory =
         Memory(
-          conversationId = conversationId,
+          conversationId = scope.conversationId,
           content = lastRequestMessage,
           timestamp = getTimeMillis()
         )
       val responseMemory =
         Memory(
-          conversationId = conversationId,
+          conversationId = scope.conversationId,
           content =
             Message(role = Role.ASSISTANT, content = buffer.toString(), name = Role.ASSISTANT.name),
           timestamp = getTimeMillis(),
         )
-      context.addMemories(listOf(requestMemory, responseMemory))
+      scope.store.addMemories(listOf(requestMemory, responseMemory))
     }
   }
 
   private suspend fun List<ChoiceWithFunctions>.addChoiceWithFunctionsToMemory(
     request: ChatCompletionRequestWithFunctions,
-    context: VectorStore,
-    conversationId: ConversationId?
+    scope: Conversation
   ): List<ChoiceWithFunctions> = also {
     val firstChoice = firstOrNull()
     val requestUserMessage = request.messages.lastOrNull()
-    if (requestUserMessage != null && firstChoice != null && conversationId != null) {
+    if (requestUserMessage != null && firstChoice != null && scope.conversationId != null) {
       val role = firstChoice.message?.role?.uppercase()?.let { Role.valueOf(it) } ?: Role.USER
       val requestMemory =
         Memory(
-          conversationId = conversationId,
+          conversationId = scope.conversationId,
           content = requestUserMessage,
           timestamp = getTimeMillis()
         )
       val firstChoiceMemory =
         Memory(
-          conversationId = conversationId,
+          conversationId = scope.conversationId,
           content =
             Message(
               role = role,
@@ -239,33 +220,32 @@ interface Chat : LLM {
             ), //
           timestamp = getTimeMillis()
         )
-      context.addMemories(listOf(requestMemory, firstChoiceMemory))
+      scope.store.addMemories(listOf(requestMemory, firstChoiceMemory))
     }
   }
 
   private suspend fun List<Choice>.addChoiceToMemory(
     request: ChatCompletionRequest,
-    context: VectorStore,
-    conversationId: ConversationId?
+    scope: Conversation
   ): List<Choice> = also {
     val firstChoice = firstOrNull()
     val requestUserMessage = request.messages.lastOrNull()
-    if (requestUserMessage != null && firstChoice != null && conversationId != null) {
+    if (requestUserMessage != null && firstChoice != null && scope.conversationId != null) {
       val role = firstChoice.message?.role?.name?.uppercase()?.let { Role.valueOf(it) } ?: Role.USER
       val requestMemory =
         Memory(
-          conversationId = conversationId,
+          conversationId = scope.conversationId,
           content = requestUserMessage,
           timestamp = getTimeMillis()
         )
       val firstChoiceMemory =
         Memory(
-          conversationId = conversationId,
+          conversationId = scope.conversationId,
           content =
             Message(role = role, content = firstChoice.message?.content ?: "", name = role.name),
           timestamp = getTimeMillis()
         )
-      context.addMemories(listOf(requestMemory, firstChoiceMemory))
+      scope.store.addMemories(listOf(requestMemory, firstChoiceMemory))
     }
   }
 
@@ -273,12 +253,11 @@ interface Chat : LLM {
     memories.map { it.content }
 
   private suspend fun memories(
-    conversationId: ConversationId?,
-    context: VectorStore,
+    scope: Conversation,
     promptConfiguration: PromptConfiguration
   ): List<Memory> =
-    if (conversationId != null) {
-      context.memories(conversationId, promptConfiguration.memoryLimit)
+    if (scope.conversationId != null) {
+      scope.store.memories(scope.conversationId, promptConfiguration.memoryLimit)
     } else {
       emptyList()
     }

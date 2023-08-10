@@ -1,11 +1,11 @@
 package com.xebia.functional.xef.auto.reasoning
 
 import com.xebia.functional.gpt4all.getOrThrow
-import com.xebia.functional.xef.auto.ai
+import com.xebia.functional.xef.auto.conversation
 import com.xebia.functional.xef.reasoning.serpapi.SerpApiClient
 
 suspend fun main() {
-    ai {
+    conversation {
         val client = SerpApiClient()
 
         val searchData = SerpApiClient.SearchData(
