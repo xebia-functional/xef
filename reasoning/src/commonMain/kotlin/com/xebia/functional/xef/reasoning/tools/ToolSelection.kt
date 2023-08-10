@@ -2,7 +2,7 @@ package com.xebia.functional.xef.reasoning.tools
 
 import com.xebia.functional.xef.auto.CoreAIScope
 import com.xebia.functional.xef.llm.ChatWithFunctions
-import com.xebia.functional.xef.prompt.experts.ExpertSystem
+import com.xebia.functional.xef.llm.models.chat.Message
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 class ToolSelection(
@@ -79,32 +79,33 @@ class ToolSelection(
 
   suspend fun createExecutionPlan(task: String): ToolsExecutionPlan {
     logger.info { "🔍 Creating execution plan for task: $task" }
+
+    val messages: List<Message> =
+      listOf(
+        Message.systemMessage {
+          "You are an expert in tool selection that can choose the best tools for a specific task based on the tools descriptions"
+        },
+        Message.assistantMessage { "Given the following task:" },
+        Message.assistantMessage { task },
+        Message.assistantMessage { "Given the following tools:" },
+      ) +
+        tools.map { Message.assistantMessage { "${it.name}: ${it.description}" } } +
+        listOf(
+          Message.userMessage { "Follow the next instructions" },
+          Message.userMessage {
+            "Select the best execution plan with tools for the `task` based on the `tools`"
+          },
+          Message.userMessage {
+            "Your `RESPONSE` MUST be a `ToolsExecutionPlan` object, where the `steps` determine how the execution plan will run the tools"
+          },
+        ) +
+        instructions.map { Message.userMessage { it } }
+
     return model.prompt(
       context = scope.context,
-      conversationId = scope.conversationId,
+      conversationId = null,
       serializer = ToolsExecutionPlan.serializer(),
-      prompt =
-        ExpertSystem(
-          system =
-            "You are an expert in tool selection that can choose the best tools for a specific task based on the tools descriptions",
-          query =
-            """|
-                |Given the following task:
-                |```task
-                |${task}
-                |```
-                |And the following tools:
-                |```tools
-                |${(tools.map { ToolMetadata(it.name, it.description) }).joinToString("\n") { "${it.name}: ${it.description}" }}
-                |```
-            """
-              .trimMargin(),
-          instructions =
-            listOf(
-              "Select the best execution plan with tools for the `task` based on the `tools`",
-              "Your `RESPONSE` MUST be a `ToolsExecutionPlan` object, where the `steps` determine how the execution plan will run the tools"
-            ) + instructions
-        )
+      messages = messages
     )
   }
 }
