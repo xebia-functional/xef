@@ -12,7 +12,7 @@ class PromptConfiguration(
   val docsInContext: Int = 5,
   val memoryLimit: Int = 5,
   val minResponseTokens: Int = 500,
-  val streamToStandardOut: Boolean = false
+  val messagePolicy: MessagePolicy = MessagePolicy(),
 ) {
   companion object {
 
@@ -23,15 +23,11 @@ class PromptConfiguration(
       private var numberOfPredictions: Int = 1
       private var docsInContext: Int = 20
       private var minResponseTokens: Int = 500
-      private var streamToStandardOut: Boolean = false
       private var memoryLimit: Int = 5
+      private var messagePolicy: MessagePolicy = MessagePolicy()
 
       fun maxDeserializationAttempts(maxDeserializationAttempts: Int) = apply {
         this.maxDeserializationAttempts = maxDeserializationAttempts
-      }
-
-      fun streamToStandardOut(streamToStandardOut: Boolean) = apply {
-        this.streamToStandardOut = streamToStandardOut
       }
 
       fun user(user: String) = apply { this.user = user }
@@ -50,6 +46,8 @@ class PromptConfiguration(
 
       fun memoryLimit(memoryLimit: Int) = apply { this.memoryLimit = memoryLimit }
 
+      fun messagePolicy(messagePolicy: MessagePolicy) = apply { this.messagePolicy = messagePolicy }
+
       fun build() =
         PromptConfiguration(
           maxDeserializationAttempts = maxDeserializationAttempts,
@@ -59,7 +57,7 @@ class PromptConfiguration(
           docsInContext = docsInContext,
           memoryLimit = memoryLimit,
           minResponseTokens = minResponseTokens,
-          streamToStandardOut = streamToStandardOut,
+          messagePolicy = messagePolicy,
         )
     }
 
@@ -69,3 +67,15 @@ class PromptConfiguration(
     @JvmField val DEFAULTS = PromptConfiguration()
   }
 }
+
+/**
+ * The [MessagePolicy] encapsulates the message selection policy for sending to the server. Allows
+ * defining the percentages of historical and contextual messages to include in the final list.
+ *
+ * @property historyPercent Percentage of historical messages
+ * @property contextPercent Percentage of context messages
+ */
+class MessagePolicy(
+  val historyPercent: Int = 50,
+  val contextPercent: Int = 50,
+)

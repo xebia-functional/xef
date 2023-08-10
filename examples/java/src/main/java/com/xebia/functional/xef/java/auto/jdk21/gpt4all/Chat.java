@@ -48,7 +48,7 @@ public class Chat {
                 String line = br.readLine();
                 if (line.equals("exit")) break;
 
-                var promptConfiguration = new PromptConfiguration.Companion.Builder().docsInContext(2).streamToStandardOut(true).build();
+                var promptConfiguration = new PromptConfiguration.Companion.Builder().docsInContext(2).build();
                 var answer = scope.promptStreaming(gpt4all, line, promptConfiguration);
 
                 answer.subscribe(new Subscriber<String>() {
