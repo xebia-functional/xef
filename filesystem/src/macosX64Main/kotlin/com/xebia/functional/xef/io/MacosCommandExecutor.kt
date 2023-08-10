@@ -1,5 +1,6 @@
 package com.xebia.functional.xef.io
 
+import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.refTo
 import kotlinx.cinterop.toKString
 import platform.posix.*
@@ -12,6 +13,7 @@ object MacosCommandExecutor : CommandExecutor {
   /**
    * https://stackoverflow.com/questions/57123836/kotlin-native-execute-command-and-get-the-output
    */
+  @OptIn(ExperimentalForeignApi::class)
   override suspend fun executeCommandAndCaptureOutput(command: List<String>, options: ExecuteCommandOptions): String {
     chdir(options.directory)
     val commandToExecute = command.joinToString(separator = " ") { arg ->

@@ -27,6 +27,11 @@ sealed class AIError @JvmOverloads constructor(message: String, cause: Throwable
       "Prompt exceeds max token length: $promptTokens + $maxTokens = ${promptTokens + maxTokens}"
     )
 
+  data class PromptExceedsMaxRemainingTokenLength(val promptTokens: Int, val maxTokens: Int) :
+    AIError(
+      "Prompt exceeds max remaining token length: $promptTokens + $maxTokens = ${promptTokens + maxTokens}"
+    )
+
   data class JsonParsing(val result: String, val maxAttempts: Int, override val cause: Throwable) :
     AIError("Failed to parse the JSON response after $maxAttempts attempts: $result", cause)
 

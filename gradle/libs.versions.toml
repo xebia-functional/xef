@@ -1,7 +1,7 @@
 [versions]
 arrow = "1.2.0"
 arrowGradle = "0.12.0-rc.5"
-kotlin = "1.8.22"
+kotlin = "1.9.0"
 kotlinx-json = "1.5.1"
 ktor = "2.3.2"
 spotless = "6.20.0"
@@ -40,6 +40,7 @@ jsonschema = "4.31.1"
 jakarta = "3.0.2"
 suspend-transform = "0.3.1"
 suspendApp = "0.4.0"
+resources-kmp = "0.4.0"
 
 [libraries]
 arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
@@ -129,3 +130,4 @@ scala-multiversion  = { id = "com.adtran.scala-multiversion-plugin", version.ref
 kotest-multiplatform = { id = "io.kotest.multiplatform", version.ref = "kotest" }
 semver-gradle = { id="com.javiersc.semver", version.ref="semverGradle" }
 suspend-transform-plugin = { id="love.forte.plugin.suspend-transform", version.ref="suspend-transform" }
+resources = { id="com.goncalossilva.resources", version.ref="resources-kmp" }
