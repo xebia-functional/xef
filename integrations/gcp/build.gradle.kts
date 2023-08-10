@@ -36,6 +36,7 @@ kotlin {
         api(projects.xefCore)
         implementation(libs.bundles.ktor.client)
         implementation(libs.uuid)
+        implementation(libs.kotlinx.datetime)
       }
     }
 
