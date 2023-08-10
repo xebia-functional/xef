@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.auto.llm.openai
 
 import com.xebia.functional.xef.auto.AiDsl
-import com.xebia.functional.xef.auto.CoreAIScope
+import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.auto.PromptConfiguration
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.llm.ChatWithFunctions
@@ -10,32 +10,30 @@ import com.xebia.functional.xef.prompt.Prompt
 import kotlinx.serialization.serializer
 
 @AiDsl
-suspend fun CoreAIScope.promptMessage(
+suspend fun Conversation.promptMessage(
   prompt: String,
   model: Chat = OpenAI.DEFAULT_CHAT,
   promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS,
-): String = model.promptMessage(prompt, context, conversationId, promptConfiguration)
+): String = model.promptMessage(prompt, this, promptConfiguration)
 
 @AiDsl
-suspend fun CoreAIScope.promptMessage(
+suspend fun Conversation.promptMessage(
   prompt: String,
   model: Chat = OpenAI.DEFAULT_CHAT,
   functions: List<CFunction> = emptyList(),
   promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS,
-): List<String> =
-  model.promptMessages(prompt, context, conversationId, functions, promptConfiguration)
+): List<String> = model.promptMessages(prompt, this, functions, promptConfiguration)
 
 @AiDsl
-suspend fun CoreAIScope.promptMessage(
+suspend fun Conversation.promptMessage(
   prompt: Prompt,
   model: Chat = OpenAI.DEFAULT_CHAT,
   functions: List<CFunction> = emptyList(),
   promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS,
-): List<String> =
-  model.promptMessages(prompt, context, conversationId, functions, promptConfiguration)
+): List<String> = model.promptMessages(prompt, this, functions, promptConfiguration)
 
 @AiDsl
-suspend inline fun <reified A> CoreAIScope.prompt(
+suspend inline fun <reified A> Conversation.prompt(
   model: ChatWithFunctions = OpenAI.DEFAULT_SERIALIZATION,
   promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS,
 ): A =
@@ -47,7 +45,7 @@ suspend inline fun <reified A> CoreAIScope.prompt(
   )
 
 @AiDsl
-suspend inline fun <reified A> CoreAIScope.prompt(
+suspend inline fun <reified A> Conversation.prompt(
   prompt: String,
   model: ChatWithFunctions = OpenAI.DEFAULT_SERIALIZATION,
   promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS,
@@ -60,7 +58,7 @@ suspend inline fun <reified A> CoreAIScope.prompt(
   )
 
 @AiDsl
-suspend inline fun <reified A> CoreAIScope.prompt(
+suspend inline fun <reified A> Conversation.prompt(
   prompt: Prompt,
   model: ChatWithFunctions = OpenAI.DEFAULT_SERIALIZATION,
   promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS,
@@ -73,7 +71,7 @@ suspend inline fun <reified A> CoreAIScope.prompt(
   )
 
 @AiDsl
-suspend inline fun <reified A> CoreAIScope.image(
+suspend inline fun <reified A> Conversation.image(
   prompt: String,
   model: ChatWithFunctions = OpenAI.DEFAULT_SERIALIZATION,
   promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS,

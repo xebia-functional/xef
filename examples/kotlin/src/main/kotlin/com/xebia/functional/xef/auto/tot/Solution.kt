@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.auto.tot
 
-import com.xebia.functional.xef.auto.CoreAIScope
+import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.auto.llm.openai.OpenAI
 import com.xebia.functional.xef.auto.llm.openai.prompt
 import com.xebia.functional.xef.prompt.Prompt
@@ -11,7 +11,7 @@ import kotlinx.serialization.Serializable
 data class Solution<out A>(val answer: String, val isValid: Boolean, val reasoning: String, val value: A? = null)
 
 // Function to prompt the AI for a solution
-internal suspend fun <A> CoreAIScope.solution(
+internal suspend fun <A> Conversation.solution(
   serializer: KSerializer<Solution<A>>,
   memory: Memory<A>,
   controlSignal: ControlSignal

@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.reasoning.pdf
 
-import com.xebia.functional.xef.auto.CoreAIScope
+import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.reasoning.tools.Tool
@@ -10,7 +10,7 @@ class PDF
 constructor(
   chat: Chat,
   model: ChatWithFunctions,
-  scope: CoreAIScope,
+  scope: Conversation,
   @JvmField val readPDFFromFile: ReadPDFFromFile = ReadPDFFromFile(chat, model, scope),
   @JvmField val readPDFFromUrl: ReadPDFFromUrl = ReadPDFFromUrl(chat, model, scope),
 ) {
@@ -25,7 +25,7 @@ constructor(
     fun create(
       chat: Chat,
       model: ChatWithFunctions,
-      scope: CoreAIScope,
+      scope: Conversation,
     ): PDF = PDF(chat, model, scope)
   }
 }

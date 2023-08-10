@@ -1,13 +1,13 @@
 package com.xebia.functional.xef.reasoning.tools
 
-import com.xebia.functional.xef.auto.CoreAIScope
+import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.llm.models.chat.Message
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 class ToolSelection(
   private val model: ChatWithFunctions,
-  private val scope: CoreAIScope,
+  private val scope: Conversation,
   private val tools: List<Tool>,
   private val instructions: List<String> = emptyList()
 ) : Tool {
@@ -102,8 +102,7 @@ class ToolSelection(
         instructions.map { Message.userMessage { it } }
 
     return model.prompt(
-      context = scope.context,
-      conversationId = null,
+      scope = scope,
       serializer = ToolsExecutionPlan.serializer(),
       messages = messages
     )

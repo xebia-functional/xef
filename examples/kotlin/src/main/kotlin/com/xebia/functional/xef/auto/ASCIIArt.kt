@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 data class ASCIIArt(val art: String)
 
 suspend fun main() {
-    val art: AI<ASCIIArt> = ai {
+    val art: AI<ASCIIArt> = conversation {
         prompt( "ASCII art of a cat dancing")
     }
     println(art.getOrElse { ASCIIArt("¯\\_(ツ)_/¯" + "\n" + it.message) })

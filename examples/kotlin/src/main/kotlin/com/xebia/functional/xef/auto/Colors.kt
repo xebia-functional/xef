@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 data class Colors(val colors: List<String>)
 
 suspend fun main() {
-    ai {
+    conversation {
         val colors: Colors = prompt("a selection of 10 beautiful colors that go well together")
         println(colors)
     }.getOrElse { println(it) }

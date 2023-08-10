@@ -11,7 +11,7 @@ import java.util.Date
 data class BreakingNewsAboutCovid(val summary: String)
 
 suspend fun main() {
-  ai {
+  conversation {
     val sdf = SimpleDateFormat("dd/M/yyyy")
     val currentDate = sdf.format(Date())
     contextScope(search("$currentDate Covid News")) {

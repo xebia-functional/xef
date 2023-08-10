@@ -3,7 +3,7 @@ package com.xebia.functional.gpt4all
 import arrow.core.Either
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.auto.AI
-import com.xebia.functional.xef.auto.CoreAIScope
+import com.xebia.functional.xef.auto.Conversation
 
 /**
  * Run the [AI] value to produce an [A], this method initialises all the dependencies required to
@@ -39,7 +39,7 @@ suspend inline fun <A> AI<A>.toEither(): Either<AIError, A> =
 
 suspend fun <A> AIScope(block: AI<A>, orElse: suspend (AIError) -> A): A =
   try {
-    CoreAIScope(HuggingFaceLocalEmbeddings.DEFAULT).use { block(it) }
+    Conversation(HuggingFaceLocalEmbeddings.DEFAULT).use { block(it) }
   } catch (e: AIError) {
     orElse(e)
   }

@@ -10,7 +10,7 @@ data class AIResponse(val answer: String, val source: String)
 
 const val pdfUrl = "https://people.cs.ksu.edu/~schmidt/705a/Scala/Programming-in-Scala.pdf"
 
-suspend fun main() = ai {
+suspend fun main() = conversation {
   contextScope(pdf(url = pdfUrl)) {
     while (true) {
       print("Enter your question: ")
