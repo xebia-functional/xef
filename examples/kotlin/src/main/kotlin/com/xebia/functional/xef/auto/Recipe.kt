@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 data class Recipe(val name: String, val ingredients: List<String>)
 
 suspend fun main() =
-    ai {
+    conversation {
         val recipe: Recipe = prompt("Recipe for chocolate chip cookies.")
         println("The recipe for ${recipe.name} is ${recipe.ingredients}")
     }.getOrElse { println(it) }

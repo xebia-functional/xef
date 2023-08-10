@@ -4,7 +4,7 @@ import com.xebia.functional.xef.auto.llm.openai.getOrElse
 import com.xebia.functional.xef.auto.llm.openai.promptMessage
 
 suspend fun main() {
-    ai {
+    conversation {
 
         val emailMessage = """
                 |You are a Marketing Responsible and have the information about different products. You have to prepare 

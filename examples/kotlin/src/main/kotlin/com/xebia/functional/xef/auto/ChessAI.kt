@@ -12,7 +12,7 @@ data class ChessBoard(val board: String)
 data class GameState(val ended: Boolean, val winner: String)
 
 suspend fun main() {
-    ai {
+    conversation {
       val moves = mutableListOf<ChessMove>()
       var gameEnded = false
       var winner = ""

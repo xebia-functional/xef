@@ -13,7 +13,7 @@ data class City(val name: String, val country: String)
 @Serializable
 data class Weather(val city: City, val temperature: Double, val description: String)
 
-suspend fun main() = ai {
+suspend fun main() = conversation {
   val nearbyTopAttraction: TopAttraction = prompt("Top attraction in Cádiz, Spain.")
   println(
       """

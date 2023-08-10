@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.prompt.expressions
 
-import com.xebia.functional.xef.auto.CoreAIScope
+import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.auto.PromptConfiguration
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.llm.models.chat.Message
@@ -8,7 +8,7 @@ import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 class Expression(
-  private val scope: CoreAIScope,
+  private val scope: Conversation,
   private val model: ChatWithFunctions,
   val block: suspend Expression.() -> Unit
 ) {
@@ -51,9 +51,8 @@ class Expression(
     val values: ReplacedValues =
       model.prompt(
         messages = prelude + messages + instructionMessages,
-        context = scope.context,
+        scope = scope,
         serializer = ReplacedValues.serializer(),
-        conversationId = scope.conversationId,
         promptConfiguration = promptConfiguration
       )
     logger.info { "replaced: ${values.replacements.joinToString { it.key }}" }
@@ -73,7 +72,7 @@ class Expression(
 
   companion object {
     suspend fun run(
-      scope: CoreAIScope,
+      scope: Conversation,
       model: ChatWithFunctions,
       block: suspend Expression.() -> Unit
     ): ExpressionResult = Expression(scope, model, block).run()

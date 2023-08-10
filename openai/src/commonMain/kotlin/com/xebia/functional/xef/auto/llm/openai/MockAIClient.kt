@@ -6,7 +6,7 @@ import arrow.core.right
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.auto.AI
-import com.xebia.functional.xef.auto.CoreAIScope
+import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.llm.*
 import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.llm.models.embeddings.Embedding
@@ -104,13 +104,13 @@ fun simpleMockAIClient(execute: (String) -> String): MockOpenAIClient =
 @OptIn(ExperimentalTime::class)
 suspend fun <A> MockAIScope(
   mockClient: MockOpenAIClient,
-  block: suspend CoreAIScope.() -> A,
+  block: suspend Conversation.() -> A,
   orElse: suspend (AIError) -> A
 ): A =
   try {
     val embeddings = OpenAIEmbeddings(mockClient)
     val vectorStore = LocalVectorStore(embeddings)
-    val scope = CoreAIScope(embeddings, vectorStore)
+    val scope = Conversation(embeddings, vectorStore)
     block(scope)
   } catch (e: AIError) {
     orElse(e)

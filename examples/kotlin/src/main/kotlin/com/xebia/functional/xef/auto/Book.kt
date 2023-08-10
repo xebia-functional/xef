@@ -14,7 +14,7 @@ data class Book(
     val summary: String)
 
 suspend fun main() {
-    ai {
+    conversation {
         val toKillAMockingbird: Book = prompt("To Kill a Mockingbird by Harper Lee summary.")
         println("To Kill a Mockingbird summary:\n ${toKillAMockingbird.summary}")
     }.getOrElse { println(it) }

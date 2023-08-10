@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.reasoning.pdf
 
-import com.xebia.functional.xef.auto.CoreAIScope
+import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.pdf.pdf
@@ -19,7 +19,7 @@ class ReadPDFFromFile
 constructor(
   private val chat: Chat,
   private val model: ChatWithFunctions,
-  private val scope: CoreAIScope,
+  private val scope: Conversation,
   private val summaryLength: SummaryLength = SummaryLength.DEFAULT
 ) : Tool {
 
@@ -42,8 +42,7 @@ constructor(
       """
               .trimMargin()
           ),
-        context = scope.context,
-        conversationId = scope.conversationId,
+        scope = scope,
         serializer = ExtractedPDFFile.serializer()
       )
 

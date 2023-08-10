@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 data class Person(val name: String, val age: Int)
 
 suspend fun main() {
-    ai {
+    conversation {
         val person: Person = prompt("What is your name and age?")
         println("Hello ${person.name}, you are ${person.age} years old.")
     }.getOrElse { println(it) }

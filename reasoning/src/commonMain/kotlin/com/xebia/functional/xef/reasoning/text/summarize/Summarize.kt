@@ -2,7 +2,7 @@ package com.xebia.functional.xef.reasoning.text.summarize
 
 import arrow.fx.coroutines.parMap
 import com.xebia.functional.tokenizer.truncateText
-import com.xebia.functional.xef.auto.CoreAIScope
+import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.prompt.experts.ExpertSystem
 import com.xebia.functional.xef.reasoning.tools.Tool
@@ -21,7 +21,7 @@ sealed class SummaryLength {
 
 class Summarize(
   private val model: Chat,
-  private val scope: CoreAIScope,
+  private val scope: Conversation,
   private val summaryLength: SummaryLength = SummaryLength.DEFAULT,
   private val instructions: List<String> = emptyList(),
 ) : Tool {
@@ -62,8 +62,7 @@ class Summarize(
               ) + instructions
           )
           .message,
-        scope.context,
-        scope.conversationId
+        scope
       )
       .also {
         val tokens: Int = model.modelType.encoding.countTokens(it)

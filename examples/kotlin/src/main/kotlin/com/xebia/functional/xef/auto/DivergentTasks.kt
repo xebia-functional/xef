@@ -10,7 +10,7 @@ data class NumberOfMedicalNeedlesInWorld(val numberOfNeedles: Long)
 
 
 suspend fun main() {
-    ai {
+    conversation {
         contextScope(search("Estimate amount of medical needles in the world")) {
             val needlesInWorld: NumberOfMedicalNeedlesInWorld =
                 prompt("Provide the number of medical needles in the world")

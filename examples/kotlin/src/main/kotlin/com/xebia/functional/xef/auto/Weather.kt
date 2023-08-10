@@ -16,7 +16,7 @@ suspend fun main() {
 
 private suspend fun getQuestionAnswer(
     question: String
-): String = ai {
+): String = conversation {
     contextScope(search("Weather in Cádiz, Spain")) {
         promptMessage(question)
     }

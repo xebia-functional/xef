@@ -2,7 +2,7 @@ package com.xebia.functional.xef.auto.sql
 
 import arrow.core.raise.catch
 import com.xebia.functional.xef.auto.PromptConfiguration
-import com.xebia.functional.xef.auto.ai
+import com.xebia.functional.xef.auto.conversation
 import com.xebia.functional.xef.auto.llm.openai.OpenAI
 import com.xebia.functional.xef.auto.llm.openai.getOrThrow
 import com.xebia.functional.xef.sql.SQL
@@ -20,7 +20,7 @@ val config = JdbcConfig(
   model = model
 )
 
-suspend fun main() = ai {
+suspend fun main() = conversation {
   SQL.fromJdbcConfig(config) {
     println("llmdb> Welcome to the LLMDB (An LLM interface to your SQL Database) !")
     println("llmdb> You can ask me questions about the database and I will try to answer them.")

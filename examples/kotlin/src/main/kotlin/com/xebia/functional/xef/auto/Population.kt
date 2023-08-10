@@ -14,7 +14,7 @@ data class Image(
 )
 
 suspend fun main() =
-    ai {
+    conversation {
         val img: Image = image("")
         println(img)
     }.getOrElse { println(it) }

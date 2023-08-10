@@ -4,6 +4,7 @@ import arrow.core.nonFatalOrThrow
 import arrow.core.raise.catch
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.auto.AiDsl
+import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.auto.PromptConfiguration
 import com.xebia.functional.xef.llm.models.chat.ChatCompletionRequestWithFunctions
 import com.xebia.functional.xef.llm.models.chat.ChatCompletionResponseWithFunctions
@@ -11,8 +12,6 @@ import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.llm.models.functions.CFunction
 import com.xebia.functional.xef.llm.models.functions.encodeJsonSchema
 import com.xebia.functional.xef.prompt.Prompt
-import com.xebia.functional.xef.vectorstores.ConversationId
-import com.xebia.functional.xef.vectorstores.VectorStore
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
@@ -37,51 +36,43 @@ interface ChatWithFunctions : Chat {
   @AiDsl
   suspend fun <A> prompt(
     prompt: String,
-    context: VectorStore,
-    conversationId: ConversationId? = null,
+    scope: Conversation,
     functions: List<CFunction> = emptyList(),
     serializer: (json: String) -> A,
     promptConfiguration: PromptConfiguration,
-  ): A =
-    prompt(prompt.toMessages(), context, conversationId, functions, serializer, promptConfiguration)
+  ): A = prompt(prompt.toMessages(), scope, functions, serializer, promptConfiguration)
 
   @AiDsl
   suspend fun <A> prompt(
     prompt: Prompt,
-    context: VectorStore,
+    scope: Conversation,
     serializerName: String,
     jsonSchema: String,
-    conversationId: ConversationId? = null,
     serializer: (json: String) -> A,
     functions: List<CFunction> = generateCFunction(serializerName, jsonSchema),
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS,
-  ): A =
-    prompt(prompt.toMessages(), context, conversationId, functions, serializer, promptConfiguration)
+  ): A = prompt(prompt.toMessages(), scope, functions, serializer, promptConfiguration)
 
   @AiDsl
   suspend fun <A> prompt(
     prompt: Prompt,
-    context: VectorStore,
+    scope: Conversation,
     serializer: (json: String) -> A,
-    conversationId: ConversationId? = null,
     functions: List<CFunction> = emptyList(),
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS,
-  ): A =
-    prompt(prompt.toMessages(), context, conversationId, functions, serializer, promptConfiguration)
+  ): A = prompt(prompt.toMessages(), scope, functions, serializer, promptConfiguration)
 
   @AiDsl
   suspend fun <A> prompt(
     prompt: Prompt,
-    context: VectorStore,
+    scope: Conversation,
     serializer: KSerializer<A>,
-    conversationId: ConversationId? = null,
     functions: List<CFunction> = generateCFunction(serializer.descriptor),
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS,
   ): A =
     prompt(
       prompt.toMessages(),
-      context,
-      conversationId,
+      scope,
       functions,
       { json -> Json.decodeFromString(serializer, json) },
       promptConfiguration
@@ -90,16 +81,14 @@ interface ChatWithFunctions : Chat {
   @AiDsl
   suspend fun <A> prompt(
     messages: List<Message>,
-    context: VectorStore,
+    scope: Conversation,
     serializer: KSerializer<A>,
-    conversationId: ConversationId? = null,
     functions: List<CFunction> = generateCFunction(serializer.descriptor),
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS,
   ): A =
     prompt(
       messages,
-      context,
-      conversationId,
+      scope,
       functions,
       { json -> Json.decodeFromString(serializer, json) },
       promptConfiguration
@@ -108,20 +97,13 @@ interface ChatWithFunctions : Chat {
   @AiDsl
   suspend fun <A> prompt(
     messages: List<Message>,
-    context: VectorStore,
-    conversationId: ConversationId? = null,
+    scope: Conversation,
     functions: List<CFunction> = emptyList(),
     serializer: (json: String) -> A,
     promptConfiguration: PromptConfiguration,
   ): A =
     tryDeserialize(serializer, promptConfiguration.maxDeserializationAttempts) {
-      promptMessages(
-        messages = messages,
-        context = context,
-        conversationId = conversationId,
-        functions = functions,
-        promptConfiguration
-      )
+      promptMessages(messages = messages, scope = scope, functions = functions, promptConfiguration)
     }
 
   private suspend fun <A> tryDeserialize(
