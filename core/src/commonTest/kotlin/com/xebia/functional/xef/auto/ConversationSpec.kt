@@ -10,28 +10,20 @@ import io.kotest.matchers.shouldBe
 import kotlinx.uuid.UUID
 import kotlinx.uuid.generateUUID
 
-class CoreAIScopeSpec :
+class ConversationSpec :
   StringSpec({
     "memories should have the correct size in the vector store" {
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
       val model = TestModel(modelType = ModelType.ADA, name = "fake-model")
 
-      val scope = CoreAIScope(TestEmbeddings())
+      val scope = Conversation(TestEmbeddings(), conversationId = conversationId)
 
-      val vectorStore = scope.context
+      val vectorStore = scope.store
 
-      model.promptMessages(
-        question = "question 1",
-        context = vectorStore,
-        conversationId = conversationId
-      )
+      model.promptMessages(question = "question 1", scope = scope)
 
-      model.promptMessages(
-        question = "question 2",
-        context = scope.context,
-        conversationId = conversationId
-      )
+      model.promptMessages(question = "question 2", scope = scope)
 
       val memories = vectorStore.memories(conversationId, 10)
 
@@ -47,17 +39,16 @@ class CoreAIScopeSpec :
       |""" {
       val promptConfiguration = PromptConfiguration { memoryLimit(Int.MAX_VALUE) }
       val messages = generateRandomMessages(50, 40, 60)
-      val scope = CoreAIScope(TestEmbeddings())
-      val vectorStore = scope.context
       val conversationId = ConversationId(UUID.generateUUID().toString())
+      val scope = Conversation(TestEmbeddings(), conversationId = conversationId)
+      val vectorStore = scope.store
 
       val modelAda = TestModel(modelType = ModelType.ADA, name = "fake-model", responses = messages)
 
       messages.forEach { message ->
         modelAda.promptMessages(
           question = message.key,
-          context = vectorStore,
-          conversationId = conversationId,
+          scope = scope,
           promptConfiguration = promptConfiguration
         )
       }
@@ -80,10 +71,9 @@ class CoreAIScopeSpec :
       |""" {
       val promptConfiguration = PromptConfiguration { memoryLimit(Int.MAX_VALUE) }
       val messages = generateRandomMessages(50, 40, 60)
-      val scope = CoreAIScope(TestEmbeddings())
-      val vectorStore = scope.context
-
       val conversationId = ConversationId(UUID.generateUUID().toString())
+      val scope = Conversation(TestEmbeddings(), conversationId = conversationId)
+      val vectorStore = scope.store
 
       val modelGPTTurbo16K =
         TestModel(
@@ -95,8 +85,7 @@ class CoreAIScopeSpec :
       messages.forEach { message ->
         modelGPTTurbo16K.promptMessages(
           question = message.key,
-          context = vectorStore,
-          conversationId = conversationId,
+          scope = scope,
           promptConfiguration = promptConfiguration
         )
       }
