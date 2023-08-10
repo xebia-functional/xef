@@ -227,7 +227,13 @@ interface Chat : LLM {
         minResponseTokens = promptConfiguration.minResponseTokens
       )
 
-    return promptMessages(promptWithContext, context, conversationId, functions, promptConfiguration)
+    return promptMessages(
+      promptWithContext,
+      context,
+      conversationId,
+      functions,
+      promptConfiguration
+    )
   }
 
   private suspend fun List<ChoiceWithFunctions>.addChoiceWithFunctionsToMemory(
@@ -324,10 +330,7 @@ interface Chat : LLM {
       // alternatively we could summarize the context, but that's not implemented yet
       val ctxTruncated: String = modelType.encoding.truncateText(ctx, remainingTokens)
 
-      listOf(
-        Message.assistantMessage { "Context: $ctxTruncated" },
-        Message.userMessage { prompt }
-      )
+      listOf(Message.assistantMessage { "Context: $ctxTruncated" }, Message.userMessage { prompt })
     } else listOf(Message.userMessage { prompt })
   }
 }

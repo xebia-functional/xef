@@ -72,4 +72,27 @@ class OpenAI(internal val token: String) : AutoCloseable, AutoClose by autoClose
 
     @JvmField val DEFAULT_IMAGES = DEFAULT.DALLE_2
   }
+
+  fun supportedModels(): List<OpenAIModel> {
+    return listOf(
+      GPT_4,
+      GPT_4_0314,
+      GPT_4_32K,
+      GPT_3_5_TURBO,
+      GPT_3_5_TURBO_16K,
+      GPT_3_5_TURBO_FUNCTIONS,
+      GPT_3_5_TURBO_0301,
+      TEXT_DAVINCI_003,
+      TEXT_DAVINCI_002,
+      TEXT_CURIE_001,
+      TEXT_BABBAGE_001,
+      TEXT_ADA_001,
+      TEXT_EMBEDDING_ADA_002,
+      DALLE_2
+    )
+  }
+}
+
+fun String.toOpenAIModel(): OpenAIModel? {
+  return OpenAI.DEFAULT.supportedModels().find { it.name == this }
 }
