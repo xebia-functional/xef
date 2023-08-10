@@ -7,45 +7,66 @@ import com.xebia.functional.xef.auto.llm.openai.getOrThrow
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.prompt.expressions.Expression
 import com.xebia.functional.xef.prompt.expressions.ExpressionResult
+import com.xebia.functional.xef.reasoning.search.Search
+import com.xebia.functional.xef.reasoning.tools.LLMTool
+import com.xebia.functional.xef.reasoning.tools.Tool
 
-suspend fun workoutPlan(
+suspend fun taskSplitter(
   scope: CoreAIScope,
   model: ChatWithFunctions,
-  goal: String,
-  experienceLevel: String,
-  equipment: String,
-  timeAvailable: Int
+  prompt: String,
+  tools: List<Tool>
 ): ExpressionResult = Expression.run(scope = scope, model = model, block = {
-  system { "You are a personal fitness trainer" }
+  system { "You are a professional task planner" }
   user {
     """
-     |I want to achieve $goal.
-     |My experience level is $experienceLevel, and I have access to the following equipment: $equipment.
-     |I can dedicate $timeAvailable minutes per day.
-     |Can you create a workout plan for me?
+     |I want to achieve:
   """.trimMargin()
+  }
+  user {
+    prompt
+  }
+  assistant {
+    "I have access to all these tool"
+  }
+  tools.forEach {
+    assistant {
+      "${it.name}: ${it.description}"
+    }
   }
   assistant {
     """
-     |Sure! Based on your goal, experience level, equipment available, and time commitment, here's a customized workout plan:
-     |${prompt("workout_plan")}
+     |I will break down your task into 3 tasks to make progress and help you accomplish this goal
+     |using the tools that I have available.
+     |1: ${prompt("task1")}
+     |2: ${prompt("task2")}
+     |3: ${prompt("task3")}
   """.trimMargin()
   }
 })
 
+
 suspend fun main() {
-  val model = OpenAI.DEFAULT_SERIALIZATION
+
   ai {
-    val plan = workoutPlan(
+    val model = OpenAI.DEFAULT_SERIALIZATION
+    val math = LLMTool.create(
+      name = "Calculator",
+      description = "Perform math operations and calculations processing them with an LLM model. The tool input is a simple string containing the operation to solve expressed in numbers and math symbols.",
+      model = model,
+      scope = this
+    )
+    val search = Search(model = model, scope = this)
+    val plan = taskSplitter(
       scope = this,
       model = model,
-      goal = "building muscle",
-      experienceLevel = "intermediate",
-      equipment = "dumbbells, bench, resistance bands",
-      timeAvailable = 45
+      prompt = "Find and multiply the number of Leonardo di Caprio's girlfriends by the number of Metallica albums",
+      tools = listOf(
+        search, math
+      )
     )
     println("--------------------")
-    println("Workout Plan")
+    println("Plan")
     println("--------------------")
     println("🤖 replaced: ${plan.values.replacements.joinToString { it.key }}")
     println("--------------------")
