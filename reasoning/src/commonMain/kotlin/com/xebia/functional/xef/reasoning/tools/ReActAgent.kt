@@ -175,10 +175,10 @@ class ReActAgent(
         val tool = tools.find { it.name.equals(plan.tool, ignoreCase = true) }
 
         val observation: String? =
-          if (tool is ToolWikipedia) {
-            tool.invoke(plan.toolInput, null, null)
-          } else {
-            (tool as Tool).invoke(plan.toolInput)
+          when (tool) {
+            is ToolWikipedia -> tool.invoke(plan.toolInput, null, null)
+            is Tool -> tool.invoke(plan.toolInput)
+            else -> null
           }
 
         if (observation == null) {
