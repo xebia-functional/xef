@@ -1,8 +1,5 @@
 package com.xebia.functional.xef.reasoning.tools
 
-interface Tool {
-  val name: String
-  val description: String
-
+interface Tool : ToolMain {
   suspend operator fun invoke(input: String): String
 }

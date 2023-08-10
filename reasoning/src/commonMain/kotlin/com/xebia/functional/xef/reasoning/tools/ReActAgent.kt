@@ -14,7 +14,7 @@ import kotlinx.serialization.Serializable
 class ReActAgent(
   private val model: ChatWithFunctions,
   private val scope: Conversation,
-  private val tools: List<Tool>,
+  private val tools: List<ToolMain>,
   private val maxIterations: Int = 10,
 ) {
 
@@ -87,7 +87,7 @@ class ReActAgent(
           )
     )
 
-  private suspend fun List<Tool>.toolsToMessages(): List<Message> = flatMap {
+  private suspend fun List<ToolMain>.toolsToMessages(): List<Message> = flatMap {
     listOf(
       assistantMessage { "${it.name}: ${it.description}" },
     )
@@ -171,8 +171,16 @@ class ReActAgent(
       is AgentAction -> {
         logger.info { "🤔 ${plan.thought}" }
         logger.info { "🛠 ${plan.tool}[${plan.toolInput}]" }
+
+        val tool = tools.find { it.name.equals(plan.tool, ignoreCase = true) }
+
         val observation: String? =
-          tools.find { it.name.equals(plan.tool, ignoreCase = true) }?.invoke(plan.toolInput)
+          if (tool is ToolWikipedia) {
+            tool.invoke(plan.toolInput, null, null)
+          } else {
+            (tool as Tool).invoke(plan.toolInput)
+          }
+
         if (observation == null) {
           logger.info { "🤷‍ Could not find ${plan.tool}" }
           runRec(
