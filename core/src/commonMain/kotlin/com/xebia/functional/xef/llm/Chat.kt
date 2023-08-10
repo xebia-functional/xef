@@ -301,16 +301,15 @@ interface Chat : LLM {
 
     val remainingTokensForContexts = remainingTokens - messagesTokens
 
-    // TODO we should move this to PromptConfiguration
-    val historyPercent = 50
-    val contextPercent = 50
+    val historyPercent = promptConfiguration.messagePolicy.historyPercent
+    val contextPercent = promptConfiguration.messagePolicy.contextPercent
 
     val maxHistoryTokens = (remainingTokensForContexts * historyPercent) / 100
 
     val historyMessagesWithTokens = history.map { Pair(it, tokensFromMessages(listOf(it))) }
 
     val totalTokenWithMessages =
-      historyMessagesWithTokens.reversed().fold(Pair(0, emptyList<Message>())) { acc, pair ->
+      historyMessagesWithTokens.foldRight(Pair(0, emptyList<Message>())) { pair, acc ->
         if (acc.first + pair.second > maxHistoryTokens) {
           acc
         } else {

@@ -12,6 +12,7 @@ class PromptConfiguration(
   val docsInContext: Int = 5,
   val memoryLimit: Int = 5,
   val minResponseTokens: Int = 500,
+  val messagePolicy: MessagePolicy = MessagePolicy(),
 ) {
   companion object {
 
@@ -23,6 +24,7 @@ class PromptConfiguration(
       private var docsInContext: Int = 20
       private var minResponseTokens: Int = 500
       private var memoryLimit: Int = 5
+      private var messagePolicy: MessagePolicy = MessagePolicy()
 
       fun maxDeserializationAttempts(maxDeserializationAttempts: Int) = apply {
         this.maxDeserializationAttempts = maxDeserializationAttempts
@@ -44,6 +46,8 @@ class PromptConfiguration(
 
       fun memoryLimit(memoryLimit: Int) = apply { this.memoryLimit = memoryLimit }
 
+      fun messagePolicy(messagePolicy: MessagePolicy) = apply { this.messagePolicy = messagePolicy }
+
       fun build() =
         PromptConfiguration(
           maxDeserializationAttempts = maxDeserializationAttempts,
@@ -53,6 +57,7 @@ class PromptConfiguration(
           docsInContext = docsInContext,
           memoryLimit = memoryLimit,
           minResponseTokens = minResponseTokens,
+          messagePolicy = messagePolicy,
         )
     }
 
@@ -62,3 +67,15 @@ class PromptConfiguration(
     @JvmField val DEFAULTS = PromptConfiguration()
   }
 }
+
+/**
+ * The [MessagePolicy] encapsulates the message selection policy for sending to the server. Allows
+ * defining the percentages of historical and contextual messages to include in the final list.
+ *
+ * @property historyPercent Percentage of historical messages
+ * @property contextPercent Percentage of context messages
+ */
+class MessagePolicy(
+  val historyPercent: Int = 50,
+  val contextPercent: Int = 50,
+)
