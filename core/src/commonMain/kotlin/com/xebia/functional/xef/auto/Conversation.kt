@@ -8,7 +8,6 @@ import com.xebia.functional.xef.llm.models.functions.CFunction
 import com.xebia.functional.xef.llm.models.images.ImagesGenerationResponse
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.vectorstores.ConversationId
-import com.xebia.functional.xef.vectorstores.Memory
 import com.xebia.functional.xef.vectorstores.VectorStore
 import kotlin.jvm.JvmName
 import kotlin.jvm.JvmOverloads
@@ -37,10 +36,6 @@ constructor(
   suspend fun addContext(docs: Iterable<String>) {
     store.addTexts(docs.toList())
   }
-
-  @AiDsl
-  suspend fun memories(limit: Int): List<Memory> =
-    if (conversationId != null) store.memories(conversationId, limit) else emptyList()
 
   @AiDsl
   @JvmName("promptWithSerializer")
