@@ -10,9 +10,6 @@ import com.xebia.functional.xef.server.db.psql.Migrate
 import com.xebia.functional.xef.server.db.psql.XefVectorStoreConfig
 import com.xebia.functional.xef.server.db.psql.XefVectorStoreConfig.Companion.getPersistenceService
 import com.xebia.functional.xef.server.http.routes.routes
-import com.xebia.functional.xef.server.services.DBConfig
-import com.xebia.functional.xef.server.services.PGVectorStoreConfig
-import com.xebia.functional.xef.server.services.PostgresXefService
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -27,7 +24,6 @@ object Main {
     @JvmStatic
     fun main(args: Array<String>) = SuspendApp {
         resourceScope {
-            ConfigFactory.invalidateCaches()
             val config = ConfigFactory.load("database.conf").resolve()
             val xefDBConfig = XefDatabaseConfig.load("xef", config)
             Migrate.migrate(xefDBConfig)

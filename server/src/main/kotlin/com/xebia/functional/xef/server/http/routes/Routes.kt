@@ -69,29 +69,3 @@ private suspend inline fun <reified T : Any, E : Throwable> PipelineContext<*, A
 }) {
     call.respondText(it.message ?: "Response not found", status = HttpStatusCode.NotFound)
 }
-
-@OptIn(BetaOpenAI::class)
-private fun ChatCompletionRequest.toCore(): XefChatCompletionRequest = XefChatCompletionRequest(
-    model = model.id,
-    messages = messages.map { Message(it.role.toCore(), it.content ?: "", it.name ?: "") },
-    temperature = temperature ?: 0.0,
-    topP = topP ?: 1.0,
-    n = n ?: 1,
-    stream = false,
-    stop = stop,
-    maxTokens = maxTokens,
-    presencePenalty = presencePenalty ?: 0.0,
-    frequencyPenalty = frequencyPenalty ?: 0.0,
-    logitBias = logitBias ?: emptyMap(),
-    user = user,
-    streamToStandardOut = false
-)
-
-@OptIn(BetaOpenAI::class)
-private fun ChatRole.toCore(): Role =
-    when (this) {
-        ChatRole.System -> Role.SYSTEM
-        ChatRole.User -> Role.USER
-        ChatRole.Assistant -> Role.ASSISTANT
-        else -> Role.ASSISTANT
-    }

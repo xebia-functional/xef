@@ -2,9 +2,8 @@ package com.xebia.functional.xef.server.db.psql
 
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
-import com.xebia.functional.xef.server.services.DBConfig
-import com.xebia.functional.xef.server.services.PGVectorStoreConfig
 import com.xebia.functional.xef.server.services.PersistenceService
+import com.xebia.functional.xef.server.services.PostgreSQLXef
 import com.xebia.functional.xef.server.services.PostgresXefService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -49,8 +48,8 @@ class XefVectorStoreConfig(
 
         private suspend fun getPsqlPersistenceService(config: Config): PersistenceService {
             val vectorStoreConfig = XefVectorStoreConfig.load("xef-vector-store", config)
-            val pgVectorStoreConfig = PGVectorStoreConfig(
-                dbConfig = DBConfig(
+            val pgVectorStoreConfig = PostgreSQLXef.PGVectorStoreConfig(
+                dbConfig = PostgreSQLXef.DBConfig(
                     host = vectorStoreConfig.host,
                     port = vectorStoreConfig.port,
                     database = vectorStoreConfig.database,
