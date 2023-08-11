@@ -80,7 +80,7 @@ public class AIScope implements AutoCloseable {
     }
 
     public <A> CompletableFuture<A> prompt(String prompt, Class<A> cls) {
-        return prompt(prompt, cls, OpenAI.DEFAULT_SERIALIZATION, PromptConfiguration.DEFAULTS);
+        return prompt(prompt, cls, new OpenAI().DEFAULT_SERIALIZATION, PromptConfiguration.DEFAULTS);
     }
 
     public <A> CompletableFuture<A> prompt(String prompt, Class<A> cls, ChatWithFunctions llmModel, PromptConfiguration promptConfiguration) {
@@ -103,7 +103,7 @@ public class AIScope implements AutoCloseable {
     }
 
     public CompletableFuture<String> promptMessage(String prompt) {
-        return promptMessage(OpenAI.DEFAULT_CHAT, prompt, PromptConfiguration.DEFAULTS);
+        return promptMessage(new OpenAI().DEFAULT_CHAT, prompt, PromptConfiguration.DEFAULTS);
     }
 
     public CompletableFuture<String> promptMessage(Chat llmModel, String prompt, PromptConfiguration promptConfiguration) {

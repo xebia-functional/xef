@@ -2,13 +2,12 @@ package com.xebia.functional.xef.auto.sql
 
 import arrow.core.raise.catch
 import com.xebia.functional.xef.auto.PromptConfiguration
-import com.xebia.functional.xef.auto.conversation
 import com.xebia.functional.xef.auto.llm.openai.OpenAI
 import com.xebia.functional.xef.auto.llm.openai.conversation
 import com.xebia.functional.xef.sql.SQL
 import com.xebia.functional.xef.sql.jdbc.JdbcConfig
 
-val model = OpenAI.DEFAULT_CHAT
+val model = OpenAI().DEFAULT_CHAT
 
 val config =
   JdbcConfig(

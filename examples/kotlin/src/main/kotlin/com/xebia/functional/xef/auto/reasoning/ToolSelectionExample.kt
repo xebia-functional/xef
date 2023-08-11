@@ -10,8 +10,8 @@ import com.xebia.functional.xef.reasoning.tools.ToolSelection
 
 suspend fun main() {
   conversation {
-    val model = OpenAI.DEFAULT_CHAT
-    val serialization = OpenAI.DEFAULT_SERIALIZATION
+    val model = OpenAI().DEFAULT_CHAT
+    val serialization = OpenAI().DEFAULT_SERIALIZATION
     val text = Text(model = model, scope = this)
     val files = Files(model = serialization, scope = this)
     val pdf = PDF(chat = model, model = serialization, scope = this)

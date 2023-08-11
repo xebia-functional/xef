@@ -4,6 +4,11 @@ package com.xebia.functional.xef.server
 import arrow.continuations.SuspendApp
 import arrow.fx.coroutines.resourceScope
 import arrow.continuations.ktor.server
+import com.typesafe.config.ConfigFactory
+import com.xebia.functional.xef.server.db.psql.XefDatabaseConfig
+import com.xebia.functional.xef.server.db.psql.Migrate
+import com.xebia.functional.xef.server.db.psql.XefVectorStoreConfig
+import com.xebia.functional.xef.server.db.psql.XefVectorStoreConfig.Companion.getPersistenceService
 import com.xebia.functional.xef.server.http.routes.routes
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -19,6 +24,14 @@ object Main {
     @JvmStatic
     fun main(args: Array<String>) = SuspendApp {
         resourceScope {
+            val config = ConfigFactory.load("database.conf").resolve()
+            val xefDBConfig = XefDatabaseConfig.load("xef", config)
+            Migrate.migrate(xefDBConfig)
+
+            val vectorStoreConfig = XefVectorStoreConfig.load("xef-vector-store", config)
+            val persistenceService = vectorStoreConfig.getPersistenceService(config)
+            persistenceService.initDatabase()
+
             server(factory = Netty, port = 8080, host = "0.0.0.0") {
                 install(CORS) {
                     allowNonSimpleContentTypes = true
@@ -33,7 +46,7 @@ object Main {
                         }
                     }
                 }
-                routing { routes() }
+                routing { routes(persistenceService) }
             }
             awaitCancellation()
         }

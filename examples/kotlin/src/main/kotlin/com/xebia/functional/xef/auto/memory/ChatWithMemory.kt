@@ -5,7 +5,7 @@ import com.xebia.functional.xef.auto.llm.openai.OpenAI
 import com.xebia.functional.xef.auto.llm.openai.conversation
 
 suspend fun main() {
-  val model = OpenAI.DEFAULT_CHAT
+  val model = OpenAI().DEFAULT_CHAT
   conversation {
     while (true) {
       println(">")

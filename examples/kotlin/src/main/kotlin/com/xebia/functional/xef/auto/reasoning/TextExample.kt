@@ -8,7 +8,7 @@ import com.xebia.functional.xef.reasoning.text.summarize.SummaryLength
 
 suspend fun main() {
   conversation {
-    val text = Text(model = OpenAI.DEFAULT_CHAT, scope = this)
+    val text = Text(model = OpenAI().DEFAULT_CHAT, scope = this)
 
     val inputText =
       """
