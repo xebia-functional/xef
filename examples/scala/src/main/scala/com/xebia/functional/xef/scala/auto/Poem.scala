@@ -6,7 +6,7 @@ import io.circe.Decoder
 private final case class Poem(title: String, content: String) derives SerialDescriptor, Decoder
 
 @main def runPoem: Unit =
-  ai {
+  conversation {
     val poem1: Poem = prompt("A short poem about the beauty of nature.")
     val poem2: Poem = prompt("A short poem about the power of technology.")
     val poem3: Poem = prompt("A short poem about the wisdom of artificial intelligence.")
@@ -22,4 +22,4 @@ private final case class Poem(title: String, content: String) derives SerialDesc
     val newPoem: Poem = prompt(newPoemPrompt)
 
     println(s"New Poem:\n\n${newPoem.content}")
-  }.getOrElse(ex => println(ex.getMessage))
+  }

@@ -10,7 +10,7 @@ import com.github.victools.jsonschema.generator.SchemaVersion;
 import com.github.victools.jsonschema.module.jakarta.validation.JakartaValidationModule;
 import com.github.victools.jsonschema.module.jakarta.validation.JakartaValidationOption;
 import com.xebia.functional.xef.agents.Search;
-import com.xebia.functional.xef.auto.CoreAIScope;
+import com.xebia.functional.xef.auto.Conversation;
 import com.xebia.functional.xef.auto.PromptConfiguration;
 import com.xebia.functional.xef.auto.llm.openai.OpenAI;
 import com.xebia.functional.xef.embeddings.Embeddings;
@@ -28,6 +28,8 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+
+import kotlin.Unit;
 import kotlin.collections.CollectionsKt;
 import kotlin.jvm.functions.Function1;
 import kotlinx.coroutines.future.FutureKt;
@@ -35,7 +37,7 @@ import kotlinx.coroutines.reactive.ReactiveFlowKt;
 import org.reactivestreams.Publisher;
 
 public class AIScope implements AutoCloseable {
-    private final CoreAIScope scope;
+    private final Conversation scope;
     private final ObjectMapper om;
     private ExecutionContext exec;
     private final SchemaGenerator schemaGenerator;
@@ -54,7 +56,7 @@ public class AIScope implements AutoCloseable {
         this.scope = executionContext.getCoreScope();
     }
 
-    public CoreAIScope getScope() {
+    public Conversation getScope() {
         return scope;
     }
 
@@ -70,7 +72,7 @@ public class AIScope implements AutoCloseable {
         this(new ObjectMapper(), new ExecutionContext());
     }
 
-    private AIScope(CoreAIScope nested, AIScope outer) {
+    private AIScope(Conversation nested, AIScope outer) {
         this.om = outer.om;
         this.schemaGenerator = outer.schemaGenerator;
         this.exec = outer.exec;
@@ -78,7 +80,7 @@ public class AIScope implements AutoCloseable {
     }
 
     public <A> CompletableFuture<A> prompt(String prompt, Class<A> cls) {
-        return prompt(prompt, cls, OpenAI.DEFAULT_SERIALIZATION, PromptConfiguration.DEFAULTS);
+        return prompt(prompt, cls, new OpenAI().DEFAULT_SERIALIZATION, PromptConfiguration.DEFAULTS);
     }
 
     public <A> CompletableFuture<A> prompt(String prompt, Class<A> cls, ChatWithFunctions llmModel, PromptConfiguration promptConfiguration) {
@@ -101,7 +103,7 @@ public class AIScope implements AutoCloseable {
     }
 
     public CompletableFuture<String> promptMessage(String prompt) {
-        return promptMessage(OpenAI.DEFAULT_CHAT, prompt, PromptConfiguration.DEFAULTS);
+        return promptMessage(new OpenAI().DEFAULT_CHAT, prompt, PromptConfiguration.DEFAULTS);
     }
 
     public CompletableFuture<String> promptMessage(Chat llmModel, String prompt, PromptConfiguration promptConfiguration) {
@@ -113,36 +115,11 @@ public class AIScope implements AutoCloseable {
     }
 
     public Publisher<String> promptStreaming(Chat gpt4all, String line, PromptConfiguration promptConfiguration) {
-        return ReactiveFlowKt.asPublisher(scope.promptStreaming(gpt4all, line, exec.getContext(), scope.getConversationId(), Collections.emptyList(), promptConfiguration));
+        return ReactiveFlowKt.asPublisher(scope.promptStreaming(gpt4all, line, Collections.emptyList(), promptConfiguration));
     }
 
-    public <A> CompletableFuture<A> contextScope(Function1<Embeddings, VectorStore> store, Function1<AIScope, CompletableFuture<A>> f) {
-        return exec.future(continuation -> scope.contextScope(store.invoke(scope.getEmbeddings()), (coreAIScope, continuation1) -> {
-            AIScope nestedScope = new AIScope(coreAIScope, AIScope.this);
-            return FutureKt.await(f.invoke(nestedScope), continuation);
-        }, continuation));
-    }
-
-    public <A> CompletableFuture<A> contextScope(VectorStore store, Function1<AIScope, CompletableFuture<A>> f) {
-        return exec.future(continuation -> scope.contextScope(store, (coreAIScope, continuation1) -> {
-            AIScope nestedScope = new AIScope(coreAIScope, AIScope.this);
-            return FutureKt.await(f.invoke(nestedScope), continuation);
-        }, continuation));
-    }
-
-    public <A> CompletableFuture<A> contextScope(CompletableFuture<List<String>> docs, Function1<AIScope, CompletableFuture<A>> f) {
-        return docs.thenCompose(d ->
-                exec.future(continuation -> scope.contextScopeWithDocs(d, (coreAIScope, continuation1) -> {
-                    AIScope nestedScope = new AIScope(coreAIScope, AIScope.this);
-                    return FutureKt.await(f.invoke(nestedScope), continuation);
-                }, continuation)));
-    }
-
-    public <A> CompletableFuture<A> contextScope(List<String> docs, Function1<AIScope, CompletableFuture<A>> f) {
-        return exec.future(continuation -> scope.contextScopeWithDocs(docs, (coreAIScope, continuation1) -> {
-            AIScope nestedScope = new AIScope(coreAIScope, AIScope.this);
-            return FutureKt.await(f.invoke(nestedScope), continuation);
-        }, continuation));
+    public CompletableFuture<? extends Unit> addContext(Iterable<String> docs) {
+        return exec.future(continuation -> scope.addContext(docs, continuation));
     }
 
     public CompletableFuture<List<String>> pdf(String url, TextSplitter splitter) {

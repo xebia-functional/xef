@@ -1,15 +1,16 @@
 package com.xebia.functional.xef.auto.reasoning
 
-import com.xebia.functional.xef.auto.ai
+import com.xebia.functional.xef.auto.conversation
 import com.xebia.functional.xef.auto.llm.openai.OpenAI
-import com.xebia.functional.xef.auto.llm.openai.getOrThrow
+import com.xebia.functional.xef.auto.llm.openai.conversation
 import com.xebia.functional.xef.reasoning.code.Code
 
 suspend fun main() {
-  ai {
-    val code = Code(model = OpenAI.DEFAULT_CHAT, scope = this)
+  conversation {
+    val code = Code(model = OpenAI().DEFAULT_CHAT, scope = this)
 
-    val sourceCode = """
+    val sourceCode =
+      """
        import java.util.*
 
        class ShoppingCart {
@@ -58,7 +59,8 @@ suspend fun main() {
            println("Total price of items in cart: ${'$'}{cart.calculateTotalPrice()}")
        }
 
-    """.trimIndent()
+    """
+        .trimIndent()
 
     val antiPatternDetectionResult = code.antiPatternDetection(sourceCode)
     println("Detected Anti-Patterns:")
@@ -71,5 +73,5 @@ suspend fun main() {
     val codeDocumentationGenerationResult = code.coreDocumentationGeneration(sourceCode)
     println("Code Documentation Generation:")
     println(codeDocumentationGenerationResult)
-  }.getOrThrow()
+  }
 }

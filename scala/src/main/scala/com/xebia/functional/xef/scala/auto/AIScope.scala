@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.scala.auto
 
-import com.xebia.functional.xef.auto.CoreAIScope
+import com.xebia.functional.xef.auto.Conversation
 
-final case class AIScope(kt: CoreAIScope)
-private object AIScope:
-  def fromCore(coreAIScope: CoreAIScope): AIScope = new AIScope(coreAIScope)
+final case class AIScope(kt: Conversation)
+object AIScope:
+  def fromCore(conversation: Conversation): AIScope = new AIScope(conversation)

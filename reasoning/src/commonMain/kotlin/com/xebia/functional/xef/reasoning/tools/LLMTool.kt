@@ -1,8 +1,8 @@
 package com.xebia.functional.xef.reasoning.tools
 
-import com.xebia.functional.xef.auto.CoreAIScope
+import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.llm.Chat
-import com.xebia.functional.xef.prompt.experts.ExpertSystem
+import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.reasoning.internals.callModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlin.jvm.JvmOverloads
@@ -12,31 +12,28 @@ abstract class LLMTool(
   override val name: String,
   override val description: String,
   private val model: Chat,
-  private val scope: CoreAIScope,
+  private val scope: Conversation,
   private val instructions: List<String> = emptyList()
 ) : Tool {
   private val logger = KotlinLogging.logger {}
 
   override suspend operator fun invoke(input: String): String {
-    logger.info { "🔧 Running $name - $description" }
+    logger.info { "🔧 $name[$input]" }
 
     return callModel(
       model,
       scope,
       prompt =
-        ExpertSystem(
-          system = "You are an expert in `$name` ($description)",
-          query =
-            """|
-                |Given the following input:
-                |```input
-                |${input}
-                |```
-                |Produce an output that satisfies the tool `$name` ($description) operation.
-            """
-              .trimMargin(),
-          instructions = instructions
-        )
+        listOf(
+          Message.systemMessage { "You are an expert in executing tool:" },
+          Message.systemMessage { "Tool: $name" },
+          Message.systemMessage { "Description: $description" },
+        ) +
+          instructions.map { Message.systemMessage { it } } +
+          listOf(
+            Message.userMessage { "input: $input" },
+            Message.assistantMessage { "output:" },
+          )
     )
   }
 
@@ -47,7 +44,7 @@ abstract class LLMTool(
       name: String,
       description: String,
       model: Chat,
-      scope: CoreAIScope,
+      scope: Conversation,
       instructions: List<String> = emptyList()
     ): LLMTool = object : LLMTool(name, description, model, scope, instructions) {}
   }

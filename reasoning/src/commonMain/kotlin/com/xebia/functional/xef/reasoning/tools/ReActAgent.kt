@@ -1,16 +1,19 @@
 package com.xebia.functional.xef.reasoning.tools
 
-import com.xebia.functional.xef.auto.CoreAIScope
+import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.auto.Description
 import com.xebia.functional.xef.auto.PromptConfiguration
 import com.xebia.functional.xef.llm.ChatWithFunctions
-import com.xebia.functional.xef.prompt.experts.ExpertSystem
+import com.xebia.functional.xef.llm.models.chat.Message
+import com.xebia.functional.xef.llm.models.chat.Message.Companion.assistantMessage
+import com.xebia.functional.xef.llm.models.chat.Message.Companion.systemMessage
+import com.xebia.functional.xef.llm.models.chat.Message.Companion.userMessage
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.Serializable
 
 class ReActAgent(
   private val model: ChatWithFunctions,
-  private val scope: CoreAIScope,
+  private val scope: Conversation,
   private val tools: List<Tool>,
   private val maxIterations: Int = 10,
 ) {
@@ -18,7 +21,7 @@ class ReActAgent(
   private val logger = KotlinLogging.logger {}
 
   private suspend fun createExecutionPlan(
-    input: String,
+    input: List<Message>,
     chain: List<ThoughtObservation>,
     promptConfiguration: PromptConfiguration
   ): AgentPlan {
@@ -32,172 +35,126 @@ class ReActAgent(
     }
   }
 
-  private suspend fun agentFinish(input: String, chain: List<ThoughtObservation>): AgentFinish =
+  private suspend fun agentFinish(
+    input: List<Message>,
+    chain: List<ThoughtObservation>
+  ): AgentFinish =
     model.prompt(
-      context = scope.context,
-      conversationId = scope.conversationId,
+      scope = scope,
       serializer = AgentFinish.serializer(),
-      prompt =
-        ExpertSystem(
-          system = "You are an expert in providing answers",
-          query =
-            """|
-                  |Given the following input:
-                  |```input
-                  |${input}
-                  |```
-                  |And the following chain of thoughts and observations:
-                  |```chain
-                  |${
-        chain.map { (k, v) ->
-          """
-                      |Thought: $k 
-                      |Observation: $v
-                      """.trimMargin()
-        }.joinToString("\n")
-      }
-                  |```
-              """
-              .trimMargin(),
-          instructions =
-            listOf(
-              "Provide the final answer to the `input` in a sentence or paragraph",
-            )
-        )
+      messages =
+        listOf(
+          systemMessage { "You are an expert in providing answers" },
+        ) +
+          chain.chainToMessages() +
+          listOf(
+            userMessage { "Provide the final answer to the `input` in a sentence or paragraph" },
+            userMessage { "input: $input" },
+            assistantMessage {
+              "I should create a AgentFinish object with the final answer based on the thoughts and observations"
+            }
+          )
     )
 
-  private suspend fun agentAction(input: String, chain: List<ThoughtObservation>): AgentAction =
+  private suspend fun agentAction(
+    input: List<Message>,
+    chain: List<ThoughtObservation>
+  ): AgentAction =
     model.prompt(
-      context = scope.context,
-      conversationId = scope.conversationId,
+      scope = scope,
       serializer = AgentAction.serializer(),
-      prompt =
-        ExpertSystem(
-          system =
-            "You are an expert in tool selection. You are given a `input` and a `chain` of thoughts and observations.",
-          query =
-            """|
-                  |Given the following input:
-                  |```input
-                  |${input}
-                  |```
-                  |And the following tools:
-                  |```tools
-                  |${
-        (tools.map {
-          ToolMetadata(
-            it.name,
-            it.description
+      messages =
+        listOf(
+          systemMessage {
+            "You are an expert in tool selection. You are given a `input` and a `chain` of thoughts and observations."
+          },
+          userMessage { "input:" },
+        ) +
+          input +
+          listOf(
+            assistantMessage { "chain:" },
+          ) +
+          chain.chainToMessages() +
+          listOf(
+            assistantMessage { "I can only use this tools:" },
+          ) +
+          tools.toolsToMessages() +
+          listOf(
+            assistantMessage {
+              "I will not repeat the `toolInput` if the same one produced no satisfactory results in the observations"
+            },
+            userMessage { "Provide the next tool to use and the `toolInput` for the tool" },
           )
-        }).joinToString("\n") { "${it.name}: ${it.description}" }
-      }
-                  |```
-                  |And the following chain of thoughts and observations:
-                  |```chain
-                  |${
-        chain.map { (k, v) ->
-          """
-                      |Thought: $k 
-                      |Observation: $v
-                      """.trimMargin()
-        }.joinToString("\n")
-      }
-                  |```
-              """
-              .trimMargin(),
-          instructions =
-            listOf(
-              "The `tool` and `toolInput` MUST be provided for the next step",
-            )
-        )
     )
+
+  private suspend fun List<Tool>.toolsToMessages(): List<Message> = flatMap {
+    listOf(
+      assistantMessage { "${it.name}: ${it.description}" },
+    )
+  }
+
+  private suspend fun List<ThoughtObservation>.chainToMessages(): List<Message> = flatMap {
+    listOf(
+      assistantMessage { "Thought: ${it.thought}" },
+      assistantMessage { "Observation: ${it.observation}" },
+    )
+  }
 
   private suspend fun agentChoice(
     promptConfiguration: PromptConfiguration,
-    input: String,
+    input: List<Message>,
     chain: List<ThoughtObservation>
   ): AgentChoice =
     model.prompt(
-      context = scope.context,
-      conversationId = scope.conversationId,
+      scope = scope,
       serializer = AgentChoice.serializer(),
       promptConfiguration = promptConfiguration,
-      prompt =
-        ExpertSystem(
-          system =
-            "You will reflect on the `input` and `chain` and decide whether you are done or not",
-          query =
-            """|
-                  |Given the following input:
-                  |```input
-                  |${input}
-                  |```
-                  |And the following chain of thoughts and observations:
-                  |```chain
-                  |${
-        chain.joinToString("\n") { c ->
-          """
-                      |Thought: ${c.thought} 
-                      |Observation: ${c.observation} 
-                      """.trimMargin()
-        }
-      }
-                  |```
-              """
-              .trimMargin(),
-          instructions =
-            listOf(
-              "Choose `CONTINUE` if you are not 100% certain that all elements in the original `input` question are answered completely by the info found in the `chain`",
-              "Choose `CONTINUE` if the `chain` needs more information to be able to completely answer all elements in the `input` question",
-              "Choose `FINISH` if you are 100% certain that all elements in the `input` question are answered by the info found in the `chain` and are not a list of steps to achieve the goal.",
-            )
-        )
+      messages =
+        input +
+          listOf(
+            assistantMessage { "chain:" },
+          ) +
+          chain.chainToMessages() +
+          listOf(
+            assistantMessage {
+              "`CONTINUE` if the `input` has not been answered by the observations in the `chain`"
+            },
+            assistantMessage {
+              "`FINISH` if the `input` has been answered by the observations in the `chain`"
+            },
+          )
     )
 
   private suspend fun createInitialThought(
-    input: String,
+    input: List<Message>,
     promptConfiguration: PromptConfiguration
   ): Thought {
-    logger.info { "🤔 $input" }
     return model.prompt(
-      context = scope.context,
-      conversationId = scope.conversationId,
+      scope = scope,
       serializer = Thought.serializer(),
       promptConfiguration = promptConfiguration,
-      prompt =
-        ExpertSystem(
-          system =
-            "You are an expert in providing more descriptive inputs for tasks that a user wants to execute",
-          query =
-            """|
-                |Given the following input:
-                |```input
-                |${input}
-                |```
-                |And the following tools:
-                |```tools
-                |${
-          (tools.map {
-            ToolMetadata(
-              it.name,
-              it.description
-            )
-          }).joinToString("\n") { "${it.name}: ${it.description}" }
-        }
-                |```
-            """
-              .trimMargin(),
-          instructions =
-            listOf(
-              "Create a prompt that serves as 'thought' of what to do next in order to accurately describe what the user wants to do",
-              "Your `RESPONSE` MUST be a `Thought` object, where the `thought` determines what the user should do next"
-            )
-        )
+      messages =
+        listOf(
+          systemMessage { "You are an expert in providing next steps to solve a problem" },
+          systemMessage { "You are given a `input` provided by the user" },
+          userMessage { "input:" },
+        ) +
+          input +
+          listOf(
+            assistantMessage { "I have access to tools:" },
+          ) +
+          tools.toolsToMessages() +
+          listOf(
+            assistantMessage {
+              "I should create a Thought object with the next thought based on the `input`"
+            },
+            userMessage { "Provide the next thought based on the `input`" },
+          )
     )
   }
 
   private tailrec suspend fun runRec(
-    input: String,
+    input: List<Message>,
     chain: List<ThoughtObservation>,
     currentIteration: Int,
     promptConfiguration: PromptConfiguration
@@ -214,15 +171,30 @@ class ReActAgent(
       is AgentAction -> {
         logger.info { "🤔 ${plan.thought}" }
         logger.info { "🛠 ${plan.tool}[${plan.toolInput}]" }
-        val observation: String? = tools.find { it.name == plan.tool }?.invoke(plan.toolInput)
+        val observation: String? =
+          tools.find { it.name.equals(plan.tool, ignoreCase = true) }?.invoke(plan.toolInput)
         if (observation == null) {
           logger.info { "🤷‍ Could not find ${plan.tool}" }
-          runRec(input, chain, currentIteration + 1, promptConfiguration)
+          runRec(
+            input,
+            chain +
+              ThoughtObservation(
+                plan.thought,
+                "Result of running ${plan.tool}[${plan.toolInput}]: " +
+                  "🤷‍ Could not find ${plan.tool}, will not try this tool again"
+              ),
+            currentIteration + 1,
+            promptConfiguration
+          )
         } else {
           logger.info { "👀 $observation" }
           runRec(
             input,
-            chain + ThoughtObservation(plan.thought, observation),
+            chain +
+              ThoughtObservation(
+                plan.thought,
+                "Result of running ${plan.tool}[${plan.toolInput}]: " + observation
+              ),
             currentIteration + 1,
             promptConfiguration
           )
@@ -236,11 +208,17 @@ class ReActAgent(
   }
 
   suspend fun run(
-    input: String,
+    input: List<Message>,
     promptConfiguration: PromptConfiguration = PromptConfiguration { temperature(0.0) }
   ): String {
     val thought = createInitialThought(input, promptConfiguration)
-    return runRec(input, listOf(ThoughtObservation(input, thought.thought)), 0, promptConfiguration)
+    logger.info { "🤔 ${thought.thought}" }
+    return runRec(
+      input,
+      listOf(ThoughtObservation("I should get started", thought.thought)),
+      0,
+      promptConfiguration
+    )
   }
 }
 

@@ -9,7 +9,7 @@ def summarizeBook(title: String, author: String): AI[Book] =
   prompt(s"$title by $author summary.")
 
 @main def runBook: Unit =
-  ai {
+  conversation {
     val toKillAMockingBird = summarizeBook("To Kill a Mockingbird", "Harper Lee")
     println(s"${toKillAMockingBird.name} by ${toKillAMockingBird.author} summary:\n ${toKillAMockingBird.summary}")
-  }.getOrElse(ex => println(ex.getMessage))
+  }

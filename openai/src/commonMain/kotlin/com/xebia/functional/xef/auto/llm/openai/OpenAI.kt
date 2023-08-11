@@ -8,7 +8,23 @@ import com.xebia.functional.xef.auto.autoClose
 import com.xebia.functional.xef.env.getenv
 import kotlin.jvm.JvmField
 
-class OpenAI(internal val token: String) : AutoCloseable, AutoClose by autoClose() {
+class OpenAI(internal var token: String? = null) : AutoCloseable, AutoClose by autoClose() {
+
+  private fun openAITokenFromEnv(): String {
+    return getenv("OPENAI_TOKEN")
+      ?: throw AIError.Env.OpenAI(nonEmptyListOf("missing OPENAI_TOKEN env var"))
+  }
+
+  fun getToken(): String {
+    return token ?: openAITokenFromEnv()
+  }
+
+  init {
+    if (token == null) {
+      token = openAITokenFromEnv()
+    }
+  }
+
   val GPT_4 by lazy { autoClose(OpenAIModel(this, "gpt-4", ModelType.GPT_4)) }
 
   val GPT_4_0314 by lazy { autoClose(OpenAIModel(this, "gpt-4-0314", ModelType.GPT_4)) }
@@ -55,23 +71,13 @@ class OpenAI(internal val token: String) : AutoCloseable, AutoClose by autoClose
 
   val DALLE_2 by lazy { autoClose(OpenAIModel(this, "dalle-2", ModelType.GPT_3_5_TURBO)) }
 
-  companion object {
+  @JvmField val DEFAULT_CHAT = GPT_3_5_TURBO_16K
 
-    fun openAITokenFromEnv(): String {
-      return getenv("OPENAI_TOKEN")
-        ?: throw AIError.Env.OpenAI(nonEmptyListOf("missing OPENAI_TOKEN env var"))
-    }
+  @JvmField val DEFAULT_SERIALIZATION = GPT_3_5_TURBO_FUNCTIONS
 
-    @JvmField val DEFAULT = OpenAI(openAITokenFromEnv())
+  @JvmField val DEFAULT_EMBEDDING = TEXT_EMBEDDING_ADA_002
 
-    @JvmField val DEFAULT_CHAT = DEFAULT.GPT_3_5_TURBO_16K
-
-    @JvmField val DEFAULT_SERIALIZATION = DEFAULT.GPT_3_5_TURBO_FUNCTIONS
-
-    @JvmField val DEFAULT_EMBEDDING = DEFAULT.TEXT_EMBEDDING_ADA_002
-
-    @JvmField val DEFAULT_IMAGES = DEFAULT.DALLE_2
-  }
+  @JvmField val DEFAULT_IMAGES = DALLE_2
 
   fun supportedModels(): List<OpenAIModel> {
     return listOf(
@@ -93,6 +99,7 @@ class OpenAI(internal val token: String) : AutoCloseable, AutoClose by autoClose
   }
 }
 
-fun String.toOpenAIModel(): OpenAIModel? {
-  return OpenAI.DEFAULT.supportedModels().find { it.name == this }
+fun String.toOpenAIModel(token: String): OpenAIModel {
+  val openAI = OpenAI(token)
+  return openAI.supportedModels().find { it.name == this } ?: openAI.GPT_3_5_TURBO_16K
 }

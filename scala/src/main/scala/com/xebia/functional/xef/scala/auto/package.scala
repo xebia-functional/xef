@@ -1,51 +1,30 @@
 package com.xebia.functional.xef.scala.auto
 
 import com.xebia.functional.loom.LoomAdapter
-import com.xebia.functional.xef.AIError
-import com.xebia.functional.xef.llm.Chat
-import com.xebia.functional.xef.llm.ChatWithFunctions
-import com.xebia.functional.xef.llm.Images
-import com.xebia.functional.xef.llm.models.functions.CFunction
+import com.xebia.functional.tokenizer.ModelType
+import com.xebia.functional.xef.auto.llm.openai.*
+import com.xebia.functional.xef.auto.{Conversation, PromptConfiguration}
+import com.xebia.functional.xef.llm.*
+import com.xebia.functional.xef.llm.models.functions.{CFunction, Json}
+import com.xebia.functional.xef.llm.models.images.*
+import com.xebia.functional.xef.pdf.Loader
+import com.xebia.functional.xef.scala.textsplitters.TextSplitter
+import com.xebia.functional.xef.vectorstores.LocalVectorStore
 import io.circe.Decoder
 import io.circe.parser.parse
-import com.xebia.functional.xef.llm.models.functions.Json
-import com.xebia.functional.xef.pdf.Loader
-import com.xebia.functional.tokenizer.ModelType
-import com.xebia.functional.xef.llm._
-import com.xebia.functional.xef.auto.PromptConfiguration
-import com.xebia.functional.xef.auto.llm.openai._
-import com.xebia.functional.xef.scala.textsplitters.TextSplitter
-import com.xebia.functional.xef.llm.models.images.*
-import com.xebia.functional.xef.auto.llm.openai.OpenAI
-import com.xebia.functional.xef.auto.llm.openai.OpenAIRuntime
 
 import java.io.File
 import scala.jdk.CollectionConverters.*
-import scala.util.*
 
 type AI[A] = AIScope ?=> A
 
-def ai[A](block: AI[A]): A =
-  LoomAdapter.apply { cont =>
-    OpenAIRuntime.AIScope[A](
-      { (coreAIScope, _) =>
-        given AIScope = AIScope.fromCore(coreAIScope)
-
-        block
-      },
-      (e: AIError, _) => throw e,
-      cont
-    )
-  }
-
-extension [A](block: AI[A]) {
-  inline def getOrElse(orElse: Throwable => A): A =
-    Try(ai(block)).fold(orElse, v => v)
-}
+def conversation[A](
+    block: AIScope ?=> A
+): A = block(using AIScope.fromCore(new Conversation(LocalVectorStore(OpenAIEmbeddings(OpenAI().DEFAULT_EMBEDDING)))))
 
 def prompt[A: Decoder: SerialDescriptor](
     prompt: String,
-    llmModel: ChatWithFunctions = OpenAI.DEFAULT_SERIALIZATION,
+    llmModel: ChatWithFunctions = OpenAI().DEFAULT_SERIALIZATION,
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
 )(using scope: AIScope): A =
   LoomAdapter.apply((cont) =>
@@ -67,12 +46,12 @@ private def generateCFunctions[A: SerialDescriptor]: List[CFunction] =
     else serialName
   List(CFunction(fnName, "Generated function for $fnName", Json.encodeJsonSchema(descriptor)))
 
-def contextScope[A: Decoder: SerialDescriptor](docs: List[String])(block: AI[A])(using scope: AIScope): A =
-  LoomAdapter.apply(scope.kt.contextScopeWithDocs[A](docs.asJava, (_, _) => block, _))
+def addContext(docs: Iterable[String])(using scope: AIScope): Unit =
+  LoomAdapter.apply(scope.kt.addContext(docs.asJava, _))
 
 def promptMessage(
     prompt: String,
-    llmModel: Chat = OpenAI.DEFAULT_CHAT,
+    llmModel: Chat = OpenAI().DEFAULT_CHAT,
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
 )(using scope: AIScope): String =
   LoomAdapter
@@ -82,7 +61,7 @@ def promptMessage(
 
 def promptMessages(
     prompt: String,
-    llmModel: Chat = OpenAI.DEFAULT_CHAT,
+    llmModel: Chat = OpenAI().DEFAULT_CHAT,
     functions: List[CFunction] = List.empty,
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
 )(using scope: AIScope): List[String] =
@@ -104,7 +83,7 @@ def pdf(
 
 def images(
     prompt: String,
-    model: Images = OpenAI.DEFAULT_IMAGES,
+    model: Images = OpenAI().DEFAULT_IMAGES,
     n: Int = 1,
     size: String = "1024x1024",
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS

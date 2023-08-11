@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.reasoning.text
 
-import com.xebia.functional.xef.auto.CoreAIScope
+import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.reasoning.text.summarize.Summarize
 import com.xebia.functional.xef.reasoning.tools.LLMTool
@@ -10,7 +10,7 @@ import kotlin.jvm.JvmStatic
 
 class Text(
   private val model: Chat,
-  private val scope: CoreAIScope,
+  private val scope: Conversation,
   @JvmField
   val dataAnonymization: LLMTool =
     LLMTool.create(
@@ -191,6 +191,6 @@ class Text(
 
   companion object {
 
-    @JvmStatic fun create(model: Chat, scope: CoreAIScope): Text = Text(model, scope)
+    @JvmStatic fun create(model: Chat, scope: Conversation): Text = Text(model, scope)
   }
 }

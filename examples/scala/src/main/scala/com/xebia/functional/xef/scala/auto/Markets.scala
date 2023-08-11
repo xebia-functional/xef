@@ -12,11 +12,10 @@ private final case class MarketNews(news: String, raisingStockSymbols: List[Stri
       Decoder
 
 @main def runMarkets: Unit =
-  ai {
+  conversation {
     val sdf = SimpleDateFormat("dd/M/yyyy")
     val currentDate = sdf.format(Date())
-    contextScope(DefaultSearch.search(s"$currentDate Stock market results, raising stocks, decreasing stocks")) {
-      val news = prompt[MarketNews]("Write a short summary of the stock market results given the provided context.")
-      println(news)
-    }
-  }.getOrElse(ex => println(ex.getMessage))
+    addContext(DefaultSearch.search(s"$currentDate Stock market results, raising stocks, decreasing stocks"))
+    val news = prompt[MarketNews]("Write a short summary of the stock market results given the provided context.")
+    println(news)
+  }

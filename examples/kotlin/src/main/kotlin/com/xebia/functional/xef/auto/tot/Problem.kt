@@ -1,24 +1,27 @@
 package com.xebia.functional.xef.auto.tot
 
-import com.xebia.functional.xef.auto.CoreAIScope
+import com.xebia.functional.xef.auto.Conversation
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.serializer
 
-@Serializable
-data class Problem(val description: String)
+@Serializable data class Problem(val description: String)
 
-@Serializable
-data class Memory<out A>(val problem: Problem, val history: List<Solution<A>>)
+@Serializable data class Memory<out A>(val problem: Problem, val history: List<Solution<A>>)
 
 // Recursive function to solve the problem using the ToT framework
-suspend inline fun <reified A> CoreAIScope.solve(problem: Problem, maxRounds: Int): Solution<A> {
+suspend inline fun <reified A> Conversation.solve(problem: Problem, maxRounds: Int): Solution<A> {
   val initialMemory = Memory<A>(problem, emptyList())
   return solveRec(problem, serializer<A>(), maxRounds, initialMemory)
 }
 
 @PublishedApi
-internal tailrec suspend fun <A> CoreAIScope.solveRec(problem: Problem, serializer: KSerializer<A>, remainingRounds: Int, memory: Memory<A>): Solution<A> =
+internal tailrec suspend fun <A> Conversation.solveRec(
+  problem: Problem,
+  serializer: KSerializer<A>,
+  remainingRounds: Int,
+  memory: Memory<A>
+): Solution<A> =
   if (remainingRounds == 0) {
     println("❌ Maximum rounds reached. Unable to find a solution.")
     Solution<A>("", false, "No response", null)
@@ -49,6 +52,3 @@ internal tailrec suspend fun <A> CoreAIScope.solveRec(problem: Problem, serializ
       solveRec(problem, serializer, remainingRounds - 1, updatedMemory)
     }
   }
-
-
-

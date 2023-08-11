@@ -1,17 +1,19 @@
 package com.xebia.functional.xef.reasoning.internals
 
-import com.xebia.functional.xef.auto.CoreAIScope
+import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.llm.Chat
-import com.xebia.functional.xef.prompt.Prompt
+import com.xebia.functional.xef.llm.models.chat.Message
 
 internal suspend fun callModel(
   model: Chat,
-  scope: CoreAIScope,
-  prompt: Prompt,
+  scope: Conversation,
+  prompt: List<Message>,
 ): String {
-  return model.promptMessage(
-    question = prompt.message,
-    context = scope.context,
-    conversationId = scope.conversationId,
-  )
+  return model
+    .promptMessages(
+      messages = prompt,
+      scope = scope,
+    )
+    .firstOrNull()
+    ?: error("No results found")
 }

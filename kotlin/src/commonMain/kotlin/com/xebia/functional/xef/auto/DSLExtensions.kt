@@ -1,4 +1,19 @@
 package com.xebia.functional.xef.auto
 
-/** A DSL block that makes it more convenient to construct [AI] values. */
-inline fun <A> ai(noinline block: suspend CoreAIScope.() -> A): AI<A> = block
+import com.xebia.functional.xef.embeddings.Embeddings
+import com.xebia.functional.xef.vectorstores.LocalVectorStore
+import com.xebia.functional.xef.vectorstores.VectorStore
+
+/**
+ * Executes a conversation with the given embeddings and vector store.
+ *
+ * @param embeddings The embeddings used for the conversation.
+ * @param store The vector store used for the conversation. Defaults to a local vector store.
+ * @param block The block of code representing the conversation logic.
+ * @return The result of the conversation execution.
+ */
+suspend inline fun <A> conversation(
+  embeddings: Embeddings,
+  store: VectorStore = LocalVectorStore(embeddings),
+  noinline block: suspend Conversation.() -> A
+): A = block(Conversation(store))

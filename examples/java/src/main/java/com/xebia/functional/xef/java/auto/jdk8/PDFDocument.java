@@ -39,7 +39,8 @@ public class PDFDocument {
 
         TextSplitter textSplitter = TokenTextSplitter(ModelType.getDEFAULT_SPLITTER_MODEL(), 100, 50);
         try (AIScope scope = new AIScope()) {
-            scope.contextScope(scope.pdf(PDF_URL, textSplitter), PDFDocument::askQuestion).get();
+            scope.addContext(scope.pdf(PDF_URL, textSplitter).get());
+            askQuestion(scope).get();
         }
         finally {
             util.close();

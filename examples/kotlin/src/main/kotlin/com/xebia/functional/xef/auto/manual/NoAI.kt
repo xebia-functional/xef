@@ -3,6 +3,7 @@ package com.xebia.functional.xef.auto.manual
 import com.xebia.functional.gpt4all.GPT4All
 import com.xebia.functional.gpt4all.HuggingFaceLocalEmbeddings
 import com.xebia.functional.gpt4all.huggingFaceUrl
+import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.auto.PromptConfiguration
 import com.xebia.functional.xef.pdf.pdf
 import com.xebia.functional.xef.vectorstores.LocalVectorStore
@@ -21,26 +22,23 @@ suspend fun main() {
   // Create an instance of GPT4All with the local model
   val gpt4All = GPT4All(url, modelPath)
 
-  // Create an instance of the OPENAI embeddings
+  // Create an instance of the embeddings
   val embeddings = HuggingFaceLocalEmbeddings.DEFAULT
-
-  // Create a LocalVectorStore and initialize it with OpenAI Embeddings
-  val vectorStore = LocalVectorStore(embeddings)
+  val scope = Conversation(LocalVectorStore(embeddings))
 
   // Fetch and add texts from a PDF document to the vector store
   val results = pdf("https://arxiv.org/pdf/2305.10601.pdf")
-  vectorStore.addTexts(results)
+  scope.store.addTexts(results)
 
   // Prompt the GPT4All model with a question and provide the vector store for context
-  val result: String = gpt4All.use {
-    it.promptMessage(
-      question = "What is the Tree of Thoughts framework about?",
-      context = vectorStore,
-      promptConfiguration = PromptConfiguration {
-        docsInContext(5)
-      }
-    )
-  }
+  val result: String =
+    gpt4All.use {
+      it.promptMessage(
+        question = "What is the Tree of Thoughts framework about?",
+        scope = scope,
+        promptConfiguration = PromptConfiguration { docsInContext(5) }
+      )
+    }
 
   // Print the response
   println(result)

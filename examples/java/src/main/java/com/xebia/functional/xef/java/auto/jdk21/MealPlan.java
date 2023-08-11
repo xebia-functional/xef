@@ -19,7 +19,8 @@ public class MealPlan {
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         try (AIScope scope = new AIScope(new ExecutionContext(Executors.newVirtualThreadPerTaskExecutor()))) {
-            scope.contextScope(scope.search("gall bladder stones meals"), MealPlan::mealPlan).get();
+            scope.addContext(scope.search("gall bladder stones meals").get());
+            mealPlan(scope).get();
         }
     }
 }

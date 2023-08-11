@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.reasoning.code
 
-import com.xebia.functional.xef.auto.CoreAIScope
+import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.reasoning.tools.LLMTool
 import com.xebia.functional.xef.reasoning.tools.Tool
@@ -10,7 +10,7 @@ import kotlin.jvm.JvmStatic
 
 class Code(
   model: Chat,
-  scope: CoreAIScope,
+  scope: Conversation,
   @JvmField
   val antiPatternDetection: LLMTool =
     LLMTool.create(
@@ -120,6 +120,6 @@ class Code(
 
     @JvmStatic
     @JvmName("create")
-    operator fun invoke(model: Chat, scope: CoreAIScope): Code = Code(model, scope)
+    operator fun invoke(model: Chat, scope: Conversation): Code = Code(model, scope)
   }
 }

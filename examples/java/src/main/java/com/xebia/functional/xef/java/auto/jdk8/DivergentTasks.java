@@ -15,8 +15,8 @@ public class DivergentTasks {
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         try (AIScope scope = new AIScope()) {
-            scope.contextScope(scope.search("Estimate amount of medical needles in the world"),
-                  DivergentTasks::numberOfMedical).get();
+            scope.addContext(scope.search("Estimate amount of medical needles in the world").get());
+            numberOfMedical(scope).get();
         }
     }
 

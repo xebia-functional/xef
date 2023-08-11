@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.auto.llm.openai
 
 import com.xebia.functional.xef.auto.AiDsl
-import com.xebia.functional.xef.auto.CoreAIScope
+import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.auto.PromptConfiguration
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.prompt.Prompt
@@ -19,7 +19,7 @@ import kotlinx.serialization.serializer
  * @throws IllegalArgumentException if any of [A]'s type arguments contains star projection.
  */
 @AiDsl
-suspend inline fun <reified A> CoreAIScope.prompt(
+suspend inline fun <reified A> Conversation.prompt(
   model: ChatWithFunctions,
   question: String,
   json: Json = Json {
@@ -38,7 +38,7 @@ suspend inline fun <reified A> CoreAIScope.prompt(
  * @throws IllegalArgumentException if any of [A]'s type arguments contains star projection.
  */
 @AiDsl
-suspend inline fun <reified A> CoreAIScope.prompt(
+suspend inline fun <reified A> Conversation.prompt(
   model: ChatWithFunctions,
   prompt: Prompt,
   json: Json = Json {
@@ -49,7 +49,7 @@ suspend inline fun <reified A> CoreAIScope.prompt(
 ): A = prompt(model, prompt, serializer(), json, promptConfiguration)
 
 @AiDsl
-suspend fun <A> CoreAIScope.prompt(
+suspend fun <A> Conversation.prompt(
   model: ChatWithFunctions,
   prompt: Prompt,
   serializer: KSerializer<A>,
@@ -62,10 +62,9 @@ suspend fun <A> CoreAIScope.prompt(
   val functions = model.generateCFunction(serializer.descriptor)
   return model.prompt(
     prompt,
-    context,
-    conversationId,
-    functions,
+    this,
     { json.decodeFromString(serializer, it) },
+    functions,
     promptConfiguration
   )
 }

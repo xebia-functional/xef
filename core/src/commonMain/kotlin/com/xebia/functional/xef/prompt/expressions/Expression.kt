@@ -1,16 +1,14 @@
 package com.xebia.functional.xef.prompt.expressions
 
-import com.xebia.functional.xef.auto.CoreAIScope
+import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.auto.PromptConfiguration
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.llm.models.chat.Message
-import com.xebia.functional.xef.llm.models.chat.Role
-import com.xebia.functional.xef.prompt.experts.ExpertSystem
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 class Expression(
-  private val scope: CoreAIScope,
+  private val scope: Conversation,
   private val model: ChatWithFunctions,
   val block: suspend Expression.() -> Unit
 ) {
@@ -42,36 +40,19 @@ class Expression(
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
   ): ExpressionResult {
     block()
-    val instructionMessage =
-      Message(
-        role = Role.USER,
-        content =
-          ExpertSystem(
-              system = "You are an expert in replacing variables in templates",
-              query =
-                """
-          |I want to replace the following variables in the following template:
-          |<template>
-          |${messages.joinToString("\n") { it.content }}
-          |</template>
-          |The variables are:
-          |${generationKeys.joinToString("\n") { it }}
-        """
-                  .trimMargin(),
-              instructions =
-                listOf(
-                  "Create a `ReplacedValues` object with the `replacements` where the keys are the variable names and the values are the values to replace them with.",
-                )
-            )
-            .message,
-        name = Role.USER.name
+    val prelude =
+      listOf(
+        Message.systemMessage { "You are an expert in replacing variables in templates" },
+      )
+    val instructionMessages =
+      listOf(
+        Message.assistantMessage { "I will replace all placeholders in the message" },
       )
     val values: ReplacedValues =
       model.prompt(
-        messages = messages + instructionMessage,
-        context = scope.context,
+        messages = prelude + messages + instructionMessages,
+        scope = scope,
         serializer = ReplacedValues.serializer(),
-        conversationId = scope.conversationId,
         promptConfiguration = promptConfiguration
       )
     logger.info { "replaced: ${values.replacements.joinToString { it.key }}" }
@@ -91,7 +72,7 @@ class Expression(
 
   companion object {
     suspend fun run(
-      scope: CoreAIScope,
+      scope: Conversation,
       model: ChatWithFunctions,
       block: suspend Expression.() -> Unit
     ): ExpressionResult = Expression(scope, model, block).run()
