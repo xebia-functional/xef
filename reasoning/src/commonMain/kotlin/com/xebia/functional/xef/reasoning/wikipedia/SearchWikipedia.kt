@@ -20,7 +20,7 @@ constructor(
   override val name: String = "SearchWikipedia"
 
   override val description: String =
-    "Search in Wikipedia for information. The tool input is a simple one line string"
+    "Search primary tool in Wikipedia for information. The tool input is a simple one line string"
 
   override suspend fun invoke(input: String): String {
     val docs = client.search(SearchData(input))

@@ -19,7 +19,7 @@ constructor(
   override val name: String = "SearchWikipediaByPageId"
 
   override val description: String =
-    "Search in Wikipedia for detail information. The tool input is the number of page id"
+    "Search secondary tool in Wikipedia for detail information. The tool input is the number of page id, this tool can only be used with valid Wikipedia page ids returned by the primary search tool"
 
   override suspend fun invoke(input: String): String {
     val docs = client.searchByPageId(SearchDataByPageId(input.toInt()))
