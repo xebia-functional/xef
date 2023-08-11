@@ -39,7 +39,7 @@ fun Routing.routes(persistenceService: PersistenceService) {
                 ?: throw IllegalArgumentException("Not a valid provider")
             val token = call.principal<UserIdPrincipal>()?.name ?: throw IllegalArgumentException("No token found")
             val scope = Conversation(
-                persistenceService.getVectorStore(provider)
+                persistenceService.getVectorStore(provider, token)
             )
             val data = call.receive<ChatCompletionRequest>().toCore()
             val model: OpenAIModel = data.model.toOpenAIModel(token)
