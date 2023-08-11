@@ -10,7 +10,6 @@ import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.llm.models.functions.CFunction
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.vectorstores.Memory
-import com.xebia.functional.xef.vectorstores.VectorStore
 import io.ktor.util.date.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -41,16 +40,8 @@ interface Chat : LLM {
     functions: List<CFunction> = emptyList(),
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
   ): Flow<String> = flow {
-    val memories: List<Memory> = memories(scope, promptConfiguration)
-
     val messagesForRequest =
-      fitMessagesByTokens(
-        messagesFromMemory(memories),
-        prompt.toMessages(),
-        scope.store,
-        modelType,
-        promptConfiguration
-      )
+      fitMessagesByTokens(prompt.toMessages(), scope, modelType, promptConfiguration)
 
     val request =
       ChatCompletionRequest(
@@ -110,15 +101,7 @@ interface Chat : LLM {
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
   ): List<String> {
 
-    val memories: List<Memory> = memories(scope, promptConfiguration)
-    val messagesForRequest =
-      fitMessagesByTokens(
-        messagesFromMemory(memories),
-        messages,
-        scope.store,
-        modelType,
-        promptConfiguration
-      )
+    val messagesForRequest = fitMessagesByTokens(messages, scope, modelType, promptConfiguration)
 
     fun chatRequest(): ChatCompletionRequest =
       ChatCompletionRequest(
@@ -181,14 +164,17 @@ interface Chat : LLM {
         Memory(
           conversationId = scope.conversationId,
           content = lastRequestMessage,
-          timestamp = getTimeMillis()
+          timestamp = getTimeMillis(),
+          approxTokens = tokensFromMessages(listOf(lastRequestMessage))
         )
+      val responseMessage =
+        Message(role = Role.ASSISTANT, content = buffer.toString(), name = Role.ASSISTANT.name)
       val responseMemory =
         Memory(
           conversationId = scope.conversationId,
-          content =
-            Message(role = Role.ASSISTANT, content = buffer.toString(), name = Role.ASSISTANT.name),
+          content = responseMessage,
           timestamp = getTimeMillis(),
+          approxTokens = tokensFromMessages(listOf(responseMessage))
         )
       scope.store.addMemories(listOf(requestMemory, responseMemory))
     }
@@ -206,19 +192,22 @@ interface Chat : LLM {
         Memory(
           conversationId = scope.conversationId,
           content = requestUserMessage,
-          timestamp = getTimeMillis()
+          timestamp = getTimeMillis(),
+          approxTokens = tokensFromMessages(listOf(requestUserMessage))
+        )
+      val firstChoiceMessage =
+        Message(
+          role = role,
+          content = firstChoice.message?.content
+              ?: firstChoice.message?.functionCall?.arguments ?: "",
+          name = role.name
         )
       val firstChoiceMemory =
         Memory(
           conversationId = scope.conversationId,
-          content =
-            Message(
-              role = role,
-              content = firstChoice.message?.content
-                  ?: firstChoice.message?.functionCall?.arguments ?: "",
-              name = role.name
-            ), //
-          timestamp = getTimeMillis()
+          content = firstChoiceMessage,
+          timestamp = getTimeMillis(),
+          approxTokens = tokensFromMessages(listOf(firstChoiceMessage))
         )
       scope.store.addMemories(listOf(requestMemory, firstChoiceMemory))
     }
@@ -236,14 +225,17 @@ interface Chat : LLM {
         Memory(
           conversationId = scope.conversationId,
           content = requestUserMessage,
-          timestamp = getTimeMillis()
+          timestamp = getTimeMillis(),
+          approxTokens = tokensFromMessages(listOf(requestUserMessage))
         )
+      val firstChoiceMessage =
+        Message(role = role, content = firstChoice.message?.content ?: "", name = role.name)
       val firstChoiceMemory =
         Memory(
           conversationId = scope.conversationId,
-          content =
-            Message(role = role, content = firstChoice.message?.content ?: "", name = role.name),
-          timestamp = getTimeMillis()
+          content = firstChoiceMessage,
+          timestamp = getTimeMillis(),
+          approxTokens = tokensFromMessages(listOf(firstChoiceMessage))
         )
       scope.store.addMemories(listOf(requestMemory, firstChoiceMemory))
     }
@@ -252,23 +244,21 @@ interface Chat : LLM {
   private fun messagesFromMemory(memories: List<Memory>): List<Message> =
     memories.map { it.content }
 
-  private suspend fun memories(
-    scope: Conversation,
-    promptConfiguration: PromptConfiguration
-  ): List<Memory> =
-    if (scope.conversationId != null) {
-      scope.store.memories(scope.conversationId, promptConfiguration.memoryLimit)
+  private suspend fun Conversation.memories(limitTokens: Int): List<Memory> =
+    if (conversationId != null) {
+      store.memories(conversationId, limitTokens)
     } else {
       emptyList()
     }
 
   private suspend fun fitMessagesByTokens(
-    history: List<Message>,
     messages: List<Message>,
-    context: VectorStore,
+    scope: Conversation,
     modelType: ModelType,
     promptConfiguration: PromptConfiguration,
   ): List<Message> {
+
+    // calculate tokens for history and context
     val maxContextLength: Int = modelType.maxContextLength
     val remainingTokens: Int = maxContextLength - promptConfiguration.minResponseTokens
 
@@ -284,24 +274,39 @@ interface Chat : LLM {
     val contextPercent = promptConfiguration.messagePolicy.contextPercent
 
     val maxHistoryTokens = (remainingTokensForContexts * historyPercent) / 100
-
-    val historyMessagesWithTokens = history.map { Pair(it, tokensFromMessages(listOf(it))) }
-
-    val totalTokenWithMessages =
-      historyMessagesWithTokens.foldRight(Pair(0, emptyList<Message>())) { pair, acc ->
-        if (acc.first + pair.second > maxHistoryTokens) {
-          acc
-        } else {
-          Pair(acc.first + pair.second, acc.second + pair.first)
-        }
-      }
-
-    val historyAllowed = totalTokenWithMessages.second.reversed()
-
     val maxContextTokens = (remainingTokensForContexts * contextPercent) / 100
 
+    // calculate messages for history based on tokens
+
+    val memories: List<Memory> =
+      scope.memories(maxHistoryTokens + promptConfiguration.messagePolicy.historyPaddingTokens)
+
+    val historyAllowed =
+      if (memories.isNotEmpty()) {
+        val history = messagesFromMemory(memories)
+
+        // since we have the approximate tokens in memory, we need to fit the messages back to the
+        // number of tokens if necessary
+        val historyTokens = tokensFromMessages(history)
+        if (historyTokens <= maxHistoryTokens) history
+        else {
+          val historyMessagesWithTokens = history.map { Pair(it, tokensFromMessages(listOf(it))) }
+
+          val totalTokenWithMessages =
+            historyMessagesWithTokens.foldRight(Pair(0, emptyList<Message>())) { pair, acc ->
+              if (acc.first + pair.second > maxHistoryTokens) {
+                acc
+              } else {
+                Pair(acc.first + pair.second, acc.second + pair.first)
+              }
+            }
+          totalTokenWithMessages.second.reversed()
+        }
+      } else emptyList()
+
+    // calculate messages for context based on tokens
     val ctxInfo =
-      context.similaritySearch(
+      scope.store.similaritySearch(
         messages.joinToString("\n") { it.content },
         promptConfiguration.docsInContext,
       )

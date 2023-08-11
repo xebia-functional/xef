@@ -23,7 +23,8 @@ val createMemoryTable: String =
        conversation_id TEXT NOT NULL,
        role TEXT NOT NULL,
        content TEXT UNIQUE NOT NULL,
-       timestamp BIGINT NOT NULL
+       timestamp BIGINT NOT NULL,
+       approx_tokens INT NOT NULL
      );"""
     .trimIndent()
 
@@ -95,10 +96,34 @@ val getCollectionById: String =
     .trimIndent()
 
 val getMemoriesByConversationId: String =
-  """SELECT * FROM xef_memory
-     WHERE conversation_id = ?
-     ORDER BY timestamp ASC LIMIT ?;"""
-    .trimIndent()
+    """WITH ConversationTokens AS (
+    SELECT
+        uuid,
+        conversation_id,
+        role,
+        content,
+        timestamp,
+        approx_tokens,
+        SUM(approx_tokens) OVER (PARTITION BY conversation_id ORDER BY timestamp DESC) AS running_tokens
+    FROM
+        xef_memory
+    WHERE
+        conversation_id = ?
+    )
+    SELECT
+        uuid,
+        conversation_id,
+        role,
+        content,
+        timestamp,
+        approx_tokens
+    FROM
+        ConversationTokens
+    WHERE
+        running_tokens <= ?
+    ORDER BY
+        timestamp DESC;
+    """.trimIndent()
 
 val addNewDocument: String =
   """INSERT INTO xef_embeddings(uuid, collection_id, embedding, content)

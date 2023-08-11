@@ -9,6 +9,7 @@ import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.document.Document
 import org.apache.lucene.document.Field
+import org.apache.lucene.document.IntField
 import org.apache.lucene.document.KnnFloatVectorField
 import org.apache.lucene.document.LongField
 import org.apache.lucene.document.TextField
@@ -17,9 +18,7 @@ import org.apache.lucene.index.IndexWriter
 import org.apache.lucene.index.IndexWriterConfig
 import org.apache.lucene.index.VectorSimilarityFunction
 import org.apache.lucene.queries.mlt.MoreLikeThis
-import org.apache.lucene.search.IndexSearcher
-import org.apache.lucene.search.KnnFloatVectorQuery
-import org.apache.lucene.search.TopDocs
+import org.apache.lucene.search.*
 import org.apache.lucene.store.Directory
 import org.apache.lucene.store.MMapDirectory
 import java.io.StringReader
@@ -42,22 +41,36 @@ open class Lucene(
           add(TextField("content", it.content.content, Field.Store.YES))
           add(TextField("role", it.content.role.name.lowercase(), Field.Store.YES))
           add(LongField("timestamp", it.timestamp, Field.Store.YES))
+          add(IntField("approxTokens", it.approxTokens, Field.Store.YES))
         }
       writer.addDocument(doc)
     }
     writer.commit()
   }
 
-  override suspend fun memories(conversationId: ConversationId, limit: Int): List<Memory> {
+  override suspend fun memories(conversationId: ConversationId, limitTokens: Int): List<Memory> {
     val reader = DirectoryReader.open(writer)
     val mlt = MoreLikeThis(reader)
     mlt.analyzer = StandardAnalyzer()
     mlt.minTermFreq = 1
     mlt.minDocFreq = 1
     mlt.minWordLen = 3
+    val sort = Sort(SortField("timestamp", SortField.Type.LONG, true))
     val luceneQuery = mlt.like("conversationId", StringReader(conversationId.value))
     val searcher = IndexSearcher(reader)
-    return IndexSearcher(reader).search(luceneQuery, limit).extractMemory(searcher)
+
+    val docs = IndexSearcher(reader).search(luceneQuery, reader.numDocs(), sort)
+
+    return docs.scoreDocs.fold(Pair(0, emptyList<ScoreDoc>())) {
+        (accTokens, list), scoreDoc ->
+        val doc = searcher.storedFields().document(scoreDoc.doc)
+        val totalTokens = accTokens + doc.get("approxTokens").toInt()
+        if (totalTokens <= limitTokens) {
+            Pair(totalTokens, list + scoreDoc)
+        } else {
+            Pair(accTokens, list)
+        }
+    }.second.extractMemory(searcher)
   }
 
   override suspend fun addTexts(texts: List<String>) {
@@ -92,8 +105,8 @@ open class Lucene(
     return searcher.search(luceneQuery, limit).extract(searcher)
   }
 
-  private fun TopDocs.extractMemory(searcher: IndexSearcher): List<Memory> =
-    scoreDocs.map {
+  private fun List<ScoreDoc>.extractMemory(searcher: IndexSearcher): List<Memory> =
+    map {
       val doc = searcher.storedFields().document(it.doc)
       val role = Role.valueOf(doc.get("role").uppercase())
       Memory(
@@ -103,7 +116,8 @@ open class Lucene(
           role = role,
           name = role.name
         ),
-        timestamp = doc.get("timestamp").toLong()
+        timestamp = doc.get("timestamp").toLong(),
+        approxTokens = doc.get("approxTokens").toInt()
       )
     }
 

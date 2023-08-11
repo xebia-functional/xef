@@ -77,5 +77,6 @@ class PromptConfiguration(
  */
 class MessagePolicy(
   val historyPercent: Int = 50,
+  val historyPaddingTokens: Int = 100,
   val contextPercent: Int = 50,
 )

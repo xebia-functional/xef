@@ -11,10 +11,22 @@ import com.xebia.functional.xef.embeddings.Embedding
 class CombinedVectorStore(private val top: VectorStore, private val bottom: VectorStore) :
   VectorStore by top {
 
-  override suspend fun memories(conversationId: ConversationId, limit: Int): List<Memory> {
-    val bottomResults = bottom.memories(conversationId, limit)
-    val topResults = top.memories(conversationId, limit)
-    return (topResults + bottomResults).sortedBy { it.timestamp }.takeLast(limit)
+  override suspend fun memories(conversationId: ConversationId, limitTokens: Int): List<Memory> {
+    val bottomResults = bottom.memories(conversationId, limitTokens)
+    val topResults = top.memories(conversationId, limitTokens)
+
+    return (topResults + bottomResults)
+      .sortedByDescending { it.timestamp }
+      .fold(Pair(0, emptyList<Memory>())) { (accTokens, list), memory ->
+        val totalTokens = accTokens + memory.approxTokens
+        if (totalTokens <= limitTokens) {
+          Pair(totalTokens, list + memory)
+        } else {
+          Pair(accTokens, list)
+        }
+      }
+      .second
+      .reversed()
   }
 
   override suspend fun similaritySearch(query: String, limit: Int): List<String> {
