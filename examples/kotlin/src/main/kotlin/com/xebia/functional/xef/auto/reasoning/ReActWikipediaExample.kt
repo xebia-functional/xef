@@ -4,9 +4,11 @@ import com.xebia.functional.xef.auto.conversation
 import com.xebia.functional.xef.auto.llm.openai.OpenAI
 import com.xebia.functional.xef.auto.llm.openai.getOrThrow
 import com.xebia.functional.xef.llm.models.chat.Message
-import com.xebia.functional.xef.reasoning.search.SearchWikipedia
 import com.xebia.functional.xef.reasoning.tools.LLMTool
 import com.xebia.functional.xef.reasoning.tools.ReActAgent
+import com.xebia.functional.xef.reasoning.wikipedia.SearchWikipedia
+import com.xebia.functional.xef.reasoning.wikipedia.SearchWikipediaByPageId
+import com.xebia.functional.xef.reasoning.wikipedia.SearchWikipediaByTitle
 
 suspend fun main() {
     conversation {
@@ -19,6 +21,8 @@ suspend fun main() {
             scope = this
         )
         val search = SearchWikipedia(model = model, scope = this)
+        val searchByPageId = SearchWikipediaByPageId(model = model, scope = this)
+        val searchByTitle = SearchWikipediaByTitle(model = model, scope = this)
 
         val reActAgent = ReActAgent(
             model = serialization,
@@ -26,6 +30,8 @@ suspend fun main() {
             tools = listOf(
                 search,
                 math,
+                searchByPageId,
+                searchByTitle
             ),
         )
         val result =

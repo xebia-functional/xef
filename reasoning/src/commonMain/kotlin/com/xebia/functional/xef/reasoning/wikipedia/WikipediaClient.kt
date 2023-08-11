@@ -37,9 +37,9 @@ class WikipediaClient : AutoCloseable, AutoClose by autoClose() {
 
   data class SearchData(val search: String)
 
-  data class SearchDataByPageId(val pageId: Int?)
+  data class SearchDataByPageId(val pageId: Int)
 
-  data class SearchDataByTitle(val title: String?)
+  data class SearchDataByTitle(val title: String)
 
   suspend fun search(searchData: SearchData): SearchResult {
     return http
@@ -67,7 +67,7 @@ class WikipediaClient : AutoCloseable, AutoClose by autoClose() {
   suspend fun searchByTitle(searchData: SearchDataByTitle): Page {
     return http
       .get(
-        "https://en.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&exintro&explaintext&redirects=1&titles=${searchData.title?.encodeURLQueryComponent()}"
+        "https://en.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&exintro&explaintext&redirects=1&titles=${searchData.title.encodeURLQueryComponent()}"
       ) {
         contentType(ContentType.Application.Json)
       }

@@ -7,7 +7,7 @@ import com.xebia.functional.xef.auto.llm.openai.getOrThrow
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.prompt.expressions.Expression
 import com.xebia.functional.xef.prompt.expressions.ExpressionResult
-import com.xebia.functional.xef.reasoning.search.Search
+import com.xebia.functional.xef.reasoning.serpapi.Search
 import com.xebia.functional.xef.reasoning.tools.LLMTool
 import com.xebia.functional.xef.reasoning.tools.Tool
 
