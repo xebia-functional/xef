@@ -3,8 +3,6 @@ package com.xebia.functional.xef.server.services
 import com.xebia.functional.xef.auto.autoClose
 import com.xebia.functional.xef.auto.llm.openai.OpenAI
 import com.xebia.functional.xef.auto.llm.openai.OpenAIEmbeddings
-import com.xebia.functional.xef.auto.llm.openai.OpenAIModel
-import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingModel
 import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
 import com.xebia.functional.xef.server.http.routes.Provider
@@ -22,7 +20,10 @@ abstract class PersistenceService {
 
     abstract fun initDatabase(): Unit
 
-    abstract fun getVectorStore(provider: Provider = Provider.OPENAI): VectorStore
+    abstract fun getVectorStore(
+        provider: Provider = Provider.OPENAI,
+        token: String
+    ): VectorStore
 }
 
 data class DBConfig(
@@ -74,10 +75,13 @@ class PostgresXefService(
         }
     }
 
-    override fun getVectorStore(provider: Provider): VectorStore {
+    override fun getVectorStore(
+        provider: Provider,
+        token: String
+    ): VectorStore {
         val embeddings = when (provider) {
-            Provider.OPENAI -> OpenAIEmbeddings(OpenAI.DEFAULT_EMBEDDING)
-            else -> OpenAIEmbeddings(OpenAI.DEFAULT_EMBEDDING)
+            Provider.OPENAI -> OpenAIEmbeddings(OpenAI(token).DEFAULT_EMBEDDING)
+            else -> OpenAIEmbeddings(OpenAI(token).DEFAULT_EMBEDDING)
         }
         val embeddingModel = EmbeddingModel.TEXT_EMBEDDING_ADA_002
 

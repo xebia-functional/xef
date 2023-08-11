@@ -10,8 +10,8 @@ import com.xebia.functional.xef.reasoning.tools.ReActAgent
 
 suspend fun main() {
   conversation {
-    val model = OpenAI.DEFAULT_CHAT
-    val serialization = OpenAI.DEFAULT_SERIALIZATION
+    val model = OpenAI().DEFAULT_CHAT
+    val serialization = OpenAI().DEFAULT_SERIALIZATION
     val math =
       LLMTool.create(
         name = "Calculator",

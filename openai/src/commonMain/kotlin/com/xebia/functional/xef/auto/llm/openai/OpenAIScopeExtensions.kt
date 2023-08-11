@@ -12,14 +12,14 @@ import kotlinx.serialization.serializer
 @AiDsl
 suspend fun Conversation.promptMessage(
   prompt: String,
-  model: Chat = OpenAI.DEFAULT_CHAT,
+  model: Chat = OpenAI().DEFAULT_CHAT,
   promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS,
 ): String = model.promptMessage(prompt, this, promptConfiguration)
 
 @AiDsl
 suspend fun Conversation.promptMessage(
   prompt: String,
-  model: Chat = OpenAI.DEFAULT_CHAT,
+  model: Chat = OpenAI().DEFAULT_CHAT,
   functions: List<CFunction> = emptyList(),
   promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS,
 ): List<String> = model.promptMessages(prompt, this, functions, promptConfiguration)
@@ -27,14 +27,14 @@ suspend fun Conversation.promptMessage(
 @AiDsl
 suspend fun Conversation.promptMessage(
   prompt: Prompt,
-  model: Chat = OpenAI.DEFAULT_CHAT,
+  model: Chat = OpenAI().DEFAULT_CHAT,
   functions: List<CFunction> = emptyList(),
   promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS,
 ): List<String> = model.promptMessages(prompt, this, functions, promptConfiguration)
 
 @AiDsl
 suspend inline fun <reified A> Conversation.prompt(
-  model: ChatWithFunctions = OpenAI.DEFAULT_SERIALIZATION,
+  model: ChatWithFunctions = OpenAI().DEFAULT_SERIALIZATION,
   promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS,
 ): A =
   prompt(
@@ -47,7 +47,7 @@ suspend inline fun <reified A> Conversation.prompt(
 @AiDsl
 suspend inline fun <reified A> Conversation.prompt(
   prompt: String,
-  model: ChatWithFunctions = OpenAI.DEFAULT_SERIALIZATION,
+  model: ChatWithFunctions = OpenAI().DEFAULT_SERIALIZATION,
   promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS,
 ): A =
   prompt(
@@ -60,7 +60,7 @@ suspend inline fun <reified A> Conversation.prompt(
 @AiDsl
 suspend inline fun <reified A> Conversation.prompt(
   prompt: Prompt,
-  model: ChatWithFunctions = OpenAI.DEFAULT_SERIALIZATION,
+  model: ChatWithFunctions = OpenAI().DEFAULT_SERIALIZATION,
   promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS,
 ): A =
   prompt(
@@ -73,7 +73,7 @@ suspend inline fun <reified A> Conversation.prompt(
 @AiDsl
 suspend inline fun <reified A> Conversation.image(
   prompt: String,
-  model: ChatWithFunctions = OpenAI.DEFAULT_SERIALIZATION,
+  model: ChatWithFunctions = OpenAI().DEFAULT_SERIALIZATION,
   promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS,
 ): A =
   prompt(
