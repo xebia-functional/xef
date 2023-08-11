@@ -11,14 +11,14 @@ enum class PGDistanceStrategy(val strategy: String) {
 }
 
 val createCollections: String =
-  """CREATE TABLE xef_collections (
+  """CREATE TABLE IF NOT EXISTS xef_collections (
        uuid TEXT PRIMARY KEY,
        name TEXT UNIQUE NOT NULL
      );"""
     .trimIndent()
 
 val createMemoryTable: String =
-  """CREATE TABLE xef_memory (
+  """CREATE TABLE IF NOT EXISTS xef_memory (
        uuid TEXT PRIMARY KEY,
        conversation_id TEXT NOT NULL,
        role TEXT NOT NULL,

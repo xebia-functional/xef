@@ -1,22 +1,24 @@
 package com.xebia.functional.xef.auto
 
-import com.xebia.functional.xef.auto.llm.openai.getOrElse
+import com.xebia.functional.xef.auto.llm.openai.conversation
 import com.xebia.functional.xef.auto.llm.openai.promptMessage
 
 suspend fun main() {
-    conversation {
-
-        val emailMessage = """
+  conversation {
+    val emailMessage =
+      """
                 |You are a Marketing Responsible and have the information about different products. You have to prepare 
                 |an email template with the personal information
-            """.trimMargin()
+            """
+        .trimMargin()
 
-        val email: String = promptMessage(emailMessage)
+    val email: String = promptMessage(emailMessage)
 
-        println("Prompt:\n $emailMessage")
-        println("Response:\n $email")
+    println("Prompt:\n $emailMessage")
+    println("Response:\n $email")
 
-        val summarizePrompt = """
+    val summarizePrompt =
+      """
                 |You are a Marketing Responsible and have the information about the best rated products. 
                 |Summarize the next information: 
                 |Love this product and so does my husband! He tried it because his face gets chapped and red from 
@@ -30,22 +32,23 @@ suspend fun main() {
                 |previously but I don't apply much. I enjoy cucumber like scent of the face lotion. I have combination 
                 |skin and never broke out using this. This is my daily skincare product with or without makeup. And it 
                 |has SPF but I also apply Kravebeauty SPF on top as well for extra protection
-            """.trimMargin()
+            """
+        .trimMargin()
 
-        val summarize: String = promptMessage(summarizePrompt)
+    val summarize: String = promptMessage(summarizePrompt)
 
-        println("Prompt:\n $summarizePrompt}")
-        println("Response:\n $summarize")
+    println("Prompt:\n $summarizePrompt}")
+    println("Response:\n $summarize")
 
-        val meaningPrompt = """
+    val meaningPrompt =
+      """
                 |What is the meaning of life?
-            """.trimMargin()
+            """
+        .trimMargin()
 
-        val meaning: String = promptMessage(meaningPrompt)
+    val meaning: String = promptMessage(meaningPrompt)
 
-        println("Prompt:\n $meaningPrompt}")
-        println("Response:\n $meaning")
-
-
-    }.getOrElse { println(it) }
+    println("Prompt:\n $meaningPrompt}")
+    println("Response:\n $meaning")
+  }
 }

@@ -1,16 +1,13 @@
 package com.xebia.functional.xef.auto
 
 import com.xebia.functional.xef.AIError
-import com.xebia.functional.xef.embeddings.Embeddings
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.llm.Images
 import com.xebia.functional.xef.llm.models.functions.CFunction
 import com.xebia.functional.xef.llm.models.images.ImagesGenerationResponse
 import com.xebia.functional.xef.prompt.Prompt
-import com.xebia.functional.xef.vectorstores.CombinedVectorStore
 import com.xebia.functional.xef.vectorstores.ConversationId
-import com.xebia.functional.xef.vectorstores.LocalVectorStore
 import com.xebia.functional.xef.vectorstores.VectorStore
 import kotlin.jvm.JvmName
 import kotlin.jvm.JvmOverloads
@@ -26,75 +23,18 @@ import kotlinx.uuid.generateUUID
 class Conversation
 @JvmOverloads
 constructor(
-  val embeddings: Embeddings,
-  val store: VectorStore = LocalVectorStore(embeddings),
+  val store: VectorStore,
   val conversationId: ConversationId? = ConversationId(UUID.generateUUID().toString())
 ) : AutoCloseable, AutoClose by autoClose() {
 
-  /**
-   * Allows invoking [AI] values in the context of this [Conversation].
-   *
-   * ```kotlin
-   * data class CovidNews(val title: String, val content: String)
-   * val covidNewsToday = ai {
-   *   val now = LocalDateTime.now()
-   *   agent(search("$now covid-19 News")) {
-   *     prompt<CovidNews>("write a paragraph of about 300 words about the latest news on covid-19 on $now")
-   *   }
-   * }
-   *
-   * data class BreakingNews(val title: String, val content: String, val date: String)
-   *
-   * fun breakingNews(date: LocalDateTime): AI<BreakingNews> = ai {
-   *   agent(search("$date Breaking News")) {
-   *     prompt("Summarize all breaking news that happened on ${now.minusDays(it)} in about 300 words")
-   *   }
-   * }
-   *
-   * suspend fun AIScope.breakingNewsLastWeek(): List<BreakingNews> {
-   *   val now = LocalDateTime.now()
-   *   return (0..7).parMap { breakingNews(now.minusDays(it)).invoke() }
-   * }
-   *
-   * fun news(): AI<List<News>> = ai {
-   *   val covidNews = parZip(
-   *     { covidNewsToday() },
-   *     { breakingNewsLastWeek() }
-   *   ) { covidNews, breakingNews -> listOf(covidNews) + breakingNews }
-   * }
-   * ```
-   */
-  @AiDsl @JvmName("invokeAI") suspend operator fun <A> AI<A>.invoke(): A = invoke(this@Conversation)
-
   @AiDsl
-  suspend fun extendContext(vararg docs: String) {
+  suspend fun addContext(vararg docs: String) {
     store.addTexts(docs.toList())
   }
 
-  /**
-   * Creates a nested scope that combines the provided [store] with the outer _store_. This is done
-   * using [CombinedVectorStore].
-   *
-   * **Note:** if the implementation of [VectorStore] is relying on resources you're manually
-   * responsible for closing any potential resources.
-   */
   @AiDsl
-  suspend fun <A> contextScope(store: VectorStore, block: AI<A>): A =
-    Conversation(
-        this@Conversation.embeddings,
-        CombinedVectorStore(store, this@Conversation.store),
-      )
-      .block()
-
-  @AiDsl
-  suspend fun <A> contextScope(block: AI<A>): A = contextScope(LocalVectorStore(embeddings), block)
-
-  /** Add new [docs] to the [store], and then executes the [block]. */
-  @AiDsl
-  @JvmName("contextScopeWithDocs")
-  suspend fun <A> contextScope(docs: List<String>, block: AI<A>): A = contextScope {
-    extendContext(*docs.toTypedArray())
-    block(this)
+  suspend fun addContext(docs: Iterable<String>) {
+    store.addTexts(docs.toList())
   }
 
   @AiDsl

@@ -6,11 +6,13 @@ import com.xebia.functional.xef.auto.llm.openai.OpenAIEmbeddings;
 import com.xebia.functional.xef.embeddings.Embeddings;
 import com.xebia.functional.xef.vectorstores.LocalVectorStore;
 import com.xebia.functional.xef.vectorstores.VectorStore;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import kotlin.coroutines.Continuation;
 import kotlin.jvm.functions.Function1;
 import kotlinx.coroutines.CoroutineScope;
@@ -28,19 +30,19 @@ public class ExecutionContext implements AutoCloseable {
     private final Conversation scope;
     private final VectorStore context;
 
-    public ExecutionContext(){
-        this(Executors.newCachedThreadPool(new ExecutionContext.AIScopeThreadFactory()),  new OpenAIEmbeddings(OpenAI.DEFAULT_EMBEDDING));
+    public ExecutionContext() {
+        this(Executors.newCachedThreadPool(new ExecutionContext.AIScopeThreadFactory()), new OpenAIEmbeddings(new OpenAI().DEFAULT_EMBEDDING));
     }
 
-    public ExecutionContext(ExecutorService executorService){
-        this(executorService,  new OpenAIEmbeddings(OpenAI.DEFAULT_EMBEDDING));
+    public ExecutionContext(ExecutorService executorService) {
+        this(executorService, new OpenAIEmbeddings(new OpenAI().DEFAULT_EMBEDDING));
     }
 
     public ExecutionContext(ExecutorService executorService, Embeddings embeddings) {
         this.executorService = executorService;
         this.coroutineScope = () -> ExecutorsKt.from(executorService).plus(JobKt.Job(null));
         context = new LocalVectorStore(embeddings);
-        this.scope = new Conversation(embeddings, context);
+        this.scope = new Conversation(context);
     }
 
     protected <A> CompletableFuture<A> future(Function1<? super Continuation<? super A>, ? extends Object> block) {

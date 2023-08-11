@@ -2,20 +2,22 @@ package com.xebia.functional.xef.auto.reasoning
 
 import com.xebia.functional.xef.auto.conversation
 import com.xebia.functional.xef.auto.llm.openai.OpenAI
-import com.xebia.functional.xef.auto.llm.openai.getOrThrow
+import com.xebia.functional.xef.auto.llm.openai.conversation
 import com.xebia.functional.xef.reasoning.text.Text
 import com.xebia.functional.xef.reasoning.text.summarize.SummaryLength
 
 suspend fun main() {
   conversation {
-    val text = Text(model = OpenAI.DEFAULT_CHAT, scope = this)
+    val text = Text(model = OpenAI().DEFAULT_CHAT, scope = this)
 
-    val inputText = """
+    val inputText =
+      """
        The recent advancements in artificial intelligence have had a significant impact on various industries. 
        Natural Language Processing (NLP) is one such area that has gained a lot of attention. 
        NLP deals with the interaction between computers and human language, and it plays a crucial role in text analysis and understanding. 
        In this example, we will explore various NLP tasks using the capabilities of the Xebia Xef AI Reasoning Framework.
-    """.trimIndent()
+    """
+        .trimIndent()
 
     val dataAnonymizationResult = text.dataAnonymization(inputText)
     println("Data Anonymization Result:")
@@ -29,9 +31,7 @@ suspend fun main() {
 
     val emotionDetectionResult = text.emotionDetection(inputText)
 
-    val entityRecognitionResult = text.entityRecognition(
-      inputText
-    )
+    val entityRecognitionResult = text.entityRecognition(inputText)
 
     val eventExtractionResult = text.eventExtraction(inputText)
 
@@ -51,10 +51,8 @@ suspend fun main() {
 
     val sentimentAnalysisResult = text.sentimentAnalysis(inputText)
 
-    val summarizeResult = text.summarize.summarizeLargeText(
-      text = inputText,
-      summaryLength = SummaryLength.DEFAULT
-    )
+    val summarizeResult =
+      text.summarize.summarizeLargeText(text = inputText, summaryLength = SummaryLength.DEFAULT)
 
     val textSimplificationResult = text.textSimplification(inputText)
 
@@ -106,7 +104,5 @@ suspend fun main() {
     println()
     println("Text Simplification Result:")
     println(textSimplificationResult)
-
-  }.getOrThrow()
-
+  }
 }

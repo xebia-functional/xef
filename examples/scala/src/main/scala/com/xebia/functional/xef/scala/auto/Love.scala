@@ -6,7 +6,7 @@ import io.circe.Decoder
 private final case class Love(emojis: List[String]) derives SerialDescriptor, Decoder
 
 @main def runLove: Unit =
-  ai {
+  conversation {
     val love = prompt[Love]("Tell me you like me with just emojis")
     println(love.emojis.mkString(""))
-  }.getOrElse(ex => println(ex.getMessage))
+  }

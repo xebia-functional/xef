@@ -10,7 +10,7 @@ private final case class Invention(name: String, inventor: String, year: Int, pu
 private final case class Story(animal: Animal, invention: Invention, story: String) derives SerialDescriptor, Decoder
 
 @main def runAnimal: Unit =
-  ai {
+  conversation {
     val animal: Animal = prompt("A unique animal species")
     val invention: Invention = prompt("A groundbreaking invention from the 20th century.")
 
@@ -24,4 +24,4 @@ private final case class Story(animal: Animal, invention: Invention, story: Stri
     val story: Story = prompt(storyPrompt)
 
     println(s"Story about ${animal.name} and ${invention.name}: ${story.story}")
-  }.getOrElse(ex => println(ex.getMessage))
+  }

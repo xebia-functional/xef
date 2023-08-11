@@ -1,26 +1,25 @@
 package com.xebia.functional.xef.auto
 
-import com.xebia.functional.xef.auto.llm.openai.getOrElse
+import com.xebia.functional.xef.auto.llm.openai.conversation
 import com.xebia.functional.xef.auto.llm.openai.prompt
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class Planet(val name: String, val distanceFromSun: Double, val moons: List<Moon>)
 
-@Serializable
-data class Moon(val name: String, val distanceFromPlanet: Double)
+@Serializable data class Moon(val name: String, val distanceFromPlanet: Double)
 
-suspend fun main() =
-    conversation {
-      val earth: Planet = prompt("Information about Earth and its moon.")
-      val mars: Planet = prompt("Information about Mars and its moons.")
+suspend fun main() = conversation {
+  val earth: Planet = prompt("Information about Earth and its moon.")
+  val mars: Planet = prompt("Information about Mars and its moons.")
 
-      fun planetInfo(planet: Planet): String {
-        return """${planet.name} is ${planet.distanceFromSun} million km away from the Sun.
+  fun planetInfo(planet: Planet): String {
+    return """${planet.name} is ${planet.distanceFromSun} million km away from the Sun.
               |It has the following moons:
               |${planet.moons.joinToString("\n") { "  - ${it.name}: ${it.distanceFromPlanet} km away from ${planet.name}" }}
-              """.trimMargin()
-      }
+              """
+      .trimMargin()
+  }
 
-      println("Celestial bodies information:\n\n${planetInfo(earth)}\n\n${planetInfo(mars)}")
-    }.getOrElse { println(it) }
+  println("Celestial bodies information:\n\n${planetInfo(earth)}\n\n${planetInfo(mars)}")
+}

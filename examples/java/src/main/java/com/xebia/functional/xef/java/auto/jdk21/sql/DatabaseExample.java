@@ -19,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class DatabaseExample {
 
-    private static final OpenAIModel MODEL = OpenAI.DEFAULT_CHAT;
+    private static final OpenAIModel MODEL = new OpenAI().DEFAULT_CHAT;
     private static PrintStream out = System.out;
     private static ConsoleUtil util = new ConsoleUtil();
 

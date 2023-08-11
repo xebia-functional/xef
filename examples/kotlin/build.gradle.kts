@@ -1,6 +1,7 @@
 plugins {
   id(libs.plugins.kotlin.jvm.get().pluginId)
   id(libs.plugins.kotlinx.serialization.get().pluginId)
+  alias(libs.plugins.spotless)
 }
 
 repositories {
@@ -32,6 +33,15 @@ dependencies {
   implementation(libs.okio)
   implementation(libs.jdbc.mysql.connector)
   api(libs.ktor.client)
+}
+
+spotless {
+  kotlin {
+    target("**/*.kt")
+    ktfmt().googleStyle().configure {
+      it.setRemoveUnusedImport(true)
+    }
+  }
 }
 
 tasks.getByName<Copy>("processResources") {

@@ -1,0 +1,34 @@
+version: "3.5"
+
+services:
+  xef-vector-store-postgres:
+    container_name: xef-vector-store-postgres
+    image: "ankane/pgvector:v0.4.4"
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgres" ]
+      interval: 2s
+      timeout: 2s
+      retries: 5
+    restart: always
+    environment:
+      POSTGRES_DB: xef-vector-store
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+
+  xef-db-postgres:
+    container_name: xef-db-postgres
+    image: "postgres:alpine3.18"
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgres" ]
+      interval: 2s
+      timeout: 2s
+      retries: 5
+    restart: always
+    environment:
+      POSTGRES_DB: xefdb
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
