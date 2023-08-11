@@ -70,7 +70,7 @@ open class Lucene(
         } else {
             Pair(accTokens, list)
         }
-    }.second.extractMemory(searcher)
+    }.second.reversed().extractMemory(searcher)
   }
 
   override suspend fun addTexts(texts: List<String>) {
