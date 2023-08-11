@@ -7,10 +7,10 @@ suspend fun main() {
   conversation {
     val client = WikipediaClient()
 
-    val searchDataByPageId = WikipediaClient.SearchDataByPageId(pageId = 5222)
+    val searchDataByPageId = WikipediaClient.SearchDataByPageId(5222)
     val answerByPageId = client.searchByPageId(searchDataByPageId)
 
-    val searchDataByTitle = WikipediaClient.SearchDataByTitle(title = "Departments of Colombia")
+    val searchDataByTitle = WikipediaClient.SearchDataByTitle("Departments of Colombia")
     val answerByTitle = client.searchByTitle(searchDataByTitle)
 
     println(

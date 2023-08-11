@@ -1,8 +1,7 @@
 package com.xebia.functional.xef.auto.reasoning
 
-import com.xebia.functional.xef.auto.conversation
 import com.xebia.functional.xef.auto.llm.openai.OpenAI
-import com.xebia.functional.xef.auto.llm.openai.getOrThrow
+import com.xebia.functional.xef.auto.llm.openai.conversation
 import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.reasoning.tools.LLMTool
 import com.xebia.functional.xef.reasoning.tools.ReActAgent
@@ -12,8 +11,8 @@ import com.xebia.functional.xef.reasoning.wikipedia.SearchWikipediaByTitle
 
 suspend fun main() {
     conversation {
-        val model = OpenAI.DEFAULT_CHAT
-        val serialization = OpenAI.DEFAULT_SERIALIZATION
+        val model = OpenAI().DEFAULT_CHAT
+        val serialization = OpenAI().DEFAULT_SERIALIZATION
         val math = LLMTool.create(
             name = "Calculator",
             description = "Perform math operations and calculations processing them with an LLM model. The tool input is a simple string containing the operation to solve expressed in numbers and math symbols.",
@@ -42,5 +41,5 @@ suspend fun main() {
                     })
             )
         println(result)
-    }.getOrThrow()
+    }
 }
