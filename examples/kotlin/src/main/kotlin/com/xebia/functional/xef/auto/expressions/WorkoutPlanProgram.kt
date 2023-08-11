@@ -46,7 +46,7 @@ suspend fun taskSplitter(
 suspend fun main() {
 
   conversation {
-    val model = OpenAI.DEFAULT_SERIALIZATION
+    val model = OpenAI().DEFAULT_SERIALIZATION
     val math =
       LLMTool.create(
         name = "Calculator",
