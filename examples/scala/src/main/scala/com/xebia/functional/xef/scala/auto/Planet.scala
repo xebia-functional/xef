@@ -15,9 +15,9 @@ private final case class Planet(name: String, distanceFromSun: Double, moons: Li
        |${planet.moons.map(it => s"${it.name}: ${it.distanceFromPlanet} km away from ${planet.name}").mkString("\n")}
     """.stripMargin
   }
-  ai {
+  conversation {
     val earth: Planet = prompt("Information about Earth and its moon.")
     val mars: Planet = prompt("Information about Mars and its moons.")
 
     println(s"Celestial bodies information:\n\n${planetInfo(earth)}\n\n${planetInfo(mars)}")
-  }.getOrElse(ex => println(ex.getMessage))
+  }

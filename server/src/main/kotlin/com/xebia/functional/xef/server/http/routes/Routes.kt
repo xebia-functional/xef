@@ -10,6 +10,7 @@ import com.xebia.functional.xef.auto.llm.openai.OpenAI.Companion.DEFAULT_CHAT
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.llm.models.chat.Role
+import com.xebia.functional.xef.vectorstores.LocalVectorStore
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -25,7 +26,7 @@ fun Routing.routes() {
         post("/chat/completions") {
             val model: Chat = call.request.headers["xef-model"]?.toOpenAIModel() ?: DEFAULT_CHAT
             val token = call.principal<UserIdPrincipal>()?.name ?: throw IllegalArgumentException("No token found")
-            val scope = Conversation(OpenAIEmbeddings(OpenAI(token).GPT_3_5_TURBO_16K))
+            val scope = Conversation(LocalVectorStore(OpenAIEmbeddings(OpenAI(token).GPT_3_5_TURBO_16K)))
             val data = call.receive<ChatCompletionRequest>().toCore()
             response<String, Throwable> {
                 model.promptMessage(

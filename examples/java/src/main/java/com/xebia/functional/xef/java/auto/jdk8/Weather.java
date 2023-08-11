@@ -17,7 +17,8 @@ public class Weather {
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         try (AIScope scope = new AIScope()) {
-            scope.contextScope(scope.search("Weather in Cádiz, Spain"), Weather::clothesRecommend).get();
+            scope.addContext(scope.search("Weather in Cádiz, Spain").get());
+            clothesRecommend(scope).get();
         }
     }
 

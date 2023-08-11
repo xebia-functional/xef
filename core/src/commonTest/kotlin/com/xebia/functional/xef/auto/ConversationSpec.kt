@@ -4,6 +4,7 @@ import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.data.TestEmbeddings
 import com.xebia.functional.xef.data.TestModel
 import com.xebia.functional.xef.vectorstores.ConversationId
+import com.xebia.functional.xef.vectorstores.LocalVectorStore
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.ints.shouldBeLessThan
 import io.kotest.matchers.shouldBe
@@ -17,7 +18,7 @@ class ConversationSpec :
 
       val model = TestModel(modelType = ModelType.ADA, name = "fake-model")
 
-      val scope = Conversation(TestEmbeddings(), conversationId = conversationId)
+      val scope = Conversation(LocalVectorStore(TestEmbeddings()), conversationId = conversationId)
 
       val vectorStore = scope.store
 
@@ -40,7 +41,7 @@ class ConversationSpec :
       val promptConfiguration = PromptConfiguration { memoryLimit(Int.MAX_VALUE) }
       val messages = generateRandomMessages(50, 40, 60)
       val conversationId = ConversationId(UUID.generateUUID().toString())
-      val scope = Conversation(TestEmbeddings(), conversationId = conversationId)
+      val scope = Conversation(LocalVectorStore(TestEmbeddings()), conversationId = conversationId)
       val vectorStore = scope.store
 
       val modelAda = TestModel(modelType = ModelType.ADA, name = "fake-model", responses = messages)
@@ -72,7 +73,7 @@ class ConversationSpec :
       val promptConfiguration = PromptConfiguration { memoryLimit(Int.MAX_VALUE) }
       val messages = generateRandomMessages(50, 40, 60)
       val conversationId = ConversationId(UUID.generateUUID().toString())
-      val scope = Conversation(TestEmbeddings(), conversationId = conversationId)
+      val scope = Conversation(LocalVectorStore(TestEmbeddings()), conversationId = conversationId)
       val vectorStore = scope.store
 
       val modelGPTTurbo16K =

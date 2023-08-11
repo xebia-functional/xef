@@ -81,7 +81,9 @@ kotlin {
 spotless {
   kotlin {
     target("**/*.kt")
-    ktfmt().googleStyle()
+    ktfmt().googleStyle().configure {
+      it.setRemoveUnusedImport(true)
+    }
   }
 }
 

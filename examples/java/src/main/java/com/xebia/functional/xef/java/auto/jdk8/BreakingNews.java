@@ -30,7 +30,8 @@ public class BreakingNews {
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         try (AIScope scope = new AIScope()) {
             String currentDate = dtf.format(now);
-            scope.contextScope(scope.search(currentDate + " Covid News"), BreakingNews::writeParagraph).get();
+            scope.addContext(scope.search(currentDate + " Covid News").get());
+            writeParagraph(scope).get();
         }
     }
 }

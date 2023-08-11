@@ -1,30 +1,29 @@
 package com.xebia.functional.xef.auto
 
-import com.xebia.functional.xef.auto.llm.openai.getOrElse
+import com.xebia.functional.xef.auto.llm.openai.conversation
 import com.xebia.functional.xef.auto.llm.openai.prompt
 import kotlinx.serialization.Serializable
 
-@Serializable
-data class Fact(val topic: String, val content: String)
+@Serializable data class Fact(val topic: String, val content: String)
 
-@Serializable
-data class Riddle(val fact1: Fact, val fact2: Fact, val riddle: String)
+@Serializable data class Riddle(val fact1: Fact, val fact2: Fact, val riddle: String)
 
 suspend fun main() {
-    conversation {
-      val fact1: Fact = prompt("A fascinating fact about you")
-      val fact2: Fact = prompt("An interesting fact about me")
+  conversation {
+    val fact1: Fact = prompt("A fascinating fact about you")
+    val fact2: Fact = prompt("An interesting fact about me")
 
-      val riddlePrompt = """
+    val riddlePrompt =
+      """
           Create a riddle that combines the following facts:
   
           Fact 1: ${fact1.content}
           Fact 2: ${fact2.content}
-      """.trimIndent()
+      """
+        .trimIndent()
 
-      val riddle: Riddle = prompt(riddlePrompt)
+    val riddle: Riddle = prompt(riddlePrompt)
 
-      println("Riddle:\n\n${riddle}")
-    }.getOrElse { println(it) }
+    println("Riddle:\n\n${riddle}")
+  }
 }
-

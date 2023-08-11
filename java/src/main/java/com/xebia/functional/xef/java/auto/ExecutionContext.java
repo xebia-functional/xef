@@ -40,7 +40,7 @@ public class ExecutionContext implements AutoCloseable {
         this.executorService = executorService;
         this.coroutineScope = () -> ExecutorsKt.from(executorService).plus(JobKt.Job(null));
         context = new LocalVectorStore(embeddings);
-        this.scope = new Conversation(embeddings, context);
+        this.scope = new Conversation(context);
     }
 
     protected <A> CompletableFuture<A> future(Function1<? super Continuation<? super A>, ? extends Object> block) {

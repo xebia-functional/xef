@@ -24,7 +24,7 @@ public class AIDatabase implements AutoCloseable {
 
     public void extendContext(List<String> textsToAdd) {
         var textsArray = textsToAdd.toArray(new String[textsToAdd.size()]);
-        exec.future(continuation -> scope.extendContext(textsArray, continuation));
+        exec.future(continuation -> scope.addContext(textsArray, continuation));
     }
 
     public CompletableFuture<List<String>> promptQuery(String input) {

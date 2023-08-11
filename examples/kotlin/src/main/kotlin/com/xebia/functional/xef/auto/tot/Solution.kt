@@ -8,7 +8,12 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Solution<out A>(val answer: String, val isValid: Boolean, val reasoning: String, val value: A? = null)
+data class Solution<out A>(
+  val answer: String,
+  val isValid: Boolean,
+  val reasoning: String,
+  val value: A? = null
+)
 
 // Function to prompt the AI for a solution
 internal suspend fun <A> Conversation.solution(
@@ -17,7 +22,7 @@ internal suspend fun <A> Conversation.solution(
   controlSignal: ControlSignal
 ): Solution<A> {
   println("🔍 Generating solution for problem: ${truncateText(memory.problem.description)}...")
-  //ai emoji
+  // ai emoji
   println("🤖 Generating solution for problem: ${truncateText(memory.problem.description)}...")
   val enhancedPrompt =
     """|
@@ -45,9 +50,9 @@ internal suspend fun <A> Conversation.solution(
        |9. If the solution is not valid set the `isValid` field to `false` and the `value` field to `null`.
        |10. If the solution is valid set the `isValid` field to `true` and the `value` field to the value of the solution.
        |
-       |""".trimMargin()
+       |"""
+      .trimMargin()
   return prompt(OpenAI.DEFAULT_SERIALIZATION, Prompt(enhancedPrompt), serializer).also {
     println("🤖 Generated solution: ${truncateText(it.answer)}")
   }
 }
-

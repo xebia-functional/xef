@@ -56,7 +56,7 @@ private def chessGame(moves: List[ChessMove], gameState: GameState): AI[(String,
   else (gameState.winner.getOrElse("Something went wrong"), moves.last)
 
 @main def runChess: Unit =
-  ai {
+  conversation {
     val (winner, fMove) = chessGame(Nil, GameState(false, None))
     println(s"Game over. Final move: $fMove, Winner: $winner")
-  }.getOrElse(ex => println(ex.getMessage))
+  }
