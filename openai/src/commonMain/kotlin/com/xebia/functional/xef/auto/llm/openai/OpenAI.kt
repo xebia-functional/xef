@@ -93,6 +93,7 @@ class OpenAI(internal val token: String) : AutoCloseable, AutoClose by autoClose
   }
 }
 
-fun String.toOpenAIModel(): OpenAIModel? {
-  return OpenAI.DEFAULT.supportedModels().find { it.name == this }
+fun String.toOpenAIModel(token: String): OpenAIModel {
+  val openAI = OpenAI(token)
+  return openAI.supportedModels().find { it.name == this } ?: openAI.GPT_3_5_TURBO_16K
 }
