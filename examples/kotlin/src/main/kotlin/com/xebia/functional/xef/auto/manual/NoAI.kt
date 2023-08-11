@@ -30,18 +30,15 @@ suspend fun main() {
   val results = pdf("https://arxiv.org/pdf/2305.10601.pdf")
   scope.store.addTexts(results)
 
-
-
   // Prompt the GPT4All model with a question and provide the vector store for context
-  val result: String = gpt4All.use {
-    it.promptMessage(
-      question = "What is the Tree of Thoughts framework about?",
-      scope = scope,
-      promptConfiguration = PromptConfiguration {
-        docsInContext(5)
-      }
-    )
-  }
+  val result: String =
+    gpt4All.use {
+      it.promptMessage(
+        question = "What is the Tree of Thoughts framework about?",
+        scope = scope,
+        promptConfiguration = PromptConfiguration { docsInContext(5) }
+      )
+    }
 
   // Print the response
   println(result)

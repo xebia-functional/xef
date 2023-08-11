@@ -5,8 +5,7 @@ import com.xebia.functional.xef.auto.llm.openai.prompt
 import com.xebia.functional.xef.pdf.pdf
 import kotlinx.serialization.Serializable
 
-@Serializable
-data class AIResponse(val answer: String, val source: String)
+@Serializable data class AIResponse(val answer: String, val source: String)
 
 const val pdfUrl = "https://people.cs.ksu.edu/~schmidt/705a/Scala/Programming-in-Scala.pdf"
 

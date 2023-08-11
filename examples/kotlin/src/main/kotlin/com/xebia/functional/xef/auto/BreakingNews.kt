@@ -3,12 +3,11 @@ package com.xebia.functional.xef.auto
 import com.xebia.functional.xef.agents.search
 import com.xebia.functional.xef.auto.llm.openai.conversation
 import com.xebia.functional.xef.auto.llm.openai.prompt
-import kotlinx.serialization.Serializable
 import java.text.SimpleDateFormat
 import java.util.Date
+import kotlinx.serialization.Serializable
 
-@Serializable
-data class BreakingNewsAboutCovid(val summary: String)
+@Serializable data class BreakingNewsAboutCovid(val summary: String)
 
 suspend fun main() {
   conversation {

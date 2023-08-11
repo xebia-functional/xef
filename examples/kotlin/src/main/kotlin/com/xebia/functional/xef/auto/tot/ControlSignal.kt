@@ -4,13 +4,15 @@ import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.auto.llm.openai.prompt
 import kotlinx.serialization.Serializable
 
-@Serializable
-data class ControlSignal(val value: String)
+@Serializable data class ControlSignal(val value: String)
 
 // Function to generate the control signal based on the memory of previous results
 internal suspend fun <A> Conversation.controlSignal(memory: Memory<A>): ControlSignal {
-  println("🧠 Generating control signal for problem: ${truncateText(memory.problem.description)}...")
-  val guidancePrompt = """|
+  println(
+    "🧠 Generating control signal for problem: ${truncateText(memory.problem.description)}..."
+  )
+  val guidancePrompt =
+    """|
     |You are an expert advisor on information extraction.
     |You generate guidance for a problem.
     |${renderHistory(memory)}
@@ -23,7 +25,8 @@ internal suspend fun <A> Conversation.controlSignal(memory: Memory<A>): ControlS
     |4. Ensure the guidance is actionable.
     |5. Ensure the guidance accounts for previous answers in the `history`.
     |
-  """.trimMargin()
+  """
+      .trimMargin()
   return prompt<ControlSignal>(guidancePrompt).also {
     println("🧠 Generated control signal: ${truncateText(it.value)}")
   }

@@ -10,11 +10,7 @@ suspend fun main() {
   val chat: Chat = OpenAI.DEFAULT_CHAT
   val embeddings = OpenAIEmbeddings(OpenAI.DEFAULT_EMBEDDING)
   val scope = Conversation(LocalVectorStore(embeddings))
-  chat.promptStreaming(
-    question = "What is the meaning of life?",
-    scope = scope
-  ).collect {
+  chat.promptStreaming(question = "What is the meaning of life?", scope = scope).collect {
     print(it)
   }
 }
-

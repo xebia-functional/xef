@@ -8,17 +8,14 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Book(
-    @Description(["The title of the book."])
-    val title: String,
-    @Description(["The author of the book."])
-    val author: String,
-    @Description(["A 50 word summary of the book."])
-    val summary: String
+  @Description(["The title of the book."]) val title: String,
+  @Description(["The author of the book."]) val author: String,
+  @Description(["A 50 word summary of the book."]) val summary: String
 )
 
 suspend fun main() {
-    conversation {
-        val toKillAMockingbird: Book = prompt("To Kill a Mockingbird by Harper Lee")
-        println(toKillAMockingbird)
-    }
+  conversation {
+    val toKillAMockingbird: Book = prompt("To Kill a Mockingbird by Harper Lee")
+    println(toKillAMockingbird)
+  }
 }

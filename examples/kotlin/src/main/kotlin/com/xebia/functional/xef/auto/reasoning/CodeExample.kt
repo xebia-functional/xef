@@ -9,7 +9,8 @@ suspend fun main() {
   conversation {
     val code = Code(model = OpenAI.DEFAULT_CHAT, scope = this)
 
-    val sourceCode = """
+    val sourceCode =
+      """
        import java.util.*
 
        class ShoppingCart {
@@ -58,7 +59,8 @@ suspend fun main() {
            println("Total price of items in cart: ${'$'}{cart.calculateTotalPrice()}")
        }
 
-    """.trimIndent()
+    """
+        .trimIndent()
 
     val antiPatternDetectionResult = code.antiPatternDetection(sourceCode)
     println("Detected Anti-Patterns:")

@@ -10,15 +10,16 @@ import com.xebia.functional.xef.sql.jdbc.JdbcConfig
 
 val model = OpenAI.DEFAULT_CHAT
 
-val config = JdbcConfig(
-  vendor = System.getenv("XEF_SQL_DB_VENDOR") ?: "mysql",
-  host = System.getenv("XEF_SQL_DB_HOST") ?: "localhost",
-  username = System.getenv("XEF_SQL_DB_USER") ?: "user",
-  password = System.getenv("XEF_SQL_DB_PASSWORD") ?: "password",
-  port = System.getenv("XEF_SQL_DB_PORT")?.toInt() ?: 3306,
-  database = System.getenv("XEF_SQL_DB_DATABASE") ?: "database",
-  model = model
-)
+val config =
+  JdbcConfig(
+    vendor = System.getenv("XEF_SQL_DB_VENDOR") ?: "mysql",
+    host = System.getenv("XEF_SQL_DB_HOST") ?: "localhost",
+    username = System.getenv("XEF_SQL_DB_USER") ?: "user",
+    password = System.getenv("XEF_SQL_DB_PASSWORD") ?: "password",
+    port = System.getenv("XEF_SQL_DB_PORT")?.toInt() ?: 3306,
+    database = System.getenv("XEF_SQL_DB_DATABASE") ?: "database",
+    model = model
+  )
 
 suspend fun main() = conversation {
   SQL.fromJdbcConfig(config) {
@@ -27,18 +28,19 @@ suspend fun main() = conversation {
     println("llmdb> You can type `exit` to exit the program.")
     println("llmdb> Loading recommended prompts...")
     val interestingPrompts = getInterestingPromptsForDatabase()
-    interestingPrompts.split("\n").forEach{ it -> println("llmdb> $it") }
-
+    interestingPrompts.split("\n").forEach { it -> println("llmdb> $it") }
 
     while (true) {
       // a cli chat with the content
       print("user> ")
       val input = readln()
       if (input == "exit") break
-      catch({
-        addContext(*promptQuery(input).toTypedArray())
-        val result = model.promptMessage(
-          """|
+      catch(
+        {
+          addContext(*promptQuery(input).toTypedArray())
+          val result =
+            model.promptMessage(
+              """|
                 |You are a database assistant that helps users to query and summarize results from the database.
                 |Instructions:
                 |1. Summarize the information provided in the `Context` and follow to step 2.
@@ -47,17 +49,17 @@ suspend fun main() = conversation {
                 |$input
                 |```
                 |3. Try to answer and provide information with as much detail as you can
-              """.trimMargin(),
-          promptConfiguration = PromptConfiguration.invoke {
-            docsInContext(50)
-          }
-        )
+              """
+                .trimMargin(),
+              promptConfiguration = PromptConfiguration.invoke { docsInContext(50) }
+            )
           println("llmdb> $result")
-      }, { exception ->
-        println("llmdb> ${exception.message}")
-        exception.printStackTrace()
-      })
+        },
+        { exception ->
+          println("llmdb> ${exception.message}")
+          exception.printStackTrace()
+        }
+      )
     }
   }
 }
-

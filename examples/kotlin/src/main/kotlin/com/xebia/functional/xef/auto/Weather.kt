@@ -14,9 +14,7 @@ suspend fun main() {
   logger.info { answer }
 }
 
-private suspend fun getQuestionAnswer(
-  question: String
-): String = conversation {
+private suspend fun getQuestionAnswer(question: String): String = conversation {
   addContext(search("Weather in Cádiz, Spain"))
   promptMessage(question)
 }

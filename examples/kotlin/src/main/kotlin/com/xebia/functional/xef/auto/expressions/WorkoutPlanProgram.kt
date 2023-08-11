@@ -15,55 +15,55 @@ suspend fun taskSplitter(
   model: ChatWithFunctions,
   prompt: String,
   tools: List<Tool>
-): ExpressionResult = Expression.run(scope = scope, model = model, block = {
-  system { "You are a professional task planner" }
-  user {
-    """
+): ExpressionResult =
+  Expression.run(
+    scope = scope,
+    model = model,
+    block = {
+      system { "You are a professional task planner" }
+      user {
+        """
      |I want to achieve:
-  """.trimMargin()
-  }
-  user {
-    prompt
-  }
-  assistant {
-    "I have access to all these tool"
-  }
-  tools.forEach {
-    assistant {
-      "${it.name}: ${it.description}"
-    }
-  }
-  assistant {
-    """
+  """
+          .trimMargin()
+      }
+      user { prompt }
+      assistant { "I have access to all these tool" }
+      tools.forEach { assistant { "${it.name}: ${it.description}" } }
+      assistant {
+        """
      |I will break down your task into 3 tasks to make progress and help you accomplish this goal
      |using the tools that I have available.
      |1: ${prompt("task1")}
      |2: ${prompt("task2")}
      |3: ${prompt("task3")}
-  """.trimMargin()
-  }
-})
-
+  """
+          .trimMargin()
+      }
+    }
+  )
 
 suspend fun main() {
 
   conversation {
     val model = OpenAI.DEFAULT_SERIALIZATION
-    val math = LLMTool.create(
-      name = "Calculator",
-      description = "Perform math operations and calculations processing them with an LLM model. The tool input is a simple string containing the operation to solve expressed in numbers and math symbols.",
-      model = model,
-      scope = this
-    )
-    val search = Search(model = model, scope = this)
-    val plan = taskSplitter(
-      scope = this,
-      model = model,
-      prompt = "Find and multiply the number of Leonardo di Caprio's girlfriends by the number of Metallica albums",
-      tools = listOf(
-        search, math
+    val math =
+      LLMTool.create(
+        name = "Calculator",
+        description =
+          "Perform math operations and calculations processing them with an LLM model. The tool input is a simple string containing the operation to solve expressed in numbers and math symbols.",
+        model = model,
+        scope = this
       )
-    )
+    val search = Search(model = model, scope = this)
+    val plan =
+      taskSplitter(
+        scope = this,
+        model = model,
+        prompt =
+          "Find and multiply the number of Leonardo di Caprio's girlfriends by the number of Metallica albums",
+        tools = listOf(search, math)
+      )
     println("--------------------")
     println("Plan")
     println("--------------------")

@@ -5,8 +5,7 @@ import com.xebia.functional.xef.auto.llm.openai.conversation
 import com.xebia.functional.xef.auto.llm.openai.prompt
 import kotlinx.serialization.Serializable
 
-@Serializable
-data class NumberOfMedicalNeedlesInWorld(val numberOfNeedles: Long)
+@Serializable data class NumberOfMedicalNeedlesInWorld(val numberOfNeedles: Long)
 
 suspend fun main() {
   conversation {
@@ -16,4 +15,3 @@ suspend fun main() {
     println("Needles in world: ${needlesInWorld.numberOfNeedles}")
   }
 }
-
