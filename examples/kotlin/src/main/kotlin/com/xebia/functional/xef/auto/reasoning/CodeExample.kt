@@ -5,7 +5,12 @@ import com.xebia.functional.xef.reasoning.code.Code
 
 suspend fun main() {
   OpenAI.conversation {
-    val code = Code(model = OpenAI().DEFAULT_CHAT, scope = this)
+    val code =
+      Code(
+        model = OpenAI().DEFAULT_CHAT,
+        serialization = OpenAI().DEFAULT_SERIALIZATION,
+        scope = this
+      )
 
     val sourceCode =
       """

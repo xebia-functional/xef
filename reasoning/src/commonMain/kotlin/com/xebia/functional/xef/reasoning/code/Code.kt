@@ -2,15 +2,23 @@ package com.xebia.functional.xef.reasoning.code
 
 import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.llm.Chat
+import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.reasoning.tools.LLMTool
 import com.xebia.functional.xef.reasoning.tools.Tool
 import kotlin.jvm.JvmField
 import kotlin.jvm.JvmName
+import kotlin.jvm.JvmOverloads
 import kotlin.jvm.JvmStatic
 
-class Code(
+class Code
+@JvmOverloads
+constructor(
   model: Chat,
+  serialization: ChatWithFunctions,
   scope: Conversation,
+  @JvmField
+  val diffSummaryFromUrl: DiffSummary =
+    DiffSummary(serialization = serialization, chat = model, scope = scope),
   @JvmField
   val antiPatternDetection: LLMTool =
     LLMTool.create(

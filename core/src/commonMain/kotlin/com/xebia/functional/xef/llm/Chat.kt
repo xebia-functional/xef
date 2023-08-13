@@ -103,6 +103,15 @@ interface Chat : LLM {
   }
 
   @AiDsl
+  suspend fun promptMessage(
+    messages: List<Message>,
+    scope: Conversation,
+    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
+  ): String =
+    promptMessages(messages, scope, emptyList(), promptConfiguration).firstOrNull()
+      ?: throw AIError.NoResponse()
+
+  @AiDsl
   suspend fun promptMessages(
     messages: List<Message>,
     scope: Conversation,
