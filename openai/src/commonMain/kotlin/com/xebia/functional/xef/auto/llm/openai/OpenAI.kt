@@ -4,9 +4,16 @@ import arrow.core.nonEmptyListOf
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.auto.AutoClose
+import com.xebia.functional.xef.auto.Conversation
+import com.xebia.functional.xef.auto.PlatformConversation
 import com.xebia.functional.xef.auto.autoClose
 import com.xebia.functional.xef.env.getenv
+import com.xebia.functional.xef.vectorstores.LocalVectorStore
+import com.xebia.functional.xef.vectorstores.VectorStore
 import kotlin.jvm.JvmField
+import kotlin.jvm.JvmOverloads
+import kotlin.jvm.JvmStatic
+import kotlin.jvm.JvmSynthetic
 
 class OpenAI(internal var token: String? = null) : AutoCloseable, AutoClose by autoClose() {
 
@@ -96,6 +103,27 @@ class OpenAI(internal var token: String? = null) : AutoCloseable, AutoClose by a
       TEXT_EMBEDDING_ADA_002,
       DALLE_2
     )
+  }
+
+  companion object {
+
+    @JvmField val FromEnvironment: OpenAI = OpenAI()
+
+    @JvmSynthetic
+    suspend inline fun <A> conversation(
+      store: VectorStore,
+      noinline block: suspend Conversation.() -> A
+    ): A = block(conversation(store))
+
+    @JvmSynthetic
+    suspend fun <A> conversation(block: suspend Conversation.() -> A): A =
+      block(conversation(LocalVectorStore(OpenAIEmbeddings(FromEnvironment.DEFAULT_EMBEDDING))))
+
+    @JvmStatic
+    @JvmOverloads
+    fun conversation(
+      store: VectorStore = LocalVectorStore(OpenAIEmbeddings(FromEnvironment.DEFAULT_EMBEDDING))
+    ): PlatformConversation = Conversation(store)
   }
 }
 

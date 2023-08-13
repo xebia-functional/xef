@@ -1,10 +1,10 @@
 package com.xebia.functional.xef.auto
 
-import com.xebia.functional.xef.auto.llm.openai.conversation
+import com.xebia.functional.xef.auto.llm.openai.OpenAI
 import com.xebia.functional.xef.auto.llm.openai.promptMessage
 
 suspend fun main() {
-  conversation {
+  OpenAI.conversation {
     val emailMessage =
       """
                 |You are a Marketing Responsible and have the information about different products. You have to prepare 

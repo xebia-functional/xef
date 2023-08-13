@@ -12,7 +12,7 @@ private final case class ChessBoard(board: String) derives SerialDescriptor, Dec
 private final case class GameState(ended: Boolean, winner: Option[String]) derives SerialDescriptor, Decoder
 
 @tailrec
-private def chessGame(moves: List[ChessMove], gameState: GameState): AI[(String, ChessMove)] =
+private def chessGame(moves: List[ChessMove], gameState: GameState)(using conversation: ScalaConversation): (String, ChessMove) =
   if !gameState.ended then
     val currentPlayer = if moves.size % 2 == 0 then "Player 1 (White)" else "Player 2 (Black)"
 

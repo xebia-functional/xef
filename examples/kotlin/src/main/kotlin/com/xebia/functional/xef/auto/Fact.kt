@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.auto
 
-import com.xebia.functional.xef.auto.llm.openai.conversation
+import com.xebia.functional.xef.auto.llm.openai.OpenAI
 import com.xebia.functional.xef.auto.llm.openai.prompt
 import kotlinx.serialization.Serializable
 
@@ -9,7 +9,7 @@ import kotlinx.serialization.Serializable
 @Serializable data class Riddle(val fact1: Fact, val fact2: Fact, val riddle: String)
 
 suspend fun main() {
-  conversation {
+  OpenAI.conversation {
     val fact1: Fact = prompt("A fascinating fact about you")
     val fact2: Fact = prompt("An interesting fact about me")
 

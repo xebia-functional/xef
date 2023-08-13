@@ -1,6 +1,9 @@
 package com.xebia.functional.xef.java.auto.jdk8;
 
-import com.xebia.functional.xef.java.auto.AIScope;
+import com.xebia.functional.xef.auto.PlatformConversation;
+import com.xebia.functional.xef.auto.llm.openai.OpenAI;
+import com.xebia.functional.xef.reasoning.serpapi.Search;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -21,21 +24,21 @@ public class Markets {
               '}';
     }
 
-    private static CompletableFuture<Void> stockMarketSummary(AIScope scope) {
+    private static CompletableFuture<Void> stockMarketSummary(PlatformConversation scope) {
         String news = "|" +
               "|Write a short summary of the stock market results given the provided context.";
 
-        return scope.prompt(news, Markets.class)
+        return scope.prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, news, Markets.class)
               .thenAccept(markets -> System.out.println(markets));
     }
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
-        try (AIScope scope = new AIScope()) {
+        try (PlatformConversation scope = OpenAI.conversation()) {
             DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/M/yyyy");
             LocalDateTime now = LocalDateTime.now();
             String currentDate = dtf.format(now);
-
-            scope.addContext(scope.search(currentDate + "Stock market results, raising stocks, decreasing stocks").get());
+            Search search = new Search(OpenAI.FromEnvironment.DEFAULT_CHAT, scope, 3);
+            scope.addContextFromArray(search.search(currentDate + "Stock market results, raising stocks, decreasing stocks").get());
             stockMarketSummary(scope).get();
         }
     }

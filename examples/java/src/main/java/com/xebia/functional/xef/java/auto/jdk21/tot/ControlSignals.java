@@ -1,5 +1,7 @@
 package com.xebia.functional.xef.java.auto.jdk21.tot;
 
+import com.xebia.functional.xef.auto.llm.openai.OpenAI;
+
 import static com.xebia.functional.xef.java.auto.jdk21.tot.Rendering.renderHistory;
 import static com.xebia.functional.xef.java.auto.jdk21.tot.Rendering.truncateText;
 
@@ -27,7 +29,7 @@ public class ControlSignals {
                 "    5. Ensure the guidance accounts for previous answers in the `history`.\n" +
                 "    \n");
 
-            return Problems.Memory.getAiScope().prompt(guidancePrompt, ControlSignal.class);
+            return Problems.Memory.getAiScope().prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, guidancePrompt, ControlSignal.class);
     }
 
 }

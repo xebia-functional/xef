@@ -176,16 +176,13 @@ interface Chat : LLM {
     buffer: StringBuilder,
   ) {
     val lastRequestMessage = request.messages.lastOrNull()
-    if (scope.conversationId != null && lastRequestMessage != null) {
+    val cid = scope.conversationId
+    if (cid != null && lastRequestMessage != null) {
       val requestMemory =
-        Memory(
-          conversationId = scope.conversationId,
-          content = lastRequestMessage,
-          timestamp = getTimeMillis()
-        )
+        Memory(conversationId = cid, content = lastRequestMessage, timestamp = getTimeMillis())
       val responseMemory =
         Memory(
-          conversationId = scope.conversationId,
+          conversationId = cid,
           content =
             Message(role = Role.ASSISTANT, content = buffer.toString(), name = Role.ASSISTANT.name),
           timestamp = getTimeMillis(),
@@ -200,17 +197,15 @@ interface Chat : LLM {
   ): List<ChoiceWithFunctions> = also {
     val firstChoice = firstOrNull()
     val requestUserMessage = request.messages.lastOrNull()
-    if (requestUserMessage != null && firstChoice != null && scope.conversationId != null) {
+    val cid = scope.conversationId
+    if (requestUserMessage != null && firstChoice != null && cid != null) {
       val role = firstChoice.message?.role?.uppercase()?.let { Role.valueOf(it) } ?: Role.USER
+
       val requestMemory =
-        Memory(
-          conversationId = scope.conversationId,
-          content = requestUserMessage,
-          timestamp = getTimeMillis()
-        )
+        Memory(conversationId = cid, content = requestUserMessage, timestamp = getTimeMillis())
       val firstChoiceMemory =
         Memory(
-          conversationId = scope.conversationId,
+          conversationId = cid,
           content =
             Message(
               role = role,
@@ -230,17 +225,14 @@ interface Chat : LLM {
   ): List<Choice> = also {
     val firstChoice = firstOrNull()
     val requestUserMessage = request.messages.lastOrNull()
-    if (requestUserMessage != null && firstChoice != null && scope.conversationId != null) {
+    val cid = scope.conversationId
+    if (requestUserMessage != null && firstChoice != null && cid != null) {
       val role = firstChoice.message?.role?.name?.uppercase()?.let { Role.valueOf(it) } ?: Role.USER
       val requestMemory =
-        Memory(
-          conversationId = scope.conversationId,
-          content = requestUserMessage,
-          timestamp = getTimeMillis()
-        )
+        Memory(conversationId = cid, content = requestUserMessage, timestamp = getTimeMillis())
       val firstChoiceMemory =
         Memory(
-          conversationId = scope.conversationId,
+          conversationId = cid,
           content =
             Message(role = role, content = firstChoice.message?.content ?: "", name = role.name),
           timestamp = getTimeMillis()
@@ -255,12 +247,14 @@ interface Chat : LLM {
   private suspend fun memories(
     scope: Conversation,
     promptConfiguration: PromptConfiguration
-  ): List<Memory> =
-    if (scope.conversationId != null) {
-      scope.store.memories(scope.conversationId, promptConfiguration.memoryLimit)
+  ): List<Memory> {
+    val cid = scope.conversationId
+    return if (cid != null) {
+      scope.store.memories(cid, promptConfiguration.memoryLimit)
     } else {
       emptyList()
     }
+  }
 
   private suspend fun fitMessagesByTokens(
     history: List<Message>,

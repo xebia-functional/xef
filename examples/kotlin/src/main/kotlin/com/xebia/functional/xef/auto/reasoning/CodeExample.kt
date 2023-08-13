@@ -1,12 +1,10 @@
 package com.xebia.functional.xef.auto.reasoning
 
-import com.xebia.functional.xef.auto.conversation
 import com.xebia.functional.xef.auto.llm.openai.OpenAI
-import com.xebia.functional.xef.auto.llm.openai.conversation
 import com.xebia.functional.xef.reasoning.code.Code
 
 suspend fun main() {
-  conversation {
+  OpenAI.conversation {
     val code = Code(model = OpenAI().DEFAULT_CHAT, scope = this)
 
     val sourceCode =

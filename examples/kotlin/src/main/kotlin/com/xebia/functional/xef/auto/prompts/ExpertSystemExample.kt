@@ -1,29 +1,30 @@
 package com.xebia.functional.xef.auto.prompts
 
 import com.xebia.functional.xef.auto.conversation
-import com.xebia.functional.xef.auto.llm.openai.conversation
+import com.xebia.functional.xef.auto.llm.openai.OpenAI
 import com.xebia.functional.xef.auto.llm.openai.prompt
 import com.xebia.functional.xef.prompt.experts.ExpertSystem
 import kotlinx.serialization.Serializable
 
 @Serializable data class FinalSolution(val resolvedCode: String)
 
-suspend fun main() = conversation {
-  val expert =
-    functionProgrammerFix(
-      """|
+suspend fun main() =
+  OpenAI.conversation {
+    val expert =
+      functionProgrammerFix(
+        """|
     |```kotlin
     |fun access(list: List<Int>, index: Int): Int {
     |  return list[index]
     |}
     |```
   """
-        .trimMargin()
-    )
-  val solution: FinalSolution = prompt(expert)
+          .trimMargin()
+      )
+    val solution: FinalSolution = prompt(expert)
 
-  println("solution: ${solution}")
-}
+    println("solution: ${solution}")
+  }
 
 private fun functionProgrammerFix(code: String) =
   ExpertSystem(

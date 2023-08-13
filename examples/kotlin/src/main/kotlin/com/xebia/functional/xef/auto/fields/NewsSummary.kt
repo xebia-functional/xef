@@ -1,10 +1,10 @@
 package com.xebia.functional.xef.auto.fields
 
-import com.xebia.functional.xef.agents.search
 import com.xebia.functional.xef.auto.Description
 import com.xebia.functional.xef.auto.conversation
-import com.xebia.functional.xef.auto.llm.openai.conversation
+import com.xebia.functional.xef.auto.llm.openai.OpenAI
 import com.xebia.functional.xef.auto.llm.openai.prompt
+import com.xebia.functional.xef.reasoning.serpapi.Search
 import java.time.LocalDate
 import kotlinx.serialization.Serializable
 
@@ -21,7 +21,8 @@ data class NewsItems(
 )
 
 suspend fun main() {
-  conversation {
+  OpenAI.conversation {
+    val search = Search(OpenAI.FromEnvironment.DEFAULT_CHAT, this)
     addContext(search("Covid news on ${LocalDate.now()}"))
     val news: NewsItems = prompt()
     println(news)

@@ -16,18 +16,18 @@ suspend fun main() {
   val url =
     "https://huggingface.co/nomic-ai/ggml-replit-code-v1-3b/resolve/main/ggml-replit-code-v1-3b.bin"
   val modelPath: Path = Path.of(path)
-  val GPT4All = GPT4All(url, modelPath)
+  val model = GPT4All(url, modelPath)
 
   println("🤖 GPT4All loaded: $GPT4All")
   /**
    * Uses internally [HuggingFaceLocalEmbeddings] default of "sentence-transformers",
    * "msmarco-distilbert-dot-v5" to provide embeddings for docs in contextScope.
    */
-  conversation {
+  GPT4All.conversation {
     println("🤖 Context loaded: $store")
     // hack until https://github.com/nomic-ai/gpt4all/pull/1126 is accepted or merged
     val out = System.out
-    GPT4All.use { gpT4All: GPT4All ->
+    model.use { gpT4All: GPT4All ->
       while (true) {
         print("\n🤖 Enter your question: ")
         val userInput = readlnOrNull() ?: break

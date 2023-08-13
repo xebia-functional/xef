@@ -1,15 +1,15 @@
 package com.xebia.functional.xef.auto.tot
 
-import com.xebia.functional.xef.auto.conversation
-import com.xebia.functional.xef.auto.llm.openai.conversation
+import com.xebia.functional.xef.auto.llm.openai.OpenAI
 import kotlinx.serialization.Serializable
 
 @Serializable data class FinalSolution(val solution: String)
 
-suspend fun main() = conversation {
-  val problem =
-    Problem(
-      """|
+suspend fun main() =
+  OpenAI.conversation {
+    val problem =
+      Problem(
+        """|
     |You are an expert functional programmer.
     |1. You never throw exceptions.
     |2. You never use null.
@@ -26,14 +26,14 @@ suspend fun main() = conversation {
     |
     |Return a concise solution that fixes the problems in the code.
   """
-        .trimMargin()
-    )
-  val maxRounds = 5
+          .trimMargin()
+      )
+    val maxRounds = 5
 
-  val solution = solve<FinalSolution>(problem, maxRounds)
+    val solution = solve<FinalSolution>(problem, maxRounds)
 
-  println("✅ Final solution: ${solution.answer}")
-  println("✅ Solution validity: ${solution.isValid}")
-  println("✅ Solution reasoning: ${solution.reasoning}")
-  println("✅ Solution code: ${solution.value?.solution}")
-}
+    println("✅ Final solution: ${solution.answer}")
+    println("✅ Solution validity: ${solution.isValid}")
+    println("✅ Solution reasoning: ${solution.reasoning}")
+    println("✅ Solution code: ${solution.value?.solution}")
+  }

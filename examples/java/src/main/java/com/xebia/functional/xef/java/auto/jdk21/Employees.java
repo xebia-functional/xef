@@ -1,9 +1,9 @@
 package com.xebia.functional.xef.java.auto.jdk21;
 
-import com.xebia.functional.xef.java.auto.AIScope;
-import com.xebia.functional.xef.java.auto.ExecutionContext;
+import com.xebia.functional.xef.auto.PlatformConversation;
+import com.xebia.functional.xef.auto.llm.openai.OpenAI;
+
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
 
 public class Employees {
 
@@ -16,8 +16,8 @@ public class Employees {
         "Use the information provided.";
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
-        try (AIScope scope = new AIScope(new ExecutionContext(Executors.newVirtualThreadPerTaskExecutor()))) {
-            scope.prompt(complexPrompt, Employees.Employee.class)
+        try (PlatformConversation scope = OpenAI.conversation()) {
+            scope.prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, complexPrompt, Employees.Employee.class)
                   .thenAccept(employeeData -> System.out.println(
                         "Employee Information:\n\n" +
                               "Name: " + employeeData.firstName + " " + employeeData.lastName + "\n" +

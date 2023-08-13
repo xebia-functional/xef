@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.auto
 
-import com.xebia.functional.xef.auto.llm.openai.conversation
+import com.xebia.functional.xef.auto.llm.openai.OpenAI
 import com.xebia.functional.xef.auto.llm.openai.prompt
 import kotlinx.serialization.Serializable
 
@@ -11,7 +11,7 @@ import kotlinx.serialization.Serializable
 @Serializable data class GameState(val ended: Boolean, val winner: String)
 
 suspend fun main() {
-  conversation {
+  OpenAI.conversation {
     val moves = mutableListOf<ChessMove>()
     var gameEnded = false
     var winner = ""
