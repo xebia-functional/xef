@@ -6,10 +6,9 @@ import com.aallam.openai.api.chat.ChatRole
 import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.auto.PromptConfiguration
 import com.xebia.functional.xef.auto.llm.openai.*
-import com.xebia.functional.xef.auto.llm.openai.OpenAI.Companion.DEFAULT_CHAT
-import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.llm.models.chat.Role
+import com.xebia.functional.xef.server.services.PersistenceService
 import com.xebia.functional.xef.vectorstores.LocalVectorStore
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -20,14 +19,30 @@ import io.ktor.server.routing.*
 import io.ktor.util.pipeline.*
 import com.xebia.functional.xef.llm.models.chat.ChatCompletionRequest as XefChatCompletionRequest
 
+enum class Provider {
+    OPENAI, GPT4ALL, GCP
+}
+
+fun String.toProvider(): Provider? = when (this) {
+    "openai" -> Provider.OPENAI
+    "gpt4all" -> Provider.GPT4ALL
+    "gcp" -> Provider.GCP
+    else -> null
+}
+
+
 @OptIn(BetaOpenAI::class)
-fun Routing.routes() {
+fun Routing.routes(persistenceService: PersistenceService) {
     authenticate("auth-bearer") {
         post("/chat/completions") {
-            val model: Chat = call.request.headers["xef-model"]?.toOpenAIModel() ?: DEFAULT_CHAT
+            val provider: Provider = call.request.headers["xef-provider"]?.toProvider()
+                ?: throw IllegalArgumentException("Not a valid provider")
             val token = call.principal<UserIdPrincipal>()?.name ?: throw IllegalArgumentException("No token found")
-            val scope = Conversation(LocalVectorStore(OpenAIEmbeddings(OpenAI(token).GPT_3_5_TURBO_16K)))
+            val scope = Conversation(
+                persistenceService.getVectorStore(provider, token)
+            )
             val data = call.receive<ChatCompletionRequest>().toCore()
+            val model: OpenAIModel = data.model.toOpenAIModel(token)
             response<String, Throwable> {
                 model.promptMessage(
                     question = data.messages.joinToString("\n") { "${it.role}: ${it.content}" },
@@ -54,29 +69,3 @@ private suspend inline fun <reified T : Any, E : Throwable> PipelineContext<*, A
 }) {
     call.respondText(it.message ?: "Response not found", status = HttpStatusCode.NotFound)
 }
-
-@OptIn(BetaOpenAI::class)
-private fun ChatCompletionRequest.toCore(): XefChatCompletionRequest = XefChatCompletionRequest(
-    model = model.id,
-    messages = messages.map { Message(it.role.toCore(), it.content ?: "", it.name ?: "") },
-    temperature = temperature ?: 0.0,
-    topP = topP ?: 1.0,
-    n = n ?: 1,
-    stream = false,
-    stop = stop,
-    maxTokens = maxTokens,
-    presencePenalty = presencePenalty ?: 0.0,
-    frequencyPenalty = frequencyPenalty ?: 0.0,
-    logitBias = logitBias ?: emptyMap(),
-    user = user,
-    streamToStandardOut = false
-)
-
-@OptIn(BetaOpenAI::class)
-private fun ChatRole.toCore(): Role =
-    when (this) {
-        ChatRole.System -> Role.SYSTEM
-        ChatRole.User -> Role.USER
-        ChatRole.Assistant -> Role.ASSISTANT
-        else -> Role.ASSISTANT
-    }

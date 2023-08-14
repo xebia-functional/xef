@@ -91,7 +91,7 @@ libraryDependencies += "com.xebia" %% "xef-scala" % "<version>"
 </details>
 
 <details>
-<summary><img src="https://en.wikipedia.org/wiki/Apache_Maven#/media/File:Apache_Maven_logo.svg" height="15px" alt="Maven logo"> Maven</summary>
+<summary><img src="https://upload.wikimedia.org/wikipedia/commons/5/52/Apache_Maven_logo.svg" height="15px" alt="Maven logo"> Maven</summary>
 
 Libraries are published in Maven Central. You may need to  add that repository explicitly
 in your build, if you haven't done it before.

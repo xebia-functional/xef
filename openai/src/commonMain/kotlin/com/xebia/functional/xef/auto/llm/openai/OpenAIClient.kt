@@ -51,7 +51,7 @@ class OpenAIModel(
 
   private val client =
     OpenAIClient(
-      token = openAI.token,
+      token = openAI.getToken(),
       logging = LoggingConfig(LogLevel.None),
       headers = mapOf("Authorization" to " Bearer $openAI.token")
     )
