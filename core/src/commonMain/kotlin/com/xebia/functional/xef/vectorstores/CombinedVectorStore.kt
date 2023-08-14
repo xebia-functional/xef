@@ -17,15 +17,7 @@ class CombinedVectorStore(private val top: VectorStore, private val bottom: Vect
 
     return (topResults + bottomResults)
       .sortedByDescending { it.timestamp }
-      .fold(Pair(0, emptyList<Memory>())) { (accTokens, list), memory ->
-        val totalTokens = accTokens + memory.approxTokens
-        if (totalTokens <= limitTokens) {
-          Pair(totalTokens, list + memory)
-        } else {
-          Pair(accTokens, list)
-        }
-      }
-      .second
+      .reduceByLimitToken(limitTokens)
       .reversed()
   }
 

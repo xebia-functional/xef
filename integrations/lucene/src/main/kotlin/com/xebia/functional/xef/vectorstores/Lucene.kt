@@ -61,16 +61,7 @@ open class Lucene(
 
     val docs = IndexSearcher(reader).search(luceneQuery, reader.numDocs(), sort)
 
-    return docs.scoreDocs.fold(Pair(0, emptyList<ScoreDoc>())) {
-        (accTokens, list), scoreDoc ->
-        val doc = searcher.storedFields().document(scoreDoc.doc)
-        val totalTokens = accTokens + doc.get("approxTokens").toInt()
-        if (totalTokens <= limitTokens) {
-            Pair(totalTokens, list + scoreDoc)
-        } else {
-            Pair(accTokens, list)
-        }
-    }.second.reversed().extractMemory(searcher)
+    return docs.scoreDocs.toList().extractMemory(searcher).reduceByLimitToken(limitTokens).reversed()
   }
 
   override suspend fun addTexts(texts: List<String>) {
