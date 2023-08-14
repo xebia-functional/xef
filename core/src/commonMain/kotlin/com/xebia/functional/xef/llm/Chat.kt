@@ -257,9 +257,10 @@ interface Chat : LLM {
   private fun messagesFromMemory(memories: List<Memory>): List<Message> =
     memories.map { it.content }
 
-  private suspend fun Conversation.memories(limitTokens: Int): List<Memory> =
-    if (conversationId != null) {
-      store.memories(conversationId, limitTokens)
+  private suspend fun Conversation.memories(limitTokens: Int): List<Memory> {
+    val cid = conversationId
+    return if (cid != null) {
+      store.memories(cid, limitTokens)
     } else {
       emptyList()
     }
