@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.auto
 
-import com.xebia.functional.xef.auto.llm.openai.conversation
+import com.xebia.functional.xef.auto.llm.openai.OpenAI
 import com.xebia.functional.xef.auto.llm.openai.prompt
 import kotlinx.serialization.Serializable
 
@@ -12,7 +12,7 @@ data class Book(
 )
 
 suspend fun main() {
-  conversation {
+  OpenAI.conversation {
     val toKillAMockingbird: Book = prompt("To Kill a Mockingbird by Harper Lee summary.")
     println("To Kill a Mockingbird summary:\n ${toKillAMockingbird.summary}")
   }

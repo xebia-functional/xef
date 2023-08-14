@@ -1,5 +1,7 @@
 package com.xebia.functional.xef.java.auto.jdk21.tot;
 
+import com.xebia.functional.xef.auto.llm.openai.OpenAI;
+
 import static com.xebia.functional.xef.java.auto.jdk21.tot.Rendering.truncateText;
 
 import java.util.concurrent.CompletableFuture;
@@ -31,6 +33,6 @@ public class Critiques {
                 "    1. Provide a critique and determine if the answer truly accomplishes the goal.\n" +
                 "    \n");
 
-        return Problems.Memory.getAiScope().prompt(prompt, Critique.class);
+        return Problems.Memory.getAiScope().prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, prompt, Critique.class);
     }
 }

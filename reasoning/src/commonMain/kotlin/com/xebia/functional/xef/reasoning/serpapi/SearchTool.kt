@@ -1,27 +1,27 @@
-package com.xebia.functional.xef.reasoning.search
+package com.xebia.functional.xef.reasoning.serpapi
 
-import com.xebia.functional.xef.auto.AutoClose
 import com.xebia.functional.xef.auto.Conversation
-import com.xebia.functional.xef.auto.autoClose
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.llm.models.chat.Message
-import com.xebia.functional.xef.reasoning.serpapi.SerpApiClient
 import com.xebia.functional.xef.reasoning.tools.Tool
+import kotlin.jvm.JvmSynthetic
 
-class Search
-@JvmOverloads
-constructor(
-  private val model: Chat,
-  private val scope: Conversation,
-  private val maxResultsInContext: Int = 3,
-  private val client: SerpApiClient = SerpApiClient()
-) : Tool, AutoCloseable, AutoClose by autoClose() {
-  override val name: String = "Search"
+interface SearchTool : Tool {
 
-  override val description: String =
-    "Search the web for information. The tool input is a simple one line string"
+  val model: Chat
+  val scope: Conversation
+  val maxResultsInContext: Int
+  val client: SerpApiClient
 
+  override val name: String
+    get() = "Search"
+
+  override val description: String
+    get() = "Search the web for information. The tool input is a simple one line string"
+
+  @JvmSynthetic
   override suspend fun invoke(input: String): String {
+
     val docs = client.search(SerpApiClient.SearchData(input))
     return model
       .promptMessages(
@@ -46,7 +46,7 @@ constructor(
       ?: "No results found"
   }
 
-  override fun close() {
+  fun close() {
     client.close()
   }
 }

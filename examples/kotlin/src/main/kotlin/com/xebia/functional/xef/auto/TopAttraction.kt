@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.auto
 
-import com.xebia.functional.xef.auto.llm.openai.conversation
+import com.xebia.functional.xef.auto.llm.openai.OpenAI
 import com.xebia.functional.xef.auto.llm.openai.prompt
 import kotlinx.serialization.Serializable
 
@@ -16,14 +16,15 @@ data class TopAttraction(
 
 @Serializable data class Weather(val city: City, val temperature: Double, val description: String)
 
-suspend fun main() = conversation {
-  val nearbyTopAttraction: TopAttraction = prompt("Top attraction in Cádiz, Spain.")
-  println(
-    """
+suspend fun main() =
+  OpenAI.conversation {
+    val nearbyTopAttraction: TopAttraction = prompt("Top attraction in Cádiz, Spain.")
+    println(
+      """
           |The top attraction in ${nearbyTopAttraction.city.name} is ${nearbyTopAttraction.attractionName}. 
           |Here's a brief description: ${nearbyTopAttraction.description}.
           |The weather in ${nearbyTopAttraction.city.name} is ${nearbyTopAttraction.weather.temperature} degrees Celsius and ${nearbyTopAttraction.weather.description}.
           |"""
-      .trimMargin()
-  )
-}
+        .trimMargin()
+    )
+  }

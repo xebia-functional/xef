@@ -2,11 +2,10 @@ package com.xebia.functional.xef.auto.expressions
 
 import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.auto.llm.openai.OpenAI
-import com.xebia.functional.xef.auto.llm.openai.conversation
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.prompt.expressions.Expression
 import com.xebia.functional.xef.prompt.expressions.ExpressionResult
-import com.xebia.functional.xef.reasoning.search.Search
+import com.xebia.functional.xef.reasoning.serpapi.Search
 import com.xebia.functional.xef.reasoning.tools.LLMTool
 import com.xebia.functional.xef.reasoning.tools.Tool
 
@@ -45,7 +44,7 @@ suspend fun taskSplitter(
 
 suspend fun main() {
 
-  conversation {
+  OpenAI.conversation {
     val model = OpenAI().DEFAULT_SERIALIZATION
     val math =
       LLMTool.create(

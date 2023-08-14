@@ -2,14 +2,13 @@ package com.xebia.functional.xef.auto.reasoning
 
 import com.xebia.functional.xef.auto.conversation
 import com.xebia.functional.xef.auto.llm.openai.OpenAI
-import com.xebia.functional.xef.auto.llm.openai.conversation
 import com.xebia.functional.xef.llm.models.chat.Message
-import com.xebia.functional.xef.reasoning.search.Search
+import com.xebia.functional.xef.reasoning.serpapi.Search
 import com.xebia.functional.xef.reasoning.tools.LLMTool
 import com.xebia.functional.xef.reasoning.tools.ReActAgent
 
 suspend fun main() {
-  conversation {
+  OpenAI.conversation {
     val model = OpenAI().DEFAULT_CHAT
     val serialization = OpenAI().DEFAULT_SERIALIZATION
     val math =

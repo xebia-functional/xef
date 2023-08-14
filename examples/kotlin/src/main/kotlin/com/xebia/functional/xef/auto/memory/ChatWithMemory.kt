@@ -1,12 +1,10 @@
 package com.xebia.functional.xef.auto.memory
 
-import com.xebia.functional.xef.auto.conversation
 import com.xebia.functional.xef.auto.llm.openai.OpenAI
-import com.xebia.functional.xef.auto.llm.openai.conversation
 
 suspend fun main() {
   val model = OpenAI().DEFAULT_CHAT
-  conversation {
+  OpenAI.conversation {
     while (true) {
       println(">")
       val question = readLine() ?: break

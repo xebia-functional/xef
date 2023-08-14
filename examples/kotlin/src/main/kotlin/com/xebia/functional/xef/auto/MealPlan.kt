@@ -1,14 +1,15 @@
 package com.xebia.functional.xef.auto
 
-import com.xebia.functional.xef.agents.search
-import com.xebia.functional.xef.auto.llm.openai.conversation
+import com.xebia.functional.xef.auto.llm.openai.OpenAI
 import com.xebia.functional.xef.auto.llm.openai.prompt
+import com.xebia.functional.xef.reasoning.serpapi.Search
 import kotlinx.serialization.Serializable
 
 @Serializable data class MealPlan(val name: String, val recipes: List<Recipe>)
 
 suspend fun main() {
-  conversation {
+  OpenAI.conversation {
+    val search = Search(OpenAI.FromEnvironment.DEFAULT_CHAT, this)
     addContext(search("gall bladder stones meals"))
     val mealPlan: MealPlan =
       prompt(

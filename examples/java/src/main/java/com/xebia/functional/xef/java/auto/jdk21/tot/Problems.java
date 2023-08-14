@@ -1,14 +1,15 @@
 package com.xebia.functional.xef.java.auto.jdk21.tot;
 
-import static com.xebia.functional.xef.java.auto.jdk21.tot.Rendering.truncateText;
+import com.xebia.functional.xef.auto.PlatformConversation;
+import com.xebia.functional.xef.auto.llm.openai.OpenAI;
+import org.jetbrains.annotations.Nullable;
 
-import com.xebia.functional.xef.java.auto.AIScope;
-import com.xebia.functional.xef.java.auto.ExecutionContext;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.stream.Stream;
-import org.jetbrains.annotations.Nullable;
+
+import static com.xebia.functional.xef.java.auto.jdk21.tot.Rendering.truncateText;
 
 public class Problems {
 
@@ -82,27 +83,27 @@ public class Problems {
         public Problem problem;
         public List<Solutions.Solution<A>> history;
 
-        private static AIScope aiScope = null;
+        private static PlatformConversation aiScope = null;
 
         public Memory(Problem problem, List<Solutions.Solution<A>> history) {
             this.problem = problem;
             this.history = history;
-            checkAIScope();
+            checkPlatformConversation();
         }
 
         public Memory<A> addResult(Solutions.Solution<A> result) {
             List<Solutions.Solution<A>> historyUpdate = Stream.concat(this.history.stream(), Stream.of(result)).toList();
-            checkAIScope();
+            checkPlatformConversation();
             return new Memory<>(this.problem, historyUpdate);
         }
 
-        private static void checkAIScope() {
+        private static void checkPlatformConversation() {
             if(aiScope == null){
-                aiScope = new AIScope(new ExecutionContext(Executors.newSingleThreadExecutor()));
+                aiScope = OpenAI.conversation();
             }
         }
 
-        public static AIScope getAiScope() {
+        public static PlatformConversation getAiScope() {
             return aiScope;
         }
 

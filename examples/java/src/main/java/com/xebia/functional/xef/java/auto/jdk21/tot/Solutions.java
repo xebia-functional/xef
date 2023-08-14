@@ -1,5 +1,7 @@
 package com.xebia.functional.xef.java.auto.jdk21.tot;
 
+import com.xebia.functional.xef.auto.llm.openai.OpenAI;
+
 import static com.xebia.functional.xef.java.auto.jdk21.tot.Rendering.renderHistory;
 import static com.xebia.functional.xef.java.auto.jdk21.tot.Rendering.truncateText;
 
@@ -54,7 +56,7 @@ public class Solutions{
                 "       \n";
 
         try {
-            return Problems.Memory.getAiScope().prompt(enhancedPrompt, Solution.class).get();
+            return Problems.Memory.getAiScope().prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, enhancedPrompt, Solution.class).get();
         } catch (Exception e) {
             System.err.printf("Solutions.solution enhancedPrompt threw exception: %s - %s\n",
                     e.getClass().getName(), e.getMessage());

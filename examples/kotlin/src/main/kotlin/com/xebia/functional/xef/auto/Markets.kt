@@ -1,8 +1,8 @@
 package com.xebia.functional.xef.auto
 
-import com.xebia.functional.xef.agents.search
-import com.xebia.functional.xef.auto.llm.openai.conversation
+import com.xebia.functional.xef.auto.llm.openai.OpenAI
 import com.xebia.functional.xef.auto.llm.openai.prompt
+import com.xebia.functional.xef.reasoning.serpapi.Search
 import java.text.SimpleDateFormat
 import java.util.Date
 import kotlinx.serialization.Serializable
@@ -15,9 +15,10 @@ data class MarketNews(
 )
 
 suspend fun main() {
-  conversation {
+  OpenAI.conversation {
     val sdf = SimpleDateFormat("dd/M/yyyy")
     val currentDate = sdf.format(Date())
+    val search = Search(OpenAI.FromEnvironment.DEFAULT_CHAT, this)
     addContext(search("$currentDate Stock market results, raising stocks, decreasing stocks"))
     val news: MarketNews =
       prompt(

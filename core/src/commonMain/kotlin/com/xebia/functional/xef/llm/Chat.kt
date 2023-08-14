@@ -94,6 +94,15 @@ interface Chat : LLM {
   }
 
   @AiDsl
+  suspend fun promptMessage(
+    messages: List<Message>,
+    scope: Conversation,
+    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
+  ): String =
+    promptMessages(messages, scope, emptyList(), promptConfiguration).firstOrNull()
+      ?: throw AIError.NoResponse()
+
+  @AiDsl
   suspend fun promptMessages(
     messages: List<Message>,
     scope: Conversation,
@@ -159,10 +168,11 @@ interface Chat : LLM {
     buffer: StringBuilder,
   ) {
     val lastRequestMessage = request.messages.lastOrNull()
-    if (scope.conversationId != null && lastRequestMessage != null) {
+    val cid = scope.conversationId
+    if (cid != null && lastRequestMessage != null) {
       val requestMemory =
         Memory(
-          conversationId = scope.conversationId,
+          conversationId = cid,
           content = lastRequestMessage,
           timestamp = getTimeMillis(),
           approxTokens = tokensFromMessages(listOf(lastRequestMessage))
@@ -171,7 +181,7 @@ interface Chat : LLM {
         Message(role = Role.ASSISTANT, content = buffer.toString(), name = Role.ASSISTANT.name)
       val responseMemory =
         Memory(
-          conversationId = scope.conversationId,
+          conversationId = cid,
           content = responseMessage,
           timestamp = getTimeMillis(),
           approxTokens = tokensFromMessages(listOf(responseMessage))
@@ -186,11 +196,13 @@ interface Chat : LLM {
   ): List<ChoiceWithFunctions> = also {
     val firstChoice = firstOrNull()
     val requestUserMessage = request.messages.lastOrNull()
-    if (requestUserMessage != null && firstChoice != null && scope.conversationId != null) {
+    val cid = scope.conversationId
+    if (requestUserMessage != null && firstChoice != null && cid != null) {
       val role = firstChoice.message?.role?.uppercase()?.let { Role.valueOf(it) } ?: Role.USER
+
       val requestMemory =
         Memory(
-          conversationId = scope.conversationId,
+          conversationId = cid,
           content = requestUserMessage,
           timestamp = getTimeMillis(),
           approxTokens = tokensFromMessages(listOf(requestUserMessage))
@@ -204,7 +216,7 @@ interface Chat : LLM {
         )
       val firstChoiceMemory =
         Memory(
-          conversationId = scope.conversationId,
+          conversationId = cid,
           content = firstChoiceMessage,
           timestamp = getTimeMillis(),
           approxTokens = tokensFromMessages(listOf(firstChoiceMessage))
@@ -219,11 +231,12 @@ interface Chat : LLM {
   ): List<Choice> = also {
     val firstChoice = firstOrNull()
     val requestUserMessage = request.messages.lastOrNull()
-    if (requestUserMessage != null && firstChoice != null && scope.conversationId != null) {
+    val cid = scope.conversationId
+    if (requestUserMessage != null && firstChoice != null && cid != null) {
       val role = firstChoice.message?.role?.name?.uppercase()?.let { Role.valueOf(it) } ?: Role.USER
       val requestMemory =
         Memory(
-          conversationId = scope.conversationId,
+          conversationId = cid,
           content = requestUserMessage,
           timestamp = getTimeMillis(),
           approxTokens = tokensFromMessages(listOf(requestUserMessage))
@@ -232,7 +245,7 @@ interface Chat : LLM {
         Message(role = role, content = firstChoice.message?.content ?: "", name = role.name)
       val firstChoiceMemory =
         Memory(
-          conversationId = scope.conversationId,
+          conversationId = cid,
           content = firstChoiceMessage,
           timestamp = getTimeMillis(),
           approxTokens = tokensFromMessages(listOf(firstChoiceMessage))
@@ -250,6 +263,7 @@ interface Chat : LLM {
     } else {
       emptyList()
     }
+  }
 
   private suspend fun fitMessagesByTokens(
     messages: List<Message>,
