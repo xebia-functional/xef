@@ -5,9 +5,10 @@ import com.xebia.functional.xef.auto.Description
 import com.xebia.functional.xef.auto.PromptConfiguration
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.llm.models.chat.Message
-import com.xebia.functional.xef.llm.models.chat.Message.Companion.assistantMessage
-import com.xebia.functional.xef.llm.models.chat.Message.Companion.systemMessage
-import com.xebia.functional.xef.llm.models.chat.Message.Companion.userMessage
+import com.xebia.functional.xef.prompt.buildPrompt
+import com.xebia.functional.xef.prompt.templates.assistant
+import com.xebia.functional.xef.prompt.templates.system
+import com.xebia.functional.xef.prompt.templates.user
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.Serializable
 
@@ -43,17 +44,15 @@ class ReActAgent(
       scope = scope,
       serializer = AgentFinish.serializer(),
       messages =
-        listOf(
-          systemMessage { "You are an expert in providing answers" },
-        ) +
-          chain.chainToMessages() +
-          listOf(
-            userMessage { "Provide the final answer to the `input` in a sentence or paragraph" },
-            userMessage { "input: $input" },
-            assistantMessage {
-              "I should create a AgentFinish object with the final answer based on the thoughts and observations"
-            }
+        buildPrompt {
+          +system("You are an expert in providing answers")
+          +chain.chainToMessages()
+          +user("Provide the final answer to the `input` in a sentence or paragraph")
+          +user("input: $input")
+          +assistant(
+            "I should create a AgentFinish object with the final answer based on the thoughts and observations"
           )
+        }
     )
 
   private suspend fun agentAction(
@@ -64,40 +63,32 @@ class ReActAgent(
       scope = scope,
       serializer = AgentAction.serializer(),
       messages =
-        listOf(
-          systemMessage {
+        buildPrompt {
+          +system(
             "You are an expert in tool selection. You are given a `input` and a `chain` of thoughts and observations."
-          },
-          userMessage { "input:" },
-        ) +
-          input +
-          listOf(
-            assistantMessage { "chain:" },
-          ) +
-          chain.chainToMessages() +
-          listOf(
-            assistantMessage { "I can only use this tools:" },
-          ) +
-          tools.toolsToMessages() +
-          listOf(
-            assistantMessage {
-              "I will not repeat the `toolInput` if the same one produced no satisfactory results in the observations"
-            },
-            userMessage { "Provide the next tool to use and the `toolInput` for the tool" },
           )
+          +user("input:")
+          +input
+          +assistant("chain:")
+          +chain.chainToMessages()
+          +assistant("I can only use this tools:")
+          +tools.toolsToMessages()
+          +assistant(
+            "I will not repeat the `toolInput` if the same one produced no satisfactory results in the observations"
+          )
+          +user("Provide the next tool to use and the `toolInput` for the tool")
+        }
     )
 
-  private suspend fun List<Tool>.toolsToMessages(): List<Message> = flatMap {
-    listOf(
-      assistantMessage { "${it.name}: ${it.description}" },
-    )
+  private fun List<Tool>.toolsToMessages(): List<Message> = flatMap {
+    buildPrompt { +assistant("${it.name}: ${it.description}") }
   }
 
-  private suspend fun List<ThoughtObservation>.chainToMessages(): List<Message> = flatMap {
-    listOf(
-      assistantMessage { "Thought: ${it.thought}" },
-      assistantMessage { "Observation: ${it.observation}" },
-    )
+  private fun List<ThoughtObservation>.chainToMessages(): List<Message> = flatMap {
+    buildPrompt {
+      +assistant("Thought: ${it.thought}")
+      +assistant("Observation: ${it.observation}")
+    }
   }
 
   private suspend fun agentChoice(
@@ -110,19 +101,14 @@ class ReActAgent(
       serializer = AgentChoice.serializer(),
       promptConfiguration = promptConfiguration,
       messages =
-        input +
-          listOf(
-            assistantMessage { "chain:" },
-          ) +
-          chain.chainToMessages() +
-          listOf(
-            assistantMessage {
-              "`CONTINUE` if the `input` has not been answered by the observations in the `chain`"
-            },
-            assistantMessage {
-              "`FINISH` if the `input` has been answered by the observations in the `chain`"
-            },
+        buildPrompt {
+          +input
+          +assistant("chain:")
+          +assistant(
+            "`CONTINUE` if the `input` has not been answered by the observations in the `chain`"
           )
+          +assistant("`FINISH` if the `input` has been answered by the observations in the `chain`")
+        }
     )
 
   private suspend fun createInitialThought(
@@ -134,22 +120,16 @@ class ReActAgent(
       serializer = Thought.serializer(),
       promptConfiguration = promptConfiguration,
       messages =
-        listOf(
-          systemMessage { "You are an expert in providing next steps to solve a problem" },
-          systemMessage { "You are given a `input` provided by the user" },
-          userMessage { "input:" },
-        ) +
-          input +
-          listOf(
-            assistantMessage { "I have access to tools:" },
-          ) +
-          tools.toolsToMessages() +
-          listOf(
-            assistantMessage {
-              "I should create a Thought object with the next thought based on the `input`"
-            },
-            userMessage { "Provide the next thought based on the `input`" },
-          )
+        buildPrompt {
+          +system("You are an expert in providing next steps to solve a problem")
+          +system("You are given a `input` provided by the user")
+          +user("input:")
+          +input
+          +assistant("I have access to tools:")
+          +tools.toolsToMessages()
+          +assistant("I should create a Thought object with the next thought based on the `input`")
+          +user("Provide the next thought based on the `input`")
+        }
     )
   }
 

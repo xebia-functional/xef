@@ -1,7 +1,8 @@
 package com.xebia.functional.xef.auto.reasoning
 
 import com.xebia.functional.xef.auto.llm.openai.OpenAI
-import com.xebia.functional.xef.llm.models.chat.Message
+import com.xebia.functional.xef.prompt.buildPrompt
+import com.xebia.functional.xef.prompt.templates.user
 import com.xebia.functional.xef.reasoning.code.Code
 import com.xebia.functional.xef.reasoning.tools.ReActAgent
 
@@ -22,11 +23,11 @@ suspend fun main() {
       )
     val prDescription =
       agent.run(
-        listOf(
-          Message.userMessage {
+        buildPrompt {
+          +user(
             "Create a PR description for https://patch-diff.githubusercontent.com/raw/xebia-functional/xef/pull/283.diff"
-          }
-        )
+          )
+        }
       )
     println(prDescription)
   }
