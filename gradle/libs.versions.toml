@@ -17,7 +17,6 @@ hikari = "5.0.1"
 dokka = "1.8.20"
 logback = "1.4.8"
 kotlinx-coroutines = "1.7.3"
-kotlinx-coroutines-reactive = "1.7.3"
 scalaMultiversion = "2.0.4"
 circe = "0.14.5"
 catsEffect = "3.6-0142603"
@@ -53,7 +52,8 @@ suspendApp-ktor = { module = "io.arrow-kt:suspendapp-ktor", version.ref = "suspe
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-json" }
 kotlinx-serialization-hocon = { module = "org.jetbrains.kotlinx:kotlinx-serialization-hocon", version.ref = "kotlinx-json" }
 kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref="kotlinx-coroutines" }
-kotlinx-coroutines-reactive = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-reactive", version.ref="kotlinx-coroutines-reactive" }
+kotlinx-coroutines-reactive = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-reactive", version.ref="kotlinx-coroutines" }
+kotlinx-coroutines-jdk8 = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8", version.ref="kotlinx-coroutines" }
 ktor-utils = { module = "io.ktor:ktor-utils", version.ref = "ktor" }
 ktor-http = { module = "io.ktor:ktor-http", version.ref = "ktor" }
 ktor-client ={ module = "io.ktor:ktor-client-core", version.ref = "ktor" }

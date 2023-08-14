@@ -1,8 +1,8 @@
 package com.xebia.functional.xef.auto
 
-import com.xebia.functional.xef.agents.search
-import com.xebia.functional.xef.auto.llm.openai.conversation
+import com.xebia.functional.xef.auto.llm.openai.OpenAI
 import com.xebia.functional.xef.auto.llm.openai.promptMessage
+import com.xebia.functional.xef.reasoning.serpapi.Search
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 suspend fun main() {
@@ -14,7 +14,9 @@ suspend fun main() {
   logger.info { answer }
 }
 
-private suspend fun getQuestionAnswer(question: String): String = conversation {
-  addContext(search("Weather in Cádiz, Spain"))
-  promptMessage(question)
-}
+private suspend fun getQuestionAnswer(question: String): String =
+  OpenAI.conversation {
+    val search = Search(OpenAI.FromEnvironment.DEFAULT_CHAT, this)
+    addContext(search("Weather in Cádiz, Spain"))
+    promptMessage(question)
+  }

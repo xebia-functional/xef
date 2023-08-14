@@ -87,6 +87,11 @@ kotlin {
         implementation(libs.logback)
         implementation(libs.skrape)
         implementation(libs.rss.reader)
+        api(libs.jackson)
+        api(libs.jackson.schema)
+        api(libs.jackson.schema.jakarta)
+        api(libs.jakarta.validation)
+        implementation(libs.kotlinx.coroutines.reactive)
         api(libs.ktor.client.cio)
       }
     }

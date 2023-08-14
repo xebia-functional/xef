@@ -1,10 +1,10 @@
 package com.xebia.functional.xef.auto.gpc
 
-import com.xebia.functional.gpt4all.conversation
+import com.xebia.functional.xef.auto.llm.openai.OpenAI
 import com.xebia.functional.xef.gcp.GcpChat
 
 suspend fun main() {
-  conversation {
+  OpenAI.conversation {
     val gcp =
       autoClose(
         GcpChat("us-central1-aiplatform.googleapis.com", "xef-demo", "codechat-bison@001", "token")

@@ -3,7 +3,7 @@ package com.xebia.functional.xef.java.auto.jdk8.gpt4all;
 import com.xebia.functional.gpt4all.GPT4All;
 import com.xebia.functional.gpt4all.Gpt4AllModel;
 import com.xebia.functional.xef.auto.PromptConfiguration;
-import com.xebia.functional.xef.java.auto.AIScope;
+import com.xebia.functional.xef.auto.PlatformConversation;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -11,6 +11,8 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
+
+import com.xebia.functional.xef.auto.llm.openai.OpenAI;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -37,10 +39,8 @@ public class Chat {
          * to provide embeddings for docs in contextScope.
          */
 
-        try (AIScope scope = new AIScope();
-              BufferedReader br = new BufferedReader(new InputStreamReader(System.in))) {
-
-            System.out.println("🤖 Context loaded: " + scope.getExec().getContext());
+        try (PlatformConversation scope = OpenAI.conversation();
+             BufferedReader br = new BufferedReader(new InputStreamReader(System.in))) {
 
             System.out.println("\n🤖 Enter your question: ");
 

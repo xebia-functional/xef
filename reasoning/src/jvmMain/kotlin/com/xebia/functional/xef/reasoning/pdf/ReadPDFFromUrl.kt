@@ -9,6 +9,11 @@ import com.xebia.functional.xef.reasoning.text.summarize.Summarize
 import com.xebia.functional.xef.reasoning.text.summarize.SummaryLength
 import com.xebia.functional.xef.reasoning.tools.Tool
 import io.github.oshai.kotlinlogging.KotlinLogging
+import java.util.concurrent.CompletableFuture
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.serialization.Serializable
 
 @Serializable data class ExtractedUrl(val url: String)
@@ -28,6 +33,12 @@ constructor(
 
   override val description: String = "Reads the content of a PDF as String from a URL"
 
+  private val coroutineScope = CoroutineScope(SupervisorJob())
+
+  fun readPDFFromUrl(url: String): CompletableFuture<String> =
+    coroutineScope.async { invoke(url) }.asCompletableFuture()
+
+  @JvmSynthetic
   override suspend fun invoke(input: String): String {
     val extracted: ExtractedUrl =
       model.prompt(

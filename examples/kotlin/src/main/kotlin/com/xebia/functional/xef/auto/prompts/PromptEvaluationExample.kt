@@ -1,12 +1,10 @@
 package com.xebia.functional.xef.auto.prompts
 
-import com.xebia.functional.xef.auto.conversation
 import com.xebia.functional.xef.auto.llm.openai.OpenAI
-import com.xebia.functional.xef.auto.llm.openai.conversation
 import com.xebia.functional.xef.prompt.evaluator.PromptEvaluator
 
 suspend fun main() {
-  conversation {
+  OpenAI.conversation {
     val score =
       PromptEvaluator.evaluate(
         model = OpenAI().DEFAULT_CHAT,
