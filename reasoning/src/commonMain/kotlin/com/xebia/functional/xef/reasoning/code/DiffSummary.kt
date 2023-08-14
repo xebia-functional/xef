@@ -43,7 +43,7 @@ class DiffSummary(
         prompt =
           Prompt(
             """|
-        |Please provide the url that you want to read a PDF from
+        |Please provide the url that you want to read a diff from
         |given this input:
         |
         |$input
