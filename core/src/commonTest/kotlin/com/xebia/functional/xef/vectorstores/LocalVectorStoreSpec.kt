@@ -25,25 +25,21 @@ class LocalVectorStoreSpec :
     "memories function should return the last n messages in the right order" {
       val localVectorStore = LocalVectorStore(TestEmbeddings())
 
-      val limit = 3 * 2 // 3 couples of messages
-
       val messages1 = generateRandomMessages(4, startTimestamp = 1000)
       val messages2 = generateRandomMessages(3, startTimestamp = 2000)
+
+      val tokensForMessages2 = messages2.sumOf { calculateTokens(it.content) }
 
       localVectorStore.addMemories(messages1)
       localVectorStore.addMemories(messages2)
 
-      val messages = localVectorStore.memories(defaultConversationId, limit)
+      val messages = localVectorStore.memories(defaultConversationId, tokensForMessages2)
 
-      val messagesExpected = (messages1 + messages2).takeLast(limit)
-
-      messages shouldBe messagesExpected
+      messages shouldBe messages2
     }
 
     "memories function should return the last n messages in the right order for a specific conversation id" {
       val localVectorStore = LocalVectorStore(TestEmbeddings())
-
-      val limit = 3 * 2
 
       val firstId = ConversationId("first-id")
       val secondId = ConversationId("second-id")
@@ -53,13 +49,14 @@ class LocalVectorStoreSpec :
 
       localVectorStore.addMemories(messages1 + messages2)
 
-      val messagesFirstId = localVectorStore.memories(firstId, limit)
-      val messagesFirstIdExpected = messages1.takeLast(limit)
+      val tokensForMessages1 = messages1.sumOf { calculateTokens(it.content) }
+      val tokensForMessages2 = messages2.sumOf { calculateTokens(it.content) }
 
-      val messagesSecondId = localVectorStore.memories(secondId, limit)
-      val messagesSecondIdExpected = messages2.takeLast(limit)
+      val messagesFirstId = localVectorStore.memories(firstId, tokensForMessages1)
 
-      messagesFirstId shouldBe messagesFirstIdExpected
-      messagesSecondId shouldBe messagesSecondIdExpected
+      val messagesSecondId = localVectorStore.memories(secondId, tokensForMessages2)
+
+      messagesFirstId shouldBe messages1
+      messagesSecondId shouldBe messages2
     }
   })

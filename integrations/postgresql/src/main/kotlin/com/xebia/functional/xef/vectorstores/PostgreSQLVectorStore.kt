@@ -30,22 +30,24 @@ class PGVectorStore(
           bind(memory.content.role.name.lowercase())
           bind(memory.content.content)
           bind(memory.timestamp)
+          bind(memory.approxTokens)
         }
       }
     }
   }
 
-  override suspend fun memories(conversationId: ConversationId, limit: Int): List<Memory> =
+  override suspend fun memories(conversationId: ConversationId, limitTokens: Int): List<Memory> =
     dataSource.connection {
       queryAsList(getMemoriesByConversationId, {
         bind(conversationId.value)
-        bind(limit)
+        bind(limitTokens)
       }) {
         val uuid = string()
         val cId = string()
         val role = string()
         val content = string()
         val timestamp = long()
+        val approxTokens = int()
         Memory(
           conversationId = ConversationId(cId),
           content = Message(
@@ -54,9 +56,10 @@ class PGVectorStore(
             name = role,
           ),
           timestamp = timestamp,
+          approxTokens = approxTokens
         )
       }
-    }
+    }.reversed()
 
   private fun JDBCSyntax.getCollection(collectionName: String): PGCollection =
     queryOneOrNull(getCollection, { bind(collectionName) }) {

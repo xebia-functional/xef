@@ -25,7 +25,15 @@ class CombinedVectorStoreSpec :
 
       val combinedVectorStore = topMessages.combine(bottomMessages)
 
-      val messages = combinedVectorStore.memories(defaultConversationId, 6 * 2)
+      val tokensForLast2TopMessages =
+        topMessages.takeLast(2 * 2).sumOf { calculateTokens(it.content) }
+      val tokensForBottomMessages = bottomMessages.sumOf { calculateTokens(it.content) }
+
+      val messages =
+        combinedVectorStore.memories(
+          defaultConversationId,
+          tokensForLast2TopMessages + tokensForBottomMessages
+        )
 
       val messagesExpected = topMessages.takeLast(2 * 2) + bottomMessages
 
@@ -109,7 +117,9 @@ class CombinedVectorStoreSpec :
         generateRandomMessages(4, append = "new", conversationId = commonId, startTimestamp = 5000)
       combinedVectorStore.addMemories(newCommonMessages)
 
-      combinedVectorStore.memories(commonId, 4 * 2) shouldBe newCommonMessages
+      val tokensForNewCommonMessages = newCommonMessages.sumOf { calculateTokens(it.content) }
+
+      combinedVectorStore.memories(commonId, tokensForNewCommonMessages) shouldBe newCommonMessages
     }
   })
 

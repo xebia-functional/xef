@@ -10,7 +10,6 @@ class PromptConfiguration(
   val temperature: Double = 0.4,
   val numberOfPredictions: Int = 1,
   val docsInContext: Int = 5,
-  val memoryLimit: Int = 5,
   val minResponseTokens: Int = 500,
   val messagePolicy: MessagePolicy = MessagePolicy(),
 ) {
@@ -23,7 +22,6 @@ class PromptConfiguration(
       private var numberOfPredictions: Int = 1
       private var docsInContext: Int = 20
       private var minResponseTokens: Int = 500
-      private var memoryLimit: Int = 5
       private var messagePolicy: MessagePolicy = MessagePolicy()
 
       fun maxDeserializationAttempts(maxDeserializationAttempts: Int) = apply {
@@ -44,8 +42,6 @@ class PromptConfiguration(
         this.minResponseTokens = minResponseTokens
       }
 
-      fun memoryLimit(memoryLimit: Int) = apply { this.memoryLimit = memoryLimit }
-
       fun messagePolicy(messagePolicy: MessagePolicy) = apply { this.messagePolicy = messagePolicy }
 
       fun build() =
@@ -55,7 +51,6 @@ class PromptConfiguration(
           temperature = temperature,
           numberOfPredictions = numberOfPredictions,
           docsInContext = docsInContext,
-          memoryLimit = memoryLimit,
           minResponseTokens = minResponseTokens,
           messagePolicy = messagePolicy,
         )
@@ -77,5 +72,6 @@ class PromptConfiguration(
  */
 class MessagePolicy(
   val historyPercent: Int = 50,
+  val historyPaddingTokens: Int = 100,
   val contextPercent: Int = 50,
 )

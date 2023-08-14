@@ -93,15 +93,19 @@ class PGVectorStoreSpec :
       val messages = 10
       val conversationId = ConversationId(UUID.generateUUID().toString())
       val memories = (0 until messages).flatMap {
+        val m1 = Message(Role.USER, "question $it", "user")
+        val m2 = Message(Role.ASSISTANT, "answer $it", "assistant")
         listOf(
-          Memory(conversationId, Message(Role.USER, "question $it", "user"), 2 * it.toLong()),
-          Memory(conversationId, Message(Role.ASSISTANT, "answer $it", "assistant"), 2 * it.toLong() + 1)
+          Memory(conversationId, m1, 2 * it.toLong(), calculateTokens(m1)),
+          Memory(conversationId, m2, 2 * it.toLong() + 1, calculateTokens(m2))
         )
       }
       pg.addMemories(memories)
       memories shouldBe pg.memories(conversationId, memories.size)
     }
   })
+
+private fun calculateTokens(message: Message): Int = message.content.split(" ").size + 2 // 2 is the role and name
 
 private fun Embeddings.Companion.mock(
   embedDocuments:

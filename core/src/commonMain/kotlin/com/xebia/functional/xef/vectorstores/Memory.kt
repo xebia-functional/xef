@@ -9,4 +9,9 @@ import com.xebia.functional.xef.llm.models.chat.Message
  * @property conversationId uniquely identifies the conversation in which the message took place.
  * @property timestamp in milliseconds.
  */
-data class Memory(val conversationId: ConversationId, val content: Message, val timestamp: Long)
+data class Memory(
+  val conversationId: ConversationId,
+  val content: Message,
+  val timestamp: Long,
+  val approxTokens: Int
+)
