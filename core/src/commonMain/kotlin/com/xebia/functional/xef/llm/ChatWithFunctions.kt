@@ -62,6 +62,28 @@ interface ChatWithFunctions : Chat {
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS,
   ): A = prompt(prompt.toMessages(), scope, functions, serializer, promptConfiguration)
 
+  @OptIn(ExperimentalSerializationApi::class)
+  @AiDsl
+  suspend fun <A, B> prompt(
+    input: A,
+    scope: Conversation,
+    inputSerializer: KSerializer<A>,
+    outputSerializer: KSerializer<B>,
+    functions: List<CFunction> = generateCFunction(outputSerializer.descriptor),
+    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS,
+  ): B =
+    prompt(
+      listOf(
+        Message.userMessage {
+          "${inputSerializer.descriptor.serialName}(${Json.encodeToString(inputSerializer, input)})"
+        },
+      ),
+      scope,
+      functions,
+      { json -> Json.decodeFromString(outputSerializer, json) },
+      promptConfiguration
+    )
+
   @AiDsl
   suspend fun <A> prompt(
     prompt: Prompt,
