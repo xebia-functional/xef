@@ -25,7 +25,7 @@ class ProduceTextFile(
   override suspend fun invoke(input: String): String {
     val file: TxtFile =
       model.prompt(
-        messages =
+        prompt =
           buildPrompt {
             +system("Convert output for a Text File")
             +user(input)

@@ -5,7 +5,6 @@ import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.auto.autoClose
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.llm.ChatWithFunctions
-import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.buildPrompt
 import com.xebia.functional.xef.prompt.templates.assistant
@@ -79,7 +78,7 @@ class DiffSummary(
 
   private suspend fun createPRDescription(summary: String): String =
     chat.promptMessage(
-      messages =
+      prompt =
         buildPrompt {
           +system("Create Pull Request Description")
           +assistant(
@@ -103,7 +102,7 @@ class DiffSummary(
   }
 
   companion object {
-    fun systemPrompt(): List<Message> = buildPrompt {
+    fun systemPrompt(): Prompt = buildPrompt {
       +system(
         // language=yaml
         """

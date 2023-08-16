@@ -1,19 +1,12 @@
 package com.xebia.functional.xef.prompt
 
-import arrow.core.fold
-import kotlin.jvm.JvmInline
+import com.xebia.functional.xef.llm.models.chat.Message
+import com.xebia.functional.xef.prompt.templates.user
+import kotlinx.serialization.Serializable
 
-@JvmInline value class Prompt(val message: String)
+/** A Prompt is a serializable list of messages. The messages may involve different roles. */
+@Serializable
+data class Prompt(val messages: List<Message>) {
 
-fun String.prompt(): Prompt = Prompt(this)
-
-fun Prompt.prepend(text: String) = Prompt(text + message)
-
-operator fun Prompt.plus(other: Prompt): Prompt = Prompt(message + other.message)
-
-operator fun Prompt.plus(text: String): Prompt = Prompt(message + text)
-
-fun Prompt.append(text: String) = this + text
-
-fun Prompt.format(variables: Map<String, String>): Prompt =
-  Prompt(variables.fold(message) { acc, (key, value) -> acc.replace("{$key}", value) })
+  constructor(value: String) : this(listOf(user(value)))
+}

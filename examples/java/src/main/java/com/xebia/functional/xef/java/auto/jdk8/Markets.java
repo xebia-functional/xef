@@ -2,6 +2,7 @@ package com.xebia.functional.xef.java.auto.jdk8;
 
 import com.xebia.functional.xef.auto.PlatformConversation;
 import com.xebia.functional.xef.auto.llm.openai.OpenAI;
+import com.xebia.functional.xef.prompt.Prompt;
 import com.xebia.functional.xef.reasoning.serpapi.Search;
 
 import java.time.LocalDateTime;
@@ -25,8 +26,7 @@ public class Markets {
     }
 
     private static CompletableFuture<Void> stockMarketSummary(PlatformConversation scope) {
-        String news = "|" +
-              "|Write a short summary of the stock market results given the provided context.";
+        Prompt news = new Prompt("Write a short summary of the stock market results given the provided context.");
 
         return scope.prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, news, Markets.class)
               .thenAccept(markets -> System.out.println(markets));

@@ -33,7 +33,7 @@ actual constructor(
 
   fun <A> prompt(
     chat: ChatWithFunctions,
-    prompt: String,
+    prompt: Prompt,
     functions: List<CFunction>,
     serializer: FromJson<A>,
     promptConfiguration: PromptConfiguration
@@ -51,7 +51,7 @@ actual constructor(
   @JvmOverloads
   fun <A> prompt(
     chat: ChatWithFunctions,
-    prompt: String,
+    prompt: Prompt,
     target: Class<A>,
     functions: List<CFunction> = listOf(generateCFunctionFromClass(target)),
     serializer: FromJson<A> = FromJson { json ->
@@ -79,13 +79,13 @@ actual constructor(
   @JvmOverloads
   fun promptMessage(
     chat: Chat,
-    question: String,
+    prompt: Prompt,
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
   ): CompletableFuture<String> =
     coroutineScope
       .promptMessageAsync(
         chat = chat,
-        question = question,
+        prompt = prompt,
         promptConfiguration = promptConfiguration,
       )
       .asCompletableFuture()
@@ -93,14 +93,14 @@ actual constructor(
   @JvmOverloads
   fun promptMessages(
     chat: Chat,
-    question: String,
+    prompt: Prompt,
     functions: List<CFunction> = emptyList(),
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
   ): CompletableFuture<List<String>> =
     coroutineScope
       .promptMessagesAsync(
         chat = chat,
-        question = question,
+        prompt = prompt,
         functions = functions,
         promptConfiguration = promptConfiguration,
       )
@@ -109,44 +109,18 @@ actual constructor(
   @JvmOverloads
   fun promptStreaming(
     chat: Chat,
-    question: String,
+    prompt: Prompt,
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS,
     functions: List<CFunction> = emptyList(),
   ): Publisher<String> =
     chat
       .promptStreaming(
-        question = question,
+        prompt = prompt,
         scope = conversation,
         functions = functions,
         promptConfiguration = promptConfiguration,
       )
       .asPublisher()
-
-  /**
-   * Run a [prompt] describes the images you want to generate within the context of [Conversation].
-   * Returns a [ImagesGenerationResponse] containing time and urls with images generated.
-   *
-   * @param prompt a [Prompt] describing the images you want to generate.
-   * @param numberImages number of images to generate.
-   * @param size the size of the images to generate.
-   */
-  @AiDsl
-  fun images(
-    images: Images,
-    prompt: String,
-    numberImages: Int = 1,
-    size: String = "1024x1024",
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-  ): CompletableFuture<ImagesGenerationResponse> =
-    coroutineScope
-      .imagesAsync(
-        images = images,
-        prompt = prompt,
-        numberImages = numberImages,
-        size = size,
-        promptConfiguration = promptConfiguration,
-      )
-      .asCompletableFuture()
 
   /**
    * Run a [prompt] describes the images you want to generate within the context of [Conversation].

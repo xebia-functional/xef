@@ -25,27 +25,28 @@ suspend fun taskSplitter(
     block = {
       addMessages(
         buildPrompt {
-          +system("You are a professional task planner")
-          +user(
-            """
+            +system("You are a professional task planner")
+            +user(
+              """
      |I want to achieve:
   """
-              .trimMargin()
-          )
-          +user(prompt)
-          +assistant("I have access to all these tool")
-          tools.forEach { +assistant("${it.name}: ${it.description}") }
-          +assistant(
-            """
+                .trimMargin()
+            )
+            +user(prompt)
+            +assistant("I have access to all these tool")
+            tools.forEach { +assistant("${it.name}: ${it.description}") }
+            +assistant(
+              """
      |I will break down your task into 3 tasks to make progress and help you accomplish this goal
      |using the tools that I have available.
      |1: ${prompt("task1")}
      |2: ${prompt("task2")}
      |3: ${prompt("task3")}
   """
-              .trimMargin()
-          )
-        }
+                .trimMargin()
+            )
+          }
+          .messages
       )
     }
   )

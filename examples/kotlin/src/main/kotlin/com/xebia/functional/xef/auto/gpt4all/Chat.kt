@@ -4,6 +4,7 @@ import com.xebia.functional.gpt4all.GPT4All
 import com.xebia.functional.gpt4all.Gpt4AllModel
 import com.xebia.functional.gpt4all.conversation
 import com.xebia.functional.xef.auto.PromptConfiguration
+import com.xebia.functional.xef.prompt.Prompt
 import java.nio.file.Path
 import kotlinx.coroutines.flow.onCompletion
 
@@ -33,7 +34,7 @@ suspend fun main() {
         val userInput = readlnOrNull() ?: break
         gpT4All
           .promptStreaming(
-            userInput,
+            Prompt(userInput),
             this,
             promptConfiguration = PromptConfiguration { docsInContext(2) }
           )

@@ -5,6 +5,7 @@ import com.xebia.functional.xef.auto.Description
 import com.xebia.functional.xef.auto.PromptConfiguration
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.llm.models.chat.Message
+import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.buildPrompt
 import com.xebia.functional.xef.prompt.templates.assistant
 import com.xebia.functional.xef.prompt.templates.system
@@ -22,7 +23,7 @@ class ReActAgent(
   private val logger = KotlinLogging.logger {}
 
   private suspend fun createExecutionPlan(
-    input: List<Message>,
+    input: Prompt,
     chain: List<ThoughtObservation>,
     promptConfiguration: PromptConfiguration
   ): AgentPlan {
@@ -36,14 +37,11 @@ class ReActAgent(
     }
   }
 
-  private suspend fun agentFinish(
-    input: List<Message>,
-    chain: List<ThoughtObservation>
-  ): AgentFinish =
+  private suspend fun agentFinish(input: Prompt, chain: List<ThoughtObservation>): AgentFinish =
     model.prompt(
       scope = scope,
       serializer = AgentFinish.serializer(),
-      messages =
+      prompt =
         buildPrompt {
           +system("You are an expert in providing answers")
           +chain.chainToMessages()
@@ -55,14 +53,11 @@ class ReActAgent(
         }
     )
 
-  private suspend fun agentAction(
-    input: List<Message>,
-    chain: List<ThoughtObservation>
-  ): AgentAction =
+  private suspend fun agentAction(input: Prompt, chain: List<ThoughtObservation>): AgentAction =
     model.prompt(
       scope = scope,
       serializer = AgentAction.serializer(),
-      messages =
+      prompt =
         buildPrompt {
           +system(
             "You are an expert in tool selection. You are given a `input` and a `chain` of thoughts and observations."
@@ -81,29 +76,31 @@ class ReActAgent(
     )
 
   private fun List<Tool>.toolsToMessages(): List<Message> = flatMap {
-    buildPrompt { +assistant("${it.name}: ${it.description}") }
+    buildPrompt { +assistant("${it.name}: ${it.description}") }.messages
   }
 
   private fun List<ThoughtObservation>.chainToMessages(): List<Message> = flatMap {
     buildPrompt {
-      +assistant("Thought: ${it.thought}")
-      +assistant("Observation: ${it.observation}")
-    }
+        +assistant("Thought: ${it.thought}")
+        +assistant("Observation: ${it.observation}")
+      }
+      .messages
   }
 
   private suspend fun agentChoice(
     promptConfiguration: PromptConfiguration,
-    input: List<Message>,
+    input: Prompt,
     chain: List<ThoughtObservation>
   ): AgentChoice =
     model.prompt(
       scope = scope,
       serializer = AgentChoice.serializer(),
       promptConfiguration = promptConfiguration,
-      messages =
+      prompt =
         buildPrompt {
           +input
           +assistant("chain:")
+          +chain.chainToMessages()
           +assistant(
             "`CONTINUE` if the `input` has not been answered by the observations in the `chain`"
           )
@@ -112,14 +109,14 @@ class ReActAgent(
     )
 
   private suspend fun createInitialThought(
-    input: List<Message>,
+    input: Prompt,
     promptConfiguration: PromptConfiguration
   ): Thought {
     return model.prompt(
       scope = scope,
       serializer = Thought.serializer(),
       promptConfiguration = promptConfiguration,
-      messages =
+      prompt =
         buildPrompt {
           +system("You are an expert in providing next steps to solve a problem")
           +system("You are given a `input` provided by the user")
@@ -134,7 +131,7 @@ class ReActAgent(
   }
 
   private tailrec suspend fun runRec(
-    input: List<Message>,
+    input: Prompt,
     chain: List<ThoughtObservation>,
     currentIteration: Int,
     promptConfiguration: PromptConfiguration
@@ -188,7 +185,7 @@ class ReActAgent(
   }
 
   suspend fun run(
-    input: List<Message>,
+    input: Prompt,
     promptConfiguration: PromptConfiguration = PromptConfiguration { temperature(0.0) }
   ): String {
     val thought = createInitialThought(input, promptConfiguration)

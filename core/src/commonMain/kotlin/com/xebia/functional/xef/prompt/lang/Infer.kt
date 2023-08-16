@@ -75,9 +75,9 @@ class Infer(
       input = replaceInferPlaceholder(input, replacement)
     }
     return model.prompt(
-      messages =
+      prompt =
         buildPrompt {
-          +system(prompt.message)
+          +prompt
           +system("Stay in role and follow the directives of the function `Process`")
           +system(
             """

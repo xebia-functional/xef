@@ -163,7 +163,7 @@ ${scoreConfig.joinToString("\n") { printReturn(it) }}
 
     val result: List<String> =
       model.promptMessages(
-        messages =
+        prompt =
           buildPrompt {
             +system(message)
             +user("Set Prompt = $prompt")

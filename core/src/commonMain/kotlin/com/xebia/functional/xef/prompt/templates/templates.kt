@@ -2,6 +2,7 @@ package com.xebia.functional.xef.prompt.templates
 
 import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.llm.models.chat.Role
+import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.PromptBuilder
 import com.xebia.functional.xef.prompt.message
 
@@ -11,15 +12,12 @@ fun assistant(context: String): Message = context.message(Role.ASSISTANT)
 
 fun user(context: String): Message = context.message(Role.USER)
 
-fun youAre(act: String, talkingTo: String, role: Role = Role.ASSISTANT): Message =
-  "You are a $act talking with a $talkingTo".message(role)
-
 class StepsMessageBuilder : PromptBuilder() {
   override fun preprocess(elements: List<Message>): List<Message> =
     elements.mapIndexed { ix, elt -> "${ix + 1} - ${elt.content}".message(elt.role) }
 }
 
-fun steps(inside: PromptBuilder.() -> Unit): List<Message> =
+fun steps(inside: PromptBuilder.() -> Unit): Prompt =
   StepsMessageBuilder().apply { inside() }.build()
 
 fun writeSequenceOf(

@@ -4,6 +4,7 @@ import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.auto.PromptConfiguration
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.llm.models.chat.Message
+import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.buildPrompt
 import com.xebia.functional.xef.prompt.templates.assistant
 import com.xebia.functional.xef.prompt.templates.system
@@ -43,7 +44,7 @@ class Expression(
 
     val values: ReplacedValues =
       model.prompt(
-        messages = prelude + messages + instructionMessages,
+        prompt = Prompt(prelude.messages + messages + instructionMessages.messages),
         scope = scope,
         serializer = ReplacedValues.serializer(),
         promptConfiguration = promptConfiguration

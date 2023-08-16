@@ -6,6 +6,7 @@ import com.xebia.functional.gpt4all.huggingFaceUrl
 import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.auto.PromptConfiguration
 import com.xebia.functional.xef.pdf.pdf
+import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.vectorstores.LocalVectorStore
 import java.nio.file.Path
 
@@ -34,7 +35,7 @@ suspend fun main() {
   val result: String =
     gpt4All.use {
       it.promptMessage(
-        question = "What is the Tree of Thoughts framework about?",
+        prompt = Prompt("What is the Tree of Thoughts framework about?"),
         scope = scope,
         promptConfiguration = PromptConfiguration { docsInContext(5) }
       )

@@ -28,7 +28,7 @@ interface SearchTool : Tool {
     val docs = client.search(SerpApiClient.SearchData(input))
     return model
       .promptMessages(
-        messages =
+        prompt =
           buildPrompt {
             +system("Search results:")
             docs.searchResults.take(maxResultsInContext).forEach {

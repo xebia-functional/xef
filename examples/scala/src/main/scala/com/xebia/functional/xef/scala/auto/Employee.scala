@@ -2,6 +2,7 @@ package com.xebia.functional.xef.scala.auto
 
 import com.xebia.functional.xef.scala.auto.*
 import io.circe.Decoder
+import com.xebia.functional.xef.prompt.Prompt
 
 private final case class Employee(firstName: String, lastName: String, age: Int, position: String, company: Company) derives SerialDescriptor, Decoder
 
@@ -17,7 +18,7 @@ private final case class Company(name: String, address: Address) derives SerialD
         |and their company's name and address (street, city, and country).
         |Use the information provided.
       """.stripMargin
-    val employeeData = prompt[Employee](complexPrompt)
+    val employeeData = prompt[Employee](Prompt(complexPrompt))
     println(
       s"""
          |Employee Information:

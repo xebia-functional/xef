@@ -2,6 +2,7 @@ package com.xebia.functional.xef.java.auto.jdk21;
 
 import com.xebia.functional.xef.auto.PlatformConversation;
 import com.xebia.functional.xef.auto.llm.openai.OpenAI;
+import com.xebia.functional.xef.prompt.Prompt;
 import com.xebia.functional.xef.reasoning.serpapi.Search;
 
 import java.util.concurrent.CompletableFuture;
@@ -12,7 +13,7 @@ public class DivergentTasks {
     public Long numberOfMedicalNeedlesInWorld;
 
     private static CompletableFuture<Void> numberOfMedical(PlatformConversation scope) {
-        return scope.prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, "Provide the number of medical needles in the world", DivergentTasks.class)
+        return scope.prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, new Prompt("Provide the number of medical needles in the world"), DivergentTasks.class)
               .thenAccept(numberOfNeedles -> System.out.println("Needles in world:\n" + numberOfNeedles.numberOfMedicalNeedlesInWorld));
     }
 

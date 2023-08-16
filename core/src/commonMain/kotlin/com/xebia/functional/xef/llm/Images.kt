@@ -9,15 +9,6 @@ import com.xebia.functional.xef.vectorstores.VectorStore
 interface Images : LLM {
   suspend fun createImages(request: ImagesGenerationRequest): ImagesGenerationResponse
 
-  suspend fun images(
-    prompt: String,
-    context: VectorStore,
-    numberImages: Int = 1,
-    size: String = "1024x1024",
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-  ): ImagesGenerationResponse =
-    images(Prompt(prompt), context, numberImages, size, promptConfiguration)
-
   /**
    * Run a [prompt] describes the images you want to generate within the context of [CoreAIScope].
    * Returns a [ImagesGenerationResponse] containing time and urls with images generated.
@@ -35,7 +26,7 @@ interface Images : LLM {
   ): ImagesGenerationResponse {
     val request =
       ImagesGenerationRequest(
-        prompt = prompt.message,
+        prompt = prompt,
         numberImages = numberImages,
         size = size,
         user = promptConfiguration.user

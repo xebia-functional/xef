@@ -1,6 +1,7 @@
 package com.xebia.functional.xef.scala.auto
 
 import com.xebia.functional.xef.scala.auto.*
+import com.xebia.functional.xef.prompt.Prompt
 import io.circe.Decoder
 
 private final case class Animal(name: String, habitat: String, diet: String) derives SerialDescriptor, Decoder
@@ -11,15 +12,16 @@ private final case class Story(animal: Animal, invention: Invention, story: Stri
 
 @main def runAnimal: Unit =
   conversation {
-    val animal: Animal = prompt("A unique animal species")
-    val invention: Invention = prompt("A groundbreaking invention from the 20th century.")
+    val animal: Animal = prompt(Prompt("A unique animal species"))
+    val invention: Invention = prompt(Prompt("A groundbreaking invention from the 20th century."))
 
-    val storyPrompt =
+    val storyPrompt = Prompt(
       s"""
           Write a short story that involves the following elements:
           1. A unique animal species called ${animal.name} that lives in ${animal.habitat} and has a diet of ${animal.diet}.
           2. A groundbreaking invention from the 20th century called ${invention.name}, invented by ${invention.inventor} in ${invention.year}, which serves the purpose of ${invention.purpose}.
       """
+    )
 
     val story: Story = prompt(storyPrompt)
 

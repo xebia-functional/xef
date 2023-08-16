@@ -11,7 +11,6 @@ import com.xebia.functional.xef.llm.models.functions.CFunction
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.buildPrompt
 import com.xebia.functional.xef.prompt.templates.assistant
-import com.xebia.functional.xef.prompt.templates.user
 import com.xebia.functional.xef.vectorstores.Memory
 import io.ktor.util.date.*
 import kotlinx.coroutines.flow.Flow
@@ -30,21 +29,13 @@ interface Chat : LLM {
 
   @AiDsl
   fun promptStreaming(
-    question: String,
-    scope: Conversation,
-    functions: List<CFunction> = emptyList(),
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-  ): Flow<String> = promptStreaming(Prompt(question), scope, functions, promptConfiguration)
-
-  @AiDsl
-  fun promptStreaming(
     prompt: Prompt,
     scope: Conversation,
     functions: List<CFunction> = emptyList(),
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
   ): Flow<String> = flow {
     val messagesForRequest =
-      fitMessagesByTokens(prompt.toMessages(), scope, modelType, promptConfiguration)
+      fitMessagesByTokens(prompt.messages, scope, modelType, promptConfiguration)
 
     val request =
       ChatCompletionRequest(
@@ -71,23 +62,6 @@ interface Chat : LLM {
 
   @AiDsl
   suspend fun promptMessage(
-    question: String,
-    scope: Conversation,
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-  ): String =
-    promptMessages(Prompt(question), scope, emptyList(), promptConfiguration).firstOrNull()
-      ?: throw AIError.NoResponse()
-
-  @AiDsl
-  suspend fun promptMessages(
-    question: String,
-    scope: Conversation,
-    functions: List<CFunction> = emptyList(),
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-  ): List<String> = promptMessages(Prompt(question), scope, functions, promptConfiguration)
-
-  @AiDsl
-  suspend fun promptMessage(
     prompt: Prompt,
     scope: Conversation,
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
@@ -102,27 +76,9 @@ interface Chat : LLM {
     functions: List<CFunction> = emptyList(),
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
   ): List<String> {
-    return promptMessages(prompt.toMessages(), scope, functions, promptConfiguration)
-  }
 
-  @AiDsl
-  suspend fun promptMessage(
-    messages: List<Message>,
-    scope: Conversation,
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-  ): String =
-    promptMessages(messages, scope, emptyList(), promptConfiguration).firstOrNull()
-      ?: throw AIError.NoResponse()
-
-  @AiDsl
-  suspend fun promptMessages(
-    messages: List<Message>,
-    scope: Conversation,
-    functions: List<CFunction> = emptyList(),
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-  ): List<String> {
-
-    val messagesForRequest = fitMessagesByTokens(messages, scope, modelType, promptConfiguration)
+    val messagesForRequest =
+      fitMessagesByTokens(prompt.messages, scope, modelType, promptConfiguration)
 
     fun chatRequest(): ChatCompletionRequest =
       ChatCompletionRequest(
@@ -169,10 +125,6 @@ interface Chat : LLM {
       }
     }
   }
-
-  suspend fun String.toMessages(): List<Message> = Prompt(this).toMessages()
-
-  suspend fun Prompt.toMessages(): List<Message> = buildPrompt { +user(message) }
 
   private suspend fun addMemoriesAfterStream(
     request: ChatCompletionRequest,
@@ -344,7 +296,7 @@ interface Chat : LLM {
 
         val ctxTruncated: String = modelType.encoding.truncateText(ctx, maxContextTokens)
 
-        buildPrompt { +assistant(ctxTruncated) }
+        buildPrompt { +assistant(ctxTruncated) }.messages
       } else {
         emptyList()
       }

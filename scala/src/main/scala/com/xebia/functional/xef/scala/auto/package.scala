@@ -1,6 +1,7 @@
 package com.xebia.functional.xef.scala.auto
 
 import com.xebia.functional.xef.auto.llm.openai.*
+import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.auto.{FromJson, JVMConversation, PromptConfiguration}
 import com.xebia.functional.xef.llm.*
 import com.xebia.functional.xef.llm.models.functions.{CFunction, Json}
@@ -21,7 +22,7 @@ def addContext(context: Array[String])(using conversation: ScalaConversation): U
   conversation.addContextFromArray(context).join()
 
 def prompt[A: Decoder: SerialDescriptor](
-    prompt: String,
+    prompt: Prompt,
     chat: ChatWithFunctions = OpenAI.FromEnvironment.DEFAULT_SERIALIZATION,
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
 )(using
@@ -34,31 +35,31 @@ def prompt[A: Decoder: SerialDescriptor](
   conversation.prompt(chat, prompt, generateCFunctions.asJava, fromJson, promptConfiguration).join()
 
 def promptMessage(
-    question: String,
+    prompt: Prompt,
     chat: Chat = OpenAI.FromEnvironment.DEFAULT_CHAT,
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
 )(using conversation: ScalaConversation): String =
-  conversation.promptMessage(chat, question, promptConfiguration).join()
+  conversation.promptMessage(chat, prompt, promptConfiguration).join()
 
 def promptMessages(
-    question: String,
+    prompt: Prompt,
     chat: Chat = OpenAI.FromEnvironment.DEFAULT_CHAT,
     functions: List[CFunction] = List(),
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
 )(using
     conversation: ScalaConversation
 ): List[String] =
-  conversation.promptMessages(chat, question, functions.asJava, promptConfiguration).join().asScala.toList
+  conversation.promptMessages(chat, prompt, functions.asJava, promptConfiguration).join().asScala.toList
 
 def promptStreaming(
-    question: String,
+    prompt: Prompt,
     chat: Chat = OpenAI.FromEnvironment.DEFAULT_CHAT,
     functions: List[CFunction],
     promptConfiguration: PromptConfiguration
 )(using
     conversation: ScalaConversation
 ): LazyList[String] =
-  val publisher = conversation.promptStreaming(chat, question, promptConfiguration, functions.asJava)
+  val publisher = conversation.promptStreaming(chat, prompt, promptConfiguration, functions.asJava)
   val queue = new LinkedBlockingQueue[String]()
   publisher.subscribe(new Subscriber[String] {
     // TODO change to fs2 or similar
@@ -73,7 +74,7 @@ def promptStreaming(
   LazyList.continually(queue.take)
 
 def images(
-    prompt: String,
+    prompt: Prompt,
     images: Images = OpenAI.FromEnvironment.DEFAULT_IMAGES,
     numberImages: Int = 1,
     size: String = "1024x1024",

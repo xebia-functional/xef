@@ -13,6 +13,7 @@ import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
 import com.xebia.functional.xef.auto.llm.openai.OpenAI;
+import com.xebia.functional.xef.prompt.Prompt;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -49,7 +50,7 @@ public class Chat {
                 if (line.equals("exit")) break;
 
                 PromptConfiguration promptConfiguration = new PromptConfiguration.Companion.Builder().docsInContext(2).build();
-                Publisher<String> answer = scope.promptStreaming(gpt4all, line, promptConfiguration);
+                Publisher<String> answer = scope.promptStreaming(gpt4all, new Prompt(line), promptConfiguration);
 
                 answer.subscribe(new Subscriber<String>() {
                     StringBuilder answer = new StringBuilder();

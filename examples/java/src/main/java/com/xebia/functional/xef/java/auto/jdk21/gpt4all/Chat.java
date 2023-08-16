@@ -4,6 +4,7 @@ import com.xebia.functional.gpt4all.GPT4All;
 import com.xebia.functional.gpt4all.Gpt4AllModel;
 import com.xebia.functional.xef.auto.PromptConfiguration;
 import com.xebia.functional.xef.auto.llm.openai.OpenAI;
+import com.xebia.functional.xef.prompt.Prompt;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
@@ -46,7 +47,7 @@ public class Chat {
                 if (line.equals("exit")) break;
 
                 var promptConfiguration = new PromptConfiguration.Companion.Builder().docsInContext(2).build();
-                var answer = scope.promptStreaming(gpt4all, line, promptConfiguration);
+                var answer = scope.promptStreaming(gpt4all, new Prompt(line), promptConfiguration);
 
                 answer.subscribe(new Subscriber<String>() {
                     StringBuilder answer = new StringBuilder();
