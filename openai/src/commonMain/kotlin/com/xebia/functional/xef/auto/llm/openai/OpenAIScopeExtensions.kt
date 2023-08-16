@@ -46,6 +46,21 @@ suspend inline fun <reified A> Conversation.prompt(
   )
 
 @AiDsl
+suspend inline fun <reified A, reified B> Conversation.prompt(
+  input: A,
+  model: ChatWithFunctions = OpenAI().DEFAULT_SERIALIZATION,
+  promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS,
+): B {
+  return model.prompt(
+    input = input,
+    scope = conversation,
+    inputSerializer = serializer<A>(),
+    outputSerializer = serializer<B>(),
+    promptConfiguration = promptConfiguration,
+  )
+}
+
+@AiDsl
 suspend inline fun <reified A> Conversation.prompt(
   prompt: String,
   model: ChatWithFunctions = OpenAI().DEFAULT_SERIALIZATION,

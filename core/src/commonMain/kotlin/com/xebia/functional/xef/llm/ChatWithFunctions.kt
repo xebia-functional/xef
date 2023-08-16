@@ -12,6 +12,8 @@ import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.llm.models.functions.CFunction
 import com.xebia.functional.xef.llm.models.functions.encodeJsonSchema
 import com.xebia.functional.xef.prompt.Prompt
+import com.xebia.functional.xef.prompt.buildPrompt
+import com.xebia.functional.xef.prompt.templates.user
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
@@ -61,6 +63,28 @@ interface ChatWithFunctions : Chat {
     functions: List<CFunction> = emptyList(),
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS,
   ): A = prompt(prompt.toMessages(), scope, functions, serializer, promptConfiguration)
+
+  @OptIn(ExperimentalSerializationApi::class)
+  @AiDsl
+  suspend fun <A, B> prompt(
+    input: A,
+    scope: Conversation,
+    inputSerializer: KSerializer<A>,
+    outputSerializer: KSerializer<B>,
+    functions: List<CFunction> = generateCFunction(outputSerializer.descriptor),
+    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS,
+  ): B =
+    prompt(
+      buildPrompt {
+        +user(
+          "${inputSerializer.descriptor.serialName}(${Json.encodeToString(inputSerializer, input)})"
+        )
+      },
+      scope,
+      functions,
+      { json -> Json.decodeFromString(outputSerializer, json) },
+      promptConfiguration
+    )
 
   @AiDsl
   suspend fun <A> prompt(
