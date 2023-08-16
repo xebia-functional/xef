@@ -32,10 +32,10 @@ class Infer(
 
     val replacements: MutableList<Replacement<*>> = mutableListOf()
 
-    val inferInt: Int = inferInt()
-    val inferFloat: Float = inferFloat()
-    val inferDouble: Double = inferDouble()
-    val inferString: String = inferString()
+    val inferInt: Int get() = inferInt()
+    val inferFloat: Float get() = inferFloat()
+    val inferDouble: Double get() = inferDouble()
+    val inferString: String get() = inferString()
 
     val placeholder
       get() = "${'$'}generate${'$'}"
