@@ -9,6 +9,9 @@ import com.xebia.functional.xef.auto.PromptConfiguration
 import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.llm.models.functions.CFunction
 import com.xebia.functional.xef.prompt.Prompt
+import com.xebia.functional.xef.prompt.buildPrompt
+import com.xebia.functional.xef.prompt.templates.assistant
+import com.xebia.functional.xef.prompt.templates.user
 import com.xebia.functional.xef.vectorstores.Memory
 import io.ktor.util.date.*
 import kotlinx.coroutines.flow.Flow
@@ -82,6 +85,15 @@ interface Chat : LLM {
     functions: List<CFunction> = emptyList(),
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
   ): List<String> = promptMessages(Prompt(question), scope, functions, promptConfiguration)
+
+  @AiDsl
+  suspend fun promptMessage(
+    prompt: Prompt,
+    scope: Conversation,
+    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
+  ): String =
+    promptMessages(prompt, scope, emptyList(), promptConfiguration).firstOrNull()
+      ?: throw AIError.NoResponse()
 
   @AiDsl
   suspend fun promptMessages(
@@ -160,7 +172,7 @@ interface Chat : LLM {
 
   suspend fun String.toMessages(): List<Message> = Prompt(this).toMessages()
 
-  suspend fun Prompt.toMessages(): List<Message> = listOf(Message.userMessage { message })
+  suspend fun Prompt.toMessages(): List<Message> = buildPrompt { +user(message) }
 
   private suspend fun addMemoriesAfterStream(
     request: ChatCompletionRequest,
@@ -332,7 +344,7 @@ interface Chat : LLM {
 
         val ctxTruncated: String = modelType.encoding.truncateText(ctx, maxContextTokens)
 
-        listOf(Message.assistantMessage { ctxTruncated })
+        buildPrompt { +assistant(ctxTruncated) }
       } else {
         emptyList()
       }
