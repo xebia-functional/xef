@@ -31,20 +31,19 @@ interface Chat : LLM {
   fun promptStreaming(
     prompt: Prompt,
     scope: Conversation,
-    functions: List<CFunction> = emptyList(),
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
+    functions: List<CFunction> = emptyList()
   ): Flow<String> = flow {
     val messagesForRequest =
-      fitMessagesByTokens(prompt.messages, scope, modelType, promptConfiguration)
+      fitMessagesByTokens(prompt.messages, scope, modelType, prompt.configuration)
 
     val request =
       ChatCompletionRequest(
         model = name,
-        user = promptConfiguration.user,
+        user = prompt.configuration.user,
         messages = messagesForRequest,
-        n = promptConfiguration.numberOfPredictions,
-        temperature = promptConfiguration.temperature,
-        maxTokens = promptConfiguration.minResponseTokens,
+        n = prompt.configuration.numberOfPredictions,
+        temperature = prompt.configuration.temperature,
+        maxTokens = prompt.configuration.minResponseTokens,
         streamToStandardOut = true
       )
 
@@ -61,43 +60,37 @@ interface Chat : LLM {
   }
 
   @AiDsl
-  suspend fun promptMessage(
-    prompt: Prompt,
-    scope: Conversation,
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-  ): String =
-    promptMessages(prompt, scope, emptyList(), promptConfiguration).firstOrNull()
-      ?: throw AIError.NoResponse()
+  suspend fun promptMessage(prompt: Prompt, scope: Conversation): String =
+    promptMessages(prompt, scope, emptyList()).firstOrNull() ?: throw AIError.NoResponse()
 
   @AiDsl
   suspend fun promptMessages(
     prompt: Prompt,
     scope: Conversation,
-    functions: List<CFunction> = emptyList(),
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
+    functions: List<CFunction> = emptyList()
   ): List<String> {
 
     val messagesForRequest =
-      fitMessagesByTokens(prompt.messages, scope, modelType, promptConfiguration)
+      fitMessagesByTokens(prompt.messages, scope, modelType, prompt.configuration)
 
     fun chatRequest(): ChatCompletionRequest =
       ChatCompletionRequest(
         model = name,
-        user = promptConfiguration.user,
+        user = prompt.configuration.user,
         messages = messagesForRequest,
-        n = promptConfiguration.numberOfPredictions,
-        temperature = promptConfiguration.temperature,
-        maxTokens = promptConfiguration.minResponseTokens,
+        n = prompt.configuration.numberOfPredictions,
+        temperature = prompt.configuration.temperature,
+        maxTokens = prompt.configuration.minResponseTokens,
       )
 
     fun withFunctionsRequest(): ChatCompletionRequestWithFunctions =
       ChatCompletionRequestWithFunctions(
         model = name,
-        user = promptConfiguration.user,
+        user = prompt.configuration.user,
         messages = messagesForRequest,
-        n = promptConfiguration.numberOfPredictions,
-        temperature = promptConfiguration.temperature,
-        maxTokens = promptConfiguration.minResponseTokens,
+        n = prompt.configuration.numberOfPredictions,
+        temperature = prompt.configuration.temperature,
+        maxTokens = prompt.configuration.minResponseTokens,
         functions = functions,
         functionCall = mapOf("name" to (functions.firstOrNull()?.name ?: ""))
       )

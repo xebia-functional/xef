@@ -1,7 +1,6 @@
 package com.xebia.functional.xef.prompt.evaluator
 
 import com.xebia.functional.xef.auto.Conversation
-import com.xebia.functional.xef.auto.PromptConfiguration
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.prompt.buildPrompt
 import com.xebia.functional.xef.prompt.templates.system
@@ -109,7 +108,6 @@ object PromptEvaluator {
     conversation: Conversation,
     prompt: String,
     response: String,
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS,
     scoreConfig: List<ScoreCriteriaConfig> = ScoreCriteriaConfig.DEFAULTS
   ): Score {
 
@@ -170,8 +168,7 @@ ${scoreConfig.joinToString("\n") { printReturn(it) }}
             +user("Set Response = $response")
             +user("Evaluate(Prompt, Response)")
           },
-        scope = conversation,
-        promptConfiguration = promptConfiguration,
+        scope = conversation
       )
     val firstMessage = result.firstOrNull() ?: error("No messages returned from prompt")
     val map =

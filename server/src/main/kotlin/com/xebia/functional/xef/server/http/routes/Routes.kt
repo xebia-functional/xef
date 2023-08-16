@@ -41,13 +41,12 @@ fun Routing.routes(persistenceService: PersistenceService) {
             val model: OpenAIModel = data.model.toOpenAIModel(token)
             response<String, Throwable> {
                 model.promptMessage(
-                    prompt = Prompt(data.messages),
-                    scope = scope,
-                    promptConfiguration = PromptConfiguration(
+                    prompt = Prompt(data.messages, PromptConfiguration(
                         temperature = data.temperature,
                         numberOfPredictions = data.n,
                         user = data.user ?: ""
-                    )
+                    )),
+                    scope = scope
                 )
             }
         }

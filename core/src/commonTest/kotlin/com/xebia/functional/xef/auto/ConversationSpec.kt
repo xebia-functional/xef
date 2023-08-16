@@ -95,7 +95,7 @@ class ConversationSpec :
           messages.flatMap {
             listOf(
               Message(role = Role.USER, content = it.key, name = Role.USER.name),
-              Message(role = Role.ASSISTANT, content = it.value, name = Role.USER.name),
+              Message(role = Role.ASSISTANT, content = it.value, name = Role.ASSISTANT.name),
             )
           }
         )

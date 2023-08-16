@@ -2,7 +2,6 @@ package com.xebia.functional.xef.auto.llm.openai
 
 import com.xebia.functional.xef.auto.AiDsl
 import com.xebia.functional.xef.auto.Conversation
-import com.xebia.functional.xef.auto.PromptConfiguration
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.prompt.Prompt
 import kotlinx.serialization.KSerializer
@@ -25,9 +24,8 @@ suspend inline fun <reified A> Conversation.prompt(
   json: Json = Json {
     ignoreUnknownKeys = true
     isLenient = true
-  },
-  promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS,
-): A = prompt(model, prompt, serializer(), json, promptConfiguration)
+  }
+): A = prompt(model, prompt, serializer(), json)
 
 @AiDsl
 suspend fun <A> Conversation.prompt(
@@ -37,15 +35,8 @@ suspend fun <A> Conversation.prompt(
   json: Json = Json {
     ignoreUnknownKeys = true
     isLenient = true
-  },
-  promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS,
+  }
 ): A {
   val functions = model.generateCFunction(serializer.descriptor)
-  return model.prompt(
-    prompt,
-    this,
-    { json.decodeFromString(serializer, it) },
-    functions,
-    promptConfiguration
-  )
+  return model.prompt(prompt, this, { json.decodeFromString(serializer, it) }, functions)
 }

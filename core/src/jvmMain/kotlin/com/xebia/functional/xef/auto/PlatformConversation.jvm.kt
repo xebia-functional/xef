@@ -35,8 +35,7 @@ actual constructor(
     chat: ChatWithFunctions,
     prompt: Prompt,
     functions: List<CFunction>,
-    serializer: FromJson<A>,
-    promptConfiguration: PromptConfiguration
+    serializer: FromJson<A>
   ): CompletableFuture<A> =
     coroutineScope
       .promptAsync(
@@ -44,7 +43,6 @@ actual constructor(
         prompt = prompt,
         functions = functions,
         serializer = serializer::fromJson,
-        promptConfiguration = promptConfiguration,
       )
       .asCompletableFuture()
 
@@ -56,16 +54,14 @@ actual constructor(
     functions: List<CFunction> = listOf(generateCFunctionFromClass(target)),
     serializer: FromJson<A> = FromJson { json ->
       JacksonSerialization.objectMapper.readValue(json, target)
-    },
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
+    }
   ): CompletableFuture<A> =
     coroutineScope
       .promptAsync(
         chatWithFunctions = chat,
         prompt = prompt,
         functions = functions,
-        serializer = serializer::fromJson,
-        promptConfiguration = promptConfiguration,
+        serializer = serializer::fromJson
       )
       .asCompletableFuture()
 
@@ -77,40 +73,23 @@ actual constructor(
     )
 
   @JvmOverloads
-  fun promptMessage(
-    chat: Chat,
-    prompt: Prompt,
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-  ): CompletableFuture<String> =
-    coroutineScope
-      .promptMessageAsync(
-        chat = chat,
-        prompt = prompt,
-        promptConfiguration = promptConfiguration,
-      )
-      .asCompletableFuture()
+  fun promptMessage(chat: Chat, prompt: Prompt): CompletableFuture<String> =
+    coroutineScope.promptMessageAsync(chat = chat, prompt = prompt).asCompletableFuture()
 
   @JvmOverloads
   fun promptMessages(
     chat: Chat,
     prompt: Prompt,
-    functions: List<CFunction> = emptyList(),
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
+    functions: List<CFunction> = emptyList()
   ): CompletableFuture<List<String>> =
     coroutineScope
-      .promptMessagesAsync(
-        chat = chat,
-        prompt = prompt,
-        functions = functions,
-        promptConfiguration = promptConfiguration,
-      )
+      .promptMessagesAsync(chat = chat, prompt = prompt, functions = functions)
       .asCompletableFuture()
 
   @JvmOverloads
   fun promptStreaming(
     chat: Chat,
     prompt: Prompt,
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS,
     functions: List<CFunction> = emptyList(),
   ): Publisher<String> =
     chat
@@ -118,7 +97,6 @@ actual constructor(
         prompt = prompt,
         scope = conversation,
         functions = functions,
-        promptConfiguration = promptConfiguration,
       )
       .asPublisher()
 
@@ -135,17 +113,10 @@ actual constructor(
     images: Images,
     prompt: Prompt,
     numberImages: Int = 1,
-    size: String = "1024x1024",
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
+    size: String = "1024x1024"
   ): CompletableFuture<ImagesGenerationResponse> =
     coroutineScope
-      .imagesAsync(
-        images = images,
-        prompt = prompt,
-        numberImages = numberImages,
-        size = size,
-        promptConfiguration = promptConfiguration,
-      )
+      .imagesAsync(images = images, prompt = prompt, numberImages = numberImages, size = size)
       .asCompletableFuture()
 
   actual companion object {

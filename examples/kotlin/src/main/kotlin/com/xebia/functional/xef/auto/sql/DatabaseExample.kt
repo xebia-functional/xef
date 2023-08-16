@@ -1,7 +1,6 @@
 package com.xebia.functional.xef.auto.sql
 
 import arrow.core.raise.catch
-import com.xebia.functional.xef.auto.PromptConfiguration
 import com.xebia.functional.xef.auto.llm.openai.OpenAI
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.sql.SQL
@@ -52,8 +51,7 @@ suspend fun main() =
                 |3. Try to answer and provide information with as much detail as you can
               """
                     .trimMargin()
-                ),
-                promptConfiguration = PromptConfiguration.invoke { docsInContext(50) }
+                )
               )
             println("llmdb> $result")
           },

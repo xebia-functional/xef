@@ -1,7 +1,6 @@
 package com.xebia.functional.xef.prompt.lang
 
 import com.xebia.functional.xef.auto.Conversation
-import com.xebia.functional.xef.auto.PromptConfiguration
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.buildPrompt
@@ -98,8 +97,7 @@ class Infer(
           +user("Process($input)")
         },
       scope = conversation,
-      serializer = serializer<B>(),
-      promptConfiguration = PromptConfiguration { temperature(0.0) }
+      serializer = serializer<B>()
     )
   }
 

@@ -50,16 +50,9 @@ interface Conversation : AutoClose, AutoCloseable {
   suspend fun <A> ChatWithFunctions.prompt(
     prompt: Prompt,
     functions: List<CFunction>,
-    serializer: (json: String) -> A,
-    promptConfiguration: PromptConfiguration,
+    serializer: (json: String) -> A
   ): A {
-    return prompt(
-      prompt,
-      conversation,
-      serializer,
-      functions,
-      promptConfiguration,
-    )
+    return prompt(prompt, conversation, serializer, functions)
   }
 
   fun <A> CoroutineScope.promptAsync(
@@ -67,33 +60,18 @@ interface Conversation : AutoClose, AutoCloseable {
     prompt: Prompt,
     functions: List<CFunction>,
     serializer: (json: String) -> A,
-    promptConfiguration: PromptConfiguration,
-  ): Deferred<A> = async {
-    chatWithFunctions.prompt(
-      prompt,
-      conversation,
-      serializer,
-      functions,
-      promptConfiguration,
-    )
-  }
+  ): Deferred<A> = async { chatWithFunctions.prompt(prompt, conversation, serializer, functions) }
 
   @AiDsl
   @JvmSynthetic
   suspend fun Chat.promptMessage(
     prompt: Prompt,
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
   ): String =
-    promptMessages(prompt, conversation, emptyList(), promptConfiguration).firstOrNull()
-      ?: throw AIError.NoResponse()
+    promptMessages(prompt, conversation, emptyList()).firstOrNull() ?: throw AIError.NoResponse()
 
   @AiDsl
-  fun CoroutineScope.promptMessageAsync(
-    chat: Chat,
-    prompt: Prompt,
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-  ): Deferred<String> = async {
-    chat.promptMessages(prompt, conversation, emptyList(), promptConfiguration).firstOrNull()
+  fun CoroutineScope.promptMessageAsync(chat: Chat, prompt: Prompt): Deferred<String> = async {
+    chat.promptMessages(prompt, conversation, emptyList()).firstOrNull()
       ?: throw AIError.NoResponse()
   }
 
@@ -101,25 +79,18 @@ interface Conversation : AutoClose, AutoCloseable {
   @JvmSynthetic
   suspend fun Chat.promptMessages(
     prompt: Prompt,
-    functions: List<CFunction> = emptyList(),
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-  ): List<String> = promptMessages(prompt, conversation, functions, promptConfiguration)
+    functions: List<CFunction> = emptyList()
+  ): List<String> = promptMessages(prompt, conversation, functions)
 
   fun CoroutineScope.promptMessagesAsync(
     chat: Chat,
     prompt: Prompt,
-    functions: List<CFunction> = emptyList(),
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-  ): Deferred<List<String>> = async {
-    chat.promptMessages(prompt, conversation, functions, promptConfiguration)
-  }
+    functions: List<CFunction> = emptyList()
+  ): Deferred<List<String>> = async { chat.promptMessages(prompt, conversation, functions) }
 
   @AiDsl
-  fun Chat.promptStreaming(
-    prompt: Prompt,
-    functions: List<CFunction>,
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-  ): Flow<String> = promptStreaming(prompt, conversation, functions, promptConfiguration)
+  fun Chat.promptStreaming(prompt: Prompt, functions: List<CFunction>): Flow<String> =
+    promptStreaming(prompt, conversation, functions)
 
   /**
    * Run a [prompt] describes the images you want to generate within the context of [Conversation].
@@ -134,19 +105,15 @@ interface Conversation : AutoClose, AutoCloseable {
   suspend fun Images.images(
     prompt: Prompt,
     numberImages: Int = 1,
-    size: String = "1024x1024",
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-  ): ImagesGenerationResponse = images(prompt, store, numberImages, size, promptConfiguration)
+    size: String = "1024x1024"
+  ): ImagesGenerationResponse = images(prompt, store, numberImages, size)
 
   fun CoroutineScope.imagesAsync(
     images: Images,
     prompt: Prompt,
     numberImages: Int = 1,
-    size: String = "1024x1024",
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-  ): Deferred<ImagesGenerationResponse> = async {
-    images.images(prompt, store, numberImages, size, promptConfiguration)
-  }
+    size: String = "1024x1024"
+  ): Deferred<ImagesGenerationResponse> = async { images.images(prompt, store, numberImages, size) }
 
   companion object {
 
