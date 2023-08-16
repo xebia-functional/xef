@@ -3,8 +3,10 @@ package com.xebia.functional.xef.prompt.lang
 import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.auto.PromptConfiguration
 import com.xebia.functional.xef.llm.ChatWithFunctions
-import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.prompt.Prompt
+import com.xebia.functional.xef.prompt.buildPrompt
+import com.xebia.functional.xef.prompt.templates.system
+import com.xebia.functional.xef.prompt.templates.user
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 
@@ -74,12 +76,10 @@ class Infer(
     }
     return model.prompt(
       messages =
-        listOf(
-          Message.systemMessage { prompt.message },
-          Message.systemMessage {
-            "Stay in role and follow the directives of the function `Process`"
-          },
-          Message.systemMessage {
+        buildPrompt {
+          +system(prompt.message)
+          +system("Stay in role and follow the directives of the function `Process`")
+          +system(
             """
           Process(input) {
              STOP, Carefully consider all instructions in this function
@@ -94,9 +94,9 @@ class Infer(
           }
         """
               .trimIndent()
-          },
-          Message.userMessage { "Process($input)" },
-        ),
+          )
+          +user("Process($input)")
+        },
       scope = conversation,
       serializer = serializer<B>(),
       promptConfiguration = PromptConfiguration { temperature(0.0) }

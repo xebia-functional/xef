@@ -12,6 +12,8 @@ import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.llm.models.functions.CFunction
 import com.xebia.functional.xef.llm.models.functions.encodeJsonSchema
 import com.xebia.functional.xef.prompt.Prompt
+import com.xebia.functional.xef.prompt.buildPrompt
+import com.xebia.functional.xef.prompt.templates.user
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
@@ -73,11 +75,11 @@ interface ChatWithFunctions : Chat {
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS,
   ): B =
     prompt(
-      listOf(
-        Message.userMessage {
+      buildPrompt {
+        +user(
           "${inputSerializer.descriptor.serialName}(${Json.encodeToString(inputSerializer, input)})"
-        },
-      ),
+        )
+      },
       scope,
       functions,
       { json -> Json.decodeFromString(outputSerializer, json) },
