@@ -49,7 +49,7 @@ class Summarize(
 
     val messages = buildPrompt {
       +system(
-        "You are an expert information summarizer that is able to provide a summary of a text in an exact number of words"
+        "You are an expert information summarizer that is able to provide a summary of a text in less than a maximum number of words"
       )
       +user(
         """|

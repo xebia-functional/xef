@@ -3,7 +3,7 @@ package com.xebia.functional.xef.prompt
 import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.llm.models.chat.Role
 
-open class PromptBuilderBuilder {
+open class PromptBuilder {
   private val items = mutableListOf<Message>()
 
   operator fun Message.unaryPlus() {
@@ -21,5 +21,5 @@ open class PromptBuilderBuilder {
 
 fun String.message(role: Role): Message = Message(role, this, role.name)
 
-fun buildPrompt(block: PromptBuilderBuilder.() -> Unit): List<Message> =
-  PromptBuilderBuilder().apply { block() }.build()
+fun buildPrompt(block: PromptBuilder.() -> Unit): List<Message> =
+  PromptBuilder().apply { block() }.build()

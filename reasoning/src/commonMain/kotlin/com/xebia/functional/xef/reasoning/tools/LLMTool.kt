@@ -28,7 +28,7 @@ abstract class LLMTool(
       scope,
       prompt =
         buildPrompt {
-          +system("You are an expert in executing tool:")
+          +system("You are an expert in executing the tool:")
           +system("Tool: $name")
           +system("Description: $description")
           instructions.forEach { +system(it) }
