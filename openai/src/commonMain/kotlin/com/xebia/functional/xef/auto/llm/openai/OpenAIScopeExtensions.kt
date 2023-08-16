@@ -24,7 +24,8 @@ suspend fun Conversation.promptMessage(
 @AiDsl
 suspend inline fun <reified A, reified B> Conversation.prompt(
   input: A,
-  model: ChatWithFunctions = OpenAI().DEFAULT_SERIALIZATION
+  model: ChatWithFunctions =
+    if (A::class == String::class) OpenAI().DEFAULT_CHAT else OpenAI().DEFAULT_SERIALIZATION
 ): B {
   return model.prompt(
     input = input,

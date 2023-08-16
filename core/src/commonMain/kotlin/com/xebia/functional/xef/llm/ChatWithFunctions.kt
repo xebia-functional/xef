@@ -14,7 +14,8 @@ import com.xebia.functional.xef.prompt.templates.user
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.json.Json
 
 interface ChatWithFunctions : Chat {
@@ -59,16 +60,18 @@ interface ChatWithFunctions : Chat {
     outputSerializer: KSerializer<B>,
     functions: List<CFunction> = generateCFunction(outputSerializer.descriptor),
   ): B =
-    prompt(
-      Prompt {
-        +user(
-          "${inputSerializer.descriptor.serialName}(${Json.encodeToString(inputSerializer, input)})"
+    when (outputSerializer.descriptor.kind) {
+      PrimitiveKind.STRING ->
+        promptMessage(
+          prompt = Prompt { +user(Json.encodeToString(inputSerializer, input)) },
+          scope = scope
         )
-      },
-      scope,
-      functions
-    ) { json ->
-      Json.decodeFromString(outputSerializer, json)
+          as B
+      else ->
+        prompt(Prompt { +user(Json.encodeToString(inputSerializer, input)) }, scope, functions) {
+          json ->
+          Json.decodeFromString(outputSerializer, json)
+        }
     }
 
   @AiDsl

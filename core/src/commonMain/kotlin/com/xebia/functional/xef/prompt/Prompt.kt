@@ -6,7 +6,10 @@ import com.xebia.functional.xef.prompt.templates.user
 import kotlin.jvm.JvmOverloads
 import kotlinx.serialization.Serializable
 
-/** A Prompt is a serializable list of messages. The messages may involve different roles. */
+/**
+ * A Prompt is a serializable list of messages and its configuration. The messages may involve
+ * different roles.
+ */
 @Serializable
 data class Prompt
 @JvmOverloads
