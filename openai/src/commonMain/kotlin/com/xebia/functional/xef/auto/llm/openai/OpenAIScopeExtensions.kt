@@ -5,6 +5,7 @@ import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.auto.PromptConfiguration
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.llm.ChatWithFunctions
+import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.llm.models.functions.CFunction
 import com.xebia.functional.xef.prompt.Prompt
 import kotlinx.serialization.serializer
@@ -81,6 +82,19 @@ suspend inline fun <reified A> Conversation.prompt(
   prompt(
     model = model,
     prompt = prompt,
+    serializer = serializer<A>(),
+    promptConfiguration = promptConfiguration
+  )
+
+@AiDsl
+suspend inline fun <reified A> Conversation.prompt(
+  messages: List<Message>,
+  model: ChatWithFunctions = OpenAI().DEFAULT_SERIALIZATION,
+  promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS,
+): A =
+  prompt(
+    model = model,
+    messages = messages,
     serializer = serializer<A>(),
     promptConfiguration = promptConfiguration
   )

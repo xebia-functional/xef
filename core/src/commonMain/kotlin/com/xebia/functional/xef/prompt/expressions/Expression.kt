@@ -4,6 +4,9 @@ import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.auto.PromptConfiguration
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.llm.models.chat.Message
+import com.xebia.functional.xef.prompt.buildPrompt
+import com.xebia.functional.xef.prompt.templates.assistant
+import com.xebia.functional.xef.prompt.templates.system
 import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 
@@ -19,16 +22,8 @@ class Expression(
 
   private val generationKeys: MutableList<String> = mutableListOf()
 
-  suspend fun system(message: suspend () -> String) {
-    messages.add(Message.systemMessage(message))
-  }
-
-  suspend fun user(message: suspend () -> String) {
-    messages.add(Message.userMessage(message))
-  }
-
-  suspend fun assistant(message: suspend () -> String) {
-    messages.add(Message.assistantMessage(message))
+  fun addMessages(newMessages: List<Message>) {
+    messages.addAll(newMessages)
   }
 
   fun prompt(key: String): String {
@@ -40,14 +35,12 @@ class Expression(
     promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
   ): ExpressionResult {
     block()
-    val prelude =
-      listOf(
-        Message.systemMessage { "You are an expert in replacing variables in templates" },
-      )
-    val instructionMessages =
-      listOf(
-        Message.assistantMessage { "I will replace all placeholders in the message" },
-      )
+    val prelude = buildPrompt { +system("You are an expert in replacing variables in templates") }
+
+    val instructionMessages = buildPrompt {
+      +assistant("I will replace all placeholders in the message")
+    }
+
     val values: ReplacedValues =
       model.prompt(
         messages = prelude + messages + instructionMessages,
