@@ -2,7 +2,7 @@ package com.xebia.functional.xef.reasoning.tools
 
 import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.llm.Chat
-import com.xebia.functional.xef.prompt.buildPrompt
+import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.assistant
 import com.xebia.functional.xef.prompt.templates.system
 import com.xebia.functional.xef.prompt.templates.user
@@ -27,7 +27,7 @@ abstract class LLMTool(
       model,
       scope,
       prompt =
-        buildPrompt {
+        Prompt {
           +system("You are an expert in executing the tool:")
           +system("Tool: $name")
           +system("Description: $description")

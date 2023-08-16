@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.auto.reasoning
 
 import com.xebia.functional.xef.auto.llm.openai.OpenAI
-import com.xebia.functional.xef.prompt.buildPrompt
+import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.user
 import com.xebia.functional.xef.reasoning.serpapi.Search
 import com.xebia.functional.xef.reasoning.tools.LLMTool
@@ -33,7 +33,7 @@ suspend fun main() {
       )
     val result =
       reActAgent.run(
-        buildPrompt {
+        Prompt {
           +user(
             "Find and multiply the number of Leonardo di Caprio's girlfriends by the number of Metallica albums"
           )

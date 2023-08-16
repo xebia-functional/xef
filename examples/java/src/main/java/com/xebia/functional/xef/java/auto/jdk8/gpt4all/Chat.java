@@ -2,7 +2,6 @@ package com.xebia.functional.xef.java.auto.jdk8.gpt4all;
 
 import com.xebia.functional.gpt4all.GPT4All;
 import com.xebia.functional.gpt4all.Gpt4AllModel;
-import com.xebia.functional.xef.auto.PromptConfiguration;
 import com.xebia.functional.xef.auto.PlatformConversation;
 import java.io.BufferedReader;
 import java.io.IOException;

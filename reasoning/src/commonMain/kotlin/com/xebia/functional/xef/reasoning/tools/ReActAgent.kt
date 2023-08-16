@@ -5,7 +5,6 @@ import com.xebia.functional.xef.auto.Description
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.prompt.Prompt
-import com.xebia.functional.xef.prompt.buildPrompt
 import com.xebia.functional.xef.prompt.templates.assistant
 import com.xebia.functional.xef.prompt.templates.system
 import com.xebia.functional.xef.prompt.templates.user
@@ -40,7 +39,7 @@ class ReActAgent(
       scope = scope,
       serializer = AgentFinish.serializer(),
       prompt =
-        buildPrompt {
+        Prompt {
           +system("You are an expert in providing answers")
           +chain.chainToMessages()
           +user("Provide the final answer to the `input` in a sentence or paragraph")
@@ -56,7 +55,7 @@ class ReActAgent(
       scope = scope,
       serializer = AgentAction.serializer(),
       prompt =
-        buildPrompt {
+        Prompt {
           +system(
             "You are an expert in tool selection. You are given a `input` and a `chain` of thoughts and observations."
           )
@@ -74,11 +73,11 @@ class ReActAgent(
     )
 
   private fun List<Tool>.toolsToMessages(): List<Message> = flatMap {
-    buildPrompt { +assistant("${it.name}: ${it.description}") }.messages
+    Prompt { +assistant("${it.name}: ${it.description}") }.messages
   }
 
   private fun List<ThoughtObservation>.chainToMessages(): List<Message> = flatMap {
-    buildPrompt {
+    Prompt {
         +assistant("Thought: ${it.thought}")
         +assistant("Observation: ${it.observation}")
       }
@@ -88,7 +87,7 @@ class ReActAgent(
   private suspend fun agentChoice(input: Prompt, chain: List<ThoughtObservation>): AgentChoice =
     model.prompt(
       prompt =
-        buildPrompt {
+        Prompt {
           +input
           +assistant("chain:")
           +chain.chainToMessages()
@@ -104,7 +103,7 @@ class ReActAgent(
   private suspend fun createInitialThought(input: Prompt): Thought {
     return model.prompt(
       prompt =
-        buildPrompt {
+        Prompt {
           +system("You are an expert in providing next steps to solve a problem")
           +system("You are given a `input` provided by the user")
           +user("input:")

@@ -2,7 +2,7 @@ package com.xebia.functional.xef.prompt.evaluator
 
 import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.llm.Chat
-import com.xebia.functional.xef.prompt.buildPrompt
+import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.system
 import com.xebia.functional.xef.prompt.templates.user
 import kotlinx.serialization.Serializable
@@ -162,7 +162,7 @@ ${scoreConfig.joinToString("\n") { printReturn(it) }}
     val result: List<String> =
       model.promptMessages(
         prompt =
-          buildPrompt {
+          Prompt {
             +system(message)
             +user("Set Prompt = $prompt")
             +user("Set Response = $response")

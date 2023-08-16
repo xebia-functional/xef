@@ -24,5 +24,3 @@ open class PromptBuilder {
 }
 
 fun String.message(role: Role): Message = Message(role, this, role.name)
-
-fun buildPrompt(block: PromptBuilder.() -> Unit): Prompt = PromptBuilder().apply { block() }.build()

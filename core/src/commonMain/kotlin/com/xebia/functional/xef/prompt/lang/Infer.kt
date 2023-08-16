@@ -3,7 +3,6 @@ package com.xebia.functional.xef.prompt.lang
 import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.prompt.Prompt
-import com.xebia.functional.xef.prompt.buildPrompt
 import com.xebia.functional.xef.prompt.templates.system
 import com.xebia.functional.xef.prompt.templates.user
 import kotlinx.serialization.json.Json
@@ -75,23 +74,23 @@ class Infer(
     }
     return model.prompt(
       prompt =
-        buildPrompt {
+        Prompt {
           +prompt
           +system("Stay in role and follow the directives of the function `Process`")
           +system(
             """
-          Process(input) {
-             STOP, Carefully consider all instructions in this function
-             STOP, first replace all placeholders ${scope.placeholder} in input 
-             Consider in your output ALL properties in the input that are not placeholders
-             Reflect their information in your output
-             target 
-              |> critique 
-              |> fix(critique) 
-              |> applyCritique(target)
-             produce output in valid json
-          }
-        """
+              Process(input) {
+                 STOP, Carefully consider all instructions in this function
+                 STOP, first replace all placeholders ${scope.placeholder} in input 
+                 Consider in your output ALL properties in the input that are not placeholders
+                 Reflect their information in your output
+                 target 
+                  |> critique 
+                  |> fix(critique) 
+                  |> applyCritique(target)
+                 produce output in valid json
+              }
+            """
               .trimIndent()
           )
           +user("Process($input)")

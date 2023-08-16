@@ -12,7 +12,7 @@ class PromptBuilderSpec :
   StringSpec({
     "buildPrompt should return the expected messages" {
       val messages =
-        buildPrompt {
+        Prompt {
             +system("Test System")
             +user("Test Query")
             +assistant("Test Assistant")
@@ -33,7 +33,7 @@ class PromptBuilderSpec :
       val instructions = listOf("instruction 1", "instruction 2")
 
       val messages =
-        buildPrompt {
+        Prompt {
             +system("Test System")
             +user("Test Query")
             instructions.forEach { +assistant(it) }
@@ -55,7 +55,7 @@ class PromptBuilderSpec :
       val instructions = listOf("instruction 1", "instruction 2")
 
       val messages =
-        buildPrompt {
+        Prompt {
             +system("Test System")
             +user("Test Query")
             +steps { instructions.forEach { +assistant(it) } }

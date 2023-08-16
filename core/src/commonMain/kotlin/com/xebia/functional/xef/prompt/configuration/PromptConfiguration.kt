@@ -1,5 +1,6 @@
-package com.xebia.functional.xef.auto
+package com.xebia.functional.xef.prompt.configuration
 
+import com.xebia.functional.xef.auto.MessagePolicy
 import com.xebia.functional.xef.llm.models.chat.Role
 import kotlin.jvm.JvmField
 import kotlin.jvm.JvmOverloads

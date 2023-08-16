@@ -10,7 +10,6 @@ import com.xebia.functional.xef.llm.models.chat.ChatCompletionResponseWithFuncti
 import com.xebia.functional.xef.llm.models.functions.CFunction
 import com.xebia.functional.xef.llm.models.functions.encodeJsonSchema
 import com.xebia.functional.xef.prompt.Prompt
-import com.xebia.functional.xef.prompt.buildPrompt
 import com.xebia.functional.xef.prompt.templates.user
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -61,7 +60,7 @@ interface ChatWithFunctions : Chat {
     functions: List<CFunction> = generateCFunction(outputSerializer.descriptor),
   ): B =
     prompt(
-      buildPrompt {
+      Prompt {
         +user(
           "${inputSerializer.descriptor.serialName}(${Json.encodeToString(inputSerializer, input)})"
         )

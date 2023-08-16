@@ -3,7 +3,7 @@ package com.xebia.functional.xef.server.http.routes
 import com.aallam.openai.api.BetaOpenAI
 import com.aallam.openai.api.chat.ChatCompletionRequest
 import com.xebia.functional.xef.auto.Conversation
-import com.xebia.functional.xef.auto.PromptConfiguration
+import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
 import com.xebia.functional.xef.auto.llm.openai.*
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.server.services.PersistenceService
@@ -45,7 +45,8 @@ fun Routing.routes(persistenceService: PersistenceService) {
                         temperature = data.temperature,
                         numberOfPredictions = data.n,
                         user = data.user ?: ""
-                    )),
+                    )
+                    ),
                     scope = scope
                 )
             }

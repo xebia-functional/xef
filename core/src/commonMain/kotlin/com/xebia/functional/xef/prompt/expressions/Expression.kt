@@ -4,7 +4,6 @@ import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.prompt.Prompt
-import com.xebia.functional.xef.prompt.buildPrompt
 import com.xebia.functional.xef.prompt.templates.assistant
 import com.xebia.functional.xef.prompt.templates.system
 import io.github.oshai.kotlinlogging.KLogger
@@ -33,9 +32,9 @@ class Expression(
 
   suspend fun run(): ExpressionResult {
     block()
-    val prelude = buildPrompt { +system("You are an expert in replacing variables in templates") }
+    val prelude = Prompt { +system("You are an expert in replacing variables in templates") }
 
-    val instructionMessages = buildPrompt {
+    val instructionMessages = Prompt {
       +assistant("I will replace all placeholders in the message")
     }
 

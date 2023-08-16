@@ -3,7 +3,7 @@ package com.xebia.functional.xef.reasoning.filesystem
 import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.io.DEFAULT
 import com.xebia.functional.xef.llm.ChatWithFunctions
-import com.xebia.functional.xef.prompt.buildPrompt
+import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.assistant
 import com.xebia.functional.xef.prompt.templates.steps
 import com.xebia.functional.xef.prompt.templates.system
@@ -26,7 +26,7 @@ class ProduceTextFile(
     val file: TxtFile =
       model.prompt(
         prompt =
-          buildPrompt {
+          Prompt {
             +system("Convert output for a Text File")
             +user(input)
             +steps { instructions.forEach { +assistant(it) } }

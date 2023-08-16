@@ -5,11 +5,10 @@ import com.xebia.functional.tokenizer.truncateText
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.auto.AiDsl
 import com.xebia.functional.xef.auto.Conversation
-import com.xebia.functional.xef.auto.PromptConfiguration
 import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.llm.models.functions.CFunction
 import com.xebia.functional.xef.prompt.Prompt
-import com.xebia.functional.xef.prompt.buildPrompt
+import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
 import com.xebia.functional.xef.prompt.templates.assistant
 import com.xebia.functional.xef.vectorstores.Memory
 import io.ktor.util.date.*
@@ -289,7 +288,7 @@ interface Chat : LLM {
 
         val ctxTruncated: String = modelType.encoding.truncateText(ctx, maxContextTokens)
 
-        buildPrompt { +assistant(ctxTruncated) }.messages
+        Prompt { +assistant(ctxTruncated) }.messages
       } else {
         emptyList()
       }
