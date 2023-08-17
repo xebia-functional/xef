@@ -6,6 +6,10 @@ import com.xebia.functional.xef.llm.models.chat.Role
 open class PromptBuilder {
   private val items = mutableListOf<Message>()
 
+  operator fun Prompt.unaryPlus() {
+    +messages
+  }
+
   operator fun Message.unaryPlus() {
     items.add(this)
   }
@@ -16,10 +20,7 @@ open class PromptBuilder {
 
   protected open fun preprocess(elements: List<Message>): List<Message> = elements
 
-  fun build(): List<Message> = preprocess(items)
+  fun build(): Prompt = Prompt(preprocess(items))
 }
 
 fun String.message(role: Role): Message = Message(role, this, role.name)
-
-fun buildPrompt(block: PromptBuilder.() -> Unit): List<Message> =
-  PromptBuilder().apply { block() }.build()

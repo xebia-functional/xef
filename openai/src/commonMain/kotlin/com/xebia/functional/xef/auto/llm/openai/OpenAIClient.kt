@@ -205,7 +205,7 @@ class OpenAIModel(
   @OptIn(BetaOpenAI::class)
   override suspend fun createImages(request: ImagesGenerationRequest): ImagesGenerationResponse {
     val clientRequest: ImageCreation = imageCreation {
-      prompt = request.prompt
+      prompt = request.prompt.messages.firstOrNull()?.content
       n = request.numberImages
       size = ImageSize(request.size)
       user = request.user

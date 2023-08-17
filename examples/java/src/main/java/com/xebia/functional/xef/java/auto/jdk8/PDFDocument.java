@@ -6,6 +6,7 @@ import com.xebia.functional.tokenizer.ModelType;
 import com.xebia.functional.xef.auto.PlatformConversation;
 import com.xebia.functional.xef.auto.llm.openai.OpenAI;
 import com.xebia.functional.xef.java.auto.jdk21.util.ConsoleUtil;
+import com.xebia.functional.xef.prompt.Prompt;
 import com.xebia.functional.xef.reasoning.pdf.PDF;
 import com.xebia.functional.xef.textsplitters.TextSplitter;
 
@@ -31,7 +32,7 @@ public class PDFDocument {
         if (line == null || line.isBlank()) {
             return CompletableFuture.completedFuture(null);
         } else {
-            scope.prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, line, AIResponse.class)
+            scope.prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, new Prompt(line), AIResponse.class)
                     .thenAccept(aiRes -> System.out.println(aiRes.answer + "\n---\n" +
                             aiRes.source + "\n---\n"));
 

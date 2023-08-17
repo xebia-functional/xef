@@ -2,7 +2,6 @@ package com.xebia.functional.xef.java.auto.jdk8.gpt4all;
 
 import com.xebia.functional.gpt4all.GPT4All;
 import com.xebia.functional.gpt4all.Gpt4AllModel;
-import com.xebia.functional.xef.auto.PromptConfiguration;
 import com.xebia.functional.xef.auto.PlatformConversation;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -13,6 +12,7 @@ import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
 import com.xebia.functional.xef.auto.llm.openai.OpenAI;
+import com.xebia.functional.xef.prompt.Prompt;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -48,8 +48,7 @@ public class Chat {
                 String line = br.readLine();
                 if (line.equals("exit")) break;
 
-                PromptConfiguration promptConfiguration = new PromptConfiguration.Companion.Builder().docsInContext(2).build();
-                Publisher<String> answer = scope.promptStreaming(gpt4all, line, promptConfiguration);
+                Publisher<String> answer = scope.promptStreaming(gpt4all, new Prompt(line));
 
                 answer.subscribe(new Subscriber<String>() {
                     StringBuilder answer = new StringBuilder();

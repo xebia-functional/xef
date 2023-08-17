@@ -48,107 +48,46 @@ interface Conversation : AutoClose, AutoCloseable {
   @AiDsl
   @JvmSynthetic
   suspend fun <A> ChatWithFunctions.prompt(
-    prompt: String,
+    prompt: Prompt,
     functions: List<CFunction>,
-    serializer: (json: String) -> A,
-    promptConfiguration: PromptConfiguration,
-  ): A {
-    return prompt(
-      prompt = Prompt(prompt),
-      scope = conversation,
-      serializer = serializer,
-      functions = functions,
-      promptConfiguration = promptConfiguration,
-    )
-  }
+    serializer: (json: String) -> A
+  ): A = prompt(prompt, conversation, serializer, functions)
 
   fun <A> CoroutineScope.promptAsync(
     chatWithFunctions: ChatWithFunctions,
-    prompt: String,
+    prompt: Prompt,
     functions: List<CFunction>,
     serializer: (json: String) -> A,
-    promptConfiguration: PromptConfiguration,
-  ): Deferred<A> {
-    return async {
-      chatWithFunctions.prompt(
-        prompt = Prompt(prompt),
-        scope = conversation,
-        serializer = serializer,
-        functions = functions,
-        promptConfiguration = promptConfiguration,
-      )
-    }
-  }
+  ): Deferred<A> = async { chatWithFunctions.prompt(prompt, conversation, serializer, functions) }
 
   @AiDsl
   @JvmSynthetic
   suspend fun Chat.promptMessage(
-    question: String,
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
+    prompt: Prompt,
   ): String =
-    promptMessages(question, conversation, emptyList(), promptConfiguration).firstOrNull()
-      ?: throw AIError.NoResponse()
+    promptMessages(prompt, conversation, emptyList()).firstOrNull() ?: throw AIError.NoResponse()
 
   @AiDsl
-  fun CoroutineScope.promptMessageAsync(
-    chat: Chat,
-    question: String,
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-  ): Deferred<String> = async {
-    chat.promptMessages(question, conversation, emptyList(), promptConfiguration).firstOrNull()
-      ?: throw AIError.NoResponse()
+  fun CoroutineScope.promptMessageAsync(chat: Chat, prompt: Prompt): Deferred<String> = async {
+    chat.promptMessage(prompt)
   }
 
   @AiDsl
   @JvmSynthetic
   suspend fun Chat.promptMessages(
-    question: String,
-    functions: List<CFunction> = emptyList(),
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-  ): List<String> = promptMessages(Prompt(question), conversation, functions, promptConfiguration)
+    prompt: Prompt,
+    functions: List<CFunction> = emptyList()
+  ): List<String> = promptMessages(prompt, conversation, functions)
 
   fun CoroutineScope.promptMessagesAsync(
     chat: Chat,
-    question: String,
-    functions: List<CFunction> = emptyList(),
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-  ): Deferred<List<String>> = async {
-    chat.promptMessages(Prompt(question), conversation, functions, promptConfiguration)
-  }
+    prompt: Prompt,
+    functions: List<CFunction> = emptyList()
+  ): Deferred<List<String>> = async { chat.promptMessages(prompt, conversation, functions) }
 
   @AiDsl
-  fun Chat.promptStreaming(
-    question: String,
-    functions: List<CFunction>,
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-  ): Flow<String> = promptStreaming(Prompt(question), conversation, functions, promptConfiguration)
-
-  /**
-   * Run a [prompt] describes the images you want to generate within the context of [Conversation].
-   * Returns a [ImagesGenerationResponse] containing time and urls with images generated.
-   *
-   * @param prompt a [Prompt] describing the images you want to generate.
-   * @param numberImages number of images to generate.
-   * @param size the size of the images to generate.
-   */
-  @AiDsl
-  @JvmSynthetic
-  suspend fun Images.images(
-    prompt: String,
-    numberImages: Int = 1,
-    size: String = "1024x1024",
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-  ): ImagesGenerationResponse = this.images(Prompt(prompt), numberImages, size, promptConfiguration)
-
-  fun CoroutineScope.imagesAsync(
-    images: Images,
-    prompt: String,
-    numberImages: Int = 1,
-    size: String = "1024x1024",
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-  ): Deferred<ImagesGenerationResponse> = async {
-    images.images(Prompt(prompt), numberImages, size, promptConfiguration)
-  }
+  fun Chat.promptStreaming(prompt: Prompt, functions: List<CFunction>): Flow<String> =
+    promptStreaming(prompt, conversation, functions)
 
   /**
    * Run a [prompt] describes the images you want to generate within the context of [Conversation].
@@ -163,19 +102,15 @@ interface Conversation : AutoClose, AutoCloseable {
   suspend fun Images.images(
     prompt: Prompt,
     numberImages: Int = 1,
-    size: String = "1024x1024",
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-  ): ImagesGenerationResponse = images(prompt, store, numberImages, size, promptConfiguration)
+    size: String = "1024x1024"
+  ): ImagesGenerationResponse = images(prompt, store, numberImages, size)
 
   fun CoroutineScope.imagesAsync(
     images: Images,
     prompt: Prompt,
     numberImages: Int = 1,
-    size: String = "1024x1024",
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-  ): Deferred<ImagesGenerationResponse> = async {
-    images.images(prompt, store, numberImages, size, promptConfiguration)
-  }
+    size: String = "1024x1024"
+  ): Deferred<ImagesGenerationResponse> = async { images.images(prompt, store, numberImages, size) }
 
   companion object {
 

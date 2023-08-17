@@ -2,6 +2,7 @@ package com.xebia.functional.xef.java.auto.jdk8;
 
 import com.xebia.functional.xef.auto.PlatformConversation;
 import com.xebia.functional.xef.auto.llm.openai.OpenAI;
+import com.xebia.functional.xef.prompt.Prompt;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,12 +43,12 @@ public class ChessAI {
             while (!gameEnded) {
                 String currentPlayer = ((moves.size() % 2) == 0) ? "Player 1 (White)" : "Player 2 (Black)";
 
-                String prompt = String.format("""
+                Prompt prompt = new Prompt(String.format("""
                                 |%s, it's your turn.
                                 |Previous moves: %s
                                 |Make your next move:""",
                         currentPlayer,
-                        moves.stream().map(ChessMove::toString).collect(Collectors.joining(", ")));
+                        moves.stream().map(ChessMove::toString).collect(Collectors.joining(", "))));
 
                 ChessMove move = scope.prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, prompt, ChessMove.class).get();
                 moves.add(move);
@@ -55,19 +56,19 @@ public class ChessAI {
                 // Update boardState according to move.move
                 // ...
 
-                String boardPrompt = String.format("""
+                Prompt boardPrompt = new Prompt(String.format("""
                                 Given the following chess moves: %s,
                                 generate a chess board on a table with appropriate emoji representations for each move and piece.
                                 Add a brief description of the move and it's implications""",
-                        moves.stream().map(it -> it.player + ":" + it.move).collect(Collectors.joining(", ")));
+                        moves.stream().map(it -> it.player + ":" + it.move).collect(Collectors.joining(", "))));
 
                 ChessBoard chessBoard = scope.prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, boardPrompt, ChessBoard.class).get();
                 System.out.println("Current board:\n" + chessBoard.board);
 
-                String gameStatePrompt = String.format("""
+                Prompt gameStatePrompt = new Prompt(String.format("""
                                 Given the following chess moves: %s,
                                 has the game ended (win, draw, or stalemate)?""",
-                        moves.stream().map(ChessMove::toString).collect(Collectors.joining(", ")));
+                        moves.stream().map(ChessMove::toString).collect(Collectors.joining(", "))));
 
                 GameState gameState = scope.prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, gameStatePrompt, GameState.class).get();
 

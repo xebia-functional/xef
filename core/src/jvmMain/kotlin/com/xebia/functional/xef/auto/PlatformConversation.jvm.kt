@@ -33,10 +33,9 @@ actual constructor(
 
   fun <A> prompt(
     chat: ChatWithFunctions,
-    prompt: String,
+    prompt: Prompt,
     functions: List<CFunction>,
-    serializer: FromJson<A>,
-    promptConfiguration: PromptConfiguration
+    serializer: FromJson<A>
   ): CompletableFuture<A> =
     coroutineScope
       .promptAsync(
@@ -44,28 +43,25 @@ actual constructor(
         prompt = prompt,
         functions = functions,
         serializer = serializer::fromJson,
-        promptConfiguration = promptConfiguration,
       )
       .asCompletableFuture()
 
   @JvmOverloads
   fun <A> prompt(
     chat: ChatWithFunctions,
-    prompt: String,
+    prompt: Prompt,
     target: Class<A>,
     functions: List<CFunction> = listOf(generateCFunctionFromClass(target)),
     serializer: FromJson<A> = FromJson { json ->
       JacksonSerialization.objectMapper.readValue(json, target)
-    },
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
+    }
   ): CompletableFuture<A> =
     coroutineScope
       .promptAsync(
         chatWithFunctions = chat,
         prompt = prompt,
         functions = functions,
-        serializer = serializer::fromJson,
-        promptConfiguration = promptConfiguration,
+        serializer = serializer::fromJson
       )
       .asCompletableFuture()
 
@@ -77,48 +73,30 @@ actual constructor(
     )
 
   @JvmOverloads
-  fun promptMessage(
-    chat: Chat,
-    question: String,
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-  ): CompletableFuture<String> =
-    coroutineScope
-      .promptMessageAsync(
-        chat = chat,
-        question = question,
-        promptConfiguration = promptConfiguration,
-      )
-      .asCompletableFuture()
+  fun promptMessage(chat: Chat, prompt: Prompt): CompletableFuture<String> =
+    coroutineScope.promptMessageAsync(chat = chat, prompt = prompt).asCompletableFuture()
 
   @JvmOverloads
   fun promptMessages(
     chat: Chat,
-    question: String,
-    functions: List<CFunction> = emptyList(),
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
+    prompt: Prompt,
+    functions: List<CFunction> = emptyList()
   ): CompletableFuture<List<String>> =
     coroutineScope
-      .promptMessagesAsync(
-        chat = chat,
-        question = question,
-        functions = functions,
-        promptConfiguration = promptConfiguration,
-      )
+      .promptMessagesAsync(chat = chat, prompt = prompt, functions = functions)
       .asCompletableFuture()
 
   @JvmOverloads
   fun promptStreaming(
     chat: Chat,
-    question: String,
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS,
+    prompt: Prompt,
     functions: List<CFunction> = emptyList(),
   ): Publisher<String> =
     chat
       .promptStreaming(
-        question = question,
+        prompt = prompt,
         scope = conversation,
         functions = functions,
-        promptConfiguration = promptConfiguration,
       )
       .asPublisher()
 
@@ -133,45 +111,12 @@ actual constructor(
   @AiDsl
   fun images(
     images: Images,
-    prompt: String,
-    numberImages: Int = 1,
-    size: String = "1024x1024",
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-  ): CompletableFuture<ImagesGenerationResponse> =
-    coroutineScope
-      .imagesAsync(
-        images = images,
-        prompt = prompt,
-        numberImages = numberImages,
-        size = size,
-        promptConfiguration = promptConfiguration,
-      )
-      .asCompletableFuture()
-
-  /**
-   * Run a [prompt] describes the images you want to generate within the context of [Conversation].
-   * Returns a [ImagesGenerationResponse] containing time and urls with images generated.
-   *
-   * @param prompt a [Prompt] describing the images you want to generate.
-   * @param numberImages number of images to generate.
-   * @param size the size of the images to generate.
-   */
-  @AiDsl
-  fun images(
-    images: Images,
     prompt: Prompt,
     numberImages: Int = 1,
-    size: String = "1024x1024",
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
+    size: String = "1024x1024"
   ): CompletableFuture<ImagesGenerationResponse> =
     coroutineScope
-      .imagesAsync(
-        images = images,
-        prompt = prompt,
-        numberImages = numberImages,
-        size = size,
-        promptConfiguration = promptConfiguration,
-      )
+      .imagesAsync(images = images, prompt = prompt, numberImages = numberImages, size = size)
       .asCompletableFuture()
 
   actual companion object {

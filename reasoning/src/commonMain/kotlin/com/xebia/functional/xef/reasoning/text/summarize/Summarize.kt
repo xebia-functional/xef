@@ -4,7 +4,7 @@ import arrow.fx.coroutines.parMap
 import com.xebia.functional.tokenizer.truncateText
 import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.llm.Chat
-import com.xebia.functional.xef.prompt.buildPrompt
+import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.assistant
 import com.xebia.functional.xef.prompt.templates.steps
 import com.xebia.functional.xef.prompt.templates.system
@@ -47,17 +47,17 @@ class Summarize(
     }
     val remainingTokens: Int = maxContextLength - promptTokens
 
-    val messages = buildPrompt {
+    val messages = Prompt {
       +system(
         "You are an expert information summarizer that is able to provide a summary of a text in less than a maximum number of words"
       )
       +user(
         """|
-                |Given the following text:
-                |```text
-                |${model.modelType.encoding.truncateText(chunk, remainingTokens)}
-                |```
-            """
+                  |Given the following text:
+                  |```text
+                  |${model.modelType.encoding.truncateText(chunk, remainingTokens)}
+                  |```
+              """
           .trimMargin()
       )
       +steps {
