@@ -24,13 +24,13 @@ interface ChatWithFunctions : Chat {
   ): ChatCompletionResponseWithFunctions
 
   @OptIn(ExperimentalSerializationApi::class)
-  fun chatFunctions(descriptor: SerialDescriptor): List<CFunction> {
+  fun chatFunction(descriptor: SerialDescriptor): CFunction {
     val fnName = descriptor.serialName.substringAfterLast(".")
-    return chatFunctions(fnName, encodeJsonSchema(descriptor))
+    return chatFunction(fnName, encodeJsonSchema(descriptor))
   }
 
-  fun chatFunctions(fnName: String, schema: String): List<CFunction> =
-    listOf(CFunction(fnName, "Generated function for $fnName", schema))
+  fun chatFunction(fnName: String, schema: String): CFunction =
+    CFunction(fnName, "Generated function for $fnName", schema)
 
   @OptIn(ExperimentalSerializationApi::class)
   @AiDsl
@@ -53,7 +53,7 @@ interface ChatWithFunctions : Chat {
     scope: Conversation,
     serializer: KSerializer<A>,
   ): A =
-    prompt(prompt, scope, chatFunctions(serializer.descriptor)) { json ->
+    prompt(prompt, scope, chatFunction(serializer.descriptor)) { json ->
       Json.decodeFromString(serializer, json)
     }
 
@@ -61,10 +61,10 @@ interface ChatWithFunctions : Chat {
   suspend fun <A> prompt(
     prompt: Prompt,
     scope: Conversation,
-    functions: List<CFunction>,
+    function: CFunction,
     serializer: (json: String) -> A,
   ): A {
-    val promptWithFunctions = prompt.copy(functions = functions)
+    val promptWithFunctions = prompt.copy(function = function)
     return tryDeserialize(
       serializer,
       promptWithFunctions.configuration.maxDeserializationAttempts

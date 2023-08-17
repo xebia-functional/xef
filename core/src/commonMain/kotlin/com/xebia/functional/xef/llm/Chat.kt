@@ -81,8 +81,8 @@ interface Chat : LLM {
         n = prompt.configuration.numberOfPredictions,
         temperature = prompt.configuration.temperature,
         maxTokens = prompt.configuration.minResponseTokens,
-        functions = prompt.functions,
-        functionCall = mapOf("name" to (prompt.functions.firstOrNull()?.name ?: ""))
+        functions = listOfNotNull(prompt.function),
+        functionCall = mapOf("name" to (prompt.function?.name ?: ""))
       )
 
     return when (this) {

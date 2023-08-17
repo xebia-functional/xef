@@ -16,16 +16,16 @@ data class Prompt
 @JvmOverloads
 constructor(
   val messages: List<Message>,
-  val functions: List<CFunction> = emptyList(),
+  val function: CFunction? = null,
   val configuration: PromptConfiguration = PromptConfiguration.DEFAULTS
 ) {
 
-  constructor(value: String) : this(listOf(user(value)), emptyList())
+  constructor(value: String) : this(listOf(user(value)), null)
 
   constructor(
     value: String,
     configuration: PromptConfiguration
-  ) : this(listOf(user(value)), emptyList(), configuration)
+  ) : this(listOf(user(value)), null, configuration)
 
   companion object {
     operator fun invoke(block: PromptBuilder.() -> Unit): Prompt =

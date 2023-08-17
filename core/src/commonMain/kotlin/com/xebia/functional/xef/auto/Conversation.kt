@@ -44,9 +44,9 @@ interface Conversation : AutoClose, AutoCloseable {
   @JvmSynthetic
   suspend fun <A> ChatWithFunctions.prompt(
     prompt: Prompt,
-    functions: List<CFunction>,
+    function: CFunction,
     serializer: (String) -> A
-  ): A = prompt(prompt, conversation, functions, serializer)
+  ): A = prompt(prompt, conversation, function, serializer)
 
   @AiDsl
   @JvmSynthetic

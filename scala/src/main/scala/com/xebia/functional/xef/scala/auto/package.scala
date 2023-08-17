@@ -30,7 +30,7 @@ def prompt[A: Decoder: SerialDescriptor](
     def fromJson(json: String): A =
       parse(json).flatMap(Decoder[A].decodeJson(_)).fold(throw _, identity)
   }
-  conversation.prompt(chat, prompt, chat.chatFunctions(SerialDescriptor[A].serialDescriptor), fromJson).join()
+  conversation.prompt(chat, prompt, chat.chatFunction(SerialDescriptor[A].serialDescriptor), fromJson).join()
 
 def promptMessage(
     prompt: Prompt,

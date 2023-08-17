@@ -32,22 +32,14 @@ actual constructor(
   fun addContextFromArray(docs: Array<out String>): CompletableFuture<Unit> =
     coroutineScope.async { super.addContext(docs.toList()) }.asCompletableFuture()
 
-  @JvmOverloads
   fun <A> prompt(
     chat: ChatWithFunctions,
     prompt: Prompt,
-    functions: List<CFunction>,
-    serializer: FromJson<A>,
+    function: CFunction,
+    serializer: FromJson<A>
   ): CompletableFuture<A> =
     coroutineScope
-      .async {
-        chat.prompt(
-          prompt = prompt,
-          scope = this@PlatformConversation,
-          serializer = serializer::fromJson,
-          functions = functions
-        )
-      }
+      .async { chat.prompt(prompt, this@PlatformConversation, function, serializer::fromJson) }
       .asCompletableFuture()
 
   @JvmOverloads
@@ -58,7 +50,12 @@ actual constructor(
     serializer: FromJson<A> = FromJson { json ->
       JacksonSerialization.objectMapper.readValue(json, target)
     }
-  ): CompletableFuture<A> = prompt(chat, prompt, listOf(chatFunction(target)), serializer)
+  ): CompletableFuture<A> =
+    coroutineScope
+      .async {
+        chat.prompt(prompt, this@PlatformConversation, chatFunction(target), serializer::fromJson)
+      }
+      .asCompletableFuture()
 
   fun <A> chatFunction(target: Class<A>): CFunction =
     CFunction(
