@@ -51,9 +51,7 @@ interface Conversation : AutoClose, AutoCloseable {
     prompt: Prompt,
     functions: List<CFunction>,
     serializer: (json: String) -> A
-  ): A {
-    return prompt(prompt, conversation, serializer, functions)
-  }
+  ): A = prompt(prompt, conversation, serializer, functions)
 
   fun <A> CoroutineScope.promptAsync(
     chatWithFunctions: ChatWithFunctions,
@@ -71,8 +69,7 @@ interface Conversation : AutoClose, AutoCloseable {
 
   @AiDsl
   fun CoroutineScope.promptMessageAsync(chat: Chat, prompt: Prompt): Deferred<String> = async {
-    chat.promptMessages(prompt, conversation, emptyList()).firstOrNull()
-      ?: throw AIError.NoResponse()
+    chat.promptMessage(prompt)
   }
 
   @AiDsl
