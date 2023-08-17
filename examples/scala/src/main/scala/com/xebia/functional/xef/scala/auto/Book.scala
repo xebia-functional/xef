@@ -2,11 +2,12 @@ package com.xebia.functional.xef.scala.auto
 
 import com.xebia.functional.xef.scala.auto.*
 import io.circe.Decoder
+import com.xebia.functional.xef.prompt.Prompt
 
 private final case class Book(name: String, author: String, summary: String) derives SerialDescriptor, Decoder
 
 def summarizeBook(title: String, author: String)(using conversation: ScalaConversation): Book =
-  prompt(s"$title by $author summary.")
+  prompt(Prompt(s"$title by $author summary."))
 
 @main def runBook: Unit =
   conversation {

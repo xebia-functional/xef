@@ -10,12 +10,14 @@ import io.kotest.matchers.shouldBe
 
 class PromptBuilderSpec :
   StringSpec({
-    "buildMessages should return the expected messages" {
-      val messages = buildPrompt {
-        +system("Test System")
-        +user("Test Query")
-        +assistant("Test Assistant")
-      }
+    "buildPrompt should return the expected messages" {
+      val messages =
+        Prompt {
+            +system("Test System")
+            +user("Test Query")
+            +assistant("Test Assistant")
+          }
+          .messages
 
       val messagesExpected =
         listOf(
@@ -27,14 +29,16 @@ class PromptBuilderSpec :
       messages shouldBe messagesExpected
     }
 
-    "buildMessages should return the expected messages when using forEach" {
+    "buildPrompt should return the expected messages when using forEach" {
       val instructions = listOf("instruction 1", "instruction 2")
 
-      val messages = buildPrompt {
-        +system("Test System")
-        +user("Test Query")
-        instructions.forEach { +assistant(it) }
-      }
+      val messages =
+        Prompt {
+            +system("Test System")
+            +user("Test Query")
+            instructions.forEach { +assistant(it) }
+          }
+          .messages
 
       val messagesExpected =
         listOf(
@@ -47,14 +51,16 @@ class PromptBuilderSpec :
       messages shouldBe messagesExpected
     }
 
-    "buildMessages should return the expected messages when using steps with the number for every step" {
+    "buildPrompt should return the expected messages when using steps with the number for every step" {
       val instructions = listOf("instruction 1", "instruction 2")
 
-      val messages = buildPrompt {
-        +system("Test System")
-        +user("Test Query")
-        +steps { instructions.forEach { +assistant(it) } }
-      }
+      val messages =
+        Prompt {
+            +system("Test System")
+            +user("Test Query")
+            +steps { instructions.forEach { +assistant(it) } }
+          }
+          .messages
 
       val messagesExpected =
         listOf(

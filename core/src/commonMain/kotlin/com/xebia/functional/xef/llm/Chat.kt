@@ -5,13 +5,11 @@ import com.xebia.functional.tokenizer.truncateText
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.auto.AiDsl
 import com.xebia.functional.xef.auto.Conversation
-import com.xebia.functional.xef.auto.PromptConfiguration
 import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.llm.models.functions.CFunction
 import com.xebia.functional.xef.prompt.Prompt
-import com.xebia.functional.xef.prompt.buildPrompt
+import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
 import com.xebia.functional.xef.prompt.templates.assistant
-import com.xebia.functional.xef.prompt.templates.user
 import com.xebia.functional.xef.vectorstores.Memory
 import io.ktor.util.date.*
 import kotlinx.coroutines.flow.Flow
@@ -30,30 +28,21 @@ interface Chat : LLM {
 
   @AiDsl
   fun promptStreaming(
-    question: String,
-    scope: Conversation,
-    functions: List<CFunction> = emptyList(),
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-  ): Flow<String> = promptStreaming(Prompt(question), scope, functions, promptConfiguration)
-
-  @AiDsl
-  fun promptStreaming(
     prompt: Prompt,
     scope: Conversation,
-    functions: List<CFunction> = emptyList(),
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
+    functions: List<CFunction> = emptyList()
   ): Flow<String> = flow {
     val messagesForRequest =
-      fitMessagesByTokens(prompt.toMessages(), scope, modelType, promptConfiguration)
+      fitMessagesByTokens(prompt.messages, scope, modelType, prompt.configuration)
 
     val request =
       ChatCompletionRequest(
         model = name,
-        user = promptConfiguration.user,
+        user = prompt.configuration.user,
         messages = messagesForRequest,
-        n = promptConfiguration.numberOfPredictions,
-        temperature = promptConfiguration.temperature,
-        maxTokens = promptConfiguration.minResponseTokens,
+        n = prompt.configuration.numberOfPredictions,
+        temperature = prompt.configuration.temperature,
+        maxTokens = prompt.configuration.minResponseTokens,
         streamToStandardOut = true
       )
 
@@ -70,78 +59,37 @@ interface Chat : LLM {
   }
 
   @AiDsl
-  suspend fun promptMessage(
-    question: String,
-    scope: Conversation,
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-  ): String =
-    promptMessages(Prompt(question), scope, emptyList(), promptConfiguration).firstOrNull()
-      ?: throw AIError.NoResponse()
-
-  @AiDsl
-  suspend fun promptMessages(
-    question: String,
-    scope: Conversation,
-    functions: List<CFunction> = emptyList(),
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-  ): List<String> = promptMessages(Prompt(question), scope, functions, promptConfiguration)
-
-  @AiDsl
-  suspend fun promptMessage(
-    prompt: Prompt,
-    scope: Conversation,
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-  ): String =
-    promptMessages(prompt, scope, emptyList(), promptConfiguration).firstOrNull()
-      ?: throw AIError.NoResponse()
+  suspend fun promptMessage(prompt: Prompt, scope: Conversation): String =
+    promptMessages(prompt, scope, emptyList()).firstOrNull() ?: throw AIError.NoResponse()
 
   @AiDsl
   suspend fun promptMessages(
     prompt: Prompt,
     scope: Conversation,
-    functions: List<CFunction> = emptyList(),
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-  ): List<String> {
-    return promptMessages(prompt.toMessages(), scope, functions, promptConfiguration)
-  }
-
-  @AiDsl
-  suspend fun promptMessage(
-    messages: List<Message>,
-    scope: Conversation,
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-  ): String =
-    promptMessages(messages, scope, emptyList(), promptConfiguration).firstOrNull()
-      ?: throw AIError.NoResponse()
-
-  @AiDsl
-  suspend fun promptMessages(
-    messages: List<Message>,
-    scope: Conversation,
-    functions: List<CFunction> = emptyList(),
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
+    functions: List<CFunction> = emptyList()
   ): List<String> {
 
-    val messagesForRequest = fitMessagesByTokens(messages, scope, modelType, promptConfiguration)
+    val messagesForRequest =
+      fitMessagesByTokens(prompt.messages, scope, modelType, prompt.configuration)
 
     fun chatRequest(): ChatCompletionRequest =
       ChatCompletionRequest(
         model = name,
-        user = promptConfiguration.user,
+        user = prompt.configuration.user,
         messages = messagesForRequest,
-        n = promptConfiguration.numberOfPredictions,
-        temperature = promptConfiguration.temperature,
-        maxTokens = promptConfiguration.minResponseTokens,
+        n = prompt.configuration.numberOfPredictions,
+        temperature = prompt.configuration.temperature,
+        maxTokens = prompt.configuration.minResponseTokens,
       )
 
     fun withFunctionsRequest(): ChatCompletionRequestWithFunctions =
       ChatCompletionRequestWithFunctions(
         model = name,
-        user = promptConfiguration.user,
+        user = prompt.configuration.user,
         messages = messagesForRequest,
-        n = promptConfiguration.numberOfPredictions,
-        temperature = promptConfiguration.temperature,
-        maxTokens = promptConfiguration.minResponseTokens,
+        n = prompt.configuration.numberOfPredictions,
+        temperature = prompt.configuration.temperature,
+        maxTokens = prompt.configuration.minResponseTokens,
         functions = functions,
         functionCall = mapOf("name" to (functions.firstOrNull()?.name ?: ""))
       )
@@ -169,10 +117,6 @@ interface Chat : LLM {
       }
     }
   }
-
-  suspend fun String.toMessages(): List<Message> = Prompt(this).toMessages()
-
-  suspend fun Prompt.toMessages(): List<Message> = buildPrompt { +user(message) }
 
   private suspend fun addMemoriesAfterStream(
     request: ChatCompletionRequest,
@@ -344,7 +288,7 @@ interface Chat : LLM {
 
         val ctxTruncated: String = modelType.encoding.truncateText(ctx, maxContextTokens)
 
-        buildPrompt { +assistant(ctxTruncated) }
+        Prompt { +assistant(ctxTruncated) }.messages
       } else {
         emptyList()
       }

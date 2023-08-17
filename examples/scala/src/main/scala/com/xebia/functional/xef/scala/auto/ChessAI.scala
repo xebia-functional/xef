@@ -2,6 +2,7 @@ package com.xebia.functional.xef.scala.auto
 
 import com.xebia.functional.xef.scala.auto.*
 import io.circe.Decoder
+import com.xebia.functional.xef.prompt.Prompt
 
 import scala.annotation.tailrec
 
@@ -31,7 +32,7 @@ private def chessGame(moves: List[ChessMove], gameState: GameState)(using conver
       """.stripMargin
     }
     println(movePrompt)
-    val move: ChessMove = prompt(movePrompt)
+    val move: ChessMove = prompt(Prompt(movePrompt))
     println(s"Move is: $move")
 
     val boardPrompt =
@@ -41,14 +42,14 @@ private def chessGame(moves: List[ChessMove], gameState: GameState)(using conver
          |Add a brief description of the move and it's implications
       """.stripMargin
 
-    val chessBoard: ChessBoard = prompt(boardPrompt)
+    val chessBoard: ChessBoard = prompt(Prompt(boardPrompt))
     println(s"Current board:\n${chessBoard.board}")
 
     val gameStatePrompt =
-      s"""
+      Prompt(s"""
          |Given the following chess moves: ${moves.mkString(", ")},
          |has the game ended (win, draw, or stalemate)?
-      """.stripMargin
+      """.stripMargin)
 
     val gameState: GameState = prompt(gameStatePrompt)
 

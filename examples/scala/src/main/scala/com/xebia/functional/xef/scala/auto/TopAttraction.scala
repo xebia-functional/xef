@@ -2,6 +2,7 @@ package com.xebia.functional.xef.scala.auto
 
 import com.xebia.functional.xef.scala.auto.*
 import io.circe.Decoder
+import com.xebia.functional.xef.prompt.Prompt
 
 private final case class City(name: String, country: String) derives SerialDescriptor, Decoder
 
@@ -13,7 +14,7 @@ private final case class TopAttraction(city: City, attractionName: String, descr
 
 @main def runTopAttraction: Unit =
   conversation {
-    val nearbyTopAttraction: TopAttraction = prompt("Top attraction in Cádiz, Spain.")
+    val nearbyTopAttraction: TopAttraction = prompt(Prompt("Top attraction in Cádiz, Spain."))
     println(
       s"""
         |The top attraction in ${nearbyTopAttraction.city.name} is ${nearbyTopAttraction.attractionName}.

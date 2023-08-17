@@ -2,6 +2,7 @@ package com.xebia.functional.xef.java.auto.jdk21;
 
 import com.xebia.functional.xef.auto.PlatformConversation;
 import com.xebia.functional.xef.auto.llm.openai.OpenAI;
+import com.xebia.functional.xef.prompt.Prompt;
 import com.xebia.functional.xef.reasoning.serpapi.Search;
 
 import java.time.LocalDateTime;
@@ -21,7 +22,7 @@ public class BreakingNews {
     private static CompletableFuture<Void> writeParagraph(PlatformConversation scope) {
         var currentDate = dtf.format(now);
 
-        return scope.prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, "write a paragraph of about 300 words about: " + currentDate + " Covid News", BreakingNews.BreakingNew.class)
+        return scope.prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, new Prompt("write a paragraph of about 300 words about: " + currentDate + " Covid News"), BreakingNews.BreakingNew.class)
                 .thenAccept(breakingNews -> System.out.println(currentDate + " Covid news summary:\n" + breakingNews));
     }
 

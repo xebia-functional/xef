@@ -2,8 +2,7 @@ package com.xebia.functional.xef.reasoning.tools
 
 import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.llm.ChatWithFunctions
-import com.xebia.functional.xef.llm.models.chat.Message
-import com.xebia.functional.xef.prompt.buildPrompt
+import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.assistant
 import com.xebia.functional.xef.prompt.templates.system
 import com.xebia.functional.xef.prompt.templates.user
@@ -84,7 +83,7 @@ class ToolSelection(
   suspend fun createExecutionPlan(task: String): ToolsExecutionPlan {
     logger.info { "🔍 Creating execution plan for task: $task" }
 
-    val messages: List<Message> = buildPrompt {
+    val messages: Prompt = Prompt {
       +system(
         "You are an expert in tool selection that can choose the best tools for a specific task based on the tools descriptions"
       )
@@ -103,7 +102,7 @@ class ToolSelection(
     return model.prompt(
       scope = scope,
       serializer = ToolsExecutionPlan.serializer(),
-      messages = messages
+      prompt = messages
     )
   }
 }

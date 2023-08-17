@@ -2,14 +2,11 @@ package com.xebia.functional.xef.server.http.routes
 
 import com.aallam.openai.api.BetaOpenAI
 import com.aallam.openai.api.chat.ChatCompletionRequest
-import com.aallam.openai.api.chat.ChatRole
 import com.xebia.functional.xef.auto.Conversation
-import com.xebia.functional.xef.auto.PromptConfiguration
+import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
 import com.xebia.functional.xef.auto.llm.openai.*
-import com.xebia.functional.xef.llm.models.chat.Message
-import com.xebia.functional.xef.llm.models.chat.Role
+import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.server.services.PersistenceService
-import com.xebia.functional.xef.vectorstores.LocalVectorStore
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -17,7 +14,6 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.pipeline.*
-import com.xebia.functional.xef.llm.models.chat.ChatCompletionRequest as XefChatCompletionRequest
 
 enum class Provider {
     OPENAI, GPT4ALL, GCP
@@ -45,13 +41,13 @@ fun Routing.routes(persistenceService: PersistenceService) {
             val model: OpenAIModel = data.model.toOpenAIModel(token)
             response<String, Throwable> {
                 model.promptMessage(
-                    question = data.messages.joinToString("\n") { "${it.role}: ${it.content}" },
-                    scope = scope,
-                    promptConfiguration = PromptConfiguration(
+                    prompt = Prompt(data.messages, PromptConfiguration(
                         temperature = data.temperature,
                         numberOfPredictions = data.n,
                         user = data.user ?: ""
                     )
+                    ),
+                    scope = scope
                 )
             }
         }

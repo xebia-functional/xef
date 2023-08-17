@@ -4,6 +4,7 @@ import com.xebia.functional.xef.auto.Description
 import com.xebia.functional.xef.auto.conversation
 import com.xebia.functional.xef.auto.llm.openai.OpenAI
 import com.xebia.functional.xef.auto.llm.openai.prompt
+import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.reasoning.serpapi.Search
 import java.time.LocalDate
 import kotlinx.serialization.Serializable
@@ -24,7 +25,7 @@ suspend fun main() {
   OpenAI.conversation {
     val search = Search(OpenAI.FromEnvironment.DEFAULT_CHAT, this)
     addContext(search("Covid news on ${LocalDate.now()}"))
-    val news: NewsItems = prompt()
+    val news: NewsItems = prompt(Prompt("Provide news about covid."))
     println(news)
   }
 }
