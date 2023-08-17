@@ -85,7 +85,7 @@ class PublicDataClassConstructorWithValueParameters(config: Config) : Rule(confi
             CorrectableCodeSmell(
               issue,
               Entity.from(ktClass),
-              "Kotlin data classes must have a JVM static factory method to be compatible with other jvm languages.",
+              "Kotlin data classes containing parameters that are value classes must have a JVM static factory method to be compatible with other jvm languages.",
               emptyList(),
               listOf(Entity.from(ktClass)),
               true
