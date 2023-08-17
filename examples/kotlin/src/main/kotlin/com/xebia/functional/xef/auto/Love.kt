@@ -2,7 +2,6 @@ package com.xebia.functional.xef.auto
 
 import com.xebia.functional.xef.auto.llm.openai.OpenAI
 import com.xebia.functional.xef.auto.llm.openai.prompt
-import com.xebia.functional.xef.auto.llm.openai.promptMessage
 import com.xebia.functional.xef.prompt.Prompt
 
 suspend fun main() {
