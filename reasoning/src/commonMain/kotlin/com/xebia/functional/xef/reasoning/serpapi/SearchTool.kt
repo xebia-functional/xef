@@ -2,7 +2,7 @@ package com.xebia.functional.xef.reasoning.serpapi
 
 import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.llm.Chat
-import com.xebia.functional.xef.prompt.buildPrompt
+import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.assistant
 import com.xebia.functional.xef.prompt.templates.system
 import com.xebia.functional.xef.prompt.templates.user
@@ -28,8 +28,8 @@ interface SearchTool : Tool {
     val docs = client.search(SerpApiClient.SearchData(input))
     return model
       .promptMessages(
-        messages =
-          buildPrompt {
+        prompt =
+          Prompt {
             +system("Search results:")
             docs.searchResults.take(maxResultsInContext).forEach {
               +system("Title: ${it.title}")

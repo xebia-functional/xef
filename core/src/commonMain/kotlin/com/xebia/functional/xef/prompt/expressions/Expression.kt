@@ -1,10 +1,9 @@
 package com.xebia.functional.xef.prompt.expressions
 
 import com.xebia.functional.xef.auto.Conversation
-import com.xebia.functional.xef.auto.PromptConfiguration
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.llm.models.chat.Message
-import com.xebia.functional.xef.prompt.buildPrompt
+import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.assistant
 import com.xebia.functional.xef.prompt.templates.system
 import io.github.oshai.kotlinlogging.KLogger
@@ -31,22 +30,19 @@ class Expression(
     return "{{$key}}"
   }
 
-  suspend fun run(
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-  ): ExpressionResult {
+  suspend fun run(): ExpressionResult {
     block()
-    val prelude = buildPrompt { +system("You are an expert in replacing variables in templates") }
+    val prelude = Prompt { +system("You are an expert in replacing variables in templates") }
 
-    val instructionMessages = buildPrompt {
+    val instructionMessages = Prompt {
       +assistant("I will replace all placeholders in the message")
     }
 
     val values: ReplacedValues =
       model.prompt(
-        messages = prelude + messages + instructionMessages,
+        prompt = Prompt(prelude.messages + messages + instructionMessages.messages),
         scope = scope,
-        serializer = ReplacedValues.serializer(),
-        promptConfiguration = promptConfiguration
+        serializer = ReplacedValues.serializer()
       )
     logger.info { "replaced: ${values.replacements.joinToString { it.key }}" }
     val replacedTemplate =

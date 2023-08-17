@@ -5,9 +5,7 @@ import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.auto.autoClose
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.llm.ChatWithFunctions
-import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.prompt.Prompt
-import com.xebia.functional.xef.prompt.buildPrompt
 import com.xebia.functional.xef.prompt.templates.assistant
 import com.xebia.functional.xef.prompt.templates.system
 import com.xebia.functional.xef.prompt.templates.user
@@ -79,8 +77,8 @@ class DiffSummary(
 
   private suspend fun createPRDescription(summary: String): String =
     chat.promptMessage(
-      messages =
-        buildPrompt {
+      prompt =
+        Prompt {
           +system("Create Pull Request Description")
           +assistant(
             "I will roleplay as an expert software engineer implementing a service to read a .diff file from a URL and create a Pull Request description with an automatically inferred user intent."
@@ -103,31 +101,31 @@ class DiffSummary(
   }
 
   companion object {
-    fun systemPrompt(): List<Message> = buildPrompt {
+    fun systemPrompt(): Prompt = Prompt {
       +system(
         // language=yaml
         """
-          # CreatePRDescription  
-          PRDescriptionCreator:
-            Roleplay: "expert software engineer implementing a service to read a .diff file from a URL and create a PR description with an automatically inferred user intent."
-            DevProcess:
-              State:
-                Summary: "String"
-                Content: "String"
-              InferUserIntent:
-                Description: "Analyze the content to infer the user's intent for creating this PR. Must clearly articulate the reason, context, and goal."
-              CreatePRDescription:
-                Description: "Construct a PR description based on the inferred user's intent and extracted content. The description must: - Clearly articulate the inferred user's intent for creating this PR. - Provide a concise summary of the content. - Be clear, concise, and informative."
-                Style guide:
-                  Favor: "clear, understandable code."
-                  Handle: "potential errors like invalid content, intent inference issues, etc."
-                  Description: 
-                    Validate and read the Summary for the .dff content
-                    InferUserIntent() 
-                    CreatePRDescription() 
-                    Return the PR description
-            Instructions: "When asked to implement this functionality, please carefully follow the instructions above, ensuring that the user's intent is automatically inferred and added to the PR description. 🙏"
-        """
+            # CreatePRDescription  
+            PRDescriptionCreator:
+              Roleplay: "expert software engineer implementing a service to read a .diff file from a URL and create a PR description with an automatically inferred user intent."
+              DevProcess:
+                State:
+                  Summary: "String"
+                  Content: "String"
+                InferUserIntent:
+                  Description: "Analyze the content to infer the user's intent for creating this PR. Must clearly articulate the reason, context, and goal."
+                CreatePRDescription:
+                  Description: "Construct a PR description based on the inferred user's intent and extracted content. The description must: - Clearly articulate the inferred user's intent for creating this PR. - Provide a concise summary of the content. - Be clear, concise, and informative."
+                  Style guide:
+                    Favor: "clear, understandable code."
+                    Handle: "potential errors like invalid content, intent inference issues, etc."
+                    Description: 
+                      Validate and read the Summary for the .dff content
+                      InferUserIntent() 
+                      CreatePRDescription() 
+                      Return the PR description
+              Instructions: "When asked to implement this functionality, please carefully follow the instructions above, ensuring that the user's intent is automatically inferred and added to the PR description. 🙏"
+          """
           .trimIndent()
       )
     }

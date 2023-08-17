@@ -2,10 +2,9 @@ package com.xebia.functional.xef.reasoning.tools
 
 import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.auto.Description
-import com.xebia.functional.xef.auto.PromptConfiguration
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.llm.models.chat.Message
-import com.xebia.functional.xef.prompt.buildPrompt
+import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.assistant
 import com.xebia.functional.xef.prompt.templates.system
 import com.xebia.functional.xef.prompt.templates.user
@@ -22,11 +21,10 @@ class ReActAgent(
   private val logger = KotlinLogging.logger {}
 
   private suspend fun createExecutionPlan(
-    input: List<Message>,
-    chain: List<ThoughtObservation>,
-    promptConfiguration: PromptConfiguration
+    input: Prompt,
+    chain: List<ThoughtObservation>
   ): AgentPlan {
-    val choice: AgentChoice = agentChoice(promptConfiguration, input, chain)
+    val choice: AgentChoice = agentChoice(input, chain)
 
     return when (choice.choice) {
       AgentChoiceType.CONTINUE -> agentAction(input, chain)
@@ -36,15 +34,12 @@ class ReActAgent(
     }
   }
 
-  private suspend fun agentFinish(
-    input: List<Message>,
-    chain: List<ThoughtObservation>
-  ): AgentFinish =
+  private suspend fun agentFinish(input: Prompt, chain: List<ThoughtObservation>): AgentFinish =
     model.prompt(
       scope = scope,
       serializer = AgentFinish.serializer(),
-      messages =
-        buildPrompt {
+      prompt =
+        Prompt {
           +system("You are an expert in providing answers")
           +chain.chainToMessages()
           +user("Provide the final answer to the `input` in a sentence or paragraph")
@@ -55,15 +50,12 @@ class ReActAgent(
         }
     )
 
-  private suspend fun agentAction(
-    input: List<Message>,
-    chain: List<ThoughtObservation>
-  ): AgentAction =
+  private suspend fun agentAction(input: Prompt, chain: List<ThoughtObservation>): AgentAction =
     model.prompt(
       scope = scope,
       serializer = AgentAction.serializer(),
-      messages =
-        buildPrompt {
+      prompt =
+        Prompt {
           +system(
             "You are an expert in tool selection. You are given a `input` and a `chain` of thoughts and observations."
           )
@@ -81,46 +73,37 @@ class ReActAgent(
     )
 
   private fun List<Tool>.toolsToMessages(): List<Message> = flatMap {
-    buildPrompt { +assistant("${it.name}: ${it.description}") }
+    Prompt { +assistant("${it.name}: ${it.description}") }.messages
   }
 
   private fun List<ThoughtObservation>.chainToMessages(): List<Message> = flatMap {
-    buildPrompt {
-      +assistant("Thought: ${it.thought}")
-      +assistant("Observation: ${it.observation}")
-    }
+    Prompt {
+        +assistant("Thought: ${it.thought}")
+        +assistant("Observation: ${it.observation}")
+      }
+      .messages
   }
 
-  private suspend fun agentChoice(
-    promptConfiguration: PromptConfiguration,
-    input: List<Message>,
-    chain: List<ThoughtObservation>
-  ): AgentChoice =
+  private suspend fun agentChoice(input: Prompt, chain: List<ThoughtObservation>): AgentChoice =
     model.prompt(
-      scope = scope,
-      serializer = AgentChoice.serializer(),
-      promptConfiguration = promptConfiguration,
-      messages =
-        buildPrompt {
+      prompt =
+        Prompt {
           +input
           +assistant("chain:")
+          +chain.chainToMessages()
           +assistant(
             "`CONTINUE` if the `input` has not been answered by the observations in the `chain`"
           )
           +assistant("`FINISH` if the `input` has been answered by the observations in the `chain`")
-        }
+        },
+      scope = scope,
+      serializer = AgentChoice.serializer()
     )
 
-  private suspend fun createInitialThought(
-    input: List<Message>,
-    promptConfiguration: PromptConfiguration
-  ): Thought {
+  private suspend fun createInitialThought(input: Prompt): Thought {
     return model.prompt(
-      scope = scope,
-      serializer = Thought.serializer(),
-      promptConfiguration = promptConfiguration,
-      messages =
-        buildPrompt {
+      prompt =
+        Prompt {
           +system("You are an expert in providing next steps to solve a problem")
           +system("You are given a `input` provided by the user")
           +user("input:")
@@ -129,15 +112,16 @@ class ReActAgent(
           +tools.toolsToMessages()
           +assistant("I should create a Thought object with the next thought based on the `input`")
           +user("Provide the next thought based on the `input`")
-        }
+        },
+      scope = scope,
+      serializer = Thought.serializer()
     )
   }
 
   private tailrec suspend fun runRec(
-    input: List<Message>,
+    input: Prompt,
     chain: List<ThoughtObservation>,
-    currentIteration: Int,
-    promptConfiguration: PromptConfiguration
+    currentIteration: Int
   ): String {
 
     if (currentIteration > maxIterations) {
@@ -145,7 +129,7 @@ class ReActAgent(
       return "🤷‍ Max iterations reached"
     }
 
-    val plan: AgentPlan = createExecutionPlan(input, chain, promptConfiguration)
+    val plan: AgentPlan = createExecutionPlan(input, chain)
 
     return when (plan) {
       is AgentAction -> {
@@ -163,8 +147,7 @@ class ReActAgent(
                 "Result of running ${plan.tool}[${plan.toolInput}]: " +
                   "🤷‍ Could not find ${plan.tool}, will not try this tool again"
               ),
-            currentIteration + 1,
-            promptConfiguration
+            currentIteration + 1
           )
         } else {
           logger.info { "👀 $observation" }
@@ -175,8 +158,7 @@ class ReActAgent(
                 plan.thought,
                 "Result of running ${plan.tool}[${plan.toolInput}]: " + observation
               ),
-            currentIteration + 1,
-            promptConfiguration
+            currentIteration + 1
           )
         }
       }
@@ -187,18 +169,10 @@ class ReActAgent(
     }
   }
 
-  suspend fun run(
-    input: List<Message>,
-    promptConfiguration: PromptConfiguration = PromptConfiguration { temperature(0.0) }
-  ): String {
-    val thought = createInitialThought(input, promptConfiguration)
+  suspend fun run(input: Prompt): String {
+    val thought = createInitialThought(input)
     logger.info { "🤔 ${thought.thought}" }
-    return runRec(
-      input,
-      listOf(ThoughtObservation("I should get started", thought.thought)),
-      0,
-      promptConfiguration
-    )
+    return runRec(input, listOf(ThoughtObservation("I should get started", thought.thought)), 0)
   }
 }
 

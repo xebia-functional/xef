@@ -190,7 +190,7 @@ suspend fun main() {
 
     println(prompt.text)
 
-    val images = OpenAI.FromEnvironment.DEFAULT_IMAGES.images(prompt.text)
+    val images = OpenAI.FromEnvironment.DEFAULT_IMAGES.images(Prompt(prompt.text))
     images.data.forEach { println(it.url) }
   }
 }
