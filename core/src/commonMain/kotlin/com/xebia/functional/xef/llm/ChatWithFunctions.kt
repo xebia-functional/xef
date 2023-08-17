@@ -14,7 +14,6 @@ import com.xebia.functional.xef.prompt.templates.user
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.json.Json
 
@@ -62,14 +61,10 @@ interface ChatWithFunctions : Chat {
   ): B =
     when (outputSerializer.descriptor.kind) {
       PrimitiveKind.STRING ->
-        promptMessage(
-          prompt = Prompt { +user(Json.encodeToString(inputSerializer, input)) },
-          scope = scope
-        )
+        promptMessage(prompt = Prompt { +user(encodeInput(inputSerializer, input)) }, scope = scope)
           as B
       else ->
-        prompt(Prompt { +user(Json.encodeToString(inputSerializer, input)) }, scope, functions) {
-          json ->
+        prompt(Prompt { +user(encodeInput(inputSerializer, input)) }, scope, functions) { json ->
           Json.decodeFromString(outputSerializer, json)
         }
     }
@@ -112,4 +107,11 @@ interface ChatWithFunctions : Chat {
     }
     throw AIError.NoResponse()
   }
+
+  @OptIn(ExperimentalSerializationApi::class)
+  private fun <A> encodeInput(inputSerializer: KSerializer<A>, input: A): String =
+    when (inputSerializer.descriptor.kind) {
+      PrimitiveKind.STRING -> input.toString()
+      else -> Json.encodeToString(inputSerializer, input)
+    }
 }
