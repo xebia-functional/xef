@@ -10,10 +10,8 @@ import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.vectorstores.ConversationId
 import com.xebia.functional.xef.vectorstores.VectorStore
 import kotlin.jvm.JvmSynthetic
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
+import kotlinx.serialization.KSerializer
 import kotlinx.uuid.UUID
 import kotlinx.uuid.generateUUID
 
@@ -31,14 +29,6 @@ interface Conversation : AutoClose, AutoCloseable {
     store.addTexts(docs.toList())
   }
 
-  fun CoroutineScope.addContextAsync(vararg docs: String): Deferred<Unit> = async {
-    store.addTexts(docs.toList())
-  }
-
-  fun CoroutineScope.addContextAsync(docs: Iterable<String>): Deferred<Unit> = async {
-    store.addTexts(docs.toList())
-  }
-
   @AiDsl
   @JvmSynthetic
   suspend fun addContext(docs: Iterable<String>): Unit {
@@ -47,47 +37,30 @@ interface Conversation : AutoClose, AutoCloseable {
 
   @AiDsl
   @JvmSynthetic
+  suspend fun <A> ChatWithFunctions.prompt(prompt: Prompt, serializer: KSerializer<A>): A =
+    prompt(prompt, conversation, serializer)
+
+  @AiDsl
+  @JvmSynthetic
   suspend fun <A> ChatWithFunctions.prompt(
     prompt: Prompt,
-    functions: List<CFunction>,
-    serializer: (json: String) -> A
-  ): A = prompt(prompt, conversation, serializer, functions)
-
-  fun <A> CoroutineScope.promptAsync(
-    chatWithFunctions: ChatWithFunctions,
-    prompt: Prompt,
-    functions: List<CFunction>,
-    serializer: (json: String) -> A,
-  ): Deferred<A> = async { chatWithFunctions.prompt(prompt, conversation, serializer, functions) }
+    function: CFunction,
+    serializer: (String) -> A
+  ): A = prompt(prompt, conversation, function, serializer)
 
   @AiDsl
   @JvmSynthetic
   suspend fun Chat.promptMessage(
     prompt: Prompt,
-  ): String =
-    promptMessages(prompt, conversation, emptyList()).firstOrNull() ?: throw AIError.NoResponse()
-
-  @AiDsl
-  fun CoroutineScope.promptMessageAsync(chat: Chat, prompt: Prompt): Deferred<String> = async {
-    chat.promptMessage(prompt)
-  }
+  ): String = promptMessages(prompt, conversation).firstOrNull() ?: throw AIError.NoResponse()
 
   @AiDsl
   @JvmSynthetic
-  suspend fun Chat.promptMessages(
-    prompt: Prompt,
-    functions: List<CFunction> = emptyList()
-  ): List<String> = promptMessages(prompt, conversation, functions)
-
-  fun CoroutineScope.promptMessagesAsync(
-    chat: Chat,
-    prompt: Prompt,
-    functions: List<CFunction> = emptyList()
-  ): Deferred<List<String>> = async { chat.promptMessages(prompt, conversation, functions) }
+  suspend fun Chat.promptMessages(prompt: Prompt): List<String> =
+    promptMessages(prompt, conversation)
 
   @AiDsl
-  fun Chat.promptStreaming(prompt: Prompt, functions: List<CFunction>): Flow<String> =
-    promptStreaming(prompt, conversation, functions)
+  fun Chat.promptStreaming(prompt: Prompt): Flow<String> = promptStreaming(prompt, conversation)
 
   /**
    * Run a [prompt] describes the images you want to generate within the context of [Conversation].
@@ -104,13 +77,6 @@ interface Conversation : AutoClose, AutoCloseable {
     numberImages: Int = 1,
     size: String = "1024x1024"
   ): ImagesGenerationResponse = images(prompt, store, numberImages, size)
-
-  fun CoroutineScope.imagesAsync(
-    images: Images,
-    prompt: Prompt,
-    numberImages: Int = 1,
-    size: String = "1024x1024"
-  ): Deferred<ImagesGenerationResponse> = async { images.images(prompt, store, numberImages, size) }
 
   companion object {
 

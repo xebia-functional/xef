@@ -20,7 +20,7 @@ open class PromptBuilder {
 
   protected open fun preprocess(elements: List<Message>): List<Message> = elements
 
-  fun build(): Prompt = Prompt(preprocess(items))
+  fun build(): Prompt = Prompt(preprocess(items), null)
 }
 
 fun String.message(role: Role): Message = Message(role, this, role.name)

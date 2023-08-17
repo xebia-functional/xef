@@ -2,7 +2,6 @@ package com.xebia.functional.xef.auto.tot
 
 import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.auto.llm.openai.prompt
-import com.xebia.functional.xef.prompt.Prompt
 import kotlinx.serialization.Serializable
 
 @Serializable data class ControlSignal(val value: String)
@@ -28,7 +27,7 @@ internal suspend fun <A> Conversation.controlSignal(memory: Memory<A>): ControlS
     |
   """
       .trimMargin()
-  return prompt<ControlSignal>(Prompt(guidancePrompt)).also {
+  return prompt<String, ControlSignal>(guidancePrompt).also {
     println("🧠 Generated control signal: ${truncateText(it.value)}")
   }
 }
