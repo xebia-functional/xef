@@ -12,6 +12,7 @@ import com.xebia.functional.xef.vectorstores.VectorStore
 import java.util.concurrent.CompletableFuture
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.reactive.asPublisher
@@ -26,24 +27,27 @@ actual constructor(
   val coroutineScope = CoroutineScope(SupervisorJob())
 
   fun addContext(docs: List<String>): CompletableFuture<Unit> =
-    coroutineScope.addContextAsync(docs).asCompletableFuture()
+    coroutineScope.async { super.addContext(docs) }.asCompletableFuture()
 
   fun addContextFromArray(docs: Array<out String>): CompletableFuture<Unit> =
-    coroutineScope.addContextAsync(docs.toList()).asCompletableFuture()
+    coroutineScope.async { super.addContext(docs.toList()) }.asCompletableFuture()
 
+  @JvmOverloads
   fun <A> prompt(
     chat: ChatWithFunctions,
     prompt: Prompt,
     functions: List<CFunction>,
-    serializer: FromJson<A>
+    serializer: FromJson<A>,
   ): CompletableFuture<A> =
     coroutineScope
-      .promptAsync(
-        chatWithFunctions = chat,
-        prompt = prompt,
-        functions = functions,
-        serializer = serializer::fromJson,
-      )
+      .async {
+        chat.prompt(
+          prompt = prompt,
+          scope = this@PlatformConversation,
+          serializer = serializer::fromJson,
+          functions = functions
+        )
+      }
       .asCompletableFuture()
 
   @JvmOverloads
@@ -51,54 +55,30 @@ actual constructor(
     chat: ChatWithFunctions,
     prompt: Prompt,
     target: Class<A>,
-    functions: List<CFunction> = listOf(generateCFunctionFromClass(target)),
     serializer: FromJson<A> = FromJson { json ->
       JacksonSerialization.objectMapper.readValue(json, target)
     }
-  ): CompletableFuture<A> =
-    coroutineScope
-      .promptAsync(
-        chatWithFunctions = chat,
-        prompt = prompt,
-        functions = functions,
-        serializer = serializer::fromJson
-      )
-      .asCompletableFuture()
+  ): CompletableFuture<A> = prompt(chat, prompt, listOf(chatFunction(target)), serializer)
 
-  fun <A> generateCFunctionFromClass(target: Class<A>) =
+  fun <A> chatFunction(target: Class<A>): CFunction =
     CFunction(
       name = target.simpleName,
       description = "Generated function for ${target.simpleName}",
       parameters = JacksonSerialization.schemaGenerator.generateSchema(target).toString()
     )
 
-  @JvmOverloads
   fun promptMessage(chat: Chat, prompt: Prompt): CompletableFuture<String> =
-    coroutineScope.promptMessageAsync(chat = chat, prompt = prompt).asCompletableFuture()
-
-  @JvmOverloads
-  fun promptMessages(
-    chat: Chat,
-    prompt: Prompt,
-    functions: List<CFunction> = emptyList()
-  ): CompletableFuture<List<String>> =
     coroutineScope
-      .promptMessagesAsync(chat = chat, prompt = prompt, functions = functions)
+      .async { chat.promptMessage(prompt, this@PlatformConversation) }
       .asCompletableFuture()
 
-  @JvmOverloads
-  fun promptStreaming(
-    chat: Chat,
-    prompt: Prompt,
-    functions: List<CFunction> = emptyList(),
-  ): Publisher<String> =
-    chat
-      .promptStreaming(
-        prompt = prompt,
-        scope = conversation,
-        functions = functions,
-      )
-      .asPublisher()
+  fun promptMessages(chat: Chat, prompt: Prompt): CompletableFuture<List<String>> =
+    coroutineScope
+      .async { chat.promptMessages(prompt, this@PlatformConversation) }
+      .asCompletableFuture()
+
+  fun promptStreamingToPublisher(chat: Chat, prompt: Prompt): Publisher<String> =
+    chat.promptStreaming(prompt = prompt, scope = conversation).asPublisher()
 
   /**
    * Run a [prompt] describes the images you want to generate within the context of [Conversation].
@@ -116,7 +96,7 @@ actual constructor(
     size: String = "1024x1024"
   ): CompletableFuture<ImagesGenerationResponse> =
     coroutineScope
-      .imagesAsync(images = images, prompt = prompt, numberImages = numberImages, size = size)
+      .async { images.images(prompt = prompt, numberImages = numberImages, size = size) }
       .asCompletableFuture()
 
   actual companion object {

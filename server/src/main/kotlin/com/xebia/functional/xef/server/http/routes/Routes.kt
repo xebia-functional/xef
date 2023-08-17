@@ -16,42 +16,44 @@ import io.ktor.server.routing.*
 import io.ktor.util.pipeline.*
 
 enum class Provider {
-    OPENAI, GPT4ALL, GCP
+  OPENAI, GPT4ALL, GCP
 }
 
 fun String.toProvider(): Provider? = when (this) {
-    "openai" -> Provider.OPENAI
-    "gpt4all" -> Provider.GPT4ALL
-    "gcp" -> Provider.GCP
-    else -> null
+  "openai" -> Provider.OPENAI
+  "gpt4all" -> Provider.GPT4ALL
+  "gcp" -> Provider.GCP
+  else -> null
 }
 
 
 @OptIn(BetaOpenAI::class)
 fun Routing.routes(persistenceService: PersistenceService) {
-    authenticate("auth-bearer") {
-        post("/chat/completions") {
-            val provider: Provider = call.request.headers["xef-provider"]?.toProvider()
-                ?: throw IllegalArgumentException("Not a valid provider")
-            val token = call.principal<UserIdPrincipal>()?.name ?: throw IllegalArgumentException("No token found")
-            val scope = Conversation(
-                persistenceService.getVectorStore(provider, token)
+  authenticate("auth-bearer") {
+    post("/chat/completions") {
+      val provider: Provider = call.request.headers["xef-provider"]?.toProvider()
+        ?: throw IllegalArgumentException("Not a valid provider")
+      val token = call.principal<UserIdPrincipal>()?.name ?: throw IllegalArgumentException("No token found")
+      val scope = Conversation(
+        persistenceService.getVectorStore(provider, token)
+      )
+      val data = call.receive<ChatCompletionRequest>().toCore()
+      val model: OpenAIModel = data.model.toOpenAIModel(token)
+      response<String, Throwable> {
+        model.promptMessage(
+          prompt = Prompt(
+            messages = data.messages,
+            configuration = PromptConfiguration(
+              temperature = data.temperature,
+              numberOfPredictions = data.n,
+              user = data.user ?: ""
             )
-            val data = call.receive<ChatCompletionRequest>().toCore()
-            val model: OpenAIModel = data.model.toOpenAIModel(token)
-            response<String, Throwable> {
-                model.promptMessage(
-                    prompt = Prompt(data.messages, PromptConfiguration(
-                        temperature = data.temperature,
-                        numberOfPredictions = data.n,
-                        user = data.user ?: ""
-                    )
-                    ),
-                    scope = scope
-                )
-            }
-        }
+          ),
+          scope = scope
+        )
+      }
     }
+  }
 }
 
 
@@ -59,9 +61,9 @@ fun Routing.routes(persistenceService: PersistenceService) {
  * Responds with the data and converts any potential Throwable into a 404.
  */
 private suspend inline fun <reified T : Any, E : Throwable> PipelineContext<*, ApplicationCall>.response(
-    block: () -> T
+  block: () -> T
 ) = arrow.core.raise.recover<E, Unit>({
-    call.respond(block())
+  call.respond(block())
 }) {
-    call.respondText(it.message ?: "Response not found", status = HttpStatusCode.NotFound)
+  call.respondText(it.message ?: "Response not found", status = HttpStatusCode.NotFound)
 }

@@ -24,31 +24,13 @@ interface ChatWithFunctions : Chat {
   ): ChatCompletionResponseWithFunctions
 
   @OptIn(ExperimentalSerializationApi::class)
-  fun generateCFunction(descriptor: SerialDescriptor): List<CFunction> {
+  fun chatFunctions(descriptor: SerialDescriptor): List<CFunction> {
     val fnName = descriptor.serialName.substringAfterLast(".")
-    return generateCFunction(fnName, encodeJsonSchema(descriptor))
+    return chatFunctions(fnName, encodeJsonSchema(descriptor))
   }
 
-  fun generateCFunction(fnName: String, schema: String): List<CFunction> =
+  fun chatFunctions(fnName: String, schema: String): List<CFunction> =
     listOf(CFunction(fnName, "Generated function for $fnName", schema))
-
-  @AiDsl
-  suspend fun <A> prompt(
-    prompt: Prompt,
-    scope: Conversation,
-    serializerName: String,
-    jsonSchema: String,
-    serializer: (json: String) -> A,
-    functions: List<CFunction> = generateCFunction(serializerName, jsonSchema),
-  ): A = prompt(prompt, scope, functions, serializer)
-
-  @AiDsl
-  suspend fun <A> prompt(
-    prompt: Prompt,
-    scope: Conversation,
-    serializer: (json: String) -> A,
-    functions: List<CFunction> = emptyList()
-  ): A = prompt(prompt, scope, functions, serializer)
 
   @OptIn(ExperimentalSerializationApi::class)
   @AiDsl
@@ -56,17 +38,13 @@ interface ChatWithFunctions : Chat {
     input: A,
     scope: Conversation,
     inputSerializer: KSerializer<A>,
-    outputSerializer: KSerializer<B>,
-    functions: List<CFunction> = generateCFunction(outputSerializer.descriptor),
+    outputSerializer: KSerializer<B>
   ): B =
     when (outputSerializer.descriptor.kind) {
       PrimitiveKind.STRING ->
         promptMessage(prompt = Prompt { +user(encodeInput(inputSerializer, input)) }, scope = scope)
           as B
-      else ->
-        prompt(Prompt { +user(encodeInput(inputSerializer, input)) }, scope, functions) { json ->
-          Json.decodeFromString(outputSerializer, json)
-        }
+      else -> prompt(Prompt { +user(encodeInput(inputSerializer, input)) }, scope, outputSerializer)
     }
 
   @AiDsl
@@ -74,19 +52,26 @@ interface ChatWithFunctions : Chat {
     prompt: Prompt,
     scope: Conversation,
     serializer: KSerializer<A>,
-    functions: List<CFunction> = generateCFunction(serializer.descriptor)
-  ): A = prompt(prompt, scope, functions) { json -> Json.decodeFromString(serializer, json) }
+  ): A =
+    prompt(prompt, scope, chatFunctions(serializer.descriptor)) { json ->
+      Json.decodeFromString(serializer, json)
+    }
 
   @AiDsl
   suspend fun <A> prompt(
     prompt: Prompt,
     scope: Conversation,
-    functions: List<CFunction> = emptyList(),
+    functions: List<CFunction>,
     serializer: (json: String) -> A,
-  ): A =
-    tryDeserialize(serializer, prompt.configuration.maxDeserializationAttempts) {
-      promptMessages(prompt = prompt, scope = scope, functions = functions)
+  ): A {
+    val promptWithFunctions = prompt.copy(functions = functions)
+    return tryDeserialize(
+      serializer,
+      promptWithFunctions.configuration.maxDeserializationAttempts
+    ) {
+      promptMessages(prompt = promptWithFunctions, scope = scope)
     }
+  }
 
   private suspend fun <A> tryDeserialize(
     serializer: (json: String) -> A,

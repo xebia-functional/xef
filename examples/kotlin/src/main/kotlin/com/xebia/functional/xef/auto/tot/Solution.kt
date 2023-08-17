@@ -52,7 +52,7 @@ internal suspend fun <A> Conversation.solution(
        |
        |"""
       .trimMargin()
-  return prompt(OpenAI().DEFAULT_SERIALIZATION, Prompt(enhancedPrompt), serializer).also {
+  return OpenAI().DEFAULT_SERIALIZATION.prompt(Prompt(enhancedPrompt), serializer).also {
     println("🤖 Generated solution: ${truncateText(it.answer)}")
   }
 }
