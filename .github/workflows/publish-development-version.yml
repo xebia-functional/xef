@@ -34,7 +34,7 @@ jobs:
       - name: Assemble
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: assemble -x:kotlin-loom:assemble -x:xef-java-examples:assemble -x:xef-scala:assemble -x:xef-scala-examples:assemble
+          arguments: assemble -x:xef-java-examples:assemble -x:xef-scala:assemble -x:xef-scala-examples:assemble
 
       - name: Upload reports
         if: failure()
@@ -46,7 +46,7 @@ jobs:
       - name: Publish development version
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: publishToSonatype -x:kotlin-loom:publishToSonatype -x:xef-scala:publishToSonatype closeAndReleaseSonatypeStagingRepository
+          arguments: publishToSonatype -x:xef-scala:publishToSonatype closeAndReleaseSonatypeStagingRepository
 
   publish-modules-with-loom:
     timeout-minutes: 30
@@ -66,7 +66,7 @@ jobs:
       - name: assemble
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: :kotlin-loom:assemble :xef-scala:assemble :xef-java-examples:assemble
+          arguments: :xef-scala:assemble :xef-java-examples:assemble
 
       - name: Upload reports
         if: failure()
@@ -78,4 +78,4 @@ jobs:
       - name: Publish development version
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: :kotlin-loom:publishToSonatype :xef-scala:publishToSonatype closeAndReleaseSonatypeStagingRepository
+          arguments: :xef-scala:publishToSonatype closeAndReleaseSonatypeStagingRepository
