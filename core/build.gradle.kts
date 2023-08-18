@@ -40,6 +40,7 @@ detekt {
 
 kotlin {
   jvm {
+    withJava()
     compilations {
       val integrationTest by compilations.creating {
         // Create a test task to run the tests produced by this compilation:

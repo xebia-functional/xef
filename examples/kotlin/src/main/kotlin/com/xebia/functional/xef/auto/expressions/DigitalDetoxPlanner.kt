@@ -30,10 +30,8 @@ data class DetoxState(
 @Serializable
 data class DetoxRecommendationPrompt(
   @Description(
-    [
-      "Craft a digital detox plan based on the user's current habits and desired goals.",
+    "Craft a digital detox plan based on the user's current habits and desired goals." +
       "Recommend actionable steps and alternative non-digital activities to aid the detox process."
-    ]
   )
   val dayByDayActions:
     List<DetoxPlan>, // e.g., {"Day 1": ["1-hour nature walk", "Read a book for 30 minutes"]}

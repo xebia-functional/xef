@@ -180,16 +180,16 @@ sealed class AgentPlan
 
 @Serializable
 data class AgentAction(
-  @Description(["The reasoning behind the tool you are going to run"]) val thought: String,
-  @Description(["The tool to execute the next step, one must be chosen from the `tools`"])
+  @Description("The reasoning behind the tool you are going to run") val thought: String,
+  @Description("The tool to execute the next step, one must be chosen from the `tools`")
   val tool: String,
-  @Description(["The input for the selected `tool`"]) val toolInput: String
+  @Description("The input for the selected `tool`") val toolInput: String
 ) : AgentPlan()
 
 @Serializable
 data class AgentFinish(
   @Description(
-    ["The final answer that satisfies ALL the `input` expressed in one text sentence or paragraph"]
+    "The final answer that satisfies ALL the `input` expressed in one text sentence or paragraph"
   )
   val finalAnswer: String
 ) : AgentPlan()
@@ -197,9 +197,7 @@ data class AgentFinish(
 @Serializable
 data class AgentChoice(
   @Description(
-    [
-      "Choose `CONTINUE` if you want to run a tool or `FINISH` if you want to provide the final answer"
-    ]
+    "Choose `CONTINUE` if you want to run a tool or `FINISH` if you want to provide the final answer"
   )
   val choice: AgentChoiceType
 )

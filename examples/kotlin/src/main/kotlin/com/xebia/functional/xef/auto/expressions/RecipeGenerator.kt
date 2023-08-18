@@ -65,11 +65,9 @@ data class GenerateRecipe(val state: RecipeState, val constraints: DietaryConstr
 @Serializable
 data class RecipePrompt(
   @Description(
-    [
-      "Generate a detailed and mouthwatering recipe.",
-      "Make sure to use appropriate culinary terms.",
+    "Generate a detailed and mouthwatering recipe." +
+      "Make sure to use appropriate culinary terms." +
       "Recipe should be easy to follow for a beginner."
-    ]
   )
   val title: String,
   val ingredients: List<Ingredient>,
