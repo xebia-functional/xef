@@ -45,7 +45,7 @@ public class Chat {
                 String line = br.readLine();
                 if (line.equals("exit")) break;
 
-                var answer = scope.promptStreaming(gpt4all, new Prompt(line));
+                var answer = scope.promptStreamingToPublisher(gpt4all, new Prompt(line));
 
                 answer.subscribe(new Subscriber<String>() {
                     StringBuilder answer = new StringBuilder();

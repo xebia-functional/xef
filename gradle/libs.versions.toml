@@ -41,6 +41,7 @@ suspend-transform = "0.3.1"
 suspendApp = "0.4.0"
 flyway = "9.17.0"
 resources-kmp = "0.4.0"
+detekt = "1.23.1"
 
 [libraries]
 arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
@@ -108,6 +109,8 @@ jackson = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref 
 jackson-schema = { module = "com.github.victools:jsonschema-generator", version.ref = "jsonschema" }
 jackson-schema-jakarta = { module = "com.github.victools:jsonschema-module-jakarta-validation", version.ref = "jsonschema" }
 jakarta-validation = { module = "jakarta.validation:jakarta.validation-api", version.ref = "jakarta" }
+detekt-api = { module = "io.gitlab.arturbosch.detekt:detekt-api", version.ref = "detekt" }
+detekt-test = { module = "io.gitlab.arturbosch.detekt:detekt-test", version.ref = "detekt" }
 
 [bundles]
 ktor-client = [
@@ -134,3 +137,4 @@ kotest-multiplatform = { id = "io.kotest.multiplatform", version.ref = "kotest" 
 semver-gradle = { id="com.javiersc.semver", version.ref="semverGradle" }
 suspend-transform-plugin = { id="love.forte.plugin.suspend-transform", version.ref="suspend-transform" }
 resources = { id="com.goncalossilva.resources", version.ref="resources-kmp" }
+detekt = { id="io.gitlab.arturbosch.detekt", version.ref="detekt"}
