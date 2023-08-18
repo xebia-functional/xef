@@ -1,14 +1,10 @@
 package com.xebia.functional.xef.java.auto.jdk8;
 
-import static com.xebia.functional.xef.textsplitters.TokenTextSplitterKt.TokenTextSplitter;
-
-import com.xebia.functional.tokenizer.ModelType;
-import com.xebia.functional.xef.auto.PlatformConversation;
-import com.xebia.functional.xef.auto.llm.openai.OpenAI;
+import com.xebia.functional.xef.conversation.PlatformConversation;
+import com.xebia.functional.xef.conversation.llm.openai.OpenAI;
 import com.xebia.functional.xef.java.auto.jdk21.util.ConsoleUtil;
 import com.xebia.functional.xef.prompt.Prompt;
 import com.xebia.functional.xef.reasoning.pdf.PDF;
-import com.xebia.functional.xef.textsplitters.TextSplitter;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;

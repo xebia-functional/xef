@@ -1,6 +1,6 @@
 package com.xebia.functional.gpt4all
 
-import com.xebia.functional.xef.auto.Conversation
+import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.vectorstores.LocalVectorStore
 import com.xebia.functional.xef.vectorstores.VectorStore
 

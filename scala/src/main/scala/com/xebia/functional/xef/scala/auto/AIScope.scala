@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.scala.auto
 
-import com.xebia.functional.xef.auto.Conversation
+import com.xebia.functional.xef.conversation.Conversation
 
 final case class AIScope(kt: Conversation)
 object AIScope:

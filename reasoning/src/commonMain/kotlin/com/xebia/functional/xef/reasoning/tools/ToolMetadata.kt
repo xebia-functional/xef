@@ -1,7 +1,6 @@
 package com.xebia.functional.xef.reasoning.tools
 
-import com.xebia.functional.xef.auto.Description
-import io.ktor.utils.io.core.*
+import com.xebia.functional.xef.conversation.Description
 import kotlinx.serialization.Serializable
 
 @Serializable

@@ -1,8 +1,8 @@
 package com.xebia.functional.xef.scala.auto
 
-import com.xebia.functional.xef.auto.llm.openai.*
+import com.xebia.functional.xef.conversation.llm.openai.*
 import com.xebia.functional.xef.prompt.Prompt
-import com.xebia.functional.xef.auto.{FromJson, JVMConversation}
+import com.xebia.functional.xef.conversation.{FromJson, JVMConversation}
 import com.xebia.functional.xef.llm.*
 import com.xebia.functional.xef.llm.models.images.*
 import com.xebia.functional.xef.vectorstores.{ConversationId, LocalVectorStore, VectorStore}

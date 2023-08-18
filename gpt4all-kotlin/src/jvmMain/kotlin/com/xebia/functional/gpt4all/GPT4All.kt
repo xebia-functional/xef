@@ -5,8 +5,8 @@ import ai.djl.training.util.ProgressBar
 import com.hexadevlabs.gpt4all.LLModel
 import com.xebia.functional.tokenizer.EncodingType
 import com.xebia.functional.tokenizer.ModelType
-import com.xebia.functional.xef.auto.Conversation
-import com.xebia.functional.xef.auto.PlatformConversation
+import com.xebia.functional.xef.conversation.Conversation
+import com.xebia.functional.xef.conversation.PlatformConversation
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.llm.Completion
 import com.xebia.functional.xef.llm.models.chat.*

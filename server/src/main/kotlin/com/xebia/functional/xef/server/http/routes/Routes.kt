@@ -2,9 +2,9 @@ package com.xebia.functional.xef.server.http.routes
 
 import com.aallam.openai.api.BetaOpenAI
 import com.aallam.openai.api.chat.ChatCompletionRequest
-import com.xebia.functional.xef.auto.Conversation
+import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
-import com.xebia.functional.xef.auto.llm.openai.*
+import com.xebia.functional.xef.conversation.llm.openai.*
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.server.services.PersistenceService
 import io.ktor.http.*

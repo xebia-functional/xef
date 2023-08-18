@@ -3,8 +3,8 @@ package com.xebia.functional.xef.llm
 import arrow.core.nonFatalOrThrow
 import arrow.core.raise.catch
 import com.xebia.functional.xef.AIError
-import com.xebia.functional.xef.auto.AiDsl
-import com.xebia.functional.xef.auto.Conversation
+import com.xebia.functional.xef.conversation.AiDsl
+import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.models.chat.ChatCompletionRequestWithFunctions
 import com.xebia.functional.xef.llm.models.chat.ChatCompletionResponseWithFunctions
 import com.xebia.functional.xef.llm.models.functions.CFunction

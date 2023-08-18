@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.reasoning.tools
 
-import com.xebia.functional.xef.auto.Conversation
-import com.xebia.functional.xef.auto.Description
+import com.xebia.functional.xef.conversation.Conversation
+import com.xebia.functional.xef.conversation.Description
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.prompt.Prompt

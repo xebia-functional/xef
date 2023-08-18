@@ -1,8 +1,8 @@
 package com.xebia.functional.xef.reasoning.code
 
-import com.xebia.functional.xef.auto.AutoClose
-import com.xebia.functional.xef.auto.Conversation
-import com.xebia.functional.xef.auto.autoClose
+import com.xebia.functional.xef.conversation.AutoClose
+import com.xebia.functional.xef.conversation.Conversation
+import com.xebia.functional.xef.conversation.autoClose
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.prompt.Prompt

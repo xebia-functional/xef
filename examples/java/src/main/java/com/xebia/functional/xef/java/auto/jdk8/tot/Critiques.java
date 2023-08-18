@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.java.auto.jdk8.tot;
 
-import com.xebia.functional.xef.auto.llm.openai.OpenAI;
+import com.xebia.functional.xef.conversation.llm.openai.OpenAI;
 import com.xebia.functional.xef.prompt.Prompt;
 
 import static com.xebia.functional.xef.java.auto.jdk21.tot.Rendering.truncateText;

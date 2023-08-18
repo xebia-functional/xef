@@ -2,7 +2,7 @@ package com.xebia.functional.xef.llm
 
 import com.xebia.functional.tokenizer.truncateText
 import com.xebia.functional.xef.AIError
-import com.xebia.functional.xef.auto.Conversation
+import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.assistant

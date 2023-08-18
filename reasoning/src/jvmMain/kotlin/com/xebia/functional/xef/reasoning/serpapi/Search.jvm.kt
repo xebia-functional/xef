@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.reasoning.serpapi
 
-import com.xebia.functional.xef.auto.Conversation
+import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.Chat
 import java.util.concurrent.CompletableFuture
 import kotlinx.coroutines.CoroutineScope

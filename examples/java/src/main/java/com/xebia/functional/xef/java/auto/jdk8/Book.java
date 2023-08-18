@@ -1,8 +1,8 @@
 package com.xebia.functional.xef.java.auto.jdk8;
 
-import com.xebia.functional.xef.auto.PlatformConversation;
-import com.xebia.functional.xef.auto.jvm.Description;
-import com.xebia.functional.xef.auto.llm.openai.OpenAI;
+import com.xebia.functional.xef.conversation.PlatformConversation;
+import com.xebia.functional.xef.conversation.jvm.Description;
+import com.xebia.functional.xef.conversation.llm.openai.OpenAI;
 import com.xebia.functional.xef.prompt.Prompt;
 
 import java.util.concurrent.ExecutionException;

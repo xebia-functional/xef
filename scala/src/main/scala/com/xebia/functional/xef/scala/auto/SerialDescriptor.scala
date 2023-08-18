@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.scala.auto
 
-import com.xebia.functional.xef.auto.jvm.Description as JvmDescription
+import com.xebia.functional.xef.conversation.jvm.Description as JvmDescription
 import kotlinx.serialization.descriptors.{SerialDescriptor as KtSerialDescriptor, SerialKind, StructureKind}
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.encoding.{Decoder as KtDecoder, Encoder as KtEncoder}

@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.llm
 
-import com.xebia.functional.xef.auto.Conversation
+import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.vectorstores.Memory
 import io.ktor.util.date.*

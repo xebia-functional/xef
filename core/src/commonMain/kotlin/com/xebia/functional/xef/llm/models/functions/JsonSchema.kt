@@ -13,7 +13,7 @@ which states the following:
 
 // TODO: We should consider a fork and maintain it ourselves.
  */
-import com.xebia.functional.xef.auto.Description
+import com.xebia.functional.xef.conversation.Description
 import kotlin.jvm.JvmMultifileClass
 import kotlin.jvm.JvmName
 import kotlinx.serialization.ExperimentalSerializationApi

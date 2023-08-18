@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.reasoning.internals
 
-import com.xebia.functional.xef.auto.Conversation
+import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.prompt.Prompt
 
