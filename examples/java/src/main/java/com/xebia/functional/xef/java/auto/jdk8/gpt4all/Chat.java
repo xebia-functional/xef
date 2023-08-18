@@ -2,7 +2,7 @@ package com.xebia.functional.xef.java.auto.jdk8.gpt4all;
 
 import com.xebia.functional.gpt4all.GPT4All;
 import com.xebia.functional.gpt4all.Gpt4AllModel;
-import com.xebia.functional.xef.auto.PlatformConversation;
+import com.xebia.functional.xef.conversation.PlatformConversation;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
-import com.xebia.functional.xef.auto.llm.openai.OpenAI;
+import com.xebia.functional.xef.conversation.llm.openai.OpenAI;
 import com.xebia.functional.xef.prompt.Prompt;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;

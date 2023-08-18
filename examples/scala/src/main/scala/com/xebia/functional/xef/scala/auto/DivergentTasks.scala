@@ -1,7 +1,7 @@
-package com.xebia.functional.xef.scala.auto
+package com.xebia.functional.xef.scala.conversation
 
-import com.xebia.functional.xef.scala.auto.*
-import com.xebia.functional.xef.auto.llm.openai.OpenAI
+import com.xebia.functional.xef.scala.conversation.*
+import com.xebia.functional.xef.conversation.llm.openai.OpenAI
 import com.xebia.functional.xef.reasoning.serpapi.Search
 import io.circe.Decoder
 import com.xebia.functional.xef.prompt.Prompt

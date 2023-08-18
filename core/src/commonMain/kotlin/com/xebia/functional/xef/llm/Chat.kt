@@ -2,8 +2,8 @@ package com.xebia.functional.xef.llm
 
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.AIError
-import com.xebia.functional.xef.auto.AiDsl
-import com.xebia.functional.xef.auto.Conversation
+import com.xebia.functional.xef.conversation.AiDsl
+import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.prompt.Prompt
 import kotlinx.coroutines.flow.Flow

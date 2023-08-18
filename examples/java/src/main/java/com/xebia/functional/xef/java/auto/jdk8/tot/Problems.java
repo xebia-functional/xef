@@ -2,12 +2,12 @@ package com.xebia.functional.xef.java.auto.jdk8.tot;
 
 import static com.xebia.functional.xef.java.auto.jdk21.tot.Rendering.truncateText;
 
-import com.xebia.functional.xef.auto.PlatformConversation;
+import com.xebia.functional.xef.conversation.PlatformConversation;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import com.xebia.functional.xef.auto.llm.openai.OpenAI;
+import com.xebia.functional.xef.conversation.llm.openai.OpenAI;
 import org.jetbrains.annotations.Nullable;
 
 public class Problems {

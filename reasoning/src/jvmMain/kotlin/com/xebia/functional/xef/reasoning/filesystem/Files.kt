@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.reasoning.filesystem
 
-import com.xebia.functional.xef.auto.Conversation
+import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.reasoning.tools.Tool
 

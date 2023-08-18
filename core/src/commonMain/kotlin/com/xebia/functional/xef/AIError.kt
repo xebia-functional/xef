@@ -1,31 +1,12 @@
 package com.xebia.functional.xef
 
 import arrow.core.NonEmptyList
-import com.xebia.functional.xef.llm.models.chat.Message
 import kotlin.jvm.JvmOverloads
 
 sealed class AIError @JvmOverloads constructor(message: String, cause: Throwable? = null) :
   RuntimeException(message, cause) {
 
   class NoResponse : AIError("No response from the AI")
-
-  data class MessagesExceedMaxTokenLength(
-    val messages: List<Message>,
-    val promptTokens: Int,
-    val maxTokens: Int
-  ) :
-    AIError(
-      "Prompt exceeds max token length: $promptTokens + $maxTokens = ${promptTokens + maxTokens}"
-    )
-
-  data class PromptExceedsMaxTokenLength(
-    val prompt: String,
-    val promptTokens: Int,
-    val maxTokens: Int
-  ) :
-    AIError(
-      "Prompt exceeds max token length: $promptTokens + $maxTokens = ${promptTokens + maxTokens}"
-    )
 
   data class PromptExceedsMaxRemainingTokenLength(val promptTokens: Int, val maxTokens: Int) :
     AIError(

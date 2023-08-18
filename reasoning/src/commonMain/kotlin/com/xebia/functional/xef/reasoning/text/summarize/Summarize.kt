@@ -2,7 +2,7 @@ package com.xebia.functional.xef.reasoning.text.summarize
 
 import arrow.fx.coroutines.parMap
 import com.xebia.functional.tokenizer.truncateText
-import com.xebia.functional.xef.auto.Conversation
+import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.assistant

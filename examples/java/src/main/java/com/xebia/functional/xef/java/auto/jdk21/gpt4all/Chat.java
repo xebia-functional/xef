@@ -2,7 +2,7 @@ package com.xebia.functional.xef.java.auto.jdk21.gpt4all;
 
 import com.xebia.functional.gpt4all.GPT4All;
 import com.xebia.functional.gpt4all.Gpt4AllModel;
-import com.xebia.functional.xef.auto.llm.openai.OpenAI;
+import com.xebia.functional.xef.conversation.llm.openai.OpenAI;
 import com.xebia.functional.xef.prompt.Prompt;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;

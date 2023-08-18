@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.reasoning.serpapi
 
-import com.xebia.functional.xef.auto.AutoClose
-import com.xebia.functional.xef.auto.autoClose
+import com.xebia.functional.xef.conversation.AutoClose
+import com.xebia.functional.xef.conversation.autoClose
 import com.xebia.functional.xef.env.getenv
 import io.ktor.client.*
 import io.ktor.client.call.*

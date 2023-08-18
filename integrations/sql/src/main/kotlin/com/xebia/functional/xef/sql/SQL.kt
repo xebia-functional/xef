@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.sql
 
-import com.xebia.functional.xef.auto.Conversation
-import com.xebia.functional.xef.auto.AiDsl
+import com.xebia.functional.xef.conversation.Conversation
+import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.sql.jdbc.JdbcConfig
 import com.xebia.functional.xef.textsplitters.TokenTextSplitter
