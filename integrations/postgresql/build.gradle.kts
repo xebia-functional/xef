@@ -25,6 +25,7 @@ detekt {
 
 dependencies {
     implementation(projects.xefCore)
+    implementation(libs.flyway.core)
     implementation(libs.uuid)
     implementation(libs.hikari)
     implementation(libs.postgresql)

@@ -10,13 +10,6 @@ enum class PGDistanceStrategy(val strategy: String) {
   CosineDistance("<=>")
 }
 
-val createCollections: String =
-  """CREATE TABLE IF NOT EXISTS xef_collections (
-       uuid TEXT PRIMARY KEY,
-       name TEXT UNIQUE NOT NULL
-     );"""
-    .trimIndent()
-
 val createMemoryTable: String =
   """CREATE TABLE IF NOT EXISTS xef_memory (
        uuid TEXT PRIMARY KEY,
@@ -64,8 +57,8 @@ uuid TEXT PRIMARY KEY,
        timestamp TIMESTAMP NOT NULL,
  */
 val addNewMemory: String =
-  """INSERT INTO xef_memory(uuid, conversation_id, role, content, timestamp)
-     VALUES (?, ?, ?, ?, ?)
+  """INSERT INTO xef_memory(uuid, conversation_id, role, content, timestamp, approx_tokens)
+     VALUES (?, ?, ?, ?, ?, ?)
      ON CONFLICT DO NOTHING;"""
     .trimIndent()
 
