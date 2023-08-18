@@ -5,6 +5,7 @@ import com.typesafe.config.ConfigFactory
 import com.xebia.functional.xef.server.services.PersistenceService
 import com.xebia.functional.xef.server.services.PostgreSQLXef
 import com.xebia.functional.xef.server.services.PostgresXefService
+import com.xebia.functional.xef.vectorstores.migrations.PsqlVectorStoreConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -23,8 +24,7 @@ class XefVectorStoreConfig(
     val database: String,
     val driver: String,
     val user: String,
-    val password: String,
-    val vectorSize: Int
+    val password: String
 ) {
     companion object {
         @OptIn(ExperimentalSerializationApi::class)
@@ -35,7 +35,9 @@ class XefVectorStoreConfig(
             withContext(Dispatchers.IO) {
                 val rawConfig = config ?: ConfigFactory.load().resolve()
                 val jdbcConfig = rawConfig.getConfig(configNamespace)
-                Hocon.decodeFromConfig(serializer(), jdbcConfig)
+                val config = Hocon.decodeFromConfig(serializer(), jdbcConfig)
+                config.migrate()
+                config
             }
 
         suspend fun XefVectorStoreConfig.getPersistenceService(config: Config): PersistenceService {
@@ -55,11 +57,30 @@ class XefVectorStoreConfig(
                     database = vectorStoreConfig.database,
                     user = vectorStoreConfig.user,
                     password = vectorStoreConfig.password
-                ),
-                vectorSize = vectorStoreConfig.vectorSize
+                )
             )
             return PostgresXefService(pgVectorStoreConfig)
         }
 
     }
+
+    private suspend fun migrate() {
+        when (this.type) {
+            XefVectorStoreType.PSQL -> {
+                val psqlConfig = this.toPSQLConfig()
+                psqlConfig.migrate()
+            }
+        }
+    }
+
+    private fun XefVectorStoreConfig.toPSQLConfig(): PsqlVectorStoreConfig =
+        PsqlVectorStoreConfig(
+            host = this.host,
+            port = this.port,
+            database = this.database,
+            driver = this.driver,
+            user = this.user,
+            password = this.password,
+            migrationsTable = "migration"
+        )
 }
