@@ -13,7 +13,7 @@ class Program(
 ) {
   suspend inline operator fun <reified A, reified B> invoke(input: A): B {
     return model.prompt(
-      prompt = Prompt { +user(input, serializer<A>()) },
+      prompt = Prompt { +user(input) },
       scope = conversation,
       serializer = serializer<B>(),
     )
