@@ -5,6 +5,7 @@ import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.prompt.Prompt
+import com.xebia.functional.xef.prompt.templates.user
 import kotlinx.serialization.serializer
 
 @AiDsl
@@ -14,15 +15,16 @@ suspend fun Conversation.promptMessage(
 ): String = model.promptMessage(prompt, this)
 
 @AiDsl
-suspend inline fun <reified A, reified B> Conversation.prompt(
-  input: A,
+suspend inline fun <reified A> Conversation.prompt(
+  input: String,
   model: ChatWithFunctions =
-    if (B::class == String::class) OpenAI().DEFAULT_CHAT else OpenAI().DEFAULT_SERIALIZATION
-): B {
-  return model.prompt(
-    input = input,
-    scope = conversation,
-    inputSerializer = serializer<A>(),
-    outputSerializer = serializer<B>()
-  )
-}
+    if (A::class == String::class) OpenAI().DEFAULT_CHAT else OpenAI().DEFAULT_SERIALIZATION
+): A =
+  model.prompt(prompt = Prompt { +user(input) }, scope = conversation, serializer = serializer<A>())
+
+@AiDsl
+suspend inline fun <reified A> Conversation.prompt(
+  prompt: Prompt,
+  model: ChatWithFunctions =
+    if (A::class == String::class) OpenAI().DEFAULT_CHAT else OpenAI().DEFAULT_SERIALIZATION
+): A = model.prompt(prompt = prompt, scope = conversation, serializer = serializer<A>())

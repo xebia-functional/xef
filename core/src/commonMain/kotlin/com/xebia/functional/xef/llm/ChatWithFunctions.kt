@@ -10,7 +10,6 @@ import com.xebia.functional.xef.llm.models.chat.ChatCompletionResponseWithFuncti
 import com.xebia.functional.xef.llm.models.functions.CFunction
 import com.xebia.functional.xef.llm.models.functions.encodeJsonSchema
 import com.xebia.functional.xef.prompt.Prompt
-import com.xebia.functional.xef.prompt.templates.user
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
@@ -31,21 +30,6 @@ interface ChatWithFunctions : Chat {
 
   fun chatFunction(fnName: String, schema: String): CFunction =
     CFunction(fnName, "Generated function for $fnName", schema)
-
-  @OptIn(ExperimentalSerializationApi::class)
-  @AiDsl
-  suspend fun <A, B> prompt(
-    input: A,
-    scope: Conversation,
-    inputSerializer: KSerializer<A>,
-    outputSerializer: KSerializer<B>
-  ): B =
-    when (outputSerializer.descriptor.kind) {
-      PrimitiveKind.STRING ->
-        promptMessage(prompt = Prompt { +user(encodeInput(inputSerializer, input)) }, scope = scope)
-          as B
-      else -> prompt(Prompt { +user(encodeInput(inputSerializer, input)) }, scope, outputSerializer)
-    }
 
   @AiDsl
   suspend fun <A> prompt(
@@ -92,11 +76,4 @@ interface ChatWithFunctions : Chat {
     }
     throw AIError.NoResponse()
   }
-
-  @OptIn(ExperimentalSerializationApi::class)
-  private fun <A> encodeInput(inputSerializer: KSerializer<A>, input: A): String =
-    when (inputSerializer.descriptor.kind) {
-      PrimitiveKind.STRING -> input.toString()
-      else -> Json.encodeToString(inputSerializer, input)
-    }
 }

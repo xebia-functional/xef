@@ -5,13 +5,12 @@ import com.xebia.functional.xef.llm.models.functions.CFunction
 import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
 import com.xebia.functional.xef.prompt.templates.user
 import kotlin.jvm.JvmOverloads
-import kotlinx.serialization.Serializable
+import kotlin.jvm.JvmSynthetic
 
 /**
  * A Prompt is a serializable list of messages and its configuration. The messages may involve
  * different roles.
  */
-@Serializable
 data class Prompt
 @JvmOverloads
 constructor(
@@ -28,6 +27,7 @@ constructor(
   ) : this(listOf(user(value)), null, configuration)
 
   companion object {
+    @JvmSynthetic
     operator fun invoke(block: PromptBuilder.() -> Unit): Prompt =
       PromptBuilder().apply { block() }.build()
   }
