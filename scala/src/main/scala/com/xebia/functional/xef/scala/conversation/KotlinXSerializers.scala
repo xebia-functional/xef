@@ -1,4 +1,4 @@
-package com.xebia.functional.xef.scala.auto
+package com.xebia.functional.xef.scala.conversation
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.BuiltinSerializersKt

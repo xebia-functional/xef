@@ -58,7 +58,6 @@ project(":xef-kotlin").projectDir = file("kotlin")
 include("xef-kotlin-examples")
 project(":xef-kotlin-examples").projectDir = file("examples/kotlin")
 
-include("kotlin-loom")
 //</editor-fold>
 
 //<editor-fold desc="Scala">

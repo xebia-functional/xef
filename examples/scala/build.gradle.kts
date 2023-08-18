@@ -16,7 +16,6 @@ java {
 dependencies {
   implementation(projects.xefCore)
   implementation(projects.xefScala)
-  implementation(projects.kotlinLoom)
 	implementation(projects.xefReasoning)
   implementation(projects.xefOpenai)
   implementation(libs.circe.parser)

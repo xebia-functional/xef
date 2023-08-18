@@ -1,4 +1,4 @@
-package com.xebia.functional.xef.scala.auto
+package com.xebia.functional.xef.scala.conversation
 
 import com.xebia.functional.xef.conversation.llm.openai.*
 import com.xebia.functional.xef.prompt.Prompt

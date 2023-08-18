@@ -1,7 +1,7 @@
-package com.xebia.functional.xef.scala.auto
+package com.xebia.functional.xef.scala.conversation
 
-import com.xebia.functional.xef.scala.auto.Description
-import com.xebia.functional.xef.scala.auto.*
+import com.xebia.functional.xef.scala.conversation.Description
+import com.xebia.functional.xef.scala.conversation.*
 import io.circe.Decoder
 import com.xebia.functional.xef.prompt.Prompt
 

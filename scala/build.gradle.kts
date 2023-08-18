@@ -12,7 +12,6 @@ plugins {
 dependencies {
     implementation(projects.xefCore)
     implementation(projects.xefOpenai)
-    implementation(projects.kotlinLoom)
 		implementation(libs.kotlinx.coroutines.reactive)
 
     // TODO split to separate Scala library
