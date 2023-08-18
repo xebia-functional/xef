@@ -4,7 +4,21 @@ plugins {
   alias(libs.plugins.spotless)
   alias(libs.plugins.arrow.gradle.publish)
   alias(libs.plugins.semver.gradle)
+	alias(libs.plugins.detekt)
 }
+
+
+dependencies {
+		detektPlugins(project(":detekt-rules"))
+}
+
+detekt {
+    toolVersion = "1.23.1"
+    source = files("src/commonMain/kotlin", "src/jvmMain/kotlin")
+    config.setFrom("../../config/detekt/detekt.yml")
+    autoCorrect = true
+}
+
 
 repositories {
   mavenCentral()
@@ -87,6 +101,22 @@ spotless {
   }
 }
 
-tasks.withType<AbstractPublishToMaven> {
-  dependsOn(tasks.withType<Sign>())
+tasks{
+		withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
+    dependsOn(":detekt-rules:assemble")
+    autoCorrect = true
+  }
+  named("detektJvmMain") {
+    dependsOn(":detekt-rules:assemble")
+    getByName("build").dependsOn(this)
+  }
+  named("detekt") {
+    dependsOn(":detekt-rules:assemble")
+    getByName("build").dependsOn(this)
+  }
+	withType<AbstractPublishToMaven> {
+			dependsOn(withType<Sign>())
+	}
+
 }
+
