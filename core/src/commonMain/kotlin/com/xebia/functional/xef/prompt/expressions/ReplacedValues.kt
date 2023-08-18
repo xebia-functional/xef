@@ -5,6 +5,5 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ReplacedValues(
-  @Description(["The values that are generated for the template"])
-  val replacements: List<Replacement>
+  @Description("The values that are generated for the template") val replacements: List<Replacement>
 )

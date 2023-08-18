@@ -11,14 +11,14 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class NewsSummary(
-  @Description(["A title for the relevant news article."]) val title: String,
-  @Description(["A description of the relevant news article"]) val author: String,
-  @Description(["A 50 word summary of the article."]) val summary: String
+  @Description("A title for the relevant news article.") val title: String,
+  @Description("A description of the relevant news article") val author: String,
+  @Description("A 50 word summary of the article.") val summary: String
 )
 
 @Serializable
 data class NewsItems(
-  @Description(["A list of news items about the context"]) val items: List<NewsSummary>
+  @Description("A list of news items about the context") val items: List<NewsSummary>
 )
 
 suspend fun main() {
