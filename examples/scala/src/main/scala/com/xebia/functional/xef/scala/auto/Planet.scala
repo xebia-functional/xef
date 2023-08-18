@@ -2,6 +2,7 @@ package com.xebia.functional.xef.scala.auto
 
 import com.xebia.functional.xef.scala.auto.*
 import io.circe.Decoder
+import com.xebia.functional.xef.prompt.Prompt
 
 private final case class Moon(name: String, distanceFromPlanet: Double) derives SerialDescriptor, Decoder
 
@@ -16,8 +17,8 @@ private final case class Planet(name: String, distanceFromSun: Double, moons: Li
     """.stripMargin
   }
   conversation {
-    val earth: Planet = prompt("Information about Earth and its moon.")
-    val mars: Planet = prompt("Information about Mars and its moons.")
+    val earth: Planet = prompt(Prompt("Information about Earth and its moon."))
+    val mars: Planet = prompt(Prompt("Information about Mars and its moons."))
 
     println(s"Celestial bodies information:\n\n${planetInfo(earth)}\n\n${planetInfo(mars)}")
   }

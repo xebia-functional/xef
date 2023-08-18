@@ -1,6 +1,5 @@
 package com.xebia.functional.xef.llm
 
-import com.xebia.functional.xef.auto.PromptConfiguration
 import com.xebia.functional.xef.llm.models.images.ImagesGenerationRequest
 import com.xebia.functional.xef.llm.models.images.ImagesGenerationResponse
 import com.xebia.functional.xef.prompt.Prompt
@@ -8,15 +7,6 @@ import com.xebia.functional.xef.vectorstores.VectorStore
 
 interface Images : LLM {
   suspend fun createImages(request: ImagesGenerationRequest): ImagesGenerationResponse
-
-  suspend fun images(
-    prompt: String,
-    context: VectorStore,
-    numberImages: Int = 1,
-    size: String = "1024x1024",
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-  ): ImagesGenerationResponse =
-    images(Prompt(prompt), context, numberImages, size, promptConfiguration)
 
   /**
    * Run a [prompt] describes the images you want to generate within the context of [CoreAIScope].
@@ -30,15 +20,14 @@ interface Images : LLM {
     prompt: Prompt,
     context: VectorStore,
     numberImages: Int = 1,
-    size: String = "1024x1024",
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
+    size: String = "1024x1024"
   ): ImagesGenerationResponse {
     val request =
       ImagesGenerationRequest(
-        prompt = prompt.message,
+        prompt = prompt,
         numberImages = numberImages,
         size = size,
-        user = promptConfiguration.user
+        user = prompt.configuration.user
       )
     return createImages(request)
   }

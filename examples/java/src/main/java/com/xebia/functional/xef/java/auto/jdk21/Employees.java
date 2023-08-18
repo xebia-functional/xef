@@ -2,6 +2,7 @@ package com.xebia.functional.xef.java.auto.jdk21;
 
 import com.xebia.functional.xef.auto.PlatformConversation;
 import com.xebia.functional.xef.auto.llm.openai.OpenAI;
+import com.xebia.functional.xef.prompt.Prompt;
 
 import java.util.concurrent.ExecutionException;
 
@@ -11,9 +12,9 @@ public class Employees {
     public record Address(String street, String city, String country){}
     public record Company(String name, Address address){}
 
-    public static String complexPrompt =
+    public static Prompt complexPrompt = new Prompt(
         "Provide made up information for an Employee that includes their first name, last name, age, position, and their company's name and address (street, city, and country).\n" +
-        "Use the information provided.";
+        "Use the information provided.");
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         try (PlatformConversation scope = OpenAI.conversation()) {

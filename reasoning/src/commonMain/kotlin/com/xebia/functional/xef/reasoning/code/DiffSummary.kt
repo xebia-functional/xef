@@ -5,8 +5,10 @@ import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.auto.autoClose
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.llm.ChatWithFunctions
-import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.prompt.Prompt
+import com.xebia.functional.xef.prompt.templates.assistant
+import com.xebia.functional.xef.prompt.templates.system
+import com.xebia.functional.xef.prompt.templates.user
 import com.xebia.functional.xef.reasoning.text.summarize.Summarize
 import com.xebia.functional.xef.reasoning.text.summarize.SummaryLength
 import com.xebia.functional.xef.reasoning.tools.Tool
@@ -75,22 +77,22 @@ class DiffSummary(
 
   private suspend fun createPRDescription(summary: String): String =
     chat.promptMessage(
-      messages =
-        listOf(
-          Message.systemMessage { "Create Pull Request Description" },
-          Message.assistantMessage {
+      prompt =
+        Prompt {
+          +system("Create Pull Request Description")
+          +assistant(
             "I will roleplay as an expert software engineer implementing a service to read a .diff file from a URL and create a Pull Request description with an automatically inferred user intent."
-          },
-          Message.assistantMessage {
+          )
+          +assistant(
             "I will use the following program to return a Pull Request description to the user:"
-          },
-          systemPrompt(),
-          Message.userMessage { "Set Summary = $summary" },
-          Message.userMessage { "CreatePRDescription()" },
-          Message.assistantMessage {
+          )
+          +systemPrompt()
+          +user("Set Summary = $summary")
+          +user("CreatePRDescription()")
+          +assistant(
             "A great, concise and neutral toned Pull Request description for this summary is:"
-          }
-        ),
+          )
+        },
       scope = scope
     )
 
@@ -99,32 +101,33 @@ class DiffSummary(
   }
 
   companion object {
-    suspend fun systemPrompt(): Message =
-      Message.systemMessage {
+    fun systemPrompt(): Prompt = Prompt {
+      +system(
         // language=yaml
         """
-          # CreatePRDescription  
-          PRDescriptionCreator:
-            Roleplay: "expert software engineer implementing a service to read a .diff file from a URL and create a PR description with an automatically inferred user intent."
-            DevProcess:
-              State:
-                Summary: "String"
-                Content: "String"
-              InferUserIntent:
-                Description: "Analyze the content to infer the user's intent for creating this PR. Must clearly articulate the reason, context, and goal."
-              CreatePRDescription:
-                Description: "Construct a PR description based on the inferred user's intent and extracted content. The description must: - Clearly articulate the inferred user's intent for creating this PR. - Provide a concise summary of the content. - Be clear, concise, and informative."
-                Style guide:
-                  Favor: "clear, understandable code."
-                  Handle: "potential errors like invalid content, intent inference issues, etc."
-                  Description: 
-                    Validate and read the Summary for the .dff content
-                    InferUserIntent() 
-                    CreatePRDescription() 
-                    Return the PR description
-            Instructions: "When asked to implement this functionality, please carefully follow the instructions above, ensuring that the user's intent is automatically inferred and added to the PR description. 🙏"
-        """
+            # CreatePRDescription  
+            PRDescriptionCreator:
+              Roleplay: "expert software engineer implementing a service to read a .diff file from a URL and create a PR description with an automatically inferred user intent."
+              DevProcess:
+                State:
+                  Summary: "String"
+                  Content: "String"
+                InferUserIntent:
+                  Description: "Analyze the content to infer the user's intent for creating this PR. Must clearly articulate the reason, context, and goal."
+                CreatePRDescription:
+                  Description: "Construct a PR description based on the inferred user's intent and extracted content. The description must: - Clearly articulate the inferred user's intent for creating this PR. - Provide a concise summary of the content. - Be clear, concise, and informative."
+                  Style guide:
+                    Favor: "clear, understandable code."
+                    Handle: "potential errors like invalid content, intent inference issues, etc."
+                    Description: 
+                      Validate and read the Summary for the .dff content
+                      InferUserIntent() 
+                      CreatePRDescription() 
+                      Return the PR description
+              Instructions: "When asked to implement this functionality, please carefully follow the instructions above, ensuring that the user's intent is automatically inferred and added to the PR description. 🙏"
+          """
           .trimIndent()
-      }
+      )
+    }
   }
 }

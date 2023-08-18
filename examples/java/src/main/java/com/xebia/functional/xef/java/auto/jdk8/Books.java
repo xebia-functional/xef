@@ -2,6 +2,7 @@ package com.xebia.functional.xef.java.auto.jdk8;
 
 import com.xebia.functional.xef.auto.PlatformConversation;
 import com.xebia.functional.xef.auto.llm.openai.OpenAI;
+import com.xebia.functional.xef.prompt.Prompt;
 import jakarta.validation.constraints.NotNull;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -32,7 +33,7 @@ public class Books {
     }
 
     public CompletableFuture<Book> bookSelection(String topic) {
-        return scope.prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, "Give me a selection of books about " + topic, Book.class);
+        return scope.prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, new Prompt("Give me a selection of books about " + topic), Book.class);
     }
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {

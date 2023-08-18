@@ -3,8 +3,12 @@ package com.xebia.functional.xef.auto.expressions
 import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.auto.llm.openai.OpenAI
 import com.xebia.functional.xef.llm.ChatWithFunctions
+import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.expressions.Expression
 import com.xebia.functional.xef.prompt.expressions.ExpressionResult
+import com.xebia.functional.xef.prompt.templates.assistant
+import com.xebia.functional.xef.prompt.templates.system
+import com.xebia.functional.xef.prompt.templates.user
 import com.xebia.functional.xef.reasoning.serpapi.Search
 import com.xebia.functional.xef.reasoning.tools.LLMTool
 import com.xebia.functional.xef.reasoning.tools.Tool
@@ -19,26 +23,31 @@ suspend fun taskSplitter(
     scope = scope,
     model = model,
     block = {
-      system { "You are a professional task planner" }
-      user {
+      addMessages(
+        Prompt {
+            +system("You are a professional task planner")
+            +user(
+              """
+           |I want to achieve:
         """
-     |I want to achieve:
-  """
-          .trimMargin()
-      }
-      user { prompt }
-      assistant { "I have access to all these tool" }
-      tools.forEach { assistant { "${it.name}: ${it.description}" } }
-      assistant {
+                .trimMargin()
+            )
+            +user(prompt)
+            +assistant("I have access to all these tool")
+            tools.forEach { +assistant("${it.name}: ${it.description}") }
+            +assistant(
+              """
+           |I will break down your task into 3 tasks to make progress and help you accomplish this goal
+           |using the tools that I have available.
+           |1: ${prompt("task1")}
+           |2: ${prompt("task2")}
+           |3: ${prompt("task3")}
         """
-     |I will break down your task into 3 tasks to make progress and help you accomplish this goal
-     |using the tools that I have available.
-     |1: ${prompt("task1")}
-     |2: ${prompt("task2")}
-     |3: ${prompt("task3")}
-  """
-          .trimMargin()
-      }
+                .trimMargin()
+            )
+          }
+          .messages
+      )
     }
   )
 
