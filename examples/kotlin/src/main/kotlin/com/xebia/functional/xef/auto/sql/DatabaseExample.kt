@@ -1,8 +1,8 @@
 package com.xebia.functional.xef.auto.sql
 
 import arrow.core.raise.catch
-import com.xebia.functional.xef.auto.PromptConfiguration
 import com.xebia.functional.xef.auto.llm.openai.OpenAI
+import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.sql.SQL
 import com.xebia.functional.xef.sql.jdbc.JdbcConfig
 
@@ -39,7 +39,8 @@ suspend fun main() =
             addContext(*promptQuery(input).toTypedArray())
             val result =
               model.promptMessage(
-                """|
+                Prompt(
+                  """|
                 |You are a database assistant that helps users to query and summarize results from the database.
                 |Instructions:
                 |1. Summarize the information provided in the `Context` and follow to step 2.
@@ -49,8 +50,8 @@ suspend fun main() =
                 |```
                 |3. Try to answer and provide information with as much detail as you can
               """
-                  .trimMargin(),
-                promptConfiguration = PromptConfiguration.invoke { docsInContext(50) }
+                    .trimMargin()
+                )
               )
             println("llmdb> $result")
           },

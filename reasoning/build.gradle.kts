@@ -2,177 +2,173 @@
 
 import org.jetbrains.dokka.gradle.DokkaTask
 
-repositories {
-  mavenCentral()
-}
+repositories { mavenCentral() }
 
 plugins {
-  base
-  id(libs.plugins.kotlin.multiplatform.get().pluginId)
-  alias(libs.plugins.kotest.multiplatform)
-  id(libs.plugins.kotlinx.serialization.get().pluginId)
-  alias(libs.plugins.spotless)
-  alias(libs.plugins.dokka)
-  alias(libs.plugins.arrow.gradle.publish)
-  alias(libs.plugins.semver.gradle)
-  //id("com.xebia.asfuture").version("0.0.1")
+    base
+    id(libs.plugins.kotlin.multiplatform.get().pluginId)
+    alias(libs.plugins.kotest.multiplatform)
+    id(libs.plugins.kotlinx.serialization.get().pluginId)
+    alias(libs.plugins.spotless)
+    alias(libs.plugins.dokka)
+    alias(libs.plugins.arrow.gradle.publish)
+    alias(libs.plugins.semver.gradle)
+    alias(libs.plugins.detekt)
+    // id("com.xebia.asfuture").version("0.0.1")
 }
 
 java {
-  sourceCompatibility = JavaVersion.VERSION_11
-  targetCompatibility = JavaVersion.VERSION_11
-  toolchain {
-    languageVersion = JavaLanguageVersion.of(11)
-  }
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+    toolchain { languageVersion = JavaLanguageVersion.of(11) }
+}
+
+dependencies { detektPlugins(project(":detekt-rules")) }
+
+detekt {
+    toolVersion = "1.23.1"
+    source = files("src/commonMain/kotlin", "src/jvmMain/kotlin")
+    config.setFrom("../config/detekt/detekt.yml")
+    autoCorrect = true
 }
 
 kotlin {
-  jvm {
-    compilations {
-      val integrationTest by compilations.creating {
-        // Create a test task to run the tests produced by this compilation:
-        tasks.register<Test>("integrationTest") {
-          description = "Run the integration tests"
-          group = "verification"
-          classpath = compileDependencyFiles + runtimeDependencyFiles + output.allOutputs
-          testClassesDirs = output.classesDirs
+    jvm {
+        compilations {
+            val integrationTest by
+                    compilations.creating {
+                        // Create a test task to run the tests produced by this compilation:
+                        tasks.register<Test>("integrationTest") {
+                            description = "Run the integration tests"
+                            group = "verification"
+                            classpath =
+                                    compileDependencyFiles +
+                                            runtimeDependencyFiles +
+                                            output.allOutputs
+                            testClassesDirs = output.classesDirs
 
-          testLogging {
-            events("passed")
-          }
+                            testLogging { events("passed") }
+                        }
+                    }
+            val test by compilations.getting
+            integrationTest.associateWith(test)
         }
-      }
-      val test by compilations.getting
-      integrationTest.associateWith(test)
     }
-  }
-  js(IR) {
-    browser()
-    nodejs()
-  }
-
-  linuxX64()
-  macosX64()
-  macosArm64()
-  mingwX64()
-
-  sourceSets {
-    all {
-      languageSettings.optIn("kotlin.ExperimentalStdlibApi")
+    js(IR) {
+        browser()
+        nodejs()
     }
 
-    val commonMain by getting {
-      dependencies {
-        implementation(projects.xefCore)
-        implementation(libs.okio)
-        implementation(libs.klogging)
-        implementation(libs.uuid)
-        implementation(libs.bundles.ktor.client)
-      }
-    }
+    linuxX64()
+    macosX64()
+    macosArm64()
+    mingwX64()
 
-    val commonTest by getting {
-      dependencies {
-        implementation(libs.kotest.property)
-        implementation(libs.kotest.framework)
-        implementation(libs.kotest.assertions)
-      }
-    }
+    sourceSets {
+        all { languageSettings.optIn("kotlin.ExperimentalStdlibApi") }
 
-    val jvmMain by getting {
-      dependencies {
-        implementation(libs.logback)
-        implementation(projects.xefPdf)
-        implementation(projects.xefFilesystem)
-        api(libs.ktor.client.cio)
-      }
-    }
+        val commonMain by getting {
+            dependencies {
+                implementation(projects.xefCore)
+                implementation(libs.okio)
+                implementation(libs.klogging)
+                implementation(libs.uuid)
+                implementation(libs.bundles.ktor.client)
+            }
+        }
 
-    val jsMain by getting {
-      dependencies {
-        api(libs.ktor.client.js)
-      }
-    }
+        val commonTest by getting {
+            dependencies {
+                implementation(libs.kotest.property)
+                implementation(libs.kotest.framework)
+                implementation(libs.kotest.assertions)
+            }
+        }
 
-    val jvmTest by getting {
-      dependencies {
-        implementation(libs.kotest.junit5)
-      }
-    }
+        val jvmMain by getting {
+            dependencies {
+                implementation(libs.logback)
+                implementation(projects.xefPdf)
+                implementation(projects.xefFilesystem)
+                api(libs.ktor.client.cio)
+            }
+        }
 
-    val linuxX64Main by getting {
-      dependencies {
-        api(libs.ktor.client.cio)
-      }
-    }
+        val jsMain by getting { dependencies { api(libs.ktor.client.js) } }
 
-    val macosX64Main by getting {
-      dependencies {
-        api(libs.ktor.client.cio)
-      }
-    }
+        val jvmTest by getting { dependencies { implementation(libs.kotest.junit5) } }
 
-    val macosArm64Main by getting {
-      dependencies {
-        api(libs.ktor.client.cio)
-      }
-    }
+        val linuxX64Main by getting { dependencies { api(libs.ktor.client.cio) } }
 
-    val mingwX64Main by getting {
-      dependencies {
-        api(libs.ktor.client.winhttp)
-      }
-    }
+        val macosX64Main by getting { dependencies { api(libs.ktor.client.cio) } }
 
-    create("nativeMain") {
-      dependsOn(commonMain)
-      linuxX64Main.dependsOn(this)
-      macosX64Main.dependsOn(this)
-      mingwX64Main.dependsOn(this)
+        val macosArm64Main by getting { dependencies { api(libs.ktor.client.cio) } }
+
+        val mingwX64Main by getting { dependencies { api(libs.ktor.client.winhttp) } }
+
+        create("nativeMain") {
+            dependsOn(commonMain)
+            linuxX64Main.dependsOn(this)
+            macosX64Main.dependsOn(this)
+            mingwX64Main.dependsOn(this)
+        }
     }
-  }
 }
 
 spotless {
-  kotlin {
-    target("**/*.kt")
-    ktfmt().googleStyle()
-  }
+    kotlin {
+        target("**/*.kt")
+        ktfmt().googleStyle()
+    }
 }
 
 tasks {
-  withType<Test>().configureEach {
-    maxParallelForks = Runtime.getRuntime().availableProcessors()
-    useJUnitPlatform()
-    testLogging {
-      setExceptionFormat("full")
-      setEvents(listOf("passed", "skipped", "failed", "standardOut", "standardError"))
+    withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
+        dependsOn(":detekt-rules:assemble")
+        autoCorrect = true
     }
-  }
-
-  withType<DokkaTask>().configureEach {
-    kotlin.sourceSets.forEach { kotlinSourceSet ->
-      dokkaSourceSets.named(kotlinSourceSet.name) {
-        perPackageOption {
-          matchingRegex.set(".*\\.internal.*")
-          suppress.set(true)
-        }
-        skipDeprecated.set(true)
-        reportUndocumented.set(false)
-        val baseUrl: String = checkNotNull(project.properties["pom.smc.url"]?.toString())
-
-        kotlinSourceSet.kotlin.srcDirs.filter { it.exists() }.forEach { srcDir ->
-          sourceLink {
-            localDirectory.set(srcDir)
-            remoteUrl.set(uri("$baseUrl/blob/main/${srcDir.relativeTo(rootProject.rootDir)}").toURL())
-            remoteLineSuffix.set("#L")
-          }
-        }
-      }
+    named("detektJvmMain") {
+        dependsOn(":detekt-rules:assemble")
+        getByName("build").dependsOn(this)
     }
-  }
+    named("detekt") {
+        dependsOn(":detekt-rules:assemble")
+        getByName("build").dependsOn(this)
+    }
+
+    withType<Test>().configureEach {
+        maxParallelForks = Runtime.getRuntime().availableProcessors()
+        useJUnitPlatform()
+        testLogging {
+            setExceptionFormat("full")
+            setEvents(listOf("passed", "skipped", "failed", "standardOut", "standardError"))
+        }
+    }
+
+    withType<DokkaTask>().configureEach {
+        kotlin.sourceSets.forEach { kotlinSourceSet ->
+            dokkaSourceSets.named(kotlinSourceSet.name) {
+                perPackageOption {
+                    matchingRegex.set(".*\\.internal.*")
+                    suppress.set(true)
+                }
+                skipDeprecated.set(true)
+                reportUndocumented.set(false)
+                val baseUrl: String = checkNotNull(project.properties["pom.smc.url"]?.toString())
+
+                kotlinSourceSet.kotlin.srcDirs.filter { it.exists() }.forEach { srcDir ->
+                    sourceLink {
+                        localDirectory.set(srcDir)
+                        remoteUrl.set(
+                                uri("$baseUrl/blob/main/${srcDir.relativeTo(rootProject.rootDir)}")
+                                        .toURL()
+                        )
+                        remoteLineSuffix.set("#L")
+                    }
+                }
+            }
+        }
+    }
 }
 
-tasks.withType<AbstractPublishToMaven> {
-  dependsOn(tasks.withType<Sign>())
-}
+tasks.withType<AbstractPublishToMaven> { dependsOn(tasks.withType<Sign>()) }

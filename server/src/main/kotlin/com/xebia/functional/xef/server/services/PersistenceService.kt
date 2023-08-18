@@ -7,7 +7,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 abstract class PersistenceService {
     val logger = KotlinLogging.logger {}
 
-    abstract fun initDatabase(): Unit
+    abstract fun addCollection(): Unit
 
     abstract fun getVectorStore(
         provider: Provider = Provider.OPENAI,

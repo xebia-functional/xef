@@ -30,7 +30,7 @@ object Main {
 
             val vectorStoreConfig = XefVectorStoreConfig.load("xef-vector-store", config)
             val persistenceService = vectorStoreConfig.getPersistenceService(config)
-            persistenceService.initDatabase()
+            persistenceService.addCollection()
 
             server(factory = Netty, port = 8080, host = "0.0.0.0") {
                 install(CORS) {
