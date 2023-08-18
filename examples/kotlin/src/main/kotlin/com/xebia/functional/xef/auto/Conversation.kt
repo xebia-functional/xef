@@ -2,15 +2,18 @@ package com.xebia.functional.xef.auto
 
 import com.xebia.functional.xef.auto.llm.openai.OpenAI
 import com.xebia.functional.xef.auto.llm.openai.promptMessage
+import com.xebia.functional.xef.prompt.Prompt
 
 suspend fun main() {
   OpenAI.conversation {
     val emailMessage =
-      """
+      Prompt(
+        """
                 |You are a Marketing Responsible and have the information about different products. You have to prepare 
                 |an email template with the personal information
             """
-        .trimMargin()
+          .trimMargin()
+      )
 
     val email: String = promptMessage(emailMessage)
 
@@ -18,7 +21,8 @@ suspend fun main() {
     println("Response:\n $email")
 
     val summarizePrompt =
-      """
+      Prompt(
+        """
                 |You are a Marketing Responsible and have the information about the best rated products. 
                 |Summarize the next information: 
                 |Love this product and so does my husband! He tried it because his face gets chapped and red from 
@@ -33,7 +37,8 @@ suspend fun main() {
                 |skin and never broke out using this. This is my daily skincare product with or without makeup. And it 
                 |has SPF but I also apply Kravebeauty SPF on top as well for extra protection
             """
-        .trimMargin()
+          .trimMargin()
+      )
 
     val summarize: String = promptMessage(summarizePrompt)
 
@@ -41,10 +46,12 @@ suspend fun main() {
     println("Response:\n $summarize")
 
     val meaningPrompt =
-      """
+      Prompt(
+        """
                 |What is the meaning of life?
             """
-        .trimMargin()
+          .trimMargin()
+      )
 
     val meaning: String = promptMessage(meaningPrompt)
 

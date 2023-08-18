@@ -1,14 +1,12 @@
 package com.xebia.functional.xef.llm.models.chat
 
+import kotlin.jvm.JvmStatic
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class Message(val role: Role, val content: String, val name: String) {
   companion object {
-    suspend fun systemMessage(message: suspend () -> String) =
-      Message(role = Role.SYSTEM, content = message(), name = Role.SYSTEM.name)
-
-    suspend fun userMessage(message: suspend () -> String) =
-      Message(role = Role.USER, content = message(), name = Role.USER.name)
-
-    suspend fun assistantMessage(message: suspend () -> String) =
-      Message(role = Role.ASSISTANT, content = message(), name = Role.ASSISTANT.name)
+    @JvmStatic
+    fun apply(role: Role, content: String, name: String): Message = Message(role, content, name)
   }
 }

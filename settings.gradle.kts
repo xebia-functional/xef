@@ -91,3 +91,10 @@ project(":xef-java-examples").projectDir = file("examples/java")
 //<editor-fold desc="Kotlin">
 include("xef-server")
 project(":xef-server").projectDir = file("server")
+//</editor-fold>
+
+//<editor-fold desc="Kotlin">
+include("detekt-rules")
+project(":detekt-rules").projectDir = file("detekt-rules")
+//</editor-fold>
+

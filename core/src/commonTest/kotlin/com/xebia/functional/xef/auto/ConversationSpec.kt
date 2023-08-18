@@ -5,6 +5,7 @@ import com.xebia.functional.xef.data.TestEmbeddings
 import com.xebia.functional.xef.data.TestModel
 import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.llm.models.chat.Role
+import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.vectorstores.ConversationId
 import com.xebia.functional.xef.vectorstores.LocalVectorStore
 import io.kotest.core.spec.style.StringSpec
@@ -24,9 +25,9 @@ class ConversationSpec :
 
       val vectorStore = scope.store
 
-      model.promptMessages(question = "question 1", scope = scope)
+      model.promptMessages(prompt = Prompt("question 1"), scope = scope)
 
-      model.promptMessages(question = "question 2", scope = scope)
+      model.promptMessages(prompt = Prompt("question 2"), scope = scope)
 
       val memories = vectorStore.memories(conversationId, 10000)
 
@@ -57,7 +58,9 @@ class ConversationSpec :
           }
         )
 
-      messages.forEach { message -> modelAda.promptMessages(question = message.key, scope = scope) }
+      messages.forEach { message ->
+        modelAda.promptMessages(prompt = Prompt(message.key), scope = scope)
+      }
 
       val lastRequest = modelAda.requests.last()
 
@@ -92,13 +95,13 @@ class ConversationSpec :
           messages.flatMap {
             listOf(
               Message(role = Role.USER, content = it.key, name = Role.USER.name),
-              Message(role = Role.ASSISTANT, content = it.value, name = Role.USER.name),
+              Message(role = Role.ASSISTANT, content = it.value, name = Role.ASSISTANT.name),
             )
           }
         )
 
       messages.forEach { message ->
-        modelGPTTurbo16K.promptMessages(question = message.key, scope = scope)
+        modelGPTTurbo16K.promptMessages(prompt = Prompt(message.key), scope = scope)
       }
 
       val lastRequest = modelGPTTurbo16K.requests.last()

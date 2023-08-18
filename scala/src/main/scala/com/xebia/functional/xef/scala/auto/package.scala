@@ -1,9 +1,9 @@
 package com.xebia.functional.xef.scala.auto
 
 import com.xebia.functional.xef.auto.llm.openai.*
-import com.xebia.functional.xef.auto.{FromJson, JVMConversation, PromptConfiguration}
+import com.xebia.functional.xef.prompt.Prompt
+import com.xebia.functional.xef.auto.{FromJson, JVMConversation}
 import com.xebia.functional.xef.llm.*
-import com.xebia.functional.xef.llm.models.functions.{CFunction, Json}
 import com.xebia.functional.xef.llm.models.images.*
 import com.xebia.functional.xef.vectorstores.{ConversationId, LocalVectorStore, VectorStore}
 import io.circe.Decoder
@@ -21,9 +21,8 @@ def addContext(context: Array[String])(using conversation: ScalaConversation): U
   conversation.addContextFromArray(context).join()
 
 def prompt[A: Decoder: SerialDescriptor](
-    prompt: String,
-    chat: ChatWithFunctions = OpenAI.FromEnvironment.DEFAULT_SERIALIZATION,
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
+    prompt: Prompt,
+    chat: ChatWithFunctions = OpenAI.FromEnvironment.DEFAULT_SERIALIZATION
 )(using
     conversation: ScalaConversation
 ): A =
@@ -31,34 +30,29 @@ def prompt[A: Decoder: SerialDescriptor](
     def fromJson(json: String): A =
       parse(json).flatMap(Decoder[A].decodeJson(_)).fold(throw _, identity)
   }
-  conversation.prompt(chat, prompt, generateCFunctions.asJava, fromJson, promptConfiguration).join()
+  conversation.prompt(chat, prompt, chat.chatFunction(SerialDescriptor[A].serialDescriptor), fromJson).join()
 
 def promptMessage(
-    question: String,
-    chat: Chat = OpenAI.FromEnvironment.DEFAULT_CHAT,
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
+    prompt: Prompt,
+    chat: Chat = OpenAI.FromEnvironment.DEFAULT_CHAT
 )(using conversation: ScalaConversation): String =
-  conversation.promptMessage(chat, question, promptConfiguration).join()
+  conversation.promptMessage(chat, prompt).join()
 
 def promptMessages(
-    question: String,
-    chat: Chat = OpenAI.FromEnvironment.DEFAULT_CHAT,
-    functions: List[CFunction] = List(),
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
+    prompt: Prompt,
+    chat: Chat = OpenAI.FromEnvironment.DEFAULT_CHAT
 )(using
     conversation: ScalaConversation
 ): List[String] =
-  conversation.promptMessages(chat, question, functions.asJava, promptConfiguration).join().asScala.toList
+  conversation.promptMessages(chat, prompt).join().asScala.toList
 
 def promptStreaming(
-    question: String,
-    chat: Chat = OpenAI.FromEnvironment.DEFAULT_CHAT,
-    functions: List[CFunction],
-    promptConfiguration: PromptConfiguration
+    prompt: Prompt,
+    chat: Chat = OpenAI.FromEnvironment.DEFAULT_CHAT
 )(using
     conversation: ScalaConversation
 ): LazyList[String] =
-  val publisher = conversation.promptStreaming(chat, question, promptConfiguration, functions.asJava)
+  val publisher = conversation.promptStreamingToPublisher(chat, prompt)
   val queue = new LinkedBlockingQueue[String]()
   publisher.subscribe(new Subscriber[String] {
     // TODO change to fs2 or similar
@@ -73,25 +67,16 @@ def promptStreaming(
   LazyList.continually(queue.take)
 
 def images(
-    prompt: String,
+    prompt: Prompt,
     images: Images = OpenAI.FromEnvironment.DEFAULT_IMAGES,
     numberImages: Int = 1,
-    size: String = "1024x1024",
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
+    size: String = "1024x1024"
 )(using
     conversation: ScalaConversation
 ): ImagesGenerationResponse =
-  conversation.images(images, prompt, numberImages, size, promptConfiguration).join()
+  conversation.images(images, prompt, numberImages, size).join()
 
 def conversation[A](
     block: ScalaConversation ?=> A,
     conversationId: Option[ConversationId] = Some(ConversationId(UUID.randomUUID().toString))
 ): A = block(using ScalaConversation(LocalVectorStore(OpenAIEmbeddings(OpenAI.FromEnvironment.DEFAULT_EMBEDDING)), conversationId))
-
-private def generateCFunctions[A: SerialDescriptor]: List[CFunction] =
-  val descriptor = SerialDescriptor[A].serialDescriptor
-  val serialName = descriptor.getSerialName
-  val fnName =
-    if (serialName.contains(".")) serialName.substring(serialName.lastIndexOf("."), serialName.length)
-    else serialName
-  List(CFunction(fnName, "Generated function for $fnName", Json.encodeJsonSchema(descriptor)))

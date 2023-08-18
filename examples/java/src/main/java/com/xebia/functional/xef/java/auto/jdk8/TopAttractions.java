@@ -2,6 +2,7 @@ package com.xebia.functional.xef.java.auto.jdk8;
 
 import com.xebia.functional.xef.auto.PlatformConversation;
 import com.xebia.functional.xef.auto.llm.openai.OpenAI;
+import com.xebia.functional.xef.prompt.Prompt;
 
 import java.util.concurrent.ExecutionException;
 
@@ -27,7 +28,7 @@ public class TopAttractions {
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         try (PlatformConversation scope = OpenAI.conversation()) {
-            scope.prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, "Top attraction in Cádiz, Spain.", TopAttraction.class)
+            scope.prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, new Prompt("Top attraction in Cádiz, Spain."), TopAttraction.class)
                 .thenAccept(attraction -> System.out.println(
                     "The top attraction in " + attraction.city.name + " is " + attraction.attractionName + "." +
                     "Here's a brief description: " + attraction.description + "." +

@@ -1,0 +1,5 @@
+XefRuleSet:
+  JvmInlineAnnotation:
+    active: true
+  PublicDataClassConstructorWithValueParameters:
+    active: true

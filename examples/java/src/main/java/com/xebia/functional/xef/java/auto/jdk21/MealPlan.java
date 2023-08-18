@@ -2,6 +2,7 @@ package com.xebia.functional.xef.java.auto.jdk21;
 
 import com.xebia.functional.xef.auto.PlatformConversation;
 import com.xebia.functional.xef.auto.llm.openai.OpenAI;
+import com.xebia.functional.xef.prompt.Prompt;
 import com.xebia.functional.xef.reasoning.serpapi.Search;
 
 import java.util.List;
@@ -14,7 +15,7 @@ public class MealPlan {
     public record Recipe(String name, List<String> ingredients){}
 
     private static CompletableFuture<Void> mealPlan(PlatformConversation scope) {
-        return scope.prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, "Meal plan for the week for a person with gall bladder stones that includes 5 recipes.", MealPlanRecord.class)
+        return scope.prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, new Prompt("Meal plan for the week for a person with gall bladder stones that includes 5 recipes."), MealPlanRecord.class)
               .thenAccept(mealPlan -> System.out.println(mealPlan));
     }
 
