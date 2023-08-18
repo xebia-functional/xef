@@ -1,4 +1,4 @@
-package com.xebia.functional.xef.vectorstores.migrations
+package com.xebia.functional.xef.store.migrations
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

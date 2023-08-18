@@ -3,7 +3,7 @@ package com.xebia.functional.xef.llm
 import com.xebia.functional.xef.llm.models.images.ImagesGenerationRequest
 import com.xebia.functional.xef.llm.models.images.ImagesGenerationResponse
 import com.xebia.functional.xef.prompt.Prompt
-import com.xebia.functional.xef.vectorstores.VectorStore
+import com.xebia.functional.xef.store.VectorStore
 
 interface Images : LLM {
   suspend fun createImages(request: ImagesGenerationRequest): ImagesGenerationResponse

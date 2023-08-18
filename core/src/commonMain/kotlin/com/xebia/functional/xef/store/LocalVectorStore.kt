@@ -1,4 +1,4 @@
-package com.xebia.functional.xef.vectorstores
+package com.xebia.functional.xef.store
 
 import arrow.atomic.Atomic
 import arrow.atomic.getAndUpdate

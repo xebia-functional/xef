@@ -1,4 +1,4 @@
-package com.xebia.functional.xef.vectorstores
+package com.xebia.functional.xef.store
 
 import com.xebia.functional.xef.data.TestEmbeddings
 import io.kotest.core.spec.style.StringSpec

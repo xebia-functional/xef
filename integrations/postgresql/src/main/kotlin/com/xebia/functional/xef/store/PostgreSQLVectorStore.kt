@@ -1,11 +1,11 @@
-package com.xebia.functional.xef.vectorstores
+package com.xebia.functional.xef.store
 
 import com.xebia.functional.xef.embeddings.Embedding
 import com.xebia.functional.xef.embeddings.Embeddings
 import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.llm.models.chat.Role
 import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
-import com.xebia.functional.xef.vectorstores.postgresql.*
+import com.xebia.functional.xef.store.postgresql.*
 import kotlinx.uuid.UUID
 import kotlinx.uuid.generateUUID
 import javax.sql.DataSource

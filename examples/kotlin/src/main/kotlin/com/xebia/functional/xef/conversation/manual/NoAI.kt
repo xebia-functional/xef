@@ -6,7 +6,7 @@ import com.xebia.functional.gpt4all.huggingFaceUrl
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.pdf.pdf
 import com.xebia.functional.xef.prompt.Prompt
-import com.xebia.functional.xef.vectorstores.LocalVectorStore
+import com.xebia.functional.xef.store.LocalVectorStore
 import java.nio.file.Path
 
 suspend fun main() {

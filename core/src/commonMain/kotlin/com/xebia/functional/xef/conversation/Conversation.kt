@@ -7,8 +7,8 @@ import com.xebia.functional.xef.llm.Images
 import com.xebia.functional.xef.llm.models.functions.CFunction
 import com.xebia.functional.xef.llm.models.images.ImagesGenerationResponse
 import com.xebia.functional.xef.prompt.Prompt
-import com.xebia.functional.xef.vectorstores.ConversationId
-import com.xebia.functional.xef.vectorstores.VectorStore
+import com.xebia.functional.xef.store.ConversationId
+import com.xebia.functional.xef.store.VectorStore
 import kotlin.jvm.JvmSynthetic
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.KSerializer

@@ -1,4 +1,4 @@
-package com.xebia.functional.xef.vectorstores.postgresql
+package com.xebia.functional.xef.store.postgresql
 
 import kotlinx.uuid.UUID
 

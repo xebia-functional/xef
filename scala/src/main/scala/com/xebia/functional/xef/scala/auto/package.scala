@@ -5,7 +5,7 @@ import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.conversation.{FromJson, JVMConversation}
 import com.xebia.functional.xef.llm.*
 import com.xebia.functional.xef.llm.models.images.*
-import com.xebia.functional.xef.vectorstores.{ConversationId, LocalVectorStore, VectorStore}
+import com.xebia.functional.xef.store.{ConversationId, LocalVectorStore, VectorStore}
 import io.circe.Decoder
 import io.circe.parser.parse
 import org.reactivestreams.{Subscriber, Subscription}

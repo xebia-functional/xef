@@ -1,4 +1,4 @@
-package com.xebia.functional.xef.vectorstores
+package com.xebia.functional.xef.store
 
 fun List<Memory>.reduceByLimitToken(limitTokens: Int): List<Memory> =
   fold(Pair(0, emptyList<Memory>())) { (accTokens, list), memory ->

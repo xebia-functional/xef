@@ -5,7 +5,7 @@ import com.typesafe.config.ConfigFactory
 import com.xebia.functional.xef.server.services.PersistenceService
 import com.xebia.functional.xef.server.services.PostgreSQLXef
 import com.xebia.functional.xef.server.services.PostgresXefService
-import com.xebia.functional.xef.vectorstores.migrations.PsqlVectorStoreConfig
+import com.xebia.functional.xef.store.migrations.PsqlVectorStoreConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi

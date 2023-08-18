@@ -6,9 +6,9 @@ import com.xebia.functional.xef.conversation.llm.openai.OpenAIEmbeddings
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingModel
 import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
 import com.xebia.functional.xef.server.http.routes.Provider
-import com.xebia.functional.xef.vectorstores.PGVectorStore
-import com.xebia.functional.xef.vectorstores.VectorStore
-import com.xebia.functional.xef.vectorstores.postgresql.*
+import com.xebia.functional.xef.store.PGVectorStore
+import com.xebia.functional.xef.store.VectorStore
+import com.xebia.functional.xef.store.postgresql.*
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import kotlinx.uuid.UUID

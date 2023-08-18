@@ -6,8 +6,8 @@ import com.xebia.functional.xef.data.TestModel
 import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.llm.models.chat.Role
 import com.xebia.functional.xef.prompt.Prompt
-import com.xebia.functional.xef.vectorstores.ConversationId
-import com.xebia.functional.xef.vectorstores.LocalVectorStore
+import com.xebia.functional.xef.store.ConversationId
+import com.xebia.functional.xef.store.LocalVectorStore
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.ints.shouldBeLessThan
 import io.kotest.matchers.shouldBe

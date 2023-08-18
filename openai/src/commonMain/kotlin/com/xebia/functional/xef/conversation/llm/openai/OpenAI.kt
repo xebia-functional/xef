@@ -8,8 +8,8 @@ import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.PlatformConversation
 import com.xebia.functional.xef.conversation.autoClose
 import com.xebia.functional.xef.env.getenv
-import com.xebia.functional.xef.vectorstores.LocalVectorStore
-import com.xebia.functional.xef.vectorstores.VectorStore
+import com.xebia.functional.xef.store.LocalVectorStore
+import com.xebia.functional.xef.store.VectorStore
 import kotlin.jvm.JvmField
 import kotlin.jvm.JvmOverloads
 import kotlin.jvm.JvmStatic

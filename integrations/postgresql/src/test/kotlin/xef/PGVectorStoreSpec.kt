@@ -6,10 +6,10 @@ import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.llm.models.chat.Role
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingModel
 import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
-import com.xebia.functional.xef.vectorstores.ConversationId
-import com.xebia.functional.xef.vectorstores.Memory
-import com.xebia.functional.xef.vectorstores.PGVectorStore
-import com.xebia.functional.xef.vectorstores.postgresql.PGDistanceStrategy
+import com.xebia.functional.xef.store.ConversationId
+import com.xebia.functional.xef.store.Memory
+import com.xebia.functional.xef.store.PGVectorStore
+import com.xebia.functional.xef.store.postgresql.PGDistanceStrategy
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.kotest.core.extensions.install

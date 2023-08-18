@@ -1,3 +1,3 @@
-package com.xebia.functional.xef.vectorstores
+package com.xebia.functional.xef.store
 
 data class ConversationId(val value: String)

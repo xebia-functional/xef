@@ -1,8 +1,8 @@
 package com.xebia.functional.xef.conversation
 
 import com.xebia.functional.xef.embeddings.Embeddings
-import com.xebia.functional.xef.vectorstores.LocalVectorStore
-import com.xebia.functional.xef.vectorstores.VectorStore
+import com.xebia.functional.xef.store.LocalVectorStore
+import com.xebia.functional.xef.store.VectorStore
 
 /**
  * Executes a conversation with the given embeddings and vector store.
