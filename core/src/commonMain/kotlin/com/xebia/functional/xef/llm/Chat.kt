@@ -6,7 +6,6 @@ import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.auto.AiDsl
 import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.llm.models.chat.*
-import com.xebia.functional.xef.llm.models.functions.CFunction
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
 import com.xebia.functional.xef.prompt.templates.assistant
@@ -27,11 +26,7 @@ interface Chat : LLM {
   fun tokensFromMessages(messages: List<Message>): Int
 
   @AiDsl
-  fun promptStreaming(
-    prompt: Prompt,
-    scope: Conversation,
-    functions: List<CFunction> = emptyList()
-  ): Flow<String> = flow {
+  fun promptStreaming(prompt: Prompt, scope: Conversation): Flow<String> = flow {
     val messagesForRequest =
       fitMessagesByTokens(prompt.messages, scope, modelType, prompt.configuration)
 
@@ -60,14 +55,10 @@ interface Chat : LLM {
 
   @AiDsl
   suspend fun promptMessage(prompt: Prompt, scope: Conversation): String =
-    promptMessages(prompt, scope, emptyList()).firstOrNull() ?: throw AIError.NoResponse()
+    promptMessages(prompt, scope).firstOrNull() ?: throw AIError.NoResponse()
 
   @AiDsl
-  suspend fun promptMessages(
-    prompt: Prompt,
-    scope: Conversation,
-    functions: List<CFunction> = emptyList()
-  ): List<String> {
+  suspend fun promptMessages(prompt: Prompt, scope: Conversation): List<String> {
 
     val messagesForRequest =
       fitMessagesByTokens(prompt.messages, scope, modelType, prompt.configuration)
@@ -90,8 +81,8 @@ interface Chat : LLM {
         n = prompt.configuration.numberOfPredictions,
         temperature = prompt.configuration.temperature,
         maxTokens = prompt.configuration.minResponseTokens,
-        functions = functions,
-        functionCall = mapOf("name" to (functions.firstOrNull()?.name ?: ""))
+        functions = listOfNotNull(prompt.function),
+        functionCall = mapOf("name" to (prompt.function?.name ?: ""))
       )
 
     return when (this) {
