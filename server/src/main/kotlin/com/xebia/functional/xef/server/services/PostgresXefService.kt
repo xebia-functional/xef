@@ -50,13 +50,8 @@ class PostgresXefService(
             )
         }
 
-    override fun initDatabase() {
+    override fun addCollection() {
         getDataSource().connection {
-            update(addVectorExtension)
-            update(createCollections)
-            update(createCollectionsTable)
-            update(createMemoryTable)
-            update(createEmbeddingTable(config.vectorSize))
             // Create collection
             val uuid = UUID.generateUUID()
             update(addNewCollection) {
