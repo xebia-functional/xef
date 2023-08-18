@@ -109,12 +109,10 @@ data class Constraints(
 @Serializable
 data class ScenePrompt(
   @Description(
-    [
-      "Generate a prompt, describing the scene in detailed dramatic prose.",
-      "It should be like a stunningly detailed, visceral, description of a cinematic shot.",
-      "Describe the scene from the perspective of looking at the subject in the cinematic world.",
+    "Generate a prompt, describing the scene in detailed dramatic prose." +
+      "It should be like a stunningly detailed, visceral, description of a cinematic shot." +
+      "Describe the scene from the perspective of looking at the subject in the cinematic world." +
       "50 words max"
-    ]
   )
   val text: String
 )

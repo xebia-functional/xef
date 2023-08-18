@@ -6,9 +6,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Input(
   @Description(
-    [
-      "The arguments to the tool where the keys refer to the required keys and the values are the values for those keys"
-    ]
+    "The arguments to the tool where the keys refer to the required keys and the values are the values for those keys"
   )
   val arguments: List<Property>
 )

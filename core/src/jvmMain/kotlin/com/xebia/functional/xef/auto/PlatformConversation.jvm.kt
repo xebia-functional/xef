@@ -57,7 +57,7 @@ actual constructor(
       }
       .asCompletableFuture()
 
-  fun <A> chatFunction(target: Class<A>): CFunction =
+  fun chatFunction(target: Class<*>): CFunction =
     CFunction(
       name = target.simpleName,
       description = "Generated function for ${target.simpleName}",

@@ -1,10 +1,7 @@
 package com.xebia.functional.xef.auto.serialization
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.github.victools.jsonschema.generator.OptionPreset
-import com.github.victools.jsonschema.generator.SchemaGenerator
-import com.github.victools.jsonschema.generator.SchemaGeneratorConfig
-import com.github.victools.jsonschema.generator.SchemaGeneratorConfigBuilder
+import com.github.victools.jsonschema.generator.*
 import com.github.victools.jsonschema.module.jakarta.validation.JakartaValidationModule
 import com.github.victools.jsonschema.module.jakarta.validation.JakartaValidationOption
 
@@ -16,11 +13,13 @@ object JacksonSerialization {
     )
 
   val configBuilder: SchemaGeneratorConfigBuilder =
-    SchemaGeneratorConfigBuilder(
-        com.github.victools.jsonschema.generator.SchemaVersion.DRAFT_7,
-        OptionPreset.PLAIN_JSON
+    SchemaGeneratorConfigBuilder(SchemaVersion.DRAFT_2020_12, OptionPreset.PLAIN_JSON)
+      .with(
+        Option.FIELDS_DERIVED_FROM_ARGUMENTFREE_METHODS,
+        Option.NONSTATIC_NONVOID_NONGETTER_METHODS
       )
       .with(module)
+      .with(DescriptionModule())
 
   val config: SchemaGeneratorConfig = configBuilder.build()
 

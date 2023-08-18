@@ -336,8 +336,7 @@ private fun JsonObjectBuilder.applyJsonSchemaDefaults(
   }
 
   if (annotations.isNotEmpty()) {
-    val description =
-      annotations.filterIsInstance<Description>().joinToString("\n") { it.lines.joinToString("\n") }
+    val description = annotations.filterIsInstance<Description>().joinToString("\n") { it.value }
 
     if (description.isNotEmpty()) {
       this["description"] = description

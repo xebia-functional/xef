@@ -31,10 +31,8 @@ data class TravelState(
 data class ItineraryRecommendationPrompt(
   val destination: String,
   @Description(
-    [
-      "Generate a travel itinerary based on the destination, interests, and travel duration.",
+    "Generate a travel itinerary based on the destination, interests, and travel duration." +
       "Ensure the itinerary is balanced, considering the user's interests and the time available."
-    ]
   )
   val dayByDayPlan: List<Plan>,
 )

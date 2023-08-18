@@ -1,15 +1,16 @@
 package com.xebia.functional.xef.java.auto.jdk8;
 
 import com.xebia.functional.xef.auto.PlatformConversation;
+import com.xebia.functional.xef.auto.jvm.Description;
 import com.xebia.functional.xef.auto.llm.openai.OpenAI;
 import com.xebia.functional.xef.prompt.Prompt;
 
 import java.util.concurrent.ExecutionException;
 
+@Description("A book")
 public class Book {
 
-    public String title;
-    public String author;
+    @Description("Required. Produce a 50 word `summary` of this book.")
     public String summary;
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
