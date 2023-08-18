@@ -3,6 +3,9 @@ package com.xebia.functional.xef.auto
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.data.TestEmbeddings
 import com.xebia.functional.xef.data.TestModel
+import com.xebia.functional.xef.llm.models.chat.Message
+import com.xebia.functional.xef.llm.models.chat.Role
+import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.vectorstores.ConversationId
 import com.xebia.functional.xef.vectorstores.LocalVectorStore
 import io.kotest.core.spec.style.StringSpec
@@ -22,11 +25,11 @@ class ConversationSpec :
 
       val vectorStore = scope.store
 
-      model.promptMessages(question = "question 1", scope = scope)
+      model.promptMessages(prompt = Prompt("question 1"), scope = scope)
 
-      model.promptMessages(question = "question 2", scope = scope)
+      model.promptMessages(prompt = Prompt("question 2"), scope = scope)
 
-      val memories = vectorStore.memories(conversationId, 10)
+      val memories = vectorStore.memories(conversationId, 10000)
 
       memories.size shouldBe 4
     }
@@ -38,7 +41,6 @@ class ConversationSpec :
       | the number of messages in the request must have fewer messages than 
       | the total number of messages in the conversation
       |""" {
-      val promptConfiguration = PromptConfiguration { memoryLimit(Int.MAX_VALUE) }
       val messages = generateRandomMessages(50, 40, 60)
       val conversationId = ConversationId(UUID.generateUUID().toString())
       val scope = Conversation(LocalVectorStore(TestEmbeddings()), conversationId = conversationId)
@@ -46,17 +48,23 @@ class ConversationSpec :
 
       val modelAda = TestModel(modelType = ModelType.ADA, name = "fake-model", responses = messages)
 
-      messages.forEach { message ->
-        modelAda.promptMessages(
-          question = message.key,
-          scope = scope,
-          promptConfiguration = promptConfiguration
+      val totalTokens =
+        modelAda.tokensFromMessages(
+          messages.flatMap {
+            listOf(
+              Message(role = Role.USER, content = it.key, name = Role.USER.name),
+              Message(role = Role.ASSISTANT, content = it.value, name = Role.USER.name),
+            )
+          }
         )
+
+      messages.forEach { message ->
+        modelAda.promptMessages(prompt = Prompt(message.key), scope = scope)
       }
 
       val lastRequest = modelAda.requests.last()
 
-      val memories = vectorStore.memories(conversationId, promptConfiguration.memoryLimit)
+      val memories = vectorStore.memories(conversationId, totalTokens)
 
       // The messages in the request doesn't contain the message response
       val messagesSizePlusMessageResponse = lastRequest.messages.size + 1
@@ -70,7 +78,6 @@ class ConversationSpec :
       | the space allotted for the message history in the prompt configuration
       | the request must send all messages in the conversation
       |""" {
-      val promptConfiguration = PromptConfiguration { memoryLimit(Int.MAX_VALUE) }
       val messages = generateRandomMessages(50, 40, 60)
       val conversationId = ConversationId(UUID.generateUUID().toString())
       val scope = Conversation(LocalVectorStore(TestEmbeddings()), conversationId = conversationId)
@@ -83,17 +90,23 @@ class ConversationSpec :
           responses = messages
         )
 
-      messages.forEach { message ->
-        modelGPTTurbo16K.promptMessages(
-          question = message.key,
-          scope = scope,
-          promptConfiguration = promptConfiguration
+      val totalTokens =
+        modelGPTTurbo16K.tokensFromMessages(
+          messages.flatMap {
+            listOf(
+              Message(role = Role.USER, content = it.key, name = Role.USER.name),
+              Message(role = Role.ASSISTANT, content = it.value, name = Role.ASSISTANT.name),
+            )
+          }
         )
+
+      messages.forEach { message ->
+        modelGPTTurbo16K.promptMessages(prompt = Prompt(message.key), scope = scope)
       }
 
       val lastRequest = modelGPTTurbo16K.requests.last()
 
-      val memories = vectorStore.memories(conversationId, promptConfiguration.memoryLimit)
+      val memories = vectorStore.memories(conversationId, totalTokens)
 
       // The messages in the request doesn't contain the message response
       val messagesSizePlusMessageResponse = lastRequest.messages.size + 1

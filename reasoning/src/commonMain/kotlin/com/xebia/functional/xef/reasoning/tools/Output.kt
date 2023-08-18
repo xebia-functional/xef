@@ -5,6 +5,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Output(
-  @Description(["The values for the required keys in the output of the tool"])
+  @Description("The values for the required keys in the output of the tool")
   val values: List<Property>
 )

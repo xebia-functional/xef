@@ -1,7 +1,9 @@
 package com.xebia.functional.xef.java.auto.jdk21;
 
-import com.xebia.functional.xef.java.auto.AIScope;
-import com.xebia.functional.xef.java.auto.ExecutionContext;
+import com.xebia.functional.xef.auto.PlatformConversation;
+import com.xebia.functional.xef.auto.llm.openai.OpenAI;
+import com.xebia.functional.xef.prompt.Prompt;
+import com.xebia.functional.xef.reasoning.serpapi.Search;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -15,21 +17,20 @@ public class Markets {
     public record Market(String news, List<String> raisingStockSymbols, List<String> decreasingStockSymbols) {
     }
 
-    private static CompletableFuture<Void> stockMarketSummary(AIScope scope) {
-        var news = "|" +
-                "|Write a short summary of the stock market results given the provided context.";
+    private static CompletableFuture<Void> stockMarketSummary(PlatformConversation scope) {
+        var news = new Prompt("Write a short summary of the stock market results given the provided context.");
 
-        return scope.prompt(news, Market.class)
+        return scope.prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, news, Market.class)
                 .thenAccept(markets -> System.out.println(markets));
     }
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
-        try (AIScope scope = new AIScope(new ExecutionContext(Executors.newVirtualThreadPerTaskExecutor()))) {
+        try (PlatformConversation scope = OpenAI.conversation()) {
             var dtf = DateTimeFormatter.ofPattern("dd/M/yyyy");
             var now = LocalDateTime.now();
             var currentDate = dtf.format(now);
-
-            scope.addContext(scope.search(currentDate + "Stock market results, raising stocks, decreasing stocks").get());
+            var search = new Search(OpenAI.FromEnvironment.DEFAULT_CHAT, scope, 3);
+            scope.addContextFromArray(search.search(currentDate + "Stock market results, raising stocks, decreasing stocks").get());
             stockMarketSummary(scope).get();
         }
     }

@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.auto
 
-import com.xebia.functional.xef.auto.llm.openai.conversation
+import com.xebia.functional.xef.auto.llm.openai.OpenAI
 import com.xebia.functional.xef.auto.llm.openai.prompt
 import com.xebia.functional.xef.pdf.pdf
 import kotlinx.serialization.Serializable
@@ -9,12 +9,13 @@ import kotlinx.serialization.Serializable
 
 const val pdfUrl = "https://people.cs.ksu.edu/~schmidt/705a/Scala/Programming-in-Scala.pdf"
 
-suspend fun main() = conversation {
-  addContext(pdf(url = pdfUrl))
-  while (true) {
-    print("Enter your question: ")
-    val line = readlnOrNull() ?: break
-    val response: AIResponse = prompt(line)
-    println("${response.answer}\n---\n${response.source}\n---\n")
+suspend fun main() =
+  OpenAI.conversation {
+    addContext(pdf(url = pdfUrl))
+    while (true) {
+      print("Enter your question: ")
+      val line = readlnOrNull() ?: break
+      val response: AIResponse = prompt(line)
+      println("${response.answer}\n---\n${response.source}\n---\n")
+    }
   }
-}

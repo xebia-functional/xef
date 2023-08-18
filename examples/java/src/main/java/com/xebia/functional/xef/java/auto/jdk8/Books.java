@@ -1,15 +1,17 @@
 package com.xebia.functional.xef.java.auto.jdk8;
 
-import com.xebia.functional.xef.java.auto.AIScope;
+import com.xebia.functional.xef.auto.PlatformConversation;
+import com.xebia.functional.xef.auto.llm.openai.OpenAI;
+import com.xebia.functional.xef.prompt.Prompt;
 import jakarta.validation.constraints.NotNull;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 public class Books {
 
-    private final AIScope scope;
+    private final PlatformConversation scope;
 
-    public Books(AIScope scope) {
+    public Books(PlatformConversation scope) {
         this.scope = scope;
     }
 
@@ -31,11 +33,11 @@ public class Books {
     }
 
     public CompletableFuture<Book> bookSelection(String topic) {
-        return scope.prompt("Give me a selection of books about " + topic, Book.class);
+        return scope.prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, new Prompt("Give me a selection of books about " + topic), Book.class);
     }
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
-        try (AIScope scope = new AIScope()) {
+        try (PlatformConversation scope = OpenAI.conversation()) {
             Books books = new Books(scope);
             books.bookSelection("artificial intelligence")
                     .thenAccept(System.out::println)

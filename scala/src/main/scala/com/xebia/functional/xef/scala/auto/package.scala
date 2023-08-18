@@ -1,101 +1,82 @@
 package com.xebia.functional.xef.scala.auto
 
-import com.xebia.functional.loom.LoomAdapter
-import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.auto.llm.openai.*
-import com.xebia.functional.xef.auto.{Conversation, PromptConfiguration}
+import com.xebia.functional.xef.prompt.Prompt
+import com.xebia.functional.xef.auto.{FromJson, JVMConversation}
 import com.xebia.functional.xef.llm.*
-import com.xebia.functional.xef.llm.models.functions.{CFunction, Json}
 import com.xebia.functional.xef.llm.models.images.*
-import com.xebia.functional.xef.pdf.Loader
-import com.xebia.functional.xef.scala.textsplitters.TextSplitter
-import com.xebia.functional.xef.vectorstores.LocalVectorStore
+import com.xebia.functional.xef.vectorstores.{ConversationId, LocalVectorStore, VectorStore}
 import io.circe.Decoder
 import io.circe.parser.parse
+import org.reactivestreams.{Subscriber, Subscription}
 
-import java.io.File
+import java.util
+import java.util.UUID
+import java.util.concurrent.LinkedBlockingQueue
 import scala.jdk.CollectionConverters.*
 
-type AI[A] = AIScope ?=> A
+class ScalaConversation(store: VectorStore, conversationId: Option[ConversationId]) extends JVMConversation(store, conversationId.orNull)
 
-def conversation[A](
-    block: AIScope ?=> A
-): A = block(using AIScope.fromCore(new Conversation(LocalVectorStore(OpenAIEmbeddings(OpenAI().DEFAULT_EMBEDDING)))))
+def addContext(context: Array[String])(using conversation: ScalaConversation): Unit =
+  conversation.addContextFromArray(context).join()
 
 def prompt[A: Decoder: SerialDescriptor](
-    prompt: String,
-    llmModel: ChatWithFunctions = OpenAI().DEFAULT_SERIALIZATION,
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-)(using scope: AIScope): A =
-  LoomAdapter.apply((cont) =>
-    scope.kt.promptWithSerializer[A](
-      llmModel,
-      prompt,
-      generateCFunctions.asJava,
-      (json: String) => parse(json).flatMap(Decoder[A].decodeJson(_)).fold(throw _, identity),
-      promptConfiguration,
-      cont
-    )
-  )
-
-private def generateCFunctions[A: SerialDescriptor]: List[CFunction] =
-  val descriptor = SerialDescriptor[A].serialDescriptor
-  val serialName = descriptor.getSerialName
-  val fnName =
-    if (serialName.contains(".")) serialName.substring(serialName.lastIndexOf("."), serialName.length)
-    else serialName
-  List(CFunction(fnName, "Generated function for $fnName", Json.encodeJsonSchema(descriptor)))
-
-def addContext(docs: Iterable[String])(using scope: AIScope): Unit =
-  LoomAdapter.apply(scope.kt.addContext(docs.asJava, _))
+    prompt: Prompt,
+    chat: ChatWithFunctions = OpenAI.FromEnvironment.DEFAULT_SERIALIZATION
+)(using
+    conversation: ScalaConversation
+): A =
+  val fromJson = new FromJson[A] {
+    def fromJson(json: String): A =
+      parse(json).flatMap(Decoder[A].decodeJson(_)).fold(throw _, identity)
+  }
+  conversation.prompt(chat, prompt, chat.chatFunction(SerialDescriptor[A].serialDescriptor), fromJson).join()
 
 def promptMessage(
-    prompt: String,
-    llmModel: Chat = OpenAI().DEFAULT_CHAT,
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-)(using scope: AIScope): String =
-  LoomAdapter
-    .apply[String](
-      scope.kt.promptMessage(llmModel, prompt, promptConfiguration, _)
-    )
+    prompt: Prompt,
+    chat: Chat = OpenAI.FromEnvironment.DEFAULT_CHAT
+)(using conversation: ScalaConversation): String =
+  conversation.promptMessage(chat, prompt).join()
 
 def promptMessages(
-    prompt: String,
-    llmModel: Chat = OpenAI().DEFAULT_CHAT,
-    functions: List[CFunction] = List.empty,
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-)(using scope: AIScope): List[String] =
-  LoomAdapter
-    .apply[java.util.List[String]](
-      scope.kt.promptMessages(llmModel, prompt, functions.asJava, promptConfiguration, _)
-    ).asScala.toList
-
-def pdf(
-    resource: String | File,
-    splitter: TextSplitter = TextSplitter.tokenTextSplitter(ModelType.getDEFAULT_SPLITTER_MODEL, 100, 50)
+    prompt: Prompt,
+    chat: Chat = OpenAI.FromEnvironment.DEFAULT_CHAT
+)(using
+    conversation: ScalaConversation
 ): List[String] =
-  LoomAdapter
-    .apply[java.util.List[String]](count =>
-      resource match
-        case url: String => Loader.pdf(url, splitter.core, count)
-        case file: File => Loader.pdf(file, splitter.core, count)
-    ).asScala.toList
+  conversation.promptMessages(chat, prompt).join().asScala.toList
+
+def promptStreaming(
+    prompt: Prompt,
+    chat: Chat = OpenAI.FromEnvironment.DEFAULT_CHAT
+)(using
+    conversation: ScalaConversation
+): LazyList[String] =
+  val publisher = conversation.promptStreamingToPublisher(chat, prompt)
+  val queue = new LinkedBlockingQueue[String]()
+  publisher.subscribe(new Subscriber[String] {
+    // TODO change to fs2 or similar
+    def onSubscribe(s: Subscription): Unit = s.request(Long.MaxValue)
+
+    def onNext(t: String): Unit = queue.add(t); ()
+
+    def onError(t: Throwable): Unit = throw t
+
+    def onComplete(): Unit = ()
+  })
+  LazyList.continually(queue.take)
 
 def images(
-    prompt: String,
-    model: Images = OpenAI().DEFAULT_IMAGES,
-    n: Int = 1,
-    size: String = "1024x1024",
-    promptConfiguration: PromptConfiguration = PromptConfiguration.DEFAULTS
-)(using scope: AIScope): List[String] =
-  LoomAdapter
-    .apply[ImagesGenerationResponse](cont =>
-      scope.kt.images(
-        model,
-        prompt,
-        n,
-        size,
-        promptConfiguration,
-        cont
-      )
-    ).getData.asScala.map(_.getUrl).toList
+    prompt: Prompt,
+    images: Images = OpenAI.FromEnvironment.DEFAULT_IMAGES,
+    numberImages: Int = 1,
+    size: String = "1024x1024"
+)(using
+    conversation: ScalaConversation
+): ImagesGenerationResponse =
+  conversation.images(images, prompt, numberImages, size).join()
+
+def conversation[A](
+    block: ScalaConversation ?=> A,
+    conversationId: Option[ConversationId] = Some(ConversationId(UUID.randomUUID().toString))
+): A = block(using ScalaConversation(LocalVectorStore(OpenAIEmbeddings(OpenAI.FromEnvironment.DEFAULT_EMBEDDING)), conversationId))

@@ -1,11 +1,12 @@
 package com.xebia.functional.xef.auto
 
-import com.xebia.functional.xef.auto.llm.openai.conversation
-import com.xebia.functional.xef.auto.llm.openai.promptMessage
+import com.xebia.functional.xef.auto.llm.openai.OpenAI
+import com.xebia.functional.xef.auto.llm.openai.prompt
+import com.xebia.functional.xef.prompt.Prompt
 
 suspend fun main() {
-  conversation {
-    val love: String = promptMessage("tell me you like me with just emojis")
+  OpenAI.conversation {
+    val love: String = prompt(Prompt("tell me you like me with just emojis"))
     println(love)
   }
 }

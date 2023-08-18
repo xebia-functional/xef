@@ -1,10 +1,11 @@
 package com.xebia.functional.xef.java.auto.jdk21;
 
-import com.xebia.functional.xef.java.auto.AIScope;
-import com.xebia.functional.xef.java.auto.ExecutionContext;
+import com.xebia.functional.xef.auto.PlatformConversation;
+import com.xebia.functional.xef.auto.llm.openai.OpenAI;
+import com.xebia.functional.xef.prompt.Prompt;
+
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
 
 public class TopAttractions {
 
@@ -13,8 +14,8 @@ public class TopAttractions {
     public record Weather(City city, Double temperature, String description){}
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
-        try (AIScope scope = new AIScope(new ExecutionContext(Executors.newVirtualThreadPerTaskExecutor()))) {
-            scope.prompt("Top attraction in Cádiz, Spain.", TopAttraction.class)
+        try (PlatformConversation scope = OpenAI.conversation()) {
+            scope.prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, new Prompt("Top attraction in Cádiz, Spain."), TopAttraction.class)
                 .thenAccept(attraction -> System.out.println(
                     "The top attraction in " + attraction.city.name + " is " + attraction.attractionName + "." +
                     "Here's a brief description: " + attraction.description + "." +

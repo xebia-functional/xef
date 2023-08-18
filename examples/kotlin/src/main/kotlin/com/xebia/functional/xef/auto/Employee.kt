@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.auto
 
-import com.xebia.functional.xef.auto.llm.openai.conversation
+import com.xebia.functional.xef.auto.llm.openai.OpenAI
 import com.xebia.functional.xef.auto.llm.openai.prompt
 import kotlinx.serialization.Serializable
 
@@ -18,7 +18,7 @@ data class Employee(
 @Serializable data class Company(val name: String, val address: Address)
 
 suspend fun main() {
-  conversation {
+  OpenAI.conversation {
     val complexPrompt =
       """|
                  |Provide made up information for an Employee that includes their first name, last name, age, position, and their company's name and address (street, city, and country).

@@ -27,7 +27,7 @@ internal suspend fun <A> Conversation.controlSignal(memory: Memory<A>): ControlS
     |
   """
       .trimMargin()
-  return prompt<ControlSignal>(guidancePrompt).also {
+  return prompt<String, ControlSignal>(guidancePrompt).also {
     println("🧠 Generated control signal: ${truncateText(it.value)}")
   }
 }

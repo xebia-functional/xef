@@ -3,7 +3,11 @@ package com.xebia.functional.xef.reasoning.filesystem
 import com.xebia.functional.xef.auto.Conversation
 import com.xebia.functional.xef.io.DEFAULT
 import com.xebia.functional.xef.llm.ChatWithFunctions
-import com.xebia.functional.xef.prompt.experts.ExpertSystem
+import com.xebia.functional.xef.prompt.Prompt
+import com.xebia.functional.xef.prompt.templates.assistant
+import com.xebia.functional.xef.prompt.templates.steps
+import com.xebia.functional.xef.prompt.templates.system
+import com.xebia.functional.xef.prompt.templates.user
 import com.xebia.functional.xef.reasoning.tools.Tool
 import kotlinx.uuid.UUID
 import kotlinx.uuid.generateUUID
@@ -22,11 +26,11 @@ class ProduceTextFile(
     val file: TxtFile =
       model.prompt(
         prompt =
-          ExpertSystem(
-            system = "Convert output for a Text File",
-            query = input,
-            instructions = instructions,
-          ),
+          Prompt {
+            +system("Convert output for a Text File")
+            +user(input)
+            +steps { instructions.forEach { +assistant(it) } }
+          },
         scope = scope,
         serializer = TxtFile.serializer()
       )

@@ -1,5 +1,8 @@
 package com.xebia.functional.xef.java.auto.jdk8.tot;
 
+import com.xebia.functional.xef.auto.llm.openai.OpenAI;
+import com.xebia.functional.xef.prompt.Prompt;
+
 import static com.xebia.functional.xef.java.auto.jdk8.tot.Rendering.renderHistory;
 import static com.xebia.functional.xef.java.auto.jdk8.tot.Rendering.truncateText;
 
@@ -27,7 +30,7 @@ public class Solutions{
         //ai emoji
         System.out.println("\uD83E\uDD16 Generating solution for problem: " + truncateText(memory.problem.description) + "...");
 
-        String enhancedPrompt =
+        Prompt enhancedPrompt = new Prompt(
                 "       Given previous history:\n" +
                 "       " + renderHistory(memory) + "\n" +
                 "       Given the goal: \n" +
@@ -51,10 +54,10 @@ public class Solutions{
                 "       8. If no solution is found set the `value` field to `null`.\n" +
                 "       9. If the solution is not valid set the `isValid` field to `false` and the `value` field to `null`.\n" +
                 "       10. If the solution is valid set the `isValid` field to `true` and the `value` field to the value of the solution.\n" +
-                "       \n";
+                "       \n");
 
         try {
-            return Problems.Memory.getAiScope().prompt(enhancedPrompt, Solution.class).get();
+            return Problems.Memory.getAiScope().prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, enhancedPrompt, Solution.class).get();
         } catch (Exception e) {
             System.err.printf("Solutions.solution enhancedPrompt threw exception: %s - %s\n",
                     e.getClass().getName(), e.getMessage());

@@ -1,10 +1,11 @@
 package com.xebia.functional.xef.auto.reasoning
 
 import com.xebia.functional.gpt4all.conversation
+import com.xebia.functional.xef.auto.llm.openai.OpenAI
 import com.xebia.functional.xef.reasoning.wikipedia.WikipediaClient
 
 suspend fun main() {
-  conversation {
+  OpenAI.conversation {
     val client = WikipediaClient()
 
     val searchData = WikipediaClient.SearchData(search = "Capital%20de%20Colombia")

@@ -46,9 +46,13 @@ private constructor(private val embeddings: Embeddings, private val state: Atomi
     }
   }
 
-  override suspend fun memories(conversationId: ConversationId, limit: Int): List<Memory> {
+  override suspend fun memories(conversationId: ConversationId, limitTokens: Int): List<Memory> {
     val memories = state.get().orderedMemories[conversationId]
-    return memories?.takeLast(limit).orEmpty().sortedBy { it.timestamp }
+    return memories
+      .orEmpty()
+      .sortedByDescending { it.timestamp }
+      .reduceByLimitToken(limitTokens)
+      .reversed()
   }
 
   override suspend fun addTexts(texts: List<String>) {

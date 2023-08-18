@@ -1,7 +1,9 @@
 package com.xebia.functional.xef.java.auto.jdk21;
 
-import com.xebia.functional.xef.java.auto.AIScope;
-import com.xebia.functional.xef.java.auto.ExecutionContext;
+import com.xebia.functional.xef.auto.PlatformConversation;
+import com.xebia.functional.xef.auto.llm.openai.OpenAI;
+import com.xebia.functional.xef.prompt.Prompt;
+import com.xebia.functional.xef.reasoning.serpapi.Search;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -17,17 +19,18 @@ public class BreakingNews {
     public record BreakingNew(String summary) {
     }
 
-    private static CompletableFuture<Void> writeParagraph(AIScope scope) {
+    private static CompletableFuture<Void> writeParagraph(PlatformConversation scope) {
         var currentDate = dtf.format(now);
 
-        return scope.prompt("write a paragraph of about 300 words about: " + currentDate + " Covid News", BreakingNews.BreakingNew.class)
+        return scope.prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, new Prompt("write a paragraph of about 300 words about: " + currentDate + " Covid News"), BreakingNews.BreakingNew.class)
                 .thenAccept(breakingNews -> System.out.println(currentDate + " Covid news summary:\n" + breakingNews));
     }
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
-        try (AIScope scope = new AIScope(new ExecutionContext(Executors.newVirtualThreadPerTaskExecutor()))) {
+        try (PlatformConversation scope = OpenAI.conversation()) {
             var currentDate = dtf.format(now);
-            scope.addContext(scope.search(currentDate + " Covid News").get());
+            var search = new Search(OpenAI.FromEnvironment.DEFAULT_CHAT, scope, 3);
+            scope.addContextFromArray(search.search(currentDate + " Covid News").get());
             writeParagraph(scope).get();
         }
     }

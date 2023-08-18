@@ -2,18 +2,17 @@ package com.xebia.functional.xef.java.auto.jdk21.gpt4all;
 
 import com.xebia.functional.gpt4all.GPT4All;
 import com.xebia.functional.gpt4all.Gpt4AllModel;
-import com.xebia.functional.xef.auto.PromptConfiguration;
-import com.xebia.functional.xef.java.auto.AIScope;
-import com.xebia.functional.xef.java.auto.ExecutionContext;
+import com.xebia.functional.xef.auto.llm.openai.OpenAI;
+import com.xebia.functional.xef.prompt.Prompt;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
 
 public class Chat {
     public static void main(String[] args) throws ExecutionException, InterruptedException, IOException {
@@ -37,10 +36,8 @@ public class Chat {
          * to provide embeddings for docs in contextScope.
          */
 
-        try (var scope = new AIScope(new ExecutionContext(Executors.newVirtualThreadPerTaskExecutor()));
-              var br = new BufferedReader(new InputStreamReader(System.in))) {
-
-            System.out.println("🤖 Context loaded: " + scope.getExec().getContext());
+        try (var scope = OpenAI.conversation();
+             var br = new BufferedReader(new InputStreamReader(System.in))) {
 
             System.out.println("\n🤖 Enter your question: ");
 
@@ -48,8 +45,7 @@ public class Chat {
                 String line = br.readLine();
                 if (line.equals("exit")) break;
 
-                var promptConfiguration = new PromptConfiguration.Companion.Builder().docsInContext(2).build();
-                var answer = scope.promptStreaming(gpt4all, line, promptConfiguration);
+                var answer = scope.promptStreamingToPublisher(gpt4all, new Prompt(line));
 
                 answer.subscribe(new Subscriber<String>() {
                     StringBuilder answer = new StringBuilder();

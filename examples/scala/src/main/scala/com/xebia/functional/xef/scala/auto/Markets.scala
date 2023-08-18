@@ -1,8 +1,10 @@
 package com.xebia.functional.xef.scala.auto
 
-import com.xebia.functional.xef.scala.agents.DefaultSearch
+import com.xebia.functional.xef.auto.llm.openai.OpenAI
+import com.xebia.functional.xef.reasoning.serpapi.Search
 import com.xebia.functional.xef.scala.auto.*
 import io.circe.Decoder
+import com.xebia.functional.xef.prompt.Prompt
 
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -15,7 +17,8 @@ private final case class MarketNews(news: String, raisingStockSymbols: List[Stri
   conversation {
     val sdf = SimpleDateFormat("dd/M/yyyy")
     val currentDate = sdf.format(Date())
-    addContext(DefaultSearch.search(s"$currentDate Stock market results, raising stocks, decreasing stocks"))
-    val news = prompt[MarketNews]("Write a short summary of the stock market results given the provided context.")
+    val search = Search(OpenAI.FromEnvironment.DEFAULT_CHAT, summon[ScalaConversation], 3)
+    addContext(search.search(s"$currentDate Stock market results, raising stocks, decreasing stocks").get())
+    val news = prompt[MarketNews](Prompt("Write a short summary of the stock market results given the provided context."))
     println(news)
   }

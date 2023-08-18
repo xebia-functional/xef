@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.auto
 
-import com.xebia.functional.xef.auto.llm.openai.conversation
+import com.xebia.functional.xef.auto.llm.openai.OpenAI
 import com.xebia.functional.xef.auto.llm.openai.prompt
 import kotlinx.serialization.Serializable
 
@@ -13,7 +13,7 @@ data class Invention(val name: String, val inventor: String, val year: Int, val 
 data class Story(val animal: Animal, val invention: Invention, val shortStory: String)
 
 suspend fun main() {
-  conversation {
+  OpenAI.conversation {
     val animal: Animal = prompt("A unique animal species.")
     val invention: Invention = prompt("A groundbreaking invention from the 20th century.")
 

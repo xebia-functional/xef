@@ -8,7 +8,6 @@ import kotlinx.serialization.SerialInfo
  */
 @OptIn(ExperimentalSerializationApi::class)
 @SerialInfo
-@Repeatable
-@Retention(AnnotationRetention.BINARY)
+@Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.PROPERTY, AnnotationTarget.FIELD)
-annotation class Description(val lines: Array<out String>)
+expect annotation class Description(val value: String)

@@ -1,10 +1,11 @@
 package com.xebia.functional.xef.auto.gpc
 
-import com.xebia.functional.gpt4all.conversation
+import com.xebia.functional.xef.auto.llm.openai.OpenAI
 import com.xebia.functional.xef.gcp.GcpChat
+import com.xebia.functional.xef.prompt.Prompt
 
 suspend fun main() {
-  conversation {
+  OpenAI.conversation {
     val gcp =
       autoClose(
         GcpChat("us-central1-aiplatform.googleapis.com", "xef-demo", "codechat-bison@001", "token")
@@ -12,7 +13,7 @@ suspend fun main() {
     while (true) {
       print("\n🤖 Enter your question: ")
       val userInput = readlnOrNull() ?: break
-      val answer = gcp.promptMessage(userInput)
+      val answer = gcp.promptMessage(Prompt(userInput))
       println("\n🤖 $answer")
     }
     println("\n🤖 Done")
