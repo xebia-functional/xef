@@ -51,9 +51,14 @@ internal object PromptCalculator {
     return prompt.copy(messages = contextAllowed + historyAllowed + prompt.messages)
   }
 
-  fun messagesFromMemory(memories: List<Memory>): List<Message> = memories.map { it.content }
+  private fun messagesFromMemory(memories: List<Memory>): List<Message> =
+    memories.map { it.content }
 
-  fun calculateMessagesFromHistory(chat: Chat, memories: List<Memory>, maxHistoryTokens: Int) =
+  private fun calculateMessagesFromHistory(
+    chat: Chat,
+    memories: List<Memory>,
+    maxHistoryTokens: Int
+  ) =
     if (memories.isNotEmpty()) {
       val history = messagesFromMemory(memories)
 
@@ -77,19 +82,19 @@ internal object PromptCalculator {
       }
     } else emptyList()
 
-  fun calculateMaxContextTokens(prompt: Prompt, remainingTokensForContexts: Int): Int {
+  private fun calculateMaxContextTokens(prompt: Prompt, remainingTokensForContexts: Int): Int {
     val contextPercent = prompt.configuration.messagePolicy.contextPercent
     val maxContextTokens = (remainingTokensForContexts * contextPercent) / 100
     return maxContextTokens
   }
 
-  fun calculateMaxHistoryTokens(prompt: Prompt, remainingTokensForContexts: Int): Int {
+  private fun calculateMaxHistoryTokens(prompt: Prompt, remainingTokensForContexts: Int): Int {
     val historyPercent = prompt.configuration.messagePolicy.historyPercent
     val maxHistoryTokens = (remainingTokensForContexts * historyPercent) / 100
     return maxHistoryTokens
   }
 
-  fun calculateRemainingTokensForContext(chat: Chat, prompt: Prompt): Int {
+  private fun calculateRemainingTokensForContext(chat: Chat, prompt: Prompt): Int {
     val maxContextLength: Int = chat.modelType.maxContextLength
     val remainingTokens: Int = maxContextLength - prompt.configuration.minResponseTokens
 
