@@ -67,8 +67,6 @@ project(":xef-scala-examples").projectDir = file("examples/scala")
 include("xef-scala")
 project(":xef-scala").projectDir = file("scala")
 
-include("xef-scala-cats")
-project(":xef-scala-cats").projectDir = file("scala-cats")
 //</editor-fold>
 
 //<editor-fold desc="Java">
