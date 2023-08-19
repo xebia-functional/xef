@@ -11,7 +11,7 @@ internal object MemoryManagement {
     chat: Chat,
     request: ChatCompletionRequest,
     scope: Conversation,
-    buffer: StringBuilder,
+    messages: List<Message>,
   ) {
     val lastRequestMessage = request.messages.lastOrNull()
     val cid = scope.conversationId
@@ -23,22 +23,22 @@ internal object MemoryManagement {
           timestamp = getTimeMillis(),
           approxTokens = chat.tokensFromMessages(listOf(lastRequestMessage))
         )
-      val responseMessage =
-        Message(role = Role.ASSISTANT, content = buffer.toString(), name = Role.ASSISTANT.name)
-      val responseMemory =
-        Memory(
-          conversationId = cid,
-          content = responseMessage,
-          timestamp = getTimeMillis(),
-          approxTokens = chat.tokensFromMessages(listOf(responseMessage))
-        )
-      scope.store.addMemories(listOf(requestMemory, responseMemory))
+      val responseMemories =
+        messages.map {
+          Memory(
+            conversationId = cid,
+            content = it,
+            timestamp = getTimeMillis(),
+            approxTokens = chat.tokensFromMessages(messages)
+          )
+        }
+      scope.store.addMemories(listOf(requestMemory) + responseMemories)
     }
   }
 
   internal suspend fun List<ChoiceWithFunctions>.addChoiceWithFunctionsToMemory(
     chat: Chat,
-    request: ChatCompletionRequestWithFunctions,
+    request: ChatCompletionRequest,
     scope: Conversation
   ): List<ChoiceWithFunctions> = also {
     val firstChoice = firstOrNull()

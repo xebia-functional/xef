@@ -61,7 +61,10 @@ actual constructor(
     CFunction(
       name = target.simpleName,
       description = "Generated function for ${target.simpleName}",
-      parameters = JacksonSerialization.schemaGenerator.generateSchema(target).toString()
+      parameters =
+        JacksonSerialization.schemaGenerator.generateSchema(target).toString().also {
+          println("Schema for ${target.simpleName}: $it")
+        }
     )
 
   fun promptMessage(chat: Chat, prompt: Prompt): CompletableFuture<String> =

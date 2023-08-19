@@ -4,7 +4,7 @@ import com.github.victools.jsonschema.generator.MemberScope
 import com.github.victools.jsonschema.generator.Module
 import com.github.victools.jsonschema.generator.SchemaGeneratorConfigBuilder
 import com.github.victools.jsonschema.generator.TypeScope
-import com.xebia.functional.xef.conversation.Description
+import com.xebia.functional.xef.conversation.jvm.Description
 
 internal class DescriptionModule : Module {
   override fun applyToConfigBuilder(builder: SchemaGeneratorConfigBuilder) {

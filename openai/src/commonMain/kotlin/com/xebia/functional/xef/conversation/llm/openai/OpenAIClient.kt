@@ -128,7 +128,7 @@ class OpenAIModel(
 
   @OptIn(BetaOpenAI::class)
   override suspend fun createChatCompletionWithFunctions(
-    request: ChatCompletionRequestWithFunctions
+    request: ChatCompletionRequest
   ): ChatCompletionResponseWithFunctions {
     fun toOpenAI(cf: CFunction): ChatCompletionFunction =
       ChatCompletionFunction(
@@ -154,7 +154,7 @@ class OpenAIModel(
       logitBias = request.logitBias
       user = request.user
       functionCall =
-        request.functionCall["name"]?.let { FunctionMode.Named(it) } ?: FunctionMode.Auto
+        request.functionCall?.get("name")?.let { FunctionMode.Named(it) } ?: FunctionMode.Auto
     }
 
     fun fromOpenAI(it: ChatMessage): MessageWithFunctionCall =
@@ -280,6 +280,18 @@ class OpenAIModel(
       frequencyPenalty = request.frequencyPenalty
       logitBias = request.logitBias
       user = request.user
+      if (request.functions.isNotEmpty())
+        functions =
+          request.functions.map {
+            ChatCompletionFunction(
+              name = it.name,
+              description = it.description,
+              parameters = Parameters(Json.parseToJsonElement(it.parameters)),
+            )
+          }
+      if (request.functionCall != null)
+        functionCall =
+          request.functionCall?.get("name")?.let { FunctionMode.Named(it) } ?: FunctionMode.Auto
     }
 
   override fun tokensFromMessages(messages: List<Message>): Int {
