@@ -2,7 +2,7 @@ package com.xebia.functional.xef.conversation.streaming
 
 import com.xebia.functional.xef.conversation.Description
 import com.xebia.functional.xef.conversation.llm.openai.OpenAI
-import com.xebia.functional.xef.conversation.llm.openai.promptFunctions
+import com.xebia.functional.xef.conversation.llm.openai.promptStreaming
 import com.xebia.functional.xef.llm.StreamedFunction
 import com.xebia.functional.xef.prompt.Prompt
 import kotlinx.serialization.Serializable
@@ -34,7 +34,7 @@ data class InterstellarCraft(
 
 suspend fun main() {
   OpenAI.conversation {
-    promptFunctions<InterstellarCraft>(Prompt("Make a spacecraft with a mission to Mars"))
+    promptStreaming<InterstellarCraft>(Prompt("Make a spacecraft with a mission to Mars"))
       .collect { element ->
         when (element) {
           is StreamedFunction.Property -> {

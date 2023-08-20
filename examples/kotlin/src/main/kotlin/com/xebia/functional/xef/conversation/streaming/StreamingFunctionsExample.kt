@@ -2,7 +2,7 @@ package com.xebia.functional.xef.conversation.streaming
 
 import com.xebia.functional.xef.conversation.Description
 import com.xebia.functional.xef.conversation.llm.openai.OpenAI
-import com.xebia.functional.xef.conversation.llm.openai.promptFunctions
+import com.xebia.functional.xef.conversation.llm.openai.promptStreaming
 import com.xebia.functional.xef.llm.StreamedFunction
 import com.xebia.functional.xef.prompt.Prompt
 import kotlinx.serialization.Serializable
@@ -22,7 +22,7 @@ data class MeaningOfLifeArgument(
 
 suspend fun main() {
   OpenAI.conversation {
-    promptFunctions<MeaningOfLifeArgument>(
+    promptStreaming<MeaningOfLifeArgument>(
         Prompt("Provide arguments and authors for the meaning of life")
       )
       .collect { element ->

@@ -37,7 +37,7 @@ sealed class StreamedFunction<out A> {
      * @param A the type of the objects to be deserialized from JSON strings.
      */
     @JvmSynthetic
-    suspend fun <A> FlowCollector<StreamedFunction<A>>.streamFunctionCall(
+    internal suspend fun <A> FlowCollector<StreamedFunction<A>>.streamFunctionCall(
       chat: ChatWithFunctions,
       request: ChatCompletionRequest,
       scope: Conversation,
@@ -283,11 +283,11 @@ sealed class StreamedFunction<out A> {
         ?.groupValues
         ?.lastOrNull()
 
-    fun findPropertyPath(jsonElement: JsonElement, targetProperty: String): List<String>? {
+    private fun findPropertyPath(jsonElement: JsonElement, targetProperty: String): List<String>? {
       return findPropertyPathTailrec(listOf(jsonElement to emptyList()), targetProperty)
     }
 
-    tailrec fun findPropertyPathTailrec(
+    private tailrec fun findPropertyPathTailrec(
       stack: List<Pair<JsonElement, List<String>>>,
       targetProperty: String
     ): List<String>? {
@@ -314,7 +314,7 @@ sealed class StreamedFunction<out A> {
     }
 
     @OptIn(ExperimentalSerializationApi::class)
-    fun createExampleFromSchema(jsonElement: JsonElement): JsonElement {
+    private fun createExampleFromSchema(jsonElement: JsonElement): JsonElement {
       return when {
         jsonElement is JsonObject && jsonElement.containsKey("type") -> {
           when (jsonElement["type"]?.jsonPrimitive?.content) {

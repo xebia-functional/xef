@@ -43,7 +43,7 @@ interface ChatWithFunctions : Chat {
     }
 
   @AiDsl
-  suspend fun <A> promptStreaming(
+  fun <A> promptStreaming(
     prompt: Prompt,
     scope: Conversation,
     serializer: KSerializer<A>,
@@ -69,7 +69,7 @@ interface ChatWithFunctions : Chat {
   }
 
   @AiDsl
-  suspend fun <A> promptStreaming(
+  fun <A> promptStreaming(
     prompt: Prompt,
     scope: Conversation,
     function: CFunction,

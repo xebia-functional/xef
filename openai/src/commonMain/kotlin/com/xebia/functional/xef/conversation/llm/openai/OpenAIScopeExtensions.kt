@@ -23,7 +23,7 @@ suspend fun Conversation.promptStreaming(
 ): Flow<String> = model.promptStreaming(prompt, this)
 
 @AiDsl
-suspend inline fun <reified A> Conversation.promptFunctions(
+inline fun <reified A> Conversation.promptStreaming(
   prompt: Prompt,
   model: ChatWithFunctions = OpenAI().DEFAULT_SERIALIZATION
 ): Flow<StreamedFunction<A>> = model.promptStreaming(prompt, this, serializer())
