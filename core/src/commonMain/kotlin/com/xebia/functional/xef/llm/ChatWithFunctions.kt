@@ -5,7 +5,6 @@ import arrow.core.raise.catch
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
-import com.xebia.functional.xef.llm.StreamedFunction.Companion.streamFunctionCall
 import com.xebia.functional.xef.llm.models.chat.ChatCompletionRequest
 import com.xebia.functional.xef.llm.models.chat.ChatCompletionResponseWithFunctions
 import com.xebia.functional.xef.llm.models.functions.CFunction
@@ -105,7 +104,8 @@ interface ChatWithFunctions : Chat {
           chat = this@ChatWithFunctions,
           request = request,
           scope = scope,
-          serializer = serializer
+          serializer = serializer,
+          function = function
         )
       }
     }

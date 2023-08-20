@@ -4,15 +4,17 @@ import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.StreamedFunction.Companion.PropertyType.*
 import com.xebia.functional.xef.llm.models.chat.ChatCompletionRequest
 import com.xebia.functional.xef.llm.models.chat.Message
+import com.xebia.functional.xef.llm.models.functions.CFunction
 import com.xebia.functional.xef.llm.models.functions.FunctionCall
 import com.xebia.functional.xef.prompt.templates.assistant
 import kotlin.jvm.JvmSynthetic
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.onCompletion
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.*
 
 sealed class StreamedFunction<out A> {
-  data class Property(val path: String, val name: String, val value: String) :
+  data class Property(val path: List<String>, val name: String, val value: String) :
     StreamedFunction<Nothing>()
 
   data class Result<out A>(val value: A) : StreamedFunction<A>()
@@ -39,7 +41,8 @@ sealed class StreamedFunction<out A> {
       chat: ChatWithFunctions,
       request: ChatCompletionRequest,
       scope: Conversation,
-      serializer: (json: String) -> A
+      serializer: (json: String) -> A,
+      function: CFunction
     ) {
       val messages = mutableListOf<Message>()
       // this function call is mutable and will be updated as the stream progresses
@@ -49,11 +52,21 @@ sealed class StreamedFunction<out A> {
       // we keep track to not emit the same property multiple times
       val streamedProperties = mutableSetOf<Property>()
       // the path to this potential nested property
-      var path: String? = null
+      var path: List<String> = emptyList()
+      // we extract the expected JSON schema before the LLM replies
+      val schema = Json.parseToJsonElement(function.parameters)
+      // we create an example from the schema from which we can expect and infer the paths
+      // as the LLM is sending us chunks with malformed JSON
+      val example = createExampleFromSchema(schema)
       chat
         .createChatCompletions(request)
         .onCompletion { MemoryManagement.addMemoriesAfterStream(chat, request, scope, messages) }
         .collect { responseChunk ->
+          // Each chunk is emitted from the LLM and it will include a delta.parameters with
+          // the function is streaming, the JSON received will be partial and usually malformed
+          // and needs to be inspected and clean up to stream properties before
+          // the final result is ready
+
           // every response chunk contains a list of choices
           if (responseChunk.choices.isNotEmpty()) {
             // the delta contains the last emission while emitting the json character by character
@@ -75,8 +88,7 @@ sealed class StreamedFunction<out A> {
                   // we update the path
                   // a change of property happens and we try to stream it
                   streamProperty(path, currentProperty, functionCall.arguments, streamedProperties)
-                  val updatedPath = if (path == null) currentArg else "$path.$currentArg"
-                  path = updatedPath
+                  path = findPropertyPath(example, currentArg) ?: listOf(currentArg)
                 }
                 // update the current property being evaluated
                 currentProperty = currentArg
@@ -86,13 +98,7 @@ sealed class StreamedFunction<out A> {
               // the stream is finished and we try to stream the last property
               // because the previous chunk may had a partial property whose body
               // may had not been fully streamed
-              val currentPath = if (path == null) currentProperty else path
-              streamProperty(
-                currentPath,
-                currentProperty,
-                functionCall.arguments,
-                streamedProperties
-              )
+              streamProperty(path, currentProperty, functionCall.arguments, streamedProperties)
 
               // we stream the result
               streamResult(functionCall, messages, serializer)
@@ -146,7 +152,7 @@ sealed class StreamedFunction<out A> {
      * @param streamedProperties The set of already streamed properties.
      */
     private suspend fun <A> FlowCollector<StreamedFunction<A>>.streamProperty(
-      path: String?,
+      path: List<String>,
       prop: String?,
       currentArgs: String?,
       streamedProperties: MutableSet<Property>
@@ -158,17 +164,17 @@ sealed class StreamedFunction<out A> {
           val body = remainingText.substringAfterLast("\"$prop\":").trim()
           // detect the type of the property
           val propertyType = propertyType(body)
-          // extract the body of the property
-          val detectedBody = extractBody(propertyType, body)
+          // extract the body of the property or if null don't report it
+          val detectedBody = extractBody(propertyType, body) ?: return
           // repack the body as a valid JSON string
           val propertyValueAsJson = repackBodyAsJsonString(propertyType, detectedBody)
           if (propertyValueAsJson != null) {
             val propertyValue = Json.decodeFromString<JsonElement>(propertyValueAsJson)
             // we try to extract the text value of the property
-            // or for cases like objects and array that we don't want to report on
+            // or for cases like objects that we don't want to report on
             // we return null
             val text = textProperty(propertyValue)
-            if (text != null && path != null) {
+            if (text != null) {
               val streamedProperty = Property(path, prop, text)
               // we only stream the property if it has not been streamed before
               if (!streamedProperties.contains(streamedProperty)) {
@@ -222,7 +228,7 @@ sealed class StreamedFunction<out A> {
       }
 
     /**
-     * Determines the type of a property based on its body.
+     * Determines the type of a property based on a partial chnk of it's body.
      *
      * @param body The body of the property.
      * @return The type of the property.
@@ -240,7 +246,7 @@ sealed class StreamedFunction<out A> {
       }
 
     private val stringBody = """\"(.*?)\"""".toRegex()
-    private val numberBody = """(-?\d+\.\d+)?""".toRegex()
+    private val numberBody = "(-?\\d+(\\.\\d+)?)".toRegex()
     private val booleanBody = """(true|false)""".toRegex()
     private val arrayBody = """\[(.*?)\]""".toRegex()
     private val objectBody = """\{(.*?)\}""".toRegex()
@@ -257,7 +263,7 @@ sealed class StreamedFunction<out A> {
         // we don't report on properties holding objects since we report on the properties of the
         // object
         is JsonObject -> null
-        is JsonArray -> null
+        is JsonArray -> element.map { textProperty(it) }.joinToString(", ")
         is JsonPrimitive -> element.content
         is JsonNull -> "null"
       }
@@ -276,5 +282,62 @@ sealed class StreamedFunction<out A> {
         .lastOrNull()
         ?.groupValues
         ?.lastOrNull()
+
+    fun findPropertyPath(jsonElement: JsonElement, targetProperty: String): List<String>? {
+      return findPropertyPathTailrec(listOf(jsonElement to emptyList()), targetProperty)
+    }
+
+    tailrec fun findPropertyPathTailrec(
+      stack: List<Pair<JsonElement, List<String>>>,
+      targetProperty: String
+    ): List<String>? {
+      if (stack.isEmpty()) return null
+
+      val (currentElement, currentPath) = stack.first()
+      val remainingStack = stack.drop(1)
+
+      return when (currentElement) {
+        is JsonObject -> {
+          if (currentElement.containsKey(targetProperty)) {
+            currentPath + targetProperty
+          } else {
+            val newStack = currentElement.entries.map { it.value to (currentPath + it.key) }
+            findPropertyPathTailrec(remainingStack + newStack, targetProperty)
+          }
+        }
+        is JsonArray -> {
+          val newStack = currentElement.map { it to currentPath }
+          findPropertyPathTailrec(remainingStack + newStack, targetProperty)
+        }
+        else -> findPropertyPathTailrec(remainingStack, targetProperty)
+      }
+    }
+
+    @OptIn(ExperimentalSerializationApi::class)
+    fun createExampleFromSchema(jsonElement: JsonElement): JsonElement {
+      return when {
+        jsonElement is JsonObject && jsonElement.containsKey("type") -> {
+          when (jsonElement["type"]?.jsonPrimitive?.content) {
+            "object" -> {
+              val properties = jsonElement["properties"] as? JsonObject
+              val resultMap = mutableMapOf<String, JsonElement>()
+              properties?.forEach { (key, value) ->
+                resultMap[key] = createExampleFromSchema(value)
+              }
+              JsonObject(resultMap)
+            }
+            "array" -> {
+              val items = jsonElement["items"]
+              val exampleItems = items?.let { createExampleFromSchema(it) }
+              JsonArray(listOfNotNull(exampleItems))
+            }
+            "string" -> JsonPrimitive("default_string")
+            "number" -> JsonPrimitive(0)
+            else -> JsonPrimitive(null)
+          }
+        }
+        else -> JsonPrimitive(null)
+      }
+    }
   }
 }
