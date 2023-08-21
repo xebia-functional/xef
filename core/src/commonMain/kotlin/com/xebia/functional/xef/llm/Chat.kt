@@ -6,6 +6,7 @@ import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.prompt.Prompt
+import com.xebia.functional.xef.prompt.templates.assistant
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onCompletion
@@ -44,7 +45,10 @@ interface Chat : LLM {
           buffer.append(text)
         }
       }
-      .onCompletion { MemoryManagement.addMemoriesAfterStream(this@Chat, request, scope, buffer) }
+      .onCompletion {
+        val message = assistant(buffer.toString())
+        MemoryManagement.addMemoriesAfterStream(this@Chat, request, scope, listOf(message))
+      }
       .collect { emit(it.choices.mapNotNull { it.delta?.content }.joinToString("")) }
   }
 
@@ -65,16 +69,6 @@ interface Chat : LLM {
         n = adaptedPrompt.configuration.numberOfPredictions,
         temperature = adaptedPrompt.configuration.temperature,
         maxTokens = adaptedPrompt.configuration.minResponseTokens,
-      )
-
-    fun withFunctionsRequest(): ChatCompletionRequestWithFunctions =
-      ChatCompletionRequestWithFunctions(
-        model = name,
-        user = adaptedPrompt.configuration.user,
-        messages = adaptedPrompt.messages,
-        n = adaptedPrompt.configuration.numberOfPredictions,
-        temperature = adaptedPrompt.configuration.temperature,
-        maxTokens = adaptedPrompt.configuration.minResponseTokens,
         functions = listOfNotNull(adaptedPrompt.function),
         functionCall = mapOf("name" to (adaptedPrompt.function?.name ?: ""))
       )
@@ -84,7 +78,7 @@ interface Chat : LLM {
         is ChatWithFunctions ->
           // we only support functions for now with GPT_3_5_TURBO_FUNCTIONS
           if (modelType == ModelType.GPT_3_5_TURBO_FUNCTIONS) {
-            val request = withFunctionsRequest()
+            val request = chatRequest()
             createChatCompletionWithFunctions(request)
               .choices
               .addChoiceWithFunctionsToMemory(this@Chat, request, scope)

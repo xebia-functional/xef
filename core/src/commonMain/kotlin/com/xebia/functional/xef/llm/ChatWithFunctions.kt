@@ -5,21 +5,22 @@ import arrow.core.raise.catch
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
-import com.xebia.functional.xef.llm.models.chat.ChatCompletionRequestWithFunctions
+import com.xebia.functional.xef.llm.models.chat.ChatCompletionRequest
 import com.xebia.functional.xef.llm.models.chat.ChatCompletionResponseWithFunctions
 import com.xebia.functional.xef.llm.models.functions.CFunction
 import com.xebia.functional.xef.llm.models.functions.encodeJsonSchema
 import com.xebia.functional.xef.prompt.Prompt
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.flow.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.*
-import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.*
 
 interface ChatWithFunctions : Chat {
 
   suspend fun createChatCompletionWithFunctions(
-    request: ChatCompletionRequestWithFunctions
+    request: ChatCompletionRequest
   ): ChatCompletionResponseWithFunctions
 
   @OptIn(ExperimentalSerializationApi::class)
@@ -42,6 +43,16 @@ interface ChatWithFunctions : Chat {
     }
 
   @AiDsl
+  fun <A> promptStreaming(
+    prompt: Prompt,
+    scope: Conversation,
+    serializer: KSerializer<A>,
+  ): Flow<StreamedFunction<A>> =
+    promptStreaming(prompt, scope, chatFunction(serializer.descriptor)) { json ->
+      Json.decodeFromString(serializer, json)
+    }
+
+  @AiDsl
   suspend fun <A> prompt(
     prompt: Prompt,
     scope: Conversation,
@@ -54,6 +65,68 @@ interface ChatWithFunctions : Chat {
       promptWithFunctions.configuration.maxDeserializationAttempts
     ) {
       promptMessages(prompt = promptWithFunctions, scope = scope)
+    }
+  }
+
+  @AiDsl
+  fun <A> promptStreaming(
+    prompt: Prompt,
+    scope: Conversation,
+    function: CFunction,
+    serializer: (json: String) -> A,
+  ): Flow<StreamedFunction<A>> = flow {
+    val promptWithFunctions = prompt.copy(function = function)
+    val messagesForRequestPrompt =
+      PromptCalculator.adaptPromptToConversationAndModel(
+        promptWithFunctions,
+        scope,
+        this@ChatWithFunctions
+      )
+
+    val request =
+      ChatCompletionRequest(
+        model = name,
+        stream = true,
+        user = promptWithFunctions.configuration.user,
+        messages = messagesForRequestPrompt.messages,
+        functions = listOfNotNull(messagesForRequestPrompt.function),
+        n = promptWithFunctions.configuration.numberOfPredictions,
+        temperature = promptWithFunctions.configuration.temperature,
+        maxTokens = promptWithFunctions.configuration.minResponseTokens,
+        functionCall = mapOf("name" to (promptWithFunctions.function?.name ?: ""))
+      )
+
+    StreamedFunction.run {
+      retryUntilMaxDeserializationAttempts(
+        promptWithFunctions.configuration.maxDeserializationAttempts
+      ) {
+        streamFunctionCall(
+          chat = this@ChatWithFunctions,
+          request = request,
+          scope = scope,
+          serializer = serializer,
+          function = function
+        )
+      }
+    }
+  }
+
+  private suspend fun retryUntilMaxDeserializationAttempts(
+    maxDeserializationAttempts: Int,
+    block: suspend () -> Unit
+  ): Unit {
+    var success = false
+    var attempts = 0
+    while (!success) {
+      try {
+        block()
+        success = true
+      } catch (e: Throwable) {
+        attempts++
+        if (attempts == maxDeserializationAttempts) {
+          throw e
+        }
+      }
     }
   }
 

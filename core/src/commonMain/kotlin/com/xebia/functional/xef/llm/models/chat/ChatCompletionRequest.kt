@@ -1,8 +1,11 @@
 package com.xebia.functional.xef.llm.models.chat
 
+import com.xebia.functional.xef.llm.models.functions.CFunction
+
 data class ChatCompletionRequest(
   val model: String,
   val messages: List<Message>,
+  val functions: List<CFunction> = emptyList(),
   val temperature: Double = 0.0,
   val topP: Double = 1.0,
   val n: Int = 1,
@@ -14,4 +17,5 @@ data class ChatCompletionRequest(
   val logitBias: Map<String, Int> = emptyMap(),
   val user: String?,
   val streamToStandardOut: Boolean = false,
+  val functionCall: Map<String, String>? = null
 )
