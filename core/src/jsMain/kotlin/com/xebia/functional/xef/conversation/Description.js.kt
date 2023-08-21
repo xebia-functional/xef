@@ -10,3 +10,8 @@ import kotlinx.serialization.SerialInfo
 @Retention(AnnotationRetention.BINARY)
 @Target(AnnotationTarget.PROPERTY, AnnotationTarget.FIELD)
 actual annotation class Description actual constructor(actual val value: String)
+
+@SerialInfo
+@Retention(AnnotationRetention.RUNTIME)
+@Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY, AnnotationTarget.FIELD)
+actual annotation class Descriptive actual constructor(actual val value: String)

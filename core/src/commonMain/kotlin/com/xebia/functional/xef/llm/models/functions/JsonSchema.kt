@@ -14,17 +14,12 @@ which states the following:
 // TODO: We should consider a fork and maintain it ourselves.
  */
 import com.xebia.functional.xef.conversation.Description
+import com.xebia.functional.xef.conversation.Descriptive
 import kotlin.jvm.JvmMultifileClass
 import kotlin.jvm.JvmName
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialInfo
-import kotlinx.serialization.descriptors.PolymorphicKind
-import kotlinx.serialization.descriptors.PrimitiveKind
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.descriptors.SerialKind
-import kotlinx.serialization.descriptors.StructureKind
-import kotlinx.serialization.descriptors.elementDescriptors
-import kotlinx.serialization.descriptors.elementNames
+import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.json.*
 
 /** Represents the type of json type */
@@ -336,11 +331,20 @@ private fun JsonObjectBuilder.applyJsonSchemaDefaults(
   }
 
   if (annotations.isNotEmpty()) {
-    val description = annotations.filterIsInstance<Description>().joinToString("\n") { it.value }
+    val multiplatformDescription = annotations.filterIsInstance<Description>()
+    val description =
+      if (multiplatformDescription.isEmpty()) {
+        try {
+          val jvmDescription = annotations.filterIsInstance<Descriptive>()
+          jvmDescription.firstOrNull()?.value
+        } catch (e: Throwable) {
+          null
+        }
+      } else {
+        multiplatformDescription.firstOrNull()?.value
+      }
 
-    if (description.isNotEmpty()) {
-      this["description"] = description
-    }
+    this["description"] = description
   }
 }
 
