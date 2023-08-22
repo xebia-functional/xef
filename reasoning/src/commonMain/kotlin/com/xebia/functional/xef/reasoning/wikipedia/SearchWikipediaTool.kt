@@ -20,7 +20,8 @@ interface SearchWikipediaTool : Tool {
     get() = "SearchWikipediaTool"
 
   override val description: String
-    get() = "Search primary tool in Wikipedia for information. The tool input is a simple one line string"
+    get() =
+      "Search primary tool in Wikipedia for information. The tool input is a simple one line string"
 
   override suspend fun invoke(input: String): String {
     val docs = client.search(SearchData(input))

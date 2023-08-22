@@ -32,9 +32,7 @@ suspend fun main() {
     val result =
       reActAgent.run(
         Prompt {
-          +user(
-            "Find and multiply the number of human bones by the number of Metallica albums"
-          )
+          +user("Find and multiply the number of human bones by the number of Metallica albums")
         }
       )
     println(result)

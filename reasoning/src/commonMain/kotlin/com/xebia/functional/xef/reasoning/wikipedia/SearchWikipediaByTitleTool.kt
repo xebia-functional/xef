@@ -19,7 +19,8 @@ interface SearchWikipediaByTitleTool : Tool {
     get() = "SearchWikipediaByTitle"
 
   override val description: String
-    get() = "Search secondary tool in Wikipedia for detail information. The tool input is the title of the page, this tool can only be used with valid Wikipedia page titles returned by the primary search tool"
+    get() =
+      "Search secondary tool in Wikipedia for detail information. The tool input is the title of the page, this tool can only be used with valid Wikipedia page titles returned by the primary search tool"
 
   override suspend fun invoke(input: String): String {
     val docs = client.searchByTitle(SearchDataByTitle(input))
