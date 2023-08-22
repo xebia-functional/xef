@@ -1,8 +1,11 @@
 package com.xebia.functional.xef.reasoning.tools
 
-import com.xebia.functional.xef.auto.Conversation
+import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.ChatWithFunctions
-import com.xebia.functional.xef.llm.models.chat.Message
+import com.xebia.functional.xef.prompt.Prompt
+import com.xebia.functional.xef.prompt.templates.assistant
+import com.xebia.functional.xef.prompt.templates.system
+import com.xebia.functional.xef.prompt.templates.user
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 class ToolSelection(
@@ -80,31 +83,26 @@ class ToolSelection(
   suspend fun createExecutionPlan(task: String): ToolsExecutionPlan {
     logger.info { "🔍 Creating execution plan for task: $task" }
 
-    val messages: List<Message> =
-      listOf(
-        Message.systemMessage {
-          "You are an expert in tool selection that can choose the best tools for a specific task based on the tools descriptions"
-        },
-        Message.assistantMessage { "Given the following task:" },
-        Message.assistantMessage { task },
-        Message.assistantMessage { "Given the following tools:" },
-      ) +
-        tools.map { Message.assistantMessage { "${it.name}: ${it.description}" } } +
-        listOf(
-          Message.userMessage { "Follow the next instructions" },
-          Message.userMessage {
-            "Select the best execution plan with tools for the `task` based on the `tools`"
-          },
-          Message.userMessage {
-            "Your `RESPONSE` MUST be a `ToolsExecutionPlan` object, where the `steps` determine how the execution plan will run the tools"
-          },
-        ) +
-        instructions.map { Message.userMessage { it } }
+    val messages: Prompt = Prompt {
+      +system(
+        "You are an expert in tool selection that can choose the best tools for a specific task based on the tools descriptions"
+      )
+      +assistant("Given the following task:")
+      +assistant(task)
+      +assistant("Given the following tools:")
+      tools.forEach { +assistant("${it.name}: ${it.description}") }
+      +user("Follow the next instructions")
+      +user("Select the best execution plan with tools for the `task` based on the `tools`")
+      +user(
+        "Your `RESPONSE` MUST be a `ToolsExecutionPlan` object, where the `steps` determine how the execution plan will run the tools"
+      )
+      instructions.forEach { +user(it) }
+    }
 
     return model.prompt(
       scope = scope,
       serializer = ToolsExecutionPlan.serializer(),
-      messages = messages
+      prompt = messages
     )
   }
 }

@@ -1,8 +1,10 @@
-package com.xebia.functional.xef.scala.auto
+package com.xebia.functional.xef.scala.conversation
 
-import com.xebia.functional.xef.scala.auto.*
-import com.xebia.functional.xef.scala.agents.DefaultSearch
+import com.xebia.functional.xef.scala.conversation.*
+import com.xebia.functional.xef.reasoning.serpapi.Search
+import com.xebia.functional.xef.conversation.llm.openai.OpenAI
 import io.circe.Decoder
+import com.xebia.functional.xef.prompt.Prompt
 
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -13,7 +15,8 @@ private final case class BreakingNewsAboutCovid(summary: String) derives SerialD
   conversation {
     val sdf = SimpleDateFormat("dd/M/yyyy")
     val currentDate = sdf.format(Date())
-    addContext(DefaultSearch.search(s"$currentDate Covid News"))
-    val news = prompt[BreakingNewsAboutCovid](s"Write a paragraph of about 300 words about: $currentDate Covid News")
+    val search = Search(OpenAI.FromEnvironment.DEFAULT_CHAT, summon[ScalaConversation], 3)
+    addContext(search.search(s"$currentDate Covid News").get())
+    val news = prompt[BreakingNewsAboutCovid](Prompt(s"Write a paragraph of about 300 words about: $currentDate Covid News"))
     println(news.summary)
   }

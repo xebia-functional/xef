@@ -2,9 +2,13 @@ package com.xebia.functional.xef.reasoning.text.summarize
 
 import arrow.fx.coroutines.parMap
 import com.xebia.functional.tokenizer.truncateText
-import com.xebia.functional.xef.auto.Conversation
+import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.Chat
-import com.xebia.functional.xef.prompt.experts.ExpertSystem
+import com.xebia.functional.xef.prompt.Prompt
+import com.xebia.functional.xef.prompt.templates.assistant
+import com.xebia.functional.xef.prompt.templates.steps
+import com.xebia.functional.xef.prompt.templates.system
+import com.xebia.functional.xef.prompt.templates.user
 import com.xebia.functional.xef.reasoning.tools.Tool
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlin.jvm.JvmField
@@ -42,32 +46,33 @@ class Summarize(
       "📝 Summarizing chunk with prompt tokens $promptTokens for length $summaryLength"
     }
     val remainingTokens: Int = maxContextLength - promptTokens
-    return model
-      .promptMessage(
-        ExpertSystem(
-            system =
-              "You are an expert information summarizer that is able to provide a summary of a text in an exact number of words",
-            query =
-              """|
-                |Given the following text:
-                |```text
-                |${model.modelType.encoding.truncateText(chunk, remainingTokens)}
-                |```
-            """
-                .trimMargin(),
-            instructions =
-              listOf(
-                "Summarize the `text` in max $summaryLength words",
-                "Reply with an empty response: ` ` if the text can't be summarized"
-              ) + instructions
-          )
-          .message,
-        scope
+
+    val messages = Prompt {
+      +system(
+        "You are an expert information summarizer that is able to provide a summary of a text in less than a maximum number of words"
       )
-      .also {
-        val tokens: Int = model.modelType.encoding.countTokens(it)
-        logger.info { "📝 Summarized chunk in tokens: $tokens" }
+      +user(
+        """|
+                  |Given the following text:
+                  |```text
+                  |${model.modelType.encoding.truncateText(chunk, remainingTokens)}
+                  |```
+              """
+          .trimMargin()
+      )
+      +steps {
+        (listOf(
+            "Summarize the `text` in max $summaryLength words",
+            "Reply with an empty response: ` ` if the text can't be summarized"
+          ) + instructions)
+          .forEach { +assistant(it) }
       }
+    }
+
+    return model.promptMessage(messages, scope).also {
+      val tokens: Int = model.modelType.encoding.countTokens(it)
+      logger.info { "📝 Summarized chunk in tokens: $tokens" }
+    }
   }
 
   private fun chunkText(text: String): List<String> {

@@ -1,41 +1,55 @@
 package com.xebia.functional.xef.prompt.templates
 
+import com.xebia.functional.xef.llm.models.chat.Message
+import com.xebia.functional.xef.llm.models.chat.Role
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.PromptBuilder
-import com.xebia.functional.xef.prompt.prompt
+import com.xebia.functional.xef.prompt.message
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.serializer
 
-fun youAre(role: String, talkingTo: String): Prompt =
-  "You are a $role talking with a $talkingTo".prompt()
+fun system(context: String): Message = context.message(Role.SYSTEM)
 
-class StepsBuilder : PromptBuilder() {
-  override fun preprocess(elements: List<Prompt>): List<Prompt> =
-    elements.mapIndexed { ix, elt -> Prompt("${ix + 1} - ${elt.message}") }
+fun assistant(context: String): Message = context.message(Role.ASSISTANT)
+
+fun user(context: String): Message = context.message(Role.USER)
+
+inline fun <reified A> system(data: A): Message = system(Json.encodeToString(serializer(), data))
+
+inline fun <reified A> assistant(data: A): Message =
+  assistant(Json.encodeToString(serializer(), data))
+
+inline fun <reified A> user(data: A): Message = user(Json.encodeToString(serializer(), data))
+
+class StepsMessageBuilder : PromptBuilder() {
+  override fun preprocess(elements: List<Message>): List<Message> =
+    elements.mapIndexed { ix, elt -> "${ix + 1} - ${elt.content}".message(elt.role) }
 }
 
-fun steps(inside: PromptBuilder.() -> Unit): Prompt = StepsBuilder().apply { inside() }.build()
+fun steps(inside: PromptBuilder.() -> Unit): Prompt =
+  StepsMessageBuilder().apply { inside() }.build()
 
-fun writeSequenceOf(content: String): Prompt =
+fun writeSequenceOf(
+  content: String,
+  prefix: String = "Step",
+  role: Role = Role.ASSISTANT
+): Message =
   """
             Write a sequence of $content in the following format:
-            Step 1 - ...
-            Step 2 - ...
+            $prefix 1 - ...
+            $prefix 2 - ...
             ...
-            Step N - ...
+            $prefix N - ...
         """
     .trimIndent()
-    .prompt()
+    .message(role)
 
-fun writeListOf(content: String): Prompt =
-  """
-            Write a list of $content in the following format:
-            1. ...
-            2. ...
-            n. ...
-        """
-    .trimIndent()
-    .prompt()
-
-fun code(code: String, delimiter: Delimiter?, name: String? = null): Prompt =
+fun code(
+  code: String,
+  delimiter: Delimiter?,
+  name: String? = null,
+  role: Role = Role.ASSISTANT
+): Message =
   """
     ${name ?: "" }
     ${delimiter?.start() ?: ""}
@@ -43,7 +57,7 @@ fun code(code: String, delimiter: Delimiter?, name: String? = null): Prompt =
     ${delimiter?.end() ?: ""}
     """
     .trimIndent()
-    .prompt()
+    .message(role)
 
 enum class Delimiter {
   ThreeBackticks,

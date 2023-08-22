@@ -1,6 +1,9 @@
 package com.xebia.functional.xef.java.auto.jdk8;
 
-import com.xebia.functional.xef.java.auto.AIScope;
+import com.xebia.functional.xef.conversation.PlatformConversation;
+import com.xebia.functional.xef.conversation.llm.openai.OpenAI;
+import com.xebia.functional.xef.prompt.Prompt;
+
 import java.util.concurrent.ExecutionException;
 
 public class Employee {
@@ -22,13 +25,13 @@ public class Employee {
         public Address address;
     }
 
-    public static String complexPrompt =
+    public static Prompt complexPrompt = new Prompt(
         "Provide made up information for an Employee that includes their first name, last name, age, position, and their company's name and address (street, city, and country).\n" +
-        "Use the information provided.";
+        "Use the information provided.");
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
-        try (AIScope scope = new AIScope()) {
-            scope.prompt(complexPrompt, Employee.class)
+        try (PlatformConversation scope = OpenAI.conversation()) {
+            scope.prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, complexPrompt, Employee.class)
                   .thenAccept(employeeData -> System.out.println(
                         "Employee Information:\n\n" +
                               "Name: " + employeeData.firstName + " " + employeeData.lastName + "\n" +

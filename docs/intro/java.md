@@ -168,7 +168,7 @@ public class Weather {
 > ```java
 > package my.example;
 > 
-> import com.xebia.functional.xef.vectorstores.LuceneKt;
+> import com.xebia.functional.xef.store.LuceneKt;
 > 
 > import java.nio.file.Path;
 > import java.util.concurrent.CompletableFuture;

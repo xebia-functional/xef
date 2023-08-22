@@ -1,7 +1,8 @@
-package com.xebia.functional.xef.scala.auto
+package com.xebia.functional.xef.scala.conversation
 
-import com.xebia.functional.xef.scala.auto.*
+import com.xebia.functional.xef.scala.conversation.*
 import io.circe.Decoder
+import com.xebia.functional.xef.prompt.Prompt
 
 import scala.annotation.tailrec
 
@@ -12,7 +13,7 @@ private final case class ChessBoard(board: String) derives SerialDescriptor, Dec
 private final case class GameState(ended: Boolean, winner: Option[String]) derives SerialDescriptor, Decoder
 
 @tailrec
-private def chessGame(moves: List[ChessMove], gameState: GameState): AI[(String, ChessMove)] =
+private def chessGame(moves: List[ChessMove], gameState: GameState)(using conversation: ScalaConversation): (String, ChessMove) =
   if !gameState.ended then
     val currentPlayer = if moves.size % 2 == 0 then "Player 1 (White)" else "Player 2 (Black)"
 
@@ -31,7 +32,7 @@ private def chessGame(moves: List[ChessMove], gameState: GameState): AI[(String,
       """.stripMargin
     }
     println(movePrompt)
-    val move: ChessMove = prompt(movePrompt)
+    val move: ChessMove = prompt(Prompt(movePrompt))
     println(s"Move is: $move")
 
     val boardPrompt =
@@ -41,14 +42,14 @@ private def chessGame(moves: List[ChessMove], gameState: GameState): AI[(String,
          |Add a brief description of the move and it's implications
       """.stripMargin
 
-    val chessBoard: ChessBoard = prompt(boardPrompt)
+    val chessBoard: ChessBoard = prompt(Prompt(boardPrompt))
     println(s"Current board:\n${chessBoard.board}")
 
     val gameStatePrompt =
-      s"""
+      Prompt(s"""
          |Given the following chess moves: ${moves.mkString(", ")},
          |has the game ended (win, draw, or stalemate)?
-      """.stripMargin
+      """.stripMargin)
 
     val gameState: GameState = prompt(gameStatePrompt)
 

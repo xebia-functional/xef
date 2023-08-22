@@ -1,6 +1,9 @@
 package com.xebia.functional.xef.java.auto.jdk8;
 
-import com.xebia.functional.xef.java.auto.AIScope;
+import com.xebia.functional.xef.conversation.PlatformConversation;
+import com.xebia.functional.xef.conversation.llm.openai.OpenAI;
+import com.xebia.functional.xef.prompt.Prompt;
+
 import java.util.concurrent.ExecutionException;
 
 public class Persons {
@@ -16,8 +19,8 @@ public class Persons {
     }
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
-        try (AIScope scope = new AIScope()) {
-            scope.prompt("What is your name and age?", Person.class)
+        try (PlatformConversation scope = OpenAI.conversation()) {
+            scope.prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, new Prompt("What is your name and age?"), Person.class)
                     .thenAccept(person -> System.out.println(person))
                     .get();
         }

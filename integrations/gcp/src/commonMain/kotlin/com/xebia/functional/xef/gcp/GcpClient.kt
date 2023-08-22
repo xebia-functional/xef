@@ -1,8 +1,8 @@
 package com.xebia.functional.xef.gcp
 
 import com.xebia.functional.xef.AIError
-import com.xebia.functional.xef.auto.AutoClose
-import com.xebia.functional.xef.auto.autoClose
+import com.xebia.functional.xef.conversation.AutoClose
+import com.xebia.functional.xef.conversation.autoClose
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.*

@@ -1,5 +1,8 @@
 package com.xebia.functional.xef.java.auto.jdk8.tot;
 
+import com.xebia.functional.xef.conversation.llm.openai.OpenAI;
+import com.xebia.functional.xef.prompt.Prompt;
+
 import static com.xebia.functional.xef.java.auto.jdk21.tot.Rendering.truncateText;
 
 import java.util.concurrent.CompletableFuture;
@@ -15,7 +18,7 @@ public class Critiques {
     public static <A> CompletableFuture<Critique> critique(Problems.Memory<A> memory, Solutions.Solution<A> currentSolution){
         System.out.println("🕵️ Critiquing solution: " + truncateText(currentSolution.answer) + "...");
 
-        String prompt = Rendering.trimMargin(
+        Prompt prompt = new Prompt(Rendering.trimMargin(
                 "    You are an expert advisor critiquing a solution.\n" +
                 "    \n" +
                 "    Previous history:\n" +
@@ -29,8 +32,8 @@ public class Critiques {
                 "    \n" +
                 "    Instructions:\n" +
                 "    1. Provide a critique and determine if the answer truly accomplishes the goal.\n" +
-                "    \n");
+                "    \n"));
 
-        return Problems.Memory.getAiScope().prompt(prompt, Critique.class);
+        return Problems.Memory.getAiScope().prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, prompt, Critique.class);
     }
 }

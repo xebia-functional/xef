@@ -2,10 +2,12 @@ package com.xebia.functional.xef.java.auto.jdk8.tot;
 
 import static com.xebia.functional.xef.java.auto.jdk21.tot.Rendering.truncateText;
 
-import com.xebia.functional.xef.java.auto.AIScope;
+import com.xebia.functional.xef.conversation.PlatformConversation;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
+
+import com.xebia.functional.xef.conversation.llm.openai.OpenAI;
 import org.jetbrains.annotations.Nullable;
 
 public class Problems {
@@ -81,27 +83,27 @@ public class Problems {
         public Problem problem;
         public List<Solutions.Solution<A>> history;
 
-        private static AIScope aiScope = null;
+        private static PlatformConversation aiScope = null;
 
         public Memory(Problem problem, List<Solutions.Solution<A>> history) {
             this.problem = problem;
             this.history = history;
-            checkAIScope();
+            checkPlatformConversation();
         }
 
         public Memory<A> addResult(Solutions.Solution<A> result) {
             List<Solutions.Solution<A>> historyUpdate = Stream.concat(this.history.stream(), Stream.of(result)).toList();
-            checkAIScope();
+            checkPlatformConversation();
             return new Memory<>(this.problem, historyUpdate);
         }
 
-        private static void checkAIScope() {
-            if(aiScope == null){
-                aiScope = new AIScope();
+        private static void checkPlatformConversation() {
+            if(aiScope == null) {
+                aiScope = OpenAI.conversation();
             }
         }
 
-        public static AIScope getAiScope() {
+        public static PlatformConversation getAiScope() {
             return aiScope;
         }
 
