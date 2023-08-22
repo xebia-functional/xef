@@ -1,6 +1,9 @@
 @file:Suppress("DSL_SCOPE_VIOLATION")
 
-repositories { mavenCentral() }
+repositories {
+  mavenCentral()
+  mavenLocal()
+}
 
 plugins {
     `kotlin-dsl`

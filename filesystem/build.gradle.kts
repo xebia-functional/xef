@@ -16,7 +16,10 @@ detekt {
     autoCorrect = true
 }
 
-repositories { mavenCentral() }
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
 
 kotlin {
     jvm()

@@ -1,5 +1,5 @@
 [versions]
-arrow = "1.2.0"
+arrow = "2.0.0-SNAPSHOT"
 arrowGradle = "0.12.0-rc.5"
 kotlin = "1.9.10"
 kotlinx-json = "1.6.0"
@@ -46,8 +46,8 @@ resources-kmp = "0.4.0"
 detekt = "1.23.1"
 
 [libraries]
-arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
-arrow-continuations = { module = "io.arrow-kt:arrow-continuations", version.ref = "arrow" }
+#arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
+#arrow-continuations = { module = "io.arrow-kt:arrow-continuations", version.ref = "arrow" }
 arrow-fx-coroutines = { module = "io.arrow-kt:arrow-fx-coroutines", version.ref = "arrow" }
 flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
 suspendApp-core = { module = "io.arrow-kt:suspendapp", version.ref = "suspendApp" }
@@ -125,7 +125,7 @@ ktor-client = [
     "ktor-client-serialization"
 ]
 arrow = [
-    "arrow-core",
+#    "arrow-core",
     "arrow-fx-coroutines"
 ]
 

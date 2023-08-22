@@ -42,7 +42,7 @@ class Expression(
       model.prompt(
         prompt = Prompt(prelude.messages + messages + instructionMessages.messages),
         scope = scope,
-        serializer = ReplacedValues.serializer()
+        serializer = ReplacedValues.serializer(),
       )
     logger.info { "replaced: ${values.replacements.joinToString { it.key }}" }
     val replacedTemplate =

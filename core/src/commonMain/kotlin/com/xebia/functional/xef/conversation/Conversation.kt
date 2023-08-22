@@ -9,11 +9,14 @@ import com.xebia.functional.xef.llm.models.images.ImagesGenerationResponse
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.store.ConversationId
 import com.xebia.functional.xef.store.VectorStore
-import kotlin.jvm.JvmSynthetic
+import com.xebia.functional.xef.tracing.Dispatcher
+import com.xebia.functional.xef.tracing.Event
+import com.xebia.functional.xef.tracing.createDispatcherWithLog
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.KSerializer
 import kotlinx.uuid.UUID
 import kotlinx.uuid.generateUUID
+import kotlin.jvm.JvmSynthetic
 
 interface Conversation : AutoClose, AutoCloseable {
 
@@ -22,6 +25,12 @@ interface Conversation : AutoClose, AutoCloseable {
   val conversationId: ConversationId?
 
   val conversation: Conversation
+
+  val dispatcher: Dispatcher
+
+  fun track(event: Event){
+    dispatcher(event)
+  }
 
   @AiDsl
   @JvmSynthetic
@@ -45,7 +54,7 @@ interface Conversation : AutoClose, AutoCloseable {
   suspend fun <A> ChatWithFunctions.prompt(
     prompt: Prompt,
     function: CFunction,
-    serializer: (String) -> A
+    serializer: (String) -> A,
   ): A = prompt(prompt, conversation, function, serializer)
 
   @AiDsl
@@ -76,20 +85,22 @@ interface Conversation : AutoClose, AutoCloseable {
     prompt: Prompt,
     numberImages: Int = 1,
     size: String = "1024x1024"
-  ): ImagesGenerationResponse = images(prompt, store, numberImages, size)
+  ): ImagesGenerationResponse = images(prompt, store, numberImages, size, conversation.dispatcher)
 
   companion object {
 
     operator fun invoke(
       store: VectorStore,
+      dispatcher: Dispatcher = createDispatcherWithLog(),
       conversationId: ConversationId? = ConversationId(UUID.generateUUID().toString())
-    ): PlatformConversation = PlatformConversation.create(store, conversationId)
+    ): PlatformConversation = PlatformConversation.create(store, conversationId, dispatcher)
 
     @JvmSynthetic
     suspend operator fun <A> invoke(
       store: VectorStore,
+      dispatcher: Dispatcher = createDispatcherWithLog(),
       conversationId: ConversationId? = ConversationId(UUID.generateUUID().toString()),
       block: suspend PlatformConversation.() -> A
-    ): A = block(invoke(store, conversationId))
+    ): A = block(invoke(store, dispatcher, conversationId))
   }
 }

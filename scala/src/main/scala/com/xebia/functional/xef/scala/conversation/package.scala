@@ -4,18 +4,18 @@ import com.xebia.functional.xef.conversation.llm.openai.*
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.conversation.{FromJson, JVMConversation}
 import com.xebia.functional.xef.llm.*
+import com.xebia.functional.xef.tracing.*
 import com.xebia.functional.xef.llm.models.images.*
 import com.xebia.functional.xef.store.{ConversationId, LocalVectorStore, VectorStore}
 import io.circe.Decoder
 import io.circe.parser.parse
 import org.reactivestreams.{Subscriber, Subscription}
-
 import java.util
 import java.util.UUID
 import java.util.concurrent.LinkedBlockingQueue
 import scala.jdk.CollectionConverters.*
 
-class ScalaConversation(store: VectorStore, conversationId: Option[ConversationId]) extends JVMConversation(store, conversationId.orNull)
+class ScalaConversation(store: VectorStore, conversationId: Option[ConversationId], dispatcher: Dispatch[Event]) extends JVMConversation(store, conversationId.orNull, dispatcher)
 
 def addContext(context: Array[String])(using conversation: ScalaConversation): Unit =
   conversation.addContextFromArray(context).join()
@@ -78,5 +78,6 @@ def images(
 
 def conversation[A](
     block: ScalaConversation ?=> A,
-    conversationId: Option[ConversationId] = Some(ConversationId(UUID.randomUUID().toString))
-): A = block(using ScalaConversation(LocalVectorStore(OpenAI.FromEnvironment.DEFAULT_EMBEDDING), conversationId))
+    conversationId: Option[ConversationId] = Some(ConversationId(UUID.randomUUID().toString)),
+    dispatcher: Dispatch[Event]
+): A = block(using ScalaConversation(LocalVectorStore(OpenAI.FromEnvironment.DEFAULT_EMBEDDING), conversationId, dispatcher))

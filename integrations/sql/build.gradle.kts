@@ -11,6 +11,7 @@ dependencies { detektPlugins(project(":detekt-rules")) }
 
 repositories {
     mavenCentral()
+    mavenLocal()
 }
 
 java {

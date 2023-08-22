@@ -2,8 +2,11 @@ package com.xebia.functional.xef.conversation.expressions
 
 import com.xebia.functional.xef.conversation.Description
 import com.xebia.functional.xef.conversation.llm.openai.OpenAI
+import com.xebia.functional.xef.conversation.llm.openai.log
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.lang.Infer
+import com.xebia.functional.xef.tracing.Tracker
+import com.xebia.functional.xef.tracing.createDispatcher
 import kotlinx.serialization.Serializable
 
 enum class Direction {
@@ -118,8 +121,8 @@ data class ScenePrompt(
 )
 
 suspend fun main() {
-  OpenAI.conversation {
-    val infer = Infer(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, conversation)
+  OpenAI.conversation(dispatcher = createDispatcher(OpenAI.log, Tracker.Default)) {
+    val infer = Infer(OpenAI().DEFAULT_SERIALIZATION, this)
     val prompt: ScenePrompt =
       infer(
         Prompt(

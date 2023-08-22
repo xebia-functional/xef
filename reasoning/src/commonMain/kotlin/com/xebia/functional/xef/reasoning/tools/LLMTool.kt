@@ -7,6 +7,9 @@ import com.xebia.functional.xef.prompt.templates.assistant
 import com.xebia.functional.xef.prompt.templates.system
 import com.xebia.functional.xef.prompt.templates.user
 import com.xebia.functional.xef.reasoning.internals.callModel
+import com.xebia.functional.xef.tracing.Dispatcher
+import com.xebia.functional.xef.tracing.ToolEvent
+import com.xebia.functional.xef.tracing.createDispatcher
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlin.jvm.JvmOverloads
 import kotlin.jvm.JvmStatic
@@ -16,13 +19,10 @@ abstract class LLMTool(
   override val description: String,
   private val model: Chat,
   private val scope: Conversation,
-  private val instructions: List<String> = emptyList()
+  private val instructions: List<String> = emptyList(),
 ) : Tool {
-  private val logger = KotlinLogging.logger {}
 
   override suspend operator fun invoke(input: String): String {
-    logger.info { "🔧 $name[$input]" }
-
     return callModel(
       model,
       scope,
@@ -35,7 +35,9 @@ abstract class LLMTool(
           +user("input: $input")
           +assistant("output:")
         }
-    )
+    ).also {
+      scope.track(ToolEvent("🔧 $name[$input]"))
+    }
   }
 
   companion object {
@@ -46,7 +48,7 @@ abstract class LLMTool(
       description: String,
       model: Chat,
       scope: Conversation,
-      instructions: List<String> = emptyList()
+      instructions: List<String> = emptyList(),
     ): LLMTool = object : LLMTool(name, description, model, scope, instructions) {}
   }
 }

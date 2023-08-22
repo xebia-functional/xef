@@ -8,7 +8,10 @@ plugins {
 
 dependencies { detektPlugins(project(":detekt-rules")) }
 
-repositories { mavenCentral() }
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
 
 java {
     sourceCompatibility = JavaVersion.VERSION_11

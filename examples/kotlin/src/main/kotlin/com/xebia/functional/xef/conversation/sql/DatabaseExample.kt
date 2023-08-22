@@ -1,26 +1,26 @@
 package com.xebia.functional.xef.conversation.sql
 
-import arrow.core.raise.catch
+import arrow.core.Either.Companion.catch
 import com.xebia.functional.xef.conversation.llm.openai.OpenAI
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.sql.SQL
 import com.xebia.functional.xef.sql.jdbc.JdbcConfig
 
-val model = OpenAI().DEFAULT_CHAT
-
-val config =
-  JdbcConfig(
-    vendor = System.getenv("XEF_SQL_DB_VENDOR") ?: "mysql",
-    host = System.getenv("XEF_SQL_DB_HOST") ?: "localhost",
-    username = System.getenv("XEF_SQL_DB_USER") ?: "user",
-    password = System.getenv("XEF_SQL_DB_PASSWORD") ?: "password",
-    port = System.getenv("XEF_SQL_DB_PORT")?.toInt() ?: 3306,
-    database = System.getenv("XEF_SQL_DB_DATABASE") ?: "database",
-    model = model
-  )
 
 suspend fun main() =
   OpenAI.conversation {
+    val model = OpenAI().DEFAULT_CHAT
+    val config =
+      JdbcConfig(
+        vendor = System.getenv("XEF_SQL_DB_VENDOR") ?: "mysql",
+        host = System.getenv("XEF_SQL_DB_HOST") ?: "localhost",
+        username = System.getenv("XEF_SQL_DB_USER") ?: "user",
+        password = System.getenv("XEF_SQL_DB_PASSWORD") ?: "password",
+        port = System.getenv("XEF_SQL_DB_PORT")?.toInt() ?: 3306,
+        database = System.getenv("XEF_SQL_DB_DATABASE") ?: "database",
+        model = model
+      )
+
     SQL.fromJdbcConfig(config) {
       println("llmdb> Welcome to the LLMDB (An LLM interface to your SQL Database) !")
       println("llmdb> You can ask me questions about the database and I will try to answer them.")
@@ -35,7 +35,7 @@ suspend fun main() =
         val input = readln()
         if (input == "exit") break
         catch(
-          {
+          f = {
             addContext(*promptQuery(input).toTypedArray())
             val result =
               model.promptMessage(
@@ -55,7 +55,7 @@ suspend fun main() =
               )
             println("llmdb> $result")
           },
-          { exception ->
+          fe = { exception ->
             println("llmdb> ${exception.message}")
             exception.printStackTrace()
           }

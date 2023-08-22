@@ -6,7 +6,6 @@ import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.assistant
 import com.xebia.functional.xef.prompt.templates.system
 import com.xebia.functional.xef.prompt.templates.user
-import io.github.oshai.kotlinlogging.KotlinLogging
 
 class ToolSelection(
   private val model: ChatWithFunctions,
@@ -14,8 +13,6 @@ class ToolSelection(
   private val tools: List<Tool>,
   private val instructions: List<String> = emptyList()
 ) : Tool {
-
-  private val logger = KotlinLogging.logger {}
 
   override val name: String = "Tool Selection"
 
@@ -29,9 +26,9 @@ class ToolSelection(
   }
 
   suspend fun applyInferredTools(task: String): ToolsExecutionTrace {
-    logger.info { "🔍 Applying inferred tools for task: $task" }
+    scope.track(TaskEvent.ApplyingTool(task))
     val plan = createExecutionPlan(task)
-    logger.info { "🔍 Applying execution plan with reasoning: ${plan.reasoning}" }
+    scope.track(TaskEvent.ApplyingPlan(plan.reasoning))
     val stepsAndTools =
       plan.steps.mapNotNull { step ->
         val tool = tools.find { it.name == step.tool.name }
@@ -67,7 +64,7 @@ class ToolSelection(
     previousOutput: String,
     input: String,
   ): ToolsExecutionTrace.Completed {
-    logger.info { "🔍 Applying tool: ${tool.name} for step: ${step.reasoning}" }
+    scope.track(TaskEvent.ApplyingToolOnStep(tool.name, step.reasoning))
     val prompt =
       """|
       |Previous knowledge:
@@ -76,12 +73,13 @@ class ToolSelection(
       |$input
     """
         .trimMargin()
-    val output = tool.invoke(prompt)
+    val output = tool(prompt)
+    scope.track(Completed(step, output))
     return ToolsExecutionTrace.Completed(results = mapOf(step to output), output = output)
   }
 
   suspend fun createExecutionPlan(task: String): ToolsExecutionPlan {
-    logger.info { "🔍 Creating execution plan for task: $task" }
+    scope.track(TaskEvent.CreatingExecutionPlan(task))
 
     val messages: Prompt = Prompt {
       +system(

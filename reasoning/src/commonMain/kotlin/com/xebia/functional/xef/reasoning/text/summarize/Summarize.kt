@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.reasoning.text.summarize
 
-import arrow.fx.coroutines.parMap
+import arrow.fx.coroutines.parTraverse
 import com.xebia.functional.tokenizer.truncateText
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.Chat
@@ -10,7 +10,6 @@ import com.xebia.functional.xef.prompt.templates.steps
 import com.xebia.functional.xef.prompt.templates.system
 import com.xebia.functional.xef.prompt.templates.user
 import com.xebia.functional.xef.reasoning.tools.Tool
-import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlin.jvm.JvmField
 
 sealed class SummaryLength {
@@ -30,8 +29,6 @@ class Summarize(
   private val instructions: List<String> = emptyList(),
 ) : Tool {
 
-  private val logger = KotlinLogging.logger {}
-
   override val name: String = "Summarize"
   override val description: String = "Summarize text"
 
@@ -42,9 +39,7 @@ class Summarize(
     val maxContextLength: Int =
       model.modelType.maxContextLength - 1000 // magic padding for functions and memory
     val promptTokens: Int = model.modelType.encoding.countTokens(chunk)
-    logger.info {
-      "📝 Summarizing chunk with prompt tokens $promptTokens for length $summaryLength"
-    }
+    scope.track(SummarizingChunk(promptTokens,summaryLength))
     val remainingTokens: Int = maxContextLength - promptTokens
 
     val messages = Prompt {
@@ -71,7 +66,7 @@ class Summarize(
 
     return model.promptMessage(messages, scope).also {
       val tokens: Int = model.modelType.encoding.countTokens(it)
-      logger.info { "📝 Summarized chunk in tokens: $tokens" }
+      scope.track(SummarizedChunk(tokens))
     }
   }
 
@@ -90,14 +85,12 @@ class Summarize(
 
   tailrec suspend fun summarizeLargeText(text: String, summaryLength: SummaryLength): String {
     val tokens = model.modelType.encoding.countTokens(text)
-    logger.info {
-      "📚 Summarizing large text of tokens ${tokens} to approximately $summaryLength tokens"
-    }
+    scope.track(SummarizingText(tokens,summaryLength))
     // Split the text into chunks that are less than maxTokens
 
     val chunks = chunkText(text.replace("\n", " "))
 
-    logger.info { "📚 Split text into ${chunks.size} chunks" }
+    scope.track(SplitText(chunks.size))
 
     val length =
       if (summaryLength is SummaryLength.Bound)
@@ -105,9 +98,9 @@ class Summarize(
       else SummaryLength.Unbound()
 
     // For each chunk, get a summary in parallel
-    val chunkSummaries = chunks.parMap { chunk -> summarizeChunk(chunk, length) }
+    val chunkSummaries = chunks.parTraverse { chunk -> summarizeChunk(chunk, length) }
 
-    logger.info { "📚 Summarized ${chunks.size} chunks" }
+    scope.track(SummarizedChunks(chunkSummaries.size))
 
     // Join the chunk summaries into one text
     val joinedSummaries = chunkSummaries.joinToString(" ")

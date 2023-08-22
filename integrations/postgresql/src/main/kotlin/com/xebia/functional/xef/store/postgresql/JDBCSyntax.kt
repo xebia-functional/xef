@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.store.postgresql
 
-import arrow.core.raise.NullableRaise
-import arrow.core.raise.nullable
+import arrow.core.continuations.NullableRaise
+import arrow.core.continuations.nullable
 import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet

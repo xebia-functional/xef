@@ -27,7 +27,7 @@ fun autoClose(): AutoClose =
 
     override fun close() {
       finalizers
-        .get()
+        .value
         .fold<() -> Unit, Throwable?>(null) { acc, function ->
           acc.add(runCatching { function.invoke() }.exceptionOrNull())
         }

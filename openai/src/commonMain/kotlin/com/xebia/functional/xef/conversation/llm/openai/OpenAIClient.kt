@@ -3,16 +3,7 @@ package com.xebia.functional.xef.conversation.llm.openai
 import com.aallam.openai.api.BetaOpenAI
 import com.aallam.openai.api.LegacyOpenAI
 import com.aallam.openai.api.chat.*
-import com.aallam.openai.api.chat.ChatChunk as OpenAIChatChunk
-import com.aallam.openai.api.chat.ChatCompletionChunk as OpenAIChatCompletionChunk
-import com.aallam.openai.api.chat.ChatCompletionRequest as OpenAIChatCompletionRequest
-import com.aallam.openai.api.chat.ChatDelta as OpenAIChatDelta
-import com.aallam.openai.api.completion.Choice as OpenAIChoice
-import com.aallam.openai.api.completion.CompletionRequest as OpenAICompletionRequest
 import com.aallam.openai.api.completion.completionRequest
-import com.aallam.openai.api.core.Usage as OpenAIUsage
-import com.aallam.openai.api.embedding.Embedding as OpenAIEmbedding
-import com.aallam.openai.api.embedding.EmbeddingRequest as OpenAIEmbeddingRequest
 import com.aallam.openai.api.embedding.embeddingRequest
 import com.aallam.openai.api.image.ImageCreation
 import com.aallam.openai.api.image.ImageSize
@@ -20,7 +11,6 @@ import com.aallam.openai.api.image.imageCreation
 import com.aallam.openai.api.logging.LogLevel
 import com.aallam.openai.api.model.ModelId
 import com.aallam.openai.client.LoggingConfig
-import com.aallam.openai.client.OpenAI as OpenAIClient
 import com.aallam.openai.client.OpenAIHost
 import com.xebia.functional.tokenizer.Encoding
 import com.xebia.functional.tokenizer.ModelType
@@ -33,7 +23,6 @@ import com.xebia.functional.xef.llm.models.embeddings.Embedding
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingResult
 import com.xebia.functional.xef.llm.models.functions.CFunction
-import com.xebia.functional.xef.llm.models.functions.FunctionCall as FnCall
 import com.xebia.functional.xef.llm.models.images.ImageGenerationUrl
 import com.xebia.functional.xef.llm.models.images.ImagesGenerationRequest
 import com.xebia.functional.xef.llm.models.images.ImagesGenerationResponse
@@ -41,14 +30,27 @@ import com.xebia.functional.xef.llm.models.text.CompletionChoice
 import com.xebia.functional.xef.llm.models.text.CompletionRequest
 import com.xebia.functional.xef.llm.models.text.CompletionResult
 import com.xebia.functional.xef.llm.models.usage.Usage
+import com.xebia.functional.xef.tracing.Dispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
+import com.aallam.openai.api.chat.ChatChunk as OpenAIChatChunk
+import com.aallam.openai.api.chat.ChatCompletionChunk as OpenAIChatCompletionChunk
+import com.aallam.openai.api.chat.ChatCompletionRequest as OpenAIChatCompletionRequest
+import com.aallam.openai.api.chat.ChatDelta as OpenAIChatDelta
+import com.aallam.openai.api.completion.Choice as OpenAIChoice
+import com.aallam.openai.api.completion.CompletionRequest as OpenAICompletionRequest
+import com.aallam.openai.api.core.Usage as OpenAIUsage
+import com.aallam.openai.api.embedding.Embedding as OpenAIEmbedding
+import com.aallam.openai.api.embedding.EmbeddingRequest as OpenAIEmbeddingRequest
+import com.aallam.openai.client.OpenAI as OpenAIClient
+import com.xebia.functional.xef.llm.models.functions.FunctionCall as FnCall
 
 class OpenAIModel(
   private val openAI: OpenAI,
   override val name: String,
-  override val modelType: ModelType
+  override val modelType: ModelType,
+  private val dispatcher: Dispatcher,
 ) : Chat, ChatWithFunctions, Images, Completion, Embeddings, AutoCloseable {
 
   private val client =
@@ -64,7 +66,9 @@ class OpenAIModel(
     fun completionChoice(it: OpenAIChoice): CompletionChoice =
       CompletionChoice(it.text, it.index, null, it.finishReason.value)
 
-    val response = client.completion(toCompletionRequest(request))
+    val response = client.completion(
+      toCompletionRequest(request).also { dispatcher(OpenAiEvent.Completion.Request(it, tokensFromMessages(listOf(Message(role = Role.ASSISTANT, content = request.prompt, name))))) }
+    ).also { dispatcher(OpenAiEvent.Completion.Response(it)) }
     return CompletionResult(
       id = response.id,
       `object` = response.model.id,
@@ -92,7 +96,9 @@ class OpenAIModel(
         index = choice.index,
       )
 
-    val response = client.chatCompletion(toChatCompletionRequest(request))
+    val request = toChatCompletionRequest(request).also { dispatcher(OpenAiEvent.Chat.Request(it, tokensFromMessages(request.messages))) }
+    val response = client.chatCompletion(request).also { dispatcher(OpenAiEvent.Chat.Response(it)) }
+
     return ChatCompletionResponse(
       id = response.id,
       `object` = response.model.id,
@@ -125,7 +131,9 @@ class OpenAIModel(
         usage = usage(response.usage)
       )
 
-    return client.chatCompletions(toChatCompletionRequest(request)).map { chatCompletionChunk(it) }
+    val request = toChatCompletionRequest(request).also { dispatcher(OpenAiEvent.Chat.Request(it, tokensFromMessages(request.messages))) }
+
+    return client.chatCompletions(request).map { chatCompletionChunk(it.also { dispatcher(OpenAiEvent.Chat.Chunk(it)) }) }
   }
 
   override suspend fun createChatCompletionWithFunctions(
@@ -156,7 +164,7 @@ class OpenAIModel(
       user = request.user
       functionCall =
         request.functionCall?.get("name")?.let { FunctionMode.Named(it) } ?: FunctionMode.Auto
-    }
+    }.also { dispatcher(OpenAiEvent.Chat.WithFunctionRequest(it, tokensFromMessages(request.messages))) }
 
     fun fromOpenAI(it: ChatMessage): MessageWithFunctionCall =
       MessageWithFunctionCall(
@@ -183,7 +191,8 @@ class OpenAIModel(
         usage = usage(response.usage)
       )
 
-    return fromResponse(client.chatCompletion(openAIRequest))
+    val response = client.chatCompletion(openAIRequest).also { dispatcher(OpenAiEvent.Chat.WithFunctionResponse(it)) }
+    return fromResponse(response)
   }
 
   override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult {
@@ -191,12 +200,12 @@ class OpenAIModel(
       model = ModelId(request.model)
       input = request.input
       user = request.user
-    }
+    }.also { dispatcher(OpenAiEvent.Embedding.Request(it)) }
 
     fun createEmbedding(it: OpenAIEmbedding): Embedding =
       Embedding(it.embedding.map { it.toFloat() })
 
-    val response = client.embeddings(clientRequest)
+    val response = client.embeddings(clientRequest).also { dispatcher(OpenAiEvent.Embedding.Response(it)) }
     return EmbeddingResult(
       data = response.embeddings.map { createEmbedding(it) },
       usage = usage(response.usage)
@@ -210,9 +219,8 @@ class OpenAIModel(
       n = request.numberImages
       size = ImageSize(request.size)
       user = request.user
-    }
-
-    val response = client.imageURL(clientRequest)
+    }.also { dispatcher(OpenAiEvent.Image.Request(it)) }
+    val response = client.imageURL(clientRequest).also { dispatcher(OpenAiEvent.Image.Response(it)) }
     return ImagesGenerationResponse(data = response.map { ImageGenerationUrl(it.url) })
   }
 
@@ -296,9 +304,9 @@ class OpenAIModel(
     fun Encoding.countTokensFromMessages(tokensPerMessage: Int, tokensPerName: Int): Int =
       messages.sumOf { message ->
         countTokens(message.role.name) +
-          countTokens(message.content) +
-          tokensPerMessage +
-          tokensPerName
+                countTokens(message.content) +
+                tokensPerMessage +
+                tokensPerName
       } + 3
 
     fun fallBackTo(fallbackModel: Chat, paddingTokens: Int): Int {

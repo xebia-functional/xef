@@ -1,6 +1,7 @@
 package com.xebia.functional.xef.llm
 
 import arrow.fx.coroutines.parMap
+import arrow.fx.coroutines.parTraverse
 import com.xebia.functional.xef.llm.models.embeddings.Embedding
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingResult
@@ -18,7 +19,7 @@ interface Embeddings : LLM {
     else
       texts
         .chunked(chunkSize ?: 400)
-        .parMap { createEmbeddings(EmbeddingRequest(name, texts, requestConfig.user.id)).data }
+        .parTraverse { createEmbeddings(EmbeddingRequest(name, texts, requestConfig.user.id)).data }
         .flatten()
 
   suspend fun embedQuery(text: String, requestConfig: RequestConfig): List<Embedding> =

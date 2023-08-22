@@ -21,7 +21,8 @@ detekt {
 
 
 repositories {
-  mavenCentral()
+    mavenCentral()
+    mavenLocal()
 }
 
 java {

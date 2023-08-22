@@ -2,11 +2,13 @@ package com.xebia.functional.xef.conversation
 
 import com.xebia.functional.xef.store.ConversationId
 import com.xebia.functional.xef.store.VectorStore
+import com.xebia.functional.xef.tracing.Dispatcher
 
 class NativeConversation(
   override val store: VectorStore,
   override val conversationId: ConversationId?,
-) : PlatformConversation(store, conversationId) {
+  override val dispatcher: Dispatcher
+) : PlatformConversation(store, conversationId, dispatcher) {
 
   override val conversation: Conversation = this
 

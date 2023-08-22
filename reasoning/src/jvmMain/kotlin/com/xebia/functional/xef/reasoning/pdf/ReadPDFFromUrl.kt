@@ -27,8 +27,6 @@ constructor(
   private val summaryLength: SummaryLength = SummaryLength.DEFAULT
 ) : Tool {
 
-  private val logger = KotlinLogging.logger {}
-
   override val name: String = "Read PDF from URL"
 
   override val description: String = "Reads the content of a PDF as String from a URL"
@@ -56,7 +54,7 @@ constructor(
         serializer = ExtractedUrl.serializer()
       )
 
-    logger.info { "Reading url ${extracted.url}" }
+    scope.track(ReadPDFTracing.ReadingUrl(extracted.url))
 
     val docs = pdf(extracted.url)
     val summary = Summarize(chat, scope, summaryLength).invoke(docs.joinToString(" "))

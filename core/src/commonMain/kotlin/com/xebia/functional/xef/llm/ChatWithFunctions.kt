@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.llm
 
+import arrow.core.Either.Companion.catch
 import arrow.core.nonFatalOrThrow
-import arrow.core.raise.catch
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
@@ -138,14 +138,14 @@ interface ChatWithFunctions : Chat {
     val logger = KotlinLogging.logger {}
     (0 until maxDeserializationAttempts).forEach { currentAttempts ->
       val result = agent().firstOrNull() ?: throw AIError.NoResponse()
-      catch({
+      catch(f = {
         return@tryDeserialize serializer(result)
-      }) { e: Throwable ->
+      }, fe = { e: Throwable ->
         logger.warn { "Failed to deserialize result: $result with exception ${e.message}" }
         if (currentAttempts == maxDeserializationAttempts)
           throw AIError.JsonParsing(result, maxDeserializationAttempts, e.nonFatalOrThrow())
         // TODO else log attempt ?
-      }
+      })
     }
     throw AIError.NoResponse()
   }

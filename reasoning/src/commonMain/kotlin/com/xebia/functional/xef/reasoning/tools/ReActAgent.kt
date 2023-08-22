@@ -8,7 +8,8 @@ import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.assistant
 import com.xebia.functional.xef.prompt.templates.system
 import com.xebia.functional.xef.prompt.templates.user
-import io.github.oshai.kotlinlogging.KotlinLogging
+import com.xebia.functional.xef.reasoning.tools.ReactAgentEvents.*
+import com.xebia.functional.xef.tracing.Event
 import kotlinx.serialization.Serializable
 
 class ReActAgent(
@@ -17,8 +18,6 @@ class ReActAgent(
   private val tools: List<Tool>,
   private val maxIterations: Int = 10,
 ) {
-
-  private val logger = KotlinLogging.logger {}
 
   private suspend fun createExecutionPlan(
     input: Prompt,
@@ -56,18 +55,14 @@ class ReActAgent(
       serializer = AgentAction.serializer(),
       prompt =
         Prompt {
-          +system(
-            "You are an expert in tool selection. You are given a `input` and a `chain` of thoughts and observations."
-          )
+          +system("You are an expert in tool selection. You are given a `input` and a `chain` of thoughts and observations.")
           +user("input:")
           +input
           +assistant("chain:")
           +chain.chainToMessages()
           +assistant("I can only use this tools:")
           +tools.toolsToMessages()
-          +assistant(
-            "I will not repeat the `toolInput` if the same one produced no satisfactory results in the observations"
-          )
+          +assistant("I will not repeat the `toolInput` if the same one produced no satisfactory results in the observations")
           +user("Provide the next tool to use and the `toolInput` for the tool")
         }
     )
@@ -125,7 +120,7 @@ class ReActAgent(
   ): String {
 
     if (currentIteration > maxIterations) {
-      logger.info { "🤷‍ Max iterations reached" }
+      scope.track(MaxIterationsReached(maxIterations))
       return "🤷‍ Max iterations reached"
     }
 
@@ -133,12 +128,13 @@ class ReActAgent(
 
     return when (plan) {
       is AgentAction -> {
-        logger.info { "🤔 ${plan.thought}" }
-        logger.info { "🛠 ${plan.tool}[${plan.toolInput}]" }
+        scope.track(Thinking(plan.thought) )
+        scope.track(SearchingTool(plan.tool,plan.toolInput))
+
         val observation: String? =
           tools.find { it.name.equals(plan.tool, ignoreCase = true) }?.invoke(plan.toolInput)
         if (observation == null) {
-          logger.info { "🤷‍ Could not find ${plan.tool}" }
+          scope.track(ToolNotFound(plan.tool))
           runRec(
             input,
             chain +
@@ -150,7 +146,7 @@ class ReActAgent(
             currentIteration + 1
           )
         } else {
-          logger.info { "👀 $observation" }
+          scope.track(Observation(observation))
           runRec(
             input,
             chain +
@@ -163,7 +159,7 @@ class ReActAgent(
         }
       }
       is AgentFinish -> {
-        logger.info { "✅ ${plan.finalAnswer}" }
+        scope.track(FinalAnswer(plan.finalAnswer))
         plan.finalAnswer
       }
     }
@@ -171,7 +167,7 @@ class ReActAgent(
 
   suspend fun run(input: Prompt): String {
     val thought = createInitialThought(input)
-    logger.info { "🤔 ${thought.thought}" }
+    scope.track(Thinking(thought.thought))
     return runRec(input, listOf(ThoughtObservation("I should get started", thought.thought)), 0)
   }
 }
@@ -210,3 +206,12 @@ enum class AgentChoiceType {
 @Serializable data class Thought(val thought: String)
 
 data class ThoughtObservation(val thought: String, val observation: String)
+
+sealed interface ReactAgentEvents: Event {
+  data class MaxIterationsReached(val maxIterations: Int) : ReactAgentEvents
+  data class Thinking(val though : String): ReactAgentEvents
+  data class Observation(val value : String): ReactAgentEvents
+  data class FinalAnswer(val answer : String): ReactAgentEvents
+  data class ToolNotFound(val tool: String) : ReactAgentEvents
+  data class SearchingTool(val tool : String, val input : String): ReactAgentEvents
+}

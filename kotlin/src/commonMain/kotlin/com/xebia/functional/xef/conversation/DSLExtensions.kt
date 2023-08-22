@@ -3,6 +3,7 @@ package com.xebia.functional.xef.conversation
 import com.xebia.functional.xef.llm.Embeddings
 import com.xebia.functional.xef.store.LocalVectorStore
 import com.xebia.functional.xef.store.VectorStore
+import com.xebia.functional.xef.tracing.Dispatcher
 
 /**
  * Executes a conversation with the given embeddings and vector store.
@@ -14,6 +15,7 @@ import com.xebia.functional.xef.store.VectorStore
  */
 suspend inline fun <A> conversation(
   embeddings: Embeddings,
+  dispatcher: Dispatcher,
   store: VectorStore = LocalVectorStore(embeddings),
   noinline block: suspend Conversation.() -> A
-): A = block(Conversation(store))
+): A = block(Conversation(store, dispatcher))

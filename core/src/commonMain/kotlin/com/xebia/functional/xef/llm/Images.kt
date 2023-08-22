@@ -4,6 +4,9 @@ import com.xebia.functional.xef.llm.models.images.ImagesGenerationRequest
 import com.xebia.functional.xef.llm.models.images.ImagesGenerationResponse
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.store.VectorStore
+import com.xebia.functional.xef.tracing.Dispatcher
+import com.xebia.functional.xef.tracing.ImagesRequest
+import com.xebia.functional.xef.tracing.ImagesResponse
 
 interface Images : LLM {
   suspend fun createImages(request: ImagesGenerationRequest): ImagesGenerationResponse
@@ -20,7 +23,8 @@ interface Images : LLM {
     prompt: Prompt,
     context: VectorStore,
     numberImages: Int = 1,
-    size: String = "1024x1024"
+    size: String = "1024x1024",
+    dispatcher: Dispatcher
   ): ImagesGenerationResponse {
     val request =
       ImagesGenerationRequest(
@@ -29,6 +33,7 @@ interface Images : LLM {
         size = size,
         user = prompt.configuration.user
       )
-    return createImages(request)
+    dispatcher(ImagesRequest(prompt = prompt.messages, numberImages = numberImages, size = size))
+    return createImages(request).also { dispatcher(ImagesResponse(it.data)) }
   }
 }

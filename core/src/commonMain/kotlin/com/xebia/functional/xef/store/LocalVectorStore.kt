@@ -45,7 +45,7 @@ private constructor(private val embeddings: Embeddings, private val state: Atomi
   }
 
   override suspend fun memories(conversationId: ConversationId, limitTokens: Int): List<Memory> {
-    val memories = state.get().orderedMemories[conversationId]
+    val memories = state.value.orderedMemories[conversationId]
     return memories
       .orEmpty()
       .sortedByDescending { it.timestamp }
@@ -67,7 +67,7 @@ private constructor(private val embeddings: Embeddings, private val state: Atomi
   }
 
   override suspend fun similaritySearchByVector(embedding: Embedding, limit: Int): List<String> {
-    val state0 = state.get()
+    val state0 = state.value
     return state0.documents
       .asSequence()
       .mapNotNull { doc -> state0.precomputedEmbeddings[doc]?.let { doc to it } }

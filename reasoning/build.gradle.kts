@@ -2,7 +2,10 @@
 
 import org.jetbrains.dokka.gradle.DokkaTask
 
-repositories { mavenCentral() }
+repositories {
+  mavenCentral()
+  mavenLocal()
+}
 
 plugins {
     base

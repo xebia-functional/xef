@@ -9,6 +9,7 @@ import com.xebia.functional.xef.llm.models.images.ImagesGenerationResponse
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.store.ConversationId
 import com.xebia.functional.xef.store.VectorStore
+import com.xebia.functional.xef.tracing.Dispatcher
 import java.util.concurrent.CompletableFuture
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -22,6 +23,7 @@ actual abstract class PlatformConversation
 actual constructor(
   store: VectorStore,
   conversationId: ConversationId?,
+  dispatcher: Dispatcher
 ) : Conversation, AutoClose, AutoCloseable {
 
   val coroutineScope = CoroutineScope(SupervisorJob())
@@ -97,8 +99,8 @@ actual constructor(
       .asCompletableFuture()
 
   actual companion object {
-    actual fun create(store: VectorStore, conversationId: ConversationId?): PlatformConversation =
-      JVMConversation(store, conversationId)
+    actual fun create(store: VectorStore, conversationId: ConversationId?, dispatcher: Dispatcher): PlatformConversation =
+      JVMConversation(store, conversationId, dispatcher)
   }
 
   override fun close() {
