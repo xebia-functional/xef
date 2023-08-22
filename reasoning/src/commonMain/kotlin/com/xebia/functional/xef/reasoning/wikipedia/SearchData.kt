@@ -4,7 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Search(
+data class SearchData(
   val title: String,
   @SerialName("pageid") val pageId: Int,
   @SerialName("size") val size: Int,

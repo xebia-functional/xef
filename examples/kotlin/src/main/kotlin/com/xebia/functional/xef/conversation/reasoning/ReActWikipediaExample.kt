@@ -1,16 +1,14 @@
-package com.xebia.functional.xef.auto.reasoning
+package com.xebia.functional.xef.conversation.reasoning
 
-import com.xebia.functional.xef.auto.llm.openai.OpenAI
-import com.xebia.functional.xef.auto.llm.openai.conversation
-import com.xebia.functional.xef.llm.models.chat.Message
+import com.xebia.functional.xef.conversation.llm.openai.OpenAI
+import com.xebia.functional.xef.prompt.Prompt
+import com.xebia.functional.xef.prompt.templates.user
 import com.xebia.functional.xef.reasoning.tools.LLMTool
 import com.xebia.functional.xef.reasoning.tools.ReActAgent
-import com.xebia.functional.xef.reasoning.wikipedia.SearchWikipedia
-import com.xebia.functional.xef.reasoning.wikipedia.SearchWikipediaByPageId
-import com.xebia.functional.xef.reasoning.wikipedia.SearchWikipediaByTitle
+import com.xebia.functional.xef.reasoning.wikipedia.*
 
 suspend fun main() {
-  conversation {
+  OpenAI.conversation {
     val model = OpenAI().DEFAULT_CHAT
     val serialization = OpenAI().DEFAULT_SERIALIZATION
     val math =
@@ -33,11 +31,11 @@ suspend fun main() {
       )
     val result =
       reActAgent.run(
-        listOf(
-          Message.userMessage {
+        Prompt {
+          +user(
             "Find and multiply the number of human bones by the number of Metallica albums"
-          }
-        )
+          )
+        }
       )
     println(result)
   }
