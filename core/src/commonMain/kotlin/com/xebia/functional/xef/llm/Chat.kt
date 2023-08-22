@@ -70,7 +70,7 @@ interface Chat : LLM {
         temperature = adaptedPrompt.configuration.temperature,
         maxTokens = adaptedPrompt.configuration.minResponseTokens,
         functions = listOfNotNull(adaptedPrompt.function),
-        functionCall = mapOf("name" to (adaptedPrompt.function?.name ?: ""))
+        functionCall = adaptedPrompt.function?.let { mapOf("name" to (it.name)) }
       )
 
     return MemoryManagement.run {
