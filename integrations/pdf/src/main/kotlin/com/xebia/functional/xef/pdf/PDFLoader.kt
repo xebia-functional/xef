@@ -11,6 +11,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
+import org.apache.pdfbox.Loader
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.text.PDFTextStripper
 import java.io.File
@@ -38,7 +39,7 @@ suspend fun pdf(
 
 class PDFLoader(private val file: File) : BaseLoader {
   override suspend fun load(): List<String> {
-    val doc = PDDocument.load(file)
+    val doc = Loader.loadPDF(file)
     return doc.use {
       val stripper = PDFTextStripper()
       stripper.sortByPosition = true
