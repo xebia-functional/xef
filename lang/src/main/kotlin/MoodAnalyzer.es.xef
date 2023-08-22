@@ -1,0 +1,33 @@
+ai:
+  versión: 1.0.1
+  importaciones: [SpanishMappingModule]
+
+  puntoEntrada: funciónPrincipal
+
+  argumentos:
+    nombreUsuario: Cadena
+    tipoDistracciónPreferido: ['curiosidad', 'broma', 'cita']
+
+  jvm:importar:
+    mensajeConfortante: com.example.MoodBoosters.getComfortingMessage
+
+  esHumorPositivo (respuesta):
+    respuesta en ["feliz", "emocionado", "exaltado"]
+
+  funciónPrincipal:
+    sistema: "¡Hola, {{nombreUsuario}}! ¿Cómo te sientes hoy?"
+    entrada: humor
+    asistente:
+      si esHumorPositivo(humor):
+        "¡Qué bueno escuchar eso, {{nombreUsuario}}!"
+      sino:
+        "Estoy aquí para ayudarte. ¿Quieres un consejo o una {{tipoDistracciónPreferido}}?"
+
+    entrada: respuesta
+    asistente:
+      si respuesta == "consejo":
+        mensaje:
+          inferir proporcionar_consejo_para_humor:
+            contextoHumor: humor
+      sino:
+        "Vale, {{nombreUsuario}}, dime cómo puedo ayudarte."

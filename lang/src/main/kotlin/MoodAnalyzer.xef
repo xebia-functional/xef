@@ -1,0 +1,53 @@
+ai:
+  version: 1.2.9
+  imports: [TriviaBase]  # Importing another AI program, making its exported items available.
+  entryPoint: mainFunction  # Specifies which function should be called when this program is run.
+
+  # The AI program accepts arguments, which are inferred at the start or passed during invocation.
+  arguments:
+    userName: String  # A basic type constraint.
+    preferredDistractionType: ['trivia', 'joke', 'quote']  # A list constraint, a form of dependent typing.
+
+  # Importing a method from the JVM. This allows calling JVM functions directly.
+  jvm: import com.example.MoodBoosters.getComfortingMessage as comfortingMessage
+
+  # A simple function that checks if a mood is positive.
+  isPositiveMood (response):
+    response in ["happy", "excited", "elated"]
+
+  # The main function that drives the conversation flow.
+  mainFunction:
+    system: "Welcome, {{userName}}! How are you feeling today?"  # System-initiated message using an argument.
+    input: mood  # Accepting input from the user.
+    assistant:
+      # Conditionally responding based on user's mood.
+      if isPositiveMood(mood):
+        "It's wonderful to hear you're feeling positive, {{userName}}!"
+      if mood == "sad":
+        message: comfortingMessage  # Calling a JVM function directly.
+        message:
+          infer provide_comforting_advice:  # Requesting inference. This could modify the behavior of the LLM.
+            moodContext: "sad"
+      if mood == "anxious":
+        "It's okay to feel anxious. Here's a tip: Take five deep breaths and try to relax. Would that help?"
+      else:
+        "I'm here for you. Would you like some advice or a {{preferredDistractionType}}?"
+
+    input: response
+    assistant:
+      # Further branching based on user's response.
+      if response == "advice":
+        message:
+          infer provide_advice_for_mood:  # Another inference request, this time for advice.
+            moodContext: mood
+      if response == preferredDistractionType:
+        # A loop using imported trivia questions.
+        loop TriviaBase.triviaList as trivia:
+          message: trivia.question
+          user input: answer
+          if TriviaBase.isTriviaAnswerCorrect(trivia.question, answer):
+            "Correct! Would you like another one?"
+          else:
+            "Not quite right. The correct answer is {{trivia.answer}}. Would you like to try another {{preferredDistractionType}}?"
+      else:
+        "Alright, {{userName}}, let me know if there's any other way I can assist you."

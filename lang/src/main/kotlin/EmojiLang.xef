@@ -1,0 +1,15 @@
+ai:
+  version: 1.0.0
+  exports: [mappings]
+
+  mappings:
+    version: 🌐
+    imports: 📦
+    entryPoint: 🚪
+    arguments: 🎤
+    jvm:import: 🔄
+    system: 🤖
+    assistant: 🧠
+    input: 📥
+    loop: 🔁
+    infer: 🤯

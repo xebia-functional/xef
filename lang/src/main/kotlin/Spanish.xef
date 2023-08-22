@@ -1,0 +1,26 @@
+ai:
+  version: 1.0.0
+  exports: [mappings]
+
+  mappings:
+    version: versión
+    imports: importaciones
+    entryPoint: puntoEntrada
+    arguments: argumentos
+    jvm:import: jvm:importar
+    system: sistema
+    assistant: asistente
+    input: entrada
+    loop: bucle
+    infer: inferir
+    String: Cadena
+    if: si
+    else: sino
+    else if: sino si
+    in: en
+    as: como
+    is: es
+    not: no
+    and: y
+    or: o
+

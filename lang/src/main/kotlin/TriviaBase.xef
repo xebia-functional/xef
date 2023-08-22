@@ -1,0 +1,19 @@
+ai:
+  version: 1.0.1
+  exports: [triviaList, isTriviaAnswerCorrect]  # Items that can be imported by other AI programs.
+
+  # A simple data type that contains a list of trivia questions and answers.
+  triviaList:
+    - question: "What planet is known as the Red Planet?"
+      answer: "Mars"
+    - question: "Which metal is heavier, silver or gold?"
+      answer: "Gold"
+    - question: "How many legs do spiders typically have?"
+      answer: "8"
+
+  # A function that checks if the given answer to a question is correct.
+  isTriviaAnswerCorrect (question, userAnswer):
+    for trivia in triviaList:  # Looping over a collection. Current item is referred to by name.
+      if trivia.question == question:
+        if userAnswer == trivia.answer: true  # Direct return without explicit return keyword.
+        else: false

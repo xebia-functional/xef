@@ -95,3 +95,7 @@ include("detekt-rules")
 project(":detekt-rules").projectDir = file("detekt-rules")
 //</editor-fold>
 
+//<editor-fold desc="Kotlin">
+include("lang")
+project(":lang").projectDir = file("lang")
+//</editor-fold>

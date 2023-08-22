@@ -1,0 +1,34 @@
+ai:
+  version: 1.0.1
+  imports: [EmojiLang]
+  mappings : mappings
+
+  🚪: mainFunction
+
+  🎤:
+    userName: 📜
+    preferredDistractionType: ['🤔', '😂', '💬']
+
+  🔄:
+    comfortingMessage: com.example.MoodBoosters.getComfortingMessage
+
+  isPositiveMood (response):
+    response in ["🙂", "😄", "🥳"]
+
+  mainFunction:
+    🤖: "Hello, {{userName}}! How's your day?"
+    📥: mood
+    🧠:
+      if isPositiveMood(mood):
+        "Glad to hear, {{userName}}!"
+      else:
+        "I'm here for you. Do you want advice or a {{preferredDistractionType}}?"
+
+    📥: response
+    🧠:
+      if response == "🗂":
+        message:
+          🤯 provide_advice_for_mood:
+            moodContext: mood
+      else:
+        "Okay, {{userName}}, let me know how I can help!"
