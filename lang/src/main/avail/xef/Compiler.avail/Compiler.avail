@@ -1,0 +1,10 @@
+/*
+ * Compiler.avail
+ */
+
+Module "Compiler"
+Versions
+	"Avail-1.6.1"
+Extends
+	"Avail"
+Body

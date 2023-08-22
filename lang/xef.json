@@ -1,0 +1,54 @@
+{
+	"id": "f9efd5a9-7781-4952-9769-a1dce670e3e3",
+	"darkMode": true,
+	"serializationVersion": 1,
+	"name": "xef",
+	"repositoryLocation": 
+	{
+		"locationType": "availRepositories",
+		"scheme": "FILE",
+		"path": ""
+	},
+	"disallow": 
+	[
+	],
+	"roots": 
+	[
+		{
+			"id": "fdb3922f-98a7-46ba-81ff-a10d4ebf666a",
+			"name": "avail",
+			"editable": false,
+			"visible": true,
+			"description": "The Avail Standard Library primary module root",
+			"location": 
+			{
+				"locationType": "availLibraries",
+				"scheme": "JAR",
+				"path": "org/availlang/avail-stdlib-2.0.0.alpha22-1.6.1.alpha11.jar",
+				"rootNameInJar": "avail"
+			},
+			"moduleHeaders": 
+			[
+			]
+		},
+		{
+			"id": "62fd7cd7-b0c3-4fe3-a58b-89f163c4fbee",
+			"name": "xef",
+			"editable": true,
+			"visible": true,
+			"description": "",
+			"location": 
+			{
+				"locationType": "project",
+				"scheme": "FILE",
+				"path": "roots"
+			},
+			"moduleHeaders": 
+			[
+			]
+		}
+	],
+	"moduleHeaders": 
+	[
+	]
+}

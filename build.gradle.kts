@@ -9,6 +9,7 @@ plugins {
   alias(libs.plugins.arrow.gradle.nexus)
   alias(libs.plugins.arrow.gradle.publish) apply false
   alias(libs.plugins.semver.gradle)
+  alias(libs.plugins.avail.plugin) apply false
 }
 
 allprojects {

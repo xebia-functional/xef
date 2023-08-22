@@ -42,6 +42,9 @@ suspendApp = "0.4.0"
 flyway = "9.17.0"
 resources-kmp = "0.4.0"
 detekt = "1.23.1"
+avail = "2.0.0.alpha22"
+avail-stdlib = "2.0.0.alpha22-1.6.1.alpha11"
+avail-plugin = "2.0.0.alpha19"
 
 [libraries]
 arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
@@ -57,7 +60,7 @@ kotlinx-coroutines-reactive = { module = "org.jetbrains.kotlinx:kotlinx-coroutin
 kotlinx-coroutines-jdk8 = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8", version.ref="kotlinx-coroutines" }
 ktor-utils = { module = "io.ktor:ktor-utils", version.ref = "ktor" }
 ktor-http = { module = "io.ktor:ktor-http", version.ref = "ktor" }
-ktor-client ={ module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktor-client = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-content-negotiation ={ module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-client-serialization = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
@@ -111,6 +114,7 @@ jackson-schema-jakarta = { module = "com.github.victools:jsonschema-module-jakar
 jakarta-validation = { module = "jakarta.validation:jakarta.validation-api", version.ref = "jakarta" }
 detekt-api = { module = "io.gitlab.arturbosch.detekt:detekt-api", version.ref = "detekt" }
 detekt-test = { module = "io.gitlab.arturbosch.detekt:detekt-test", version.ref = "detekt" }
+avail = { module = "org.availlang:avail", version.ref = "avail" }
 
 [bundles]
 ktor-client = [
@@ -134,7 +138,8 @@ arrow-gradle-nexus = { id = "io.arrow-kt.arrow-gradle-config-nexus", version.ref
 arrow-gradle-publish = { id = "io.arrow-kt.arrow-gradle-config-publish", version.ref = "arrowGradle" }
 scala-multiversion  = { id = "com.adtran.scala-multiversion-plugin", version.ref = "scalaMultiversion" }
 kotest-multiplatform = { id = "io.kotest.multiplatform", version.ref = "kotest" }
-semver-gradle = { id="com.javiersc.semver", version.ref="semverGradle" }
-suspend-transform-plugin = { id="love.forte.plugin.suspend-transform", version.ref="suspend-transform" }
-resources = { id="com.goncalossilva.resources", version.ref="resources-kmp" }
-detekt = { id="io.gitlab.arturbosch.detekt", version.ref="detekt"}
+semver-gradle = { id = "com.javiersc.semver", version.ref="semverGradle" }
+suspend-transform-plugin = { id = "love.forte.plugin.suspend-transform", version.ref="suspend-transform" }
+resources = { id = "com.goncalossilva.resources", version.ref="resources-kmp" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref="detekt" }
+avail-plugin = { id = "org.availlang.avail-plugin", version.ref = "avail-plugin" }
