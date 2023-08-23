@@ -1,0 +1,468 @@
+Module "Semantic Versions"
+Uses
+	"Avail",
+	"Test Suites"
+Names
+	/* Types. */
+	"semantic version", "semvar",
+	
+	/* Accessors. */
+	"_'s⁇major number⁇",
+	"_'s⁇minor number⁇",
+	"_'s⁇patch number⁇",
+	
+	/* Constructors. */
+	"_._._",
+	"semantic version lexer",
+	
+	/* Conversions. */
+	"_→semantic version"
+Body
+
+/**
+ * Herein is support for {@type "semantic version"}s:
+ *
+ * * {@type "semantic versions"} can be entered directly,
+ *   e.g., {@code "1.0.5"}
+ * * {@type "semantic versions"} can be computed dynamically,
+ *   e.g., {@code "1.0.x"}
+ * * {@type "semantic versions"} can be queries about their constituent numbers
+ * * {@type "semantic versions"} can be compared naturally, forming a total
+ *   order
+ *
+ * {@type "semantic version"} and {@type "semvar"} are aliases, i.e., the name
+ * the same type.
+ *
+ * @module "Semantic Versions"
+ */
+
+////////////////////////////////////////////////////////////////////////////////
+//                               Reprsentation.                               //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * The identifying {@type "atom"} that leads a {@type "semantic version"). The
+ * inclusion of the {@type "atom"} ensures that {@type "semantic version"}s are
+ * not constructed accidentally, which is especially important for
+ * stringification.
+ *
+ * @method "semantic version id"
+ * @return "atom"
+ */
+"semantic version id" is a new atom;
+
+/**
+ * A {@type "semantic version"} comprises a major number, a minor number, and a
+ * patch number, respectively.
+ *
+ * @type "semantic version"
+ * @alias "<{semantic version id}ᵀ, whole number…|3>"
+ */
+Public method "semantic version" is [<{semantic version id}ᵀ, whole number…|4>];
+Alias "semvar" to $"semantic version";
+
+////////////////////////////////////////////////////////////////////////////////
+//                                 Accessors.                                 //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Answer the major number for the specified {@type "semantic version"}.
+ *
+ * @method "_'s⁇major number⁇"
+ * @param "v" "semantic version"
+ *   The {@type "semantic version"} to interrogate.
+ * @returns "whole number"
+ *   The major number.
+ */
+Public method "_'s⁇major number⁇" is [v : semantic version | v[2]];
+
+/**
+ * Answer the minor number for the specified {@type "semantic version"}.
+ *
+ * @method "_'s⁇minor number⁇"
+ * @param "v" "semantic version"
+ *   The {@type "semantic version"} to interrogate.
+ * @returns "whole number"
+ *   The minor number.
+ */
+Public method "_'s⁇minor number⁇" is [v : semantic version | v[3]];
+
+/**
+ * Answer the patch number for the specified {@type "semantic version"}.
+ *
+ * @method "_'s⁇patch number⁇"
+ * @param "v" "semantic version"
+ *   The {@type "semantic version"} to interrogate.
+ * @returns "whole number"
+ *   The patch number.
+ */
+Public method "_'s⁇patch number⁇" is [v : semantic version | v[4]];
+
+////////////////////////////////////////////////////////////////////////////////
+//                               Constructors.                                //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Construct a {@type "semantic version"}.
+ *
+ * @method "_._._"
+ * @param "major" "whole number"
+ *   The major number.
+ * @param "minor" "whole number"
+ *   The minor number.
+ * @param "patch" "whole number"
+ *   The patch number.
+ * @returns "semantic version"
+ *   The requested {@type "semantic version"}.
+ */
+Public method "_._._" is
+[
+	major : whole number,
+	minor : whole number,
+	patch : whole number
+|
+	<semantic version id, major, minor, patch>
+];
+
+/**
+ * Reject the current parse if all of the subexpressions are
+ * {@type "literal phrase"}s, as we want the lexer to handle such occurrences
+ * instead.
+ *
+ * @macro "_._._"
+ * @param "major" "expression phrase ⇒ whole number"
+ *   The subexpression that produces the major number.
+ * @param "minor" "expression phrase ⇒ whole number"
+ *   The subexpression that produces the minor number.
+ * @param "patch" "expression phrase ⇒ whole number"
+ *   The subexpression that produces the patch number.
+ * @returns "send phrase ⇒ semantic version"
+ *   A {@type "send phrase"} that represents a call to the eponymous
+ *   {@method "_._._"} method.
+ */
+Public macro "_._._" is
+[
+	major : expression phrase ⇒ whole number,
+	minor : expression phrase ⇒ whole number,
+	patch : expression phrase ⇒ whole number
+|
+	If ∀x ∈ <major, minor, patch> | x ∈ literal phrase ⇒ whole number then
+	[
+		Reject parse, expected:
+			"one of the version subexpressions not to be a literal phrase"
+	];
+	// Use Lisp-like quote (⟦⟧) and unquote (⦊⦉) to simply rewrite the
+	// expression.
+	⟦⦊major⦉.⦊minor⦉.⦊patch⦉⟧
+] : send phrase ⇒ semantic version;
+
+/**
+ * Upon encountering an Arabic numeral when this lexer is in scope, attempt to
+ * scan a {@type "semantic version"} literal.
+ *
+ * @lexer "semantic version lexer"
+ * @param "source" "string"
+ *   The complete source text.
+ * @param "position" "natural number"
+ *   The position of the leading {@type "character"}.
+ * @param "line" "natural number"
+ *   The line number of the leading {@type "character"}.
+ * @returns "{token+|}"
+ *   The possible lexes discovered at {@code "position"}, potentially conforming
+ *   to a single {@type "integer"} {@type "literal token"}.
+ */
+Lexer $"semantic version lexer"
+when [c : character | c is an Arabic numeral]
+is
+[
+	source : string,
+	position : ℕ,
+	line: ℕ
+|
+	// We know that the character at `position` is an Arabic numeral, so we can
+	// start scanning at the next position.
+	i : ℕ := position + 1;
+	size ::= |source|;
+	// Scan the whole semantic version literal.
+	While
+		i ≤ size
+			∧ (source[i] is an Arabic numeral ∨ source[i] = ¢.)
+	do [i++;];
+	end ::= (i - 1) min size;
+	lexeme ::= source[position .. end];
+	// Split into three parts.
+	major, remainder ::=
+		split lexeme
+		before [c : character | c = ¢.];
+	minor, patch ::= split remainder[2 ..] before [c : character | c = ¢.];
+	// If any of the parts are malformed, issue an appropriate rejection.
+	majorNumber ::=
+		unless major is empty then [ major (base 10) ]
+		else
+		[
+			Reject parse, expected: "major number not to be empty"
+		];
+	minorNumber ::=
+		unless minor is empty then [ minor (base 10) ]
+		else
+		[
+			Reject parse, expected: "minor number not to be empty"
+		];
+	patchNumber ::=
+		unless patch[2..] else [<>] is empty then [ patch[2..] (base 10) ]
+		else
+		[
+			Reject parse, expected: "patch number not to be empty"
+		];
+	// Build the semantic version.
+	version ::= <semantic version id, majorNumber, minorNumber, patchNumber>;
+	{<`version` (lexeme) @ position:line>}
+];
+
+////////////////////////////////////////////////////////////////////////////////
+//                                Conversion.                                 //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Convert an ordinary {@type "tuple"} comprising three {@type "whole numbers"}
+ * and convert it into a {@type "semantic version"}.
+ *
+ * @method "_→semantic version"
+ * @param "t" "<whole number…|3>"
+ * @returns "semantic version"
+ */
+Public stable method "_→semantic version" is
+[
+	t : <whole number…|3>
+|
+	<semantic version id, t[1], t[2], t[3]>
+];
+
+////////////////////////////////////////////////////////////////////////////////
+//                               Destructuring.                               //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Destructure a {@type "semantic version"} across three new local constants.
+ * Forbid any of the new local constants from shadowing any existing identifiers
+ * in scope (including one another).
+ *
+ * This is an override of the general method, and serves to omit the identifying
+ * atom from the destructuring.
+ *
+ * @macro "«…‡,»::=_;"
+ * @param "names" "list phrase ⇒ <token…|3>"
+ *   A {@type "list phrase"} that evaluates to the {@type "tuple"} of
+ *   {@type "token"}s corresponding to the names of the local constants into
+ *   which {@param "version"} will be destructured.
+ * @param "version" "expression phrase ⇒ semantic version"
+ *   The expression to produce the {@type "semantic version"} to destructure.
+ * @returns "sequence phrase"
+ *   The necessary trio of {@type "local constant phrase"}s required to
+ *   accomplish the destructuring.
+ */
+Macro Foundation $"«…‡,»::=_;" is
+[
+	names : list phrase ⇒ <token…|2..∞>,
+	version : expression phrase ⇒ semantic version
+|
+	exprs ::= names' expressions;
+	If |exprs| ≠ 3 then
+	[
+		Reject parse, expected:
+			"exactly three local constants for destructuring a semantic version"
+	];
+	major, minor, patch ::= exprs ?→ <literal phrase ⇒ token…|3>;
+	majorName ::= major's token's lexeme;
+	minorName ::= minor's token's lexeme;
+	patchName ::= patch's token's lexeme;
+	Require: "local constant" named majorName does not shadow;
+	Require: "local constant" named minorName does not shadow;
+	Require: "local constant" named patchName does not shadow;
+	If |{majorName, minorName, patchName}| ≠ 3 then
+	[
+		Reject parse, expected:
+			"local constants in destructuring semantic version binding to \
+			\|have distinct names"
+	];
+	declarations ::=
+		<
+			«major's token ::= ⟦⦊version⦉[2]⟧»,
+			«minor's token ::= ⟦⦊version⦉[3]⟧»,
+			«patch's token ::= ⟦⦊version⦉[4]⟧»
+		>;
+	scope map := scope map + majorName → declarations[1];
+	scope map := scope map + minorName → declarations[2];
+	scope map := scope map + patchName → declarations[3];
+	seq «declarations»
+];
+
+////////////////////////////////////////////////////////////////////////////////
+//                                 Relations.                                 //
+////////////////////////////////////////////////////////////////////////////////
+
+/*
+ * N.B.: In the defintions below, "Stable" instructions the compiler to
+ * automatically fold the method invocation when its arguments are statically
+ * known.
+ */
+
+/**
+ * Compare the specified {@type "semantic versions"} according to the less-than
+ * (<) relation.
+ * 
+ * @param "a" "semantic version"
+ * @param "b" "semantic version"
+ * @returns "boolean"
+ */
+Stable method Foundation $"_<_" is
+[
+	a : semantic version,
+	b : semantic version
+|
+	a's major < b's major ∨ a's minor < b's minor ∨ a's patch < b's patch
+];
+
+/**
+ * Compare the specified {@type "semantic versions"} according to the less-than
+ * (<) relation.
+ * 
+ * @param "a" "semantic version"
+ * @param "b" "semantic version"
+ * @returns "boolean"
+ */
+Stable method Foundation $"_≤_" is
+[
+	a : semantic version,
+	b : semantic version
+|
+	a's major ≤ b's major ∨ a's minor ≤ b's minor ∨ a's patch ≤ b's patch
+];
+
+/*
+ * N.B.: "_>_" and "_≥_" are simply argument-swapping aliases of "_<_" and
+ * "_≤_", respectively, so we don't need to override them here; we get them for
+ * free.
+ */
+
+////////////////////////////////////////////////////////////////////////////////
+//                              Stringification.                              //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Render a {@type "semantic version"} with its natural textual representation.
+ *
+ * @method "“_”"
+ * @param "version" "semantic version"
+ * @return "nonempty string"
+ */
+Method "“_”" is
+[
+	version : semantic version
+|
+	format "“①”.“②”.“③”" with unchecked (version[2..4])
+] : nonempty string;
+
+////////////////////////////////////////////////////////////////////////////////
+//                                   Tests.                                   //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Ensure that (1) the lexer produces correct values and (2) the accessors
+ * function correctly.
+ */
+Test "literal semantic versions" in lexer test suite is
+[
+	Require: 0.1.2 = <semantic version id, 0, 1, 2>;
+	Require: 0.1.2's major = 0;
+	Require: 0.1.2's minor = 1;
+	Require: 0.1.2's patch = 2;
+
+	Require: 10.99.5 = <semantic version id, 10, 99, 5>;
+	Require: 10.99.5's major = 10;
+	Require: 10.99.5's minor = 99;
+	Require: 10.99.5's patch = 5;	
+];
+
+/**
+ * Ensure that (1) the method produces correct values and (2) the accessors
+ * function correctly.
+ */
+Test "dynamic semantic versions" in lexer test suite is
+[
+	a, b, c ::= <0, 1, 2>;
+	Require: a.b.c = <semantic version id, 0, 1, 2>;
+	Require: a.b.c = 0.1.2;
+	Require: a.b.c's major = 0;
+	Require: a.b.c's minor = 1;
+	Require: a.b.c's patch = 2;
+
+	x, y, z ::= <10, 99, 5>;
+	Require: x.y.z = <semantic version id, 10, 99, 5>;
+	Require: x.y.z = 10.99.5;
+	Require: x.y.z's major = 10;
+	Require: x.y.z's minor = 99;
+	Require: x.y.z's patch = 5;	
+];
+
+/**
+ * Ensure that all relations on {@type "semantic versions"} are correct.
+ */
+Test "semantic version relations" in lexer test suite is
+[
+	// Spot check some basics.
+	Require: ¬ 0.0.0 < 0.0.0;
+	Require: 0.0.0 < 0.0.1;
+	Require: 0.0.0 < 0.1.0;
+	Require: 0.0.0 < 1.0.0;
+
+	Require: 0.0.0 ≤ 0.0.0;
+	Require: 0.0.0 ≤ 0.0.1;
+	Require: 0.0.0 ≤ 0.1.0;
+	Require: 0.0.0 ≤ 1.0.0;
+
+	Require: 0.0.0 ≥ 0.0.0;
+	Require: 0.0.1 ≥ 0.0.0;
+	Require: 0.1.0 ≥ 0.0.0;
+	Require: 1.0.0 ≥ 0.0.0;
+
+	Require: ¬ 0.0.0 > 0.0.0;
+	Require: 0.0.1 > 0.0.0;
+	Require: 0.1.0 > 0.0.0;
+	Require: 1.0.0 > 0.0.0;
+	
+	// Now test a small matrix, using computational backtracking to test all
+	// possibilities. "all values of_" invokes the specified function for each
+	// possible outcome of "trial`#of_", thereby producing 15,625 pairings of
+	// semantic versions. Each pair performs each defined relation, testing the
+	// result against a strategy that performs equivalent logic on the
+	// decomposition of the semantic versions.
+	For each t in all values of [<
+		<trial# of 5, trial# of 5, trial# of 5> → semantic version,
+		<trial# of 5, trial# of 5, trial# of 5> → semantic version
+	>]
+	do
+	[
+		a, b ::= t;
+		aMajor, aMinor, aPatch ::= a;
+		bMajor, bMinor, bPatch ::= b;
+		Require:
+			(a = b) = (aMajor = bMajor ∧ aMinor = bMinor ∧ aPatch = bPatch)
+			(format "“①” = “②”" with a, b);
+		Require:
+			(a ≠ b) = (aMajor ≠ bMajor ∨ aMinor ≠ bMinor ∨ aPatch ≠ bPatch)
+			(format "“①” ≠ “②”" with a, b);
+		Require:
+			(a < b) = (aMajor < bMajor ∨ aMinor < bMinor ∨ aPatch < bPatch)
+			(format "“①” < “②”" with a, b);
+		Require:
+			(a ≤ b) = (aMajor ≤ bMajor ∨ aMinor ≤ bMinor ∨ aPatch ≤ bPatch)
+			(format "“①” ≤ “②”" with a, b);
+		Require:
+			(a ≥ b) = (aMajor ≥ bMajor ∨ aMinor ≥ bMinor ∨ aPatch ≥ bPatch)
+			(format "“①” ≥ “②”" with a, b);
+		Require:
+			(a > b) = (aMajor > bMajor ∨ aMinor > bMinor ∨ aPatch > bPatch)
+			(format "“①” ≥ “②”" with a, b);
+	];
+];

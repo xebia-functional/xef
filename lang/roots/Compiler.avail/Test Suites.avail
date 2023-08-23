@@ -1,0 +1,58 @@
+Module "Test Suites"
+Uses
+	"Avail",
+	"Avail Tests" = ("Run all tests in_")
+Extends
+	"Avail" = (
+		/* Needed to parse the keywords of the entry point. */
+		"keyword lexer",
+		/* Needed to parse the whitespace of the entry point. */
+		"whitespace lexer"
+	)
+Names
+	"Xef test suite",
+	"lexer test suite"
+Entries
+	"Run all tests in Xef test suite"
+Body
+
+////////////////////////////////////////////////////////////////////////////////
+//                                Test suites.                                //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * The overaching test suite for the Xef prompting language.
+ *
+ * @method "Xef test suite"
+ * @returns "atom"
+ */
+Public "Xef test suite" is a new atom;
+Xef test suite is a new test suite;
+
+/**
+ * The test suite for custom lexers introduced for the Xef prompting language.
+ *
+ * @method "lexer test suite"
+ * @returns "atom"
+ */
+Public "lexer test suite" is a new atom;
+New test suite lexer test suite extends Xef test suite;
+
+////////////////////////////////////////////////////////////////////////////////
+//                                Test runner.                                //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Run all of the tests in the Xef test suite. The constituent test suites and
+ * tests may be run individually using {@entry "Debug tests"}.
+ *
+ * @entry "Run all tests in Xef test suite"
+ * @returns "⊤"
+ */
+Private method "Run all tests in Xef test suite" is
+[
+	// Note that this is not a recursive call, because the method name is not
+	// visible yet. "Xef test suite" is understood as the test suite defined
+	// above.
+	Ignore: Run all tests in Xef test suite;
+];

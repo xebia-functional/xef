@@ -1,1 +1,37 @@
-{}
+{
+	"z":
+	{
+		"expansion": "ℤ",
+		"markedForArtifactInclusion": true
+	},
+	"integer":
+	{
+		"expansion": "ℤ",
+		"markedForArtifactInclusion": true
+	},
+	"extendedinteger":
+	{
+		"expansion": "ℤ∞",
+		"markedForArtifactInclusion": true
+	},
+	"n":
+	{
+		"expansion": "ℕ",
+		"markedForArtifactInclusion": true
+	},
+	"naturalnumber": 
+	{
+		"expansion": "ℕ",
+		"markedForArtifactInclusion": true
+	},
+	"w":
+	{
+		"expansion": "𝕎",
+		"markedForArtifactInclusion": true
+	},
+	"wholenumber":
+	{
+		"expansion": "𝕎",
+		"markedForArtifactInclusion": true
+	}
+}

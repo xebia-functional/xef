@@ -43,7 +43,7 @@ flyway = "9.17.0"
 resources-kmp = "0.4.0"
 detekt = "1.23.1"
 avail = "2.0.0.alpha22"
-avail-stdlib = "2.0.0.alpha22-1.6.1.alpha11"
+avail-stdlib = "2.0.0.alpha22-1.6.1.alpha13"
 avail-plugin = "2.0.0.alpha19"
 
 [libraries]
