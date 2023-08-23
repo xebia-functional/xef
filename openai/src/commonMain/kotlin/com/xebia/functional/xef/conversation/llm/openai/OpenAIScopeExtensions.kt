@@ -34,11 +34,20 @@ suspend inline fun <reified A> Conversation.prompt(
   model: ChatWithFunctions =
     if (A::class == String::class) OpenAI().DEFAULT_CHAT else OpenAI().DEFAULT_SERIALIZATION
 ): A =
-  model.prompt(prompt = Prompt { +user(input) }, scope = conversation, serializer = serializer<A>())
+  if (A::class == String::class)
+    model.promptMessage(prompt = Prompt { +user(input) }, scope = conversation) as A
+  else
+    model.prompt(
+      prompt = Prompt { +user(input) },
+      scope = conversation,
+      serializer = serializer<A>()
+    )
 
 @AiDsl
 suspend inline fun <reified A> Conversation.prompt(
   prompt: Prompt,
   model: ChatWithFunctions =
     if (A::class == String::class) OpenAI().DEFAULT_CHAT else OpenAI().DEFAULT_SERIALIZATION
-): A = model.prompt(prompt = prompt, scope = conversation, serializer = serializer<A>())
+): A =
+  if (A::class == String::class) model.promptMessage(prompt = prompt, scope = conversation) as A
+  else model.prompt(prompt = prompt, scope = conversation, serializer = serializer<A>())
