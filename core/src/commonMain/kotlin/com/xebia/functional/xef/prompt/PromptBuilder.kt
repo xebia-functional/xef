@@ -7,15 +7,29 @@ import com.xebia.functional.xef.prompt.templates.system
 import com.xebia.functional.xef.prompt.templates.user
 import kotlin.jvm.JvmSynthetic
 
-open class PromptBuilder {
-  private val items = mutableListOf<Message>()
+interface PromptBuilder {
+  val items: MutableList<Message>
 
-  fun addPrompt(prompt: Prompt): PromptBuilder = apply { items.addAll(prompt.messages) }
+  fun preprocess(elements: List<Message>): List<Message>
+
+  fun build(): Prompt
 
   @JvmSynthetic
   operator fun Prompt.unaryPlus() {
     +messages
   }
+
+  @JvmSynthetic
+  operator fun Message.unaryPlus() {
+    items.add(this)
+  }
+
+  @JvmSynthetic
+  operator fun List<Message>.unaryPlus() {
+    items.addAll(this)
+  }
+
+  fun addPrompt(prompt: Prompt): PromptBuilder = apply { items.addAll(prompt.messages) }
 
   fun addMessage(message: Message): PromptBuilder = apply { items.add(message) }
 
@@ -25,21 +39,12 @@ open class PromptBuilder {
 
   fun addUserMessage(message: String): PromptBuilder = apply { items.add(user(message)) }
 
-  @JvmSynthetic
-  operator fun Message.unaryPlus() {
-    items.add(this)
-  }
-
   fun addMessages(messages: List<Message>): PromptBuilder = apply { items.addAll(messages) }
 
-  @JvmSynthetic
-  operator fun List<Message>.unaryPlus() {
-    items.addAll(this)
+  companion object {
+
+    operator fun invoke(): PlatformPromptBuilder = PlatformPromptBuilder.create()
   }
-
-  protected open fun preprocess(elements: List<Message>): List<Message> = elements
-
-  fun build(): Prompt = Prompt(preprocess(items), null)
 }
 
 fun String.message(role: Role): Message = Message(role, this, role.name)

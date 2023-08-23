@@ -2,8 +2,8 @@ package com.xebia.functional.xef.prompt.templates
 
 import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.llm.models.chat.Role
+import com.xebia.functional.xef.prompt.PlatformPromptBuilder
 import com.xebia.functional.xef.prompt.Prompt
-import com.xebia.functional.xef.prompt.PromptBuilder
 import com.xebia.functional.xef.prompt.message
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
@@ -21,12 +21,13 @@ inline fun <reified A> assistant(data: A): Message =
 
 inline fun <reified A> user(data: A): Message = user(Json.encodeToString(serializer(), data))
 
-class StepsMessageBuilder : PromptBuilder() {
+class StepsMessageBuilder : PlatformPromptBuilder() {
+
   override fun preprocess(elements: List<Message>): List<Message> =
     elements.mapIndexed { ix, elt -> "${ix + 1} - ${elt.content}".message(elt.role) }
 }
 
-fun steps(inside: PromptBuilder.() -> Unit): Prompt =
+fun steps(inside: StepsMessageBuilder.() -> Unit): Prompt =
   StepsMessageBuilder().apply { inside() }.build()
 
 fun writeSequenceOf(
