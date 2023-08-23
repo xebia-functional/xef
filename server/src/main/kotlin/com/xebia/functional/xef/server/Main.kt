@@ -10,6 +10,11 @@ import com.xebia.functional.xef.server.db.psql.Migrate
 import com.xebia.functional.xef.server.db.psql.XefVectorStoreConfig
 import com.xebia.functional.xef.server.db.psql.XefVectorStoreConfig.Companion.getPersistenceService
 import com.xebia.functional.xef.server.http.routes.routes
+import io.ktor.client.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation as ClientContentNegotiation
+import io.ktor.client.plugins.auth.*
+import io.ktor.client.plugins.logging.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -32,6 +37,14 @@ object Main {
             val persistenceService = vectorStoreConfig.getPersistenceService(config)
             persistenceService.addCollection()
 
+            val ktorClient = HttpClient(CIO){
+                install(Auth)
+                install(Logging) {
+                    level = LogLevel.INFO
+                }
+                install(ClientContentNegotiation)
+            }
+
             server(factory = Netty, port = 8080, host = "0.0.0.0") {
                 install(CORS) {
                     allowNonSimpleContentTypes = true
@@ -46,7 +59,7 @@ object Main {
                         }
                     }
                 }
-                routing { routes(persistenceService) }
+                routing { routes(ktorClient, persistenceService) }
             }
             awaitCancellation()
         }
