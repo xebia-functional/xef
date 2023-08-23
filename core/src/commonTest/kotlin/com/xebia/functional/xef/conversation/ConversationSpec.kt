@@ -1,19 +1,17 @@
 package com.xebia.functional.xef.conversation
 
 import com.xebia.functional.tokenizer.ModelType
-import com.xebia.functional.xef.data.TestEmbeddings
-import com.xebia.functional.xef.data.TestFunctionsModel
-import com.xebia.functional.xef.data.TestModel
+import com.xebia.functional.xef.data.*
 import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.llm.models.chat.Role
 import com.xebia.functional.xef.prompt.Prompt
+import com.xebia.functional.xef.prompt.templates.user
 import com.xebia.functional.xef.store.ConversationId
 import com.xebia.functional.xef.store.LocalVectorStore
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.comparables.shouldBeLessThan
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.uuid.UUID
@@ -149,8 +147,6 @@ class ConversationSpec :
     }
 
     "functionCall shouldn't be null when the model support functions and the prompt contain a function" {
-      @Serializable data class Answer(val bar: String)
-
       val question = "fake-question"
       val answer = Answer("fake-answer")
 
@@ -174,5 +170,37 @@ class ConversationSpec :
       response shouldBe answer
 
       lastRequest.functionCall shouldNotBe null
+    }
+
+    "the message of the request should be the JSON string of the question when the prompt contains serializable object" {
+      val question = Question("fake-question")
+      val questionJsonString = Json.encodeToString(question)
+      val answer = Answer("fake-answer")
+      val answerJsonString = Json.encodeToString(answer)
+
+      val message = mapOf(questionJsonString to answerJsonString)
+
+      val conversationId = ConversationId(UUID.generateUUID().toString())
+      val scope = Conversation(LocalVectorStore(TestEmbeddings()), conversationId = conversationId)
+
+      val model =
+        TestFunctionsModel(
+          modelType = ModelType.GPT_3_5_TURBO_FUNCTIONS,
+          name = "fake-model",
+          responses = message
+        )
+
+      val response: Answer =
+        model.prompt(
+          prompt = Prompt { +user(question) },
+          scope = scope,
+          serializer = Answer.serializer()
+        )
+
+      val lastRequest = model.requests.last()
+
+      lastRequest.messages.last().content shouldBe questionJsonString
+
+      response shouldBe answer
     }
   })

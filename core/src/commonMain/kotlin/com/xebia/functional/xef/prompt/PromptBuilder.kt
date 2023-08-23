@@ -6,6 +6,8 @@ import com.xebia.functional.xef.prompt.templates.assistant
 import com.xebia.functional.xef.prompt.templates.system
 import com.xebia.functional.xef.prompt.templates.user
 import kotlin.jvm.JvmSynthetic
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.serializer
 
 interface PromptBuilder {
   val items: MutableList<Message>
@@ -48,3 +50,6 @@ interface PromptBuilder {
 }
 
 fun String.message(role: Role): Message = Message(role, this, role.name)
+
+inline fun <reified A> A.message(role: Role): Message =
+  Message(role, Json.encodeToString(serializer(), this), role.name)
