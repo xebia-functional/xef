@@ -2,11 +2,9 @@ package com.xebia.functional.xef.prompt.templates
 
 import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.llm.models.chat.Role
+import com.xebia.functional.xef.prompt.PlatformPromptBuilder
 import com.xebia.functional.xef.prompt.Prompt
-import com.xebia.functional.xef.prompt.PromptBuilder
 import com.xebia.functional.xef.prompt.message
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.serializer
 
 fun system(context: String): Message = context.message(Role.SYSTEM)
 
@@ -14,19 +12,19 @@ fun assistant(context: String): Message = context.message(Role.ASSISTANT)
 
 fun user(context: String): Message = context.message(Role.USER)
 
-inline fun <reified A> system(data: A): Message = system(Json.encodeToString(serializer(), data))
+inline fun <reified A> system(data: A): Message = data.message(Role.SYSTEM)
 
-inline fun <reified A> assistant(data: A): Message =
-  assistant(Json.encodeToString(serializer(), data))
+inline fun <reified A> assistant(data: A): Message = data.message(Role.ASSISTANT)
 
-inline fun <reified A> user(data: A): Message = user(Json.encodeToString(serializer(), data))
+inline fun <reified A> user(data: A): Message = data.message(Role.USER)
 
-class StepsMessageBuilder : PromptBuilder() {
+class StepsMessageBuilder : PlatformPromptBuilder() {
+
   override fun preprocess(elements: List<Message>): List<Message> =
     elements.mapIndexed { ix, elt -> "${ix + 1} - ${elt.content}".message(elt.role) }
 }
 
-fun steps(inside: PromptBuilder.() -> Unit): Prompt =
+fun steps(inside: StepsMessageBuilder.() -> Unit): Prompt =
   StepsMessageBuilder().apply { inside() }.build()
 
 fun writeSequenceOf(
