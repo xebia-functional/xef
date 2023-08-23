@@ -3,6 +3,7 @@ package com.xebia.functional.xef.java.auto.jdk8;
 import com.xebia.functional.xef.conversation.PlatformConversation;
 import com.xebia.functional.xef.conversation.llm.openai.OpenAI;
 import com.xebia.functional.xef.prompt.Prompt;
+import com.xebia.functional.xef.prompt.JvmPromptBuilder;
 import com.xebia.functional.xef.prompt.PromptBuilder;
 
 import java.util.concurrent.CompletableFuture;
@@ -25,7 +26,7 @@ public class Animals {
     }
 
     public CompletableFuture<Story> story(Animal animal, Invention invention) {
-        PromptBuilder builder = new PromptBuilder()
+        PromptBuilder builder = new JvmPromptBuilder()
                 .addUserMessage("Write a short story of 500 words that involves the following elements:")
                 .addUserMessage("1. A unique animal species called " + animal.name + " that lives in " + animal.habitat + " and has a diet of " + animal.diet + ".")
                 .addUserMessage("2. A groundbreaking invention from the 20th century called " + invention.name + " , invented by " + invention.inventor + " in " + invention.year + ", which serves the purpose of " + invention.purpose + ".");
