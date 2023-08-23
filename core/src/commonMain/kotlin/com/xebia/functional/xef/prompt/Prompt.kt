@@ -28,7 +28,7 @@ constructor(
 
   companion object {
     @JvmSynthetic
-    operator fun invoke(block: PromptBuilder.() -> Unit): Prompt =
-      PromptBuilder().apply { block() }.build()
+    operator fun invoke(block: PlatformPromptBuilder.() -> Unit): Prompt =
+      PlatformPromptBuilder.create().apply { block() }.build()
   }
 }
