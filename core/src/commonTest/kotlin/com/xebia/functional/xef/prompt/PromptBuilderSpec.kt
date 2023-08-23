@@ -1,5 +1,6 @@
 package com.xebia.functional.xef.prompt
 
+import com.xebia.functional.xef.data.Question
 import com.xebia.functional.xef.llm.models.chat.Role
 import com.xebia.functional.xef.prompt.templates.assistant
 import com.xebia.functional.xef.prompt.templates.steps
@@ -68,6 +69,25 @@ class PromptBuilderSpec :
           "Test Query".message(Role.USER),
           "1 - instruction 1".message(Role.ASSISTANT),
           "2 - instruction 2".message(Role.ASSISTANT)
+        )
+
+      messages shouldBe messagesExpected
+    }
+
+    "buildPrompt should return the expected messages when using serializable objects" {
+      val question = Question("Test Question")
+
+      val messages =
+        Prompt {
+            +system("Test System")
+            +user(question)
+          }
+          .messages
+
+      val messagesExpected =
+        listOf(
+          "Test System".message(Role.SYSTEM),
+          question.message(Role.USER),
         )
 
       messages shouldBe messagesExpected
