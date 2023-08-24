@@ -1,10 +1,9 @@
-package com.xebia.functional.xef.conversation
+package com.xebia.functional.xef.conversation.contexts
 
 import com.xebia.functional.xef.conversation.llm.openai.OpenAI
 import com.xebia.functional.xef.conversation.llm.openai.promptMessage
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.reasoning.serpapi.Search
-import io.github.oshai.kotlinlogging.KotlinLogging
 
 suspend fun main() {
 
@@ -16,7 +15,4 @@ suspend fun main() {
     val answer = promptMessage(question)
     println(answer)
   }
-  
 }
-
-

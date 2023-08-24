@@ -1,4 +1,4 @@
-package com.xebia.functional.xef.java.auto.jdk21;
+package com.xebia.functional.xef.java.auto.jdk21.serialization;
 
 import com.xebia.functional.xef.conversation.PlatformConversation;
 import com.xebia.functional.xef.conversation.llm.openai.OpenAI;

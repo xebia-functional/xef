@@ -1,7 +1,7 @@
-package com.xebia.functional.xef.scala.auto.serialization
+package com.xebia.functional.xef.scala.conversation.serialization
 
 import com.xebia.functional.xef.prompt.Prompt
-import com.xebia.functional.xef.scala.auto.*
+import com.xebia.functional.xef.scala.conversation.*
 import io.circe.Decoder
 
 private final case class Recipe(name: String, ingredients: List[String]) derives SerialDescriptor, Decoder

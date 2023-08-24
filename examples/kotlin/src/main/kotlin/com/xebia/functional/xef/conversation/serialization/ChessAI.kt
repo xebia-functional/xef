@@ -1,4 +1,4 @@
-package com.xebia.functional.xef.conversation.serializable
+package com.xebia.functional.xef.conversation.serialization
 
 import com.xebia.functional.xef.conversation.llm.openai.OpenAI
 import com.xebia.functional.xef.conversation.llm.openai.prompt

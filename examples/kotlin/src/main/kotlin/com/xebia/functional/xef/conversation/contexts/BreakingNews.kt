@@ -1,4 +1,4 @@
-package com.xebia.functional.xef.conversation
+package com.xebia.functional.xef.conversation.contexts
 
 import com.xebia.functional.xef.conversation.llm.openai.OpenAI
 import com.xebia.functional.xef.conversation.llm.openai.prompt

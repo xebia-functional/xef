@@ -1,7 +1,8 @@
-package com.xebia.functional.xef.java.auto.jdk21;
+package com.xebia.functional.xef.java.auto.jdk21.conversations;
 
 import com.xebia.functional.xef.conversation.PlatformConversation;
 import com.xebia.functional.xef.conversation.llm.openai.OpenAI;
+import com.xebia.functional.xef.prompt.JvmPromptBuilder;
 import com.xebia.functional.xef.prompt.Prompt;
 
 import java.util.concurrent.CompletableFuture;
@@ -23,21 +24,16 @@ public class Animals {
         return scope.prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, new Prompt("A groundbreaking invention from the 20th century."), Invention.class);
     }
 
-    public CompletableFuture<Story> story(Animal animal, Invention invention) {
-        Prompt storyPrompt = new Prompt(
-                "Write a short story of 500 words that involves the following elements:" +
-                        "1. A unique animal species called ${animal.name} that lives in " + animal.habitat + " and has a diet of " + animal.diet + "." +
-                        "2. A groundbreaking invention from the 20th century called " + invention.name + " , invented by " + invention.inventor + " in " + invention.year + ", which serves the purpose of " + invention.purpose + ".");
-        return scope.prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, storyPrompt, Story.class);
+    public CompletableFuture<String> story(Animal animal, Invention invention) {
+        Prompt storyPrompt = new JvmPromptBuilder()
+                .addSystemMessage("You are a writer for a science fiction magazine.")
+                .addUserMessage("Write a short story of 200 words that involves the animal and the invention")
+                .build();
+        return scope.promptMessage(OpenAI.FromEnvironment.DEFAULT_CHAT, storyPrompt);
     }
 
     public record Animal(String name, String habitat, String diet){}
     public record Invention(String name, String inventor, int year, String purpose){}
-    public record Story(Animal animal, Invention invention, String text){
-        public void tell() {
-            System.out.println("Story about " + animal.name + " and " + invention.name + ": " + text);
-        }
-    }
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         try (PlatformConversation scope = OpenAI.conversation()) {
@@ -47,7 +43,7 @@ public class Animals {
                           animals.groundbreakingInvention()
                             .thenCompose(invention ->
                                   animals.story(animal, invention)
-                                    .thenAccept(Story::tell)
+                                    .thenAccept(System.out::println)
                             )).get();
         }
     }

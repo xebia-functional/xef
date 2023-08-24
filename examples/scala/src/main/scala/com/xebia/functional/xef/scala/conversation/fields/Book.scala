@@ -1,7 +1,7 @@
-package com.xebia.functional.xef.scala.auto.fields
+package com.xebia.functional.xef.scala.conversation.fields
 
 import com.xebia.functional.xef.prompt.Prompt
-import com.xebia.functional.xef.scala.auto.*
+import com.xebia.functional.xef.scala.conversation.*
 import io.circe.Decoder
 
 @Description("A book")

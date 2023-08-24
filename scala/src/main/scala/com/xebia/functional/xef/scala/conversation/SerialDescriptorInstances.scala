@@ -1,4 +1,4 @@
-package com.xebia.functional.xef.scala.auto
+package com.xebia.functional.xef.scala.conversation
 
 import kotlin.jvm.internal.Reflection
 import kotlin.reflect.KClass

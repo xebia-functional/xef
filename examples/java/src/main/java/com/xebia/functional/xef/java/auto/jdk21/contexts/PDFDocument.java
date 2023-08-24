@@ -1,4 +1,4 @@
-package com.xebia.functional.xef.java.auto.jdk21;
+package com.xebia.functional.xef.java.auto.jdk21.contexts;
 
 import com.xebia.functional.xef.conversation.PlatformConversation;
 import com.xebia.functional.xef.conversation.llm.openai.OpenAI;

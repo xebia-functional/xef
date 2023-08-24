@@ -1,8 +1,8 @@
-package com.xebia.functional.xef.scala.auto.images
+package com.xebia.functional.xef.scala.conversation.image
 
 import com.xebia.functional.xef.llm.models.images.ImagesGenerationResponse
 import com.xebia.functional.xef.prompt.Prompt
-import com.xebia.functional.xef.scala.auto.*
+import com.xebia.functional.xef.scala.conversation.*
 import io.circe.Decoder
 
 private final case class Population(size: Int, description: String) derives SerialDescriptor, Decoder

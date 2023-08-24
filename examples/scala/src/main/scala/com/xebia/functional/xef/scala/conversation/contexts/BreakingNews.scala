@@ -1,9 +1,9 @@
-package com.xebia.functional.xef.scala.auto.contexts
+package com.xebia.functional.xef.scala.conversation.contexts
 
 import com.xebia.functional.xef.conversation.llm.openai.OpenAI
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.reasoning.serpapi.Search
-import com.xebia.functional.xef.scala.auto.*
+import com.xebia.functional.xef.scala.conversation.*
 import io.circe.Decoder
 
 import java.text.SimpleDateFormat
