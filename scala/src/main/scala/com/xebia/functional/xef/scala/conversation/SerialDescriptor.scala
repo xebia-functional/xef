@@ -1,4 +1,4 @@
-package com.xebia.functional.xef.scala.conversation
+package com.xebia.functional.xef.scala.auto
 
 import com.xebia.functional.xef.conversation.jvm.Description as JvmDescription
 import kotlinx.serialization.descriptors.{SerialDescriptor as KtSerialDescriptor, SerialKind, StructureKind}
