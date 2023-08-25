@@ -21,10 +21,6 @@ class JavaPublishingConventionsPlugin : Plugin<Project> {
       extensions.findByType<SigningExtension>()
         ?: throw IllegalStateException("The Signing plugin is required to digitally sign the built artifacts")
 
-    val basePluginExtension: BasePluginExtension =
-      extensions.findByType<BasePluginExtension>()
-        ?: throw IllegalStateException("The Base plugin is required to configure the name of artifacts")
-
     publishingExtension.run {
       publications {
         register<MavenPublication>("maven") {

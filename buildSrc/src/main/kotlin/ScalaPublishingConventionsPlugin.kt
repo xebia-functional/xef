@@ -18,7 +18,7 @@ class ScalaPublishingConventionsPlugin : Plugin<Project> {
       tasks.findByName("scaladoc")?.let { dependsOn(it) }
         ?: errorMessage("The scaladoc task was not found. The Javadoc jar file won't contain any documentation")
       archiveClassifier.set("javadoc")
-      from("$buildDir/docs/scaladoc")
+      from("${layout.buildDirectory.get()}/docs/scaladoc")
     }
 
     val publishingExtension: PublishingExtension =
