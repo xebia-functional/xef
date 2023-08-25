@@ -16,6 +16,7 @@ testcontainers = "1.18.3"
 hikari = "5.0.1"
 dokka = "1.8.20"
 logback = "1.4.11"
+node-gradle = "5.0.0"
 kotlinx-coroutines = "1.7.3"
 scalaMultiversion = "2.0.4"
 circe = "0.14.5"
@@ -138,3 +139,4 @@ semver-gradle = { id="com.javiersc.semver", version.ref="semverGradle" }
 suspend-transform-plugin = { id="love.forte.plugin.suspend-transform", version.ref="suspend-transform" }
 resources = { id="com.goncalossilva.resources", version.ref="resources-kmp" }
 detekt = { id="io.gitlab.arturbosch.detekt", version.ref="detekt"}
+node-gradle = { id = "com.github.node-gradle.node", version.ref = "node-gradle" }
