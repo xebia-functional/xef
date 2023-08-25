@@ -1,0 +1,54 @@
+Module "Comment Lexers"
+Uses
+	"Avail"
+Names
+	"comment lexer"
+Body
+
+////////////////////////////////////////////////////////////////////////////////
+//                                 Scanning.                                  //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Upon encountering a number sign (U+0023), attempt to scan an end-of-line
+ * {@type "comment"} {@type "token"}. This is # followed by arbitrary
+ * characters and terminated by the first
+ * {@method "_is line terminator" Unicode line terminator} or end of file.
+ *
+ * @lexer "comment lexer"
+ * @param "source" "string"
+ *   The complete source text.
+ * @param "position" "natural number"
+ *   The position of the leading {@type "character"}.
+ * @param "line" "natural number"
+ *   The line number of the leading {@type "character"}.
+ * @returns "{token+|}"
+ *   A single {@method "comment"} {@type "token"}.
+ */
+Lexer $"comment lexer"
+when [c : character | c = ¢#]
+is
+[
+	source : string,
+	position : ℕ,
+	line : ℕ
+|
+	size ::= |source|;
+	i : natural number := position + 1;
+	While i ≤ size ∧ ¬source[i] is line terminator do [i++;];
+	commentText ::= source[position..i min size];
+	{<comment (commentText) @ position:line>}
+]
+styled by
+[
+	optionalOriginal : send phrase?,
+	transformed : phrase
+|
+	Cast transformed into
+	[
+		original : literal phrase
+	|
+		Style token original's token as "#comment" overwriting;
+	]
+	else [];
+] : ⊤;

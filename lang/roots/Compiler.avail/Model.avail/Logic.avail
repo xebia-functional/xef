@@ -4,7 +4,7 @@ Uses
 Names
 	/* Kleene logic. */
 	"Kleene",
-		"unknown"
+	"unknown"
 Body
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -38,5 +38,136 @@ Public "unknown" is a new atom;
 Public stable method "Kleene" is [{false, true, unknown}ᵀ];
 
 ////////////////////////////////////////////////////////////////////////////////
-//                               Kleene logic.                                //
+//                              Stringification.                              //
 ////////////////////////////////////////////////////////////////////////////////
+
+Method "“_”" is [u : {unknown}ᵀ | "unknown"] : string;
+Method "“_”" is [t : {Kleene}ᵀ | "Kleene"] : string;
+
+////////////////////////////////////////////////////////////////////////////////
+//                             Logical operators.                             //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Compute the logical negation (NOT) of the arguments.
+ *
+ * @method "¬_"
+ * @param "a" "Kleene"
+ * @returns "Kleene"
+ */
+Stable method Foundation $"¬_" is
+[
+	a : Kleene
+|
+	{
+		true → false,
+		false → true,
+		unknown → unknown
+	}[a]
+];
+
+/**
+ * Compute the logical conjunction (AND) of the arguments.
+ *
+ * @method "_∧_"
+ * @param "a" "Kleene"
+ * @param "b" "Kleene"
+ * @returns "Kleene"
+ */
+Stable method Foundation $"_∧_" is
+[
+	a : Kleene,
+	b : Kleene
+|
+	// Note that the compiler is able to fold the entire map into a literal,
+	// which it stores directly in the compiled function. So there is no
+	// runtime assembly cost for the map. It does have to build the set which
+	// serves as the key into the map, but constructing a 2-element set is
+	// cheap.
+	//
+	// N.B. If you are viewing this module in Anvil, you haven't customized
+	// the stylesheet, and you can see green, then you should see a green
+	// foreground color for the map. This is the default rendition of the
+	// #other-literal style, and proves that the compiler has performed the
+	// optimization described above.
+	{
+		{true} → true,
+		{true, false} → false,
+		{true, unknown} → unknown,
+		{false} → false,
+		{false, unknown} → false,
+		{unknown} → unknown
+	}[{a, b}]
+];
+
+/**
+ * Compute the logical disjunction (OR) of the arguments.
+ *
+ * @method "_∨_"
+ * @param "a" "Kleene"
+ * @param "b" "Kleene"
+ * @returns "Kleene"
+ */
+Stable method Foundation $"_∨_" is
+[
+	a : Kleene,
+	b : Kleene
+|
+	{
+		{true} → true,
+		{true, false} → true,
+		{true, unknown} → true,
+		{false} → false,
+		{false, unknown} → unknown,
+		{unknown} → unknown
+	}[{a, b}]
+];
+
+/**
+ * Compute the exclusive disjunction (XOR) of the arguments.
+ *
+ * @method "_⊕_"
+ * @param "a" "Kleene"
+ * @param "b" "Kleene"
+ * @returns "Kleene"
+ */
+Stable method Foundation $"_⊕_" is
+[
+	a : Kleene,
+	b : Kleene
+|
+	{
+		{true} → false,
+		{true, false} → true,
+		{true, unknown} → unknown,
+		{false} → false,
+		{false, unknown} → unknown,
+		{unknown} → unknown
+	}[{a, b}]
+];
+
+/**
+ * Compute the material conditional (implication) of the arguments.
+ *
+ * @method "_→_"
+ * @param "a" "Kleene"
+ * @param "b" "Kleene"
+ * @returns "Kleene"
+ */
+Stable method Foundation $"_→_" is
+[
+	a : Kleene,
+	b : Kleene
+|
+	{
+		<true, true> → true,
+		<true, false> → false,
+		<true, unknown> → unknown,
+		<false, true> → true,
+		<false, false> → true,
+		<false, unknown> → true,
+		<unknown, true> → true,
+		<unknown, false> → unknown,
+		<unknown, unknown> → unknown
+	}[<a, b>]
+];

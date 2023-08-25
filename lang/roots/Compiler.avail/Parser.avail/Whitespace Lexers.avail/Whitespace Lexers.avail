@@ -1,0 +1,5 @@
+Module "Whitespace Lexers"
+Extends
+	"Insignificant Whitespace Lexers",
+	"Significant Whitespace Lexers"
+Body

@@ -2,10 +2,11 @@ Module "Conditionals"
 Uses
 	"Avail",
 	"Model",
-	"Whitespace" = (-"significant whitespace lexer", …)
+	"Whitespace"
 Names
 	/* Conditionals. */
-	"…#if_:…#§_"
+	"*…#if_:…#§_",
+	"*…#if_:…#§_…#§else:…#§_"
 Body
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -19,13 +20,18 @@ Body
  *   {@param "trueBlock"};
  * * Otherwise, {@method "unknown"}.
  *
- * @macro "…#if_:…#§_"
+ * @macro "*…#if_:…#§_"
  * @param "indent" "literal phrase ⇒ literal token ⇒ {indent id}ᵀ"
+ *   The indent for the whole conditional expression.
  * @param "predicate" "expression phrase ⇒ Kleene"
+ *   The predicate.
  * @param "trueBlockIndent" "literal phrase ⇒ literal token ⇒ {indent id}ᵀ"
+ *   The indent for the "then" expression.
+ * @param "trueBlock" "expression phrase ⇒ any"
+ *   The block to apply if {@param "predicate"} evaluates to {@method "true"}.
  * @returns "send phrase ⇒ any"
  */
-Public macro "…#if_:…#§_" is
+Public macro "*…#if_:…#§_" is
 [
 	indent : literal phrase ⇒ literal token ⇒ {indent id}ᵀ,
 	predicate : expression phrase ⇒ Kleene,
@@ -43,5 +49,66 @@ Public macro "…#if_:…#§_" is
 		⟦⦊predicate⦉ = true⟧,
 		trueBlock,
 		⟦[unknown]⟧
+	>» : any
+];
+
+/**
+ * Construct a conditional expression that answers:
+ *
+ * * Iff {@param "predicate"} is {@method "true"}, then the result of applying
+ *   {@param "trueBlock"};
+ * * Otherwise, the result of applying {@param "falseBlock"}.
+ *
+ * @macro "*…#if_:…#§_…#§else:…#§_"
+ * @param "indent" "literal phrase ⇒ literal token ⇒ {indent id}ᵀ"
+ *   The indent for the whole conditional expression.
+ * @param "predicate" "expression phrase ⇒ Kleene"
+ *   The predicate.
+ * @param "trueBlockIndent" "literal phrase ⇒ literal token ⇒ {indent id}ᵀ"
+ *   The indent for the "then" expression.
+ * @param "trueBlock" "expression phrase ⇒ any"
+ *   The block to apply if {@param "predicate"} evaluates to {@method "true"}.
+ * @returns "send phrase ⇒ any"
+ */
+Public macro "*…#if_:…#§_…#§else:…#§_" is
+[
+	indent : literal phrase ⇒ literal token ⇒ {indent id}ᵀ,
+	predicate : expression phrase ⇒ Kleene,
+	trueBlockIndent : literal phrase ⇒ literal token ⇒ {indent id}ᵀ
+|
+	Require: trueBlockIndent nests beneath indent;
+],
+[
+	indent : literal phrase ⇒ literal token ⇒ {indent id}ᵀ,
+	predicate : expression phrase ⇒ Kleene,
+	trueBlockIndent : literal phrase ⇒ literal token ⇒ {indent id}ᵀ,
+	trueBlock : expression phrase ⇒ any,
+	elseIndent : literal phrase ⇒ literal token ⇒ {indent id}ᵀ
+|
+	Require: elseIndent agrees with indent;
+],
+[
+	indent : literal phrase ⇒ literal token ⇒ {indent id}ᵀ,
+	predicate : expression phrase ⇒ Kleene,
+	trueBlockIndent : literal phrase ⇒ literal token ⇒ {indent id}ᵀ,
+	trueBlock : expression phrase ⇒ any,
+	elseIndent : literal phrase ⇒ literal token ⇒ {indent id}ᵀ,
+	elseBlockIndent : literal phrase ⇒ literal token ⇒ {indent id}ᵀ
+|
+	Require: elseBlockIndent nests beneath indent;
+],
+[
+	indent : literal phrase ⇒ literal token ⇒ {indent id}ᵀ,
+	predicate : expression phrase ⇒ Kleene,
+	trueBlockIndent : literal phrase ⇒ literal token ⇒ {indent id}ᵀ,
+	trueBlock : expression phrase ⇒ any,
+	elseIndent : literal phrase ⇒ literal token ⇒ {indent id}ᵀ,
+	elseBlockIndent : literal phrase ⇒ literal token ⇒ {indent id}ᵀ,
+	elseBlock : expression phrase ⇒ any
+|
+	restricted send Foundation $"If|if_then_else_" with «<
+		⟦⦊predicate⦉ = true⟧,
+		trueBlock,
+		elseBlock
 	>» : any
 ];

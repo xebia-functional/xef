@@ -1,7 +1,7 @@
 Module "Objects"
 Uses
 	"Avail",
-	"Whitespace" = (-"significant whitespace lexer", …)
+	"Whitespace"
 Names
 	/* Constructors. */
 	"…#«…:_‡…#§»"

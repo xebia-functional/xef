@@ -7,10 +7,7 @@ Names
 
 	/* Indentation management. */
 	"Require:_agrees with_",
-	"Require:_nests beneath_",
-	
-	/* Scanning. */
-	"significant whitespace lexer"
+	"Require:_nests beneath_"
 Body
 
 /**
@@ -145,82 +142,3 @@ Public method "Require:_nests beneath_" is
 	];
 ]
 styled by assertion styler;
-
-////////////////////////////////////////////////////////////////////////////////
-//                                 Scanning.                                  //
-////////////////////////////////////////////////////////////////////////////////
-
-/**
- * Extract the indent from the specified source text.
- *
- * @method "indent from_@_:_"
- * @param "source" "string"
- * @param "position" "ℕ"
- * @param "line" "ℕ"
- * @return "literal token ⇒ indent id"
- */
-Private method "indent from_@_:_" is
-[
-	source : string,
-	position : ℕ,
-	line: ℕ
-|
-	i : ℕ := position;
-	size ::= |source|;
-	While i ≤ size ∧ source[i] ∈ " \t" do [i++;];
-	end ::= (i - 1) min size;
-	`indent id` (source[position .. end]) @ position:line
-];
-
-/**
- * Upon encountering a carriage return (U+000D) or line feed (U+000A), consume
- * the terminator and then scan for indentation characters, which are
- * horizontal tabulation (U+0009) and space (U+0020). Produce two
- * {@type "token"}s. Both contain the {@method "indent id"} special
- * {@type "atom"}, and are duplicates of one another. This arrangement permits
- * the systematic structuring of macros such that (1) an expression can ensure
- * that its subexpressions occur with an appropriate level of indentation and
- * (2) a subexpression can ensure that its keywords and operators all occur
- * with equal indentation, e.g., {@code "if"} and {@code "else"} each have the
- * same leading indentation.
- *
- * @lexer "significant whitespace lexer"
- * @param "source" "string"
- *   The complete source text.
- * @param "position" "natural number"
- *   The position of the leading {@type "character"}.
- * @param "line" "natural number"
- *   The line number of the leading {@type "character"}.
- * @returns "{<literal token⇒{indent id}ᵀ…|2>|1}"
- *   The {@type "literal token"}s representing the indent.
- */
-Lexer $"significant whitespace lexer"
-when [c : character | c = ¢"\r" ∨ c = ¢"\n"]
-is
-[
-	source : string,
-	position : ℕ,
-	line: ℕ
-|
-	size ::= |source|;
-	// Capture the line feed, but produce a token that answers a special atom.
-	// This will allow …! in macro names to consume this token (because it
-	// can't consume ordinary whitespace).
-	startOfIndent ::=
-		if source[position] = ¢"\n" then [ position + 1 ]
-		else
-		[
-			// Because of the entry condition for the lexer, we know that
-			// source[position] is a carriage return (U+000D).
-			if source[position + 1] = ¢"\n" then [ position + 2 ]
-			else [ Reject parse, expected: "line feed (\\n)" ]
-		];
-	// Now consume any combination of spaces and tabs following the line feed,
-	// packaging them up into a new token.
-	indentToken ::= indent from source @ startOfIndent : line;
-	// Now the weird part: we double the indent token, so that it can be
-	// consumed during the parsing of an expression and then again during the
-	// parsing of a subexpression. This mechanism allows us to communicate the
-	// exact indent across the parse boundary.
-	{2 of indentToken}
-];

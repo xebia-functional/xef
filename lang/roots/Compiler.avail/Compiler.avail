@@ -1,5 +1,47 @@
 Module "Compiler"
 Extends
-	"Model",
-	"Parser"
+	"Avail" =
+	(
+		/* Lexers. */
+		"explicit radix integer lexer",
+		"binary integer lexer",
+		"octal integer lexer",
+		"hexadecimal integer lexer",
+		"floating point number lexer",
+		"character set lexer",
+		"raw string lexer",
+		"string token lexer",
+		"whole number lexer",
+		"keyword lexer",
+		"operator lexer",
+		
+		/* Boolean literals. */
+		"true",
+		"false",
+		
+		/* Arithmetic. */
+		"-_",
+		"_+_",
+		"_-_",
+		"_×_",
+		"_×_" → "_*_",
+		"_÷_",
+		"_÷_" → "_/_",
+		"_^_"
+	),
+	"Model" =
+	(
+		/* Lexers. */
+		"semantic version lexer"
+	),
+	"Parser" =
+	(
+		/* Lexers. */
+		"insignificant whitespace lexer",
+		"significant whitespace lexer",
+		
+		/* Conditionals. */
+		"*…#if_:…#§_",
+		"*…#if_:…#§_…#§else:…#§_"
+	)
 Body

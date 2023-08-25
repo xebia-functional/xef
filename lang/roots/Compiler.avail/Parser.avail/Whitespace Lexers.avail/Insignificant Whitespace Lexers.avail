@@ -1,0 +1,61 @@
+Module "Insignificant Whitespace Lexers"
+Uses
+	"Avail",
+	"Whitespace"
+Names
+	/* Scanning. */
+	"insignificant whitespace lexer"
+Body
+
+////////////////////////////////////////////////////////////////////////////////
+//                                 Scanning.                                  //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Extract insignificant whitespace from the specified source text.
+ *
+ * @method "insignificant whitespace from_@_:_"
+ * @param "source" "string"
+ * @param "position" "ℕ"
+ * @param "line" "ℕ"
+ * @return "whitespace token"
+ */
+Private method "insignificant whitespace from_@_:_" is
+[
+	source : string,
+	position : ℕ,
+	line: ℕ
+|
+	i : ℕ := position;
+	size ::= |source|;
+	While i ≤ size ∧ source[i] is whitespace ∧ ¬source[i] ∈ "\r\n" do [i++;];
+	end ::= (i - 1) min size;
+	whitespace (source[position .. end]) @ position:line
+];
+
+/**
+ * Upon encountering any whitespace character not covered by the
+ * {@lexer "significant whitespace lexer"}, scan greedily for additional
+ * insignificant whitespace characters. Combine them into a single
+ * {@method "whitespace"} {@type "token"}.
+ *
+ * @lexer "significant whitespace lexer"
+ * @param "source" "string"
+ *   The complete source text.
+ * @param "position" "natural number"
+ *   The position of the leading {@type "character"}.
+ * @param "line" "natural number"
+ *   The line number of the leading {@type "character"}.
+ * @returns "{<literal token⇒{indent id}ᵀ…|2>|1}"
+ *   The {@type "token"}s representing the insignificant {@type "whitespace"}.
+ */
+Lexer $"insignificant whitespace lexer"
+when [c : character | c is whitespace ∧ ¬c ∈ "\r\n"]
+is
+[
+	source : string,
+	position : ℕ,
+	line: ℕ
+|
+	{<insignificant whitespace from source @ position:line>}
+];
