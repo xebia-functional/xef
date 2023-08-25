@@ -1,0 +1,226 @@
+Module "Whitespace"
+Uses
+	"Avail"
+Names
+	/* Special atoms (for significant whitespace support). */
+	"indent id",
+
+	/* Indentation management. */
+	"Require:_agrees with_",
+	"Require:_nests beneath_",
+	
+	/* Scanning. */
+	"significant whitespace lexer"
+Body
+
+/**
+ * Herein is support for correct and ergonomoic treatment of whitespace in a
+ * whitespace sensitive language. Based loosely on YAML, the Xef prompting
+ * language (1) uses line breaks both to continue and terminate expressions and
+ * (2) uses indentation to establish nesting.
+ *
+ * @module "Whitespace"
+ */
+
+////////////////////////////////////////////////////////////////////////////////
+//                               Special atoms.                               //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * The special {@type "atom"} that represents a semantic indent in the Xef
+ * prompting language. The lexeme itself may be any combination of horizontal
+ * tabulation (U+0009) and space (U+0020), though sane usage will exclusive
+ * utilize one or the other.
+ *
+ * @method "indent id"
+ * @returns "atom"
+ */
+Public "indent id" is a new atom;
+
+////////////////////////////////////////////////////////////////////////////////
+//                          Indentation management.                           //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Escape the horizontal tabulations (U+0009) and spaces (U+0020) in the
+ * argument, replacing the former with bottom square bracket [⎵] (U+23B5) and
+ * the latter with rightwards arrow to bar [⇥] (U+21E5).
+ *
+ * @method "“_”(escaped)"
+ * @param "s" "string"
+ *   Theoretically, an arbitrary string; practically, the lexeme of some
+ *   indentation produced by the {@lexer "significant whitespace lexer"}).
+ * @returns "string"
+ *   An escaped version of the argument.
+ */
+Private method "“_”(escaped)" is
+[
+	s : string
+|
+	c ∈ s → {"\t" → "⇥", " " → "⎵"}[c] else [c]
+];
+
+/**
+ * Strengthen the return type of {@method "“_”(escaped)"} to preserve the
+ * length of the argument, which is invariant under the transformation.
+ *
+ * @method "“_”(escaped)"
+ * @restricts "{string}ᵀ"
+ */
+Semantic restriction "“_”(escaped)" is
+[
+	s : {string}ᵀ
+|
+	<<>, character… | ||s||>
+];
+
+/**
+ * Reject the current parse unless the {@param "newIndent" proposed indent}
+ * agrees exactly with the {@param "establishedIndent" established indent}.
+ * Must only be called from the dynamic scope of a macro.
+ *
+ * @method "Require:_nests beneath_"
+ * @param "newIndent" "literal phrase ⇒ literal token ⇒ {indent id}ᵀ"
+ *   The new indent {@type "token"}, wrapped in a {@type "literal phrase"} by
+ *   {@code "…#"}.
+ * @param "establishedIndent" "literal phrase ⇒ literal token ⇒ {indent id}ᵀ"
+ *   The established indent {@type "token"}, wrapped in a
+ *   {@type "literal phrase"} by {@code "…#"}.
+ * @returns "⊤"
+ */
+Public method "Require:_agrees with_" is
+[
+	newIndent : literal phrase ⇒ literal token ⇒ {indent id}ᵀ,
+	establishedIndent : literal phrase ⇒ literal token ⇒ {indent id}ᵀ
+|
+	newLexeme ::= newIndent's token's lexeme;
+	establishedLexeme ::= establishedIndent's token's lexeme;
+	Unless establishedLexeme = newLexeme then
+	[
+		Reject parse, expected:
+			format
+				"indent to agree exactly with established indent \
+				\|(but “①” differs from “②”)"
+			with
+				“newLexeme” (escaped),
+				“establishedLexeme” (escaped)
+	];
+]
+styled by assertion styler;
+
+/**
+ * Reject the current parse unless {@param "subexpressionIndent"} is a valid
+ * extension of {@param "expressionIndent"}. Must only be called from the
+ * dynamic scope of a macro.
+ *
+ * @method "Require:_nests beneath_"
+ * @param "subexpressionIndent" "literal token ⇒ {indent id}ᵀ"
+ *   The indent {@type "token"} for the subexpression, wrapped in a
+ *   {@type "literal phrase"} by {@code "…#"}..
+ * @param "expressionIndent" "literal token ⇒ {indent id}ᵀ"
+ *   The indent {@type "token"} for the subexpression, wrapped in a
+ *   {@type "literal phrase"} by {@code "…#"}.
+ * @returns "⊤"
+ */
+Public method "Require:_nests beneath_" is
+[
+	subexpressionIndent : literal phrase ⇒ literal token ⇒ {indent id}ᵀ,
+	expressionIndent : literal phrase ⇒ literal token ⇒ {indent id}ᵀ
+|
+	subexpressionLexeme ::= subexpressionIndent's token's lexeme;
+	expressionLexeme ::= expressionIndent's token's lexeme;
+	Unless subexpressionLexeme starts with expressionLexeme then
+	[
+		Reject parse, expected:
+			format
+				"indent of subexpression to extend established indent \
+				\|(but “①” does not lead with “②”)"
+			with
+				“subexpressionLexeme” (escaped),
+				“expressionLexeme” (escaped)
+	];
+	Unless |subexpressionLexeme| > |expressionLexeme| then
+	[
+		Reject parse, expected: "indent of subexpression to increase indent level"
+	];
+]
+styled by assertion styler;
+
+////////////////////////////////////////////////////////////////////////////////
+//                                 Scanning.                                  //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Extract the indent from the specified source text.
+ *
+ * @method "indent from_@_:_"
+ * @param "source" "string"
+ * @param "position" "ℕ"
+ * @param "line" "ℕ"
+ * @return "literal token ⇒ indent id"
+ */
+Private method "indent from_@_:_" is
+[
+	source : string,
+	position : ℕ,
+	line: ℕ
+|
+	i : ℕ := position;
+	size ::= |source|;
+	While i ≤ size ∧ source[i] ∈ " \t" do [i++;];
+	end ::= (i - 1) min size;
+	`indent id` (source[position .. end]) @ position:line
+];
+
+/**
+ * Upon encountering a carriage return (U+000D) or line feed (U+000A), consume
+ * the terminator and then scan for indentation characters, which are
+ * horizontal tabulation (U+0009) and space (U+0020). Produce two
+ * {@type "token"}s. Both contain the {@method "indent id"} special
+ * {@type "atom"}, and are duplicates of one another. This arrangement permits
+ * the systematic structuring of macros such that (1) an expression can ensure
+ * that its subexpressions occur with an appropriate level of indentation and
+ * (2) a subexpression can ensure that its keywords and operators all occur
+ * with equal indentation, e.g., {@code "if"} and {@code "else"} each have the
+ * same leading indentation.
+ *
+ * @lexer "significant whitespace lexer"
+ * @param "source" "string"
+ *   The complete source text.
+ * @param "position" "natural number"
+ *   The position of the leading {@type "character"}.
+ * @param "line" "natural number"
+ *   The line number of the leading {@type "character"}.
+ * @returns "{<literal token⇒{indent id}ᵀ…|2>|1}"
+ *   The {@type "literal token"}s representing the indent.
+ */
+Lexer $"significant whitespace lexer"
+when [c : character | c = ¢"\r" ∨ c = ¢"\n"]
+is
+[
+	source : string,
+	position : ℕ,
+	line: ℕ
+|
+	size ::= |source|;
+	// Capture the line feed, but produce a token that answers a special atom.
+	// This will allow …! in macro names to consume this token (because it
+	// can't consume ordinary whitespace).
+	startOfIndent ::=
+		if source[position] = ¢"\n" then [ position + 1 ]
+		else
+		[
+			// Because of the entry condition for the lexer, we know that
+			// source[position] is a carriage return (U+000D).
+			if source[position + 1] = ¢"\n" then [ position + 2 ]
+			else [ Reject parse, expected: "line feed (\\n)" ]
+		];
+	// Now consume any combination of spaces and tabs following the line feed,
+	// packaging them up into a new token.
+	indentToken ::= indent from source @ startOfIndent : line;
+	// Now the weird part: we double the indent token, so that it can be
+	// consumed during the parsing of an expression and then again during the
+	// parsing of a subexpression. This mechanism allows us to communicate the
+	// exact indent across the parse boundary.
+	{2 of indentToken}
+];

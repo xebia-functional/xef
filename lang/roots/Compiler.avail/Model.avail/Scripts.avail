@@ -1,0 +1,41 @@
+Module "Scripts"
+Uses
+	"Avail",
+	"Semantic Versions"
+Names
+	"AI script",
+		"AI script version",
+			"_'s⁇version",
+			"_'s⁇version::=_"
+Body
+
+////////////////////////////////////////////////////////////////////////////////
+//                            AI script builders.                             //
+////////////////////////////////////////////////////////////////////////////////
+
+Public "AI script version" is a new atom;
+
+/**
+ * An {@type "AI script"} represents a program in the Xef prompting language,
+ * and is iteratively derived by parsing the subexpressions of
+ * {@macro "*ai:§_…!"}, the top-level expression macro. As the compiler begins
+ * to parse each subexpression, an immutable copy of the {@type "AI script"} is
+ * passed via the {@method "parse map"} into the macros responsible for parsing
+ * the subexpressions; note that Avail automatically maximizes sharing between
+ * these immutable copies, so this technique is fast and cheap. For a Xef
+ * program to be considered valid, there must be a single unamibiguous parse of
+ * the whole top-level expression ({@macro "*ai:§_…!"}), and only the last
+ * surviving parse will be carrying a complete {@type "AI script"}.
+ *
+ * When the compiler begins to parse a top-level expression in the Xef prompting
+ * language, it creates a new {@type "empty AI script"}. When the compiler
+ * successfully completes such a parse, it registers the final
+ * {@type "AI script"} into a module {@type "variable"} in {@module "State"}.
+ *
+ * @field "AI script version" "semantic version"
+ *   The {@type "semantic version"} of the enclosing script.
+ */
+Public class "AI script" extends object
+	with fields
+		public reconstructible
+			AI script version : semantic version ("_'s⁇version");

@@ -1,4 +1,5 @@
 Module "Compiler"
 Extends
-	"Model"
+	"Model",
+	"Parser"
 Body

@@ -168,8 +168,7 @@ Public macro "_._._" is
  * @param "line" "natural number"
  *   The line number of the leading {@type "character"}.
  * @returns "{token+|}"
- *   The possible lexes discovered at {@code "position"}, potentially conforming
- *   to a single {@type "integer"} {@type "literal token"}.
+ *   A single {@type "semantic version"} {@type "literal token"}.
  */
 Lexer $"semantic version lexer"
 when [c : character | c is an Arabic numeral]

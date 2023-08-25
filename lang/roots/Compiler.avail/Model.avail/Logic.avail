@@ -1,0 +1,42 @@
+Module "Logic"
+Uses
+	"Avail"
+Names
+	/* Kleene logic. */
+	"Kleene",
+		"unknown"
+Body
+
+////////////////////////////////////////////////////////////////////////////////
+//                               Kleene logic.                                //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * {@method "true"} and {@method "false"} are the members of the finite
+ * enumeration {@type "boolean"}, and {@method "unknown"} joins them to form the
+ * supertype {@type "Kleene"}.
+ *
+ * In the Xef prompting language, {@method "unknown"} typically represents the
+ * intent to fallthrough to the next statement of an enclosing
+ * {@type "function"}, whereas any other value serves as the final output.
+ *
+ * @method "unknown"
+ * @returns "atom"
+ */
+Public "unknown" is a new atom;
+
+/**
+ * Kleene logic is a triadic logic that introduces an {@method "unknown"} truth
+ * value into the Aristotelian system. {@method "unknown"} represents
+ * uncertainty, inconsistency, or undecidability. {@type "Kleene"} simply
+ * extends {@type "boolean"} with the value {@method "unknown"}, thus becoming a
+ * strict supertype.
+ *
+ * @type "Kleene"
+ * @alias "{false, true, unknown}ᵀ"
+ */
+Public stable method "Kleene" is [{false, true, unknown}ᵀ];
+
+////////////////////////////////////////////////////////////////////////////////
+//                               Kleene logic.                                //
+////////////////////////////////////////////////////////////////////////////////

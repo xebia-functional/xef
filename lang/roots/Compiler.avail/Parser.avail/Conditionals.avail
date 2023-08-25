@@ -1,0 +1,47 @@
+Module "Conditionals"
+Uses
+	"Avail",
+	"Model",
+	"Whitespace" = (-"significant whitespace lexer", …)
+Names
+	/* Conditionals. */
+	"…#if_:…#§_"
+Body
+
+////////////////////////////////////////////////////////////////////////////////
+//                               Conditionals.                                //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Construct a conditional expression that answers:
+ *
+ * * Iff {@param "predicate"} is {@method "true"}, then the result of applying
+ *   {@param "trueBlock"};
+ * * Otherwise, {@method "unknown"}.
+ *
+ * @macro "…#if_:…#§_"
+ * @param "indent" "literal phrase ⇒ literal token ⇒ {indent id}ᵀ"
+ * @param "predicate" "expression phrase ⇒ Kleene"
+ * @param "trueBlockIndent" "literal phrase ⇒ literal token ⇒ {indent id}ᵀ"
+ * @returns "send phrase ⇒ any"
+ */
+Public macro "…#if_:…#§_" is
+[
+	indent : literal phrase ⇒ literal token ⇒ {indent id}ᵀ,
+	predicate : expression phrase ⇒ Kleene,
+	trueBlockIndent : literal phrase ⇒ literal token ⇒ {indent id}ᵀ
+|
+	Require: trueBlockIndent nests beneath indent;
+],
+[
+	indent : literal phrase ⇒ literal token ⇒ {indent id}ᵀ,
+	predicate : expression phrase ⇒ boolean,
+	trueBlockIndent : literal phrase ⇒ literal token ⇒ {indent id}ᵀ,
+	trueBlock : expression phrase ⇒ any
+|
+	restricted send Foundation $"If|if_then_else_" with «<
+		⟦⦊predicate⦉ = true⟧,
+		trueBlock,
+		⟦[unknown]⟧
+	>» : any
+];

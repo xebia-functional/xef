@@ -44,7 +44,7 @@ ai:
         # A loop using imported trivia questions.
         loop TriviaBase.triviaList as trivia:
           message: trivia.question
-          user input: answer
+          input: answer
           if TriviaBase.isTriviaAnswerCorrect(trivia.question, answer):
             "Correct! Would you like another one?"
           else:

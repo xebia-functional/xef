@@ -1,26 +1,7 @@
 Module "Model"
-Uses
+Extends
 	"Avail",
+	"Logic",
+	"Scripts",
 	"Semantic Versions"
-Names
-	"AI script",
-		"AI script version",
-			"_'s⁇version"
 Body
-
-////////////////////////////////////////////////////////////////////////////////
-//                             Semantic versions.                             //
-////////////////////////////////////////////////////////////////////////////////
-
-Public "AI script version" is a new atom;
-
-/**
- * An {@type "AI script"} represents a complete specification in the Xef
- * prompting language.
- *
- * @field "AI script version" "semantic version"
- *   The {@type "semantic version"} of the enclosing script.
- */
-Public class "AI script" extends object
-	with fields
-		public AI script version : semantic version ("_'s⁇version");
