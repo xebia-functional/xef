@@ -86,7 +86,7 @@ libraryDependencies += "com.xebia" %% "xef-scala" % "<version>"
 
 > **Warning**
 > `xef-scala` is currently only available for Scala 3, and depends on project [Loom](https://openjdk.org/projects/loom/),
-> so you will need at least Java 19 to use the library.
+> so you will need at least Java 20 to use the library.
 
 </details>
 
