@@ -9,6 +9,23 @@ The project is built with [vite](https://vitejs.devs), a build tool that aims to
 
 One of vite goals is to let the developer focus on the development and features instead of spending time in setting the dev environment. Should you need it, vite is fully documented and offers a rich and detailed guide to solve any doubt in [their site](https://vitejs.dev/guide/).
 
+
+### Environment
+
+You need to have Node.js versions 14.18+ or 16+. But the current LTS is [Node.js 18](https://nodejs.org), so it is recommended to go with that one.
+
+
+### Install
+
+As other general JS and Node.js based projects, dependencies are managed through `npm`, so the first thing needed to be done to run the project is to install its dependencies with:
+
+```bash
+npm install
+```
+
+
+### Commands
+
 Through vite, you can currently run the following commands in the project:
 
 - Start a dev server to work on the project:
@@ -41,10 +58,6 @@ The vite build process supports:
 - [WASM](https://vitejs.dev/guide/features.html#webassembly)
 - [Web workers](https://vitejs.dev/guide/features.html#web-workers)
 
-
-### Environment
-
-You need to have Node.js versions 14.18+ or 16+. But the current LTS is [Node.js 18](https://nodejs.org), so it is recommended to go with that one.
 
 
 ### UI library
