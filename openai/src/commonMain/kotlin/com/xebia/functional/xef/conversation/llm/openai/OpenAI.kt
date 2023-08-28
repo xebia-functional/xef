@@ -15,20 +15,36 @@ import kotlin.jvm.JvmOverloads
 import kotlin.jvm.JvmStatic
 import kotlin.jvm.JvmSynthetic
 
-class OpenAI(internal var token: String? = null) : AutoCloseable, AutoClose by autoClose() {
+class OpenAI(internal var token: String? = null, internal var host: String? = null) :
+  AutoCloseable, AutoClose by autoClose() {
 
   private fun openAITokenFromEnv(): String {
     return getenv("OPENAI_TOKEN")
       ?: throw AIError.Env.OpenAI(nonEmptyListOf("missing OPENAI_TOKEN env var"))
   }
 
+  private fun openAIHostFromEnv(): String? {
+    return getenv("OPENAI_HOST")
+  }
+
   fun getToken(): String {
     return token ?: openAITokenFromEnv()
+  }
+
+  fun getHost(): String? {
+    return host
+      ?: run {
+        host = openAIHostFromEnv()
+        host
+      }
   }
 
   init {
     if (token == null) {
       token = openAITokenFromEnv()
+    }
+    if (host == null) {
+      host = openAIHostFromEnv()
     }
   }
 
@@ -127,7 +143,7 @@ class OpenAI(internal var token: String? = null) : AutoCloseable, AutoClose by a
   }
 }
 
-fun String.toOpenAIModel(token: String): OpenAIModel {
-  val openAI = OpenAI(token)
+fun String.toOpenAIModel(token: String, host: String? = null): OpenAIModel {
+  val openAI = OpenAI(token, host)
   return openAI.supportedModels().find { it.name == this } ?: openAI.GPT_3_5_TURBO_16K
 }

@@ -27,6 +27,11 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.serialization.hocon)
     implementation(libs.ktor.serialization.json)
+    implementation(libs.ktor.client)
+    implementation(libs.ktor.client.auth)
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.client.logging)
+    implementation(libs.ktor.client.json)
     implementation(libs.ktor.server.auth)
     implementation(libs.ktor.server.netty)
     implementation(libs.ktor.server.core)
@@ -58,3 +63,11 @@ task<JavaExec>("web-app") {
     classpath = sourceSets.main.get().runtimeClasspath
     mainClass.set("com.xebia.functional.xef.server.WebApp")
   }
+
+task<JavaExec>("server") {
+    dependsOn("compileKotlin")
+    group = "Execution"
+    description = "xef-server server application"
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("com.xebia.functional.xef.server.Server")
+}

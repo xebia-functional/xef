@@ -1,6 +1,5 @@
 package com.xebia.functional.xef.server
 
-
 import arrow.continuations.SuspendApp
 import arrow.fx.coroutines.resourceScope
 import arrow.continuations.ktor.server
@@ -10,6 +9,11 @@ import com.xebia.functional.xef.server.db.psql.Migrate
 import com.xebia.functional.xef.server.db.psql.XefVectorStoreConfig
 import com.xebia.functional.xef.server.db.psql.XefVectorStoreConfig.Companion.getPersistenceService
 import com.xebia.functional.xef.server.http.routes.routes
+import io.ktor.client.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation as ClientContentNegotiation
+import io.ktor.client.plugins.auth.*
+import io.ktor.client.plugins.logging.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -20,7 +24,7 @@ import io.ktor.server.resources.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.awaitCancellation
 
-object Main {
+object Server {
     @JvmStatic
     fun main(args: Array<String>) = SuspendApp {
         resourceScope {
@@ -32,7 +36,15 @@ object Main {
             val persistenceService = vectorStoreConfig.getPersistenceService(config)
             persistenceService.addCollection()
 
-            server(factory = Netty, port = 8080, host = "0.0.0.0") {
+            val ktorClient = HttpClient(CIO){
+                install(Auth)
+                install(Logging) {
+                    level = LogLevel.INFO
+                }
+                install(ClientContentNegotiation)
+            }
+
+            server(factory = Netty, port = 8081, host = "0.0.0.0") {
                 install(CORS) {
                     allowNonSimpleContentTypes = true
                     anyHost()
@@ -46,7 +58,7 @@ object Main {
                         }
                     }
                 }
-                routing { routes(persistenceService) }
+                routing { routes(ktorClient, persistenceService) }
             }
             awaitCancellation()
         }

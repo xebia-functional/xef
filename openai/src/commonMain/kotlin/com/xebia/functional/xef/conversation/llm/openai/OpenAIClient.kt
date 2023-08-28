@@ -20,6 +20,7 @@ import com.aallam.openai.api.logging.LogLevel
 import com.aallam.openai.api.model.ModelId
 import com.aallam.openai.client.LoggingConfig
 import com.aallam.openai.client.OpenAI as OpenAIClient
+import com.aallam.openai.client.OpenAIHost
 import com.xebia.functional.tokenizer.Encoding
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.llm.*
@@ -51,6 +52,7 @@ class OpenAIModel(
 
   private val client =
     OpenAIClient(
+      host = openAI.getHost()?.let { OpenAIHost(it) } ?: OpenAIHost.OpenAI,
       token = openAI.getToken(),
       logging = LoggingConfig(LogLevel.None),
       headers = mapOf("Authorization" to " Bearer $openAI.token")
