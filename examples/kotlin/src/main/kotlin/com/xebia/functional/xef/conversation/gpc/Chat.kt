@@ -10,6 +10,8 @@ suspend fun main() {
       autoClose(
         GcpChat("us-central1-aiplatform.googleapis.com", "xef-demo", "codechat-bison@001", "token")
       )
+    val gcpEmbedding = autoClose(GcpChat("us-central-aiplatform.googleapis.com", "xef-demo", "textembedding-gecko", "token"))
+
     while (true) {
       print("\n🤖 Enter your question: ")
       val userInput = readlnOrNull() ?: break
