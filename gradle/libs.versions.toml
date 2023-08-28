@@ -16,6 +16,7 @@ testcontainers = "1.18.3"
 hikari = "5.0.1"
 dokka = "1.8.20"
 logback = "1.4.11"
+node-gradle = "5.0.0"
 kotlinx-coroutines = "1.7.3"
 scalaMultiversion = "2.0.4"
 circe = "0.14.5"
@@ -29,7 +30,7 @@ assertj = "3.24.2"
 junit = "5.10.0"
 pdfbox = "3.0.0"
 mysql = "8.0.33"
-semverGradle = "0.5.0-rc.1"
+semverGradle = "0.5.0-rc.5"
 scala = "3.3.0"
 openai-client-version = "3.3.2"
 gpt4all-java = "1.1.5"
@@ -39,7 +40,7 @@ jsonschema = "4.31.1"
 jakarta = "3.0.2"
 suspend-transform = "0.5.0"
 suspendApp = "0.4.0"
-flyway = "9.17.0"
+flyway = "9.21.1"
 resources-kmp = "0.4.0"
 detekt = "1.23.1"
 
@@ -141,3 +142,4 @@ semver-gradle = { id="com.javiersc.semver", version.ref="semverGradle" }
 suspend-transform-plugin = { id="love.forte.plugin.suspend-transform", version.ref="suspend-transform" }
 resources = { id="com.goncalossilva.resources", version.ref="resources-kmp" }
 detekt = { id="io.gitlab.arturbosch.detekt", version.ref="detekt"}
+node-gradle = { id = "com.github.node-gradle.node", version.ref = "node-gradle" }

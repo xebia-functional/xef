@@ -1,6 +1,7 @@
 plugins {
     id(libs.plugins.kotlin.jvm.get().pluginId)
     id(libs.plugins.kotlinx.serialization.get().pluginId)
+    alias(libs.plugins.node.gradle)
 }
 
 repositories {
@@ -13,6 +14,10 @@ java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(11)
     }
+}
+
+node {
+    nodeProjectDir.set(file("${project.projectDir}/web"))
 }
 
 dependencies {
@@ -51,4 +56,10 @@ tasks.getByName<Copy>("processResources") {
     into("$buildDir/resources/main")
 }
 
-
+task<JavaExec>("web-app") {
+    dependsOn("npm_run_build")
+    group = "Execution"
+    description = "xef-server web application"
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("com.xebia.functional.xef.server.WebApp")
+  }
