@@ -40,7 +40,7 @@ fun String.toProvider(): Provider? = when (this) {
     "openai" -> Provider.OPENAI
     "gpt4all" -> Provider.GPT4ALL
     "gcp" -> Provider.GCP
-    else -> null
+    else -> Provider.OPENAI
 }
 
 
@@ -56,8 +56,8 @@ fun Routing.routes(
             val provider: Provider = call.getProvider()
             val token = call.getToken()
             val scope = Conversation(persistenceService.getVectorStore(provider, token))
-            val darta = call.receive<String>()
-            val data = Json.decodeFromString<JsonObject>(darta)// call.receive<JsonObject>()
+            val context = call.receive<String>()
+            val data = Json.decodeFromString<JsonObject>(context)
             if (!data.containsKey("model")) {
                 call.respondText("No model found", status = HttpStatusCode.BadRequest)
                 return@post
@@ -66,8 +66,6 @@ fun Routing.routes(
                 call.respondText("No model found", status = HttpStatusCode.BadRequest)
                 return@post
             }
-
-            println(darta)
 
             val isStream = data["stream"]?.jsonPrimitive?.boolean ?: false
 
@@ -78,7 +76,7 @@ fun Routing.routes(
                     }
                     contentType(ContentType.Application.Json)
                     method = HttpMethod.Post
-                    setBody(darta)
+                    setBody(context)
                 }
                 call.respond(response.body<String>())
             } else {
@@ -89,7 +87,7 @@ fun Routing.routes(
                         }
                         contentType(ContentType.Application.Json)
                         method = HttpMethod.Post
-                        setBody(darta)
+                        setBody(context)
                     }.execute { httpResponse ->
                         val channel: ByteReadChannel = httpResponse.body()
                         call.respondBytesWriter(contentType = ContentType.Application.Json) {
@@ -110,7 +108,7 @@ fun Routing.routes(
 
 private fun ApplicationCall.getProvider(): Provider =
     request.headers["xef-provider"]?.toProvider()
-        ?: throw IllegalArgumentException("Not a valid provider")
+        ?: Provider.OPENAI
 
 private fun ApplicationCall.getToken(): String =
     principal<UserIdPrincipal>()?.name ?: throw IllegalArgumentException("No token found")

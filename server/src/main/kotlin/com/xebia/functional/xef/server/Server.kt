@@ -1,6 +1,5 @@
 package com.xebia.functional.xef.server
 
-
 import arrow.continuations.SuspendApp
 import arrow.fx.coroutines.resourceScope
 import arrow.continuations.ktor.server
@@ -25,7 +24,7 @@ import io.ktor.server.resources.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.awaitCancellation
 
-object Main {
+object Server {
     @JvmStatic
     fun main(args: Array<String>) = SuspendApp {
         resourceScope {
@@ -45,7 +44,7 @@ object Main {
                 install(ClientContentNegotiation)
             }
 
-            server(factory = Netty, port = 8080, host = "0.0.0.0") {
+            server(factory = Netty, port = 8081, host = "0.0.0.0") {
                 install(CORS) {
                     allowNonSimpleContentTypes = true
                     anyHost()

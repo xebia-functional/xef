@@ -63,3 +63,11 @@ task<JavaExec>("web-app") {
     classpath = sourceSets.main.get().runtimeClasspath
     mainClass.set("com.xebia.functional.xef.server.WebApp")
   }
+
+task<JavaExec>("server") {
+    dependsOn("compileKotlin")
+    group = "Execution"
+    description = "xef-server server application"
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("com.xebia.functional.xef.server.Server")
+}
