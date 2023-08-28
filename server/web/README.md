@@ -5,7 +5,7 @@ The dashboard and admin panel for the xef-server module and other AI xef powered
 
 ## Development
 
-The project is built with [vite](https://vitejs.devs), a build tool that aims to provide a faster and leaner development experience for modern web projects.
+The project is built with [vite](https://vitejs.dev), a build tool that aims to provide a faster and leaner development experience for modern web projects.
 
 One of vite goals is to let the developer focus on the development and features instead of spending time in setting the dev environment. Should you need it, vite is fully documented and offers a rich and detailed guide to solve any doubt in [their site](https://vitejs.dev/guide/).
 
@@ -99,5 +99,5 @@ Thorugh [ESLint](https://eslint.org/) and [Prettier](https://prettier.io/), you 
 - Then you can also find `components`. Each component includes a TypeScript file, a styling one, and an _index_, for a cleaner exporting/importing.
 - Code concerning state and other contexts related functions are in `state`.
 - The MUI theme definition and configuration is set in the `styles` folder. You might not need to touch any of these settings. 
-- Other utility and helper functions shpuld be placed under  `src/utils`.
+- Other utility and helper functions should be placed under  `src/utils`.
 
