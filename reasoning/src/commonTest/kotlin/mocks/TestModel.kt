@@ -29,7 +29,7 @@ class TestModel(override val modelType: ModelType, override val name: String) :
             message =
               Message(
                 role = Role.USER,
-                content = request.messages[3].content,
+                content = request.messages.last().content,
                 name = Role.USER.name
               ),
             finishReason = "fake-finish-reason",

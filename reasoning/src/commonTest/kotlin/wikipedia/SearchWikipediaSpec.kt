@@ -26,7 +26,7 @@ class SearchWikipediaSpec :
       val response =
         search.invoke("number of human bones in the human body".encodeURLQueryComponent())
 
-      val contentExpected = "Size: 33022"
+      val contentExpected = "Content: to around 206 <span class=\"searchmatch\">bones</span> by adulthood after some <span class=\"searchmatch\">bones</span> get fused together. <span class=\"searchmatch\">The</span> <span class=\"searchmatch\">bone</span> mass <span class=\"searchmatch\">in</span> <span class=\"searchmatch\">the</span> skeleton makes up about 14% <span class=\"searchmatch\">of</span> <span class=\"searchmatch\">the</span> total <span class=\"searchmatch\">body</span> weight (ca. 10\u201311\u00a0kg"
 
       response shouldBe contentExpected
     }

@@ -25,7 +25,7 @@ class SerpApiClientSpec :
       val response = search.invoke("german shepper")
 
       val contentExpected =
-        "Content: Generally considered dogkind's finest all-purpose worker, the German Shepherd Dog is a large, agile, muscular dog of noble character and high intelligence."
+        "Content: The German Shepherd is a breed of working dog developed in Germany from traditional herding and farm dogs. Strongly built and relatively"
 
       response shouldBe contentExpected
     }
