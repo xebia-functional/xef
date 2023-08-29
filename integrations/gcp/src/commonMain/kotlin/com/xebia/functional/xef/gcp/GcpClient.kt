@@ -3,45 +3,20 @@ package com.xebia.functional.xef.gcp
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.auto.AutoClose
 import com.xebia.functional.xef.auto.autoClose
-import io.ktor.client.HttpClient
-import io.ktor.client.call.body
-import io.ktor.client.plugins.*
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.request.header
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.contentType
-import io.ktor.http.isSuccess
-import io.ktor.serialization.kotlinx.json.json
+import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 
-@OptIn(ExperimentalStdlibApi::class)
 class GcpClient(
   private val apiEndpoint: String,
   private val projectId: String,
   val modelId: String,
   private val token: String
-) : AutoCloseable, AutoClose by autoClose() {
-  private val http: HttpClient = HttpClient {
-    install(HttpTimeout) {
-      requestTimeoutMillis = 60_000
-      connectTimeoutMillis = 60_000
-    }
-    install(HttpRequestRetry)
-    install(ContentNegotiation) {
-      json(
-        Json {
-          encodeDefaults = false
-          isLenient = true
-          ignoreUnknownKeys = true
-        }
-      )
-    }
-  }
+) : AutoClose by autoClose() {
+  private val http: HttpClient = jsonHttpClient()
 
   @Serializable
   private data class Prompt(val instances: List<Instance>, val parameters: Parameters? = null)
@@ -115,7 +90,4 @@ class GcpClient(
   class GcpClientException(val httpStatusCode: HttpStatusCode, val error: String) :
     IllegalStateException("$httpStatusCode: $error")
 
-  override fun close() {
-    http.close()
-  }
 }

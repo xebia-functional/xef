@@ -2,6 +2,7 @@ package com.xebia.functional.xef.auto
 
 import arrow.atomic.Atomic
 import arrow.atomic.update
+import io.ktor.utils.io.core.*
 
 /**
  * AutoClose offers DSL style API for creating parent-child relationships of AutoCloseable
@@ -9,6 +10,9 @@ import arrow.atomic.update
  */
 interface AutoClose : AutoCloseable {
   fun <A : AutoCloseable> autoClose(autoCloseable: A): A
+
+  /** integration to Ktor's [Closeable] */
+  fun <A : Closeable> autoClose(closeable: A): A
 }
 
 /** DSL method to use AutoClose */
@@ -22,6 +26,11 @@ fun autoClose(): AutoClose =
     override fun <A : AutoCloseable> autoClose(autoCloseable: A): A {
       finalizers.update { prev -> prev + autoCloseable::close }
       return autoCloseable
+    }
+
+    override fun <A : Closeable> autoClose(closeable: A): A {
+      finalizers.update { prev -> prev + closeable::close }
+      return closeable
     }
 
     override fun close() {
