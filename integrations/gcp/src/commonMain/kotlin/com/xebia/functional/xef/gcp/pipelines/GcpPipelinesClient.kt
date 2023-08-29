@@ -2,6 +2,7 @@ package com.xebia.functional.xef.gcp.pipelines
 
 import com.xebia.functional.xef.auto.AutoClose
 import com.xebia.functional.xef.auto.autoClose
+import com.xebia.functional.xef.gcp.GcpConfig
 import com.xebia.functional.xef.gcp.jsonHttpClient
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -13,9 +14,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 class GcpPipelinesClient(
-  private val tuningLocation: String,  // Supported us-central1 or europe-west4
-  private val projectId: String,
-  private val token: String
+  private val config: GcpConfig,
 ) : AutoClose by autoClose() {
   private val http: HttpClient = jsonHttpClient()
 
@@ -95,9 +94,9 @@ class GcpPipelinesClient(
   suspend fun list(): List<PipelineJob> {
     val response =
       http.get(
-        "https://$tuningLocation-aiplatform.googleapis.com/v1/projects/$projectId/locations/$tuningLocation/pipelineJobs"
+        "https://${config.location}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${config.location}/pipelineJobs"
       ) {
-        header("Authorization", "Bearer $token")
+        header("Authorization", "Bearer ${config.token}")
         contentType(ContentType.Application.Json)
       }
 
@@ -109,9 +108,9 @@ class GcpPipelinesClient(
   suspend fun get(pipelineJobName: String): PipelineJob? {
     val response =
       http.get(
-        "https://$tuningLocation-aiplatform.googleapis.com/v1/projects/$projectId/locations/$tuningLocation/pipelineJobs/$pipelineJobName"
+        "https://${config.location}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${config.location}/pipelineJobs/$pipelineJobName"
       ) {
-        header("Authorization", "Bearer $token")
+        header("Authorization", "Bearer ${config.token}")
         contentType(ContentType.Application.Json)
       }
 
@@ -122,9 +121,9 @@ class GcpPipelinesClient(
   suspend fun create(pipelineJobId: String?, pipelineJob: CreatePipelineJob): PipelineJob? {
     val response =
       http.post(
-        "https://$tuningLocation-aiplatform.googleapis.com/v1/projects/$projectId/locations/$tuningLocation/pipelineJobs"
+        "https://${config.location}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${config.location}/pipelineJobs"
       ) {
-        header("Authorization", "Bearer $token")
+        header("Authorization", "Bearer ${config.token}")
         contentType(ContentType.Application.Json)
         parameter("pipelineJobId", pipelineJobId)
         setBody(pipelineJob)
@@ -137,9 +136,9 @@ class GcpPipelinesClient(
   suspend fun cancel(pipelineJobName: String): Unit {
     val response =
       http.post(
-        "https://$tuningLocation-aiplatform.googleapis.com/v1/projects/$projectId/locations/$tuningLocation/pipelineJobs/$pipelineJobName:cancel"
+        "https://${config.location}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${config.location}/pipelineJobs/$pipelineJobName:cancel"
       ) {
-        header("Authorization", "Bearer $token")
+        header("Authorization", "Bearer ${config.token}")
         contentType(ContentType.Application.Json)
       }
 
@@ -150,9 +149,9 @@ class GcpPipelinesClient(
   suspend fun delete(pipelineJobName: String): Operation {
     val response =
       http.delete(
-        "https://$tuningLocation-aiplatform.googleapis.com/v1/projects/$projectId/locations/$tuningLocation/pipelineJobs/$pipelineJobName"
+        "https://${config.location}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${config.location}/pipelineJobs/$pipelineJobName"
       ) {
-        header("Authorization", "Bearer $token")
+        header("Authorization", "Bearer ${config.token}")
         contentType(ContentType.Application.Json)
       }
 

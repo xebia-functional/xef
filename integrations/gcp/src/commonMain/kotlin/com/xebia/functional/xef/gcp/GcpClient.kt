@@ -11,10 +11,8 @@ import io.ktor.http.*
 import kotlinx.serialization.Serializable
 
 class GcpClient(
-  private val apiEndpoint: String,
-  private val projectId: String,
   val modelId: String,
-  private val token: String
+  private val config: GcpConfig,
 ) : AutoClose by autoClose() {
   private val http: HttpClient = jsonHttpClient()
 
@@ -72,11 +70,10 @@ class GcpClient(
         listOf(Instance(messages = listOf(Message(author = "user", content = prompt)))),
         Parameters(temperature, maxOutputTokens, topK, topP)
       )
-    val response =
-      http.post(
-        "https://$apiEndpoint/v1/projects/$projectId/locations/us-central1/publishers/google/models/$modelId:predict"
+    val response = http.post(
+        "https://${config.location}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/us-central1/publishers/google/models/$modelId:predict"
       ) {
-        header("Authorization", "Bearer $token")
+        header("Authorization", "Bearer ${config.token}")
         contentType(ContentType.Application.Json)
         setBody(body)
       }

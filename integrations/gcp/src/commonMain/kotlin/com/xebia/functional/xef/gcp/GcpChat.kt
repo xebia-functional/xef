@@ -16,9 +16,9 @@ import kotlinx.uuid.UUID
 import kotlinx.uuid.generateUUID
 
 @OptIn(ExperimentalStdlibApi::class)
-class GcpChat(apiEndpoint: String, projectId: String, modelId: String, token: String) :
+class GcpChat(modelId: String, config: GcpConfig) :
   Chat, Completion, AutoCloseable {
-  private val client: GcpClient = GcpClient(apiEndpoint, projectId, modelId, token)
+  private val client: GcpClient = GcpClient(modelId, config)
 
   override val name: String = client.modelId
   override val modelType: ModelType =
