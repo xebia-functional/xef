@@ -7,8 +7,6 @@ import com.xebia.functional.xef.conversation.llm.openai.OpenAI
 import com.xebia.functional.xef.env.getenv
 import com.xebia.functional.xef.gcp.GcpChat
 import com.xebia.functional.xef.gcp.GcpEmbeddings
-import com.xebia.functional.xef.llm.models.embeddings.EmbeddingModel
-import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
 import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
 import com.xebia.functional.xef.prompt.Prompt
 
@@ -23,7 +21,7 @@ suspend fun main() {
       .let(::autoClose)
 
     val embeddingResult = GcpEmbeddings(gcpEmbeddingModel)
-      .embedQuery("strawberry donuts", RequestConfig(EmbeddingModel.TEXT_EMBEDDING_GECKO, RequestConfig.Companion.User("user")))
+      .embedQuery("strawberry donuts", RequestConfig(RequestConfig.Companion.User("user")))
     println(embeddingResult)
 
     while (true) {

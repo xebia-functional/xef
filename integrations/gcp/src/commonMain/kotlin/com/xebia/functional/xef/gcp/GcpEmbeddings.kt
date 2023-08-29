@@ -13,7 +13,7 @@ class GcpEmbeddings(private val gcpClient: com.xebia.functional.xef.llm.Embeddin
         requestConfig: RequestConfig
     ): List<Embedding> {
         suspend fun createEmbeddings(texts: List<String>): List<Embedding> {
-            val req = EmbeddingRequest(requestConfig.model.modelName, texts, requestConfig.user.id)
+            val req = EmbeddingRequest(gcpClient.name, texts, requestConfig.user.id)
             return gcpClient.createEmbeddings(req).data.map { Embedding(it.embedding) }
         }
         val lists: List<List<Embedding>> =

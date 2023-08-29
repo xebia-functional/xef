@@ -15,7 +15,7 @@ class OpenAIEmbeddings(private val oaiClient: com.xebia.functional.xef.llm.Embed
     requestConfig: RequestConfig
   ): List<Embedding> {
     suspend fun createEmbeddings(texts: List<String>): List<Embedding> {
-      val req = EmbeddingRequest(requestConfig.model.modelName, texts, requestConfig.user.id)
+      val req = EmbeddingRequest(oaiClient.name, texts, requestConfig.user.id)
       return oaiClient.createEmbeddings(req).data.map { Embedding(it.embedding) }
     }
     val lists: List<List<Embedding>> =
