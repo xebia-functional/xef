@@ -115,6 +115,7 @@ jackson-schema-jakarta = { module = "com.github.victools:jsonschema-module-jakar
 jakarta-validation = { module = "jakarta.validation:jakarta.validation-api", version.ref = "jakarta" }
 detekt-api = { module = "io.gitlab.arturbosch.detekt:detekt-api", version.ref = "detekt" }
 detekt-test = { module = "io.gitlab.arturbosch.detekt:detekt-test", version.ref = "detekt" }
+mock-engine-test = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
 
 [bundles]
 ktor-client = [
