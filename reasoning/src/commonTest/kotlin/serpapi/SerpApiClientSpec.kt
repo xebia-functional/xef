@@ -22,10 +22,10 @@ class SerpApiClientSpec :
 
       val search = TestSearch(model = model, scope = scope)
 
-      val response = search.invoke("number of Leonardo di Caprio's girlfriends")
+      val response = search.invoke("german shepper")
 
       val contentExpected =
-        "Content: Gigi Hadid · Camila Morrone · Camila Morrone · Camila Morrone · Nina Agdal · Rihanna · Rihanna · Kelly Rohrbach."
+        "Content: Generally considered dogkind's finest all-purpose worker, the German Shepherd Dog is a large, agile, muscular dog of noble character and high intelligence."
 
       response shouldBe contentExpected
     }
@@ -34,9 +34,9 @@ class SerpApiClientSpec :
       val client = TestSerpApiClient()
 
       val response =
-        client.search(TestSerpApiClient.SearchData("number of Leonardo di Caprio's girlfriends"))
+        client.search(TestSerpApiClient.SearchData("german shepper"))
 
-      val titleExpected = "Leonardo DiCaprio's Dating History: Gisele, Blake Lively, ..."
+      val titleExpected = "German Shepherd Dog Breed Information & Characteristics"
 
       response.searchResults[1].title shouldBe titleExpected
     }
@@ -45,10 +45,10 @@ class SerpApiClientSpec :
       val client = TestSerpApiClient()
 
       val response =
-        client.search(TestSerpApiClient.SearchData("number of Leonardo di Caprio's girlfriends"))
+        client.search(TestSerpApiClient.SearchData("german shepper"))
 
       val sourceExpected =
-        "https://pagesix.com/article/leonardo-dicaprios-full-dating-history-all-of-his-ex-girlfriends/"
+        "https://www.britannica.com/animal/German-shepherd"
 
       response.searchResults[2].source shouldBe sourceExpected
     }

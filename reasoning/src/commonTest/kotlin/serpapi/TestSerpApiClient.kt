@@ -27,23 +27,23 @@ class TestSerpApiClient(private val serpApiKey: String? = "SERP_API_KEY") :
 
   private val searchResult1 =
     SearchResult(
-      "Leonardo DiCaprio's Dating History: Each Girlfriend In His ...",
-      "Gigi Hadid · Camila Morrone · Camila Morrone · Camila Morrone · Nina Agdal · Rihanna · Rihanna · Kelly Rohrbach.",
-      "https://www.elle.com/uk/fashion/celebrity-style/articles/g24272/leonardo-dicaprio-dating-history/"
+      "German Shepherd Dog Dog Breed Information",
+      "Generally considered dogkind's finest all-purpose worker, the German Shepherd Dog is a large, agile, muscular dog of noble character and high intelligence.",
+      "https://www.akc.org/dog-breeds/german-shepherd-dog/"
     )
 
   private val searchResult2 =
     SearchResult(
-      "Leonardo DiCaprio's Dating History: Gisele, Blake Lively, ...",
-      "Take a look back at Leonardo DiCaprio's many high-profile relationships through the years, from Bridget Hall to Camila Morrone — photos.",
-      "https://www.usmagazine.com/celebrity-news/pictures/leonardo-dicaprios-ladies-2011911/"
+      "German Shepherd Dog Breed Information & Characteristics",
+      "The German Shepherds (GSDs) is a medium to large dog breed known for their intelligence, loyalty, and protective instincts. They are often used as working",
+      "https://dogtime.com/dog-breeds/german-shepherd-dog"
     )
 
   private val searchResult3 =
     SearchResult(
-      "Leonardo DiCaprio's full dating history: All of his ex- ...",
-      "Bridget Hall · Naomi Campbell · Kristen Zang · Eva Herzigová · Gisele Bündchen · Bar Refaeli · Blake Lively · Erin Heatherton.",
-      "https://pagesix.com/article/leonardo-dicaprios-full-dating-history-all-of-his-ex-girlfriends/"
+      "German Shepherd - breed of dog - Britannica",
+      "The German Shepherd is a breed of working dog developed in Germany from traditional herding and farm dogs. Strongly built and relatively",
+      "https://www.britannica.com/animal/German-shepherd"
     )
 
   private val searchResults = SearchResults(listOf(searchResult1, searchResult2, searchResult3))
