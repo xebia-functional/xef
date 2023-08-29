@@ -137,7 +137,7 @@ class GcpClient(
 
   @Serializable
   data class PredictionEmbeddings(
-    val statistics: List<EmbeddingStatistics>,
+    val statistics: EmbeddingStatistics,
     val values: List<Double>,
   )
 
@@ -155,7 +155,7 @@ class GcpClient(
     val response = http.post(
       "https://$apiEndpoint/v1/projects/$projectId/locations/us-central1/publishers/google/models/$modelId:predict"
     ) {
-      header("Authorization", token)
+      header("Authorization", "Bearer $token")
       contentType(ContentType.Application.Json)
       setBody(body)
     }
