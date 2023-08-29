@@ -1,49 +1,55 @@
 package serpapi
 
+import com.xebia.functional.tokenizer.ModelType
+import com.xebia.functional.xef.conversation.Conversation
+import com.xebia.functional.xef.store.ConversationId
+import com.xebia.functional.xef.store.LocalVectorStore
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
+import kotlinx.uuid.UUID
+import kotlinx.uuid.generateUUID
+import mocks.TestEmbeddings
+import mocks.TestModel
 
 class SerpApiClientSpec :
   StringSpec({
-    /*"""
-    | When we are using a OpenAI scope conversation
-    | the memories should have the correct size in the vector store
-    | for the conversationId generated inside the conversation
-    """ {
-        OpenAI.conversation {
-            val model = TestModel(modelType = ModelType.ADA, name = "fake-model")
+    "content should be the same" {
+      val conversationId = ConversationId(UUID.generateUUID().toString())
 
-            promptMessage(prompt = Prompt("question 1"), model = model)
+      val model = TestModel(modelType = ModelType.ADA, name = "fake-model")
 
-            promptMessage(prompt = Prompt("question 2"), model = model)
+      val scope = Conversation(LocalVectorStore(TestEmbeddings()), conversationId = conversationId)
 
-            val memories = store.memories(conversationId!!, 10000)
+      val search = TestSearch(model = model, scope = scope)
 
-            memories.size shouldBe 4
-        }
-    }*/
+      val response = search.invoke("number of Leonardo di Caprio's girlfriends")
 
-    "Tittle should be the same at index 0" {
-      val client = TestSerpApiClient()
+      val contentExpected =
+        "Content: Gigi Hadid · Camila Morrone · Camila Morrone · Camila Morrone · Nina Agdal · Rihanna · Rihanna · Kelly Rohrbach."
 
-      val response = client.search(TestSerpApiClient.SearchData("number of Leonardo di Caprio's girlfriends"))
-
-      response.searchResults[0].title shouldBe "Leonardo DiCaprio's Dating History: Each Girlfriend In His ..."
+      response shouldBe contentExpected
     }
 
-    "Document should be the same at index 1" {
+    "Tittle should be the same at index 1" {
       val client = TestSerpApiClient()
 
-      val response = client.search(TestSerpApiClient.SearchData("number of Leonardo di Caprio's girlfriends"))
+      val response =
+        client.search(TestSerpApiClient.SearchData("number of Leonardo di Caprio's girlfriends"))
 
-      response.searchResults[1].document shouldBe "Take a look back at Leonardo DiCaprio's many high-profile relationships through the years, from Bridget Hall to Camila Morrone — photos."
+      val titleExpected = "Leonardo DiCaprio's Dating History: Gisele, Blake Lively, ..."
+
+      response.searchResults[1].title shouldBe titleExpected
     }
 
     "Source should be the same at index 2" {
       val client = TestSerpApiClient()
 
-      val response = client.search(TestSerpApiClient.SearchData("number of Leonardo di Caprio's girlfriends"))
+      val response =
+        client.search(TestSerpApiClient.SearchData("number of Leonardo di Caprio's girlfriends"))
 
-      response.searchResults[2].source shouldBe "https://pagesix.com/article/leonardo-dicaprios-full-dating-history-all-of-his-ex-girlfriends/"
+      val sourceExpected =
+        "https://pagesix.com/article/leonardo-dicaprios-full-dating-history-all-of-his-ex-girlfriends/"
+
+      response.searchResults[2].source shouldBe sourceExpected
     }
   })
