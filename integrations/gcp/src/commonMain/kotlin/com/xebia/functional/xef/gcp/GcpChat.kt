@@ -42,7 +42,7 @@ class GcpChat(apiEndpoint: String, projectId: String, modelId: String, token: St
       getTimeMillis(),
       client.modelId,
       listOf(CompletionChoice(response, 0, null, null)),
-      Usage.ZERO
+      Usage.ZERO, // TODO: token usage - no information about usage provided by GCP codechat model
     )
   }
 
@@ -62,7 +62,7 @@ class GcpChat(apiEndpoint: String, projectId: String, modelId: String, token: St
       client.modelId,
       getTimeMillis().toInt(),
       client.modelId,
-      Usage.ZERO,
+      Usage.ZERO, // TODO: token usage - no information about usage provided by GCP
       listOf(Choice(Message(Role.ASSISTANT, response, Role.ASSISTANT.name), null, 0)),
     )
   }
@@ -87,7 +87,9 @@ class GcpChat(apiEndpoint: String, projectId: String, modelId: String, token: St
             getTimeMillis().toInt(),
             client.modelId,
             listOf(ChatChunk(delta = ChatDelta(Role.ASSISTANT, response))),
-            Usage.ZERO,
+            Usage
+              .ZERO, // TODO: token usage - no information about usage provided by GCP for codechat
+            // model
           )
         )
       }
@@ -100,9 +102,16 @@ class GcpChat(apiEndpoint: String, projectId: String, modelId: String, token: St
     val response = client.embeddings(request)
     return EmbeddingResult(
       data = response.predictions.mapIndexed(::foo),
-      usage = Usage.ZERO,
+      usage = usage(response),
     )
   }
+
+  private fun usage(response: GcpClient.EmbeddingResponse) =
+    Usage(
+      totalTokens = response.predictions.sumOf { it.embeddings.statistics.tokenCount },
+      promptTokens = null,
+      completionTokens = null,
+    )
 
   override fun tokensFromMessages(messages: List<Message>): Int = 0
 
