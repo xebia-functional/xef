@@ -1,7 +1,8 @@
 package com.xebia.functional.xef.sql
 
-import com.xebia.functional.xef.auto.Conversation
-import com.xebia.functional.xef.auto.AiDsl
+import com.xebia.functional.xef.conversation.Conversation
+import com.xebia.functional.xef.conversation.AiDsl
+import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.sql.jdbc.JdbcConfig
 import com.xebia.functional.xef.textsplitters.TokenTextSplitter
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -73,7 +74,7 @@ private class JDBCSQLImpl(
   override suspend fun Conversation.selectTablesForPrompt(
     tableNames: String, prompt: String
   ): String = config.model.promptMessage(
-    """|You are an AI assistant which selects the best tables from which the `goal` can be accomplished.
+    Prompt("""|You are an AI assistant which selects the best tables from which the `goal` can be accomplished.
      |Select from this list of SQL `tables` the tables that you may need to solve the following `goal`
      |```tables
      |$tableNames
@@ -86,7 +87,7 @@ private class JDBCSQLImpl(
      |2. The tables should be selected from the list of tables above.
      |3. The tables should be selected by their name.
      |4. Your response should include a list of tables separated by a comma.
-     |Selection:""".trimMargin()
+     |Selection:""".trimMargin())
   )
 
   private suspend fun documentsForQuery(
@@ -106,7 +107,7 @@ private class JDBCSQLImpl(
   }
 
   override suspend fun Conversation.sql(ddl: String, input: String): String = config.model.promptMessage(
-    """|
+    Prompt("""|
        |You are an AI assistant which produces SQL SELECT queries in SQL format.
        |You only reply in valid SQL SELECT queries.
        |You don't produce any other type of responses.
@@ -127,11 +128,11 @@ private class JDBCSQLImpl(
        |6. The response should be a single line with no additional lines or characters and start with: SELECT...
        |7. Consider the user does not provide the `goal` in the same language as the `ddl` is expressed when generating the query.
        |```
-    """.trimMargin()
+    """.trimMargin())
   )
 
   override suspend fun Conversation.getInterestingPromptsForDatabase(): String = config.model.promptMessage(
-    """|You are an AI assistant which replies with a list of the best prompts based on the content of this database:
+    Prompt("""|You are an AI assistant which replies with a list of the best prompts based on the content of this database:
        |Instructions:
        |1. Select from this `ddl` 3 top prompts that the user could ask about this database
        |   in order to interact with it. 
@@ -140,7 +141,7 @@ private class JDBCSQLImpl(
        |```
        |2. Do not include prompts about system, user and permissions related tables.
        |3. Return the list of recommended prompts separated by a comma.
-       |""".trimMargin()
+       |""".trimMargin())
   )
 
   private fun getTableNames(): List<String> =

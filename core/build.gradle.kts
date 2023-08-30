@@ -15,7 +15,12 @@ plugins {
   alias(libs.plugins.dokka)
   alias(libs.plugins.arrow.gradle.publish)
   alias(libs.plugins.semver.gradle)
+  alias(libs.plugins.detekt)
   //id("com.xebia.asfuture").version("0.0.1")
+}
+
+dependencies {
+		detektPlugins(project(":detekt-rules"))
 }
 
 java {
@@ -26,8 +31,16 @@ java {
   }
 }
 
+detekt {
+    toolVersion = "1.23.1"
+    source = files("src/commonMain/kotlin", "src/jvmMain/kotlin")
+    config.setFrom("../config/detekt/detekt.yml")
+    autoCorrect = true
+}
+
 kotlin {
   jvm {
+    withJava()
     compilations {
       val integrationTest by compilations.creating {
         // Create a test task to run the tests produced by this compilation:
@@ -87,6 +100,11 @@ kotlin {
         implementation(libs.logback)
         implementation(libs.skrape)
         implementation(libs.rss.reader)
+				api(libs.jackson)
+        api(libs.jackson.schema)
+        api(libs.jackson.schema.jakarta)
+        api(libs.jakarta.validation)
+        implementation(libs.kotlinx.coroutines.reactive)
         api(libs.ktor.client.cio)
       }
     }
@@ -156,6 +174,20 @@ spotless {
 }
 
 tasks {
+
+  withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
+    dependsOn(":detekt-rules:assemble")
+    autoCorrect = true
+  }
+  named("detektJvmMain") {
+    dependsOn(":detekt-rules:assemble")
+    getByName("build").dependsOn(this)
+  }
+  named("detekt") {
+    dependsOn(":detekt-rules:assemble")
+    getByName("build").dependsOn(this)
+  }
+
   withType<Test>().configureEach {
     maxParallelForks = Runtime.getRuntime().availableProcessors()
     useJUnitPlatform()

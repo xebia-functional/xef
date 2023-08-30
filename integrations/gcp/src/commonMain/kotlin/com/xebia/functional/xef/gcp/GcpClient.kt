@@ -1,8 +1,8 @@
 package com.xebia.functional.xef.gcp
 
 import com.xebia.functional.xef.AIError
-import com.xebia.functional.xef.auto.AutoClose
-import com.xebia.functional.xef.auto.autoClose
+import com.xebia.functional.xef.conversation.AutoClose
+import com.xebia.functional.xef.conversation.autoClose
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
@@ -70,7 +70,8 @@ class GcpClient(
         listOf(Instance(messages = listOf(Message(author = "user", content = prompt)))),
         Parameters(temperature, maxOutputTokens, topK, topP)
       )
-    val response = http.post(
+    val response =
+      http.post(
         "https://${config.location}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/us-central1/publishers/google/models/$modelId:predict"
       ) {
         header("Authorization", "Bearer ${config.token}")
@@ -86,5 +87,4 @@ class GcpClient(
 
   class GcpClientException(val httpStatusCode: HttpStatusCode, val error: String) :
     IllegalStateException("$httpStatusCode: $error")
-
 }

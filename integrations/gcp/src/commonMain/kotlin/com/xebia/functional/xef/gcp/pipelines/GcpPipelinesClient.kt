@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.gcp.pipelines
 
-import com.xebia.functional.xef.auto.AutoClose
-import com.xebia.functional.xef.auto.autoClose
+import com.xebia.functional.xef.conversation.AutoClose
+import com.xebia.functional.xef.conversation.autoClose
 import com.xebia.functional.xef.gcp.GcpConfig
 import com.xebia.functional.xef.gcp.jsonHttpClient
 import io.ktor.client.*
@@ -20,7 +20,10 @@ class GcpPipelinesClient(
 
   // https://cloud.google.com/vertex-ai/docs/reference/rest/v1/projects.locations.pipelineJobs/list#google.cloud.aiplatform.v1.PipelineService.ListPipelineJobs
   @Serializable
-  private data class ListPipelineJobs(val pipelineJobs: List<PipelineJob>? = null, val nextPageToken: String? = null)
+  private data class ListPipelineJobs(
+    val pipelineJobs: List<PipelineJob>? = null,
+    val nextPageToken: String? = null
+  )
 
   @Serializable
   enum class PipelineState {
@@ -55,41 +58,23 @@ class GcpPipelinesClient(
   )
 
   @Serializable
-  data class RuntimeConfig(
-    val gcsOutputDirectory: String,
-    val parameterValues: ParameterValues
-  )
+  data class RuntimeConfig(val gcsOutputDirectory: String, val parameterValues: ParameterValues)
 
   @Serializable
   data class ParameterValues(
-    @SerialName("project")
-    val project: String,
-    @SerialName("model_display_name")
-    val modelDisplayName: String,
-    @SerialName("dataset_uri")
-    val datasetUri: String,
-    @SerialName("location")
-    val location: String,
-    @SerialName("large_model_reference")
-    val largeModelReference: String,
-    @SerialName("train_steps")
-    val trainSteps: String,
-    @SerialName("learning_rate_multiplier")
-    val learningRateMultiplier: String
+    @SerialName("project") val project: String,
+    @SerialName("model_display_name") val modelDisplayName: String,
+    @SerialName("dataset_uri") val datasetUri: String,
+    @SerialName("location") val location: String,
+    @SerialName("large_model_reference") val largeModelReference: String,
+    @SerialName("train_steps") val trainSteps: String,
+    @SerialName("learning_rate_multiplier") val learningRateMultiplier: String
   )
 
   @Serializable
-  data class Operation(
-    val name: String,
-    val done: Boolean,
-    val error: OperationStatus?
-  )
+  data class Operation(val name: String, val done: Boolean, val error: OperationStatus?)
 
-  @Serializable
-  data class OperationStatus(
-    val code: Int,
-    val message: String
-  )
+  @Serializable data class OperationStatus(val code: Int, val message: String)
 
   suspend fun list(): List<PipelineJob> {
     val response =
@@ -100,8 +85,7 @@ class GcpPipelinesClient(
         contentType(ContentType.Application.Json)
       }
 
-    return if (response.status.isSuccess())
-      response.body<ListPipelineJobs>().pipelineJobs.orEmpty()
+    return if (response.status.isSuccess()) response.body<ListPipelineJobs>().pipelineJobs.orEmpty()
     else throw GcpClientException(response.status, response.bodyAsText())
   }
 
@@ -142,8 +126,8 @@ class GcpPipelinesClient(
         contentType(ContentType.Application.Json)
       }
 
-    return if (response.status.isSuccess()) {}
-    else throw GcpClientException(response.status, response.bodyAsText())
+    return if (response.status.isSuccess()) {} else
+      throw GcpClientException(response.status, response.bodyAsText())
   }
 
   suspend fun delete(pipelineJobName: String): Operation {
@@ -161,5 +145,4 @@ class GcpPipelinesClient(
 
   class GcpClientException(val httpStatusCode: HttpStatusCode, val error: String) :
     IllegalStateException("$httpStatusCode: $error")
-
 }

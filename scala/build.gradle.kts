@@ -12,7 +12,7 @@ plugins {
 dependencies {
     implementation(projects.xefCore)
     implementation(projects.xefOpenai)
-    implementation(projects.kotlinLoom)
+		implementation(libs.kotlinx.coroutines.reactive)
 
     // TODO split to separate Scala library
     implementation(projects.xefPdf)
@@ -25,10 +25,10 @@ dependencies {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_19
-    targetCompatibility = JavaVersion.VERSION_19
+    sourceCompatibility = JavaVersion.VERSION_20
+    targetCompatibility = JavaVersion.VERSION_20
     toolchain {
-        languageVersion = JavaLanguageVersion.of(19)
+        languageVersion = JavaLanguageVersion.of(20)
     }
     withSourcesJar()
 }

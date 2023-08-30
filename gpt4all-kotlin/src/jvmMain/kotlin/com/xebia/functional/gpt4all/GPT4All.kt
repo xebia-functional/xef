@@ -5,6 +5,8 @@ import ai.djl.training.util.ProgressBar
 import com.hexadevlabs.gpt4all.LLModel
 import com.xebia.functional.tokenizer.EncodingType
 import com.xebia.functional.tokenizer.ModelType
+import com.xebia.functional.xef.conversation.Conversation
+import com.xebia.functional.xef.conversation.PlatformConversation
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.llm.Completion
 import com.xebia.functional.xef.llm.models.chat.*
@@ -12,6 +14,8 @@ import com.xebia.functional.xef.llm.models.text.CompletionChoice
 import com.xebia.functional.xef.llm.models.text.CompletionRequest
 import com.xebia.functional.xef.llm.models.text.CompletionResult
 import com.xebia.functional.xef.llm.models.usage.Usage
+import com.xebia.functional.xef.store.LocalVectorStore
+import com.xebia.functional.xef.store.VectorStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
@@ -36,6 +40,23 @@ interface GPT4All : AutoCloseable, Chat, Completion {
   }
 
   companion object {
+
+    @JvmSynthetic
+    suspend inline fun <A> conversation(
+      store: VectorStore,
+      noinline block: suspend Conversation.() -> A
+    ): A = block(conversation(store))
+
+    @JvmSynthetic
+    suspend fun <A> conversation(
+      block: suspend Conversation.() -> A
+    ): A = block(conversation(LocalVectorStore(HuggingFaceLocalEmbeddings.DEFAULT)))
+
+    @JvmStatic
+    @JvmOverloads
+    fun conversation(
+      store: VectorStore = LocalVectorStore(HuggingFaceLocalEmbeddings.DEFAULT)
+    ): PlatformConversation = Conversation(store)
 
     operator fun invoke(
       url: String,
@@ -173,4 +194,5 @@ interface GPT4All : AutoCloseable, Chat, Completion {
     }
 
   }
+
 }

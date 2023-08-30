@@ -1,0 +1,24 @@
+.footer {
+  color: #fff;
+  background-color: var(--xef-background-color);
+  text-align: center;
+}
+
+.logoContainer {
+  padding: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.logoContainer:hover .logo {
+  filter: drop-shadow(0 0 6px #646cffaa);
+}
+
+.logo {
+  height: 1.3rem;
+  width: auto;
+  vertical-align: sub;
+  will-change: filter;
+  transition: filter 266ms;
+}

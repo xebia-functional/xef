@@ -76,7 +76,7 @@ Set the environment variable `OPENAI_TOKEN=xxx`
 ### Project Loom
 
 The Scala module depends on project [Loom](https://openjdk.org/projects/loom/), 
-so you will need at least Java 19 to use the library. Furthermore, you need to pass
+so you will need at least Java 20 to use the library. Furthermore, you need to pass
 the `--enable-preview` flag.
 
 <details>
@@ -90,7 +90,7 @@ env OPENAI_TOKEN=<your-token> sbt -J--enable-preview <your-command>
 <details>
 <summary>IntelliJ</summary>
 
-- Set the Java version to at least 19
+- Set the Java version to at least 20
 - Set VM options to `--enable-preview`
 
 </details>

@@ -58,7 +58,6 @@ project(":xef-kotlin").projectDir = file("kotlin")
 include("xef-kotlin-examples")
 project(":xef-kotlin-examples").projectDir = file("examples/kotlin")
 
-include("kotlin-loom")
 //</editor-fold>
 
 //<editor-fold desc="Scala">
@@ -68,8 +67,6 @@ project(":xef-scala-examples").projectDir = file("examples/scala")
 include("xef-scala")
 project(":xef-scala").projectDir = file("scala")
 
-include("xef-scala-cats")
-project(":xef-scala-cats").projectDir = file("scala-cats")
 //</editor-fold>
 
 //<editor-fold desc="Java">
@@ -91,3 +88,10 @@ project(":xef-java-examples").projectDir = file("examples/java")
 //<editor-fold desc="Kotlin">
 include("xef-server")
 project(":xef-server").projectDir = file("server")
+//</editor-fold>
+
+//<editor-fold desc="Kotlin">
+include("detekt-rules")
+project(":detekt-rules").projectDir = file("detekt-rules")
+//</editor-fold>
+
