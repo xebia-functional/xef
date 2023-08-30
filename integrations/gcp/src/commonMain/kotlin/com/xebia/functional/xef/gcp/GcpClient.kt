@@ -4,46 +4,30 @@ import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.AutoClose
 import com.xebia.functional.xef.conversation.autoClose
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
+import io.ktor.client.*
 import io.ktor.client.HttpClient
+import io.ktor.client.call.*
 import io.ktor.client.call.body
 import io.ktor.client.plugins.*
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.*
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.*
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.*
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
-import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 
-@OptIn(ExperimentalStdlibApi::class)
 class GcpClient(
-  private val apiEndpoint: String,
-  private val projectId: String,
   val modelId: String,
-  private val token: String
-) : AutoCloseable, AutoClose by autoClose() {
-  private val http: HttpClient = HttpClient {
-    install(HttpTimeout) {
-      requestTimeoutMillis = 60_000
-      connectTimeoutMillis = 60_000
-    }
-    install(HttpRequestRetry)
-    install(ContentNegotiation) {
-      json(
-        Json {
-          encodeDefaults = false
-          isLenient = true
-          ignoreUnknownKeys = true
-        }
-      )
-    }
-  }
+  private val config: GcpConfig,
+) : AutoClose by autoClose() {
+  private val http: HttpClient = jsonHttpClient()
 
   @Serializable
   private data class Prompt(val instances: List<Instance>, val parameters: Parameters? = null)
@@ -101,9 +85,9 @@ class GcpClient(
       )
     val response =
       http.post(
-        "https://$apiEndpoint/v1/projects/$projectId/locations/us-central1/publishers/google/models/$modelId:predict"
+        "https://${config.location}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/us-central1/publishers/google/models/$modelId:predict"
       ) {
-        header("Authorization", "Bearer $token")
+        header("Authorization", "Bearer ${config.token}")
         contentType(ContentType.Application.Json)
         setBody(body)
       }
@@ -153,9 +137,9 @@ class GcpClient(
       )
     val response =
       http.post(
-        "https://$apiEndpoint/v1/projects/$projectId/locations/us-central1/publishers/google/models/$modelId:predict"
+        "https://${config.location}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${config.location}/publishers/google/models/$modelId:predict"
       ) {
-        header("Authorization", "Bearer $token")
+        header("Authorization", "Bearer ${config.token}")
         contentType(ContentType.Application.Json)
         setBody(body)
       }
@@ -168,8 +152,4 @@ class GcpClient(
 
   class GcpClientException(val httpStatusCode: HttpStatusCode, val error: String) :
     IllegalStateException("$httpStatusCode: $error")
-
-  override fun close() {
-    http.close()
-  }
 }
