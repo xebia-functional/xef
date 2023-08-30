@@ -3,7 +3,6 @@ package com.xebia.functional.xef.server.services
 import com.xebia.functional.xef.conversation.autoClose
 import com.xebia.functional.xef.conversation.llm.openai.OpenAI
 import com.xebia.functional.xef.conversation.llm.openai.OpenAIEmbeddings
-import com.xebia.functional.xef.llm.models.embeddings.EmbeddingModel
 import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
 import com.xebia.functional.xef.server.http.routes.Provider
 import com.xebia.functional.xef.store.PGVectorStore
@@ -69,7 +68,6 @@ class PostgresXefService(
             Provider.OPENAI -> OpenAIEmbeddings(OpenAI(token).DEFAULT_EMBEDDING)
             else -> OpenAIEmbeddings(OpenAI(token).DEFAULT_EMBEDDING)
         }
-        val embeddingModel = EmbeddingModel.TEXT_EMBEDDING_ADA_002
 
         return PGVectorStore(
             vectorSize = config.vectorSize,
@@ -80,7 +78,6 @@ class PostgresXefService(
             preDeleteCollection = config.preDeleteCollection,
             requestConfig =
             RequestConfig(
-                model = embeddingModel,
                 user = RequestConfig.Companion.User("user")
             ),
             chunkSize = config.chunkSize
