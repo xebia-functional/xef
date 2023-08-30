@@ -21,6 +21,9 @@ sealed class AIError @JvmOverloads constructor(message: String, cause: Throwable
     data class OpenAI(val errors: NonEmptyList<String>) :
       Env("OpenAI Environment not found: ${errors.all.joinToString("\n")}")
 
+    data class GCP(val errors: NonEmptyList<String>) :
+      Env("GCP Environment not found: ${errors.all.joinToString("\n")}")
+
     data class HuggingFace(val errors: NonEmptyList<String>) :
       Env("HuggingFace Environment not found: ${errors.all.joinToString("\n")}")
   }

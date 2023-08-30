@@ -4,7 +4,6 @@ import com.xebia.functional.xef.embeddings.Embedding
 import com.xebia.functional.xef.embeddings.Embeddings
 import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.llm.models.chat.Role
-import com.xebia.functional.xef.llm.models.embeddings.EmbeddingModel
 import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.document.Document
@@ -30,8 +29,7 @@ open class Lucene(
   private val similarity: VectorSimilarityFunction = VectorSimilarityFunction.EUCLIDEAN
 ) : VectorStore, AutoCloseable {
 
-  private val requestConfig =
-    RequestConfig(EmbeddingModel.TEXT_EMBEDDING_ADA_002, RequestConfig.Companion.User("user"))
+  private val requestConfig = RequestConfig(RequestConfig.Companion.User("user"))
 
   override suspend fun addMemories(memories: List<Memory>) {
     memories.forEach {
