@@ -12,16 +12,19 @@ import com.xebia.functional.xef.prompt.Prompt
 
 suspend fun main() {
   OpenAI.conversation {
-    val token = getenv("GCP_TOKEN")
-      ?: throw AIError.Env.GCP(nonEmptyListOf("missing GCP_TOKEN env var"))
+    val token =
+      getenv("GCP_TOKEN") ?: throw AIError.Env.GCP(nonEmptyListOf("missing GCP_TOKEN env var"))
 
-    val gcp = GcpChat("us-central1-aiplatform.googleapis.com", "xefdemo", "codechat-bison@001", token)
-      .let(::autoClose)
-    val gcpEmbeddingModel = GcpChat("us-central1-aiplatform.googleapis.com", "xefdemo", "textembedding-gecko", token)
-      .let(::autoClose)
+    val gcp =
+      GcpChat("us-central1-aiplatform.googleapis.com", "xefdemo", "codechat-bison@001", token)
+        .let(::autoClose)
+    val gcpEmbeddingModel =
+      GcpChat("us-central1-aiplatform.googleapis.com", "xefdemo", "textembedding-gecko", token)
+        .let(::autoClose)
 
-    val embeddingResult = GcpEmbeddings(gcpEmbeddingModel)
-      .embedQuery("strawberry donuts", RequestConfig(RequestConfig.Companion.User("user")))
+    val embeddingResult =
+      GcpEmbeddings(gcpEmbeddingModel)
+        .embedQuery("strawberry donuts", RequestConfig(RequestConfig.Companion.User("user")))
     println(embeddingResult)
 
     while (true) {

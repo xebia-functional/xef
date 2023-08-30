@@ -4,7 +4,6 @@ import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.AutoClose
 import com.xebia.functional.xef.conversation.autoClose
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
-import com.xebia.functional.xef.llm.models.embeddings.EmbeddingResult
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.*
@@ -144,25 +143,25 @@ class GcpClient(
   @Serializable
   data class EmbeddingStatistics(
     val truncated: Boolean,
-    @SerialName("token_count")
-    val tokenCount: Int,
+    @SerialName("token_count") val tokenCount: Int,
   )
 
   suspend fun embeddings(request: EmbeddingRequest): EmbeddingResponse {
-    val body = GcpEmbeddingRequest(
-      instances = request.input.map(::GcpEmbeddingInstance),
-    )
-    val response = http.post(
-      "https://$apiEndpoint/v1/projects/$projectId/locations/us-central1/publishers/google/models/$modelId:predict"
-    ) {
-      header("Authorization", "Bearer $token")
-      contentType(ContentType.Application.Json)
-      setBody(body)
-    }
+    val body =
+      GcpEmbeddingRequest(
+        instances = request.input.map(::GcpEmbeddingInstance),
+      )
+    val response =
+      http.post(
+        "https://$apiEndpoint/v1/projects/$projectId/locations/us-central1/publishers/google/models/$modelId:predict"
+      ) {
+        header("Authorization", "Bearer $token")
+        contentType(ContentType.Application.Json)
+        setBody(body)
+      }
     return if (response.status.isSuccess()) {
       val embedding = response.body<EmbeddingResponse>()
-      if(embedding.predictions.isEmpty())
-        throw AIError.NoResponse()
+      if (embedding.predictions.isEmpty()) throw AIError.NoResponse()
       embedding
     } else throw GcpClientException(response.status, response.bodyAsText())
   }
