@@ -96,12 +96,12 @@ class GcpChat(apiEndpoint: String, projectId: String, modelId: String, token: St
     }
 
   override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult {
-    fun foo(index: Int, it: GcpClient.EmbeddingPredictions): Embedding =
+    fun requestToEmbedding(index: Int, it: GcpClient.EmbeddingPredictions): Embedding =
       Embedding("embedding", it.embeddings.values.map(Double::toFloat), index = index)
 
     val response = client.embeddings(request)
     return EmbeddingResult(
-      data = response.predictions.mapIndexed(::foo),
+      data = response.predictions.mapIndexed(::requestToEmbedding),
       usage = usage(response),
     )
   }
