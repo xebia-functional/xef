@@ -4,7 +4,6 @@ import com.xebia.functional.xef.embeddings.Embedding
 import com.xebia.functional.xef.embeddings.Embeddings
 import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.llm.models.chat.Role
-import com.xebia.functional.xef.llm.models.embeddings.EmbeddingModel
 import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
 import com.xebia.functional.xef.store.ConversationId
 import com.xebia.functional.xef.store.Memory
@@ -50,8 +49,7 @@ class PGVectorStoreSpec :
         collectionName = "test_collection",
         distanceStrategy = PGDistanceStrategy.Euclidean,
         preDeleteCollection = false,
-        requestConfig =
-          RequestConfig(EmbeddingModel.TEXT_EMBEDDING_ADA_002, RequestConfig.Companion.User("user")),
+        requestConfig = RequestConfig(RequestConfig.Companion.User("user")),
         chunkSize = null
       )
 

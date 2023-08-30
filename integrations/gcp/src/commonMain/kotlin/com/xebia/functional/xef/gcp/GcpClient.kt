@@ -3,11 +3,24 @@ package com.xebia.functional.xef.gcp
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.AutoClose
 import com.xebia.functional.xef.conversation.autoClose
+import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
 import io.ktor.client.*
+import io.ktor.client.HttpClient
 import io.ktor.client.call.*
+import io.ktor.client.call.body
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
+import io.ktor.client.request.header
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.*
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.*
+import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.contentType
+import io.ktor.http.isSuccess
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 class GcpClient(
@@ -83,6 +96,58 @@ class GcpClient(
       response.body<Response>().predictions.firstOrNull()?.candidates?.firstOrNull()?.content
         ?: throw AIError.NoResponse()
     else throw GcpClientException(response.status, response.bodyAsText())
+  }
+
+  @Serializable
+  private data class GcpEmbeddingRequest(
+    val instances: List<GcpEmbeddingInstance>,
+  )
+
+  @Serializable
+  private data class GcpEmbeddingInstance(
+    val content: String,
+  )
+
+  @Serializable
+  data class EmbeddingResponse(
+    val predictions: List<EmbeddingPredictions>,
+  )
+
+  @Serializable
+  data class EmbeddingPredictions(
+    val embeddings: PredictionEmbeddings,
+  )
+
+  @Serializable
+  data class PredictionEmbeddings(
+    val statistics: EmbeddingStatistics,
+    val values: List<Double>,
+  )
+
+  @Serializable
+  data class EmbeddingStatistics(
+    val truncated: Boolean,
+    @SerialName("token_count") val tokenCount: Int,
+  )
+
+  suspend fun embeddings(request: EmbeddingRequest): EmbeddingResponse {
+    val body =
+      GcpEmbeddingRequest(
+        instances = request.input.map(::GcpEmbeddingInstance),
+      )
+    val response =
+      http.post(
+        "https://${config.location}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${config.location}/publishers/google/models/$modelId:predict"
+      ) {
+        header("Authorization", "Bearer ${config.token}")
+        contentType(ContentType.Application.Json)
+        setBody(body)
+      }
+    return if (response.status.isSuccess()) {
+      val embedding = response.body<EmbeddingResponse>()
+      if (embedding.predictions.isEmpty()) throw AIError.NoResponse()
+      embedding
+    } else throw GcpClientException(response.status, response.bodyAsText())
   }
 
   class GcpClientException(val httpStatusCode: HttpStatusCode, val error: String) :
