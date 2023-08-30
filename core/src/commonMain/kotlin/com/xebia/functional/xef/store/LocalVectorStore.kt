@@ -5,7 +5,6 @@ import arrow.atomic.getAndUpdate
 import arrow.atomic.update
 import com.xebia.functional.xef.embeddings.Embedding
 import com.xebia.functional.xef.embeddings.Embeddings
-import com.xebia.functional.xef.llm.models.embeddings.EmbeddingModel
 import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
 import kotlin.math.sqrt
 
@@ -26,8 +25,7 @@ private constructor(private val embeddings: Embeddings, private val state: Atomi
   VectorStore {
   constructor(embeddings: Embeddings) : this(embeddings, Atomic(State.empty()))
 
-  private val requestConfig =
-    RequestConfig(EmbeddingModel.TEXT_EMBEDDING_ADA_002, RequestConfig.Companion.User("user"))
+  private val requestConfig = RequestConfig(RequestConfig.Companion.User("user"))
 
   override suspend fun addMemories(memories: List<Memory>) {
     state.update { prevState ->
