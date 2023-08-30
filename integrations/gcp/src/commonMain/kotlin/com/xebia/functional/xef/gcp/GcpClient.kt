@@ -2,26 +2,26 @@ package com.xebia.functional.xef.gcp
 
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.AutoClose
+import com.xebia.functional.xef.conversation.Conversation
+import com.xebia.functional.xef.conversation.PlatformConversation
 import com.xebia.functional.xef.conversation.autoClose
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
-import io.ktor.client.*
+import com.xebia.functional.xef.store.LocalVectorStore
 import io.ktor.client.HttpClient
-import io.ktor.client.call.*
 import io.ktor.client.call.body
-import io.ktor.client.plugins.*
-import io.ktor.client.request.*
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import io.ktor.client.statement.*
 import io.ktor.client.statement.bodyAsText
-import io.ktor.http.*
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlin.jvm.JvmOverloads
+import kotlin.jvm.JvmStatic
+import kotlin.jvm.JvmSynthetic
 
 class GcpClient(
   val modelId: String,
@@ -152,4 +152,21 @@ class GcpClient(
 
   class GcpClientException(val httpStatusCode: HttpStatusCode, val error: String) :
     IllegalStateException("$httpStatusCode: $error")
+
+  companion object {
+
+    @JvmSynthetic
+    suspend fun <A> conversation(modelId: String, config: GcpConfig, block: suspend Conversation.() -> A): A =
+      block(conversation(modelId, config))
+
+    @JvmStatic
+    @JvmOverloads
+    fun conversation(modelId: String, config: GcpConfig): PlatformConversation {
+      val gcpEmbeddingModel =
+        GcpChat(modelId, config)
+      val embedding = GcpEmbeddings(gcpEmbeddingModel)
+      return Conversation(LocalVectorStore(embedding))
+    }
+
+  }
 }
