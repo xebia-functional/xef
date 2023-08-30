@@ -53,19 +53,9 @@ fun Routing.routes(
 
     authenticate("auth-bearer") {
         post("/chat/completions") {
-            val provider: Provider = call.getProvider()
             val token = call.getToken()
-            val scope = Conversation(persistenceService.getVectorStore(provider, token))
             val context = call.receive<String>()
             val data = Json.decodeFromString<JsonObject>(context)
-            if (!data.containsKey("model")) {
-                call.respondText("No model found", status = HttpStatusCode.BadRequest)
-                return@post
-            }
-            val model: OpenAIModel = data["model"]?.jsonPrimitive?.content?.toOpenAIModel(token) ?: run {
-                call.respondText("No model found", status = HttpStatusCode.BadRequest)
-                return@post
-            }
 
             val isStream = data["stream"]?.jsonPrimitive?.boolean ?: false
 
