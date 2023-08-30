@@ -2,7 +2,7 @@
 arrow = "1.2.0"
 arrowGradle = "0.12.0-rc.5"
 kotlin = "1.9.10"
-kotlinx-json = "1.5.1"
+kotlinx-json = "1.6.0"
 kotlinx-datetime = "0.4.0"
 ktor = "2.3.3"
 spotless = "6.20.0"
