@@ -5,12 +5,15 @@ import { CssBaseline, StyledEngineProvider } from '@mui/material';
 import { ThemeProvider } from '@emotion/react';
 
 import { App } from '@/components/App';
-import { Root } from '@/components/Features/Root';
-import { ErrorPage } from '@/components/ErrorPage';
-import { FeatureOne } from '@/components/Features/FeatureOne';
-import { FeatureTwo } from '@/components/Features/FeatureTwo';
+import { Root } from '@/components/Pages/Root';
+import { ErrorPage } from '@/components/Pages/ErrorPage';
+import { FeatureOne } from '@/components/Pages/FeatureOne';
+import { FeatureTwo } from '@/components/Pages/FeatureTwo';
+import { GenericQuestion } from '@/components/Pages/GenericQuestion';
+import { SettingsPage } from '@/components/Pages/SettingsPage';
 
 import { LoadingProvider } from '@/state/Loading';
+import { SettingsProvider } from '@/state/Settings';
 
 import { theme } from '@/styles/theme';
 
@@ -34,6 +37,14 @@ const router = createBrowserRouter([
         path: '2',
         element: <FeatureTwo />,
       },
+      {
+        path: 'generic-question',
+        element: <GenericQuestion />,
+      },
+      {
+        path: 'settings',
+        element: <SettingsPage />,
+      },
     ],
   },
 ]);
@@ -44,7 +55,9 @@ createRoot(document.getElementById('root') as HTMLElement).render(
       <ThemeProvider theme={theme}>
         <CssBaseline enableColorScheme />
         <LoadingProvider>
-          <RouterProvider router={router} />
+          <SettingsProvider>
+            <RouterProvider router={router} />
+          </SettingsProvider>
         </LoadingProvider>
       </ThemeProvider>
     </StyledEngineProvider>
