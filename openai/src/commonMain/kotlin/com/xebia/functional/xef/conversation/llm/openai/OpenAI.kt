@@ -18,7 +18,8 @@ import kotlin.jvm.JvmSynthetic
 private const val KEY_ENV_VAR = "OPENAI_TOKEN"
 private const val HOST_ENV_VAR = "OPENAI_HOST"
 
-class OpenAI(internal var token: String? = null, internal var host: String? = null) : AutoCloseable, AutoClose by autoClose() {
+class OpenAI(internal var token: String? = null, internal var host: String? = null) :
+  AutoCloseable, AutoClose by autoClose() {
 
   private fun openAITokenFromEnv(): String {
     return getenv(KEY_ENV_VAR)

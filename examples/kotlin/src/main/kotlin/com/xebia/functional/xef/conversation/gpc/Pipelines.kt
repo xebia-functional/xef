@@ -9,7 +9,8 @@ import com.xebia.functional.xef.gcp.pipelines.GcpPipelinesClient
 suspend fun main() {
   conversation {
     val token = getenv("GCP_TOKEN") ?: error("missing gcp token")
-    val pipelineClient = autoClose(GcpPipelinesClient(GcpConfig(token, "xefdemo", VertexAIRegion.US_CENTRAL1)))
+    val pipelineClient =
+      autoClose(GcpPipelinesClient(GcpConfig(token, "xefdemo", VertexAIRegion.US_CENTRAL1)))
     val answer = pipelineClient.list()
     println("\n🤖 $answer")
   }

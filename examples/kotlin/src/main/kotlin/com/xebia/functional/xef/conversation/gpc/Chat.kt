@@ -10,7 +10,7 @@ suspend fun main() {
     while (true) {
       print("\n🤖 Enter your question: ")
       val userInput = readlnOrNull() ?: break
-      if(userInput == "exit") break
+      if (userInput == "exit") break
       val answer = promptMessage(Prompt(userInput), model = gcp.DEFAULT_CHAT)
       println("\n🤖 $answer")
     }

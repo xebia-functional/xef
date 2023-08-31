@@ -2,11 +2,8 @@ package com.xebia.functional.xef.gcp
 
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.AutoClose
-import com.xebia.functional.xef.conversation.Conversation
-import com.xebia.functional.xef.conversation.PlatformConversation
 import com.xebia.functional.xef.conversation.autoClose
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
-import com.xebia.functional.xef.store.LocalVectorStore
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.header
@@ -19,9 +16,6 @@ import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlin.jvm.JvmOverloads
-import kotlin.jvm.JvmStatic
-import kotlin.jvm.JvmSynthetic
 
 class GcpClient(
   val modelId: String,
@@ -152,5 +146,4 @@ class GcpClient(
 
   class GcpClientException(val httpStatusCode: HttpStatusCode, val error: String) :
     IllegalStateException("$httpStatusCode: $error")
-
 }
