@@ -2,6 +2,7 @@ package com.xebia.functional.xef.conversation
 
 import arrow.atomic.Atomic
 import arrow.atomic.update
+import io.ktor.utils.io.core.*
 
 /**
  * AutoClose offers DSL style API for creating parent-child relationships of AutoCloseable
@@ -33,6 +34,16 @@ fun autoClose(): AutoClose =
         ?.let { throw it }
     }
   }
+
+/** integration to Ktor's [Closeable] */
+fun <A : Closeable> AutoClose.autoClose(closeable: A): A {
+  val wrapper =
+    object : AutoCloseable {
+      override fun close() = closeable.close()
+    }
+  autoClose(wrapper)
+  return closeable
+}
 
 private fun Throwable?.add(other: Throwable?): Throwable? =
   this?.apply { other?.let { addSuppressed(it) } } ?: other
