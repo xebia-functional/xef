@@ -56,7 +56,7 @@ interface GPT4All : AutoCloseable, Chat, Completion {
     @JvmOverloads
     fun conversation(
       store: VectorStore = LocalVectorStore(HuggingFaceLocalEmbeddings.DEFAULT)
-    ): PlatformConversation = Conversation(store, provider = TODO("provider for gpt4all"))
+    ): PlatformConversation = Conversation(store)
 
     operator fun invoke(
       url: String,

@@ -1,6 +1,5 @@
 package com.xebia.functional.xef.conversation
 
-import com.xebia.functional.xef.Provider
 import com.xebia.functional.xef.conversation.serialization.JacksonSerialization
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.llm.ChatWithFunctions
@@ -23,7 +22,6 @@ actual abstract class PlatformConversation
 actual constructor(
   store: VectorStore,
   conversationId: ConversationId?,
-  provider: Provider<*>,
 ) : Conversation, AutoClose, AutoCloseable {
 
   val coroutineScope = CoroutineScope(SupervisorJob())
@@ -99,8 +97,8 @@ actual constructor(
       .asCompletableFuture()
 
   actual companion object {
-    actual fun create(store: VectorStore, conversationId: ConversationId?, provider: Provider<*>): PlatformConversation =
-      JVMConversation(store, conversationId, provider)
+    actual fun create(store: VectorStore, conversationId: ConversationId?): PlatformConversation =
+      JVMConversation(store, conversationId)
   }
 
   override fun close() {

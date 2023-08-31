@@ -3,7 +3,6 @@ package com.xebia.functional.xef.conversation.llm.openai
 import arrow.core.nonEmptyListOf
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.AIError
-import com.xebia.functional.xef.Provider
 import com.xebia.functional.xef.conversation.AutoClose
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.PlatformConversation
@@ -19,8 +18,7 @@ import kotlin.jvm.JvmSynthetic
 private const val KEY_ENV_VAR = "OPENAI_TOKEN"
 private const val HOST_ENV_VAR = "OPENAI_HOST"
 
-class OpenAI(internal var token: String? = null, internal var host: String? = null) :
-  Provider<OpenAIModel>, AutoCloseable, AutoClose by autoClose() {
+class OpenAI(internal var token: String? = null, internal var host: String? = null) : AutoCloseable, AutoClose by autoClose() {
 
   private fun openAITokenFromEnv(): String {
     return getenv(KEY_ENV_VAR)
@@ -98,15 +96,15 @@ class OpenAI(internal var token: String? = null, internal var host: String? = nu
 
   val DALLE_2 by lazy { autoClose(OpenAIModel(this, "dalle-2", ModelType.GPT_3_5_TURBO)) }
 
-  override val DEFAULT_CHAT = GPT_3_5_TURBO_16K
+  @JvmField val DEFAULT_CHAT = GPT_3_5_TURBO_16K
 
   @JvmField val DEFAULT_SERIALIZATION = GPT_3_5_TURBO_FUNCTIONS
 
-  override val DEFAULT_EMBEDDING = TEXT_EMBEDDING_ADA_002
+  @JvmField val DEFAULT_EMBEDDING = TEXT_EMBEDDING_ADA_002
 
   @JvmField val DEFAULT_IMAGES = DALLE_2
 
-  override fun supportedModels(): List<OpenAIModel> {
+  fun supportedModels(): List<OpenAIModel> {
     return listOf(
       GPT_4,
       GPT_4_0314,
@@ -143,7 +141,7 @@ class OpenAI(internal var token: String? = null, internal var host: String? = nu
     @JvmOverloads
     fun conversation(
       store: VectorStore = LocalVectorStore(OpenAIEmbeddings(FromEnvironment.DEFAULT_EMBEDDING))
-    ): PlatformConversation = Conversation(store, provider = FromEnvironment)
+    ): PlatformConversation = Conversation(store)
   }
 }
 

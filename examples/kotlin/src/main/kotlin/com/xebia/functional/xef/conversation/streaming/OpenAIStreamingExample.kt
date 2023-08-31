@@ -10,7 +10,7 @@ import com.xebia.functional.xef.store.LocalVectorStore
 suspend fun main() {
   val chat: Chat = OpenAI().DEFAULT_CHAT
   val embeddings = OpenAIEmbeddings(OpenAI().DEFAULT_EMBEDDING)
-  val scope = Conversation(LocalVectorStore(embeddings), provider = TODO("provider"))
+  val scope = Conversation(LocalVectorStore(embeddings))
   chat.promptStreaming(prompt = Prompt("What is the meaning of life?"), scope = scope).collect {
     print(it)
   }

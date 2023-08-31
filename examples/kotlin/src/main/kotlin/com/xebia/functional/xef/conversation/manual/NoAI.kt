@@ -24,7 +24,7 @@ suspend fun main() {
 
   // Create an instance of the embeddings
   val embeddings = HuggingFaceLocalEmbeddings.DEFAULT
-  val scope = Conversation(LocalVectorStore(embeddings), provider = TODO("provider for huggingface"))
+  val scope = Conversation(LocalVectorStore(embeddings))
 
   // Fetch and add texts from a PDF document to the vector store
   val results = pdf("https://arxiv.org/pdf/2305.10601.pdf")

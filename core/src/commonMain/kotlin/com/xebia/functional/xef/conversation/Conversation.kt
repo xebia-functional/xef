@@ -1,7 +1,6 @@
 package com.xebia.functional.xef.conversation
 
 import com.xebia.functional.xef.AIError
-import com.xebia.functional.xef.Provider
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.llm.Images
@@ -23,8 +22,6 @@ interface Conversation : AutoClose, AutoCloseable {
   val conversationId: ConversationId?
 
   val conversation: Conversation
-
-  val provider: Provider<*>
 
   @AiDsl
   @JvmSynthetic
@@ -85,16 +82,14 @@ interface Conversation : AutoClose, AutoCloseable {
 
     operator fun invoke(
       store: VectorStore,
-      conversationId: ConversationId? = ConversationId(UUID.generateUUID().toString()),
-      provider: Provider<*>,
-    ): PlatformConversation = PlatformConversation.create(store, conversationId, provider)
+      conversationId: ConversationId? = ConversationId(UUID.generateUUID().toString())
+    ): PlatformConversation = PlatformConversation.create(store, conversationId)
 
     @JvmSynthetic
     suspend operator fun <A> invoke(
       store: VectorStore,
       conversationId: ConversationId? = ConversationId(UUID.generateUUID().toString()),
-      provider: Provider<*>,
       block: suspend PlatformConversation.() -> A
-    ): A = block(invoke(store, conversationId, provider))
+    ): A = block(invoke(store, conversationId))
   }
 }

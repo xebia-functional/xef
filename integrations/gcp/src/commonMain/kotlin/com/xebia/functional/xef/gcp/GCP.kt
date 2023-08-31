@@ -2,19 +2,15 @@ package com.xebia.functional.xef.gcp
 
 import arrow.core.nonEmptyListOf
 import com.xebia.functional.xef.AIError
-import com.xebia.functional.xef.Provider
 import com.xebia.functional.xef.conversation.Conversation
-import com.xebia.functional.xef.conversation.PlatformConversation
 import com.xebia.functional.xef.env.getenv
 import com.xebia.functional.xef.store.LocalVectorStore
 import com.xebia.functional.xef.store.VectorStore
-import kotlin.jvm.JvmOverloads
-import kotlin.jvm.JvmStatic
-import kotlin.jvm.JvmSynthetic
+import kotlin.jvm.JvmField
 
 private const val GCP_TOKEN_ENV_VAR = "GCP_TOKEN"
 
-class GCP(projectId: String, location: VertexAIRegion, token: String? = null) : Provider<GcpModel> {
+class GCP(projectId: String, location: VertexAIRegion, token: String? = null) {
     private val config = GcpConfig(
         token = token ?: tokenFromEnv(),
         projectId = projectId,
@@ -28,24 +24,20 @@ class GCP(projectId: String, location: VertexAIRegion, token: String? = null) : 
     val CODECHAT by lazy { GcpModel("codechat-bison@001", config) }
     val TEXT_EMBEDDING_GECKO by lazy { GcpModel("textembedding-gecko", config) }
 
-    override val DEFAULT_CHAT = CODECHAT
-    override val DEFAULT_EMBEDDING = TEXT_EMBEDDING_GECKO
+    @JvmField val DEFAULT_CHAT = CODECHAT
+    @JvmField val DEFAULT_EMBEDDING = TEXT_EMBEDDING_GECKO
 
-    override fun supportedModels(): List<GcpModel> = listOf(
+    fun supportedModels(): List<GcpModel> = listOf(
         CODECHAT,
         TEXT_EMBEDDING_GECKO
     )
-
-    companion object {
-
-    }
 }
 
-suspend inline fun <A> Provider<*>.conversation(
+suspend inline fun <A> GCP.conversation(
     store: VectorStore,
     noinline block: suspend Conversation.() -> A
-): A = block(Conversation(store,  provider = this))
+): A = block(Conversation(store))
 
-suspend inline fun <A> Provider<*>.conversation( // function can also be generic than specific to GCP, after class GcpEmbeddings and OpenAIEmbeddings is merged
+suspend inline fun <A> GCP.conversation(
     noinline block: suspend Conversation.() -> A
-): A = block(Conversation(LocalVectorStore(GcpEmbeddings(DEFAULT_EMBEDDING)), provider = this))
+): A = block(Conversation(LocalVectorStore(GcpEmbeddings(DEFAULT_EMBEDDING))))
