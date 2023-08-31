@@ -146,7 +146,6 @@ class OpenAI(internal var token: String? = null, internal var host: String? = nu
   }
 }
 
-@Deprecated("use more generic impl in Provider interface instead")
 fun String.toOpenAIModel(token: String, host: String? = null): OpenAIModel {
   val openAI = OpenAI(token, host)
   return openAI.supportedModels().find { it.name == this } ?: openAI.GPT_3_5_TURBO_16K
