@@ -5,7 +5,6 @@ import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.env.getenv
 import com.xebia.functional.xef.store.LocalVectorStore
-import com.xebia.functional.xef.store.VectorStore
 import kotlin.jvm.JvmField
 
 private const val GCP_TOKEN_ENV_VAR = "GCP_TOKEN"
@@ -30,11 +29,6 @@ class GCP(projectId: String, location: VertexAIRegion, token: String? = null) {
 
   fun supportedModels(): List<GcpModel> = listOf(CODECHAT, TEXT_EMBEDDING_GECKO)
 }
-
-suspend inline fun <A> GCP.conversation(
-  store: VectorStore,
-  noinline block: suspend Conversation.() -> A
-): A = block(Conversation(store))
 
 suspend inline fun <A> GCP.conversation(noinline block: suspend Conversation.() -> A): A =
   block(Conversation(LocalVectorStore(GcpEmbeddings(DEFAULT_EMBEDDING))))

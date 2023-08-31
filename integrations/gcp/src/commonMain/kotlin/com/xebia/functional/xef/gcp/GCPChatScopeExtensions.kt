@@ -13,12 +13,6 @@ suspend fun Conversation.promptMessage(
 ): String = model.promptMessage(prompt)
 
 @AiDsl
-suspend fun Conversation.promptMessage(
-  prompt: Prompt,
-  gcp: GCP,
-): String = gcp.DEFAULT_CHAT.promptMessage(prompt)
-
-@AiDsl
 suspend fun Conversation.promptStreaming(
   prompt: Prompt,
   model: Chat,
