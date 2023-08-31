@@ -16,4 +16,4 @@ suspend inline fun <A> conversation(
   embeddings: Embeddings,
   store: VectorStore = LocalVectorStore(embeddings),
   noinline block: suspend Conversation.() -> A
-): A = block(Conversation(store))
+): A = block(Conversation(store, provider = TODO("provider")))

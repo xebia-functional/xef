@@ -1,26 +1,30 @@
 package com.xebia.functional.xef.conversation.gpc
 
-import arrow.core.nonEmptyListOf
-import com.xebia.functional.xef.AIError
-import com.xebia.functional.xef.env.getenv
-import com.xebia.functional.xef.gcp.GcpClient
-import com.xebia.functional.xef.gcp.GcpConfig
-import com.xebia.functional.xef.gcp.promptMessage
+import com.xebia.functional.xef.gcp.*
 import com.xebia.functional.xef.prompt.Prompt
 
 suspend fun main() {
-  val token =
-    getenv("GCP_TOKEN") ?: throw AIError.Env.GCP(nonEmptyListOf("missing GCP_TOKEN env var"))
+  val gcp = GCP("xefdemo", VertexAIRegion.US_CENTRAL1)
 
-  val modelID = "textembedding-gecko"
-
-  val config = GcpConfig(token, "xefdemo", "us-central1")
-
-  GcpClient.conversation(modelID, config) {
+  // SUGGESTION 1: multiple uses of gcp instance
+  gcp.conversation {
     while (true) {
       print("\n🤖 Enter your question: ")
       val userInput = readlnOrNull() ?: break
-      val answer = promptMessage(Prompt(userInput))
+      if(userInput == "exit") break
+      val answer = promptMessage(Prompt(userInput), model = gcp.DEFAULT_CHAT)
+      println("\n🤖 $answer")
+    }
+    println("\n🤖 Done")
+  }
+
+  // SUGGESTION 2: one use of gcp when instantiating Conversation, gcp is stored as attribute of conversation
+  gcp.conversation {
+    while (true) {
+      print("\n🤖 Enter your question: ")
+      val userInput = readlnOrNull() ?: break
+      if(userInput == "exit") break
+      val answer = promptMessage2(Prompt(userInput))
       println("\n🤖 $answer")
     }
     println("\n🤖 Done")

@@ -85,7 +85,7 @@ class GcpClient(
       )
     val response =
       http.post(
-        "https://${config.location}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/us-central1/publishers/google/models/$modelId:predict"
+        "https://${config.location.officialName}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/us-central1/publishers/google/models/$modelId:predict"
       ) {
         header("Authorization", "Bearer ${config.token}")
         contentType(ContentType.Application.Json)
@@ -137,7 +137,7 @@ class GcpClient(
       )
     val response =
       http.post(
-        "https://${config.location}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${config.location}/publishers/google/models/$modelId:predict"
+        "https://${config.location.officialName}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${config.location.officialName}/publishers/google/models/$modelId:predict"
       ) {
         header("Authorization", "Bearer ${config.token}")
         contentType(ContentType.Application.Json)
@@ -153,20 +153,4 @@ class GcpClient(
   class GcpClientException(val httpStatusCode: HttpStatusCode, val error: String) :
     IllegalStateException("$httpStatusCode: $error")
 
-  companion object {
-
-    @JvmSynthetic
-    suspend fun <A> conversation(modelId: String, config: GcpConfig, block: suspend Conversation.() -> A): A =
-      block(conversation(modelId, config))
-
-    @JvmStatic
-    @JvmOverloads
-    fun conversation(modelId: String, config: GcpConfig): PlatformConversation {
-      val gcpEmbeddingModel =
-        GcpChat(modelId, config)
-      val embedding = GcpEmbeddings(gcpEmbeddingModel)
-      return Conversation(LocalVectorStore(embedding))
-    }
-
-  }
 }

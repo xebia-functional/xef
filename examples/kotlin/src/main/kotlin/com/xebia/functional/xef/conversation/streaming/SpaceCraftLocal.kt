@@ -18,7 +18,7 @@ suspend fun main() {
   val model = OpenAI(host = "http://localhost:8081/").DEFAULT_SERIALIZATION
 
   val scope =
-    Conversation(LocalVectorStore(OpenAIEmbeddings(OpenAI.FromEnvironment.DEFAULT_EMBEDDING)))
+    Conversation(LocalVectorStore(OpenAIEmbeddings(OpenAI.FromEnvironment.DEFAULT_EMBEDDING)), provider = OpenAI.FromEnvironment)
 
   model
     .promptStreaming(
