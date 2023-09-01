@@ -62,9 +62,7 @@ fun Routing.routes(
             if (!isStream) {
                 client.makeRequest(call, "$openAiUrl/chat/completions", context, token)
             } else {
-                runBlocking {
-                    client.makeStreaming(call, "$openAiUrl/chat/completions", context, token)
-                }
+                client.makeStreaming(call, "$openAiUrl/chat/completions", context, token)
             }
         }
 
