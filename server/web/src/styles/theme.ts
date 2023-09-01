@@ -94,13 +94,11 @@ const themeOptions: ThemeOptions = {
     MuiInputBase: {
       defaultProps: {
         margin: 'dense',
-        size: 'medium',
       },
     },
     MuiInputLabel: {
       defaultProps: {
         margin: 'dense',
-        size: 'normal',
       },
     },
     MuiList: {
@@ -159,6 +157,9 @@ const themeOptions: ThemeOptions = {
           fontWeight: 600,
         },
         h6: {
+          fontWeight: 600,
+        },
+        button: {
           fontWeight: 600,
         },
       },
