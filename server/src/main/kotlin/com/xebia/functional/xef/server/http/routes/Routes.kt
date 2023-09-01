@@ -90,7 +90,7 @@ private suspend fun HttpClient.makeRequest(
         method = HttpMethod.Post
         setBody(body)
     }
-    call.respond(response.body<String>())
+    call.respond(response.status, response.body<String>())
 }
 
 private suspend fun HttpClient.makeStreaming(
@@ -108,7 +108,10 @@ private suspend fun HttpClient.makeStreaming(
         setBody(body)
     }.execute { httpResponse ->
         val channel: ByteReadChannel = httpResponse.body()
-        call.respondBytesWriter(contentType = ContentType.Application.Json) {
+        call.respondBytesWriter(
+            contentType = ContentType.Application.Json,
+            status = httpResponse.status
+        ) {
             while (!channel.isClosedForRead) {
                 val packet = channel.readRemaining(DEFAULT_BUFFER_SIZE.toLong())
                 while (!packet.isEmpty) {
