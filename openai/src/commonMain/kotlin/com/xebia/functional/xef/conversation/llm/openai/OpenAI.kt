@@ -15,16 +15,19 @@ import kotlin.jvm.JvmOverloads
 import kotlin.jvm.JvmStatic
 import kotlin.jvm.JvmSynthetic
 
+private const val KEY_ENV_VAR = "OPENAI_TOKEN"
+private const val HOST_ENV_VAR = "OPENAI_HOST"
+
 class OpenAI(internal var token: String? = null, internal var host: String? = null) :
   AutoCloseable, AutoClose by autoClose() {
 
   private fun openAITokenFromEnv(): String {
-    return getenv("OPENAI_TOKEN")
-      ?: throw AIError.Env.OpenAI(nonEmptyListOf("missing OPENAI_TOKEN env var"))
+    return getenv(KEY_ENV_VAR)
+      ?: throw AIError.Env.OpenAI(nonEmptyListOf("missing $KEY_ENV_VAR env var"))
   }
 
   private fun openAIHostFromEnv(): String? {
-    return getenv("OPENAI_HOST")
+    return getenv(HOST_ENV_VAR)
   }
 
   fun getToken(): String {
