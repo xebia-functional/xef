@@ -4,18 +4,12 @@ import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.AutoClose
 import com.xebia.functional.xef.conversation.autoClose
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
-import io.ktor.client.*
 import io.ktor.client.HttpClient
-import io.ktor.client.call.*
 import io.ktor.client.call.body
-import io.ktor.client.plugins.*
-import io.ktor.client.request.*
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import io.ktor.client.statement.*
 import io.ktor.client.statement.bodyAsText
-import io.ktor.http.*
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
@@ -85,7 +79,7 @@ class GcpClient(
       )
     val response =
       http.post(
-        "https://${config.location}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/us-central1/publishers/google/models/$modelId:predict"
+        "https://${config.location.officialName}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/us-central1/publishers/google/models/$modelId:predict"
       ) {
         header("Authorization", "Bearer ${config.token}")
         contentType(ContentType.Application.Json)
@@ -137,7 +131,7 @@ class GcpClient(
       )
     val response =
       http.post(
-        "https://${config.location}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${config.location}/publishers/google/models/$modelId:predict"
+        "https://${config.location.officialName}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${config.location.officialName}/publishers/google/models/$modelId:predict"
       ) {
         header("Authorization", "Bearer ${config.token}")
         contentType(ContentType.Application.Json)
