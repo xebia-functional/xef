@@ -60,36 +60,60 @@ fun Routing.routes(
             val isStream = data["stream"]?.jsonPrimitive?.boolean ?: false
 
             if (!isStream) {
-                val response = client.request("$openAiUrl/chat/completions") {
-                    headers {
-                        bearerAuth(token)
-                    }
-                    contentType(ContentType.Application.Json)
-                    method = HttpMethod.Post
-                    setBody(context)
-                }
-                call.respond(response.body<String>())
+                client.makeRequest(call, "$openAiUrl/chat/completions", context, token)
             } else {
                 runBlocking {
-                    client.preparePost("$openAiUrl/chat/completions") {
-                        headers {
-                            bearerAuth(token)
-                        }
-                        contentType(ContentType.Application.Json)
-                        method = HttpMethod.Post
-                        setBody(context)
-                    }.execute { httpResponse ->
-                        val channel: ByteReadChannel = httpResponse.body()
-                        call.respondBytesWriter(contentType = ContentType.Application.Json) {
-                            while (!channel.isClosedForRead) {
-                                val packet = channel.readRemaining(DEFAULT_BUFFER_SIZE.toLong())
-                                while (!packet.isEmpty) {
-                                    val bytes = packet.readBytes()
-                                    writeStringUtf8(bytes.decodeToString())
-                                }
-                            }
-                        }
-                    }
+                    client.makeStreaming(call, "$openAiUrl/chat/completions", context, token)
+                }
+            }
+        }
+
+        post("/embeddings") {
+            val token = call.getToken()
+            val context = call.receive<String>()
+            client.makeRequest(call, "$openAiUrl/embeddings", context, token)
+        }
+    }
+}
+
+private suspend fun HttpClient.makeRequest(
+    call: ApplicationCall,
+    url: String,
+    body: String,
+    token: String)
+{
+    val response = this.request(url) {
+        headers {
+            bearerAuth(token)
+        }
+        contentType(ContentType.Application.Json)
+        method = HttpMethod.Post
+        setBody(body)
+    }
+    call.respond(response.body<String>())
+}
+
+private suspend fun HttpClient.makeStreaming(
+    call: ApplicationCall,
+    url: String,
+    body: String,
+    token: String
+) {
+    this.preparePost(url) {
+        headers {
+            bearerAuth(token)
+        }
+        contentType(ContentType.Application.Json)
+        method = HttpMethod.Post
+        setBody(body)
+    }.execute { httpResponse ->
+        val channel: ByteReadChannel = httpResponse.body()
+        call.respondBytesWriter(contentType = ContentType.Application.Json) {
+            while (!channel.isClosedForRead) {
+                val packet = channel.readRemaining(DEFAULT_BUFFER_SIZE.toLong())
+                while (!packet.isEmpty) {
+                    val bytes = packet.readBytes()
+                    writeStringUtf8(bytes.decodeToString())
                 }
             }
         }
