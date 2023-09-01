@@ -79,7 +79,7 @@ class GcpPipelinesClient(
   suspend fun list(): List<PipelineJob> {
     val response =
       http.get(
-        "https://${config.location}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${config.location}/pipelineJobs"
+        "https://${config.location.officialName}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${config.location.officialName}/pipelineJobs"
       ) {
         header("Authorization", "Bearer ${config.token}")
         contentType(ContentType.Application.Json)
@@ -92,7 +92,7 @@ class GcpPipelinesClient(
   suspend fun get(pipelineJobName: String): PipelineJob? {
     val response =
       http.get(
-        "https://${config.location}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${config.location}/pipelineJobs/$pipelineJobName"
+        "https://${config.location.officialName}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${config.location.officialName}/pipelineJobs/$pipelineJobName"
       ) {
         header("Authorization", "Bearer ${config.token}")
         contentType(ContentType.Application.Json)
@@ -105,7 +105,7 @@ class GcpPipelinesClient(
   suspend fun create(pipelineJobId: String?, pipelineJob: CreatePipelineJob): PipelineJob? {
     val response =
       http.post(
-        "https://${config.location}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${config.location}/pipelineJobs"
+        "https://${config.location.officialName}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${config.location.officialName}/pipelineJobs"
       ) {
         header("Authorization", "Bearer ${config.token}")
         contentType(ContentType.Application.Json)
@@ -120,7 +120,7 @@ class GcpPipelinesClient(
   suspend fun cancel(pipelineJobName: String): Unit {
     val response =
       http.post(
-        "https://${config.location}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${config.location}/pipelineJobs/$pipelineJobName:cancel"
+        "https://${config.location.officialName}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${config.location.officialName}/pipelineJobs/$pipelineJobName:cancel"
       ) {
         header("Authorization", "Bearer ${config.token}")
         contentType(ContentType.Application.Json)
@@ -133,7 +133,7 @@ class GcpPipelinesClient(
   suspend fun delete(pipelineJobName: String): Operation {
     val response =
       http.delete(
-        "https://${config.location}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${config.location}/pipelineJobs/$pipelineJobName"
+        "https://${config.location.officialName}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${config.location.officialName}/pipelineJobs/$pipelineJobName"
       ) {
         header("Authorization", "Bearer ${config.token}")
         contentType(ContentType.Application.Json)
