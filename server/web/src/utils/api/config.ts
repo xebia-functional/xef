@@ -105,7 +105,6 @@ export async function apiFetch<T = Record<string, unknown>>(
 
     return responseData;
   } catch (error) {
-    console.log(error);
     const errorMessage = `💢 Error: ${error}`;
     console.error(errorMessage);
     throw errorMessage;
