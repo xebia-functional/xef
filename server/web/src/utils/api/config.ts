@@ -2,6 +2,10 @@ import { toSnakeCase } from '@/utils/strings';
 
 export const defaultApiServer = 'http://localhost:8081/';
 
+export type ApiKeyProp = {
+  apiKey: string;
+};
+
 export type ApiConfig = {
   url: URL;
   options?: RequestInit;
@@ -69,6 +73,19 @@ export async function fetchWithTimeout(
   return response;
 }
 
+export type ErrorResponse = {
+  error: {
+    message: string;
+    type: string;
+    param: unknown;
+    code: string;
+  };
+};
+
+const isErrorResponse = (b: unknown): b is ErrorResponse => {
+  return (b as ErrorResponse).error !== undefined;
+};
+
 export async function apiFetch<T = Record<string, unknown>>(
   userApiConfig: ApiConfig,
 ): Promise<T> {
@@ -82,10 +99,13 @@ export async function apiFetch<T = Record<string, unknown>>(
 
   try {
     const response = await fetchWithTimeout(apiConfig.url, apiConfig.options);
-    const responseData: T = await response.json();
+    const responseData: T | ErrorResponse = await response.json();
+
+    if (isErrorResponse(responseData)) throw responseData.error.message;
 
     return responseData;
   } catch (error) {
+    console.log(error);
     const errorMessage = `💢 Error: ${error}`;
     console.error(errorMessage);
     throw errorMessage;
