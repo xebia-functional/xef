@@ -1,6 +1,6 @@
 import { toSnakeCase } from '@/utils/strings';
 
-export const defaultApiServer = 'http://localhost:8080/';
+export const defaultApiServer = 'http://localhost:8081/';
 
 export type ApiConfig = {
   url: URL;
@@ -17,15 +17,11 @@ export type ApiOptions = {
 };
 
 export enum EndpointsEnum {
-  test = 'test',
+  chatCompletions = 'chat/completions',
 }
 
-export type TestResponse = {
-  message: string;
-};
-
 export type EndpointsTypes = {
-  test: TestResponse;
+  chatCompletions: ChatCompletionsResponse;
 };
 
 export type EndpointEnumKey = keyof typeof EndpointsEnum;
@@ -44,7 +40,7 @@ export function apiConfigConstructor(userApiOptions: ApiOptions): ApiConfig {
 
   const options: RequestInit = {
     ...userApiOptions.requestOptions,
-    body: JSON.stringify(userApiOptions.body),
+    body: userApiOptions.body || userApiOptions.requestOptions?.body,
   };
 
   const config = {

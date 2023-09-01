@@ -48,6 +48,16 @@ export function Sidebar({ drawerWidth, open }: SidebarProps) {
               <ListItemText primary="Feature Two" />
             </ListItemButton>
           </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton component={RouterLink} to="generic-question">
+              <ListItemText primary="Generic question" />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton component={RouterLink} to="settings">
+              <ListItemText primary="Settings" />
+            </ListItemButton>
+          </ListItem>
         </List>
       </Box>
     </Box>
