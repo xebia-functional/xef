@@ -8,7 +8,7 @@ import com.xebia.functional.xef.prompt.Prompt
 
 suspend fun main() {
   val gcp = GCP("xefdemo", VertexAIRegion.US_CENTRAL1)
-  gcp.conversation { }
+  gcp.conversation {}
 
   GCP.conversation {
     while (true) {
