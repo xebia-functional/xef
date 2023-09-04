@@ -1,9 +1,9 @@
 package com.xebia.functional.xef.store
 
-import com.xebia.functional.xef.embeddings.Embedding
-import com.xebia.functional.xef.embeddings.Embeddings
+import com.xebia.functional.xef.llm.Embeddings
 import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.llm.models.chat.Role
+import com.xebia.functional.xef.llm.models.embeddings.Embedding
 import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.document.Document
@@ -89,7 +89,7 @@ open class Lucene(
 
   override suspend fun similaritySearchByVector(embedding: Embedding, limit: Int): List<String> {
     requireNotNull(embeddings) { "no embeddings were computed for this model" }
-    val luceneQuery = KnnFloatVectorQuery("embedding", embedding.data.toFloatArray(), limit)
+    val luceneQuery = KnnFloatVectorQuery("embedding", embedding.embedding.toFloatArray(), limit)
     val searcher = IndexSearcher(DirectoryReader.open(writer))
     return searcher.search(luceneQuery, limit).extract(searcher)
   }
@@ -150,4 +150,4 @@ fun InMemoryLuceneBuilder(
   InMemoryLucene(path, writerConfig, embeddings.takeIf { useAIEmbeddings }, similarity)
 }
 
-fun List<Embedding>.toFloatArray(): FloatArray = flatMap { it.data }.toFloatArray()
+fun List<Embedding>.toFloatArray(): FloatArray = flatMap { it.embedding }.toFloatArray()

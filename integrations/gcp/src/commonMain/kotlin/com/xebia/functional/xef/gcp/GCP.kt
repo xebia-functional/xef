@@ -4,7 +4,6 @@ import arrow.core.nonEmptyListOf
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.PlatformConversation
-import com.xebia.functional.xef.embeddings.EmbeddingsService
 import com.xebia.functional.xef.env.getenv
 import com.xebia.functional.xef.store.LocalVectorStore
 import com.xebia.functional.xef.store.VectorStore
@@ -62,15 +61,15 @@ class GCP(projectId: String? = null, location: VertexAIRegion? = null, token: St
 
     @JvmSynthetic
     suspend fun <A> conversation(block: suspend Conversation.() -> A): A =
-      block(conversation(LocalVectorStore(EmbeddingsService(FromEnvironment.DEFAULT_EMBEDDING))))
+      block(conversation(LocalVectorStore(FromEnvironment.DEFAULT_EMBEDDING)))
 
     @JvmStatic
     @JvmOverloads
     fun conversation(
-      store: VectorStore = LocalVectorStore(EmbeddingsService(FromEnvironment.DEFAULT_EMBEDDING))
+      store: VectorStore = LocalVectorStore(FromEnvironment.DEFAULT_EMBEDDING)
     ): PlatformConversation = Conversation(store)
   }
 }
 
 suspend inline fun <A> GCP.conversation(noinline block: suspend Conversation.() -> A): A =
-  block(Conversation(LocalVectorStore(EmbeddingsService(DEFAULT_EMBEDDING))))
+  block(Conversation(LocalVectorStore(DEFAULT_EMBEDDING)))

@@ -4,11 +4,11 @@ import com.xebia.functional.tokenizer.EncodingType
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.llm.Completion
-import com.xebia.functional.xef.llm.LLMEmbeddings
+import com.xebia.functional.xef.llm.Embeddings
 import com.xebia.functional.xef.llm.models.chat.*
+import com.xebia.functional.xef.llm.models.embeddings.Embedding
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingResult
-import com.xebia.functional.xef.llm.models.embeddings.LLMEmbedding
 import com.xebia.functional.xef.llm.models.text.CompletionChoice
 import com.xebia.functional.xef.llm.models.text.CompletionRequest
 import com.xebia.functional.xef.llm.models.text.CompletionResult
@@ -20,8 +20,7 @@ import kotlinx.uuid.UUID
 import kotlinx.uuid.generateUUID
 
 @OptIn(ExperimentalStdlibApi::class)
-class GcpModel(modelId: String, config: GcpConfig) :
-  Chat, Completion, AutoCloseable, LLMEmbeddings {
+class GcpModel(modelId: String, config: GcpConfig) : Chat, Completion, AutoCloseable, Embeddings {
   private val client: GcpClient = GcpClient(modelId, config)
 
   override val name: String = client.modelId
@@ -96,12 +95,12 @@ class GcpModel(modelId: String, config: GcpConfig) :
     }
 
   override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult {
-    fun requestToEmbedding(index: Int, it: GcpClient.EmbeddingPredictions): LLMEmbedding =
-      LLMEmbedding("embedding", it.embeddings.values.map(Double::toFloat), index = index)
+    fun requestToEmbedding(it: GcpClient.EmbeddingPredictions): Embedding =
+      Embedding(it.embeddings.values.map(Double::toFloat))
 
     val response = client.embeddings(request)
     return EmbeddingResult(
-      data = response.predictions.mapIndexed(::requestToEmbedding),
+      data = response.predictions.map(::requestToEmbedding),
       usage = usage(response),
     )
   }

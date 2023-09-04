@@ -28,9 +28,9 @@ import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.llm.models.chat.ChatChunk
 import com.xebia.functional.xef.llm.models.chat.ChatCompletionChunk
 import com.xebia.functional.xef.llm.models.chat.ChatDelta
+import com.xebia.functional.xef.llm.models.embeddings.Embedding
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingResult
-import com.xebia.functional.xef.llm.models.embeddings.LLMEmbedding
 import com.xebia.functional.xef.llm.models.functions.CFunction
 import com.xebia.functional.xef.llm.models.functions.FunctionCall as FnCall
 import com.xebia.functional.xef.llm.models.images.ImageGenerationUrl
@@ -48,7 +48,7 @@ class OpenAIModel(
   private val openAI: OpenAI,
   override val name: String,
   override val modelType: ModelType
-) : Chat, ChatWithFunctions, Images, Completion, LLMEmbeddings, AutoCloseable {
+) : Chat, ChatWithFunctions, Images, Completion, Embeddings, AutoCloseable {
 
   private val client =
     OpenAIClient(
@@ -194,12 +194,12 @@ class OpenAIModel(
       user = request.user
     }
 
-    fun foo(it: OpenAIEmbedding): LLMEmbedding =
-      LLMEmbedding("embedding", it.embedding.map { it.toFloat() }, it.index)
+    fun createEmbedding(it: OpenAIEmbedding): Embedding =
+      Embedding(it.embedding.map { it.toFloat() })
 
     val response = client.embeddings(clientRequest)
     return EmbeddingResult(
-      data = response.embeddings.map { foo(it) },
+      data = response.embeddings.map { createEmbedding(it) },
       usage = usage(response.usage)
     )
   }

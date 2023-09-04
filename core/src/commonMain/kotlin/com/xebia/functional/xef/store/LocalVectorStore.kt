@@ -3,8 +3,8 @@ package com.xebia.functional.xef.store
 import arrow.atomic.Atomic
 import arrow.atomic.getAndUpdate
 import arrow.atomic.update
-import com.xebia.functional.xef.embeddings.Embedding
-import com.xebia.functional.xef.embeddings.Embeddings
+import com.xebia.functional.xef.llm.Embeddings
+import com.xebia.functional.xef.llm.models.embeddings.Embedding
 import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
 import kotlin.math.sqrt
 
@@ -54,7 +54,7 @@ private constructor(private val embeddings: Embeddings, private val state: Atomi
   }
 
   override suspend fun addTexts(texts: List<String>) {
-    val embeddingsList = embeddings.embedDocuments(texts, requestConfig = requestConfig)
+    val embeddingsList = embeddings.embedDocuments(texts, requestConfig = requestConfig, null)
     state.getAndUpdate { prevState ->
       val newEmbeddings = prevState.precomputedEmbeddings + texts.zip(embeddingsList)
       State(prevState.orderedMemories, prevState.documents + texts, newEmbeddings)
@@ -79,9 +79,9 @@ private constructor(private val embeddings: Embeddings, private val state: Atomi
   }
 
   private fun Embedding.cosineSimilarity(other: Embedding): Double {
-    val dotProduct = this.data.zip(other.data).sumOf { (a, b) -> (a * b).toDouble() }
-    val magnitudeA = sqrt(this.data.sumOf { (it * it).toDouble() })
-    val magnitudeB = sqrt(other.data.sumOf { (it * it).toDouble() })
+    val dotProduct = this.embedding.zip(other.embedding).sumOf { (a, b) -> (a * b).toDouble() }
+    val magnitudeA = sqrt(this.embedding.sumOf { (it * it).toDouble() })
+    val magnitudeB = sqrt(other.embedding.sumOf { (it * it).toDouble() })
     return dotProduct / (magnitudeA * magnitudeB)
   }
 }
