@@ -4,7 +4,7 @@ import com.xebia.functional.tokenizer.EncodingType
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.llm.Completion
-import com.xebia.functional.xef.llm.Embeddings
+import com.xebia.functional.xef.llm.LLMEmbeddings
 import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.llm.models.embeddings.Embedding
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
@@ -20,7 +20,8 @@ import kotlinx.uuid.UUID
 import kotlinx.uuid.generateUUID
 
 @OptIn(ExperimentalStdlibApi::class)
-class GcpModel(modelId: String, config: GcpConfig) : Chat, Completion, AutoCloseable, Embeddings {
+class GcpModel(modelId: String, config: GcpConfig) :
+  Chat, Completion, AutoCloseable, LLMEmbeddings {
   private val client: GcpClient = GcpClient(modelId, config)
 
   override val name: String = client.modelId

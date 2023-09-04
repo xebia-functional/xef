@@ -2,7 +2,7 @@ package com.xebia.functional.xef.data
 
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.llm.Chat
-import com.xebia.functional.xef.llm.Embeddings
+import com.xebia.functional.xef.llm.LLMEmbeddings
 import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingResult
@@ -13,7 +13,7 @@ class TestModel(
   override val modelType: ModelType,
   override val name: String,
   val responses: Map<String, String> = emptyMap(),
-) : Chat, Embeddings, AutoCloseable {
+) : Chat, LLMEmbeddings, AutoCloseable {
 
   var requests: MutableList<ChatCompletionRequest> = mutableListOf()
 

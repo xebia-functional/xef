@@ -9,6 +9,7 @@ import com.xebia.functional.xef.store.{ConversationId, LocalVectorStore, VectorS
 import io.circe.Decoder
 import io.circe.parser.parse
 import org.reactivestreams.{Subscriber, Subscription}
+import com.xebia.functional.xef.embeddings.EmbeddingsProvider
 
 import java.util
 import java.util.UUID
@@ -79,4 +80,4 @@ def images(
 def conversation[A](
     block: ScalaConversation ?=> A,
     conversationId: Option[ConversationId] = Some(ConversationId(UUID.randomUUID().toString))
-): A = block(using ScalaConversation(LocalVectorStore(OpenAIEmbeddings(OpenAI.FromEnvironment.DEFAULT_EMBEDDING)), conversationId))
+): A = block(using ScalaConversation(LocalVectorStore(EmbeddingsProvider(OpenAI.FromEnvironment.DEFAULT_EMBEDDING)), conversationId))

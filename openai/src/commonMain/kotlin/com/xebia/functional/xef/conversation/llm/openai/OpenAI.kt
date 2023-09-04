@@ -7,6 +7,7 @@ import com.xebia.functional.xef.conversation.AutoClose
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.PlatformConversation
 import com.xebia.functional.xef.conversation.autoClose
+import com.xebia.functional.xef.embeddings.EmbeddingsProvider
 import com.xebia.functional.xef.env.getenv
 import com.xebia.functional.xef.store.LocalVectorStore
 import com.xebia.functional.xef.store.VectorStore
@@ -136,12 +137,12 @@ class OpenAI(internal var token: String? = null, internal var host: String? = nu
 
     @JvmSynthetic
     suspend fun <A> conversation(block: suspend Conversation.() -> A): A =
-      block(conversation(LocalVectorStore(OpenAIEmbeddings(FromEnvironment.DEFAULT_EMBEDDING))))
+      block(conversation(LocalVectorStore(EmbeddingsProvider(FromEnvironment.DEFAULT_EMBEDDING))))
 
     @JvmStatic
     @JvmOverloads
     fun conversation(
-      store: VectorStore = LocalVectorStore(OpenAIEmbeddings(FromEnvironment.DEFAULT_EMBEDDING))
+      store: VectorStore = LocalVectorStore(EmbeddingsProvider(FromEnvironment.DEFAULT_EMBEDDING))
     ): PlatformConversation = Conversation(store)
   }
 }

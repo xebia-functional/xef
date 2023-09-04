@@ -48,7 +48,7 @@ class OpenAIModel(
   private val openAI: OpenAI,
   override val name: String,
   override val modelType: ModelType
-) : Chat, ChatWithFunctions, Images, Completion, Embeddings, AutoCloseable {
+) : Chat, ChatWithFunctions, Images, Completion, LLMEmbeddings, AutoCloseable {
 
   private val client =
     OpenAIClient(
