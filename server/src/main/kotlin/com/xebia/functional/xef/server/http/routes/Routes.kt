@@ -78,15 +78,10 @@ private suspend fun HttpClient.makeRequest(
     call: ApplicationCall,
     url: String,
     body: String,
-    token: String)
-{
+    token: String
+) {
     val response = this.request(url) {
-        headers {
-            bearerAuth(token)
-        }
-        contentType(ContentType.Application.Json)
-        method = HttpMethod.Post
-        setBody(body)
+        setHttpRequestBuilder(token, body)
     }
     call.respond(response.status, response.body<String>())
 }
@@ -98,12 +93,7 @@ private suspend fun HttpClient.makeStreaming(
     token: String
 ) {
     this.preparePost(url) {
-        headers {
-            bearerAuth(token)
-        }
-        contentType(ContentType.Application.Json)
-        method = HttpMethod.Post
-        setBody(body)
+        setHttpRequestBuilder(token, body)
     }.execute { httpResponse ->
         val channel: ByteReadChannel = httpResponse.body()
         call.respondBytesWriter(
@@ -120,6 +110,17 @@ private suspend fun HttpClient.makeStreaming(
         }
     }
 }
+
+private fun setHttpRequestBuilder(token: String, body: String): HttpRequestBuilder =
+    HttpRequestBuilder().apply {
+        headers {
+            bearerAuth(token)
+        }
+        contentType(ContentType.Application.Json)
+        method = HttpMethod.Post
+        setBody(body)
+    }
+
 
 private fun ApplicationCall.getProvider(): Provider =
     request.headers["xef-provider"]?.toProvider()
