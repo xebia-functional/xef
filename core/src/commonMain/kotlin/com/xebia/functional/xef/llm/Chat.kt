@@ -7,10 +7,7 @@ import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.assistant
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.*
 
 interface Chat : LLM {
   val modelType: ModelType
@@ -37,19 +34,14 @@ interface Chat : LLM {
         streamToStandardOut = true
       )
 
-    val buffer = StringBuilder()
     createChatCompletions(request)
-      .onEach {
-        it.choices.forEach { choice ->
-          val text = choice.delta?.content ?: ""
-          buffer.append(text)
-        }
-      }
-      .onCompletion {
-        val message = assistant(buffer.toString())
+      .map { it.choices.mapNotNull { it.delta?.content }.reduce(String::plus) }
+      .onEach { emit(it) }
+      .fold("", String::plus)
+      .also { finalText ->
+        val message = assistant(finalText)
         MemoryManagement.addMemoriesAfterStream(this@Chat, request, scope, listOf(message))
       }
-      .collect { emit(it.choices.mapNotNull { it.delta?.content }.joinToString("")) }
   }
 
   @AiDsl

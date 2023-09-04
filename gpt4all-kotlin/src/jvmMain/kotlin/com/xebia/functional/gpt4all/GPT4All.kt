@@ -16,21 +16,16 @@ import com.xebia.functional.xef.llm.models.text.CompletionResult
 import com.xebia.functional.xef.llm.models.usage.Usage
 import com.xebia.functional.xef.store.LocalVectorStore
 import com.xebia.functional.xef.store.VectorStore
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.consumeAsFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.*
 import java.io.OutputStream
 import java.io.PrintStream
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
-import java.util.UUID
+import java.util.*
+import kotlin.concurrent.thread
 import kotlin.io.path.name
 
 
@@ -73,7 +68,6 @@ interface GPT4All : AutoCloseable, Chat, Completion {
 
       override suspend fun createCompletion(request: CompletionRequest): CompletionResult =
         with(request) {
-
           val config = LLModel.config()
             .withTopP(request.topP?.toFloat() ?: 0.4f)
             .withTemp(request.temperature?.toFloat() ?: 0f)
@@ -94,8 +88,8 @@ interface GPT4All : AutoCloseable, Chat, Completion {
         with(request) {
           val prompt: String = messages.buildPrompt()
           val config = LLModel.config()
-            .withTopP(request.topP.toFloat() ?: 0.4f)
-            .withTemp(request.temperature.toFloat() ?: 0f)
+            .withTopP(request.topP.toFloat())
+            .withTemp(request.temperature.toFloat())
             .withRepeatPenalty(request.frequencyPenalty.toFloat())
             .build()
           val response: String = generateCompletion(prompt, config, request.streamToStandardOut)
@@ -117,51 +111,52 @@ interface GPT4All : AutoCloseable, Chat, Completion {
        * @param request The ChatCompletionRequest containing the necessary information for creating completions.
        * @return A Flow of ChatCompletionChunk objects representing the generated chat completions.
        */
-      override suspend fun createChatCompletions(request: ChatCompletionRequest): Flow<ChatCompletionChunk> =
-        with(request) {
-          val prompt: String = messages.buildPrompt()
-          val config = LLModel.config()
-            .withTopP(request.topP.toFloat())
-            .withTemp(request.temperature.toFloat())
-            .withRepeatPenalty(request.frequencyPenalty.toFloat())
+      override suspend fun createChatCompletions(request: ChatCompletionRequest): Flow<ChatCompletionChunk> {
+        val prompt: String = request.messages.buildPrompt()
+        val config = with(request) {
+          LLModel.config()
+            .withTopP(topP.toFloat())
+            .withTemp(temperature.toFloat())
+            .withRepeatPenalty(frequencyPenalty.toFloat())
             .build()
+        }
 
-          val originalOut = System.out // Save the original standard output
+        val originalOut = System.out // Save the original standard output
 
-          return coroutineScope {
-            val channel = Channel<String>(capacity = UNLIMITED)
+        val channel = Channel<String>(capacity = UNLIMITED)
 
-            val outputStream = object : OutputStream() {
-              override fun write(b: Int) {
-                val c = b.toChar()
-                channel.trySend(c.toString())
-              }
-            }
+        val outputStream = object : OutputStream() {
+          override fun write(b: Int) {
+            val c = b.toChar()
+            channel.trySend(c.toString())
+          }
+        }
 
-            val printStream = PrintStream(outputStream, true, StandardCharsets.UTF_8)
+        val printStream = PrintStream(outputStream, true, StandardCharsets.UTF_8)
 
-            fun toChunk(text: String?): ChatCompletionChunk =
-              ChatCompletionChunk(
-                UUID.randomUUID().toString(),
-                System.currentTimeMillis().toInt(),
-                path.name,
-                listOf(ChatChunk(delta = ChatDelta(Role.ASSISTANT, text))),
-                Usage.ZERO,
-              )
+        fun toChunk(text: String?): ChatCompletionChunk = ChatCompletionChunk(
+          UUID.randomUUID().toString(),
+          System.currentTimeMillis().toInt(),
+          path.name,
+          listOf(ChatChunk(delta = ChatDelta(Role.ASSISTANT, text))),
+          Usage.ZERO,
+        )
 
-            val flow = channel.consumeAsFlow().map { toChunk(it) }
+        return channel
+          .consumeAsFlow()
+          .map(::toChunk)
+          .onStart {
+            System.setOut(printStream) // Set the standard output to the print stream
 
-            launch(Dispatchers.IO) {
-              System.setOut(printStream) // Set the standard output to the print stream
+            thread(isDaemon = true) { // generate in background and emit values to flow
               generateCompletion(prompt, config, request.streamToStandardOut)
               channel.close()
             }
-
-            flow.onCompletion {
-              System.setOut(originalOut) // Restore the original standard output
-            }
           }
-        }
+          .onCompletion {
+            System.setOut(originalOut) // Restore the original standard output
+          }
+      }
 
       override fun tokensFromMessages(messages: List<Message>): Int {
         return 0
