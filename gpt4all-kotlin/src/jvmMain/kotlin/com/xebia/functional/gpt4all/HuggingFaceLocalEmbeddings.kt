@@ -10,11 +10,11 @@ import com.xebia.functional.xef.llm.models.embeddings.EmbeddingResult
 import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
 import com.xebia.functional.xef.llm.models.usage.Usage
 
-class HuggingFaceLocalLLMEmbeddings(name: String, artifact: String) : LLMEmbeddings, Embeddings {
+class HuggingFaceLocalEmbeddings(name: String, artifact: String) : LLMEmbeddings, Embeddings {
 
   private val tokenizer = HuggingFaceTokenizer.newInstance("$name/$artifact")
 
-  override val name: String = HuggingFaceLocalLLMEmbeddings::class.java.canonicalName
+  override val name: String = HuggingFaceLocalEmbeddings::class.java.canonicalName
 
   override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult {
     val embedings = tokenizer.batchEncode(request.input)
@@ -36,6 +36,6 @@ class HuggingFaceLocalLLMEmbeddings(name: String, artifact: String) : LLMEmbeddi
 
   companion object {
     @JvmField
-    val DEFAULT = HuggingFaceLocalLLMEmbeddings("sentence-transformers", "msmarco-distilbert-dot-v5")
+    val DEFAULT = HuggingFaceLocalEmbeddings("sentence-transformers", "msmarco-distilbert-dot-v5")
   }
 }

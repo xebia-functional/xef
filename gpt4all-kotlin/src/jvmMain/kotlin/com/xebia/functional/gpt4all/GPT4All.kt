@@ -50,12 +50,12 @@ interface GPT4All : AutoCloseable, Chat, Completion {
     @JvmSynthetic
     suspend fun <A> conversation(
       block: suspend Conversation.() -> A
-    ): A = block(conversation(LocalVectorStore(HuggingFaceLocalLLMEmbeddings.DEFAULT)))
+    ): A = block(conversation(LocalVectorStore(HuggingFaceLocalEmbeddings.DEFAULT)))
 
     @JvmStatic
     @JvmOverloads
     fun conversation(
-      store: VectorStore = LocalVectorStore(HuggingFaceLocalLLMEmbeddings.DEFAULT)
+      store: VectorStore = LocalVectorStore(HuggingFaceLocalEmbeddings.DEFAULT)
     ): PlatformConversation = Conversation(store)
 
     operator fun invoke(
