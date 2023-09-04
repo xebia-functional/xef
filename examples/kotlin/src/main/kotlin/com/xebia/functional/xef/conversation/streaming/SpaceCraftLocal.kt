@@ -2,7 +2,7 @@ package com.xebia.functional.xef.conversation.streaming
 
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.llm.openai.OpenAI
-import com.xebia.functional.xef.embeddings.EmbeddingsProvider
+import com.xebia.functional.xef.embeddings.EmbeddingsService
 import com.xebia.functional.xef.llm.StreamedFunction
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.store.LocalVectorStore
@@ -18,7 +18,7 @@ suspend fun main() {
   val model = OpenAI(host = "http://localhost:8081/").DEFAULT_SERIALIZATION
 
   val scope =
-    Conversation(LocalVectorStore(EmbeddingsProvider(OpenAI.FromEnvironment.DEFAULT_EMBEDDING)))
+    Conversation(LocalVectorStore(EmbeddingsService(OpenAI.FromEnvironment.DEFAULT_EMBEDDING)))
 
   model
     .promptStreaming(

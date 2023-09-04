@@ -49,8 +49,7 @@ class PGVectorStoreSpec :
         collectionName = "test_collection",
         distanceStrategy = PGDistanceStrategy.Euclidean,
         preDeleteCollection = false,
-        requestConfig = RequestConfig(RequestConfig.Companion.User("user")),
-        chunkSize = null
+        requestConfig = RequestConfig(RequestConfig.Companion.User("user"))
       )
 
     "initialDbSetup should configure the DB properly" { pg.initialDbSetup() }
@@ -123,9 +122,8 @@ private fun Embeddings.Companion.mock(
   object : Embeddings {
     override suspend fun embedDocuments(
       texts: List<String>,
-      chunkSize: Int?,
       requestConfig: RequestConfig
-    ): List<Embedding> = embedDocuments(texts, chunkSize, requestConfig)
+    ): List<Embedding> = embedDocuments(texts, requestConfig)
 
     override suspend fun embedQuery(text: String, requestConfig: RequestConfig): List<Embedding> =
       embedQuery(text, requestConfig)

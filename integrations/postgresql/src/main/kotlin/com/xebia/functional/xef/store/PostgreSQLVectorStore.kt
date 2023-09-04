@@ -17,8 +17,7 @@ class PGVectorStore(
   private val collectionName: String,
   private val distanceStrategy: PGDistanceStrategy,
   private val preDeleteCollection: Boolean,
-  private val requestConfig: RequestConfig,
-  private val chunkSize: Int?
+  private val requestConfig: RequestConfig
 ) : VectorStore {
 
   override suspend fun addMemories(memories: List<Memory>) {
@@ -95,7 +94,7 @@ class PGVectorStore(
 
   override suspend fun addTexts(texts: List<String>): Unit =
     dataSource.connection {
-      val embeddings = embeddings.embedDocuments(texts, chunkSize, requestConfig)
+      val embeddings = embeddings.embedDocuments(texts, requestConfig)
       val collection = getCollection(collectionName)
       texts.zip(embeddings) { text, embedding ->
         val uuid = UUID.generateUUID()

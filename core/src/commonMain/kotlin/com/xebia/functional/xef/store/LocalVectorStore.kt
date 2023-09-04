@@ -54,8 +54,7 @@ private constructor(private val embeddings: Embeddings, private val state: Atomi
   }
 
   override suspend fun addTexts(texts: List<String>) {
-    val embeddingsList =
-      embeddings.embedDocuments(texts, chunkSize = null, requestConfig = requestConfig)
+    val embeddingsList = embeddings.embedDocuments(texts, requestConfig = requestConfig)
     state.getAndUpdate { prevState ->
       val newEmbeddings = prevState.precomputedEmbeddings + texts.zip(embeddingsList)
       State(prevState.orderedMemories, prevState.documents + texts, newEmbeddings)

@@ -7,7 +7,6 @@ import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
 class TestEmbeddings : Embeddings {
   override suspend fun embedDocuments(
     texts: List<String>,
-    chunkSize: Int?,
     requestConfig: RequestConfig
   ): List<Embedding> = emptyList()
 

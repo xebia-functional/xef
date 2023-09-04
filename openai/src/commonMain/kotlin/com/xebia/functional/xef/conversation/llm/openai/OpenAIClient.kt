@@ -28,9 +28,9 @@ import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.llm.models.chat.ChatChunk
 import com.xebia.functional.xef.llm.models.chat.ChatCompletionChunk
 import com.xebia.functional.xef.llm.models.chat.ChatDelta
-import com.xebia.functional.xef.llm.models.embeddings.Embedding
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingResult
+import com.xebia.functional.xef.llm.models.embeddings.LLMEmbedding
 import com.xebia.functional.xef.llm.models.functions.CFunction
 import com.xebia.functional.xef.llm.models.functions.FunctionCall as FnCall
 import com.xebia.functional.xef.llm.models.images.ImageGenerationUrl
@@ -194,8 +194,8 @@ class OpenAIModel(
       user = request.user
     }
 
-    fun foo(it: OpenAIEmbedding): Embedding =
-      Embedding("embedding", it.embedding.map { it.toFloat() }, it.index)
+    fun foo(it: OpenAIEmbedding): LLMEmbedding =
+      LLMEmbedding("embedding", it.embedding.map { it.toFloat() }, it.index)
 
     val response = client.embeddings(clientRequest)
     return EmbeddingResult(

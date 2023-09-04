@@ -6,9 +6,9 @@ import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.llm.Completion
 import com.xebia.functional.xef.llm.LLMEmbeddings
 import com.xebia.functional.xef.llm.models.chat.*
-import com.xebia.functional.xef.llm.models.embeddings.Embedding
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingResult
+import com.xebia.functional.xef.llm.models.embeddings.LLMEmbedding
 import com.xebia.functional.xef.llm.models.text.CompletionChoice
 import com.xebia.functional.xef.llm.models.text.CompletionRequest
 import com.xebia.functional.xef.llm.models.text.CompletionResult
@@ -96,8 +96,8 @@ class GcpModel(modelId: String, config: GcpConfig) :
     }
 
   override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult {
-    fun requestToEmbedding(index: Int, it: GcpClient.EmbeddingPredictions): Embedding =
-      Embedding("embedding", it.embeddings.values.map(Double::toFloat), index = index)
+    fun requestToEmbedding(index: Int, it: GcpClient.EmbeddingPredictions): LLMEmbedding =
+      LLMEmbedding("embedding", it.embeddings.values.map(Double::toFloat), index = index)
 
     val response = client.embeddings(request)
     return EmbeddingResult(

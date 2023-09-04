@@ -1,10 +1,10 @@
 package com.xebia.functional.gpt4all
 
 import ai.djl.huggingface.tokenizers.HuggingFaceTokenizer
-import com.xebia.functional.xef.embeddings.Embedding as XefEmbedding
+import com.xebia.functional.xef.embeddings.Embedding
 import com.xebia.functional.xef.embeddings.Embeddings
 import com.xebia.functional.xef.llm.LLMEmbeddings
-import com.xebia.functional.xef.llm.models.embeddings.Embedding
+import com.xebia.functional.xef.llm.models.embeddings.LLMEmbedding
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingResult
 import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
@@ -19,20 +19,16 @@ class HuggingFaceLocalEmbeddings(name: String, artifact: String) : LLMEmbeddings
   override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult {
     val embedings = tokenizer.batchEncode(request.input)
     return EmbeddingResult(
-      data = embedings.mapIndexed { n, em -> Embedding("embedding", em.ids.map { it.toFloat() }, n) },
+      data = embedings.mapIndexed { n, em -> LLMEmbedding("embedding", em.ids.map { it.toFloat() }, n) },
       usage = Usage.ZERO
     )
   }
 
   override suspend fun embedDocuments(
     texts: List<String>,
-    chunkSize: Int?,
     requestConfig: RequestConfig
-  ): List<XefEmbedding> =
-    tokenizer.batchEncode(texts).map { em -> XefEmbedding(em.ids.map { it.toFloat() }) }
-
-  override suspend fun embedQuery(text: String, requestConfig: RequestConfig): List<XefEmbedding> =
-    embedDocuments(listOf(text), null, requestConfig)
+  ): List<Embedding> =
+    tokenizer.batchEncode(texts).map { em -> Embedding(em.ids.map { it.toFloat() }) }
 
   companion object {
     @JvmField
