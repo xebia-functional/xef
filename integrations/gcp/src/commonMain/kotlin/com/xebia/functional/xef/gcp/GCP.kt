@@ -61,15 +61,15 @@ class GCP(projectId: String? = null, location: VertexAIRegion? = null, token: St
 
     @JvmSynthetic
     suspend fun <A> conversation(block: suspend Conversation.() -> A): A =
-      block(conversation(LocalVectorStore(GcpEmbeddings(FromEnvironment.DEFAULT_EMBEDDING))))
+      block(conversation(LocalVectorStore(FromEnvironment.DEFAULT_EMBEDDING)))
 
     @JvmStatic
     @JvmOverloads
     fun conversation(
-      store: VectorStore = LocalVectorStore(GcpEmbeddings(FromEnvironment.DEFAULT_EMBEDDING))
+      store: VectorStore = LocalVectorStore(FromEnvironment.DEFAULT_EMBEDDING)
     ): PlatformConversation = Conversation(store)
   }
 }
 
 suspend inline fun <A> GCP.conversation(noinline block: suspend Conversation.() -> A): A =
-  block(Conversation(LocalVectorStore(GcpEmbeddings(DEFAULT_EMBEDDING))))
+  block(Conversation(LocalVectorStore(DEFAULT_EMBEDDING)))

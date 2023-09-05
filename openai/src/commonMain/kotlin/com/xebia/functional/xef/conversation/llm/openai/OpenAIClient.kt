@@ -1,6 +1,7 @@
 package com.xebia.functional.xef.conversation.llm.openai
 
 import com.aallam.openai.api.BetaOpenAI
+import com.aallam.openai.api.LegacyOpenAI
 import com.aallam.openai.api.chat.*
 import com.aallam.openai.api.chat.ChatChunk as OpenAIChatChunk
 import com.aallam.openai.api.chat.ChatCompletionChunk as OpenAIChatCompletionChunk
@@ -58,9 +59,10 @@ class OpenAIModel(
       headers = mapOf("Authorization" to " Bearer $openAI.token")
     )
 
+  @OptIn(LegacyOpenAI::class)
   override suspend fun createCompletion(request: CompletionRequest): CompletionResult {
     fun completionChoice(it: OpenAIChoice): CompletionChoice =
-      CompletionChoice(it.text, it.index, null, it.finishReason)
+      CompletionChoice(it.text, it.index, null, it.finishReason.value)
 
     val response = client.completion(toCompletionRequest(request))
     return CompletionResult(
@@ -73,7 +75,6 @@ class OpenAIModel(
     )
   }
 
-  @OptIn(BetaOpenAI::class)
   override suspend fun createChatCompletion(
     request: ChatCompletionRequest
   ): ChatCompletionResponse {
@@ -86,8 +87,8 @@ class OpenAIModel(
 
     fun toChoice(choice: ChatChoice): Choice =
       Choice(
-        message = choice.message?.let { chatMessage(it) },
-        finishReason = choice.finishReason,
+        message = chatMessage(choice.message),
+        finishReason = choice.finishReason.value,
         index = choice.index,
       )
 
@@ -102,7 +103,6 @@ class OpenAIModel(
     )
   }
 
-  @OptIn(BetaOpenAI::class)
   override suspend fun createChatCompletions(
     request: ChatCompletionRequest
   ): Flow<ChatCompletionChunk> {
@@ -114,7 +114,7 @@ class OpenAIModel(
       )
 
     fun chatChunk(chunk: OpenAIChatChunk): ChatChunk =
-      ChatChunk(chunk.index, chunk.delta?.let { chatDelta(it) }, chunk.finishReason)
+      ChatChunk(chunk.index, chatDelta(chunk.delta), chunk.finishReason?.value)
 
     fun chatCompletionChunk(response: OpenAIChatCompletionChunk): ChatCompletionChunk =
       ChatCompletionChunk(
@@ -128,7 +128,6 @@ class OpenAIModel(
     return client.chatCompletions(toChatCompletionRequest(request)).map { chatCompletionChunk(it) }
   }
 
-  @OptIn(BetaOpenAI::class)
   override suspend fun createChatCompletionWithFunctions(
     request: ChatCompletionRequest
   ): ChatCompletionResponseWithFunctions {
@@ -169,8 +168,8 @@ class OpenAIModel(
 
     fun choiceWithFunctions(choice: ChatChoice): ChoiceWithFunctions =
       ChoiceWithFunctions(
-        message = choice.message?.let { fromOpenAI(it) },
-        finishReason = choice.finishReason,
+        message = fromOpenAI(choice.message),
+        finishReason = choice.finishReason.value,
         index = choice.index,
       )
 
@@ -194,12 +193,12 @@ class OpenAIModel(
       user = request.user
     }
 
-    fun foo(it: OpenAIEmbedding): Embedding =
-      Embedding("embedding", it.embedding.map { it.toFloat() }, it.index)
+    fun createEmbedding(it: OpenAIEmbedding): Embedding =
+      Embedding(it.embedding.map { it.toFloat() })
 
     val response = client.embeddings(clientRequest)
     return EmbeddingResult(
-      data = response.embeddings.map { foo(it) },
+      data = response.embeddings.map { createEmbedding(it) },
       usage = usage(response.usage)
     )
   }
@@ -243,7 +242,6 @@ class OpenAIModel(
       totalTokens = usage?.totalTokens,
     )
 
-  @OptIn(BetaOpenAI::class)
   private fun toRole(it: ChatRole?) =
     when (it) {
       ChatRole.User -> Role.USER
@@ -253,7 +251,6 @@ class OpenAIModel(
       else -> Role.ASSISTANT
     }
 
-  @OptIn(BetaOpenAI::class)
   private fun fromRole(it: Role) =
     when (it) {
       Role.USER -> ChatRole.User
@@ -261,7 +258,6 @@ class OpenAIModel(
       Role.SYSTEM -> ChatRole.System
     }
 
-  @OptIn(BetaOpenAI::class)
   private fun toChatCompletionRequest(request: ChatCompletionRequest): OpenAIChatCompletionRequest =
     chatCompletionRequest {
       model = ModelId(request.model)
