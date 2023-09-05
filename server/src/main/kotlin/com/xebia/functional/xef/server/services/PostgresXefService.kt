@@ -2,7 +2,6 @@ package com.xebia.functional.xef.server.services
 
 import com.xebia.functional.xef.conversation.autoClose
 import com.xebia.functional.xef.conversation.llm.openai.OpenAI
-import com.xebia.functional.xef.conversation.llm.openai.OpenAIEmbeddings
 import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
 import com.xebia.functional.xef.server.http.routes.Provider
 import com.xebia.functional.xef.store.PGVectorStore
@@ -65,8 +64,8 @@ class PostgresXefService(
         token: String
     ): VectorStore {
         val embeddings = when (provider) {
-            Provider.OPENAI -> OpenAIEmbeddings(OpenAI(token).DEFAULT_EMBEDDING)
-            else -> OpenAIEmbeddings(OpenAI(token).DEFAULT_EMBEDDING)
+            Provider.OPENAI -> OpenAI(token).DEFAULT_EMBEDDING
+            else -> OpenAI(token).DEFAULT_EMBEDDING
         }
 
         return PGVectorStore(

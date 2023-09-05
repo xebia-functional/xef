@@ -1,15 +1,14 @@
 package com.xebia.functional.gpt4all
 
 import ai.djl.huggingface.tokenizers.HuggingFaceTokenizer
-import com.xebia.functional.xef.embeddings.Embedding as XefEmbedding
-import com.xebia.functional.xef.embeddings.Embeddings
+import com.xebia.functional.xef.llm.Embeddings
 import com.xebia.functional.xef.llm.models.embeddings.Embedding
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingResult
 import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
 import com.xebia.functional.xef.llm.models.usage.Usage
 
-class HuggingFaceLocalEmbeddings(name: String, artifact: String) : com.xebia.functional.xef.llm.Embeddings, Embeddings {
+class HuggingFaceLocalEmbeddings(name: String, artifact: String) : Embeddings {
 
   private val tokenizer = HuggingFaceTokenizer.newInstance("$name/$artifact")
 
@@ -18,20 +17,17 @@ class HuggingFaceLocalEmbeddings(name: String, artifact: String) : com.xebia.fun
   override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult {
     val embedings = tokenizer.batchEncode(request.input)
     return EmbeddingResult(
-      data = embedings.mapIndexed { n, em -> Embedding("embedding", em.ids.map { it.toFloat() }, n) },
+      data = embedings.map { Embedding(it.ids.map { it.toFloat() }) },
       usage = Usage.ZERO
     )
   }
 
   override suspend fun embedDocuments(
     texts: List<String>,
-    chunkSize: Int?,
-    requestConfig: RequestConfig
-  ): List<XefEmbedding> =
-    tokenizer.batchEncode(texts).map { em -> XefEmbedding(em.ids.map { it.toFloat() }) }
-
-  override suspend fun embedQuery(text: String, requestConfig: RequestConfig): List<XefEmbedding> =
-    embedDocuments(listOf(text), null, requestConfig)
+    requestConfig: RequestConfig,
+    chunkSize: Int?
+  ): List<Embedding> =
+    tokenizer.batchEncode(texts).map { em -> Embedding(em.ids.map { it.toFloat() }) } // TODO we need to remove the index
 
   companion object {
     @JvmField
