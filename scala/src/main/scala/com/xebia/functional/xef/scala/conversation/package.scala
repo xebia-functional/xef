@@ -79,4 +79,4 @@ def images(
 def conversation[A](
     block: ScalaConversation ?=> A,
     conversationId: Option[ConversationId] = Some(ConversationId(UUID.randomUUID().toString))
-): A = block(using ScalaConversation(LocalVectorStore(OpenAIEmbeddings(OpenAI.FromEnvironment.DEFAULT_EMBEDDING)), conversationId))
+): A = block(using ScalaConversation(LocalVectorStore(OpenAI.FromEnvironment.DEFAULT_EMBEDDING), conversationId))

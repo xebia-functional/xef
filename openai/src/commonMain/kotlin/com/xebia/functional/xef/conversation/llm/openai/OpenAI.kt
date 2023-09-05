@@ -136,12 +136,12 @@ class OpenAI(internal var token: String? = null, internal var host: String? = nu
 
     @JvmSynthetic
     suspend fun <A> conversation(block: suspend Conversation.() -> A): A =
-      block(conversation(LocalVectorStore(OpenAIEmbeddings(FromEnvironment.DEFAULT_EMBEDDING))))
+      block(conversation(LocalVectorStore(FromEnvironment.DEFAULT_EMBEDDING)))
 
     @JvmStatic
     @JvmOverloads
     fun conversation(
-      store: VectorStore = LocalVectorStore(OpenAIEmbeddings(FromEnvironment.DEFAULT_EMBEDDING))
+      store: VectorStore = LocalVectorStore(FromEnvironment.DEFAULT_EMBEDDING)
     ): PlatformConversation = Conversation(store)
   }
 }

@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.conversation
 
-import com.xebia.functional.xef.embeddings.Embeddings
+import com.xebia.functional.xef.llm.Embeddings
 import com.xebia.functional.xef.store.LocalVectorStore
 import com.xebia.functional.xef.store.VectorStore
 

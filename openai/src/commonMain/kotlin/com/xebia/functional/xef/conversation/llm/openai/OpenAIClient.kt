@@ -194,12 +194,12 @@ class OpenAIModel(
       user = request.user
     }
 
-    fun foo(it: OpenAIEmbedding): Embedding =
-      Embedding("embedding", it.embedding.map { it.toFloat() }, it.index)
+    fun createEmbedding(it: OpenAIEmbedding): Embedding =
+      Embedding(it.embedding.map { it.toFloat() })
 
     val response = client.embeddings(clientRequest)
     return EmbeddingResult(
-      data = response.embeddings.map { foo(it) },
+      data = response.embeddings.map { createEmbedding(it) },
       usage = usage(response.usage)
     )
   }
