@@ -1,9 +1,11 @@
 package xef
 
-import com.xebia.functional.xef.embeddings.Embedding
-import com.xebia.functional.xef.embeddings.Embeddings
+import com.xebia.functional.xef.llm.Embeddings
+import com.xebia.functional.xef.llm.models.embeddings.Embedding
 import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.llm.models.chat.Role
+import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
+import com.xebia.functional.xef.llm.models.embeddings.EmbeddingResult
 import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
 import com.xebia.functional.xef.store.ConversationId
 import com.xebia.functional.xef.store.Memory
@@ -123,10 +125,17 @@ private fun Embeddings.Companion.mock(
   object : Embeddings {
     override suspend fun embedDocuments(
       texts: List<String>,
-      chunkSize: Int?,
-      requestConfig: RequestConfig
-    ): List<Embedding> = embedDocuments(texts, chunkSize, requestConfig)
+      requestConfig: RequestConfig,
+      chunkSize: Int?
+    ): List<Embedding> = embedDocuments(texts, requestConfig, chunkSize)
 
     override suspend fun embedQuery(text: String, requestConfig: RequestConfig): List<Embedding> =
       embedQuery(text, requestConfig)
+
+    override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult =
+      createEmbeddings(request)
+
+
+    override val name: String
+      get() = "embeddings"
   }
