@@ -13,16 +13,13 @@ interface Embeddings : LLM {
     texts: List<String>,
     requestConfig: RequestConfig,
     chunkSize: Int?
-  ): List<Embedding> {
-    suspend fun createEmbeddings(texts: List<String>): List<Embedding> {
-      val req = EmbeddingRequest(name, texts, requestConfig.user.id)
-      return createEmbeddings(req).data.map { Embedding(it.embedding) }
-    }
-    val lists: List<List<Embedding>> =
-      if (texts.isEmpty()) emptyList()
-      else texts.chunked(chunkSize ?: 400).parMap { createEmbeddings(it) }
-    return lists.flatten()
-  }
+  ): List<Embedding> =
+    if (texts.isEmpty()) emptyList()
+    else
+      texts
+        .chunked(chunkSize ?: 400)
+        .parMap { createEmbeddings(EmbeddingRequest(name, texts, requestConfig.user.id)).data }
+        .flatten()
 
   suspend fun embedQuery(text: String, requestConfig: RequestConfig): List<Embedding> =
     if (text.isNotEmpty()) embedDocuments(listOf(text), requestConfig, null) else emptyList()
