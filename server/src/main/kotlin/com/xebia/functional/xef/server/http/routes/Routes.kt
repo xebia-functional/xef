@@ -1,32 +1,20 @@
 package com.xebia.functional.xef.server.http.routes
 
 import com.aallam.openai.api.BetaOpenAI
-import com.aallam.openai.api.chat.ChatCompletionRequest
-import com.xebia.functional.xef.conversation.Conversation
-import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
-import com.xebia.functional.xef.conversation.llm.openai.*
-import com.xebia.functional.xef.llm.StreamedFunction
-import com.xebia.functional.xef.llm.models.chat.ChatCompletionRequest as XefChatCompletionRequest
-import com.xebia.functional.xef.llm.models.chat.ChatCompletionResponse
-import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.server.services.PersistenceService
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.util.cio.*
+import io.ktor.util.*
 import io.ktor.util.pipeline.*
-import io.ktor.utils.io.*
-import io.ktor.utils.io.core.*
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.encodeToString
+import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.boolean
@@ -54,15 +42,15 @@ fun Routing.routes(
     authenticate("auth-bearer") {
         post("/chat/completions") {
             val token = call.getToken()
-            val context = call.receive<String>()
-            val data = Json.decodeFromString<JsonObject>(context)
+            val body = call.receive<String>()
+            val data = Json.decodeFromString<JsonObject>(body)
 
             val isStream = data["stream"]?.jsonPrimitive?.boolean ?: false
 
             if (!isStream) {
-                client.makeRequest(call, "$openAiUrl/chat/completions", context, token)
+                client.makeRequest(call, "$openAiUrl/chat/completions", body, token)
             } else {
-                client.makeStreaming(call, "$openAiUrl/chat/completions", context, token)
+                client.makeStreaming(call, "$openAiUrl/chat/completions", body, token)
             }
         }
 
@@ -78,8 +66,8 @@ private suspend fun HttpClient.makeRequest(
     call: ApplicationCall,
     url: String,
     body: String,
-    token: String)
-{
+    token: String
+) {
     val response = this.request(url) {
         headers {
             bearerAuth(token)
@@ -88,6 +76,7 @@ private suspend fun HttpClient.makeRequest(
         method = HttpMethod.Post
         setBody(body)
     }
+    call.response.headers.copyFrom(response.headers)
     call.respond(response.status, response.body<String>())
 }
 
@@ -105,21 +94,19 @@ private suspend fun HttpClient.makeStreaming(
         method = HttpMethod.Post
         setBody(body)
     }.execute { httpResponse ->
-        val channel: ByteReadChannel = httpResponse.body()
-        call.respondBytesWriter(
-            contentType = ContentType.Application.Json,
-            status = httpResponse.status
-        ) {
-            while (!channel.isClosedForRead) {
-                val packet = channel.readRemaining(DEFAULT_BUFFER_SIZE.toLong())
-                while (!packet.isEmpty) {
-                    val bytes = packet.readBytes()
-                    writeStringUtf8(bytes.decodeToString())
-                }
-            }
+        call.response.headers.copyFrom(httpResponse.headers)
+        call.respondOutputStream {
+            httpResponse
+                .bodyAsChannel()
+                .copyTo(this@respondOutputStream)
         }
     }
 }
+
+private fun ResponseHeaders.copyFrom(headers: Headers) =
+    headers.forEach{ key, values ->
+        values.forEach { value -> this.append(key, value)}
+    }
 
 private fun ApplicationCall.getProvider(): Provider =
     request.headers["xef-provider"]?.toProvider()
