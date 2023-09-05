@@ -16,6 +16,7 @@ import com.xebia.functional.xef.llm.models.text.CompletionResult
 import com.xebia.functional.xef.llm.models.usage.Usage
 import com.xebia.functional.xef.store.LocalVectorStore
 import com.xebia.functional.xef.store.VectorStore
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.flow.*
@@ -25,7 +26,6 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
-import kotlin.concurrent.thread
 import kotlin.io.path.name
 
 
@@ -121,10 +121,7 @@ interface GPT4All : AutoCloseable, Chat, Completion {
             .build()
         }
 
-        val originalOut = System.out // Save the original standard output
-
         val channel = Channel<String>(capacity = UNLIMITED)
-
         val outputStream = object : OutputStream() {
           override fun write(b: Int) {
             val c = b.toChar()
@@ -132,7 +129,7 @@ interface GPT4All : AutoCloseable, Chat, Completion {
           }
         }
 
-        val printStream = PrintStream(outputStream, true, StandardCharsets.UTF_8)
+        val originalOut = System.out // Save the original standard output
 
         fun toChunk(text: String?): ChatCompletionChunk = ChatCompletionChunk(
           UUID.randomUUID().toString(),
@@ -142,20 +139,20 @@ interface GPT4All : AutoCloseable, Chat, Completion {
           Usage.ZERO,
         )
 
-        return channel
-          .consumeAsFlow()
-          .map(::toChunk)
-          .onStart {
-            System.setOut(printStream) // Set the standard output to the print stream
-
-            thread(isDaemon = true) { // generate in background and emit values to flow
+        return merge(
+          emptyFlow<ChatCompletionChunk>()
+            .onStart {
+              val printStream = PrintStream(outputStream, true, StandardCharsets.UTF_8)
+              System.setOut(printStream) // Set the standard output to the print stream
               generateCompletion(prompt, config, request.streamToStandardOut)
               channel.close()
+              System.setOut(originalOut) // Restore the original standard output
             }
-          }
-          .onCompletion {
-            System.setOut(originalOut) // Restore the original standard output
-          }
+            .flowOn(Dispatchers.IO),
+          channel
+            .consumeAsFlow()
+            .map(::toChunk)
+        )
       }
 
       override fun tokensFromMessages(messages: List<Message>): Int {
