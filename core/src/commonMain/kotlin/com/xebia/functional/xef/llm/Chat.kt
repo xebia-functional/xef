@@ -35,7 +35,7 @@ interface Chat : LLM {
       )
 
     createChatCompletions(request)
-      .map { it.choices.mapNotNull { it.delta?.content }.reduce(String::plus) }
+      .mapNotNull { it.choices.mapNotNull { it.delta?.content }.reduceOrNull(String::plus) }
       .onEach { emit(it) }
       .fold("", String::plus)
       .also { finalText ->
