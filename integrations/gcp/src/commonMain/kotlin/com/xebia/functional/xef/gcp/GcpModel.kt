@@ -95,12 +95,12 @@ class GcpModel(modelId: String, config: GcpConfig) : Chat, Completion, AutoClose
     }
 
   override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult {
-    fun requestToEmbedding(index: Int, it: GcpClient.EmbeddingPredictions): Embedding =
-      Embedding("embedding", it.embeddings.values.map(Double::toFloat), index = index)
+    fun requestToEmbedding(it: GcpClient.EmbeddingPredictions): Embedding =
+      Embedding(it.embeddings.values.map(Double::toFloat))
 
     val response = client.embeddings(request)
     return EmbeddingResult(
-      data = response.predictions.mapIndexed(::requestToEmbedding),
+      data = response.predictions.map(::requestToEmbedding),
       usage = usage(response),
     )
   }

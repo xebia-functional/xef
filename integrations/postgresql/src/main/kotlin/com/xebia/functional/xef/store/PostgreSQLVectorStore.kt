@@ -1,9 +1,9 @@
 package com.xebia.functional.xef.store
 
-import com.xebia.functional.xef.embeddings.Embedding
-import com.xebia.functional.xef.embeddings.Embeddings
+import com.xebia.functional.xef.llm.Embeddings
 import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.llm.models.chat.Role
+import com.xebia.functional.xef.llm.models.embeddings.Embedding
 import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
 import com.xebia.functional.xef.store.postgresql.*
 import kotlinx.uuid.UUID
@@ -95,14 +95,14 @@ class PGVectorStore(
 
   override suspend fun addTexts(texts: List<String>): Unit =
     dataSource.connection {
-      val embeddings = embeddings.embedDocuments(texts, chunkSize, requestConfig)
+      val embeddings = embeddings.embedDocuments(texts, requestConfig, chunkSize)
       val collection = getCollection(collectionName)
       texts.zip(embeddings) { text, embedding ->
         val uuid = UUID.generateUUID()
         update(addNewText) {
           bind(uuid.toString())
           bind(collection.uuid.toString())
-          bind(embedding.data.toString())
+          bind(embedding.embedding.toString())
           bind(text)
         }
       }
@@ -121,7 +121,7 @@ class PGVectorStore(
         searchSimilarDocument(distanceStrategy),
         {
           bind(collection.uuid.toString())
-          bind(embeddings[0].data.toString())
+          bind(embeddings[0].embedding.toString())
           bind(limit)
         }
       ) {
@@ -136,7 +136,7 @@ class PGVectorStore(
         searchSimilarDocument(distanceStrategy),
         {
           bind(collection.uuid.toString())
-          bind(embedding.data.toString())
+          bind(embedding.embedding.toString())
           bind(limit)
         }
       ) {

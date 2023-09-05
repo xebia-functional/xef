@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.store
 
-import com.xebia.functional.xef.embeddings.Embedding
+import com.xebia.functional.xef.llm.models.embeddings.Embedding
 import kotlin.jvm.JvmStatic
 
 interface VectorStore {
