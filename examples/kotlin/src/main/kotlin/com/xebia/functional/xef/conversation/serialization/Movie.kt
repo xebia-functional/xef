@@ -9,6 +9,11 @@ import kotlinx.serialization.Serializable
 @Serializable data class Movie(val title: String, val genre: String, val director: String)
 
 suspend fun main() {
+  // This example contemplate the case of calling OpenAI directly or
+  // calling through a local Xef Server instance.
+  // To run the example with the Xef Server, you can execute the following commands:
+  //  - # docker compose-up server/docker/postgresql
+  //  - # ./gradlew server
   val openAI = OpenAI()
   //    val openAI = OpenAI(host = "http://localhost:8081/")
   val model = openAI.DEFAULT_SERIALIZATION
