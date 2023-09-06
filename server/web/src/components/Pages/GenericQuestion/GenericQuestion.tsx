@@ -31,6 +31,7 @@ export function GenericQuestion() {
     if (!loading) {
       try {
         setLoading(true);
+        setResponseMessage('')
         console.group(`🖱️ Generic question form used:`);
 
         const client = openai(settings)
