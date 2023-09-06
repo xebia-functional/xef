@@ -37,6 +37,9 @@ object Server {
             persistenceService.addCollection()
 
             val ktorClient = HttpClient(CIO){
+                engine {
+                    requestTimeout = 0 // disabled
+                }
                 install(Auth)
                 install(Logging) {
                     level = LogLevel.INFO
