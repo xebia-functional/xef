@@ -1,10 +1,12 @@
 package com.xebia.functional.xef.conversation.streaming
 
+import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.Description
 import com.xebia.functional.xef.conversation.llm.openai.OpenAI
 import com.xebia.functional.xef.conversation.llm.openai.promptStreaming
 import com.xebia.functional.xef.llm.StreamedFunction
 import com.xebia.functional.xef.prompt.Prompt
+import com.xebia.functional.xef.store.LocalVectorStore
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -33,17 +35,31 @@ data class InterstellarCraft(
 )
 
 suspend fun main() {
-  OpenAI.conversation {
-    promptStreaming<InterstellarCraft>(Prompt("Make a spacecraft with a mission to Mars"))
-      .collect { element ->
-        when (element) {
-          is StreamedFunction.Property -> {
-            println("${element.path} = ${element.value}")
-          }
-          is StreamedFunction.Result -> {
-            println(element.value)
-          }
+  // This example contemplate the case of calling OpenAI directly or
+  // calling through a local Xef Server instance.
+  // To run the example with the Xef Server, you can execute the following commands:
+  //  - # docker compose-up server/docker/postgresql
+  //  - # ./gradlew server
+  val openAI = OpenAI()
+  //  val openAI = OpenAI(host = "http://localhost:8081/")
+  val model = openAI.DEFAULT_SERIALIZATION
+
+  val scope = Conversation(LocalVectorStore(openAI.DEFAULT_EMBEDDING))
+
+  model
+    .promptStreaming(
+      Prompt("Make a spacecraft with a mission to Mars"),
+      scope = scope,
+      serializer = InterstellarCraft.serializer()
+    )
+    .collect { element ->
+      when (element) {
+        is StreamedFunction.Property -> {
+          println("${element.path} = ${element.value}")
+        }
+        is StreamedFunction.Result -> {
+          println(element.value)
         }
       }
-  }
+    }
 }
