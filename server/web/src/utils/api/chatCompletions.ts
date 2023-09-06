@@ -6,11 +6,7 @@ import {OpenAI} from "openai/index";
 
 export function openai (settings: Settings): OpenAI {
   if (!settings.apiKey) throw 'API key not set';
-  //TODO failing due to CORS
   return new OpenAI({
-    defaultHeaders: {
-      'Authorization': settings.apiKey
-    },
     baseURL: defaultApiServer,
     // TODO: remove this when the key is the user token used for client auth
     dangerouslyAllowBrowser: true,
