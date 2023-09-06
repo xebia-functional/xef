@@ -25,7 +25,7 @@ export function GenericQuestion() {
   const [prompt, setPrompt] = useState<string>('');
   const [showAlert, setShowAlert] = useState<string>('');
   const [responseMessage, setResponseMessage] =
-    useState<ChatCompletionMessage['content']>('');
+    useState<String>('');
 
   const handleClick = async () => {
     if (!loading) {
@@ -37,9 +37,15 @@ export function GenericQuestion() {
         const completion = await client.chat.completions.create({
           messages: [{ role: 'user', content: prompt }],
           model: 'gpt-3.5-turbo-16k',
+          stream: true
         });
-        const { content } = completion.choices[0].message;
-        setResponseMessage(content);
+
+        let buffer = '';
+        for await (const part of completion) {
+          const text = part.choices[0]?.delta?.content || ''
+          buffer += text
+          setResponseMessage(buffer);
+        }
 
         console.info(`Chat completions request completed`);
       } catch (error) {
