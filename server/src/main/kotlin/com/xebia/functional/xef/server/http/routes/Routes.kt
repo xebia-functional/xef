@@ -107,7 +107,7 @@ private fun ResponseHeaders.copyFrom(headers: Headers) = headers
     .entries()
     .filter { (key, _) -> !HttpHeaders.isUnsafe(key) } // setting unsafe headers results in exception
     .forEach { (key, values) ->
-        values.forEach { value -> this.append(key, value) }
+        values.forEach { value -> this.appendIfAbsent(key, value) }
     }
 
 private fun ApplicationCall.getProvider(): Provider =
