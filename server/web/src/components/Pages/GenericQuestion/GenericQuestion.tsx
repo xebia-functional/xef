@@ -40,11 +40,9 @@ export function GenericQuestion() {
           stream: true
         });
 
-        let buffer = '';
         for await (const part of completion) {
           const text = part.choices[0]?.delta?.content || ''
-          buffer += text
-          setResponseMessage(buffer);
+          setResponseMessage(prevState => prevState + text);
         }
 
         console.info(`Chat completions request completed`);
