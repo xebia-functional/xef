@@ -50,7 +50,7 @@ object Server {
             server(factory = Netty, port = 8081, host = "0.0.0.0") {
                 install(CORS) {
                     allowNonSimpleContentTypes = true
-                    allowHeader("Authorization")
+                    allowHeaders { true }
                     anyHost()
                 }
                 install(ContentNegotiation) { json() }

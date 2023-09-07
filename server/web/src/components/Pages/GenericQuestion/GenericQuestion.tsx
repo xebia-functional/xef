@@ -15,9 +15,9 @@ import { HourglassLoader } from '@/components/HourglassLoader';
 import { LoadingContext } from '@/state/Loading';
 import { SettingsContext } from '@/state/Settings';
 
-import { postChatCompletions } from '@/utils/api';
-
 import styles from './GenericQuestion.module.css';
+
+import {openai} from "@/utils/api";
 
 export function GenericQuestion() {
   const [loading, setLoading] = useContext(LoadingContext);
@@ -33,13 +33,12 @@ export function GenericQuestion() {
         setLoading(true);
         console.group(`🖱️ Generic question form used:`);
 
-        if (!settings.apiKey) throw 'API key not set';
-
-        const chatCompletionResponse = await postChatCompletions({
-          apiKey: settings.apiKey,
-          prompt,
+        const client = openai(settings)
+        const completion = await client.chat.completions.create({
+          messages: [{ role: 'user', content: prompt }],
+          model: 'gpt-3.5-turbo-16k',
         });
-        const { content } = chatCompletionResponse.choices[0].message;
+        const { content } = completion.choices[0].message;
         setResponseMessage(content);
 
         console.info(`Chat completions request completed`);
