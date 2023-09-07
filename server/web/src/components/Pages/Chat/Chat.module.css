@@ -1,0 +1,46 @@
+.response {
+    margin-top: 1rem;
+    white-space: break-spaces;
+}
+
+.user {
+    display: block;
+    background-color: #e6f7ff; /* Light blue for user messages */
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+    text-align: left;
+    max-width: 70%;
+    border: 1px solid #b3d4e9; /* Border for user messages */
+}
+
+.assistant {
+    display: block;
+    background-color: #f0f0f0; /* Light gray for assistant messages */
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+    text-align: right;
+    max-width: 70%;
+    margin-left: auto;
+    border: 1px solid #d1d1d1; /* Border for assistant messages */
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    height: 80vh; /* Ensure it takes up the full viewport height */
+    padding: 1em;
+}
+
+.messages {
+    flex: 1; /* Allow this section to grow and consume all available space */
+    overflow-y: auto; /* Add scroll if content overflows */
+    margin-bottom: 1em;
+}
+
+.inputField {
+    flex: 1; /* Allow this section to grow and consume all available space */
+    overflow-y: auto; /* Add scroll if content overflows */
+    width: 80vh;
+}
