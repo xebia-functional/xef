@@ -45,7 +45,7 @@ export function Sidebar({ drawerWidth, open }: SidebarProps) {
           </ListItem>
           <ListItem disablePadding>
             <ListItemButton component={RouterLink} to="2">
-              <ListItemText primary="Feature Two" />
+              <ListItemText primary="Chat" />
             </ListItemButton>
           </ListItem>
           <ListItem disablePadding>

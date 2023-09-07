@@ -25,21 +25,26 @@ export function GenericQuestion() {
   const [prompt, setPrompt] = useState<string>('');
   const [showAlert, setShowAlert] = useState<string>('');
   const [responseMessage, setResponseMessage] =
-    useState<ChatCompletionMessage['content']>('');
+    useState<String>('');
 
   const handleClick = async () => {
     if (!loading) {
       try {
         setLoading(true);
+        setResponseMessage('')
         console.group(`🖱️ Generic question form used:`);
 
         const client = openai(settings)
         const completion = await client.chat.completions.create({
           messages: [{ role: 'user', content: prompt }],
           model: 'gpt-3.5-turbo-16k',
+          stream: true
         });
-        const { content } = completion.choices[0].message;
-        setResponseMessage(content);
+
+        for await (const part of completion) {
+          const text = part.choices[0]?.delta?.content || ''
+          setResponseMessage(prevState => prevState + text);
+        }
 
         console.info(`Chat completions request completed`);
       } catch (error) {
