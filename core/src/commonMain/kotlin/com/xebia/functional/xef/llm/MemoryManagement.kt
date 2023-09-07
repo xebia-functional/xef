@@ -8,7 +8,7 @@ import io.ktor.util.date.*
 internal object MemoryManagement {
 
   internal suspend fun addMemoriesAfterStream(
-    chat: Chat,
+    chat: LLM,
     request: ChatCompletionRequest,
     scope: Conversation,
     messages: List<Message>,
@@ -37,7 +37,7 @@ internal object MemoryManagement {
   }
 
   internal suspend fun List<ChoiceWithFunctions>.addChoiceWithFunctionsToMemory(
-    chat: Chat,
+    chat: LLM,
     request: ChatCompletionRequest,
     scope: Conversation
   ): List<ChoiceWithFunctions> = also {

@@ -10,13 +10,10 @@ import com.xebia.functional.xef.prompt.templates.assistant
 import kotlinx.coroutines.flow.*
 
 interface Chat : LLM {
-  val modelType: ModelType
 
   suspend fun createChatCompletion(request: ChatCompletionRequest): ChatCompletionResponse
 
   suspend fun createChatCompletions(request: ChatCompletionRequest): Flow<ChatCompletionChunk>
-
-  fun tokensFromMessages(messages: List<Message>): Int
 
   @AiDsl
   fun promptStreaming(prompt: Prompt, scope: Conversation): Flow<String> = flow {
@@ -50,7 +47,6 @@ interface Chat : LLM {
 
   @AiDsl
   suspend fun promptMessages(prompt: Prompt, scope: Conversation): List<String> {
-
     val adaptedPrompt = PromptCalculator.adaptPromptToConversationAndModel(prompt, scope, this@Chat)
 
     fun chatRequest(): ChatCompletionRequest =

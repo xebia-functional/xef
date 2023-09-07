@@ -5,6 +5,7 @@ import arrow.core.raise.catch
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
+import com.xebia.functional.xef.llm.models.chat.ChatCompletionChunk
 import com.xebia.functional.xef.llm.models.chat.ChatCompletionRequest
 import com.xebia.functional.xef.llm.models.chat.ChatCompletionResponseWithFunctions
 import com.xebia.functional.xef.llm.models.functions.CFunction
@@ -17,11 +18,15 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.json.*
 
-interface ChatWithFunctions : Chat {
+interface ChatWithFunctions : LLM { // TODO: possible rename to FunChat
 
   suspend fun createChatCompletionWithFunctions(
     request: ChatCompletionRequest
   ): ChatCompletionResponseWithFunctions
+
+  suspend fun createChatCompletionsWithFunctions(
+    request: ChatCompletionRequest
+  ): Flow<ChatCompletionChunk>
 
   @OptIn(ExperimentalSerializationApi::class)
   fun chatFunction(descriptor: SerialDescriptor): CFunction {
@@ -60,11 +65,31 @@ interface ChatWithFunctions : Chat {
     serializer: (json: String) -> A,
   ): A {
     val promptWithFunctions = prompt.copy(function = function)
+    val adaptedPrompt =
+      PromptCalculator.adaptPromptToConversationAndModel(prompt, scope, this@ChatWithFunctions)
+
+    val request =
+      ChatCompletionRequest(
+        model = name,
+        user = adaptedPrompt.configuration.user,
+        messages = adaptedPrompt.messages,
+        n = adaptedPrompt.configuration.numberOfPredictions,
+        temperature = adaptedPrompt.configuration.temperature,
+        maxTokens = adaptedPrompt.configuration.minResponseTokens,
+        functions = listOfNotNull(adaptedPrompt.function),
+        functionCall = adaptedPrompt.function?.let { mapOf("name" to (it.name)) }
+      )
+
     return tryDeserialize(
       serializer,
       promptWithFunctions.configuration.maxDeserializationAttempts
     ) {
-      promptMessages(prompt = promptWithFunctions, scope = scope)
+      MemoryManagement.run {
+        createChatCompletionWithFunctions(request)
+          .choices
+          .addChoiceWithFunctionsToMemory(this@ChatWithFunctions, request, scope)
+          .mapNotNull { it.message?.functionCall?.arguments }
+      }
     }
   }
 
@@ -108,6 +133,35 @@ interface ChatWithFunctions : Chat {
           function = function
         )
       }
+    }
+  }
+
+  @AiDsl
+  suspend fun promptMessage(prompt: Prompt, scope: Conversation): String =
+    promptMessages(prompt, scope).firstOrNull() ?: throw AIError.NoResponse()
+
+  @AiDsl
+  suspend fun promptMessages(prompt: Prompt, scope: Conversation): List<String> {
+    val adaptedPrompt =
+      PromptCalculator.adaptPromptToConversationAndModel(prompt, scope, this@ChatWithFunctions)
+
+    val request =
+      ChatCompletionRequest(
+        model = name,
+        user = adaptedPrompt.configuration.user,
+        messages = adaptedPrompt.messages,
+        n = adaptedPrompt.configuration.numberOfPredictions,
+        temperature = adaptedPrompt.configuration.temperature,
+        maxTokens = adaptedPrompt.configuration.minResponseTokens,
+        functions = listOfNotNull(adaptedPrompt.function),
+        functionCall = adaptedPrompt.function?.let { mapOf("name" to (it.name)) }
+      )
+
+    return MemoryManagement.run {
+      createChatCompletionWithFunctions(request)
+        .choices
+        .addChoiceWithFunctionsToMemory(this@ChatWithFunctions, request, scope)
+        .mapNotNull { it.message?.functionCall?.arguments }
     }
   }
 

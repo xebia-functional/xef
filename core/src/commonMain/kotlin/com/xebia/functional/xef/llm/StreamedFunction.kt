@@ -59,7 +59,7 @@ sealed class StreamedFunction<out A> {
       // as the LLM is sending us chunks with malformed JSON
       val example = createExampleFromSchema(schema)
       chat
-        .createChatCompletions(request)
+        .createChatCompletionsWithFunctions(request)
         .onCompletion { MemoryManagement.addMemoriesAfterStream(chat, request, scope, messages) }
         .collect { responseChunk ->
           // Each chunk is emitted from the LLM and it will include a delta.parameters with
