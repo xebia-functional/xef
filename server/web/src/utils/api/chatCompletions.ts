@@ -3,6 +3,7 @@ import {
 } from '@/utils/api';
 
 import {OpenAI} from "openai/index";
+import {Settings} from "@/state/Settings";
 
 export function openai (settings: Settings): OpenAI {
   if (!settings.apiKey) throw 'API key not set';

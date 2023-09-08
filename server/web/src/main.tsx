@@ -8,7 +8,7 @@ import { App } from '@/components/App';
 import { Root } from '@/components/Pages/Root';
 import { ErrorPage } from '@/components/Pages/ErrorPage';
 import { FeatureOne } from '@/components/Pages/FeatureOne';
-import { FeatureTwo } from '@/components/Pages/FeatureTwo';
+import { Chat } from '@/components/Pages/Chat';
 import { GenericQuestion } from '@/components/Pages/GenericQuestion';
 import { SettingsPage } from '@/components/Pages/SettingsPage';
 
@@ -35,7 +35,7 @@ const router = createBrowserRouter([
       },
       {
         path: '2',
-        element: <FeatureTwo />,
+        element: <Chat />,
       },
       {
         path: 'generic-question',

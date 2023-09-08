@@ -1,37 +1,41 @@
 import {
-  createContext,
-  useState,
-  ReactNode,
-  Dispatch,
-  SetStateAction,
-  useEffect,
+    createContext,
+    useState,
+    ReactNode,
+    Dispatch,
+    SetStateAction,
+    useEffect,
 } from 'react';
 
-import { noop } from '@/utils/constants';
+import {noop} from '@/utils/constants';
+
+export type Settings = {
+    apiKey?: string;
+}
 
 type SettingsContextType = [Settings, Dispatch<SetStateAction<Settings>>];
 
 export const initialSettings: Settings = {
-  apiKey: undefined,
+    apiKey: undefined,
 };
 
 const SettingsContext = createContext<SettingsContextType>([
-  initialSettings,
-  noop,
+    initialSettings,
+    noop,
 ]);
 
-const SettingsProvider = ({ children }: { children: ReactNode }) => {
-  const [settings, setSettings] = useState<Settings>(initialSettings);
+const SettingsProvider = ({children}: { children: ReactNode }) => {
+    const [settings, setSettings] = useState<Settings>(initialSettings);
 
-  useEffect(() => {
-    console.info('Settings changed', { ...settings });
-  }, [settings]);
+    useEffect(() => {
+        console.info('Settings changed', {...settings});
+    }, [settings]);
 
-  return (
-    <SettingsContext.Provider value={[settings, setSettings]}>
-      {children}
-    </SettingsContext.Provider>
-  );
+    return (
+        <SettingsContext.Provider value={[settings, setSettings]}>
+            {children}
+        </SettingsContext.Provider>
+    );
 };
 
-export { SettingsContext, SettingsProvider };
+export {SettingsContext, SettingsProvider};
