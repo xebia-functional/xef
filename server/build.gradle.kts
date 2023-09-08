@@ -48,6 +48,8 @@ dependencies {
     implementation(projects.xefCore)
     implementation(projects.xefLucene)
     implementation(projects.xefPostgresql)
+    implementation(projects.xefGpt4all)
+    implementation(projects.xefGcp)
 }
 
 tasks.getByName<Copy>("processResources") {

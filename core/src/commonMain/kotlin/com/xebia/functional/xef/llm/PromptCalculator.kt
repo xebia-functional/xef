@@ -8,7 +8,7 @@ import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.assistant
 import com.xebia.functional.xef.store.Memory
 
-internal object PromptCalculator {
+object PromptCalculator {
 
   suspend fun adaptPromptToConversationAndModel(
     prompt: Prompt,

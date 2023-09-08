@@ -20,19 +20,7 @@ interface Chat : LLM {
 
   @AiDsl
   fun promptStreaming(prompt: Prompt, scope: Conversation): Flow<String> = flow {
-    val messagesForRequestPrompt =
-      PromptCalculator.adaptPromptToConversationAndModel(prompt, scope, this@Chat)
-
-    val request =
-      ChatCompletionRequest(
-        model = name,
-        user = prompt.configuration.user,
-        messages = messagesForRequestPrompt.messages,
-        n = prompt.configuration.numberOfPredictions,
-        temperature = prompt.configuration.temperature,
-        maxTokens = prompt.configuration.minResponseTokens,
-        streamToStandardOut = true
-      )
+    val request = chatRequest(prompt = prompt, conversation = scope, stream = true)
 
     createChatCompletions(request)
       .mapNotNull { it.choices.mapNotNull { it.delta?.content }.reduceOrNull(String::plus) }
@@ -48,42 +36,43 @@ interface Chat : LLM {
   suspend fun promptMessage(prompt: Prompt, scope: Conversation): String =
     promptMessages(prompt, scope).firstOrNull() ?: throw AIError.NoResponse()
 
+  suspend fun chatRequest(prompt: Prompt, conversation: Conversation, stream: Boolean): ChatCompletionRequest {
+    val adaptedPrompt = PromptCalculator.adaptPromptToConversationAndModel(prompt, conversation, this@Chat)
+    return ChatCompletionRequest(
+      model = name,
+      user = adaptedPrompt.configuration.user,
+      messages = adaptedPrompt.messages,
+      n = adaptedPrompt.configuration.numberOfPredictions,
+      temperature = adaptedPrompt.configuration.temperature,
+      maxTokens = adaptedPrompt.configuration.minResponseTokens,
+      functions = listOfNotNull(adaptedPrompt.function),
+      functionCall = adaptedPrompt.function?.let { mapOf("name" to (it.name)) },
+      stream = stream
+    )
+  }
+
   @AiDsl
   suspend fun promptMessages(prompt: Prompt, scope: Conversation): List<String> {
-
-    val adaptedPrompt = PromptCalculator.adaptPromptToConversationAndModel(prompt, scope, this@Chat)
-
-    fun chatRequest(): ChatCompletionRequest =
-      ChatCompletionRequest(
-        model = name,
-        user = adaptedPrompt.configuration.user,
-        messages = adaptedPrompt.messages,
-        n = adaptedPrompt.configuration.numberOfPredictions,
-        temperature = adaptedPrompt.configuration.temperature,
-        maxTokens = adaptedPrompt.configuration.minResponseTokens,
-        functions = listOfNotNull(adaptedPrompt.function),
-        functionCall = adaptedPrompt.function?.let { mapOf("name" to (it.name)) }
-      )
 
     return MemoryManagement.run {
       when (this@Chat) {
         is ChatWithFunctions ->
           // we only support functions for now with GPT_3_5_TURBO_FUNCTIONS
           if (modelType == ModelType.GPT_3_5_TURBO_FUNCTIONS) {
-            val request = chatRequest()
+            val request = chatRequest(prompt = prompt, conversation = scope, stream = false)
             createChatCompletionWithFunctions(request)
               .choices
               .addChoiceWithFunctionsToMemory(this@Chat, request, scope)
               .mapNotNull { it.message?.functionCall?.arguments }
           } else {
-            val request = chatRequest()
+            val request = chatRequest(prompt = prompt, conversation = scope, stream = false)
             createChatCompletion(request)
               .choices
               .addChoiceToMemory(this@Chat, request, scope)
               .mapNotNull { it.message?.content }
           }
         else -> {
-          val request = chatRequest()
+          val request = chatRequest(prompt = prompt, conversation = scope, stream = false)
           createChatCompletion(request)
             .choices
             .addChoiceToMemory(this@Chat, request, scope)

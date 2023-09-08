@@ -188,3 +188,11 @@ interface GPT4All : AutoCloseable, Chat, Completion {
   }
 
 }
+
+fun String.toGpt4AllModel(): GPT4All {
+  val modelId = substringAfterLast(":")
+  val selectedModel = Gpt4AllModel.supportedModels.find { it.name == modelId }
+  val url = selectedModel?.url ?: error("No model found for $modelId")
+  val fileName = selectedModel.filename
+  return GPT4All(url, Path.of("models", fileName))
+}

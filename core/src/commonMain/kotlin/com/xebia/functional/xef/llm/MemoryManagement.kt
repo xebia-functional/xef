@@ -5,9 +5,9 @@ import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.store.Memory
 import io.ktor.util.date.*
 
-internal object MemoryManagement {
+object MemoryManagement {
 
-  internal suspend fun addMemoriesAfterStream(
+  suspend fun addMemoriesAfterStream(
     chat: Chat,
     request: ChatCompletionRequest,
     scope: Conversation,
@@ -36,7 +36,7 @@ internal object MemoryManagement {
     }
   }
 
-  internal suspend fun List<ChoiceWithFunctions>.addChoiceWithFunctionsToMemory(
+  suspend fun List<ChoiceWithFunctions>.addChoiceWithFunctionsToMemory(
     chat: Chat,
     request: ChatCompletionRequest,
     scope: Conversation
@@ -72,7 +72,7 @@ internal object MemoryManagement {
     }
   }
 
-  internal suspend fun List<Choice>.addChoiceToMemory(
+  suspend fun List<Choice>.addChoiceToMemory(
     chat: Chat,
     request: ChatCompletionRequest,
     scope: Conversation

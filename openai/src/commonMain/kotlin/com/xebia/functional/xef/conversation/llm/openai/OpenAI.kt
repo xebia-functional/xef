@@ -148,5 +148,5 @@ class OpenAI(internal var token: String? = null, internal var host: String? = nu
 
 fun String.toOpenAIModel(token: String, host: String? = null): OpenAIModel {
   val openAI = OpenAI(token, host)
-  return openAI.supportedModels().find { it.name == this } ?: openAI.GPT_3_5_TURBO_16K
+  return openAI.supportedModels().find { it.name == this } ?: error("invalid value for $this - valid values are ${openAI.supportedModels().map(OpenAIModel::name)}")
 }
