@@ -1,14 +1,15 @@
 package com.xebia.functional.xef.llm
 
+import arrow.core.nel
 import arrow.core.nonFatalOrThrow
 import arrow.core.raise.catch
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.models.chat.ChatCompletionChunk
-import com.xebia.functional.xef.llm.models.chat.ChatCompletionRequest
 import com.xebia.functional.xef.llm.models.chat.ChatCompletionResponseWithFunctions
 import com.xebia.functional.xef.llm.models.functions.CFunction
+import com.xebia.functional.xef.llm.models.functions.FunChatCompletionRequest
 import com.xebia.functional.xef.llm.models.functions.encodeJsonSchema
 import com.xebia.functional.xef.prompt.Prompt
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -21,11 +22,11 @@ import kotlinx.serialization.json.*
 interface ChatWithFunctions : LLM { // TODO: possible rename to FunChat
 
   suspend fun createChatCompletionWithFunctions(
-    request: ChatCompletionRequest
+    request: FunChatCompletionRequest
   ): ChatCompletionResponseWithFunctions
 
   suspend fun createChatCompletionsWithFunctions(
-    request: ChatCompletionRequest
+    request: FunChatCompletionRequest
   ): Flow<ChatCompletionChunk>
 
   @OptIn(ExperimentalSerializationApi::class)
@@ -69,15 +70,14 @@ interface ChatWithFunctions : LLM { // TODO: possible rename to FunChat
       PromptCalculator.adaptPromptToConversationAndModel(prompt, scope, this@ChatWithFunctions)
 
     val request =
-      ChatCompletionRequest(
-        model = name,
+      FunChatCompletionRequest(
         user = adaptedPrompt.configuration.user,
         messages = adaptedPrompt.messages,
         n = adaptedPrompt.configuration.numberOfPredictions,
         temperature = adaptedPrompt.configuration.temperature,
         maxTokens = adaptedPrompt.configuration.minResponseTokens,
-        functions = listOfNotNull(adaptedPrompt.function),
-        functionCall = adaptedPrompt.function?.let { mapOf("name" to (it.name)) }
+        functions = adaptedPrompt.function!!.nel(),
+        functionCall = mapOf("name" to (adaptedPrompt.function.name)),
       )
 
     return tryDeserialize(
@@ -87,7 +87,11 @@ interface ChatWithFunctions : LLM { // TODO: possible rename to FunChat
       MemoryManagement.run {
         createChatCompletionWithFunctions(request)
           .choices
-          .addChoiceWithFunctionsToMemory(this@ChatWithFunctions, request, scope)
+          .addChoiceWithFunctionsToMemory(
+            this@ChatWithFunctions,
+            request.messages.lastOrNull(),
+            scope
+          )
           .mapNotNull { it.message?.functionCall?.arguments }
       }
     }
@@ -109,16 +113,15 @@ interface ChatWithFunctions : LLM { // TODO: possible rename to FunChat
       )
 
     val request =
-      ChatCompletionRequest(
-        model = name,
+      FunChatCompletionRequest(
         stream = true,
         user = promptWithFunctions.configuration.user,
         messages = messagesForRequestPrompt.messages,
-        functions = listOfNotNull(messagesForRequestPrompt.function),
         n = promptWithFunctions.configuration.numberOfPredictions,
         temperature = promptWithFunctions.configuration.temperature,
         maxTokens = promptWithFunctions.configuration.minResponseTokens,
-        functionCall = mapOf("name" to (promptWithFunctions.function?.name ?: ""))
+        functions = promptWithFunctions.function!!.nel(),
+        functionCall = mapOf("name" to (promptWithFunctions.function.name)),
       )
 
     StreamedFunction.run {
@@ -133,35 +136,6 @@ interface ChatWithFunctions : LLM { // TODO: possible rename to FunChat
           function = function
         )
       }
-    }
-  }
-
-  @AiDsl
-  suspend fun promptMessage(prompt: Prompt, scope: Conversation): String =
-    promptMessages(prompt, scope).firstOrNull() ?: throw AIError.NoResponse()
-
-  @AiDsl
-  suspend fun promptMessages(prompt: Prompt, scope: Conversation): List<String> {
-    val adaptedPrompt =
-      PromptCalculator.adaptPromptToConversationAndModel(prompt, scope, this@ChatWithFunctions)
-
-    val request =
-      ChatCompletionRequest(
-        model = name,
-        user = adaptedPrompt.configuration.user,
-        messages = adaptedPrompt.messages,
-        n = adaptedPrompt.configuration.numberOfPredictions,
-        temperature = adaptedPrompt.configuration.temperature,
-        maxTokens = adaptedPrompt.configuration.minResponseTokens,
-        functions = listOfNotNull(adaptedPrompt.function),
-        functionCall = adaptedPrompt.function?.let { mapOf("name" to (it.name)) }
-      )
-
-    return MemoryManagement.run {
-      createChatCompletionWithFunctions(request)
-        .choices
-        .addChoiceWithFunctionsToMemory(this@ChatWithFunctions, request, scope)
-        .mapNotNull { it.message?.functionCall?.arguments }
     }
   }
 

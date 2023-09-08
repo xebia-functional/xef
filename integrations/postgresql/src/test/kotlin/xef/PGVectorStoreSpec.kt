@@ -1,5 +1,6 @@
 package xef
 
+import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.llm.Embeddings
 import com.xebia.functional.xef.llm.models.embeddings.Embedding
 import com.xebia.functional.xef.llm.models.chat.Message
@@ -136,6 +137,5 @@ private fun Embeddings.Companion.mock(
       createEmbeddings(request)
 
 
-    override val name: String
-      get() = "embeddings"
+    override val modelType: ModelType = ModelType.TODO("test-embeddings")
   }

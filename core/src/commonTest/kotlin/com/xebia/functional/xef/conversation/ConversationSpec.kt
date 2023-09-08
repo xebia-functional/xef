@@ -117,34 +117,39 @@ class ConversationSpec :
       messagesSizePlusMessageResponse shouldBe memories.size
     }
 
-    "functionCall should be null when the model doesn't support functions" {
-      val messages = generateRandomMessages(1, 40, 60)
-      val conversationId = ConversationId(UUID.generateUUID().toString())
-      val scope = Conversation(LocalVectorStore(TestEmbeddings()), conversationId = conversationId)
+    // considered obsolete since Chat and ChatWithFunctions was separated
+    //    "functionCall should be null when the model doesn't support functions" {
+    //      val messages = generateRandomMessages(1, 40, 60)
+    //      val conversationId = ConversationId(UUID.generateUUID().toString())
+    //      val scope = Conversation(LocalVectorStore(TestEmbeddings()), conversationId =
+    // conversationId)
+    //
+    //      val model = TestModel(modelType = ModelType.ADA, name = "fake-model")
+    //
+    //      model.promptMessage(prompt = Prompt(messages.keys.first()), scope = scope)
+    //
+    //      val lastRequest = model.requests.last()
+    //
+    //      lastRequest.functionCall shouldBe null
+    //    }
 
-      val model = TestModel(modelType = ModelType.ADA, name = "fake-model")
-
-      model.promptMessage(prompt = Prompt(messages.keys.first()), scope = scope)
-
-      val lastRequest = model.requests.last()
-
-      lastRequest.functionCall shouldBe null
-    }
-
-    "functionCall should be null when the model support functions and the prompt doesn't contain a function" {
-      val messages = generateRandomMessages(1, 40, 60)
-      val conversationId = ConversationId(UUID.generateUUID().toString())
-      val scope = Conversation(LocalVectorStore(TestEmbeddings()), conversationId = conversationId)
-
-      val model =
-        TestFunctionsModel(modelType = ModelType.GPT_3_5_TURBO_FUNCTIONS, name = "fake-model")
-
-      model.promptMessage(prompt = Prompt(messages.keys.first()), scope = scope)
-
-      val lastRequest = model.requests.last()
-
-      lastRequest.functionCall shouldBe null
-    }
+    // considered obsolete since Chat and ChatWithFunctions was separated
+    //    "functionCall should be null when the model support functions and the prompt doesn't
+    // contain a function" {
+    //      val messages = generateRandomMessages(1, 40, 60)
+    //      val conversationId = ConversationId(UUID.generateUUID().toString())
+    //      val scope = Conversation(LocalVectorStore(TestEmbeddings()), conversationId =
+    // conversationId)
+    //
+    //      val model =
+    //        TestFunctionsModel(modelType = ModelType.GPT_3_5_TURBO_FUNCTIONS, name = "fake-model")
+    //
+    //      model.createChatCompletion(prompt = Prompt(messages.keys.first()), scope = scope)
+    //
+    //      val lastRequest = model.requests.last()
+    //
+    //      lastRequest.functionCall shouldBe null
+    //    }
 
     "functionCall shouldn't be null when the model support functions and the prompt contain a function" {
       val question = "fake-question"

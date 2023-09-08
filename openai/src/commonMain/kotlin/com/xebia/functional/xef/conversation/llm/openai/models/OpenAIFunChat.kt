@@ -9,8 +9,8 @@ import com.xebia.functional.xef.conversation.llm.openai.toOpenAI
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.llm.models.chat.ChatCompletionChunk
-import com.xebia.functional.xef.llm.models.chat.ChatCompletionRequest
 import com.xebia.functional.xef.llm.models.functions.CFunction
+import com.xebia.functional.xef.llm.models.functions.FunChatCompletionRequest
 import com.xebia.functional.xef.llm.models.functions.FunctionCall
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -22,10 +22,10 @@ class OpenAIFunChat(
 ) : ChatWithFunctions {
 
   override suspend fun createChatCompletionWithFunctions(
-    request: ChatCompletionRequest
+    request: FunChatCompletionRequest
   ): ChatCompletionResponseWithFunctions {
     val openAIRequest = chatCompletionRequest {
-      model = ModelId(request.model)
+      model = ModelId(modelType.name)
       messages = request.messages.map { it.toOpenAI() }
       functions = request.functions.map { it.toOpenAI() }
       temperature = request.temperature
@@ -70,9 +70,34 @@ class OpenAIFunChat(
   }
 
   override suspend fun createChatCompletionsWithFunctions(
-    request: ChatCompletionRequest
+    request: FunChatCompletionRequest
   ): Flow<ChatCompletionChunk> {
     return client.chatCompletions(request.toOpenAI()).map { it.toInternal() }
+  }
+
+  private fun FunChatCompletionRequest.toOpenAI() = chatCompletionRequest {
+    model = ModelId(this@OpenAIFunChat.modelType.name)
+    messages =
+      this@toOpenAI.messages.map {
+        ChatMessage(
+          role = it.role.toOpenAI(),
+          content = it.content,
+          name = it.name,
+        )
+      }
+    temperature = this@toOpenAI.temperature
+    topP = this@toOpenAI.topP
+    n = this@toOpenAI.n
+    stop = this@toOpenAI.stop
+    maxTokens = this@toOpenAI.maxTokens
+    presencePenalty = this@toOpenAI.presencePenalty
+    frequencyPenalty = this@toOpenAI.frequencyPenalty
+    logitBias = this@toOpenAI.logitBias
+    user = this@toOpenAI.user
+
+    functions = this@toOpenAI.functions.map { it.toOpenAI() }
+    functionCall =
+      this@toOpenAI.functionCall?.get("name")?.let { FunctionMode.Named(it) } ?: FunctionMode.Auto
   }
 }
 
@@ -89,37 +114,3 @@ private fun Message.toOpenAI() =
     content = content,
     name = name,
   )
-
-private fun ChatCompletionRequest.toOpenAI() = chatCompletionRequest {
-  model = ModelId(this@toOpenAI.model)
-  messages =
-    this@toOpenAI.messages.map {
-      ChatMessage(
-        role = it.role.toOpenAI(),
-        content = it.content,
-        name = it.name,
-      )
-    }
-  temperature = this@toOpenAI.temperature
-  topP = this@toOpenAI.topP
-  n = this@toOpenAI.n
-  stop = this@toOpenAI.stop
-  maxTokens = this@toOpenAI.maxTokens
-  presencePenalty = this@toOpenAI.presencePenalty
-  frequencyPenalty = this@toOpenAI.frequencyPenalty
-  logitBias = this@toOpenAI.logitBias
-  user = this@toOpenAI.user
-
-  if (this@toOpenAI.functions.isNotEmpty())
-    functions =
-      this@toOpenAI.functions.map {
-        ChatCompletionFunction(
-          name = it.name,
-          description = it.description,
-          parameters = Parameters(Json.parseToJsonElement(it.parameters)),
-        )
-      }
-  if (this@toOpenAI.functionCall != null)
-    functionCall =
-      this@toOpenAI.functionCall?.get("name")?.let { FunctionMode.Named(it) } ?: FunctionMode.Auto
-}

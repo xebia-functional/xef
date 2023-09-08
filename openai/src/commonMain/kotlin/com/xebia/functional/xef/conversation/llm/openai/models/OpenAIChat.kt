@@ -37,27 +37,28 @@ class OpenAIChat(
   ): Flow<ChatCompletionChunk> {
     return client.chatCompletions(request.toOpenAI()).map { it.toInternal() }
   }
-}
 
-private fun ChatCompletionRequest.toOpenAI() = chatCompletionRequest {
-  model = ModelId(this@toOpenAI.model)
-  messages =
-    this@toOpenAI.messages.map {
-      ChatMessage(
-        role = it.role.toOpenAI(),
-        content = it.content,
-        name = it.name,
-      )
-    }
-  temperature = this@toOpenAI.temperature
-  topP = this@toOpenAI.topP
-  n = this@toOpenAI.n
-  stop = this@toOpenAI.stop
-  maxTokens = this@toOpenAI.maxTokens
-  presencePenalty = this@toOpenAI.presencePenalty
-  frequencyPenalty = this@toOpenAI.frequencyPenalty
-  logitBias = this@toOpenAI.logitBias
-  user = this@toOpenAI.user
+  private fun ChatCompletionRequest.toOpenAI() = chatCompletionRequest {
+    model = ModelId(this@OpenAIChat.modelType.name)
+    messages =
+      this@toOpenAI.messages.map {
+        ChatMessage(
+          role = it.role.toOpenAI(),
+          content = it.content,
+          name = it.name,
+        )
+      }
+    temperature = this@toOpenAI.temperature
+    topP = this@toOpenAI.topP
+    n = this@toOpenAI.n
+    stop = this@toOpenAI.stop
+    maxTokens = this@toOpenAI.maxTokens
+    presencePenalty = this@toOpenAI.presencePenalty
+    frequencyPenalty = this@toOpenAI.frequencyPenalty
+    logitBias = this@toOpenAI.logitBias
+    user = this@toOpenAI.user
+  }
+
 }
 
 private fun ChatMessage.toInternal() =

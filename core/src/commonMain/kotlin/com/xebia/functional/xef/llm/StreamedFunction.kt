@@ -2,9 +2,9 @@ package com.xebia.functional.xef.llm
 
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.StreamedFunction.Companion.PropertyType.*
-import com.xebia.functional.xef.llm.models.chat.ChatCompletionRequest
 import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.llm.models.functions.CFunction
+import com.xebia.functional.xef.llm.models.functions.FunChatCompletionRequest
 import com.xebia.functional.xef.llm.models.functions.FunctionCall
 import com.xebia.functional.xef.prompt.templates.assistant
 import kotlin.jvm.JvmSynthetic
@@ -39,7 +39,7 @@ sealed class StreamedFunction<out A> {
     @JvmSynthetic
     internal suspend fun <A> FlowCollector<StreamedFunction<A>>.streamFunctionCall(
       chat: ChatWithFunctions,
-      request: ChatCompletionRequest,
+      request: FunChatCompletionRequest,
       scope: Conversation,
       serializer: (json: String) -> A,
       function: CFunction
@@ -60,7 +60,14 @@ sealed class StreamedFunction<out A> {
       val example = createExampleFromSchema(schema)
       chat
         .createChatCompletionsWithFunctions(request)
-        .onCompletion { MemoryManagement.addMemoriesAfterStream(chat, request, scope, messages) }
+        .onCompletion {
+          MemoryManagement.addMemoriesAfterStream(
+            chat,
+            request.messages.lastOrNull(),
+            scope,
+            messages
+          )
+        }
         .collect { responseChunk ->
           // Each chunk is emitted from the LLM and it will include a delta.parameters with
           // the function is streaming, the JSON received will be partial and usually malformed

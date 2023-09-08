@@ -9,11 +9,10 @@ internal object MemoryManagement {
 
   internal suspend fun addMemoriesAfterStream(
     chat: LLM,
-    request: ChatCompletionRequest,
+    lastRequestMessage: Message?,
     scope: Conversation,
     messages: List<Message>,
   ) {
-    val lastRequestMessage = request.messages.lastOrNull()
     val cid = scope.conversationId
     if (cid != null && lastRequestMessage != null) {
       val requestMemory =
@@ -38,11 +37,10 @@ internal object MemoryManagement {
 
   internal suspend fun List<ChoiceWithFunctions>.addChoiceWithFunctionsToMemory(
     chat: LLM,
-    request: ChatCompletionRequest,
+    requestUserMessage: Message?,
     scope: Conversation
   ): List<ChoiceWithFunctions> = also {
     val firstChoice = firstOrNull()
-    val requestUserMessage = request.messages.lastOrNull()
     val cid = scope.conversationId
     if (requestUserMessage != null && firstChoice != null && cid != null) {
       val role = firstChoice.message?.role?.uppercase()?.let { Role.valueOf(it) } ?: Role.USER
