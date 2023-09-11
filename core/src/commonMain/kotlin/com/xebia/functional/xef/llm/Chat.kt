@@ -36,8 +36,13 @@ interface Chat : LLM {
   suspend fun promptMessage(prompt: Prompt, scope: Conversation): String =
     promptMessages(prompt, scope).firstOrNull() ?: throw AIError.NoResponse()
 
-  suspend fun chatRequest(prompt: Prompt, conversation: Conversation, stream: Boolean): ChatCompletionRequest {
-    val adaptedPrompt = PromptCalculator.adaptPromptToConversationAndModel(prompt, conversation, this@Chat)
+  suspend fun chatRequest(
+    prompt: Prompt,
+    conversation: Conversation,
+    stream: Boolean
+  ): ChatCompletionRequest {
+    val adaptedPrompt =
+      PromptCalculator.adaptPromptToConversationAndModel(prompt, conversation, this@Chat)
     return ChatCompletionRequest(
       model = name,
       user = adaptedPrompt.configuration.user,

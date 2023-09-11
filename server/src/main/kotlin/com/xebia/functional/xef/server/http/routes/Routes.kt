@@ -172,10 +172,10 @@ private fun ResponseHeaders.copyFrom(headers: Headers) = headers
     values.forEach { value -> this.appendIfAbsent(key, value) }
   }
 
-private fun ApplicationCall.getToken(): String =
+fun ApplicationCall.getToken(): String =
   principal<UserIdPrincipal>()?.name ?: throw IllegalArgumentException("No token found")
 
-private fun ApplicationCall.getConversationId(): String? =
+fun ApplicationCall.getConversationId(): String? =
   request.headers["xef-conversation-id"]
 
 /**

@@ -44,17 +44,14 @@ class GCP(projectId: String? = null, location: VertexAIRegion? = null, token: St
   val CODECHAT by lazy { GcpModel("codechat-bison@001", config) }
   val TEXT_EMBEDDING_GECKO by lazy { GcpModel("textembedding-gecko", config) }
 
-  @JvmField
-  val DEFAULT_CHAT = CODECHAT
-  @JvmField
-  val DEFAULT_EMBEDDING = TEXT_EMBEDDING_GECKO
+  @JvmField val DEFAULT_CHAT = CODECHAT
+  @JvmField val DEFAULT_EMBEDDING = TEXT_EMBEDDING_GECKO
 
   fun supportedModels(): List<GcpModel> = listOf(CODECHAT, TEXT_EMBEDDING_GECKO)
 
   companion object {
 
-    @JvmField
-    val FromEnvironment: GCP = GCP()
+    @JvmField val FromEnvironment: GCP = GCP()
 
     @JvmSynthetic
     suspend inline fun <A> conversation(
@@ -78,11 +75,14 @@ suspend inline fun <A> GCP.conversation(noinline block: suspend Conversation.() 
   block(Conversation(LocalVectorStore(DEFAULT_EMBEDDING)))
 
 fun String.toGCPModel(location: String, projectId: String): GcpModel {
-  val region = VertexAIRegion.entries.find { it.officialName == location }
-    ?: error(
-      "invalid value for $GCP_LOCATION_VAR - valid values are ${VertexAIRegion.entries.map(VertexAIRegion::officialName)}"
-    )
+  val region =
+    VertexAIRegion.entries.find { it.officialName == location }
+      ?: error(
+        "invalid value for $GCP_LOCATION_VAR - valid values are ${VertexAIRegion.entries.map(VertexAIRegion::officialName)}"
+      )
   val gcp = GCP(projectId, region, this)
   return gcp.supportedModels().find { it.name == this }
-    ?: error("invalid value for $this - valid values are ${gcp.supportedModels().map(GcpModel::name)}")
+    ?: error(
+      "invalid value for $this - valid values are ${gcp.supportedModels().map(GcpModel::name)}"
+    )
 }
