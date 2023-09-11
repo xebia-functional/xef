@@ -1,5 +1,5 @@
 [versions]
-arrow = "1.2.0"
+arrow = "1.2.1"
 arrowGradle = "0.12.0-rc.5"
 kotlin = "1.9.10"
 kotlinx-json = "1.6.0"
