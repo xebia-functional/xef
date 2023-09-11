@@ -1,5 +1,8 @@
 package com.xebia.functional.xef.llm.models.chat
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class ChatChunk(
   /** Chat choice index. */
   val index: Int? = null,

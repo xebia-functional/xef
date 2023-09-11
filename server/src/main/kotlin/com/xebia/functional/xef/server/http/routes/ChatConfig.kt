@@ -7,10 +7,8 @@ import com.xebia.functional.xef.gcp.toGCPModel
 import com.xebia.functional.xef.llm.LLM
 import io.ktor.server.application.*
 import io.ktor.server.request.*
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.boolean
-import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.*
+import kotlinx.serialization.modules.EmptySerializersModule
 
 internal class ChatConfig private constructor(
   val call: ApplicationCall,
@@ -48,7 +46,7 @@ internal class ChatConfig private constructor(
       val body = call.receive<String>()
       val stream = Json.decodeFromString<JsonObject>(body)["stream"]?.jsonPrimitive?.boolean ?: false
       val conversationId = call.getConversationId()
-      val openaiRequest = Json.decodeFromString<ChatCompletionRequest>(body)
+      val openaiRequest = Json { ignoreUnknownKeys = true }.decodeFromString<ChatCompletionRequest>(body)
       val modelId = openaiRequest.model.id
       val provider = modelId.provider()
       return ChatConfig(call, token, conversationId, openaiRequest, modelId, provider, stream)

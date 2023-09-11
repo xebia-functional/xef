@@ -1,7 +1,9 @@
 package com.xebia.functional.xef.llm.models.chat
 
 import com.xebia.functional.xef.llm.models.functions.FunctionCall
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class ChatDelta(
   /** The role of the author of this message. */
   val role: Role? = null,

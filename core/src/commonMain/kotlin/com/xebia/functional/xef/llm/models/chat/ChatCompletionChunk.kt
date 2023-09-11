@@ -1,7 +1,9 @@
 package com.xebia.functional.xef.llm.models.chat
 
 import com.xebia.functional.xef.llm.models.usage.Usage
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class ChatCompletionChunk(
   /** A unique id assigned to this completion */
   val id: String,

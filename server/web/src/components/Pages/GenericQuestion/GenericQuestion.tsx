@@ -38,13 +38,10 @@ export function GenericQuestion() {
         const completion = await client.chat.completions.create({
           messages: [{ role: 'user', content: prompt }],
           model: 'gpt-3.5-turbo-16k',
-          stream: true
+          stream: false
         });
 
-        for await (const part of completion) {
-          const text = part.choices[0]?.delta?.content || ''
-          setResponseMessage(prevState => prevState + text);
-        }
+        setResponseMessage(JSON.stringify(completion));
 
         console.info(`Chat completions request completed`);
       } catch (error) {
