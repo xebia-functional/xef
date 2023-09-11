@@ -1,8 +1,10 @@
 CREATE TABLE IF NOT EXISTS users(
     id SERIAL PRIMARY KEY,
     name VARCHAR(20) NOT NULL,
+    email VARCHAR(50) UNIQUE NOT NULL,
     password_hash VARCHAR(50),
-    salt VARCHAR(20)
+    salt VARCHAR(20),
+    auth_token VARCHAR(128) UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS organizations(
@@ -47,6 +49,7 @@ CREATE TABLE IF NOT EXISTS users_org(
 CREATE TABLE IF NOT EXISTS xef_tokens(
     user_id INT,
     project_id INT,
+    name VARCHAR(20) NOT NULL,
     token VARCHAR(20) UNIQUE,
     providers_config JSONB,
 
