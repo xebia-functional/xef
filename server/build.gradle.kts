@@ -21,6 +21,12 @@ node {
 }
 
 dependencies {
+    implementation(libs.exposed.core)
+    implementation(libs.exposed.dao)
+    implementation(libs.exposed.kotlin.datetime)
+    implementation(libs.exposed.java.time)
+    implementation(libs.exposed.jdbc)
+    implementation(libs.exposed.json)
     implementation(libs.flyway.core)
     implementation(libs.hikari)
     implementation(libs.klogging)
