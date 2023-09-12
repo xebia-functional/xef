@@ -2,7 +2,6 @@ import org.availlang.artifact.AvailArtifactType
 import org.availlang.artifact.PackageType
 import org.availlang.artifact.environment.location.ProjectHome
 import org.availlang.artifact.environment.location.Scheme
-import org.availlang.artifact.jar.JvmComponent
 
 plugins {
   id(libs.plugins.kotlin.jvm.get().pluginId)
@@ -16,19 +15,24 @@ repositories {
 }
 
 dependencies {
-  implementation(libs.avail)
+  implementation(libs.avail.core)
+  avail(libs.avail.stdlib)
 }
 
 avail {
   projectDescription = "Xef.ai prompting language"
-  includeStdAvailLibDependency {
-    version = libs.versions.avail.stdlib.get()
-  }
+  availVersion = libs.versions.avail.core.get()
+  includeAvailLibDependency(
+    rootName = "avail-stdlib",
+    rootNameInJar = "avail",
+    dependency = libs.avail.stdlib.get().toString()
+  )
   rootsDirectory = ProjectHome(
     "src/main/avail",
     Scheme.FILE,
     project.projectDir.absolutePath,
-    null)
+    null
+  )
   createProjectRoot("xef").apply {
     modulePackage("Compiler").apply {
       versions = listOf("Avail-1.6.1")
@@ -42,22 +46,6 @@ avail {
     version = project.version.toString()
     implementationTitle = "Xef Anvil"
     jarManifestMainClass = "avail.project.AvailProjectManagerRunner"
-    jvmComponent = JvmComponent(
-      true,
-      "$implementationTitle Runner",
-      mapOf(jarManifestMainClass to "Execute Anvil for Xef.ai"))
-    dependency(libs.avail.get())
-  }
-}
-
-tasks {
-  createProjectFile {
-    fileName = "xef.json"
-  }
-  val launchAnvil by creating(JavaExec::class) {
-    dependsOn(availArtifactJar)
-    group = "avail"
-    description = "Launch Anvil for Xef.ai"
-    classpath = files("$buildDir/libs/xef-anvil-$version.jar")
+    dependency(libs.avail.core.get())
   }
 }

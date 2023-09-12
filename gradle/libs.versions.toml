@@ -42,9 +42,9 @@ suspendApp = "0.4.0"
 flyway = "9.17.0"
 resources-kmp = "0.4.0"
 detekt = "1.23.1"
-avail = "2.0.0.alpha22"
-avail-stdlib = "2.0.0.alpha22-1.6.1.alpha13"
-avail-plugin = "2.0.0.alpha19"
+avail-core = "2.0.0.alpha23"
+avail-stdlib = "2.0.0.alpha23-1.6.1.alpha14"
+avail-plugin = "2.0.0.alpha20"
 
 [libraries]
 arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
@@ -114,7 +114,8 @@ jackson-schema-jakarta = { module = "com.github.victools:jsonschema-module-jakar
 jakarta-validation = { module = "jakarta.validation:jakarta.validation-api", version.ref = "jakarta" }
 detekt-api = { module = "io.gitlab.arturbosch.detekt:detekt-api", version.ref = "detekt" }
 detekt-test = { module = "io.gitlab.arturbosch.detekt:detekt-test", version.ref = "detekt" }
-avail = { module = "org.availlang:avail", version.ref = "avail" }
+avail-core = { module = "org.availlang:avail", version.ref = "avail-core" }
+avail-stdlib = { module = "org.availlang:avail-stdlib", version.ref = "avail-stdlib" }
 
 [bundles]
 ktor-client = [

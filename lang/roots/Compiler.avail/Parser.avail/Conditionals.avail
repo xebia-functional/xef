@@ -41,7 +41,7 @@ Public macro "*…#if_:…#§_" is
 ],
 [
 	indent : literal phrase ⇒ literal token ⇒ {indent id}ᵀ,
-	predicate : expression phrase ⇒ boolean,
+	predicate : expression phrase ⇒ Kleene,
 	trueBlockIndent : literal phrase ⇒ literal token ⇒ {indent id}ᵀ,
 	trueBlock : expression phrase ⇒ any
 |
