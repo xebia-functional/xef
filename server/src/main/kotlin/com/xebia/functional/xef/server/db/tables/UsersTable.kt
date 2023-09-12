@@ -29,4 +29,6 @@ class User(id: EntityID<Int>) : IntEntity(id) {
     var createdAt by UsersTable.createdAt
     var updatedAt by UsersTable.updatedAt
     var authToken by UsersTable.authToken
+
+    var organizations by Organization via UsersOrgsTable
 }

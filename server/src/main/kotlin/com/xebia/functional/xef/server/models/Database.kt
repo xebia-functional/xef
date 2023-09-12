@@ -5,12 +5,6 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class UsersOrgRelation(
-    @SerialName("user_id") val userId: Int,
-    @SerialName("org_id") val orgId: Int
-)
-
-@Serializable
 data class XefTokens(
     @SerialName("user_id") val userId: Int,
     @SerialName("project_id") val projectId: Int,

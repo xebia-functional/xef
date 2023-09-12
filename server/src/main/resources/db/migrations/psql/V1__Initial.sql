@@ -24,10 +24,10 @@ CREATE TABLE IF NOT EXISTS organizations(
 
 CREATE TABLE IF NOT EXISTS projects(
     id SERIAL PRIMARY KEY,
-    name VARCHAR(20),
+    name VARCHAR(20) UNIQUE NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    org_id INT,
+    org_id INT NOT NULL,
 
     CONSTRAINT fk_org_id
         FOREIGN KEY (org_id)

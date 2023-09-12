@@ -1,16 +1,18 @@
 package com.xebia.functional.xef.server.db.tables
 
+import com.xebia.functional.xef.server.db.tables.OrganizationTable.defaultExpression
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ReferenceOption
+import org.jetbrains.exposed.sql.kotlin.datetime.CurrentTimestamp
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 
 object ProjectsTable: IntIdTable() {
-    val name = varchar("name", 20)
-    val createdAt = timestamp("created_at")
-    val updatedAt = timestamp("updated_at")
+    val name = varchar("name", 20).uniqueIndex()
+    val createdAt = timestamp("created_at").defaultExpression(CurrentTimestamp())
+    val updatedAt = timestamp("updated_at").defaultExpression(CurrentTimestamp())
     val orgId = reference(
         name = "org_id",
         refColumn = OrganizationTable.id,
