@@ -1,14 +1,9 @@
 package com.xebia.functional.xef.server.db.tables
 
-import com.xebia.functional.xef.server.db.tables.OrganizationTable.defaultExpression
 import com.xebia.functional.xef.server.models.ProvidersConfig
-import com.xebia.functional.xef.server.models.XefTokens
+import kotlinx.datetime.Instant
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.json.Json
-import org.jetbrains.exposed.dao.Entity
-import org.jetbrains.exposed.dao.EntityClass
-import org.jetbrains.exposed.dao.IntEntity
-import org.jetbrains.exposed.dao.IntEntityClass
-import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.Table
@@ -17,6 +12,16 @@ import org.jetbrains.exposed.sql.kotlin.datetime.CurrentTimestamp
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 
 val format = Json { prettyPrint = true }
+
+data class XefTokens(
+    @SerialName("user_id") val userId: Int,
+    @SerialName("project_id") val projectId: Int,
+    @SerialName("name") val name: String,
+    @SerialName("created_at") val createdAt: Instant,
+    @SerialName("updated_at") val updatedAt: Instant,
+    @SerialName("token") val token: String,
+    @SerialName("providers_config") val providersConfig: ProvidersConfig
+)
 
 object XefTokensTable : Table() {
     val userId = reference(
