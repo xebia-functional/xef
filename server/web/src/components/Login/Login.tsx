@@ -1,8 +1,12 @@
 import { useAuth } from '@/state/Auth';
-import { Box, Button, TextField, Typography } from '@mui/material';
-import { ChangeEvent, useState } from 'react';
+import { Alert, Box, Button, Snackbar, Typography } from '@mui/material';
+import { useContext, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import styles from './Login.module.css';
+import { LoadingContext } from '@/state/Loading';
+import { postLogin } from '@/utils/api/login';
+import { FormLogin } from './FormLogin';
+import { FormRegister } from './FormRegister';
 
 export function RequireAuth({ children }: { children: JSX.Element }) {
   let auth = useAuth();
@@ -19,77 +23,84 @@ export function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const auth = useAuth();
+  const [loading, setLoading] = useContext(LoadingContext);
 
   const from = location.state?.from?.pathname || '/';
 
-  const [emailInput, setEmailInput] = useState<string>('');
-  const [passwordInput, setPasswordInput] = useState<string>('');
+  const [isCreatingAccount, setCreatingAccount] = useState<boolean>(false);
+  const [showAlert, setShowAlert] = useState<string>('');
 
-  const handleSubmit = () => {
-    auth.signin(emailInput, () => {
-      navigate(from, { replace: true });
-    });
+  const handleLogin = async (email: string, password: string) => {
+    if (!loading) {
+      try {
+        setLoading(true);
+        const loginResponse = await postLogin({
+          email: email,
+          password: password,
+        });
+
+        auth.signin(loginResponse.authToken, () => {
+          navigate(from, { replace: true });
+        });
+      } finally {
+        setLoading(false);
+      }
+    }
   };
 
-  const emailHandleChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setEmailInput(event.target.value);
-  };
+  const handleRegister = async (name: string, email: string, password: string, repassword: string) => {
+    if (!loading) {
+      try {
+        setLoading(true);
 
-  const passwordHandleChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setPasswordInput(event.target.value);
-  };
+        if (password !== repassword) {
+          setShowAlert(`Passwords don't match`);
+          throw new Error(`Passwords don't match`);
+        }
 
-  const disabledButton = passwordInput?.trim() == "" || emailInput?.trim() == "";
+        setShowAlert(`TODO: Not implemented yet`);
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
 
   return (
-    <Box
-      className={styles.center}
-    >
+    <>
       <Box
-        sx={{
-          my: 1,
-        }}>
-        <Typography variant="h4" gutterBottom>
-          Xef Server
-        </Typography>
-      </Box>
-      <Box
-        sx={{
-          my: 3,
-        }}>
-        <TextField
-          id="email"
-          label="Email"
-          value={emailInput}
-          onChange={emailHandleChange}
-          size="small"
+        className={styles.center}
+      >
+        <Box
           sx={{
-            width: { xs: '100%', sm: 550 },
-          }}
-        />
-      </Box>
-      <Box
-        sx={{
-          my: 3,
-        }}>
-        <TextField
-          id="password"
-          label="Password"
-          value={passwordInput}
-          onChange={passwordHandleChange}
-          size="small"
+            my: 1,
+          }}>
+          <Typography variant="h4" gutterBottom>
+            Xef Server
+          </Typography>
+          <Typography variant="h6" gutterBottom>
+            {isCreatingAccount ? "Create an account" : "Login"}
+          </Typography>
+        </Box>
+        {isCreatingAccount && <FormRegister onHandleButton={handleRegister} />}
+        {!isCreatingAccount && <FormLogin onHandleButton={handleLogin} />}
+        <Box
           sx={{
-            width: { xs: '100%', sm: 550 },
-          }}
-        />
+            my: 3,
+          }}>
+          <Button
+            onClick={() => setCreatingAccount(!isCreatingAccount)}
+            variant="text"
+            disableElevation>
+            <Typography variant="button">{isCreatingAccount ? "Back" : "Create an account"}</Typography>
+          </Button>
+        </Box>
       </Box>
-      <Button
-        onClick={handleSubmit}
-        variant="contained"
-        disableElevation
-        disabled={disabledButton}>
-        <Typography variant="button">Login</Typography>
-      </Button>
-    </Box>
+      <Snackbar
+        open={!!showAlert}
+        onClose={(_, reason) => reason !== 'clickaway' && setShowAlert('')}
+        autoHideDuration={5000}>
+        <Alert severity="error">{showAlert}</Alert>
+      </Snackbar>
+    </>
   );
 }
