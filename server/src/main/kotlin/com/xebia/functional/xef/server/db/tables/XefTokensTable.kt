@@ -14,11 +14,11 @@ val format = Json { prettyPrint = true }
 object XefTokensTable : Table() {
     val userId = reference(
         name = "user_id",
-        refColumn = UsersTable.id,
+        foreign = UsersTable,
         onDelete = ReferenceOption.CASCADE)
     val projectId = reference(
         name = "project_id",
-        refColumn = ProjectsTable.id,
+        foreign = ProjectsTable,
         onDelete = ReferenceOption.CASCADE
     )
     val name = varchar("name", 20)
@@ -32,8 +32,8 @@ object XefTokensTable : Table() {
 
 fun ResultRow.toXefTokens() : XefTokens {
     return XefTokens(
-        userId = this[XefTokensTable.userId],
-        projectId = this[XefTokensTable.projectId],
+        userId = this[XefTokensTable.userId].value,
+        projectId = this[XefTokensTable.projectId].value,
         name = this[XefTokensTable.name],
         createdAt = this[XefTokensTable.createdAt],
         updatedAt = this[XefTokensTable.updatedAt],

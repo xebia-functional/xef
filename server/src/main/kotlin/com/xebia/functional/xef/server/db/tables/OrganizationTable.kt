@@ -1,13 +1,13 @@
 package com.xebia.functional.xef.server.db.tables
 
-import com.xebia.functional.xef.server.models.Organization
+import org.jetbrains.exposed.dao.IntEntity
+import org.jetbrains.exposed.dao.IntEntityClass
+import org.jetbrains.exposed.dao.id.EntityID
+import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ReferenceOption
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 
-object OrganizationTable : Table() {
-    val id = integer("id").autoIncrement()
+object OrganizationTable : IntIdTable() {
     val name = varchar("name", 20)
     val createdAt = timestamp("created_at")
     val updatedAt = timestamp("updated_at")
@@ -16,17 +16,14 @@ object OrganizationTable : Table() {
         refColumn = UsersTable.id,
         onDelete = ReferenceOption.CASCADE
     )
-
-    override val primaryKey = PrimaryKey(id)
 }
 
-fun ResultRow.toOrganization(): Organization {
-    return Organization(
-        id = this[OrganizationTable.id],
-        name = this[OrganizationTable.name],
-        createdAt = this[OrganizationTable.createdAt],
-        updatedAt = this[OrganizationTable.updatedAt],
-        ownerId = this[OrganizationTable.ownerId]
-    )
+class Organization(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<Organization>(OrganizationTable)
+
+    var name by OrganizationTable.name
+    var createdAt by OrganizationTable.createdAt
+    var updatedAt by OrganizationTable.updatedAt
+    var ownerId by OrganizationTable.ownerId
 }
 

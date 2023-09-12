@@ -8,12 +8,12 @@ import org.jetbrains.exposed.sql.Table
 object UsersOrgsTable : Table() {
     val userId = reference(
         name = "user_id",
-        refColumn = UsersTable.id,
+        foreign = UsersTable,
         onDelete = ReferenceOption.CASCADE
     )
     val orgId = reference(
         name = "org_id",
-        refColumn = OrganizationTable.id,
+        foreign = OrganizationTable,
         onDelete = ReferenceOption.CASCADE
     )
 
@@ -22,7 +22,7 @@ object UsersOrgsTable : Table() {
 
 fun ResultRow.toUsersOrgs(): UsersOrgRelation {
     return UsersOrgRelation(
-        userId = this[UsersOrgsTable.userId],
-        orgId = this[UsersOrgsTable.orgId]
+        userId = this[UsersOrgsTable.userId].value,
+        orgId = this[UsersOrgsTable.orgId].value
     )
 }

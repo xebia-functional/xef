@@ -1,13 +1,13 @@
 package com.xebia.functional.xef.server.db.tables
 
-import com.xebia.functional.xef.server.models.Projects
+import org.jetbrains.exposed.dao.IntEntity
+import org.jetbrains.exposed.dao.IntEntityClass
+import org.jetbrains.exposed.dao.id.EntityID
+import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ReferenceOption
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 
-object ProjectsTable: Table() {
-    val id = integer("id").autoIncrement()
+object ProjectsTable: IntIdTable() {
     val name = varchar("name", 20)
     val createdAt = timestamp("created_at")
     val updatedAt = timestamp("updated_at")
@@ -16,16 +16,14 @@ object ProjectsTable: Table() {
         refColumn = OrganizationTable.id,
         onDelete = ReferenceOption.CASCADE
     )
-
-    override val primaryKey = PrimaryKey(id)
 }
 
-fun ResultRow.toProject(): Projects {
-    return Projects(
-        id = this[ProjectsTable.id],
-        name = this[ProjectsTable.name],
-        createdAt = this[ProjectsTable.createdAt],
-        updatedAt = this[ProjectsTable.updatedAt],
-        orgId = this[ProjectsTable.orgId]
-    )
+class Project(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<Project>(ProjectsTable)
+
+    var name by ProjectsTable.name
+    var createdAt by ProjectsTable.createdAt
+    var updatedAt by ProjectsTable.updatedAt
+    var orgId by ProjectsTable.orgId
 }
+
