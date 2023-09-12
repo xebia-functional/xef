@@ -1,6 +1,9 @@
 package com.xebia.functional.xef.server.http.routes
 
 import com.aallam.openai.api.BetaOpenAI
+import com.xebia.functional.xef.server.models.LoginRequest
+import com.xebia.functional.xef.server.models.LoginResponse
+import com.xebia.functional.xef.server.models.RegisterRequest
 import com.xebia.functional.xef.server.services.PersistenceService
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -12,7 +15,6 @@ import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.serialization.json.Json
@@ -31,13 +33,24 @@ fun String.toProvider(): Provider? = when (this) {
     else -> Provider.OPENAI
 }
 
-
 @OptIn(BetaOpenAI::class)
 fun Routing.routes(
     client: HttpClient,
     persistenceService: PersistenceService
 ) {
     val openAiUrl = "https://api.openai.com/v1"
+
+    post("/register") {
+        // fake implementation for testing
+        val request = Json.decodeFromString<RegisterRequest>(call.receive<String>())
+        call.respond(LoginResponse("token: ${request.password}"))
+    }
+
+    post("/login") {
+        // fake implementation for testing
+        val request = Json.decodeFromString<LoginRequest>(call.receive<String>())
+        call.respond(LoginResponse("token: ${request.password}"))
+    }
 
     authenticate("auth-bearer") {
         post("/chat/completions") {
