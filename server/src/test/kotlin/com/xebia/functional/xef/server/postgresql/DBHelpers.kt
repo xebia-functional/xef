@@ -17,8 +17,8 @@ object DBHelpers {
         return User.new {
             name = fName
             email = fEmail
-            passwordHash = fPasswordHash
-            salt = fSalt
+            passwordHash = fPasswordHash.toByteArray()
+            salt = fSalt.toByteArray()
             authToken = fAuthToken
         }
     }
