@@ -11,7 +11,6 @@ import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
 import com.xebia.functional.xef.prompt.templates.assistant
 import com.aallam.openai.api.BetaOpenAI
 import com.xebia.functional.xef.server.models.LoginRequest
-import com.xebia.functional.xef.server.models.LoginResponse
 import com.xebia.functional.xef.server.models.RegisterRequest
 import com.xebia.functional.xef.server.services.PersistenceService
 import com.xebia.functional.xef.store.ConversationId
