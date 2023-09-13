@@ -23,7 +23,7 @@ class UserRepositoryService {
             }
 
             val newSalt = HashUtils.generateSalt()
-            val passwordHashed = HashUtils.hash(request.password, newSalt)
+            val passwordHashed = HashUtils.createHash(request.password, newSalt)
             val user = transaction {
                 User.new {
                     name = request.name
@@ -43,7 +43,7 @@ class UserRepositoryService {
             val user =
                 User.find { UsersTable.email eq request.email }.firstOrNull() ?: throw Exception("User not found")
 
-            if (!HashUtils.isExpectedPassword(
+            if (!HashUtils.checkPassword(
                     request.password,
                     user.salt,
                     user.passwordHash
