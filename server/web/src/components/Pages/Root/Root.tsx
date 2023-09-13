@@ -1,3 +1,3 @@
 export function Root() {
-  return <>Root</>;
+  return <>Dashboard</>;
 }

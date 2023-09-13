@@ -11,7 +11,7 @@ object Migrate {
         config: XefDatabaseConfig,
     ): MigrateResult =
         withContext(Dispatchers.IO) {
-            val url = "jdbc:postgresql://${config.host}:${config.port}/${config.database}"
+            val url = config.getUrl()
             val migration: FluentConfiguration = Flyway.configure()
                 .dataSource(
                     url,
