@@ -2,9 +2,8 @@ package com.xebia.functional.xef.server.http.routes
 
 import com.aallam.openai.api.BetaOpenAI
 import com.xebia.functional.xef.server.models.LoginRequest
-import com.xebia.functional.xef.server.models.LoginResponse
 import com.xebia.functional.xef.server.models.RegisterRequest
-import com.xebia.functional.xef.server.services.PersistenceService
+import com.xebia.functional.xef.server.services.VectorStoreService
 import com.xebia.functional.xef.server.services.UserRepositoryService
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -37,7 +36,7 @@ fun String.toProvider(): Provider? = when (this) {
 @OptIn(BetaOpenAI::class)
 fun Routing.routes(
     client: HttpClient,
-    persistenceService: PersistenceService,
+    vectorStoreService: VectorStoreService,
     userRepositoryService: UserRepositoryService
 ) {
     val openAiUrl = "https://api.openai.com/v1"

@@ -7,8 +7,9 @@ import com.typesafe.config.ConfigFactory
 import com.xebia.functional.xef.server.db.psql.XefDatabaseConfig
 import com.xebia.functional.xef.server.db.psql.Migrate
 import com.xebia.functional.xef.server.db.psql.XefVectorStoreConfig
-import com.xebia.functional.xef.server.db.psql.XefVectorStoreConfig.Companion.getPersistenceService
+import com.xebia.functional.xef.server.db.psql.XefVectorStoreConfig.Companion.getVectorStoreService
 import com.xebia.functional.xef.server.http.routes.routes
+import com.xebia.functional.xef.server.services.RepositoryService
 import com.xebia.functional.xef.server.services.UserRepositoryService
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
@@ -25,6 +26,7 @@ import io.ktor.server.resources.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.awaitCancellation
 import org.jetbrains.exposed.sql.Database
+import org.slf4j.LoggerFactory
 
 object Server {
     @JvmStatic
@@ -34,15 +36,18 @@ object Server {
             val xefDBConfig = XefDatabaseConfig.load("xef", config)
             Migrate.migrate(xefDBConfig)
 
-            val vectorStoreConfig = XefVectorStoreConfig.load("xef-vector-store", config)
-            val persistenceService = vectorStoreConfig.getPersistenceService(config)
-            persistenceService.addCollection()
+            val logger = LoggerFactory.getLogger("xef-server")
 
-            Database.connect(
-                url = xefDBConfig.getUrl(),
-                user = xefDBConfig.user,
-                password = xefDBConfig.password
+            val hikariDataSourceXefDB = RepositoryService.getHikariDataSource(
+                xefDBConfig.getUrl(),
+                xefDBConfig.user,
+                xefDBConfig.password
             )
+            Database.connect(hikariDataSourceXefDB)
+            val vectorStoreConfig = XefVectorStoreConfig.load("xef-vector-store", config)
+            val vectorStoreService = vectorStoreConfig.getVectorStoreService(config, logger)
+            vectorStoreService.addCollection()
+
 
             val ktorClient = HttpClient(CIO){
                 engine {
@@ -70,7 +75,7 @@ object Server {
                         }
                     }
                 }
-                routing { routes(ktorClient, persistenceService, UserRepositoryService()) }
+                routing { routes(ktorClient, vectorStoreService, UserRepositoryService()) }
             }
             awaitCancellation()
         }
