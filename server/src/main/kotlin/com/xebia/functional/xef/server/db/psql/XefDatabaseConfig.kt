@@ -19,6 +19,9 @@ class XefDatabaseConfig(
     val migrationsTable: String,
     val migrationsLocations: List<String>
 ) {
+
+    fun getUrl(): String = "jdbc:postgresql://$host:$port/$database"
+
     companion object {
         @OptIn(ExperimentalSerializationApi::class)
         suspend fun load(

@@ -9,6 +9,7 @@ import com.xebia.functional.xef.server.db.psql.Migrate
 import com.xebia.functional.xef.server.db.psql.XefVectorStoreConfig
 import com.xebia.functional.xef.server.db.psql.XefVectorStoreConfig.Companion.getPersistenceService
 import com.xebia.functional.xef.server.http.routes.routes
+import com.xebia.functional.xef.server.services.UserRepositoryService
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation as ClientContentNegotiation
@@ -23,6 +24,7 @@ import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.resources.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.awaitCancellation
+import org.jetbrains.exposed.sql.Database
 
 object Server {
     @JvmStatic
@@ -35,6 +37,12 @@ object Server {
             val vectorStoreConfig = XefVectorStoreConfig.load("xef-vector-store", config)
             val persistenceService = vectorStoreConfig.getPersistenceService(config)
             persistenceService.addCollection()
+
+            Database.connect(
+                url = xefDBConfig.getUrl(),
+                user = xefDBConfig.user,
+                password = xefDBConfig.password
+            )
 
             val ktorClient = HttpClient(CIO){
                 engine {
@@ -62,7 +70,7 @@ object Server {
                         }
                     }
                 }
-                routing { routes(ktorClient, persistenceService) }
+                routing { routes(ktorClient, persistenceService, UserRepositoryService()) }
             }
             awaitCancellation()
         }
