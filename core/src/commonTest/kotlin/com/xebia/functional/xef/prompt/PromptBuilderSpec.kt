@@ -92,4 +92,42 @@ class PromptBuilderSpec :
 
       messages shouldBe messagesExpected
     }
+
+    "flatten method should flatten the messages with the same role" {
+      val messages =
+        Prompt {
+            +system("Test System")
+            +user("User message 1")
+            +user("User message 2")
+            +assistant("Assistant message 1")
+            +user("User message 3")
+            +assistant("Assistant message 2")
+            +assistant("Assistant message 3")
+            +user("User message 4")
+          }
+          .flatten()
+          .messages
+
+      val messagesExpected =
+        listOf(
+          "Test System".message(Role.SYSTEM),
+          """
+            |User message 1
+            |User message 2
+          """
+            .trimMargin()
+            .message(Role.USER),
+          "Assistant message 1".message(Role.ASSISTANT),
+          "User message 3".message(Role.USER),
+          """
+                |Assistant message 2
+                |Assistant message 3
+            """
+            .trimMargin()
+            .message(Role.ASSISTANT),
+          "User message 4".message(Role.USER),
+        )
+
+      messages shouldBe messagesExpected
+    }
   })
