@@ -1,6 +1,7 @@
 [versions]
-arrow = "1.2.0"
+arrow = "1.2.1"
 arrowGradle = "0.12.0-rc.5"
+exposed = "0.43.0"
 kotlin = "1.9.10"
 kotlinx-json = "1.6.0"
 kotlinx-datetime = "0.4.0"
@@ -15,7 +16,7 @@ uuid = "0.0.21"
 postgresql = "42.6.0"
 testcontainers = "1.19.0"
 hikari = "5.0.1"
-dokka = "1.8.20"
+dokka = "1.9.0"
 logback = "1.4.11"
 node-gradle = "5.0.0"
 kotlinx-coroutines = "1.7.3"
@@ -49,6 +50,12 @@ detekt = "1.23.1"
 arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
 arrow-continuations = { module = "io.arrow-kt:arrow-continuations", version.ref = "arrow" }
 arrow-fx-coroutines = { module = "io.arrow-kt:arrow-fx-coroutines", version.ref = "arrow" }
+exposed-core = { module = "org.jetbrains.exposed:exposed-core", version.ref = "exposed" }
+exposed-dao = { module = "org.jetbrains.exposed:exposed-dao", version.ref = "exposed" }
+exposed-jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "exposed" }
+exposed-java-time = { module = "org.jetbrains.exposed:exposed-java-time", version.ref = "exposed" }
+exposed-kotlin-datetime = { module = "org.jetbrains.exposed:exposed-kotlin-datetime", version.ref = "exposed" }
+exposed-json = { module = "org.jetbrains.exposed:exposed-json", version.ref = "exposed" }
 flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
 suspendApp-core = { module = "io.arrow-kt:suspendapp", version.ref = "suspendApp" }
 suspendApp-ktor = { module = "io.arrow-kt:suspendapp-ktor", version.ref = "suspendApp" }
@@ -87,6 +94,7 @@ kotest-testcontainers = { module = "io.kotest.extensions:kotest-extensions-testc
 kotest-assertions-arrow = { module = "io.kotest.extensions:kotest-assertions-arrow", version.ref = "kotest-arrow" }
 ktor-serialization-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
+junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
 uuid = { module = "app.softwork:kotlinx-uuid-core", version.ref = "uuid" }
 klogging = { module = "io.github.oshai:kotlin-logging", version.ref = "klogging"  }
 hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
