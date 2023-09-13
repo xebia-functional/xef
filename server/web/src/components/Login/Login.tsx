@@ -50,6 +50,8 @@ export function Login() {
         auth.signin(loginResponse.authToken, () => {
           navigate(from, { replace: true });
         });
+      } catch (error) {
+        setShowAlert(typeof error === "string" ? error : 'Unepxected error');
       } finally {
         setLoading(false);
       }
@@ -81,6 +83,8 @@ export function Login() {
           navigate(from, { replace: true });
         });
 
+      } catch (error) {
+        setShowAlert(typeof error === "string" ? error : 'Unepxected error');
       } finally {
         setLoading(false);
       }

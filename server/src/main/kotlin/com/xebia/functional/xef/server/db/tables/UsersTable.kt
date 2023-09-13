@@ -11,8 +11,8 @@ import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 object UsersTable : IntIdTable() {
     val name = varchar("name", 20)
     val email = varchar("email", 50)
-    val passwordHash = varchar("password_hash", 50)
-    val salt = varchar("salt", 20)
+    val passwordHash = binary("password_hash")
+    val salt = binary("salt")
     val createdAt = timestamp("created_at").defaultExpression(CurrentTimestamp())
     val updatedAt = timestamp("updated_at").defaultExpression(CurrentTimestamp())
     val authToken = varchar("auth_token", 128)

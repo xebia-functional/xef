@@ -5,6 +5,7 @@ import com.xebia.functional.xef.server.models.LoginRequest
 import com.xebia.functional.xef.server.models.LoginResponse
 import com.xebia.functional.xef.server.models.RegisterRequest
 import com.xebia.functional.xef.server.services.PersistenceService
+import com.xebia.functional.xef.server.services.UserRepositoryService
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
@@ -36,20 +37,29 @@ fun String.toProvider(): Provider? = when (this) {
 @OptIn(BetaOpenAI::class)
 fun Routing.routes(
     client: HttpClient,
-    persistenceService: PersistenceService
+    persistenceService: PersistenceService,
+    userRepositoryService: UserRepositoryService
 ) {
     val openAiUrl = "https://api.openai.com/v1"
 
     post("/register") {
-        // fake implementation for testing
-        val request = Json.decodeFromString<RegisterRequest>(call.receive<String>())
-        call.respond(LoginResponse("token: ${request.password}"))
+        try {
+            val request = Json.decodeFromString<RegisterRequest>(call.receive<String>())
+            val response = userRepositoryService.register(request)
+            call.respond(response)
+        } catch (e: Exception) {
+            call.respondText(e.message ?: "Unexpected error", status = HttpStatusCode.BadRequest)
+        }
     }
 
     post("/login") {
-        // fake implementation for testing
-        val request = Json.decodeFromString<LoginRequest>(call.receive<String>())
-        call.respond(LoginResponse("token: ${request.password}"))
+        try {
+            val request = Json.decodeFromString<LoginRequest>(call.receive<String>())
+            val response = userRepositoryService.login(request)
+            call.respond(response)
+        } catch (e: Exception) {
+            call.respondText(e.message ?: "Unexpected error", status = HttpStatusCode.BadRequest)
+        }
     }
 
     authenticate("auth-bearer") {

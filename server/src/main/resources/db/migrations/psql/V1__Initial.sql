@@ -2,8 +2,8 @@ CREATE TABLE IF NOT EXISTS users(
     id SERIAL PRIMARY KEY,
     name VARCHAR(20) NOT NULL,
     email VARCHAR(50) UNIQUE NOT NULL,
-    password_hash VARCHAR(50) NOT NULL,
-    salt VARCHAR(20) NOT NULL,
+    password_hash BYTEA NOT NULL,
+    salt BYTEA NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
     auth_token VARCHAR(128) UNIQUE NOT NULL
