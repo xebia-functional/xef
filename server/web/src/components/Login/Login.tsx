@@ -7,6 +7,8 @@ import { LoadingContext } from '@/state/Loading';
 import { postLogin } from '@/utils/api/login';
 import { FormLogin } from './FormLogin';
 import { FormRegister } from './FormRegister';
+import { isValidEmail } from '@/utils/validate';
+import { postRegister } from '@/utils/api/register';
 
 export function RequireAuth({ children }: { children: JSX.Element }) {
   let auth = useAuth();
@@ -34,6 +36,12 @@ export function Login() {
     if (!loading) {
       try {
         setLoading(true);
+
+        if (!isValidEmail(email)) {
+          setShowAlert('Invalid email');
+          throw new Error('Invalid email');
+        }
+
         const loginResponse = await postLogin({
           email: email,
           password: password,
@@ -53,12 +61,26 @@ export function Login() {
       try {
         setLoading(true);
 
+        if (!isValidEmail(email)) {
+          setShowAlert('Invalid email');
+          throw new Error('Invalid email');
+        }
+
         if (password !== repassword) {
           setShowAlert(`Passwords don't match`);
           throw new Error(`Passwords don't match`);
         }
 
-        setShowAlert(`TODO: Not implemented yet`);
+        const loginResponse = await postRegister({
+          name: name,
+          email: email,
+          password: password,
+        });
+
+        auth.signin(loginResponse.authToken, () => {
+          navigate(from, { replace: true });
+        });
+
       } finally {
         setLoading(false);
       }

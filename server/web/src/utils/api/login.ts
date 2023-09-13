@@ -3,13 +3,9 @@ import {
     EndpointsEnum,
     apiConfigConstructor,
     apiFetch,
+    baseHeaders,
     defaultApiServer,
   } from '@/utils/api';
-  
-  const baseHeaders = {
-    Accept: 'application/json',
-    'Content-Type': 'application/json',
-  };
   
   const loginApiBaseOptions: ApiOptions = {
     endpointServer: defaultApiServer,
@@ -47,9 +43,9 @@ import {
     const loginApiConfig = apiConfigConstructor(
         loginApiOptions,
     );
-    const LoginResponse = await apiFetch<LoginResponse>(
+    const loginResponse = await apiFetch<LoginResponse>(
         loginApiConfig,
     );
   
-    return LoginResponse;
+    return loginResponse;
   }

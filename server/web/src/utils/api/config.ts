@@ -2,6 +2,12 @@ import { toSnakeCase } from '@/utils/strings';
 
 export const defaultApiServer = 'http://localhost:8081/';
 
+export const baseHeaders = {
+  Accept: 'application/json',
+  'Content-Type': 'application/json',
+};
+
+
 export type ApiConfig = {
   url: URL;
   options?: RequestInit;
