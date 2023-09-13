@@ -1,10 +1,7 @@
 package com.xebia.functional.xef.server.http.routes
 
 import com.aallam.openai.api.BetaOpenAI
-import com.xebia.functional.xef.server.models.LoginRequest
-import com.xebia.functional.xef.server.models.RegisterRequest
 import com.xebia.functional.xef.server.services.VectorStoreService
-import com.xebia.functional.xef.server.services.UserRepositoryService
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
@@ -34,32 +31,11 @@ fun String.toProvider(): Provider? = when (this) {
 }
 
 @OptIn(BetaOpenAI::class)
-fun Routing.routes(
+fun Routing.genAIRoutes(
     client: HttpClient,
-    vectorStoreService: VectorStoreService,
-    userRepositoryService: UserRepositoryService
+    vectorStoreService: VectorStoreService
 ) {
     val openAiUrl = "https://api.openai.com/v1"
-
-    post("/register") {
-        try {
-            val request = Json.decodeFromString<RegisterRequest>(call.receive<String>())
-            val response = userRepositoryService.register(request)
-            call.respond(response)
-        } catch (e: Exception) {
-            call.respondText(e.message ?: "Unexpected error", status = HttpStatusCode.BadRequest)
-        }
-    }
-
-    post("/login") {
-        try {
-            val request = Json.decodeFromString<LoginRequest>(call.receive<String>())
-            val response = userRepositoryService.login(request)
-            call.respond(response)
-        } catch (e: Exception) {
-            call.respondText(e.message ?: "Unexpected error", status = HttpStatusCode.BadRequest)
-        }
-    }
 
     authenticate("auth-bearer") {
         post("/chat/completions") {
