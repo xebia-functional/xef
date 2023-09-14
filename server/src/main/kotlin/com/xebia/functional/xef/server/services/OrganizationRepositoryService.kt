@@ -60,7 +60,22 @@ class OrganizationRepositoryService(
                 it.id.value == id
             }.map { OrganizationFullResponse(it.id.value, it.name, it.ownerId.value, it.users.count()) }
         }
+    }
 
+    fun getUsersInOrganization(
+        token: String,
+        id: Int
+    ): List<UserResponse> {
+        logger.info("Getting users in organization")
+        return transaction {
+            // Getting the user from the token
+            val user = getUser(token)
+
+            // Getting the organizations from the user
+            user.organizations.filter {
+                it.id.value == id
+            }.flatMap { it.users }.map { UserResponse(it.id.value, it.name) }
+        }
     }
 
     fun updateOrganization(
@@ -69,35 +84,31 @@ class OrganizationRepositoryService(
         id: Int
     ): OrganizationFullResponse {
         logger.info("Updating organization with name: ${data.name}")
-        return if (token == null) {
-            throw Exception("Token is null")
-        } else {
-            transaction {
-                // Getting the user from the token
-                val user = getUser(token)
+        return transaction {
+            // Getting the user from the token
+            val user = getUser(token)
 
-                val organization = Organization.findById(id)
-                    ?: throw Exception("Organization not found")
+            val organization = Organization.findById(id)
+                ?: throw Exception("Organization not found")
 
-                if(organization.ownerId != user.id) {
-                    throw Exception("User is not the owner of the organization")
-                }
-
-                // Updating the organization
-                organization.name = data.name
-                if (data.owner != null) {
-                    val newOwner = User.findById(data.owner)
-                        ?: throw Exception("User not found")
-                    organization.ownerId = newOwner.id
-                }
-                organization.updatedAt = Clock.System.now()
-                OrganizationFullResponse(
-                    organization.id.value,
-                    organization.name,
-                    organization.ownerId.value,
-                    organization.users.count()
-                )
+            if (organization.ownerId != user.id) {
+                throw Exception("User is not the owner of the organization")
             }
+
+            // Updating the organization
+            organization.name = data.name
+            if (data.owner != null) {
+                val newOwner = User.findById(data.owner)
+                    ?: throw Exception("User not found")
+                organization.ownerId = newOwner.id
+            }
+            organization.updatedAt = Clock.System.now()
+            OrganizationFullResponse(
+                organization.id.value,
+                organization.name,
+                organization.ownerId.value,
+                organization.users.count()
+            )
         }
     }
 

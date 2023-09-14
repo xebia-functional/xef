@@ -34,6 +34,16 @@ fun Routing.organizationRoutes(
                 call.respondText(e.message ?: "Unexpected error", status = HttpStatusCode.BadRequest)
             }
         }
+        get("/v1/settings/org/{id}/users"){
+            try {
+                val token = call.getToken()
+                val id = call.parameters["id"]?.toInt() ?: throw Exception("Invalid id")
+                val response = orgRepositoryService.getUsersInOrganization(token, id)
+                call.respond(response)
+            } catch (e: Exception) {
+                call.respondText(e.message ?: "Unexpected error", status = HttpStatusCode.BadRequest)
+            }
+        }
         post("/v1/settings/org") {
             try {
                 val request = Json.decodeFromString<OrganizationRequest>(call.receive<String>())
