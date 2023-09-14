@@ -14,3 +14,14 @@ data class LoginRequest(
     val email: String,
     val password: String
 )
+
+@Serializable
+data class OrganizationRequest(
+    val name: String
+)
+
+@Serializable
+data class OrganizationUpdateRequest(
+    val name: String,
+    val owner: Int? = null
+)

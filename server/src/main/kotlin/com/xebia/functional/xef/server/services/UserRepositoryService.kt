@@ -10,12 +10,14 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.uuid.UUID
 import kotlinx.uuid.generateUUID
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.slf4j.Logger
 
-class UserRepositoryService {
-    val logger = KotlinLogging.logger {}
+class UserRepositoryService(
+    private val logger: Logger
+) {
 
     fun register(request: RegisterRequest): LoginResponse {
-        logger.info { "Registering user ${request.email}" }
+        logger.info("Registering user ${request.email}" )
 
         return transaction {
             if (User.find { UsersTable.email eq request.email }.count() > 0) {
@@ -38,7 +40,7 @@ class UserRepositoryService {
     }
 
     fun login(request: LoginRequest): LoginResponse {
-        logger.info { "Login user ${request.email}" }
+        logger.info("Login user ${request.email}")
         return transaction {
             val user =
                 User.find { UsersTable.email eq request.email }.firstOrNull() ?: throw Exception("User not found")
