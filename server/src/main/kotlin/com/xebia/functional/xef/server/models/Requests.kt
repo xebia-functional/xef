@@ -19,3 +19,10 @@ data class LoginRequest(
 data class OrganizationRequest(
     val name: String
 )
+
+@Serializable
+data class OrganizationUpdateRequest(
+    val id: Int,
+    val name: String,
+    val owner: Int? = null
+)
