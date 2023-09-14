@@ -23,11 +23,12 @@ data class XefTokens(
     @SerialName("providers_config") val providersConfig: ProvidersConfig
 )
 
-object XefTokensTable : Table() {
+object XefTokensTable : Table("xef_tokens") {
     val userId = reference(
         name = "user_id",
         foreign = UsersTable,
-        onDelete = ReferenceOption.CASCADE)
+        onDelete = ReferenceOption.CASCADE
+    )
     val projectId = reference(
         name = "project_id",
         foreign = ProjectsTable,
@@ -42,7 +43,7 @@ object XefTokensTable : Table() {
     override val primaryKey = PrimaryKey(userId, projectId, name)
 }
 
-fun ResultRow.toXefTokens() : XefTokens {
+fun ResultRow.toXefTokens(): XefTokens {
     return XefTokens(
         userId = this[XefTokensTable.userId].value,
         projectId = this[XefTokensTable.projectId].value,
