@@ -18,7 +18,7 @@ type CreateOrganizationRequest = {
 }
 
 type OrganizationsResponse = {
-    organizations: OrganizationResponse[];
+    items: OrganizationResponse[];
 }
 
 type OrganizationResponse = {
