@@ -9,7 +9,7 @@ In order to run the server, you need to run the following services:
 ### Docker
 
 ```bash
-    docker-compose up docker/postgresql 
+    docker-compose -f docker/postgresql/docker-compose.yaml up 
 ```
 
 ### Server
