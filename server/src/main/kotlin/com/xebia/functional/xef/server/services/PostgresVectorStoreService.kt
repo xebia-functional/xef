@@ -1,16 +1,17 @@
 package com.xebia.functional.xef.server.services
 
-import com.xebia.functional.xef.conversation.autoClose
 import com.xebia.functional.xef.conversation.llm.openai.OpenAI
 import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
 import com.xebia.functional.xef.server.http.routes.Provider
 import com.xebia.functional.xef.store.PGVectorStore
 import com.xebia.functional.xef.store.VectorStore
-import com.xebia.functional.xef.store.postgresql.*
-import com.zaxxer.hikari.HikariConfig
+import com.xebia.functional.xef.store.postgresql.PGDistanceStrategy
+import com.xebia.functional.xef.store.postgresql.addNewCollection
+import com.xebia.functional.xef.store.postgresql.connection
 import com.zaxxer.hikari.HikariDataSource
 import kotlinx.uuid.UUID
 import kotlinx.uuid.generateUUID
+import org.slf4j.Logger
 
 object PostgreSQLXef {
     data class DBConfig(
@@ -31,32 +32,21 @@ object PostgreSQLXef {
 }
 
 
-class PostgresXefService(
-    private val config: PostgreSQLXef.PGVectorStoreConfig
-) : PersistenceService() {
-
-    private fun getDataSource(): HikariDataSource =
-        autoClose {
-            HikariDataSource(
-                HikariConfig().apply {
-                    jdbcUrl =
-                        "jdbc:postgresql://${config.dbConfig.host}:${config.dbConfig.port}/${config.dbConfig.database}"
-                    username = config.dbConfig.user
-                    password = config.dbConfig.password
-                    driverClassName = "org.postgresql.Driver"
-                }
-            )
-        }
+class PostgresVectorStoreService(
+    private val config: PostgreSQLXef.PGVectorStoreConfig,
+    private val logger: Logger,
+    private val dataSource: HikariDataSource
+) : VectorStoreService() {
 
     override fun addCollection() {
-        getDataSource().connection {
-            // Create collection
-            val uuid = UUID.generateUUID()
-            update(addNewCollection) {
-                bind(uuid.toString())
-                bind(config.collectionName)
+        dataSource.connection {
+                // Create collection
+                val uuid = UUID.generateUUID()
+                update(addNewCollection) {
+                    bind(uuid.toString())
+                    bind(config.collectionName)
+                }.also { logger.info("Created collection ${config.collectionName}") }
             }
-        }
     }
 
     override fun getVectorStore(
@@ -70,7 +60,7 @@ class PostgresXefService(
 
         return PGVectorStore(
             vectorSize = config.vectorSize,
-            dataSource = getDataSource(),
+            dataSource = dataSource,
             embeddings = embeddings,
             collectionName = config.collectionName,
             distanceStrategy = PGDistanceStrategy.Euclidean,

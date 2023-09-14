@@ -10,6 +10,7 @@ import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
 import com.xebia.functional.xef.prompt.templates.assistant
 import com.aallam.openai.api.BetaOpenAI
+import com.xebia.functional.xef.server.services.VectorStoreService
 import com.xebia.functional.xef.server.models.LoginRequest
 import com.xebia.functional.xef.server.models.RegisterRequest
 import com.xebia.functional.xef.server.services.PersistenceService
@@ -41,43 +42,26 @@ fun String.toProvider(): Provider? = when (this) {
 }
 
 @OptIn(BetaOpenAI::class)
-fun Routing.routes(
+fun Routing.genAIRoutes(
     client: HttpClient,
-    persistenceService: PersistenceService,
-    userRepositoryService: UserRepositoryService
+    vectorStoreService: VectorStoreService
 ) {
   val openAiUrl = "https://api.openai.com/v1"
 
-    post("/register") {
-        try {
-            val request = Json.decodeFromString<RegisterRequest>(call.receive<String>())
-            val response = userRepositoryService.register(request)
-            call.respond(response)
-        } catch (e: Exception) {
-            call.respondText(e.message ?: "Unexpected error", status = HttpStatusCode.BadRequest)
-        }
-    }
+    authenticate("auth-bearer") {
+        post("/chat/completions") {
+            val token = call.getToken()
+            val body = call.receive<String>()
+            val data = Json.decodeFromString<JsonObject>(body)
 
-    post("/login") {
-        try {
-            val request = Json.decodeFromString<LoginRequest>(call.receive<String>())
-            val response = userRepositoryService.login(request)
-            call.respond(response)
-        } catch (e: Exception) {
-            call.respondText(e.message ?: "Unexpected error", status = HttpStatusCode.BadRequest)
-        }
-    }
+            val isStream = data["stream"]?.jsonPrimitive?.boolean ?: false
 
-  authenticate("auth-bearer") {
-    post("/chat/completions") {
-      try {
-        val config = ChatConfig(call)
-        val conversation = conversation(config, persistenceService)
-        callModel(conversation, config)
-      } catch (e: IllegalStateException) {
-        call.respondText(e.message ?: "Model not found", status = HttpStatusCode.BadRequest)
-      }
-    }
+            if (!isStream) {
+                client.makeRequest(call, "$openAiUrl/chat/completions", body, token)
+            } else {
+                client.makeStreaming(call, "$openAiUrl/chat/completions", body, token)
+            }
+        }
 
     post("/embeddings") {
       val token = call.getToken()
