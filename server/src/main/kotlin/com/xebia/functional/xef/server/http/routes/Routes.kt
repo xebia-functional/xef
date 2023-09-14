@@ -11,11 +11,7 @@ import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
 import com.xebia.functional.xef.prompt.templates.assistant
 import com.aallam.openai.api.BetaOpenAI
 import com.xebia.functional.xef.server.services.VectorStoreService
-import com.xebia.functional.xef.server.models.LoginRequest
-import com.xebia.functional.xef.server.models.RegisterRequest
-import com.xebia.functional.xef.server.services.PersistenceService
 import com.xebia.functional.xef.store.ConversationId
-import com.xebia.functional.xef.server.services.UserRepositoryService
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
@@ -34,13 +30,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
 
-fun String.toProvider(): Provider? = when (this) {
-    "openai" -> Provider.OPENAI
-    "gpt4all" -> Provider.GPT4ALL
-    "gcp" -> Provider.GCP
-    else -> Provider.OPENAI
-}
-
 @OptIn(BetaOpenAI::class)
 fun Routing.genAIRoutes(
     client: HttpClient,
@@ -50,17 +39,13 @@ fun Routing.genAIRoutes(
 
     authenticate("auth-bearer") {
         post("/chat/completions") {
-            val token = call.getToken()
-            val body = call.receive<String>()
-            val data = Json.decodeFromString<JsonObject>(body)
-
-            val isStream = data["stream"]?.jsonPrimitive?.boolean ?: false
-
-            if (!isStream) {
-                client.makeRequest(call, "$openAiUrl/chat/completions", body, token)
-            } else {
-                client.makeStreaming(call, "$openAiUrl/chat/completions", body, token)
-            }
+          try {
+            val config = ChatConfig(call)
+            val conversation = conversation(config, vectorStoreService)
+            callModel(conversation, config)
+          } catch (e: IllegalStateException) {
+            call.respondText(e.message ?: "Model not found", status = HttpStatusCode.BadRequest)
+          }
         }
 
     post("/embeddings") {
@@ -131,12 +116,12 @@ private suspend fun streamResponse(
 
 private fun conversation(
   config: ChatConfig,
-  persistenceService: PersistenceService
+  vectorStoreService: VectorStoreService
 ): PlatformConversation {
   val conversationId = config.conversationId?.let(::ConversationId)
   val conversation = Conversation(
     conversationId = conversationId,
-    store = persistenceService.getVectorStore(config.provider, config.token),
+    store = vectorStoreService.getVectorStore(config.provider, config.token),
   )
   return conversation
 }
