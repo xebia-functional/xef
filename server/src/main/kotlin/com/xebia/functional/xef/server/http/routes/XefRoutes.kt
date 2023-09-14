@@ -174,6 +174,10 @@ private fun ResponseHeaders.copyFrom(headers: Headers) = headers
     values.forEach { value -> this.appendIfAbsent(key, value) }
   }
 
+private fun ApplicationCall.getProvider(): Provider =
+    request.headers["xef-provider"]?.toProvider()
+        ?: Provider.OPENAI
+
 fun ApplicationCall.getToken(): String =
   principal<UserIdPrincipal>()?.name ?: throw IllegalArgumentException("No token found")
 

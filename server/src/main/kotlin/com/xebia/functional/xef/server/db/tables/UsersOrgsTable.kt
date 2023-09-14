@@ -3,7 +3,7 @@ package com.xebia.functional.xef.server.db.tables
 import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.Table
 
-object UsersOrgsTable : Table() {
+object UsersOrgsTable : Table("users_org") {
     val userId = reference(
         name = "user_id",
         foreign = UsersTable,
@@ -11,7 +11,7 @@ object UsersOrgsTable : Table() {
     )
     val orgId = reference(
         name = "org_id",
-        foreign = OrganizationTable,
+        foreign = OrganizationsTable,
         onDelete = ReferenceOption.CASCADE
     )
 
