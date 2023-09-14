@@ -61,6 +61,19 @@ fun Routing.organizationRoutes(
                 call.respondText(e.message ?: "Unexpected error", status = HttpStatusCode.BadRequest)
             }
         }
+        delete("/v1/settings/org/{id}") {
+            try {
+                val token = call.getToken()
+                val id = call.parameters["id"]?.toInt() ?: throw Exception("Invalid id")
+                val response = orgRepositoryService.deleteOrganization(token, id)
+                call.respond(
+                    status = HttpStatusCode.NoContent,
+                    response
+                )
+            } catch (e: Exception) {
+                call.respondText(e.message ?: "Unexpected error", status = HttpStatusCode.BadRequest)
+            }
+        }
     }
 }
 
