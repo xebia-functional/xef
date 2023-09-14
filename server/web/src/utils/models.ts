@@ -12,3 +12,16 @@ type LoginRequest = {
 type LoginResponse = {
     authToken: string;
 }
+
+type CreateOrganizationRequest = {
+    name: string;
+}
+
+type OrganizationsResponse = {
+    organizations: OrganizationResponse[];
+}
+
+type OrganizationResponse = {
+    id: number;
+    name: string;
+}

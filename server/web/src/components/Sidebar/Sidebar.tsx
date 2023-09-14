@@ -39,8 +39,8 @@ export function Sidebar({ drawerWidth, open }: SidebarProps) {
             </ListItemButton>
           </ListItem>
           <ListItem disablePadding>
-            <ListItemButton component={RouterLink} to="1">
-              <ListItemText primary="Feature One" />
+            <ListItemButton component={RouterLink} to="organizations">
+              <ListItemText primary="Organizations" />
             </ListItemButton>
           </ListItem>
           <ListItem disablePadding>
