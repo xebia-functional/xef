@@ -17,8 +17,8 @@ fun Routing.organizationRoutes(
     authenticate("auth-bearer") {
         get("/v1/settings/org") {
             try {
-                val token = call.principal<UserIdPrincipal>()
-                val response = orgRepositoryService.getOrganizations(token?.name)
+                val token = call.getToken()
+                val response = orgRepositoryService.getOrganizations(token)
                 call.respond(response)
             } catch (e: Exception) {
                 call.respondText(e.message ?: "Unexpected error", status = HttpStatusCode.BadRequest)
@@ -26,9 +26,9 @@ fun Routing.organizationRoutes(
         }
         get("/v1/settings/org/{id}") {
             try {
-                val token = call.principal<UserIdPrincipal>()
+                val token = call.getToken()
                 val id = call.parameters["id"]?.toInt() ?: throw Exception("Invalid id")
-                val response = orgRepositoryService.getOrganization(token?.name, id)
+                val response = orgRepositoryService.getOrganization(token, id)
                 call.respond(response)
             } catch (e: Exception) {
                 call.respondText(e.message ?: "Unexpected error", status = HttpStatusCode.BadRequest)
@@ -37,8 +37,8 @@ fun Routing.organizationRoutes(
         post("/v1/settings/org") {
             try {
                 val request = Json.decodeFromString<OrganizationRequest>(call.receive<String>())
-                val token = call.principal<UserIdPrincipal>()
-                val response = orgRepositoryService.createOrganization(request, token?.name)
+                val token = call.getToken()
+                val response = orgRepositoryService.createOrganization(request, token)
                 call.respond(
                     status = HttpStatusCode.Created,
                     response
@@ -50,9 +50,9 @@ fun Routing.organizationRoutes(
         put("/v1/settings/org/{id}") {
             try {
                 val request = Json.decodeFromString<OrganizationUpdateRequest>(call.receive<String>())
-                val token = call.principal<UserIdPrincipal>()
+                val token = call.getToken()
                 val id = call.parameters["id"]?.toInt() ?: throw Exception("Invalid id")
-                val response = orgRepositoryService.updateOrganization(request, token?.name)
+                val response = orgRepositoryService.updateOrganization(token, request, id)
                 call.respond(
                     status = HttpStatusCode.NoContent,
                     response
@@ -63,3 +63,4 @@ fun Routing.organizationRoutes(
         }
     }
 }
+

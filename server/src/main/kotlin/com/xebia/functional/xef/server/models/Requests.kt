@@ -22,7 +22,6 @@ data class OrganizationRequest(
 
 @Serializable
 data class OrganizationUpdateRequest(
-    val id: Int,
     val name: String,
     val owner: Int? = null
 )

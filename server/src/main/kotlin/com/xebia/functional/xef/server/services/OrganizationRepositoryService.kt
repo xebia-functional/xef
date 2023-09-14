@@ -14,13 +14,10 @@ class OrganizationRepositoryService(
 ) {
     fun createOrganization(
         data: OrganizationRequest,
-        token: String?
+        token: String
     ): OrganizationSimpleResponse {
         logger.info("Creating organization with name: ${data.name}")
-        return if (token == null) {
-            throw Exception("Token is null")
-        } else {
-            transaction {
+        return transaction {
                 // Getting the user from the token
                 val user = getUser(token)
 
@@ -34,30 +31,27 @@ class OrganizationRepositoryService(
                 organization.users = SizedCollection(organization.users + user)
                 OrganizationSimpleResponse(organization.name)
             }
-        }
     }
 
-    fun getOrganizations(token: String?): List<OrganizationWithIdResponse> {
+    fun getOrganizations(
+        token: String
+    ): List<OrganizationWithIdResponse> {
         logger.info("Getting organizations")
-        return if (token == null) {
-            throw Exception("Token is null")
-        } else {
-            transaction {
+        return transaction {
                 // Getting the user from the token
                 val user = getUser(token)
 
                 // Getting the organizations from the user
                 user.organizations.map { OrganizationWithIdResponse(it.id.value, it.name) }
             }
-        }
     }
 
-    fun getOrganization(token: String?, id: Int): List<OrganizationFullResponse> {
+    fun getOrganization(
+        token: String,
+        id: Int
+    ): List<OrganizationFullResponse> {
         logger.info("Getting organizations")
-        return if (token == null) {
-            throw Exception("Token is null")
-        } else {
-            transaction {
+        return transaction {
                 // Getting the user from the token
                 val user = getUser(token)
 
@@ -66,12 +60,13 @@ class OrganizationRepositoryService(
                     it.id.value == id
                 }.map { OrganizationFullResponse(it.id.value, it.name, it.ownerId.value) }
             }
-        }
+
     }
 
     fun updateOrganization(
+        token: String,
         data: OrganizationUpdateRequest,
-        token: String?
+        id: Int
     ): OrganizationFullResponse {
         logger.info("Updating organization with name: ${data.name}")
         return if (token == null) {
@@ -82,7 +77,7 @@ class OrganizationRepositoryService(
                 val user = getUser(token)
 
                 val organization = Organization.find {
-                    OrganizationsTable.id eq data.id
+                    OrganizationsTable.id eq id
                     OrganizationsTable.ownerId eq user.id
                 }.firstOrNull()
                     ?: throw Exception("Organization not found")
