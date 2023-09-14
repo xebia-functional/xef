@@ -9,6 +9,6 @@ data class LoginResponse(val authToken: String)
 data class OrganizationSimpleResponse(val name: String)
 
 @Serializable
-data class OrganizationWithIdResponse(val id: Int, val name: String)
+data class OrganizationWithIdResponse(val id: Int, val name: String, val users: Long)
 @Serializable
-data class OrganizationFullResponse(val id: Int, val name: String, val owner: Int)
+data class OrganizationFullResponse(val id: Int, val name: String, val owner: Int, val users: Long)

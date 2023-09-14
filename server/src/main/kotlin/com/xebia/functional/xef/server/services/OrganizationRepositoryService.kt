@@ -18,19 +18,19 @@ class OrganizationRepositoryService(
     ): OrganizationSimpleResponse {
         logger.info("Creating organization with name: ${data.name}")
         return transaction {
-                // Getting the user from the token
-                val user = getUser(token)
+            // Getting the user from the token
+            val user = getUser(token)
 
-                // Creating the organization
-                val organization = Organization.new {
-                    name = data.name
-                    ownerId = user.id
-                }
-                // Adding the organization to the user
-                user.organizations = SizedCollection(user.organizations + organization)
-                organization.users = SizedCollection(organization.users + user)
-                OrganizationSimpleResponse(organization.name)
+            // Creating the organization
+            val organization = Organization.new {
+                name = data.name
+                ownerId = user.id
             }
+            // Adding the organization to the user
+            user.organizations = SizedCollection(user.organizations + organization)
+            organization.users = SizedCollection(organization.users + user)
+            OrganizationSimpleResponse(organization.name)
+        }
     }
 
     fun getOrganizations(
@@ -38,12 +38,12 @@ class OrganizationRepositoryService(
     ): List<OrganizationWithIdResponse> {
         logger.info("Getting organizations")
         return transaction {
-                // Getting the user from the token
-                val user = getUser(token)
+            // Getting the user from the token
+            val user = getUser(token)
 
-                // Getting the organizations from the user
-                user.organizations.map { OrganizationWithIdResponse(it.id.value, it.name) }
-            }
+            // Getting the organizations from the user
+            user.organizations.map { OrganizationWithIdResponse(it.id.value, it.name, it.users.count()) }
+        }
     }
 
     fun getOrganization(
@@ -52,14 +52,14 @@ class OrganizationRepositoryService(
     ): List<OrganizationFullResponse> {
         logger.info("Getting organizations")
         return transaction {
-                // Getting the user from the token
-                val user = getUser(token)
+            // Getting the user from the token
+            val user = getUser(token)
 
-                // Getting the organizations from the user
-                user.organizations.filter {
-                    it.id.value == id
-                }.map { OrganizationFullResponse(it.id.value, it.name, it.ownerId.value) }
-            }
+            // Getting the organizations from the user
+            user.organizations.filter {
+                it.id.value == id
+            }.map { OrganizationFullResponse(it.id.value, it.name, it.ownerId.value, it.users.count()) }
+        }
 
     }
 
@@ -89,7 +89,12 @@ class OrganizationRepositoryService(
                         ?: throw Exception("User not found")
                     organization.ownerId = newOwner.id
                 }
-                OrganizationFullResponse(organization.id.value, organization.name, organization.ownerId.value)
+                OrganizationFullResponse(
+                    organization.id.value,
+                    organization.name,
+                    organization.ownerId.value,
+                    organization.users.count()
+                )
             }
         }
     }
