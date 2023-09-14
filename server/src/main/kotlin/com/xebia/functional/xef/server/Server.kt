@@ -9,7 +9,9 @@ import com.xebia.functional.xef.server.db.psql.Migrate
 import com.xebia.functional.xef.server.db.psql.XefVectorStoreConfig
 import com.xebia.functional.xef.server.db.psql.XefVectorStoreConfig.Companion.getVectorStoreService
 import com.xebia.functional.xef.server.http.routes.genAIRoutes
+import com.xebia.functional.xef.server.http.routes.organizationRoutes
 import com.xebia.functional.xef.server.http.routes.userRoutes
+import com.xebia.functional.xef.server.services.OrganizationRepositoryService
 import com.xebia.functional.xef.server.services.RepositoryService
 import com.xebia.functional.xef.server.services.UserRepositoryService
 import io.ktor.client.*
@@ -78,7 +80,8 @@ object Server {
                 }
                 routing {
                     genAIRoutes(ktorClient, vectorStoreService)
-                    userRoutes(UserRepositoryService())
+                    userRoutes(UserRepositoryService(logger))
+                    organizationRoutes(OrganizationRepositoryService(logger))
                 }
             }
             awaitCancellation()

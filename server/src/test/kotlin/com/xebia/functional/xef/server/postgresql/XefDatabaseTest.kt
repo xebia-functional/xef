@@ -48,8 +48,8 @@ class XefDatabaseTest {
     @BeforeEach
     fun cleanup() {
         transaction {
-            SchemaUtils.drop(UsersTable, OrganizationTable, ProjectsTable, UsersOrgsTable, XefTokensTable)
-            SchemaUtils.create(UsersTable, OrganizationTable, ProjectsTable, UsersOrgsTable, XefTokensTable)
+            SchemaUtils.drop(UsersTable, OrganizationsTable, ProjectsTable, UsersOrgsTable, XefTokensTable)
+            SchemaUtils.create(UsersTable, OrganizationsTable, ProjectsTable, UsersOrgsTable, XefTokensTable)
         }
     }
 
@@ -85,7 +85,7 @@ class XefDatabaseTest {
             assertEquals(ownerUser.id, retrievedOrganization?.ownerId)
 
             ownerUser.delete()
-            val deletedOrganization = Organization.find { OrganizationTable.name eq newOrganization.name }
+            val deletedOrganization = Organization.find { OrganizationsTable.name eq newOrganization.name }
             assertEquals(0, deletedOrganization.count())
 
         }

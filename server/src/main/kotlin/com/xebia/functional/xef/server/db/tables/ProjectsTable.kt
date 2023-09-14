@@ -8,13 +8,13 @@ import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.kotlin.datetime.CurrentTimestamp
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 
-object ProjectsTable: IntIdTable() {
+object ProjectsTable: IntIdTable("projects") {
     val name = varchar("name", 20)
     val createdAt = timestamp("created_at").defaultExpression(CurrentTimestamp())
     val updatedAt = timestamp("updated_at").defaultExpression(CurrentTimestamp())
     val orgId = reference(
         name = "org_id",
-        refColumn = OrganizationTable.id,
+        refColumn = OrganizationsTable.id,
         onDelete = ReferenceOption.CASCADE
     )
 }

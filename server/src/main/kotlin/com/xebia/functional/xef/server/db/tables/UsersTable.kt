@@ -8,7 +8,7 @@ import org.jetbrains.exposed.sql.kotlin.datetime.CurrentTimestamp
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 
 
-object UsersTable : IntIdTable() {
+object UsersTable : IntIdTable("users") {
     val name = varchar("name", 20)
     val email = varchar("email", 50)
     val passwordHash = binary("password_hash")

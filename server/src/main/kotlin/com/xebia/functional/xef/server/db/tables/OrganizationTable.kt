@@ -8,7 +8,7 @@ import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.kotlin.datetime.CurrentTimestamp
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 
-object OrganizationTable : IntIdTable() {
+object OrganizationsTable : IntIdTable("organizations") {
     val name = varchar("name", 20)
     val createdAt = timestamp("created_at").defaultExpression(CurrentTimestamp())
     val updatedAt = timestamp("updated_at").defaultExpression(CurrentTimestamp())
@@ -20,12 +20,12 @@ object OrganizationTable : IntIdTable() {
 }
 
 class Organization(id: EntityID<Int>) : IntEntity(id) {
-    companion object : IntEntityClass<Organization>(OrganizationTable)
+    companion object : IntEntityClass<Organization>(OrganizationsTable)
 
-    var name by OrganizationTable.name
-    var createdAt by OrganizationTable.createdAt
-    var updatedAt by OrganizationTable.updatedAt
-    var ownerId by OrganizationTable.ownerId
+    var name by OrganizationsTable.name
+    var createdAt by OrganizationsTable.createdAt
+    var updatedAt by OrganizationsTable.updatedAt
+    var ownerId by OrganizationsTable.ownerId
 
     var users by User via UsersOrgsTable
 }
