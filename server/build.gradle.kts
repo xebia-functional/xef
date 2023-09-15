@@ -22,6 +22,12 @@ node {
 }
 
 dependencies {
+    implementation(libs.exposed.core)
+    implementation(libs.exposed.dao)
+    implementation(libs.exposed.kotlin.datetime)
+    implementation(libs.exposed.java.time)
+    implementation(libs.exposed.jdbc)
+    implementation(libs.exposed.json)
     implementation(libs.flyway.core)
     implementation(libs.hikari)
     implementation(libs.klogging)
@@ -49,6 +55,15 @@ dependencies {
     implementation(projects.xefCore)
     implementation(projects.xefLucene)
     implementation(projects.xefPostgresql)
+
+    testImplementation(libs.junit.jupiter.api)
+    testImplementation(libs.junit.jupiter.engine)
+    testImplementation(libs.kotest.property)
+    testImplementation(libs.kotest.framework)
+    testImplementation(libs.kotest.assertions)
+    testImplementation(libs.kotest.testcontainers)
+    testImplementation(libs.testcontainers.postgresql)
+    testRuntimeOnly(libs.kotest.junit5)
 }
 
 tasks.getByName<Copy>("processResources") {
@@ -71,4 +86,8 @@ task<JavaExec>("server") {
     description = "xef-server server application"
     classpath = sourceSets.main.get().runtimeClasspath
     mainClass.set("com.xebia.functional.xef.server.Server")
+}
+
+tasks.named<Test>("test") {
+    useJUnitPlatform()
 }

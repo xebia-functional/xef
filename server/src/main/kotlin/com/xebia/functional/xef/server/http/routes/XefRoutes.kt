@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.server.http.routes
 
 import com.aallam.openai.api.BetaOpenAI
-import com.xebia.functional.xef.server.services.PersistenceService
+import com.xebia.functional.xef.server.services.VectorStoreService
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
@@ -12,7 +12,6 @@ import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.serialization.json.Json
@@ -31,11 +30,10 @@ fun String.toProvider(): Provider? = when (this) {
     else -> Provider.OPENAI
 }
 
-
 @OptIn(BetaOpenAI::class)
-fun Routing.routes(
+fun Routing.genAIRoutes(
     client: HttpClient,
-    persistenceService: PersistenceService
+    vectorStoreService: VectorStoreService
 ) {
     val openAiUrl = "https://api.openai.com/v1"
 
@@ -114,7 +112,7 @@ private fun ApplicationCall.getProvider(): Provider =
     request.headers["xef-provider"]?.toProvider()
         ?: Provider.OPENAI
 
-private fun ApplicationCall.getToken(): String =
+fun ApplicationCall.getToken(): String =
     principal<UserIdPrincipal>()?.name ?: throw IllegalArgumentException("No token found")
 
 
