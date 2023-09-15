@@ -2,6 +2,7 @@ package com.xebia.functional.xef.server.http.routes
 
 import com.xebia.functional.xef.server.models.OrganizationRequest
 import com.xebia.functional.xef.server.models.OrganizationUpdateRequest
+import com.xebia.functional.xef.server.models.exceptions.XefExceptions
 import com.xebia.functional.xef.server.services.OrganizationRepositoryService
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -16,74 +17,56 @@ fun Routing.organizationRoutes(
 ) {
     authenticate("auth-bearer") {
         get("/v1/settings/org") {
-            try {
-                val token = call.getToken()
-                val response = orgRepositoryService.getOrganizations(token)
-                call.respond(response)
-            } catch (e: Exception) {
-                call.respondText(e.message ?: "Unexpected error", status = HttpStatusCode.BadRequest)
-            }
+            val token = call.getToken()
+            val response = orgRepositoryService.getOrganizations(token)
+            call.respond(response)
         }
         get("/v1/settings/org/{id}") {
-            try {
-                val token = call.getToken()
-                val id = call.parameters["id"]?.toInt() ?: throw Exception("Invalid id")
-                val response = orgRepositoryService.getOrganization(token, id)
-                call.respond(response)
-            } catch (e: Exception) {
-                call.respondText(e.message ?: "Unexpected error", status = HttpStatusCode.BadRequest)
-            }
+
+            val token = call.getToken()
+            val id = call.getOrganizationId()
+            val response = orgRepositoryService.getOrganization(token, id)
+            call.respond(response)
         }
-        get("/v1/settings/org/{id}/users"){
-            try {
-                val token = call.getToken()
-                val id = call.parameters["id"]?.toInt() ?: throw Exception("Invalid id")
-                val response = orgRepositoryService.getUsersInOrganization(token, id)
-                call.respond(response)
-            } catch (e: Exception) {
-                call.respondText(e.message ?: "Unexpected error", status = HttpStatusCode.BadRequest)
-            }
+        get("/v1/settings/org/{id}/users") {
+            val token = call.getToken()
+            val id = call.getOrganizationId()
+            val response = orgRepositoryService.getUsersInOrganization(token, id)
+            call.respond(response)
         }
         post("/v1/settings/org") {
-            try {
-                val request = Json.decodeFromString<OrganizationRequest>(call.receive<String>())
-                val token = call.getToken()
-                val response = orgRepositoryService.createOrganization(request, token)
-                call.respond(
-                    status = HttpStatusCode.Created,
-                    response
-                )
-            } catch (e: Exception) {
-                call.respondText(e.message ?: "Unexpected error", status = HttpStatusCode.BadRequest)
-            }
+
+            val request = Json.decodeFromString<OrganizationRequest>(call.receive<String>())
+            val token = call.getToken()
+            val response = orgRepositoryService.createOrganization(request, token)
+            call.respond(
+                status = HttpStatusCode.Created,
+                response
+            )
         }
         put("/v1/settings/org/{id}") {
-            try {
-                val request = Json.decodeFromString<OrganizationUpdateRequest>(call.receive<String>())
-                val token = call.getToken()
-                val id = call.parameters["id"]?.toInt() ?: throw Exception("Invalid id")
-                val response = orgRepositoryService.updateOrganization(token, request, id)
-                call.respond(
-                    status = HttpStatusCode.NoContent,
-                    response
-                )
-            } catch (e: Exception) {
-                call.respondText(e.message ?: "Unexpected error", status = HttpStatusCode.BadRequest)
-            }
+            val request = Json.decodeFromString<OrganizationUpdateRequest>(call.receive<String>())
+            val token = call.getToken()
+            val id = call.getOrganizationId()
+            val response = orgRepositoryService.updateOrganization(token, request, id)
+            call.respond(
+                status = HttpStatusCode.NoContent,
+                response
+            )
         }
         delete("/v1/settings/org/{id}") {
-            try {
-                val token = call.getToken()
-                val id = call.parameters["id"]?.toInt() ?: throw Exception("Invalid id")
-                val response = orgRepositoryService.deleteOrganization(token, id)
-                call.respond(
-                    status = HttpStatusCode.NoContent,
-                    response
-                )
-            } catch (e: Exception) {
-                call.respondText(e.message ?: "Unexpected error", status = HttpStatusCode.BadRequest)
-            }
+            val token = call.getToken()
+            val id = call.getOrganizationId()
+            val response = orgRepositoryService.deleteOrganization(token, id)
+            call.respond(
+                status = HttpStatusCode.NoContent,
+                response
+            )
         }
     }
+}
+
+private fun ApplicationCall.getOrganizationId(): Int {
+    return this.parameters["id"]?.toInt() ?: throw XefExceptions.ValidationException("Invalid id")
 }
 
