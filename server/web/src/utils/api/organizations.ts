@@ -22,10 +22,10 @@ export type PostOrganizationProps = {
   name: string;
 };
 
-export async function postOrganizations({
+export async function postOrganizations(authToken: string, {
   name,
 }: PostOrganizationProps): Promise<number> {
-  const createOrganizationRequest: CreateOrganizationRequest = {
+  const createOrganizationRequest: OrganizationRequest = {
     name: name,
   };
   const createOrganizationApiOptions: ApiOptions = {
@@ -36,6 +36,7 @@ export async function postOrganizations({
       ...orgApiBaseOptions.requestOptions,
       headers: {
         ...orgApiBaseOptions.requestOptions?.headers,
+        Authorization: `Bearer ${authToken}`,
       },
     },
   };
@@ -51,7 +52,8 @@ export async function postOrganizations({
 
 // Get Organizations Endpoint
 
-export async function getOrganizations(): Promise<OrganizationsResponse> {
+export async function getOrganizations(authToken: string): Promise<OrganizationResponse[]> {
+  console.info('getOrganizations');
   const getOrganizationApiOptions: ApiOptions = {
     ...orgApiBaseOptions,
     requestOptions: {
@@ -59,6 +61,7 @@ export async function getOrganizations(): Promise<OrganizationsResponse> {
       ...orgApiBaseOptions.requestOptions,
       headers: {
         ...orgApiBaseOptions.requestOptions?.headers,
+        Authorization: `Bearer ${authToken}`,
       },
     },
   };
@@ -66,7 +69,7 @@ export async function getOrganizations(): Promise<OrganizationsResponse> {
     getOrganizationApiOptions,
   );
 
-  const organizationsResponse = await apiFetch<OrganizationsResponse>(
+  const organizationsResponse = await apiFetch<OrganizationResponse[]>(
     getOrganizationApiConfig,
   );
 
@@ -75,4 +78,35 @@ export async function getOrganizations(): Promise<OrganizationsResponse> {
   }
 
   return organizationsResponse.data!;
+}
+
+// put organization endpoint
+
+export async function putOrganizations(authToken: string, id: number, {
+  name,
+}: PostOrganizationProps): Promise<number> {
+  const putOrganizationRequest: OrganizationRequest = {
+    name: name,
+  };
+  const putOrganizationApiOptions: ApiOptions = {
+    ...orgApiBaseOptions,
+    endpointValue: `/${id}`,
+    body: JSON.stringify(putOrganizationRequest),
+    requestOptions: {
+      method: 'PUT',
+      ...orgApiBaseOptions.requestOptions,
+      headers: {
+        ...orgApiBaseOptions.requestOptions?.headers,
+        Authorization: `Bearer ${authToken}`,
+      },
+    },
+  };
+  const putOrganizationApiConfig = apiConfigConstructor(
+    putOrganizationApiOptions,
+  );
+  const putOrganizationResponse = await apiFetch<LoginResponse>(
+    putOrganizationApiConfig,
+  );
+
+  return putOrganizationResponse.status;
 }

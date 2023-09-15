@@ -25,7 +25,7 @@ export type ApiOptions = {
 export enum EndpointsEnum {
   login = 'login',
   register = 'register',
-  organization = 'organization',
+  organization = 'v1/settings/org',
 }
 
 export type EndpointsTypes = {
@@ -106,8 +106,10 @@ export async function apiFetch<T = Record<string, unknown>>(
     },
   };
 
+  let response: Response | undefined = undefined
+
   try {
-    const response = await fetchWithTimeout(apiConfig.url, apiConfig.options);
+    response = await fetchWithTimeout(apiConfig.url, apiConfig.options);
     const responseData: T | ErrorResponse = await response.json();
 
     if (isErrorResponse(responseData)) throw responseData.error.message;
@@ -117,6 +119,12 @@ export async function apiFetch<T = Record<string, unknown>>(
       data: responseData,
     };
   } catch (error) {
+    if (response != undefined) {
+      return { 
+        status: response.status,
+        data: undefined,
+      };
+    }
     const errorMessage = `💢 Error: ${error}`;
     console.error(errorMessage);
     throw errorMessage;
