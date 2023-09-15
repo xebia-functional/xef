@@ -1,0 +1,110 @@
+Module "Declarations"
+Uses
+	"Avail"
+Names
+	/* Constant declarations. */
+	"*…:_",
+	
+	/* Constant or variable declarations. */
+	"*…@_†:_"
+Body
+
+////////////////////////////////////////////////////////////////////////////////
+//                           Constant declarations.                           //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Define a constant. The value is specified by {@param "value"} and the static
+ * type is its instance type.
+ *
+ * @macro "*…:_"
+ * @param "name" "literal phrase ⇒ keyword token"
+ *   The name of the constant.
+ * @param "value" "expression phrase ⇒ any"
+ *   The value of the constant.
+ * @returns "send phrase ⇒ ⊤"
+ *   The {@type "declaration phrase"} to produce the constant.
+ */
+Public macro "*…:_" is
+[
+	name : literal phrase ⇒ keyword token,
+	value : expression phrase ⇒ any
+|
+	«name's token ::= value»
+];
+
+/**
+ * Define a constant. The static type is specified by {@param "staticType"} and
+ * the value is specified by {@param "value"}. The static type is given as a
+ * {@type "nontype"} value, and must agree exactly with the {@param "value"}.
+ *
+ * @macro "*…@_†:_"
+ * @param "name" "literal phrase ⇒ keyword token"
+ *   The name of the constant.
+ * @param "staticType" "expression phrase ⇒ nontype"
+ *   The value to treat as the static type of the constant. Must agree exactly
+ *   with {@param "value"}.
+ * @param "value" "expression phrase ⇒ nontype"
+ *   The value of the constant. Must agree exactly with {@param "staticType"}.
+ * @returns "send phrase ⇒ ⊤"
+ *   The {@type "declaration phrase"} to produce the constant.
+ */
+Public macro "*…@_†:_" is
+[
+	name : literal phrase ⇒ keyword token,
+	staticType : literal phrase ⇒ nontype,
+	value : expression phrase ⇒ nontype
+|
+	declaredType ::= (evaluate staticType)'s type;
+	actualValue ::= evaluate value;
+	Unless actualValue ∈ declaredType then
+	[
+		Reject parse, expected:
+			format
+				"value to agree with declared type \
+				\|(but “②” is not assignable to “①”)"
+			with
+				declaredType, actualValue
+	];
+	«name's token ::= value»
+];
+
+////////////////////////////////////////////////////////////////////////////////
+//                           Variable declarations.                           //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Define a variable. The static type is specified by {@param "staticType"} and
+ * the value is specified by {@param "value"}. The {@param "value"} must be
+ * assignable to the {@param "staticType" static type}.
+ *
+ * @macro "*…@_†:_"
+ * @param "name" "literal phrase ⇒ keyword token"
+ *   The name of the constant.
+ * @param "staticType" "expression phrase ⇒ nontype"
+ *   The static type of the variable. Must be assignable from {@param "value"}.
+ * @param "value" "expression phrase ⇒ nontype"
+ *   The initial value of the variable. Must be assignable to
+ *   {@param "staticType"}.
+ * @returns "send phrase ⇒ ⊤"
+ *   The {@type "declaration phrase"} to produce the variable.
+ */
+Public macro "*…@_†:_" is
+[
+	name : literal phrase ⇒ keyword token,
+	staticType : literal phrase ⇒ {any}ᵀ,
+	value : expression phrase ⇒ any
+|
+	declaredType ::= evaluate staticType;
+	actualValue ::= evaluate value;
+	Unless actualValue ∈ declaredType then
+	[
+		Reject parse, expected:
+			format
+				"value to agree with declared type \
+				\|(but “②” is not assignable to “①”)"
+			with
+				declaredType, actualValue
+	];
+	«name's token : declaredType := value»
+];

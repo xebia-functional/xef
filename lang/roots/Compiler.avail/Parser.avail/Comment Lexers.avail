@@ -9,46 +9,53 @@ Body
 //                                 Scanning.                                  //
 ////////////////////////////////////////////////////////////////////////////////
 
-/**
- * Upon encountering a number sign (U+0023), attempt to scan an end-of-line
- * {@type "comment"} {@type "token"}. This is # followed by arbitrary
- * characters and terminated by the first
- * {@method "_is line terminator" Unicode line terminator} or end of file.
- *
- * @lexer "comment lexer"
- * @param "source" "string"
- *   The complete source text.
- * @param "position" "natural number"
- *   The position of the leading {@type "character"}.
- * @param "line" "natural number"
- *   The line number of the leading {@type "character"}.
- * @returns "{token+|}"
- *   A single {@method "comment"} {@type "token"}.
- */
-Lexer $"comment lexer"
-when [c : character | c = ¢#]
-is
+// Lexers go into effect as soon as they are defined, but we do not need to
+// parse this kind of comment in ordinary Avail code. So delay the definition
+// until parsing of the enclosing module is complete, to prevent the lexer from
+// taking effect at all.
+After the current module is loaded, do
 [
-	source : string,
-	position : ℕ,
-	line : ℕ
-|
-	size ::= |source|;
-	i : natural number := position + 1;
-	While i ≤ size ∧ ¬source[i] is line terminator do [i++;];
-	commentText ::= source[position..i min size];
-	{<comment (commentText) @ position:line>}
-]
-styled by
-[
-	optionalOriginal : send phrase?,
-	transformed : phrase
-|
-	Cast transformed into
+	/**
+	 * Upon encountering a number sign (U+0023), attempt to scan an end-of-line
+	 * {@type "comment"} {@type "token"}. This is # followed by arbitrary
+	 * characters and terminated by the first
+	 * {@method "_is line terminator" Unicode line terminator} or end of file.
+	 *
+	 * @lexer "comment lexer"
+	 * @param "source" "string"
+	 *   The complete source text.
+	 * @param "position" "natural number"
+	 *   The position of the leading {@type "character"}.
+	 * @param "line" "natural number"
+	 *   The line number of the leading {@type "character"}.
+	 * @returns "{token+|}"
+	 *   A single {@method "comment"} {@type "token"}.
+	 */
+	Lexer $"comment lexer"
+	when [c : character | c = ¢#]
+	is
 	[
-		original : literal phrase
+		source : string,
+		position : ℕ,
+		line : ℕ
 	|
-		Style token original's token as "#comment" overwriting;
+		size ::= |source|;
+		i : natural number := position + 1;
+		While i ≤ size ∧ ¬source[i] is line terminator do [i++;];
+		commentText ::= source[position..i min size];
+		{<comment (commentText) @ position:line>}
 	]
-	else [];
-] : ⊤;
+	styled by
+	[
+		optionalOriginal : send phrase?,
+		transformed : phrase
+	|
+		Cast transformed into
+		[
+			original : literal phrase
+		|
+			Style token original's token as "#comment" overwriting;
+		]
+		else [];
+	] : ⊤;
+];

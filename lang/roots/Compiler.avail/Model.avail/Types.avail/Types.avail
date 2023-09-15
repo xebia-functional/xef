@@ -1,0 +1,12 @@
+Module "Types"
+Uses
+	"Avail"
+Extends
+	"Tuples"
+Body
+
+/**
+ * Herein are the foundational types of the Xef prompting language.
+ *
+ * @module "Types"
+ */

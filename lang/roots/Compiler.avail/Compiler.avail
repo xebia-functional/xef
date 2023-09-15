@@ -14,10 +14,27 @@ Extends
 		"whole number lexer",
 		"keyword lexer",
 		"operator lexer",
+		"whitespace lexer",
+		
+		/* Statements. */
+		"_!;" → "_!",
+		
+		/* Expressions. */
+		"…#",
+				
+		/* Types. */
+		"boolean" → "Bool",
+		"Java long" → "Int",
+		"double" → "Float",
+		"string" → "String",
+		"type" → "Type",
 		
 		/* Boolean literals. */
 		"true",
 		"false",
+		
+		/* Grouping. */
+		"(_)",
 		
 		/* Arithmetic. */
 		"-_",
@@ -32,16 +49,24 @@ Extends
 	"Model" =
 	(
 		/* Lexers. */
-		"semantic version lexer"
+		"semantic version lexer",
+		
+		/* Types. */
+		"Xef tuple" → "Tuple",
+		
+		/* Tuple constructors. */
+		"*[«_‡,»]" → "[«_‡,»]",
+		"*[«_,»*_]" → "[«_,»*_]"
 	),
 	"Parser" =
 	(
 		/* Lexers. */
-		"insignificant whitespace lexer",
-		"significant whitespace lexer",
+		"comment lexer",
 		
-		/* Conditionals. */
-		"*…#if_:…#§_",
-		"*…#if_:…#§_…#§else:…#§_"
+		/* Constant declarations. */
+		"*…:_" → "…:_",
+		
+		/* Constant or variable declarations. */
+		"*…@_†:_" → "…@_†:_"
 	)
 Body

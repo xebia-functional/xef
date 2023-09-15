@@ -1,0 +1,28 @@
+Module "Literals"
+Uses
+	"Avail",
+	"Model",
+	"Whitespace"
+Names
+	/* Indented literals. */
+	"*…#…#"
+Body
+
+/**
+ * Consume an indent and answer the trailing literal value.
+ *
+ * @macro "*…#…#"
+ * @param "indent" "literal phrase ⇒ literal token ⇒ {indent id}ᵀ"
+ *   The indent for the literal.
+ * @param "literal" "literal phrase ⇒ literal token ⇒ any"
+ *   The literal value.
+ * @returns "literal phrase ⇒ literal token ⇒ any"
+ *   The {@param "literal" literal value} obtained from some lexer.
+ */
+Macro "*…#…#" is
+[
+	indent : literal phrase ⇒ literal token ⇒ {indent id}ᵀ,
+	literal : literal phrase ⇒ literal token ⇒ any
+|
+	literal
+];

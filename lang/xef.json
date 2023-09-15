@@ -24,7 +24,7 @@
 			{
 				"locationType": "availLibraries",
 				"scheme": "JAR",
-				"path": "org/availlang/avail-stdlib-2.0.0.alpha23-1.6.1.alpha14.jar",
+				"path": "org/availlang/avail-stdlib-2.0.0.alpha23-1.6.1.alpha15.jar",
 				"rootNameInJar": "avail"
 			},
 			"moduleHeaders": 

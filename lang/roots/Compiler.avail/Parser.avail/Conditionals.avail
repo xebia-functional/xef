@@ -27,9 +27,9 @@ Body
  *   The predicate.
  * @param "trueBlockIndent" "literal phrase ⇒ literal token ⇒ {indent id}ᵀ"
  *   The indent for the "then" expression.
- * @param "trueBlock" "expression phrase ⇒ any"
+ * @param "trueBlock" "expression phrase ⇒ ⊤"
  *   The block to apply if {@param "predicate"} evaluates to {@method "true"}.
- * @returns "send phrase ⇒ any"
+ * @returns "send phrase ⇒ ⊤"
  */
 Public macro "*…#if_:…#§_" is
 [
@@ -49,7 +49,7 @@ Public macro "*…#if_:…#§_" is
 		⟦⦊predicate⦉ = true⟧,
 		trueBlock,
 		⟦[unknown]⟧
-	>» : any
+	>» : ⊤
 ];
 
 /**
@@ -66,9 +66,15 @@ Public macro "*…#if_:…#§_" is
  *   The predicate.
  * @param "trueBlockIndent" "literal phrase ⇒ literal token ⇒ {indent id}ᵀ"
  *   The indent for the "then" expression.
- * @param "trueBlock" "expression phrase ⇒ any"
+ * @param "trueBlock" "expression phrase ⇒ ⊤"
  *   The block to apply if {@param "predicate"} evaluates to {@method "true"}.
- * @returns "send phrase ⇒ any"
+ * @param "elseIndent" "literal phrase ⇒ literal token ⇒ {indent id}ᵀ"
+ *   The indent for the "else" keyword.
+ * @param "elseBlockIndent" "literal phrase ⇒ literal token ⇒ {indent id}ᵀ"
+ *   The indent for the "else" expression.
+ * @param "elseBlock" "expression phrase ⇒ ⊤"
+ *   The block to apply if {@param "predicate"} evaluates to {@method "false"}.
+ * @returns "send phrase ⇒ ⊤"
  */
 Public macro "*…#if_:…#§_…#§else:…#§_" is
 [
@@ -110,5 +116,5 @@ Public macro "*…#if_:…#§_…#§else:…#§_" is
 		⟦⦊predicate⦉ = true⟧,
 		trueBlock,
 		elseBlock
-	>» : any
+	>» : ⊤
 ];

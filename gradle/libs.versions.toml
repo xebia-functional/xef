@@ -42,8 +42,8 @@ suspendApp = "0.4.0"
 flyway = "9.17.0"
 resources-kmp = "0.4.0"
 detekt = "1.23.1"
-avail-core = "2.0.0.alpha23"
-avail-stdlib = "2.0.0.alpha23-1.6.1.alpha14"
+avail-core = "2.0.0.alpha24"
+avail-stdlib = "2.0.0.alpha23-1.6.1.alpha15"
 avail-plugin = "2.0.0.alpha20"
 
 [libraries]

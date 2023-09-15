@@ -12,8 +12,8 @@ Body
 ////////////////////////////////////////////////////////////////////////////////
 
 /**
- * Extract the indent from the specified source text. Answer an empty
- * {@type "tuple"} if no indentation was present.
+ * Extract the indent from the specified source text. Permit empty and blank
+ * lines. Answer an empty {@type "tuple"} if no indentation was present.
  *
  * @method "indent from_@_:_"
  * @param "source" "string"
@@ -29,75 +29,91 @@ Private method "indent from_@_:_" is
 |
 	i : ℕ := position;
 	size ::= |source|;
-	While i ≤ size ∧ source[i] ∈ " \t" do [i++;];
+	While i ≤ size ∧ source[i] ∈ " \t\r\n" do [i++;];
 	end ::= (i - 1) min size;
 	// If no indentation was present, then answer an empty tuple.
 	if i = position then [<>]
 	else [<`indent id` (source[position .. end]) @ position:line>]
 ];
 
-/**
- * Upon encountering a carriage return (U+000D) or line feed (U+000A), consume
- * the terminator and then scan for indentation characters, which are
- * horizontal tabulation (U+0009) and space (U+0020). Produce two
- * {@type "token"}s. Both contain the {@method "indent id"} special
- * {@type "atom"}, and are duplicates of one another. This arrangement permits
- * the systematic structuring of macros such that (1) an expression can ensure
- * that its subexpressions occur with an appropriate level of indentation and
- * (2) a subexpression can ensure that its keywords and operators all occur
- * with equal indentation, e.g., {@code "if"} and {@code "else"} each have the
- * same leading indentation. If no indentation was found, then answer an
- * ordinary {@method "whitespace"} {@type "token"}.
- *
- * @lexer "significant whitespace lexer"
- * @param "source" "string"
- *   The complete source text.
- * @param "position" "natural number"
- *   The position of the leading {@type "character"}.
- * @param "line" "natural number"
- *   The line number of the leading {@type "character"}.
- * @returns "{<token…|1..2>|1}"
- *   The {@type "token"}s scanned.
- */
-Lexer $"significant whitespace lexer"
-when [c : character | c = ¢"\r" ∨ c = ¢"\n"]
-is
+// Lexers go into effect as soon as they are defined, but we do not want
+// ambiguity about how to read line endings. So delay the definition until
+// parsing of the enclosing module is complete, to prevent the lexer from
+// taking effect at all.
+After the current module is loaded, do
 [
-	source : string,
-	position : ℕ,
-	line: ℕ
-|
-	size ::= |source|;
-	// Capture the line feed, but produce a token that answers a special atom.
-	// This will allow …! in macro names to consume this token (because it
-	// can't consume ordinary whitespace).
-	startOfIndent ::=
-		if source[position] = ¢"\n" then [ position + 1 ]
+	/**
+	 * Upon encountering a carriage return (U+000D) or line feed (U+000A),
+	 * consume the terminator and then scan for indentation characters, which
+	 * are horizontal tabulation (U+0009) and space (U+0020). Produce two
+	 * {@type "token"}s. Both contain the {@method "indent id"} special
+	 * {@type "atom"}, and are duplicates of one another. This arrangement
+	 * permits the systematic structuring of macros such that (1) an expression
+	 * can ensure that its subexpressions occur with an appropriate level of
+	 * indentation and (2) a subexpression can ensure that its keywords and
+	 * operators all occur with equal indentation, e.g., {@code "if"} and
+	 * {@code "else"} each have the same leading indentation. If no indentation
+	 * was found, then answer an ordinary {@method "whitespace"}
+	 * {@type "token"}.
+	 *
+	 * @lexer "significant whitespace lexer"
+	 * @param "source" "string"
+	 *   The complete source text.
+	 * @param "position" "natural number"
+	 *   The position of the leading {@type "character"}.
+	 * @param "line" "natural number"
+	 *   The line number of the leading {@type "character"}.
+	 * @returns "{<token…|1..2>|1}"
+	 *   The {@type "token"}s scanned.
+	 */
+	Lexer $"significant whitespace lexer"
+	when [c : character | c = ¢"\r" ∨ c = ¢"\n"]
+	is
+	[
+		source : string,
+		position : ℕ,
+		line: ℕ
+	|
+		size ::= |source|;
+		// Capture the line feed, but produce a token that answers a special atom.
+		// This will allow …! in macro names to consume this token (because it
+		// can't consume ordinary whitespace).
+		startOfIndent ::=
+			if source[position] = ¢"\n" then [ position + 1 ]
+			else
+			[
+				// Because of the entry condition for the lexer, we know that
+				// source[position] is a carriage return (U+000D).
+				if source[position + 1] = ¢"\n" then [ position + 2 ]
+				else [ Reject parse, expected: "line feed (\\n)" ]
+			];
+		// Now consume any combination of spaces and tabs following the line feed,
+		// packaging them up into a new token.
+		indentToken ::= indent from source @ startOfIndent : line + 1;
+		if indentToken is empty then
+		[
+			// If there is no indent present, then answer an ordinary whitespace
+			// token.
+			{<whitespace (source[position .. startOfIndent - 1]) @ position:line>}
+		]
 		else
 		[
-			// Because of the entry condition for the lexer, we know that
-			// source[position] is a carriage return (U+000D).
-			if source[position + 1] = ¢"\n" then [ position + 2 ]
-			else [ Reject parse, expected: "line feed (\\n)" ]
-		];
-	// Now consume any combination of spaces and tabs following the line feed,
-	// packaging them up into a new token.
-	indentToken ::= indent from source @ startOfIndent : line + 1;
-	if indentToken is empty then
-	[
-		// If there is no indent present, then answer an ordinary whitespace
-		// token.
-		{<whitespace (source[position .. startOfIndent - 1]) @ position:line>}
-	]
-	else
-	[
-		// Now the weird part: we double the indent token, so that it can be
-		// consumed during the parsing of an expression and then again during
-		// the parsing of a subexpression. This mechanism allows us to
-		// communicate the exact indent across the parse boundary.
-		{2 of indentToken[1]}
-	]
-	// DO NOT ADD A LINE FEED TO THE END OF THIS MODULE. We can only relax this
-	// constraint after issue #279 is resolved and the code is adjusted to use
-	// a post-loading activity.
+			endPosition ::= startOfIndent + |indentToken[1]'s lexeme|;
+			if endPosition = size then
+			[
+				Print: "got here";
+				// If the file ends after this token, then answer an ordinary
+				// whitespace token.
+				{<whitespace (source[position ..]) @ position:line>}
+			]
+			else
+			[
+				// Now the weird part: we double the indent token, so that it can
+				// be consumed during the parsing of an expression and then again
+				// during the parsing of a subexpression. This mechanism allows us
+				// to communicate the exact indent across the parse boundary.
+				{2 of indentToken[1]}
+			]
+		]
+	];
 ];

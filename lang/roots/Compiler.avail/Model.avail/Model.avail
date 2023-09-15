@@ -1,7 +1,13 @@
 Module "Model"
+Uses
+	/* We don't need to re-export anything, but we do want the compiler to
+	 * see the test cases.
+	 */
+	"Tests"
 Extends
 	"Avail",
 	"Logic",
 	"Scripts",
-	"Semantic Versions"
+	"Semantic Versions",
+	"Types"
 Body

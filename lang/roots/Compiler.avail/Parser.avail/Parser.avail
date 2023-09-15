@@ -2,6 +2,8 @@ Module "Parser"
 Extends
 	"Comment Lexers",
 	"Conditionals",
+	"Declarations",
+	"Literals",
 	"Objects",
 	"Whitespace",
 	"Whitespace Lexers"

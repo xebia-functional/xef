@@ -1,0 +1,116 @@
+Module "Tests"
+Uses
+	"Avail",
+	"Semantic Versions",
+	"Test Suites"
+Body
+
+/**
+ * Herein are tests of the various models.
+ *
+ * @module "Tests"
+ */
+
+////////////////////////////////////////////////////////////////////////////////
+//                                   Tests.                                   //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Ensure that (1) the lexer produces correct values and (2) the accessors
+ * function correctly.
+ */
+Test "literal semantic versions" in lexer test suite is
+[
+	Require: 0.1.2 = <semantic version id, 0, 1, 2>;
+	Require: 0.1.2's major = 0;
+	Require: 0.1.2's minor = 1;
+	Require: 0.1.2's patch = 2;
+
+	Require: 10.99.5 = <semantic version id, 10, 99, 5>;
+	Require: 10.99.5's major = 10;
+	Require: 10.99.5's minor = 99;
+	Require: 10.99.5's patch = 5;	
+];
+
+/**
+ * Ensure that (1) the method produces correct values and (2) the accessors
+ * function correctly.
+ */
+Test "dynamic semantic versions" in lexer test suite is
+[
+	a, b, c ::= <0, 1, 2>;
+	Require: a.b.c = <semantic version id, 0, 1, 2>;
+	Require: a.b.c = 0.1.2;
+	Require: a.b.c's major = 0;
+	Require: a.b.c's minor = 1;
+	Require: a.b.c's patch = 2;
+
+	x, y, z ::= <10, 99, 5>;
+	Require: x.y.z = <semantic version id, 10, 99, 5>;
+	Require: x.y.z = 10.99.5;
+	Require: x.y.z's major = 10;
+	Require: x.y.z's minor = 99;
+	Require: x.y.z's patch = 5;	
+];
+
+/**
+ * Ensure that all relations on {@type "semantic versions"} are correct.
+ */
+Test "semantic version relations" in lexer test suite is
+[
+	// Spot check some basics.
+	Require: ¬ 0.0.0 < 0.0.0;
+	Require: 0.0.0 < 0.0.1;
+	Require: 0.0.0 < 0.1.0;
+	Require: 0.0.0 < 1.0.0;
+
+	Require: 0.0.0 ≤ 0.0.0;
+	Require: 0.0.0 ≤ 0.0.1;
+	Require: 0.0.0 ≤ 0.1.0;
+	Require: 0.0.0 ≤ 1.0.0;
+
+	Require: 0.0.0 ≥ 0.0.0;
+	Require: 0.0.1 ≥ 0.0.0;
+	Require: 0.1.0 ≥ 0.0.0;
+	Require: 1.0.0 ≥ 0.0.0;
+
+	Require: ¬ 0.0.0 > 0.0.0;
+	Require: 0.0.1 > 0.0.0;
+	Require: 0.1.0 > 0.0.0;
+	Require: 1.0.0 > 0.0.0;
+	
+	// Now test a small matrix, using computational backtracking to test all
+	// possibilities. "all values of_" invokes the specified function for each
+	// possible outcome of "trial`#of_", thereby producing 15,625 pairings of
+	// semantic versions. Each pair performs each defined relation, testing the
+	// result against a strategy that performs equivalent logic on the
+	// decomposition of the semantic versions.
+	For each t in all values of [<
+		<trial# of 5, trial# of 5, trial# of 5> → semantic version,
+		<trial# of 5, trial# of 5, trial# of 5> → semantic version
+	>]
+	do
+	[
+		a, b ::= t;
+		aMajor, aMinor, aPatch ::= a;
+		bMajor, bMinor, bPatch ::= b;
+		Require:
+			(a = b) = (aMajor = bMajor ∧ aMinor = bMinor ∧ aPatch = bPatch)
+			(format "“①” = “②”" with a, b);
+		Require:
+			(a ≠ b) = (aMajor ≠ bMajor ∨ aMinor ≠ bMinor ∨ aPatch ≠ bPatch)
+			(format "“①” ≠ “②”" with a, b);
+		Require:
+			(a < b) = (aMajor < bMajor ∨ aMinor < bMinor ∨ aPatch < bPatch)
+			(format "“①” < “②”" with a, b);
+		Require:
+			(a ≤ b) = (aMajor ≤ bMajor ∨ aMinor ≤ bMinor ∨ aPatch ≤ bPatch)
+			(format "“①” ≤ “②”" with a, b);
+		Require:
+			(a ≥ b) = (aMajor ≥ bMajor ∨ aMinor ≥ bMinor ∨ aPatch ≥ bPatch)
+			(format "“①” ≥ “②”" with a, b);
+		Require:
+			(a > b) = (aMajor > bMajor ∨ aMinor > bMinor ∨ aPatch > bPatch)
+			(format "“①” ≥ “②”" with a, b);
+	];
+];

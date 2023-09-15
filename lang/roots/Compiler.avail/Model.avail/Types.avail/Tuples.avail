@@ -1,0 +1,132 @@
+Module "Tuples"
+Uses
+	"Avail"
+Names
+	/* Types. */
+	"Xef tuple",
+		"tuple elements",
+			"_'s⁇elements",
+	"labeled Xef tuple",
+		"tuple labels",
+			"_'s⁇labels",
+	
+	/* Tuple constructors. */
+	"*[«_‡,»]",
+	"*[«_,»*_]"
+Body
+
+/**
+ * Herein are {@type "Xef tuple"}s, the core composite data type. These
+ * are actually based on Avail {@type "object"}s, as they share more
+ * type theoretic similarities than with Avail {@type "tuple"}s.
+ *
+ * @module "Tuples"
+ */
+
+////////////////////////////////////////////////////////////////////////////////
+//                                   Types.                                   //
+////////////////////////////////////////////////////////////////////////////////
+
+Public "tuple elements" is a new field atom;
+
+/**
+ * {@type "Xef tuple"} is the fundamental composite data type in the Xef
+ * programming language. From a type theoretic perspective, it is a hybrid
+ * between an Avail {@type "tuple"} and an Avail {@type "object"}. Like an
+ * {@type "Avail tuple"}, it compromises zero or more heterogeneously-typed
+ * leading elements followed by an arbitrary number of homogeneously-typed
+ * trailing elements. Like an {@type "Avail object"}, it supports labeling of
+ * its constituents. Such labeling, however, is optional for a Xef
+ * {@type "tuple"}.
+ *
+ * @type "Xef tuple"
+ * @field "tuple elements" "tuple"
+ *   The elements of the tuple.
+ */
+Public class "Xef tuple" extends object
+	with field
+		public tuple elements : tuple ("_'s⁇elements");
+
+Public "tuple labels" is a new field atom;
+
+/**
+ * A {@type "Xef tuple"} with labeled elements. There must be as enough labels
+ * to cover the heterogeneously-typed leading elements, plus one more to
+ * aggregate the homogeneously-typed trailing elements.
+ *
+ * @type "labeled Xef tuple"
+ * @field "tuple labels" "nonempty string*"
+ *   The labels for the elements of the tuple.
+ */
+Public class "labeled Xef tuple" extends Xef tuple
+	with field
+		public tuple labels : nonempty string* ("_'s⁇labels");
+
+/**
+ * Construct a fixed-size {@type "Xef tuple"} type from the specified variadic
+ * arguments.
+ *
+ * @macro "*[«_‡,»]"
+ * @param "elements" "list phrase ⇒ ({any}ᵀ+)"
+ *   The element types of the desired fixed-size {@type "Xef tuple"} type.
+ * @returns "send phrase ⇒ Xef tuple"
+ *   An application of the appropriate {@type "object"} constructor for a
+ *   {@type "Xef tuple"}.
+ */
+Public macro "*[«_‡,»]" is
+[
+	elements : list phrase ⇒ ({any}ᵀ+)
+|
+	elementTypes ::= x ∈ elements's expressions → x's semantic type's instance;
+	size ::= |elementTypes|;
+	tupleType ::=
+		‘if elementTypes is empty then [<⊥…|0>]
+		else [<elementTypes[1 .. size - 1], elementTypes[size]… | {size}ᵀ>]’;
+	⟦extend Xef tuple with tuple elements : ⦊tupleType⦉⟧
+];
+
+/**
+ * Construct a flexible {@type "Xef tuple"} type from the specified variadic
+ * arguments.
+ *
+ * @macro "*[«_,»*_]"
+ * @param "elements" "list phrase ⇒ ({any}ᵀ*)"
+ *   The prefix element types of the desired {@type "Xef tuple"} type.
+ * @param "default" "expression phrase ⇒ {any}ᵀ"
+ *   The default element type of the desired {@type "Xef tuple"} type.
+ * @returns "send phrase ⇒ Xef tuple"
+ *   An application of the appropriate {@type "object"} constructor for a
+ *   {@type "Xef tuple"}.
+ */
+Public macro "*[«_,»*_]" is
+[
+	elements : list phrase ⇒ ({any}ᵀ*),
+	default : expression phrase ⇒ {any}ᵀ
+|
+	elementTypes ::= x ∈ elements's expressions → x's semantic type's instance;
+	size ::= |elementTypes|;
+	tupleType ::=
+		‘<elementTypes, default's semantic type's instance… | [size .. ∞)>’;
+	⟦extend Xef tuple with tuple elements : ⦊tupleType⦉⟧
+];
+
+////////////////////////////////////////////////////////////////////////////////
+//                                  Tuples.                                   //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Construct a {@type "Xef tuple"} from the specified variadic arguments.
+ *
+ * @macro "*[«_‡,»]"
+ * @param "elements" "list phrase ⇒ tuple"
+ *   The elements of the desired {@type "Xef tuple"}.
+ * @returns "send phrase ⇒ Xef tuple"
+ *   An application of the appropriate {@type "object"} constructor for a
+ *   {@type "Xef tuple"}.
+ */
+Public macro "*[«_‡,»]" is
+[
+	elements : list phrase ⇒ tuple
+|
+	⟦a Xef tuple with tuple elements ::= ⦊elements⦉⟧
+];
