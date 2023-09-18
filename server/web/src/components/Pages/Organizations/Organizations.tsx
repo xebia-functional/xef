@@ -1,12 +1,13 @@
 import { useAuth } from "@/state/Auth";
 import { LoadingContext } from "@/state/Loading";
-import { PostOrganizationProps, getOrganizations, postOrganizations, putOrganizations } from "@/utils/api/organizations";
+import { PostOrganizationProps, deleteOrganizations, getOrganizations, postOrganizations, putOrganizations } from "@/utils/api/organizations";
 import {
   Box,
   Button,
   Dialog,
   DialogActions,
   DialogContent,
+  DialogContentText,
   DialogTitle,
   Grid,
   Paper,
@@ -65,6 +66,30 @@ export function Organizations() {
     setOrganizationDataInDialog({ name: event.target.value })
   };
 
+  // functions to open/close the delete organization dialog
+
+  const [openDeleteOrganization, setOpenDeleteOrganization] = useState(false);
+
+  const [organizationforDeleting, setOrganizationForDeleting] = useState<OrganizationResponse | undefined>(undefined); 
+
+  const handleClickDeleteOrganization = (org: OrganizationResponse) => {
+    setOpenDeleteOrganization(true);
+    setOrganizationForDeleting(org);
+  };
+
+  const handleCloseDeleteOrganzation = () => {
+    setOpenDeleteOrganization(false);
+  };
+
+  const handleDeleteOrganization = async () => {
+      if (organizationforDeleting != undefined)
+        await deleteOrganizations(auth.authToken, organizationforDeleting.id);
+
+      loadOrganizations();
+    
+      setOpenDeleteOrganization(false);
+  };
+
   // function to load organizations
 
   const [loading, setLoading] = useContext(LoadingContext);
@@ -111,6 +136,7 @@ export function Organizations() {
                 <TableCell>Users</TableCell>
                 <TableCell>Name</TableCell>
                 <TableCell></TableCell>
+                <TableCell></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -131,6 +157,14 @@ export function Organizations() {
                       variant="text"
                       disableElevation>
                       <Typography variant="button">Edit</Typography>
+                    </Button>
+                  </TableCell>
+                  <TableCell align="right">
+                    <Button
+                      onClick={() => handleClickDeleteOrganization(organization)}
+                      variant="text"
+                      disableElevation>
+                      <Typography variant="button">Delete</Typography>
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -165,5 +199,31 @@ export function Organizations() {
         <Button onClick={handleSaveAddEditOrganization}>{organizationforUpdating == undefined ? "Create" : "Update"}</Button>
       </DialogActions>
     </Dialog>
+
+    {/* Delete Organization Dialog */}
+
+    <div>
+      <Dialog
+        open={openDeleteOrganization}
+        onClose={handleCloseDeleteOrganzation}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle>
+          {"Delete Organizaction?"}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Are you sure you want to delete this organization?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDeleteOrganzation}>No</Button>
+          <Button onClick={handleDeleteOrganization} autoFocus>
+            Yes
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </div>
   </>;
 }

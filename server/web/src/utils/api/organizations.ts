@@ -110,3 +110,29 @@ export async function putOrganizations(authToken: string, id: number, {
 
   return putOrganizationResponse.status;
 }
+
+
+// delete organization endpoint
+
+export async function deleteOrganizations(authToken: string, id: number): Promise<number> {
+  const deleteOrganizationApiOptions: ApiOptions = {
+    ...orgApiBaseOptions,
+    endpointValue: `/${id}`,
+    requestOptions: {
+      method: 'DELETE',
+      ...orgApiBaseOptions.requestOptions,
+      headers: {
+        ...orgApiBaseOptions.requestOptions?.headers,
+        Authorization: `Bearer ${authToken}`,
+      },
+    },
+  };
+  const deleteOrganizationApiConfig = apiConfigConstructor(
+    deleteOrganizationApiOptions,
+  );
+  const deleteOrganizationResponse = await apiFetch<LoginResponse>(
+    deleteOrganizationApiConfig,
+  );
+
+  return deleteOrganizationResponse.status;
+}
