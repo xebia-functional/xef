@@ -1,10 +1,7 @@
 package com.xebia.functional.xef.gcp.models
 
 import com.xebia.functional.tokenizer.ModelType
-import com.xebia.functional.xef.conversation.AutoClose
-import com.xebia.functional.xef.conversation.autoClose
 import com.xebia.functional.xef.gcp.GcpClient
-import com.xebia.functional.xef.gcp.GcpConfig
 import com.xebia.functional.xef.llm.Embeddings
 import com.xebia.functional.xef.llm.models.embeddings.Embedding
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
@@ -13,11 +10,8 @@ import com.xebia.functional.xef.llm.models.usage.Usage
 
 class GcpEmbeddings(
   override val modelType: ModelType,
-  private val config: GcpConfig,
-) : Embeddings, AutoClose by autoClose() {
-
-  private val client: GcpClient =
-    com.xebia.functional.xef.conversation.autoClose { GcpClient(modelType.name, config) }
+  private val client: GcpClient,
+) : Embeddings {
 
   override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult {
     fun requestToEmbedding(it: GcpClient.EmbeddingPredictions): Embedding =

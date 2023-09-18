@@ -45,8 +45,12 @@ class GCP(projectId: String? = null, location: VertexAIRegion? = null, token: St
   private fun fromEnv(name: String): String =
     getenv(name) ?: throw AIError.Env.GCP(nonEmptyListOf("missing $name env var"))
 
-  val CODECHAT by lazy { GcpChat(ModelType.TODO("codechat-bison@001"), config) }
-  val TEXT_EMBEDDING_GECKO by lazy { GcpEmbeddings(ModelType.TODO("textembedding-gecko"), config) }
+  val defaultClient = GcpClient(config)
+
+  val CODECHAT by lazy { GcpChat(ModelType.TODO("codechat-bison@001"), defaultClient) }
+  val TEXT_EMBEDDING_GECKO by lazy {
+    GcpEmbeddings(ModelType.TODO("textembedding-gecko"), defaultClient)
+  }
 
   @JvmField val DEFAULT_CHAT = CODECHAT
   @JvmField val DEFAULT_EMBEDDING = TEXT_EMBEDDING_GECKO

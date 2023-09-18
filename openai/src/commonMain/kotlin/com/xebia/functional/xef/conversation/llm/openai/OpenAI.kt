@@ -57,59 +57,60 @@ class OpenAI(internal var token: String? = null, internal var host: String? = nu
     }
   }
 
-  fun createClient() =
+  val defaultClient =
     OpenAIClient(
-      host = getHost()?.let { OpenAIHost(it) } ?: OpenAIHost.OpenAI,
-      token = getToken(),
-      logging = LoggingConfig(LogLevel.None),
-      headers = mapOf("Authorization" to " Bearer ${getToken()}"),
-    )
+        host = getHost()?.let { OpenAIHost(it) } ?: OpenAIHost.OpenAI,
+        token = getToken(),
+        logging = LoggingConfig(LogLevel.None),
+        headers = mapOf("Authorization" to " Bearer ${getToken()}"),
+      )
+      .let { autoClose(it) }
 
-  val GPT_4 by lazy { autoClose(OpenAIFunChat(ModelType.GPT_4, createClient())) }
+  val GPT_4 by lazy { autoClose(OpenAIFunChat(ModelType.GPT_4, defaultClient)) }
 
   val GPT_4_0314 by lazy {
-    autoClose(OpenAIFunChat(ModelType.GPT_4, createClient())) // legacy
+    autoClose(OpenAIFunChat(ModelType.GPT_4, defaultClient)) // legacy
   }
 
-  val GPT_4_32K by lazy { autoClose(OpenAIFunChat(ModelType.GPT_4_32K, createClient())) }
+  val GPT_4_32K by lazy { autoClose(OpenAIFunChat(ModelType.GPT_4_32K, defaultClient)) }
 
-  val GPT_3_5_TURBO by lazy { autoClose(OpenAIChat(ModelType.GPT_3_5_TURBO, createClient())) }
+  val GPT_3_5_TURBO by lazy { autoClose(OpenAIChat(ModelType.GPT_3_5_TURBO, defaultClient)) }
 
   val GPT_3_5_TURBO_16K by lazy {
-    autoClose(OpenAIChat(ModelType.GPT_3_5_TURBO_16_K, createClient()))
+    autoClose(OpenAIChat(ModelType.GPT_3_5_TURBO_16_K, defaultClient))
   }
 
   val GPT_3_5_TURBO_FUNCTIONS by lazy {
-    autoClose(OpenAIFunChat(ModelType.GPT_3_5_TURBO_FUNCTIONS, createClient()))
+    autoClose(OpenAIFunChat(ModelType.GPT_3_5_TURBO_FUNCTIONS, defaultClient))
   }
 
   val GPT_3_5_TURBO_0301 by lazy {
-    autoClose(OpenAIChat(ModelType.GPT_3_5_TURBO, createClient())) // legacy
+    autoClose(OpenAIChat(ModelType.GPT_3_5_TURBO, defaultClient)) // legacy
   }
 
   val TEXT_DAVINCI_003 by lazy {
-    autoClose(OpenAICompletion(ModelType.TEXT_DAVINCI_003, createClient()))
+    autoClose(OpenAICompletion(ModelType.TEXT_DAVINCI_003, defaultClient))
   }
 
   val TEXT_DAVINCI_002 by lazy {
-    autoClose(OpenAICompletion(ModelType.TEXT_DAVINCI_002, createClient()))
+    autoClose(OpenAICompletion(ModelType.TEXT_DAVINCI_002, defaultClient))
   }
 
   val TEXT_CURIE_001 by lazy {
-    autoClose(OpenAICompletion(ModelType.TEXT_SIMILARITY_CURIE_001, createClient()))
+    autoClose(OpenAICompletion(ModelType.TEXT_SIMILARITY_CURIE_001, defaultClient))
   }
 
   val TEXT_BABBAGE_001 by lazy {
-    autoClose(OpenAICompletion(ModelType.TEXT_BABBAGE_001, createClient()))
+    autoClose(OpenAICompletion(ModelType.TEXT_BABBAGE_001, defaultClient))
   }
 
-  val TEXT_ADA_001 by lazy { autoClose(OpenAICompletion(ModelType.TEXT_ADA_001, createClient())) }
+  val TEXT_ADA_001 by lazy { autoClose(OpenAICompletion(ModelType.TEXT_ADA_001, defaultClient)) }
 
   val TEXT_EMBEDDING_ADA_002 by lazy {
-    autoClose(OpenAIEmbeddings(ModelType.TEXT_EMBEDDING_ADA_002, createClient()))
+    autoClose(OpenAIEmbeddings(ModelType.TEXT_EMBEDDING_ADA_002, defaultClient))
   }
 
-  val DALLE_2 by lazy { autoClose(OpenAIImages(ModelType.GPT_3_5_TURBO, createClient())) }
+  val DALLE_2 by lazy { autoClose(OpenAIImages(ModelType.GPT_3_5_TURBO, defaultClient)) }
 
   @JvmField val DEFAULT_CHAT = GPT_3_5_TURBO_16K
 
