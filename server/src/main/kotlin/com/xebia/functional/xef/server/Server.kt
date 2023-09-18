@@ -19,6 +19,7 @@ import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.auth.*
 import io.ktor.client.plugins.logging.*
+import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -67,6 +68,7 @@ object Server {
             server(factory = Netty, port = 8081, host = "0.0.0.0") {
                 install(CORS) {
                     allowNonSimpleContentTypes = true
+                    HttpMethod.DefaultMethods.forEach { allowMethod(it) }
                     allowHeaders { true }
                     anyHost()
                 }

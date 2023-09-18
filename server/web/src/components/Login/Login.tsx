@@ -4,11 +4,11 @@ import { useContext, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import styles from './Login.module.css';
 import { LoadingContext } from '@/state/Loading';
-import { postLogin } from '@/utils/api/login';
+import { postLogin } from '@/utils/api/users';
 import { FormLogin } from './FormLogin';
 import { FormRegister } from './FormRegister';
 import { isValidEmail } from '@/utils/validate';
-import { postRegister } from '@/utils/api/register';
+import { postRegister } from '@/utils/api/users';
 
 export function RequireAuth({ children }: { children: JSX.Element }) {
   let auth = useAuth();

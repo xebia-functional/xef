@@ -7,7 +7,7 @@ import { ThemeProvider } from '@emotion/react';
 import { App } from '@/components/App';
 import { Root } from '@/components/Pages/Root';
 import { ErrorPage } from '@/components/Pages/ErrorPage';
-import { FeatureOne } from '@/components/Pages/FeatureOne';
+import { Organizations } from '@/components/Pages/Organizations';
 import { Chat } from '@/components/Pages/Chat';
 import { GenericQuestion } from '@/components/Pages/GenericQuestion';
 import { SettingsPage } from '@/components/Pages/SettingsPage';
@@ -46,10 +46,10 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: '1',
+        path: 'organizations',
         element: (
           <RequireAuth>
-            <FeatureOne />
+            <Organizations />
           </RequireAuth>
         ),
       },
