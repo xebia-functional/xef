@@ -19,7 +19,7 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.json.*
 
-interface ChatWithFunctions : LLM { // TODO: possible rename to FunChat
+interface ChatWithFunctions : LLM {
 
   suspend fun createChatCompletionWithFunctions(
     request: FunChatCompletionRequest

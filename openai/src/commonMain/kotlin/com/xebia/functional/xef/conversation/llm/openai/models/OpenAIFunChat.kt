@@ -72,32 +72,25 @@ class OpenAIFunChat(
   override suspend fun createChatCompletionsWithFunctions(
     request: FunChatCompletionRequest
   ): Flow<ChatCompletionChunk> {
-    return client.chatCompletions(request.toOpenAI()).map { it.toInternal() }
-  }
+    val clientRequest = chatCompletionRequest {
+      model = ModelId(modelType.name)
+      messages = request.messages.map { it.toOpenAI() }
+      temperature = request.temperature
+      topP = request.topP
+      n = request.n
+      stop = request.stop
+      maxTokens = request.maxTokens
+      presencePenalty = request.presencePenalty
+      frequencyPenalty = request.frequencyPenalty
+      logitBias = request.logitBias
+      user = request.user
 
-  private fun FunChatCompletionRequest.toOpenAI() = chatCompletionRequest {
-    model = ModelId(this@OpenAIFunChat.modelType.name)
-    messages =
-      this@toOpenAI.messages.map {
-        ChatMessage(
-          role = it.role.toOpenAI(),
-          content = it.content,
-          name = it.name,
-        )
-      }
-    temperature = this@toOpenAI.temperature
-    topP = this@toOpenAI.topP
-    n = this@toOpenAI.n
-    stop = this@toOpenAI.stop
-    maxTokens = this@toOpenAI.maxTokens
-    presencePenalty = this@toOpenAI.presencePenalty
-    frequencyPenalty = this@toOpenAI.frequencyPenalty
-    logitBias = this@toOpenAI.logitBias
-    user = this@toOpenAI.user
+      functions = request.functions.map { it.toOpenAI() }
+      functionCall =
+        request.functionCall?.get("name")?.let { FunctionMode.Named(it) } ?: FunctionMode.Auto
+    }
 
-    functions = this@toOpenAI.functions.map { it.toOpenAI() }
-    functionCall =
-      this@toOpenAI.functionCall?.get("name")?.let { FunctionMode.Named(it) } ?: FunctionMode.Auto
+    return client.chatCompletions(clientRequest).map { it.toInternal() }
   }
 }
 
