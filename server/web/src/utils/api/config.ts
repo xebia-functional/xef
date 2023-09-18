@@ -25,6 +25,7 @@ export type ApiOptions = {
 export enum EndpointsEnum {
   login = 'login',
   register = 'register',
+  organization = 'v1/settings/org',
 }
 
 export type EndpointsTypes = {
@@ -89,9 +90,14 @@ const isErrorResponse = (b: unknown): b is ErrorResponse => {
   return (b as ErrorResponse).error !== undefined;
 };
 
+export type ResponseData<T> = {
+  status: number;
+  data?: T;
+};
+
 export async function apiFetch<T = Record<string, unknown>>(
   userApiConfig: ApiConfig,
-): Promise<T> {
+): Promise<ResponseData<T>> {
   const apiConfig = {
     ...userApiConfig,
     options: {
@@ -100,14 +106,25 @@ export async function apiFetch<T = Record<string, unknown>>(
     },
   };
 
+  let response: Response | undefined = undefined
+
   try {
-    const response = await fetchWithTimeout(apiConfig.url, apiConfig.options);
+    response = await fetchWithTimeout(apiConfig.url, apiConfig.options);
     const responseData: T | ErrorResponse = await response.json();
 
     if (isErrorResponse(responseData)) throw responseData.error.message;
 
-    return responseData;
+    return { 
+      status: response.status,
+      data: responseData,
+    };
   } catch (error) {
+    if (response != undefined) {
+      return { 
+        status: response.status,
+        data: undefined,
+      };
+    }
     const errorMessage = `💢 Error: ${error}`;
     console.error(errorMessage);
     throw errorMessage;
