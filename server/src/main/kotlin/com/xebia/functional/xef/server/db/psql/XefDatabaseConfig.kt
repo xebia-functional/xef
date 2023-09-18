@@ -2,7 +2,6 @@ package com.xebia.functional.xef.server.db.psql
 
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
-import com.xebia.functional.xef.server.services.PersistenceService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
