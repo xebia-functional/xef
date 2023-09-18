@@ -1,47 +1,25 @@
-package com.xebia.functional.xef.gcp
+package com.xebia.functional.xef.gcp.models
 
 import com.xebia.functional.tokenizer.ModelType
+import com.xebia.functional.xef.conversation.autoClose
+import com.xebia.functional.xef.gcp.GcpClient
+import com.xebia.functional.xef.gcp.GcpConfig
 import com.xebia.functional.xef.llm.Chat
-import com.xebia.functional.xef.llm.Completion
-import com.xebia.functional.xef.llm.Embeddings
 import com.xebia.functional.xef.llm.models.chat.*
-import com.xebia.functional.xef.llm.models.embeddings.Embedding
-import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
-import com.xebia.functional.xef.llm.models.embeddings.EmbeddingResult
-import com.xebia.functional.xef.llm.models.text.CompletionChoice
-import com.xebia.functional.xef.llm.models.text.CompletionRequest
-import com.xebia.functional.xef.llm.models.text.CompletionResult
 import com.xebia.functional.xef.llm.models.usage.Usage
+import io.ktor.client.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.uuid.UUID
 import kotlinx.uuid.generateUUID
 
-@OptIn(ExperimentalStdlibApi::class)
-class GcpModel(modelId: String, config: GcpConfig) : Chat, Completion, AutoCloseable, Embeddings {
-  private val client: GcpClient = GcpClient(modelId, config)
+class GcpChat(
+  override val modelType: ModelType,
+  private val config: GcpConfig,
+) : Chat {
 
-  override val name: String = client.modelId
-  override val modelType = ModelType.TODO(modelId)
-
-  override suspend fun createCompletion(request: CompletionRequest): CompletionResult {
-    val response: String =
-      client.promptMessage(
-        request.prompt,
-        temperature = request.temperature,
-        maxOutputTokens = request.maxTokens,
-        topP = request.topP
-      )
-    return CompletionResult(
-      UUID.generateUUID().toString(),
-      client.modelId,
-      getTimeMillis(),
-      client.modelId,
-      listOf(CompletionChoice(response, 0, null, null)),
-      Usage.ZERO, // TODO: token usage - no information about usage provided by GCP codechat model
-    )
-  }
+  private val client: GcpClient = autoClose { GcpClient(modelType.name, config) }
 
   override suspend fun createChatCompletion(
     request: ChatCompletionRequest
@@ -91,30 +69,6 @@ class GcpModel(modelId: String, config: GcpConfig) : Chat, Completion, AutoClose
         )
       }
     }
-
-  override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult {
-    fun requestToEmbedding(it: GcpClient.EmbeddingPredictions): Embedding =
-      Embedding(it.embeddings.values.map(Double::toFloat))
-
-    val response = client.embeddings(request)
-    return EmbeddingResult(
-      data = response.predictions.map(::requestToEmbedding),
-      usage = usage(response),
-    )
-  }
-
-  private fun usage(response: GcpClient.EmbeddingResponse) =
-    Usage(
-      totalTokens = response.predictions.sumOf { it.embeddings.statistics.tokenCount },
-      promptTokens = null,
-      completionTokens = null,
-    )
-
-  override fun tokensFromMessages(messages: List<Message>): Int = 0
-
-  override fun close() {
-    client.close()
-  }
 
   private fun List<Message>.buildPrompt(): String {
     val messages: String =

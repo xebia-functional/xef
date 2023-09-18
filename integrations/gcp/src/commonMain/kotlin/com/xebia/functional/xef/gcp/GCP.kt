@@ -1,10 +1,14 @@
 package com.xebia.functional.xef.gcp
 
 import arrow.core.nonEmptyListOf
+import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.PlatformConversation
 import com.xebia.functional.xef.env.getenv
+import com.xebia.functional.xef.gcp.models.GcpChat
+import com.xebia.functional.xef.gcp.models.GcpEmbeddings
+import com.xebia.functional.xef.llm.LLM
 import com.xebia.functional.xef.store.LocalVectorStore
 import com.xebia.functional.xef.store.VectorStore
 import kotlin.jvm.JvmField
@@ -41,13 +45,13 @@ class GCP(projectId: String? = null, location: VertexAIRegion? = null, token: St
   private fun fromEnv(name: String): String =
     getenv(name) ?: throw AIError.Env.GCP(nonEmptyListOf("missing $name env var"))
 
-  val CODECHAT by lazy { GcpModel("codechat-bison@001", config) }
-  val TEXT_EMBEDDING_GECKO by lazy { GcpModel("textembedding-gecko", config) }
+  val CODECHAT by lazy { GcpChat(ModelType.TODO("codechat-bison@001"), config) }
+  val TEXT_EMBEDDING_GECKO by lazy { GcpEmbeddings(ModelType.TODO("textembedding-gecko"), config) }
 
   @JvmField val DEFAULT_CHAT = CODECHAT
   @JvmField val DEFAULT_EMBEDDING = TEXT_EMBEDDING_GECKO
 
-  fun supportedModels(): List<GcpModel> = listOf(CODECHAT, TEXT_EMBEDDING_GECKO)
+  fun supportedModels(): List<LLM> = listOf(CODECHAT, TEXT_EMBEDDING_GECKO)
 
   companion object {
 
