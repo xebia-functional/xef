@@ -12,9 +12,8 @@ fun Application.exceptionsHandler() {
             if (cause is XefExceptions) {
                 call.manageException(cause)
             } else {
-                call.respond(HttpStatusCode.InternalServerError, cause.message ?: "Unexpected error")
+                call.respond(HttpStatusCode.InternalServerError, cause.localizedMessage ?: "Unexpected error")
             }
-            call.respondText(cause.localizedMessage, status = HttpStatusCode.InternalServerError)
         }
         status(HttpStatusCode.NotFound) { call, status ->
             call.respondText(text = "404: Page Not Found", status = status)
