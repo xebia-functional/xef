@@ -2,10 +2,7 @@ package com.xebia.functional.xef.prompt
 
 import com.xebia.functional.xef.data.Question
 import com.xebia.functional.xef.llm.models.chat.Role
-import com.xebia.functional.xef.prompt.templates.assistant
-import com.xebia.functional.xef.prompt.templates.steps
-import com.xebia.functional.xef.prompt.templates.system
-import com.xebia.functional.xef.prompt.templates.user
+import com.xebia.functional.xef.prompt.templates.*
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
@@ -45,8 +42,12 @@ class PromptBuilderSpec :
         listOf(
           "Test System".message(Role.SYSTEM),
           "Test Query".message(Role.USER),
-          "instruction 1".message(Role.ASSISTANT),
-          "instruction 2".message(Role.ASSISTANT)
+          """
+            |instruction 1
+            |instruction 2
+        """
+            .trimMargin()
+            .message(Role.ASSISTANT),
         )
 
       messages shouldBe messagesExpected
@@ -59,7 +60,7 @@ class PromptBuilderSpec :
         Prompt {
             +system("Test System")
             +user("Test Query")
-            +steps { instructions.forEach { +assistant(it) } }
+            +assistantSteps { instructions }
           }
           .messages
 
@@ -67,8 +68,12 @@ class PromptBuilderSpec :
         listOf(
           "Test System".message(Role.SYSTEM),
           "Test Query".message(Role.USER),
-          "1 - instruction 1".message(Role.ASSISTANT),
-          "2 - instruction 2".message(Role.ASSISTANT)
+          """
+            |1 - instruction 1
+            |2 - instruction 2
+        """
+            .trimMargin()
+            .message(Role.ASSISTANT),
         )
 
       messages shouldBe messagesExpected
@@ -93,7 +98,7 @@ class PromptBuilderSpec :
       messages shouldBe messagesExpected
     }
 
-    "flatten method should flatten the messages with the same role" {
+    "Prompt should flatten the messages with the same role" {
       val messages =
         Prompt {
             +system("Test System")
@@ -105,7 +110,6 @@ class PromptBuilderSpec :
             +assistant("Assistant message 3")
             +user("User message 4")
           }
-          .flatten()
           .messages
 
       val messagesExpected =
