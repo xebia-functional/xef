@@ -5,6 +5,10 @@ import com.xebia.functional.tokenizer.EncodingType.P50K_BASE
 import com.xebia.functional.tokenizer.EncodingType.R50K_BASE
 import kotlin.jvm.JvmStatic
 
+/**
+ * Formal description of a model and it's properties
+ * without any capabilities.
+ */
 sealed class ModelType(
   /**
    * Returns the name of the model type as used by the OpenAI API.

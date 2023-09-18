@@ -58,7 +58,6 @@ class OpenAIChat(
     logitBias = this@toOpenAI.logitBias
     user = this@toOpenAI.user
   }
-
 }
 
 private fun ChatMessage.toInternal() =

@@ -1,6 +1,5 @@
 package com.xebia.functional.xef.gcp
 
-import com.xebia.functional.tokenizer.EncodingType
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.llm.Completion
@@ -24,8 +23,7 @@ class GcpModel(modelId: String, config: GcpConfig) : Chat, Completion, AutoClose
   private val client: GcpClient = GcpClient(modelId, config)
 
   override val name: String = client.modelId
-  override val modelType: ModelType =
-    ModelType.LocalModel(client.modelId, EncodingType.CL100K_BASE, 2048)
+  override val modelType = ModelType.TODO(modelId)
 
   override suspend fun createCompletion(request: CompletionRequest): CompletionResult {
     val response: String =

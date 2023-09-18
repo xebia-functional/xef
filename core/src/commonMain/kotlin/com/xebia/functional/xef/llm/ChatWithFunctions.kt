@@ -67,7 +67,11 @@ interface ChatWithFunctions : LLM { // TODO: possible rename to FunChat
   ): A {
     val promptWithFunctions = prompt.copy(function = function)
     val adaptedPrompt =
-      PromptCalculator.adaptPromptToConversationAndModel(prompt, scope, this@ChatWithFunctions)
+      PromptCalculator.adaptPromptToConversationAndModel(
+        promptWithFunctions,
+        scope,
+        this@ChatWithFunctions
+      )
 
     val request =
       FunChatCompletionRequest(
