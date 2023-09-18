@@ -2,15 +2,18 @@ package com.xebia.functional.xef.server.db.psql
 
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
-import com.xebia.functional.xef.server.services.PersistenceService
+import com.xebia.functional.xef.server.services.VectorStoreService
 import com.xebia.functional.xef.server.services.PostgreSQLXef
-import com.xebia.functional.xef.server.services.PostgresXefService
+import com.xebia.functional.xef.server.services.PostgresVectorStoreService
+import com.xebia.functional.xef.server.services.RepositoryService
 import com.xebia.functional.xef.store.migrations.PsqlVectorStoreConfig
+import com.zaxxer.hikari.HikariDataSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.hocon.Hocon
+import org.slf4j.Logger
 
 enum class XefVectorStoreType {
     PSQL
@@ -26,6 +29,9 @@ class XefVectorStoreConfig(
     val user: String,
     val password: String
 ) {
+
+    fun getUrl(): String = "jdbc:postgresql://$host:$port/$database"
+
     companion object {
         @OptIn(ExperimentalSerializationApi::class)
         suspend fun load(
@@ -40,15 +46,20 @@ class XefVectorStoreConfig(
                 config
             }
 
-        suspend fun XefVectorStoreConfig.getPersistenceService(config: Config): PersistenceService {
+        suspend fun XefVectorStoreConfig.getVectorStoreService(config: Config, logger: Logger): VectorStoreService {
             when (this.type) {
                 XefVectorStoreType.PSQL -> {
-                    return getPsqlPersistenceService(config)
+                    val vectorStoreHikariDataSource = RepositoryService.getHikariDataSource(getUrl(), user, password)
+                    return getPsqlVectorStoreService(config, vectorStoreHikariDataSource, logger)
                 }
             }
         }
 
-        private suspend fun getPsqlPersistenceService(config: Config): PersistenceService {
+        private suspend fun getPsqlVectorStoreService(
+            config: Config,
+            dataSource: HikariDataSource,
+            logger: Logger
+        ): VectorStoreService {
             val vectorStoreConfig = XefVectorStoreConfig.load("xef-vector-store", config)
             val pgVectorStoreConfig = PostgreSQLXef.PGVectorStoreConfig(
                 dbConfig = PostgreSQLXef.DBConfig(
@@ -59,7 +70,7 @@ class XefVectorStoreConfig(
                     password = vectorStoreConfig.password
                 )
             )
-            return PostgresXefService(pgVectorStoreConfig)
+            return PostgresVectorStoreService(pgVectorStoreConfig, logger, dataSource)
         }
 
     }

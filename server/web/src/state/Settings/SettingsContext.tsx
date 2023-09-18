@@ -16,7 +16,7 @@ export type Settings = {
 type SettingsContextType = [Settings, Dispatch<SetStateAction<Settings>>];
 
 export const initialSettings: Settings = {
-    apiKey: undefined,
+    apiKey: sessionStorage.getItem('apiKey') || '',
 };
 
 const SettingsContext = createContext<SettingsContextType>([
@@ -29,6 +29,7 @@ const SettingsProvider = ({children}: { children: ReactNode }) => {
 
     useEffect(() => {
         console.info('Settings changed', {...settings});
+        sessionStorage.setItem('apiKey', settings.apiKey || '');
     }, [settings]);
 
     return (

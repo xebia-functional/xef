@@ -7,7 +7,7 @@ import { ThemeProvider } from '@emotion/react';
 import { App } from '@/components/App';
 import { Root } from '@/components/Pages/Root';
 import { ErrorPage } from '@/components/Pages/ErrorPage';
-import { FeatureOne } from '@/components/Pages/FeatureOne';
+import { Organizations } from '@/components/Pages/Organizations';
 import { Chat } from '@/components/Pages/Chat';
 import { GenericQuestion } from '@/components/Pages/GenericQuestion';
 import { SettingsPage } from '@/components/Pages/SettingsPage';
@@ -18,8 +18,20 @@ import { SettingsProvider } from '@/state/Settings';
 import { theme } from '@/styles/theme';
 
 import './main.css';
+import { AuthProvider } from './state/Auth';
+import { Login, RequireAuth } from './components/Login';
 
 const router = createBrowserRouter([
+  {
+    path: '/login',
+    errorElement: <ErrorPage />,
+    children: [
+      {
+        path: '/login',
+        element: <Login />,
+      },
+    ]
+  },
   {
     path: '/',
     element: <App />,
@@ -27,23 +39,43 @@ const router = createBrowserRouter([
     children: [
       {
         path: '/',
-        element: <Root />,
+        element: (
+          <RequireAuth>
+            <Root />
+          </RequireAuth>
+        ),
       },
       {
-        path: '1',
-        element: <FeatureOne />,
+        path: 'organizations',
+        element: (
+          <RequireAuth>
+            <Organizations />
+          </RequireAuth>
+        ),
       },
       {
         path: '2',
-        element: <Chat />,
+        element: (
+          <RequireAuth>
+            <Chat initialMessages={[]} />
+          </RequireAuth>
+        ),
       },
       {
         path: 'generic-question',
-        element: <GenericQuestion />,
+        element: (
+          <RequireAuth>
+            <GenericQuestion />
+          </RequireAuth>
+        ),
       },
       {
         path: 'settings',
-        element: <SettingsPage />,
+        element: (
+          <RequireAuth>
+            <SettingsPage />
+          </RequireAuth>
+        ),
       },
     ],
   },
@@ -54,11 +86,13 @@ createRoot(document.getElementById('root') as HTMLElement).render(
     <StyledEngineProvider injectFirst>
       <ThemeProvider theme={theme}>
         <CssBaseline enableColorScheme />
-        <LoadingProvider>
-          <SettingsProvider>
-            <RouterProvider router={router} />
-          </SettingsProvider>
-        </LoadingProvider>
+        <AuthProvider>
+          <LoadingProvider>
+            <SettingsProvider>
+              <RouterProvider router={router} />
+            </SettingsProvider>
+          </LoadingProvider>
+        </AuthProvider>
       </ThemeProvider>
     </StyledEngineProvider>
   </StrictMode>,
