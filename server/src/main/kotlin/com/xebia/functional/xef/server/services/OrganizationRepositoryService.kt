@@ -4,6 +4,7 @@ import com.xebia.functional.xef.server.db.tables.Organization
 import com.xebia.functional.xef.server.db.tables.User
 import com.xebia.functional.xef.server.db.tables.UsersTable
 import com.xebia.functional.xef.server.models.*
+import com.xebia.functional.xef.server.models.exceptions.XefExceptions.*
 import kotlinx.datetime.Clock
 import org.jetbrains.exposed.sql.SizedCollection
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -89,17 +90,17 @@ class OrganizationRepositoryService(
             val user = getUser(token)
 
             val organization = Organization.findById(id)
-                ?: throw Exception("Organization not found")
+                ?: throw OrganizationsException("Organization not found")
 
             if (organization.ownerId != user.id) {
-                throw Exception("User is not the owner of the organization")
+                throw OrganizationsException("User is not the owner of the organization")
             }
 
             // Updating the organization
             organization.name = data.name
             if (data.owner != null) {
                 val newOwner = User.findById(data.owner)
-                    ?: throw Exception("User not found")
+                    ?: throw UserException("User not found")
                 organization.ownerId = newOwner.id
             }
             organization.updatedAt = Clock.System.now()
@@ -120,7 +121,7 @@ class OrganizationRepositoryService(
         transaction {
             val user = getUser(token)
             val organization = Organization.findById(id)
-                ?: throw Exception("Organization not found")
+                ?: throw OrganizationsException("Organization not found")
             if (organization.ownerId == user.id) {
                 organization.delete()
             }
@@ -128,5 +129,5 @@ class OrganizationRepositoryService(
     }
 
     private fun getUser(token: String) =
-        User.find { UsersTable.authToken eq token }.firstOrNull() ?: throw Exception("User not found")
+        User.find { UsersTable.authToken eq token }.firstOrNull() ?: throw UserException("User not found")
 }

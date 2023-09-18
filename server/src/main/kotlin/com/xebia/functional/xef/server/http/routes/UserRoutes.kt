@@ -14,22 +14,14 @@ fun Routing.userRoutes(
     userRepositoryService: UserRepositoryService
 ) {
     post("/register") {
-        try {
-            val request = Json.decodeFromString<RegisterRequest>(call.receive<String>())
-            val response = userRepositoryService.register(request)
-            call.respond(response)
-        } catch (e: Exception) {
-            call.respondText(e.message ?: "Unexpected error", status = HttpStatusCode.BadRequest)
-        }
+        val request = Json.decodeFromString<RegisterRequest>(call.receive<String>())
+        val response = userRepositoryService.register(request)
+        call.respond(response)
     }
 
     post("/login") {
-        try {
-            val request = Json.decodeFromString<LoginRequest>(call.receive<String>())
-            val response = userRepositoryService.login(request)
-            call.respond(response)
-        } catch (e: Exception) {
-            call.respondText(e.message ?: "Unexpected error", status = HttpStatusCode.BadRequest)
-        }
+        val request = Json.decodeFromString<LoginRequest>(call.receive<String>())
+        val response = userRepositoryService.login(request)
+        call.respond(response)
     }
 }

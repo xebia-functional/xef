@@ -1,13 +1,14 @@
 package com.xebia.functional.xef.server
 
 import arrow.continuations.SuspendApp
-import arrow.fx.coroutines.resourceScope
 import arrow.continuations.ktor.server
+import arrow.fx.coroutines.resourceScope
 import com.typesafe.config.ConfigFactory
-import com.xebia.functional.xef.server.db.psql.XefDatabaseConfig
 import com.xebia.functional.xef.server.db.psql.Migrate
+import com.xebia.functional.xef.server.db.psql.XefDatabaseConfig
 import com.xebia.functional.xef.server.db.psql.XefVectorStoreConfig
 import com.xebia.functional.xef.server.db.psql.XefVectorStoreConfig.Companion.getVectorStoreService
+import com.xebia.functional.xef.server.exceptions.exceptionsHandler
 import com.xebia.functional.xef.server.http.routes.genAIRoutes
 import com.xebia.functional.xef.server.http.routes.organizationRoutes
 import com.xebia.functional.xef.server.http.routes.userRoutes
@@ -16,7 +17,6 @@ import com.xebia.functional.xef.server.services.RepositoryService
 import com.xebia.functional.xef.server.services.UserRepositoryService
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation as ClientContentNegotiation
 import io.ktor.client.plugins.auth.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.http.*
@@ -31,6 +31,7 @@ import io.ktor.server.routing.*
 import kotlinx.coroutines.awaitCancellation
 import org.jetbrains.exposed.sql.Database
 import org.slf4j.LoggerFactory
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation as ClientContentNegotiation
 
 object Server {
     @JvmStatic
@@ -80,6 +81,7 @@ object Server {
                         }
                     }
                 }
+                exceptionsHandler()
                 routing {
                     genAIRoutes(ktorClient, vectorStoreService)
                     userRoutes(UserRepositoryService(logger))

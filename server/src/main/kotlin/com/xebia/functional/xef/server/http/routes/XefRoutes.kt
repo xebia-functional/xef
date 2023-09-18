@@ -1,6 +1,7 @@
 package com.xebia.functional.xef.server.http.routes
 
 import com.aallam.openai.api.BetaOpenAI
+import com.xebia.functional.xef.server.models.exceptions.XefExceptions
 import com.xebia.functional.xef.server.services.VectorStoreService
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -12,7 +13,6 @@ import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.util.pipeline.*
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -113,16 +113,4 @@ private fun ApplicationCall.getProvider(): Provider =
         ?: Provider.OPENAI
 
 fun ApplicationCall.getToken(): String =
-    principal<UserIdPrincipal>()?.name ?: throw IllegalArgumentException("No token found")
-
-
-/**
- * Responds with the data and converts any potential Throwable into a 404.
- */
-private suspend inline fun <reified T : Any, E : Throwable> PipelineContext<*, ApplicationCall>.response(
-    block: () -> T
-) = arrow.core.raise.recover<E, Unit>({
-    call.respond(block())
-}) {
-    call.respondText(it.message ?: "Response not found", status = HttpStatusCode.NotFound)
-}
+    principal<UserIdPrincipal>()?.name ?: throw XefExceptions.AuthorizationException("No token found")
