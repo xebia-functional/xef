@@ -20,7 +20,7 @@ class OrganizationRepositoryService(
         logger.info("Creating organization with name: ${data.name}")
         return transaction {
             // Getting the user from the token
-            val user = getUser(token)
+            val user = token.getUser()
 
             // Creating the organization
             val organization = Organization.new {
@@ -36,14 +36,14 @@ class OrganizationRepositoryService(
 
     fun getOrganizations(
         token: String
-    ): List<OrganizationWithIdResponse> {
+    ): List<OrganizationFullResponse> {
         logger.info("Getting organizations")
         return transaction {
             // Getting the user from the token
-            val user = getUser(token)
+            val user = token.getUser()
 
             // Getting the organizations from the user
-            user.organizations.map { it.toOrganizationWithIdResponse() }
+            user.organizations.map { it.toOrganizationFullResponse() }
         }
     }
 
@@ -54,7 +54,7 @@ class OrganizationRepositoryService(
         logger.info("Getting organizations")
         return transaction {
             // Getting the user from the token
-            val user = getUser(token)
+            val user = token.getUser()
 
             // Getting the organization
             user.organizations.find {
@@ -70,7 +70,7 @@ class OrganizationRepositoryService(
         logger.info("Getting users in organization")
         return transaction {
             // Getting the user from the token
-            val user = getUser(token)
+            val user = token.getUser()
 
             // Getting the organizations from the user
             user.organizations.filter {
@@ -87,7 +87,7 @@ class OrganizationRepositoryService(
         logger.info("Updating organization with name: ${data.name}")
         return transaction {
             // Getting the user from the token
-            val user = getUser(token)
+            val user = token.getUser()
 
             val organization = Organization.findById(id)
                 ?: throw OrganizationsException("Organization not found")
@@ -114,7 +114,7 @@ class OrganizationRepositoryService(
     ) {
         logger.info("Deleting organization with id: $id")
         transaction {
-            val user = getUser(token)
+            val user = token.getUser()
             val organization = Organization.findById(id)
                 ?: throw OrganizationsException("Organization not found")
 
@@ -125,7 +125,4 @@ class OrganizationRepositoryService(
             organization.delete()
         }
     }
-
-    private fun getUser(token: String) =
-        User.find { UsersTable.authToken eq token }.firstOrNull() ?: throw UserException("User not found")
 }

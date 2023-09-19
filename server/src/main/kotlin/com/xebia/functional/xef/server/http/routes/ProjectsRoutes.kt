@@ -2,7 +2,6 @@ package com.xebia.functional.xef.server.http.routes
 
 import com.xebia.functional.xef.server.models.ProjectRequest
 import com.xebia.functional.xef.server.models.ProjectUpdateRequest
-import com.xebia.functional.xef.server.models.exceptions.XefExceptions
 import com.xebia.functional.xef.server.services.ProjectRepositoryService
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -24,8 +23,15 @@ fun Routing.projectsRoutes(
         get("/v1/settings/projects/{id}") {
 
             val token = call.getToken()
-            val id = call.getProjectId()
+            val id = call.getId()
             val response = projectRepositoryService.getProject(token, id)
+            call.respond(response)
+        }
+        get("/v1/settings/projects/org/{id}") {
+
+            val token = call.getToken()
+            val id = call.getId()
+            val response = projectRepositoryService.getProjectsByOrganization(token, id)
             call.respond(response)
         }
         post("/v1/settings/projects") {
@@ -41,7 +47,7 @@ fun Routing.projectsRoutes(
         put("/v1/settings/projects/{id}") {
             val request = Json.decodeFromString<ProjectUpdateRequest>(call.receive<String>())
             val token = call.getToken()
-            val id = call.getProjectId()
+            val id = call.getId()
             val response = projectRepositoryService.updateProject(token, request, id)
             call.respond(
                 status = HttpStatusCode.NoContent,
@@ -50,7 +56,7 @@ fun Routing.projectsRoutes(
         }
         delete("/v1/settings/projects/{id}") {
             val token = call.getToken()
-            val id = call.getProjectId()
+            val id = call.getId()
             val response = projectRepositoryService.deleteProject(token, id)
             call.respond(
                 status = HttpStatusCode.NoContent,
@@ -60,7 +66,4 @@ fun Routing.projectsRoutes(
     }
 }
 
-private fun ApplicationCall.getProjectId(): Int {
-    return this.parameters["id"]?.toInt() ?: throw XefExceptions.ValidationException("Invalid id")
-}
 

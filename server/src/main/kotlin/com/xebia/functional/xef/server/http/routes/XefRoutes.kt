@@ -114,3 +114,9 @@ private fun ApplicationCall.getProvider(): Provider =
 
 fun ApplicationCall.getToken(): String =
     principal<UserIdPrincipal>()?.name ?: throw XefExceptions.AuthorizationException("No token found")
+
+fun ApplicationCall.getId(): Int = getInt("id")
+
+fun ApplicationCall.getInt(field: String): Int =
+    this.parameters[field]?.toInt() ?: throw XefExceptions.ValidationException("Invalid $field")
+

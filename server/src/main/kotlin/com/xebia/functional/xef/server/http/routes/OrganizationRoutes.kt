@@ -24,13 +24,13 @@ fun Routing.organizationRoutes(
         get("/v1/settings/org/{id}") {
 
             val token = call.getToken()
-            val id = call.getOrganizationId()
+            val id = call.getId()
             val response = orgRepositoryService.getOrganization(token, id)
             call.respond(response)
         }
         get("/v1/settings/org/{id}/users") {
             val token = call.getToken()
-            val id = call.getOrganizationId()
+            val id = call.getId()
             val response = orgRepositoryService.getUsersInOrganization(token, id)
             call.respond(response)
         }
@@ -47,7 +47,7 @@ fun Routing.organizationRoutes(
         put("/v1/settings/org/{id}") {
             val request = Json.decodeFromString<OrganizationUpdateRequest>(call.receive<String>())
             val token = call.getToken()
-            val id = call.getOrganizationId()
+            val id = call.getId()
             val response = orgRepositoryService.updateOrganization(token, request, id)
             call.respond(
                 status = HttpStatusCode.NoContent,
@@ -56,7 +56,7 @@ fun Routing.organizationRoutes(
         }
         delete("/v1/settings/org/{id}") {
             val token = call.getToken()
-            val id = call.getOrganizationId()
+            val id = call.getId()
             val response = orgRepositoryService.deleteOrganization(token, id)
             call.respond(
                 status = HttpStatusCode.NoContent,
@@ -65,8 +65,3 @@ fun Routing.organizationRoutes(
         }
     }
 }
-
-private fun ApplicationCall.getOrganizationId(): Int {
-    return this.parameters["id"]?.toInt() ?: throw XefExceptions.ValidationException("Invalid id")
-}
-
