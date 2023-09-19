@@ -5,6 +5,7 @@ sealed class XefExceptions(
 ): Throwable() {
     class ValidationException(override val message: String): XefExceptions(message)
     class OrganizationsException(override val message: String): XefExceptions(message)
+    class ProjectException(override val message: String): XefExceptions(message)
     class AuthorizationException(override val message: String): XefExceptions(message)
     class UserException(override val message: String): XefExceptions(message)
 }
