@@ -1,12 +1,11 @@
 Module "Conditionals"
 Uses
 	"Avail",
-	"Model",
-	"Whitespace"
+	"Blocks",
+	"Model"
 Names
 	/* Conditionals. */
-	"*…#if_:…#§_",
-	"*…#if_:…#§_…#§else:…#§_"
+	"*if_:«⇥_!»↹else:«⇥_!»"
 Body
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -18,103 +17,28 @@ Body
  *
  * * Iff {@param "predicate"} is {@method "true"}, then the result of applying
  *   {@param "trueBlock"};
- * * Otherwise, {@method "unknown"}.
- *
- * @macro "*…#if_:…#§_"
- * @param "indent" "literal phrase ⇒ literal token ⇒ {indent id}ᵀ"
- *   The indent for the whole conditional expression.
- * @param "predicate" "expression phrase ⇒ Kleene"
- *   The predicate.
- * @param "trueBlockIndent" "literal phrase ⇒ literal token ⇒ {indent id}ᵀ"
- *   The indent for the "then" expression.
- * @param "trueBlock" "expression phrase ⇒ ⊤"
- *   The block to apply if {@param "predicate"} evaluates to {@method "true"}.
- * @returns "send phrase ⇒ ⊤"
- */
-Public macro "*…#if_:…#§_" is
-[
-	indent : literal phrase ⇒ literal token ⇒ {indent id}ᵀ,
-	predicate : expression phrase ⇒ Kleene,
-	trueBlockIndent : literal phrase ⇒ literal token ⇒ {indent id}ᵀ
-|
-	Require: trueBlockIndent nests beneath indent;
-],
-[
-	indent : literal phrase ⇒ literal token ⇒ {indent id}ᵀ,
-	predicate : expression phrase ⇒ Kleene,
-	trueBlockIndent : literal phrase ⇒ literal token ⇒ {indent id}ᵀ,
-	trueBlock : expression phrase ⇒ any
-|
-	restricted send Foundation $"If|if_then_else_" with «<
-		⟦⦊predicate⦉ = true⟧,
-		trueBlock,
-		⟦[unknown]⟧
-	>» : ⊤
-];
-
-/**
- * Construct a conditional expression that answers:
- *
- * * Iff {@param "predicate"} is {@method "true"}, then the result of applying
- *   {@param "trueBlock"};
  * * Otherwise, the result of applying {@param "falseBlock"}.
  *
- * @macro "*…#if_:…#§_…#§else:…#§_"
- * @param "indent" "literal phrase ⇒ literal token ⇒ {indent id}ᵀ"
- *   The indent for the whole conditional expression.
+ * @macro "*if_:⇥_↹else:⇥_"
  * @param "predicate" "expression phrase ⇒ Kleene"
  *   The predicate.
- * @param "trueBlockIndent" "literal phrase ⇒ literal token ⇒ {indent id}ᵀ"
- *   The indent for the "then" expression.
  * @param "trueBlock" "expression phrase ⇒ ⊤"
  *   The block to apply if {@param "predicate"} evaluates to {@method "true"}.
- * @param "elseIndent" "literal phrase ⇒ literal token ⇒ {indent id}ᵀ"
- *   The indent for the "else" keyword.
- * @param "elseBlockIndent" "literal phrase ⇒ literal token ⇒ {indent id}ᵀ"
- *   The indent for the "else" expression.
- * @param "elseBlock" "expression phrase ⇒ ⊤"
+ * @param "falseBlock" "expression phrase ⇒ ⊤"
  *   The block to apply if {@param "predicate"} evaluates to {@method "false"}.
  * @returns "send phrase ⇒ ⊤"
  */
-Public macro "*…#if_:…#§_…#§else:…#§_" is
+Public macro "*if_:«⇥_!»↹else:«⇥_!»" is
 [
-	indent : literal phrase ⇒ literal token ⇒ {indent id}ᵀ,
 	predicate : expression phrase ⇒ Kleene,
-	trueBlockIndent : literal phrase ⇒ literal token ⇒ {indent id}ᵀ
+	trueBlock : list phrase ⇒ (phrase+),
+	falseBlock : list phrase ⇒ (phrase+)
 |
-	Require: trueBlockIndent nests beneath indent;
-],
-[
-	indent : literal phrase ⇒ literal token ⇒ {indent id}ᵀ,
-	predicate : expression phrase ⇒ Kleene,
-	trueBlockIndent : literal phrase ⇒ literal token ⇒ {indent id}ᵀ,
-	trueBlock : expression phrase ⇒ any,
-	elseIndent : literal phrase ⇒ literal token ⇒ {indent id}ᵀ
-|
-	Require: elseIndent agrees with indent;
-],
-[
-	indent : literal phrase ⇒ literal token ⇒ {indent id}ᵀ,
-	predicate : expression phrase ⇒ Kleene,
-	trueBlockIndent : literal phrase ⇒ literal token ⇒ {indent id}ᵀ,
-	trueBlock : expression phrase ⇒ any,
-	elseIndent : literal phrase ⇒ literal token ⇒ {indent id}ᵀ,
-	elseBlockIndent : literal phrase ⇒ literal token ⇒ {indent id}ᵀ
-|
-	Require: elseBlockIndent nests beneath indent;
-],
-[
-	indent : literal phrase ⇒ literal token ⇒ {indent id}ᵀ,
-	predicate : expression phrase ⇒ Kleene,
-	trueBlockIndent : literal phrase ⇒ literal token ⇒ {indent id}ᵀ,
-	trueBlock : expression phrase ⇒ any,
-	elseIndent : literal phrase ⇒ literal token ⇒ {indent id}ᵀ,
-	elseBlockIndent : literal phrase ⇒ literal token ⇒ {indent id}ᵀ,
-	elseBlock : expression phrase ⇒ any
-|
+	Require: trueBlock has nonempty block form;
+	Require: falseBlock has nonempty block form;
 	restricted send Foundation $"If|if_then_else_" with «<
 		⟦⦊predicate⦉ = true⟧,
-		trueBlock,
-		elseBlock
+		trueBlock → block phrase,
+		falseBlock → block phrase
 	>» : ⊤
 ];

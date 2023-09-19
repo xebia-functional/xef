@@ -45,7 +45,7 @@ Public "tuple elements" is a new field atom;
  */
 Public class "Xef tuple" extends object
 	with field
-		public tuple elements : tuple ("_'s⁇elements");
+		public tuple elements : any* ("_'s⁇elements");
 
 Public "tuple labels" is a new field atom;
 

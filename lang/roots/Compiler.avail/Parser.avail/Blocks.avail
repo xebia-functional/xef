@@ -1,0 +1,87 @@
+Module "Blocks"
+Uses
+	"Avail"
+Names
+	/* Block validation. */
+	"Require:_has«nonempty»?block form"
+Body
+
+////////////////////////////////////////////////////////////////////////////////
+//                                  Blocks.                                   //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Reject the current parse unless the specified {@param "sequence"} comprises
+ * zero or more {@type "statement phrase" statements} followed by a mandatory
+ * value-producing {@type "expression phrase" expression}".
+ *
+ * @method "Require:_has«nonempty»?block form"
+ * @param "sequence" "list phrase ⇒ (phrase*)"
+ *   The proposed sequence.
+ * @param "mustBeNonempty" "boolean"
+ *   Whether the sequence must be nonempty.
+ * @returns "⊤"
+ */
+Public method "Require:_has«nonempty»?block form" is
+[
+	sequence : list phrase ⇒ (phrase*),
+	mustBeNonempty : boolean
+|
+	$body : ⊤;
+	statements ::= x ∈ sequence's expressions → evaluate x;
+	Exit body if ¬mustBeNonempty ∧ |statements| = 0;
+	If |statements| = 0 then
+	[
+		Reject parse weakly, expected: "sequence of statements to be nonempty"
+	];
+	// At least one statement has been provided.
+	size ::= |statements| ?→ ℕ;
+	allButLast ::= statements[1 .. size - 1] else [<>];
+	last ::= statements[size];
+	For each x of statements do
+	[
+		Unless x ∈ statement phrase then
+		[
+			Reject parse weakly, expected:
+				"nonfinal statements of sequence not to produce a value"
+		];
+	];
+	Unless last's semantic type ⊆ any then
+	[
+		Reject parse weakly, expected:
+			"sequence to end with a value-producing expression"
+	];
+];
+
+/**
+ * Convert the specified sequence into a {@type "block phrase"}.
+ *
+ * @method "_→block phrase"
+ * @param "sequence" "list phrase ⇒ (phrase*)"
+ *   The sequence to embed into the resultant {@type "block phrase"}.
+ * @returns "block phrase ⇒ ⊤"
+ *   The requested {@type "block phrase"}.
+ */
+Method Foundation $"_→block phrase" is
+[
+	sequence : list phrase ⇒ (phrase*)
+|
+	body ::= x ∈ sequence's expressions → evaluate x;
+	returnType ::=
+		cast body into [nonempty : phrase+ | nonempty's last's semantic type]
+		else [⊤];
+	«[<> | body] : returnType»
+];
+
+/**
+ * Strengthen the static type of a call site as much as possible.
+ *
+ * @method "_→block phrase"
+ * @restricts "{list phrase ⇒ (phrase*)}ᵀ"
+ */
+Semantic restriction Foundation $"_→block phrase" is
+[
+	t : {list phrase ⇒ (phrase*)}ᵀ
+|
+	block phrase ⇒ t's semantic type's default type
+];

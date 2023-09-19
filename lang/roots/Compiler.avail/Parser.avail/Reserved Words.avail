@@ -1,0 +1,61 @@
+Module "Reserved Words"
+Uses
+	"Avail"
+Names
+	/* Checks. */
+	"Require:_is not reserved"
+Body
+
+/**
+ * Unfortunately, the Xef grammar is such that some words must be reserved in
+ * order to avoid parse ambiguities. Herein are facilities for recording
+ * reserved words and verifying that captured tokens do not conflict with them.
+ * The responsibility to detect and reject conflicts belongs to the individual
+ * grammars that use {@code "…"}.
+ *
+ * @module "Reserved Words"
+ */
+
+////////////////////////////////////////////////////////////////////////////////
+//                              Reserved words.                               //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * The reserved words. These should be rejected when matched by {@code "…"} in
+ * a conscientious grammar.
+ *
+ * @global "reservedWords" "{nonempty string|}"
+ */
+reservedWords ::=
+{
+	"if",
+	"else"
+};
+
+/**
+ * Reject the current parse if {@param "name"} collides with a
+ * {@global "reservedWords" reserved word}. Should only be called at compile
+ * time, by a macro, macro prefix function, lexer, or semantic restriction.
+ *
+ * @method "Require:_is not reserved"
+ * @param "name" "literal phrase ⇒ keyword token"
+ *   The proposed identifier that should be validated against the registered
+ *   {@global "reservedWords" reserved words}.
+ * @returns "⊤"
+ */
+Public method "Require:_is not reserved" is
+[
+	name : literal phrase ⇒ keyword token
+|
+	lexeme ::= name's token's lexeme;
+	If lexeme ∈ reservedWords then
+	[
+		Reject parse weakly, expected:
+			format
+				"identifier not to conflict with a reserved word \
+				\|(but “①” is reserved for use in built-in constructs)"
+			with
+				lexeme
+	];
+]
+styled by assertion styler;

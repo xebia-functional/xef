@@ -1,1 +1,22 @@
-{}
+{
+	"indent":
+	{
+		"expansion": "⇥",
+		"markedForArtifactInclusion": true
+	},
+	"increaseindent":
+	{
+		"expansion": "⇥",
+		"markedForArtifactInclusion": true
+	},
+	"matchindent":
+	{
+		"expansion": "↹",
+		"markedForArtifactInclusion": true
+	},
+	"resetindent":
+	{
+		"expansion": "↹",
+		"markedForArtifactInclusion": true
+	}
+}

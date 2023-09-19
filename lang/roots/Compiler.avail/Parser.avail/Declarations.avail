@@ -1,12 +1,18 @@
 Module "Declarations"
 Uses
-	"Avail"
+	"Avail",
+	"Model",
+	"Reserved Words"
 Names
 	/* Constant declarations. */
 	"*…:_",
 	
 	/* Constant or variable declarations. */
-	"*…@_†:_"
+	"*…@_†:_",
+	
+	/* Tuple declarations. */
+	"*…:«⇥-_»",
+	"*…:«⇥…:_»"
 Body
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -22,7 +28,7 @@ Body
  *   The name of the constant.
  * @param "value" "expression phrase ⇒ any"
  *   The value of the constant.
- * @returns "send phrase ⇒ ⊤"
+ * @returns "declaration phrase ⇒ ⊤"
  *   The {@type "declaration phrase"} to produce the constant.
  */
 Public macro "*…:_" is
@@ -30,6 +36,7 @@ Public macro "*…:_" is
 	name : literal phrase ⇒ keyword token,
 	value : expression phrase ⇒ any
 |
+	Require: name is not reserved;
 	«name's token ::= value»
 ];
 
@@ -40,13 +47,13 @@ Public macro "*…:_" is
  *
  * @macro "*…@_†:_"
  * @param "name" "literal phrase ⇒ keyword token"
- *   The name of the constant.
+ *   The name of the variable.
  * @param "staticType" "expression phrase ⇒ nontype"
  *   The value to treat as the static type of the constant. Must agree exactly
  *   with {@param "value"}.
  * @param "value" "expression phrase ⇒ nontype"
  *   The value of the constant. Must agree exactly with {@param "staticType"}.
- * @returns "send phrase ⇒ ⊤"
+ * @returns "declaration phrase ⇒ ⊤"
  *   The {@type "declaration phrase"} to produce the constant.
  */
 Public macro "*…@_†:_" is
@@ -80,13 +87,13 @@ Public macro "*…@_†:_" is
  *
  * @macro "*…@_†:_"
  * @param "name" "literal phrase ⇒ keyword token"
- *   The name of the constant.
+ *   The name of the variable.
  * @param "staticType" "expression phrase ⇒ nontype"
  *   The static type of the variable. Must be assignable from {@param "value"}.
  * @param "value" "expression phrase ⇒ nontype"
  *   The initial value of the variable. Must be assignable to
  *   {@param "staticType"}.
- * @returns "send phrase ⇒ ⊤"
+ * @returns "declaration phrase ⇒ ⊤"
  *   The {@type "declaration phrase"} to produce the variable.
  */
 Public macro "*…@_†:_" is
@@ -95,6 +102,7 @@ Public macro "*…@_†:_" is
 	staticType : literal phrase ⇒ {any}ᵀ,
 	value : expression phrase ⇒ any
 |
+	Require: name is not reserved;
 	declaredType ::= evaluate staticType;
 	actualValue ::= evaluate value;
 	Unless actualValue ∈ declaredType then
@@ -107,4 +115,62 @@ Public macro "*…@_†:_" is
 				declaredType, actualValue
 	];
 	«name's token : declaredType := value»
+];
+
+////////////////////////////////////////////////////////////////////////////////
+//                            Tuple declarations.                             //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Define a constant {@type "Xef tuple"}. The content is specified by
+ * {@param "elements"} and the static type is its instance type.
+ *
+ * @macro "*…:«⇥-_»"
+ * @param "name" "literal phrase ⇒ keyword token"
+ *   The name of the constant.
+ * @param "elements" "list phrase ⇒ (any+)"
+ *   The elements of the {@type "Xef tuple"}.
+ * @returns "declaration phrase ⇒ ⊤"
+ *   The {@type "declaration phrase"} to produce the constant.
+ */
+Public macro "*…:«⇥-_»" is
+[
+	name : literal phrase ⇒ keyword token,
+	elements : list phrase ⇒ (any+)
+|
+	Require: name is not reserved;
+	value ::= evaluate elements;
+	xefTupleType ::= extend Xef tuple with tuple elements : (value's type);
+	xefTuple ::= a xefTupleType with tuple elements ::= value;
+	«name's token ::= ‘xefTuple’»
+];
+
+/**
+ * Define a constant {@type "labeled Xef tuple"}. The content is specified by
+ * {@param "fields"} and the static type is its instance type.
+ *
+ * @macro "*…:«⇥-_»"
+ * @param "name" "literal phrase ⇒ keyword token"
+ *   The name of the constant.
+ * @param "fields" "list phrase ⇒ (<keyword token, any…|2>+)"
+ *   The labeled elements of the {@type "Xef tuple"}.
+ * @returns "declaration phrase ⇒ ⊤"
+ *   The {@type "declaration phrase"} to produce the constant.
+ */
+Public macro "*…:«⇥…:_»" is
+[
+	name : literal phrase ⇒ keyword token,
+	fields : list phrase ⇒ (<keyword token, any…|2>+)
+|
+	Require: name is not reserved;
+	types ::= field ∈ fields' expressions → field's semantic type;
+	labels ::= t ∈ types → t[1]'s instance's lexeme;
+	values ::= t ∈ types → (t[2]'s instance);
+	xefTupleType ::= extend labeled Xef tuple with
+		tuple elements : (values' type),
+		tuple labels : (labels' type);
+	xefTuple ::= a xefTupleType with
+		tuple elements ::= values,
+		tuple labels ::= labels;
+	«name's token ::= ‘xefTuple’»
 ];
