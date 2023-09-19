@@ -23,25 +23,37 @@ interface PromptBuilder {
 
   @JvmSynthetic
   operator fun Message.unaryPlus() {
-    items.add(this)
+    addMessage(this)
   }
 
   @JvmSynthetic
   operator fun List<Message>.unaryPlus() {
-    items.addAll(this)
+    addMessages(this)
   }
 
-  fun addPrompt(prompt: Prompt): PromptBuilder = apply { items.addAll(prompt.messages) }
+  fun addPrompt(prompt: Prompt): PromptBuilder = apply { addMessages(prompt.messages) }
 
-  fun addMessage(message: Message): PromptBuilder = apply { items.add(message) }
+  fun addSystemMessage(message: String): PromptBuilder = apply { addMessage(system(message)) }
 
-  fun addSystemMessage(message: String): PromptBuilder = apply { items.add(system(message)) }
+  fun addAssistantMessage(message: String): PromptBuilder = apply { addMessage(assistant(message)) }
 
-  fun addAssistantMessage(message: String): PromptBuilder = apply { items.add(assistant(message)) }
+  fun addUserMessage(message: String): PromptBuilder = apply { addMessage(user(message)) }
 
-  fun addUserMessage(message: String): PromptBuilder = apply { items.add(user(message)) }
+  fun addMessage(message: Message): PromptBuilder = apply {
+    val lastMessageWithSameRole: Message? = items.lastMessageWithSameRole(message)
+    if (lastMessageWithSameRole != null) {
+      val messageUpdated = lastMessageWithSameRole.addContent(message)
+      items.remove(lastMessageWithSameRole)
+      items.add(messageUpdated)
+    } else {
+      items.add(message)
+    }
+  }
 
-  fun addMessages(messages: List<Message>): PromptBuilder = apply { items.addAll(messages) }
+  fun addMessages(messages: List<Message>): PromptBuilder = apply {
+    val last = items.removeLastOrNull()
+    items.addAll(((last?.let { listOf(it) } ?: emptyList()) + messages).flatten())
+  }
 
   companion object {
 
@@ -53,3 +65,22 @@ fun String.message(role: Role): Message = Message(role, this, role.name)
 
 inline fun <reified A> A.message(role: Role): Message =
   Message(role, Json.encodeToString(serializer(), this), role.name)
+
+private fun List<Message>.flatten(): List<Message> =
+  fold(mutableListOf()) { acc, message ->
+    val lastMessageWithSameRole: Message? = acc.lastMessageWithSameRole(message)
+    if (lastMessageWithSameRole != null) {
+      val messageUpdated = lastMessageWithSameRole.addContent(message)
+      acc.remove(lastMessageWithSameRole)
+      acc.add(messageUpdated)
+    } else {
+      acc.add(message)
+    }
+    acc
+  }
+
+private fun Message.addContent(message: Message): Message =
+  copy(content = "${content}\n${message.content}")
+
+private fun List<Message>.lastMessageWithSameRole(message: Message): Message? =
+  lastOrNull()?.let { if (it.role == message.role) it else null }

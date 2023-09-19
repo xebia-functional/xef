@@ -5,6 +5,7 @@ import com.xebia.functional.xef.conversation.Description
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.prompt.Prompt
+import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
 import com.xebia.functional.xef.prompt.templates.assistant
 import com.xebia.functional.xef.prompt.templates.system
 import com.xebia.functional.xef.prompt.templates.user
@@ -16,6 +17,7 @@ class ReActAgent(
   private val scope: Conversation,
   private val tools: List<Tool>,
   private val maxIterations: Int = 10,
+  private val configuration: PromptConfiguration = PromptConfiguration ( temperature = 0.0 )
 ) {
 
   private val logger = KotlinLogging.logger {}
@@ -47,7 +49,7 @@ class ReActAgent(
           +assistant(
             "I should create a AgentFinish object with the final answer based on the thoughts and observations"
           )
-        }
+        }.copy(configuration = configuration)
     )
 
   private suspend fun agentAction(input: Prompt, chain: List<ThoughtObservation>): AgentAction =
@@ -69,7 +71,7 @@ class ReActAgent(
             "I will not repeat the `toolInput` if the same one produced no satisfactory results in the observations"
           )
           +user("Provide the next tool to use and the `toolInput` for the tool")
-        }
+        }.copy(configuration = configuration)
     )
 
   private fun List<Tool>.toolsToMessages(): List<Message> = flatMap {
@@ -95,7 +97,7 @@ class ReActAgent(
             "`CONTINUE` if the `input` has not been answered by the observations in the `chain`"
           )
           +assistant("`FINISH` if the `input` has been answered by the observations in the `chain`")
-        },
+        }.copy(configuration = configuration),
       scope = scope,
       serializer = AgentChoice.serializer()
     )
@@ -112,7 +114,7 @@ class ReActAgent(
           +tools.toolsToMessages()
           +assistant("I should create a Thought object with the next thought based on the `input`")
           +user("Provide the next thought based on the `input`")
-        },
+        }.copy(configuration = configuration),
       scope = scope,
       serializer = Thought.serializer()
     )
