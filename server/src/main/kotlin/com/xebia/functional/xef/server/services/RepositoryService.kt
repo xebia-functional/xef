@@ -2,6 +2,7 @@ package com.xebia.functional.xef.server.services
 
 import com.xebia.functional.xef.server.db.tables.User
 import com.xebia.functional.xef.server.db.tables.UsersTable
+import com.xebia.functional.xef.server.models.Token
 import com.xebia.functional.xef.server.models.exceptions.XefExceptions
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
@@ -25,5 +26,5 @@ object RepositoryService {
 
 }
 
-fun String.getUser() =
-    User.find { UsersTable.authToken eq this@getUser }.firstOrNull() ?: throw XefExceptions.UserException("User not found")
+fun Token.getUser() =
+    User.find { UsersTable.authToken eq this@getUser.value }.firstOrNull() ?: throw XefExceptions.UserException("User not found")

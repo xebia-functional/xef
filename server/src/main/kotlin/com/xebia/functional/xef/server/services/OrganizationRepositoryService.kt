@@ -2,7 +2,6 @@ package com.xebia.functional.xef.server.services
 
 import com.xebia.functional.xef.server.db.tables.Organization
 import com.xebia.functional.xef.server.db.tables.User
-import com.xebia.functional.xef.server.db.tables.UsersTable
 import com.xebia.functional.xef.server.models.*
 import com.xebia.functional.xef.server.models.exceptions.XefExceptions.*
 import kotlinx.datetime.Clock
@@ -15,7 +14,7 @@ class OrganizationRepositoryService(
 ) {
     fun createOrganization(
         data: OrganizationRequest,
-        token: String
+        token: Token
     ): OrganizationSimpleResponse {
         logger.info("Creating organization with name: ${data.name}")
         return transaction {
@@ -35,7 +34,7 @@ class OrganizationRepositoryService(
     }
 
     fun getOrganizations(
-        token: String
+        token: Token
     ): List<OrganizationFullResponse> {
         logger.info("Getting organizations")
         return transaction {
@@ -48,7 +47,7 @@ class OrganizationRepositoryService(
     }
 
     fun getOrganization(
-        token: String,
+        token: Token,
         id: Int
     ): OrganizationFullResponse {
         logger.info("Getting organizations")
@@ -64,7 +63,7 @@ class OrganizationRepositoryService(
     }
 
     fun getUsersInOrganization(
-        token: String,
+        token: Token,
         id: Int
     ): List<UserResponse> {
         logger.info("Getting users in organization")
@@ -80,7 +79,7 @@ class OrganizationRepositoryService(
     }
 
     fun updateOrganization(
-        token: String,
+        token: Token,
         data: OrganizationUpdateRequest,
         id: Int
     ): OrganizationFullResponse {
@@ -109,7 +108,7 @@ class OrganizationRepositoryService(
     }
 
     fun deleteOrganization(
-        token: String,
+        token: Token,
         id: Int
     ) {
         logger.info("Deleting organization with id: $id")

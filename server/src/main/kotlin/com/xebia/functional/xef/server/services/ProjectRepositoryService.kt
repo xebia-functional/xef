@@ -12,7 +12,7 @@ class ProjectRepositoryService(
 ) {
     fun createProject(
         data: ProjectRequest,
-        token: String
+        token: Token
     ): ProjectSimpleResponse {
         logger.info("Creating project with name: ${data.name}")
         return transaction {
@@ -34,7 +34,7 @@ class ProjectRepositoryService(
     }
 
     fun getProjects(
-        token: String
+        token: Token
     ): List<ProjectFullResponse> {
         logger.info("Getting projects")
         return transaction {
@@ -50,7 +50,7 @@ class ProjectRepositoryService(
     }
 
     fun getProject(
-        token: String,
+        token: Token,
         id: Int
     ): ProjectFullResponse {
         logger.info("Getting project")
@@ -67,7 +67,7 @@ class ProjectRepositoryService(
     }
 
     fun getProjectsByOrganization(
-        token: String,
+        token: Token,
         orgId: Int
     ): List<ProjectSimpleResponse> {
         logger.info("Getting projects")
@@ -83,7 +83,7 @@ class ProjectRepositoryService(
     }
 
     fun updateProject(
-        token: String,
+        token: Token,
         data: ProjectUpdateRequest,
         id: Int
     ): ProjectFullResponse {
@@ -113,7 +113,7 @@ class ProjectRepositoryService(
     }
 
     fun deleteProject(
-        token: String,
+        token: Token,
         id: Int
     ) {
         logger.info("Deleting project with id: $id")

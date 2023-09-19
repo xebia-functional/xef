@@ -1,6 +1,7 @@
 package com.xebia.functional.xef.server.http.routes
 
 import com.aallam.openai.api.BetaOpenAI
+import com.xebia.functional.xef.server.models.Token
 import com.xebia.functional.xef.server.models.exceptions.XefExceptions
 import com.xebia.functional.xef.server.services.VectorStoreService
 import io.ktor.client.*
@@ -64,11 +65,11 @@ private suspend fun HttpClient.makeRequest(
     call: ApplicationCall,
     url: String,
     body: String,
-    token: String
+    token: Token
 ) {
     val response = this.request(url) {
         headers {
-            bearerAuth(token)
+            bearerAuth(token.value)
         }
         contentType(ContentType.Application.Json)
         method = HttpMethod.Post
@@ -82,11 +83,11 @@ private suspend fun HttpClient.makeStreaming(
     call: ApplicationCall,
     url: String,
     body: String,
-    token: String
+    token: Token
 ) {
     this.preparePost(url) {
         headers {
-            bearerAuth(token)
+            bearerAuth(token.value)
         }
         contentType(ContentType.Application.Json)
         method = HttpMethod.Post
@@ -112,8 +113,8 @@ private fun ApplicationCall.getProvider(): Provider =
     request.headers["xef-provider"]?.toProvider()
         ?: Provider.OPENAI
 
-fun ApplicationCall.getToken(): String =
-    principal<UserIdPrincipal>()?.name ?: throw XefExceptions.AuthorizationException("No token found")
+fun ApplicationCall.getToken(): Token =
+    principal<UserIdPrincipal>()?.name?.let { Token(it) } ?: throw XefExceptions.AuthorizationException("No token found")
 
 fun ApplicationCall.getId(): Int = getInt("id")
 
