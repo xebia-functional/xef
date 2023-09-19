@@ -30,7 +30,7 @@ class OrganizationRepositoryService(
             // Adding the organization to the user
             user.organizations = SizedCollection(user.organizations + organization)
             organization.users = SizedCollection(organization.users + user)
-            OrganizationSimpleResponse(organization.name)
+            organization.toOrganizationSimpleResponse()
         }
     }
 
@@ -43,23 +43,23 @@ class OrganizationRepositoryService(
             val user = getUser(token)
 
             // Getting the organizations from the user
-            user.organizations.map { OrganizationWithIdResponse(it.id.value, it.name, it.users.count()) }
+            user.organizations.map { it.toOrganizationWithIdResponse() }
         }
     }
 
     fun getOrganization(
         token: String,
         id: Int
-    ): List<OrganizationFullResponse> {
+    ): OrganizationFullResponse {
         logger.info("Getting organizations")
         return transaction {
             // Getting the user from the token
             val user = getUser(token)
 
-            // Getting the organizations from the user
-            user.organizations.filter {
+            // Getting the organization
+            user.organizations.find {
                 it.id.value == id
-            }.map { OrganizationFullResponse(it.id.value, it.name, it.ownerId.value, it.users.count()) }
+            }?.toOrganizationFullResponse() ?: throw OrganizationsException("Organization not found")
         }
     }
 
@@ -75,7 +75,7 @@ class OrganizationRepositoryService(
             // Getting the organizations from the user
             user.organizations.filter {
                 it.id.value == id
-            }.flatMap { it.users }.map { UserResponse(it.id.value, it.name) }
+            }.flatMap { it.users }.map { it.toUserResponse() }
         }
     }
 
@@ -104,12 +104,7 @@ class OrganizationRepositoryService(
                 organization.ownerId = newOwner.id
             }
             organization.updatedAt = Clock.System.now()
-            OrganizationFullResponse(
-                organization.id.value,
-                organization.name,
-                organization.ownerId.value,
-                organization.users.count()
-            )
+            organization.toOrganizationFullResponse()
         }
     }
 
@@ -122,9 +117,12 @@ class OrganizationRepositoryService(
             val user = getUser(token)
             val organization = Organization.findById(id)
                 ?: throw OrganizationsException("Organization not found")
-            if (organization.ownerId == user.id) {
-                organization.delete()
+
+            if (organization.ownerId != user.id) {
+                throw OrganizationsException("You can't delete the organization. User is not the owner of the organization")
             }
+
+            organization.delete()
         }
     }
 

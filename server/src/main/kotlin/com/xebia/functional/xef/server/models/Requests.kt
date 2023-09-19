@@ -25,3 +25,15 @@ data class OrganizationUpdateRequest(
     val name: String,
     val owner: Int? = null
 )
+
+@Serializable
+data class ProjectRequest(
+    val name: String,
+    val orgId: Int
+)
+
+@Serializable
+data class ProjectUpdateRequest(
+    val name: String,
+    val orgId: Int? = null
+)
