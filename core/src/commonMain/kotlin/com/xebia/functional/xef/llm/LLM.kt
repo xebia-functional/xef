@@ -8,6 +8,7 @@ sealed interface LLM : AutoCloseable {
 
   val modelType: ModelType
 
+  @Deprecated("use modelType.name instead", replaceWith = ReplaceWith("modelType.name"))
   val name
     get() = modelType.name
 
@@ -28,5 +29,5 @@ sealed interface LLM : AutoCloseable {
     ) + modelType.tokenPadding
   }
 
-  override fun close() {}
+  override fun close() = Unit
 }
