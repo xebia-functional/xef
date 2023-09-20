@@ -69,7 +69,7 @@ class OpenAI(internal var token: String? = null, internal var host: String? = nu
   val GPT_4 by lazy { autoClose(OpenAIChat(ModelType.GPT_4, defaultClient)) }
 
   val GPT_4_0314 by lazy {
-    autoClose(OpenAIFunChat(ModelType.GPT_4, defaultClient)) // legacy
+    autoClose(OpenAIFunChat(ModelType.GPT_4_0314, defaultClient)) // legacy
   }
 
   val GPT_4_32K by lazy { autoClose(OpenAIChat(ModelType.GPT_4_32K, defaultClient)) }
