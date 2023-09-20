@@ -39,6 +39,8 @@ sealed class ModelType(
   data class LocalModel(override val name: String, override val encodingType: EncodingType, override val maxContextLength: Int) : ModelType(name, encodingType, maxContextLength)
   // chat
   object GPT_4 : ModelType("gpt-4", CL100K_BASE, 8192, tokensPerMessage = 3, tokensPerName = 2, tokenPadding = 5)
+
+  object GPT_4_0314 : ModelType("gpt-4-0314", CL100K_BASE, 8192, tokensPerMessage = 3, tokensPerName = 2, tokenPadding = 5)
   object GPT_4_32K : ModelType("gpt-4-32k", CL100K_BASE, 32768, tokensPerMessage = 3, tokensPerName = 2, tokenPadding = 5)
   object GPT_3_5_TURBO : ModelType("gpt-3.5-turbo", CL100K_BASE, 4097, tokensPerMessage = 4, tokensPerName = 0, tokenPadding = 5)
   object GPT_3_5_TURBO_16_K : ModelType("gpt-3.5-turbo-16k", CL100K_BASE, 4097 * 4)
