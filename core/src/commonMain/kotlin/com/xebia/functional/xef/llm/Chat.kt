@@ -36,11 +36,7 @@ interface Chat : LLM {
       .also { finalText ->
         val aiResponseMessage = assistant(finalText)
         val newMessages = prompt.messages + listOf(aiResponseMessage)
-        MemoryManagement.addMemoriesAfterStream(
-          this@Chat,
-          newMessages,
-          scope
-        )
+        MemoryManagement.addMessagesToMemory(this@Chat, newMessages, scope)
       }
   }
 
@@ -64,7 +60,7 @@ interface Chat : LLM {
     return MemoryManagement.run {
       createChatCompletion(request)
         .choices
-        .addChoiceToMemory(this@Chat, request, scope)
+        .addChoiceToMemory(this@Chat, prompt.messages, scope)
         .mapNotNull { it.message?.content }
     }
   }

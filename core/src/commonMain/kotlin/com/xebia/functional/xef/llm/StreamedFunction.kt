@@ -31,7 +31,8 @@ sealed class StreamedFunction<out A> {
      * user before the final result for the function call is ready.
      *
      * @param chat the ChatWithFunctions object representing the chat.
-     * @param promptMessages prompt messages that are added to conversation history if request successful.
+     * @param promptMessages prompt messages that are added to conversation history if request
+     *   successful.
      * @param request the ChatCompletionRequest object representing the completion request.
      * @param scope the Conversation object representing the conversation scope.
      * @param serializer the function used to deserialize JSON strings into objects of type A.
@@ -64,11 +65,7 @@ sealed class StreamedFunction<out A> {
         .createChatCompletionsWithFunctions(request)
         .onCompletion {
           val newMessages = promptMessages + messages
-          MemoryManagement.addMemoriesAfterStream(
-            chat,
-            newMessages,
-            scope
-          )
+          MemoryManagement.addMessagesToMemory(chat, newMessages, scope)
         }
         .collect { responseChunk ->
           // Each chunk is emitted from the LLM and it will include a delta.parameters with

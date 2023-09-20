@@ -91,11 +91,7 @@ interface ChatWithFunctions : LLM {
       MemoryManagement.run {
         createChatCompletionWithFunctions(request)
           .choices
-          .addChoiceWithFunctionsToMemory(
-            this@ChatWithFunctions,
-            request.messages.lastOrNull(),
-            scope
-          )
+          .addChoiceWithFunctionsToMemory(this@ChatWithFunctions, prompt.messages, scope)
           .mapNotNull { it.message?.functionCall?.arguments }
       }
     }

@@ -7,7 +7,7 @@ import io.ktor.util.date.*
 
 internal object MemoryManagement {
 
-  internal suspend fun addMemoriesAfterStream(
+  internal suspend fun addMessagesToMemory(
     chat: LLM,
     messages: List<Message>,
     scope: Conversation
@@ -20,7 +20,7 @@ internal object MemoryManagement {
             conversationId = cid,
             content = it,
             timestamp = getTimeMillis(),
-            approxTokens = chat.tokensFromMessages(messages)
+            approxTokens = chat.tokensFromMessages(listOf(it))
           )
         }
       scope.store.addMemories(memories)
@@ -29,21 +29,14 @@ internal object MemoryManagement {
 
   internal suspend fun List<ChoiceWithFunctions>.addChoiceWithFunctionsToMemory(
     chat: LLM,
-    requestUserMessage: Message?,
+    requestUserMessages: List<Message>,
     scope: Conversation
   ): List<ChoiceWithFunctions> = also {
     val firstChoice = firstOrNull()
     val cid = scope.conversationId
-    if (requestUserMessage != null && firstChoice != null && cid != null) {
+    if (firstChoice != null && cid != null) {
       val role = firstChoice.message?.role?.uppercase()?.let { Role.valueOf(it) } ?: Role.USER
 
-      val requestMemory =
-        Memory(
-          conversationId = cid,
-          content = requestUserMessage,
-          timestamp = getTimeMillis(),
-          approxTokens = chat.tokensFromMessages(listOf(requestUserMessage))
-        )
       val firstChoiceMessage =
         Message(
           role = role,
@@ -51,44 +44,27 @@ internal object MemoryManagement {
               ?: firstChoice.message?.functionCall?.arguments ?: "",
           name = role.name
         )
-      val firstChoiceMemory =
-        Memory(
-          conversationId = cid,
-          content = firstChoiceMessage,
-          timestamp = getTimeMillis(),
-          approxTokens = chat.tokensFromMessages(listOf(firstChoiceMessage))
-        )
-      scope.store.addMemories(listOf(requestMemory, firstChoiceMemory))
+
+      val newMessages = requestUserMessages + firstChoiceMessage
+      addMessagesToMemory(chat, newMessages, scope)
     }
   }
 
   internal suspend fun List<Choice>.addChoiceToMemory(
     chat: Chat,
-    request: ChatCompletionRequest,
+    messages: List<Message>,
     scope: Conversation
   ): List<Choice> = also {
     val firstChoice = firstOrNull()
-    val requestUserMessage = request.messages.lastOrNull()
     val cid = scope.conversationId
-    if (requestUserMessage != null && firstChoice != null && cid != null) {
+    if (firstChoice != null && cid != null) {
       val role = firstChoice.message?.role?.name?.uppercase()?.let { Role.valueOf(it) } ?: Role.USER
-      val requestMemory =
-        Memory(
-          conversationId = cid,
-          content = requestUserMessage,
-          timestamp = getTimeMillis(),
-          approxTokens = chat.tokensFromMessages(listOf(requestUserMessage))
-        )
+
       val firstChoiceMessage =
         Message(role = role, content = firstChoice.message?.content ?: "", name = role.name)
-      val firstChoiceMemory =
-        Memory(
-          conversationId = cid,
-          content = firstChoiceMessage,
-          timestamp = getTimeMillis(),
-          approxTokens = chat.tokensFromMessages(listOf(firstChoiceMessage))
-        )
-      scope.store.addMemories(listOf(requestMemory, firstChoiceMemory))
+
+      val newMessages = messages + firstChoiceMessage
+      addMessagesToMemory(chat, newMessages, scope)
     }
   }
 }
