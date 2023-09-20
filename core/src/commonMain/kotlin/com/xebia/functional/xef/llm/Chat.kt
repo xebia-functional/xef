@@ -34,12 +34,12 @@ interface Chat : LLM {
       .onEach { emit(it) }
       .fold("", String::plus)
       .also { finalText ->
-        val message = assistant(finalText)
+        val aiResponseMessage = assistant(finalText)
+        val newMessages = prompt.messages + listOf(aiResponseMessage)
         MemoryManagement.addMemoriesAfterStream(
           this@Chat,
-          request.messages.lastOrNull(),
-          scope,
-          listOf(message)
+          newMessages,
+          scope
         )
       }
   }

@@ -9,20 +9,12 @@ internal object MemoryManagement {
 
   internal suspend fun addMemoriesAfterStream(
     chat: LLM,
-    lastRequestMessage: Message?,
-    scope: Conversation,
     messages: List<Message>,
+    scope: Conversation
   ) {
     val cid = scope.conversationId
-    if (cid != null && lastRequestMessage != null) {
-      val requestMemory =
-        Memory(
-          conversationId = cid,
-          content = lastRequestMessage,
-          timestamp = getTimeMillis(),
-          approxTokens = chat.tokensFromMessages(listOf(lastRequestMessage))
-        )
-      val responseMemories =
+    if (cid != null) {
+      val memories =
         messages.map {
           Memory(
             conversationId = cid,
@@ -31,7 +23,7 @@ internal object MemoryManagement {
             approxTokens = chat.tokensFromMessages(messages)
           )
         }
-      scope.store.addMemories(listOf(requestMemory) + responseMemories)
+      scope.store.addMemories(memories)
     }
   }
 

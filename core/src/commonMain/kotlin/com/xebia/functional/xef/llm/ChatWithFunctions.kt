@@ -134,6 +134,7 @@ interface ChatWithFunctions : LLM {
       ) {
         streamFunctionCall(
           chat = this@ChatWithFunctions,
+          promptMessages = prompt.messages,
           request = request,
           scope = scope,
           serializer = serializer,
