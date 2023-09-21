@@ -5,98 +5,67 @@ import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.store.Memory
 import io.ktor.util.date.*
 
-internal object MemoryManagement {
-
-  internal suspend fun addMemoriesAfterStream(
-    chat: LLM,
-    lastRequestMessage: Message?,
-    scope: Conversation,
-    messages: List<Message>,
-  ) {
-    val cid = scope.conversationId
-    if (cid != null && lastRequestMessage != null) {
-      val requestMemory =
-        Memory(
-          conversationId = cid,
-          content = lastRequestMessage,
-          timestamp = getTimeMillis(),
-          approxTokens = chat.tokensFromMessages(listOf(lastRequestMessage))
-        )
-      val responseMemories =
-        messages.map {
-          Memory(
-            conversationId = cid,
-            content = it,
-            timestamp = getTimeMillis(),
-            approxTokens = chat.tokensFromMessages(messages)
-          )
-        }
-      scope.store.addMemories(listOf(requestMemory) + responseMemories)
-    }
+internal suspend fun List<Message>.addToMemory(chat: LLM, scope: Conversation) {
+  val memories = toMemory(chat, scope)
+  if (memories.isNotEmpty()) {
+    scope.store.addMemories(memories)
   }
+}
 
-  internal suspend fun List<ChoiceWithFunctions>.addChoiceWithFunctionsToMemory(
-    chat: LLM,
-    requestUserMessage: Message?,
-    scope: Conversation
-  ): List<ChoiceWithFunctions> = also {
-    val firstChoice = firstOrNull()
-    val cid = scope.conversationId
-    if (requestUserMessage != null && firstChoice != null && cid != null) {
-      val role = firstChoice.message?.role?.uppercase()?.let { Role.valueOf(it) } ?: Role.USER
-
-      val requestMemory =
-        Memory(
-          conversationId = cid,
-          content = requestUserMessage,
-          timestamp = getTimeMillis(),
-          approxTokens = chat.tokensFromMessages(listOf(requestUserMessage))
-        )
-      val firstChoiceMessage =
-        Message(
-          role = role,
-          content = firstChoice.message?.content
-              ?: firstChoice.message?.functionCall?.arguments ?: "",
-          name = role.name
-        )
-      val firstChoiceMemory =
-        Memory(
-          conversationId = cid,
-          content = firstChoiceMessage,
-          timestamp = getTimeMillis(),
-          approxTokens = chat.tokensFromMessages(listOf(firstChoiceMessage))
-        )
-      scope.store.addMemories(listOf(requestMemory, firstChoiceMemory))
+internal fun List<Message>.toMemory(chat: LLM, scope: Conversation): List<Memory> {
+  val cid = scope.conversationId
+  return if (cid != null) {
+    mapIndexed { delta, it ->
+      Memory(
+        conversationId = cid,
+        content = it,
+        // We are adding the delta to ensure that the timestamp is unique for every message.
+        // With this, we ensure that the order of the messages is preserved.
+        // We assume that the AI response time will be in the order of seconds.
+        timestamp = getTimeMillis() + delta,
+        approxTokens = chat.tokensFromMessages(listOf(it))
+      )
     }
+  } else emptyList()
+}
+
+internal suspend fun List<ChoiceWithFunctions>.addMessagesToMemory(
+  chat: LLM,
+  scope: Conversation,
+  previousMemories: List<Memory>
+): List<ChoiceWithFunctions> = also {
+  val firstChoice = firstOrNull()
+  val cid = scope.conversationId
+  if (firstChoice != null && cid != null) {
+    val role = firstChoice.message?.role?.uppercase()?.let { Role.valueOf(it) } ?: Role.USER
+
+    val firstChoiceMessage =
+      Message(
+        role = role,
+        content = firstChoice.message?.content
+            ?: firstChoice.message?.functionCall?.arguments ?: "",
+        name = role.name
+      )
+
+    val newMessages = previousMemories + listOf(firstChoiceMessage).toMemory(chat, scope)
+    scope.store.addMemories(newMessages)
   }
+}
 
-  internal suspend fun List<Choice>.addChoiceToMemory(
-    chat: Chat,
-    request: ChatCompletionRequest,
-    scope: Conversation
-  ): List<Choice> = also {
-    val firstChoice = firstOrNull()
-    val requestUserMessage = request.messages.lastOrNull()
-    val cid = scope.conversationId
-    if (requestUserMessage != null && firstChoice != null && cid != null) {
-      val role = firstChoice.message?.role?.name?.uppercase()?.let { Role.valueOf(it) } ?: Role.USER
-      val requestMemory =
-        Memory(
-          conversationId = cid,
-          content = requestUserMessage,
-          timestamp = getTimeMillis(),
-          approxTokens = chat.tokensFromMessages(listOf(requestUserMessage))
-        )
-      val firstChoiceMessage =
-        Message(role = role, content = firstChoice.message?.content ?: "", name = role.name)
-      val firstChoiceMemory =
-        Memory(
-          conversationId = cid,
-          content = firstChoiceMessage,
-          timestamp = getTimeMillis(),
-          approxTokens = chat.tokensFromMessages(listOf(firstChoiceMessage))
-        )
-      scope.store.addMemories(listOf(requestMemory, firstChoiceMemory))
-    }
+internal suspend fun List<Choice>.addMessagesToMemory(
+  chat: Chat,
+  scope: Conversation,
+  previousMemories: List<Memory>
+): List<Choice> = also {
+  val firstChoice = firstOrNull()
+  val cid = scope.conversationId
+  if (firstChoice != null && cid != null) {
+    val role = firstChoice.message?.role?.name?.uppercase()?.let { Role.valueOf(it) } ?: Role.USER
+
+    val firstChoiceMessage =
+      Message(role = role, content = firstChoice.message?.content ?: "", name = role.name)
+
+    val newMessages = previousMemories + listOf(firstChoiceMessage).toMemory(chat, scope)
+    scope.store.addMemories(newMessages)
   }
 }
