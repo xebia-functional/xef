@@ -65,7 +65,7 @@ sealed class StreamedFunction<out A> {
         .createChatCompletionsWithFunctions(request)
         .onCompletion {
           val newMessages = promptMessages + messages
-          MemoryManagement.addMessagesToMemory(chat, newMessages, scope)
+          newMessages.addToMemory(chat, scope)
         }
         .collect { responseChunk ->
           // Each chunk is emitted from the LLM and it will include a delta.parameters with
