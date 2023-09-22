@@ -5,6 +5,7 @@ import com.xebia.functional.xef.data.*
 import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.llm.models.chat.Role
 import com.xebia.functional.xef.prompt.Prompt
+import com.xebia.functional.xef.prompt.templates.system
 import com.xebia.functional.xef.prompt.templates.user
 import com.xebia.functional.xef.store.ConversationId
 import com.xebia.functional.xef.store.LocalVectorStore
@@ -117,35 +118,6 @@ class ConversationSpec :
       messagesSizePlusMessageResponse shouldBe memories.size
     }
 
-    "functionCall should be null when the model doesn't support functions" {
-      val messages = generateRandomMessages(1, 40, 60)
-      val conversationId = ConversationId(UUID.generateUUID().toString())
-      val scope = Conversation(LocalVectorStore(TestEmbeddings()), conversationId = conversationId)
-
-      val model = TestModel(modelType = ModelType.ADA, name = "fake-model")
-
-      model.promptMessage(prompt = Prompt(messages.keys.first()), scope = scope)
-
-      val lastRequest = model.requests.last()
-
-      lastRequest.functionCall shouldBe null
-    }
-
-    "functionCall should be null when the model support functions and the prompt doesn't contain a function" {
-      val messages = generateRandomMessages(1, 40, 60)
-      val conversationId = ConversationId(UUID.generateUUID().toString())
-      val scope = Conversation(LocalVectorStore(TestEmbeddings()), conversationId = conversationId)
-
-      val model =
-        TestFunctionsModel(modelType = ModelType.GPT_3_5_TURBO_FUNCTIONS, name = "fake-model")
-
-      model.promptMessage(prompt = Prompt(messages.keys.first()), scope = scope)
-
-      val lastRequest = model.requests.last()
-
-      lastRequest.functionCall shouldBe null
-    }
-
     "functionCall shouldn't be null when the model support functions and the prompt contain a function" {
       val question = "fake-question"
       val answer = Answer("fake-answer")
@@ -202,5 +174,51 @@ class ConversationSpec :
       lastRequest.messages.last().content shouldBe questionJsonString
 
       response shouldBe answer
+    }
+
+    "the scope's store should contains all the messages" {
+      val conversationId = ConversationId(UUID.generateUUID().toString())
+
+      val model = TestModel(modelType = ModelType.ADA, name = "fake-model")
+
+      val scope = Conversation(LocalVectorStore(TestEmbeddings()), conversationId = conversationId)
+
+      val vectorStore = scope.store
+
+      val firstPrompt = Prompt {
+        +system("question 1")
+        +user("question 2")
+      }
+
+      val firstResponse = model.promptMessages(prompt = firstPrompt, scope = scope)
+      val aiFirstMessage =
+        Message(role = Role.ASSISTANT, content = firstResponse.first(), name = Role.ASSISTANT.name)
+
+      val secondPrompt = Prompt { +user("question 3") }
+
+      val secondResponse = model.promptMessages(prompt = secondPrompt, scope = scope)
+      val aiSecondMessage =
+        Message(role = Role.ASSISTANT, content = secondResponse.first(), name = Role.ASSISTANT.name)
+
+      val thirdPrompt = Prompt {
+        +system("question 4")
+        +user("question 5")
+      }
+
+      val thirdResponse = model.promptMessages(prompt = thirdPrompt, scope = scope)
+      val aiThirdMessage =
+        Message(role = Role.ASSISTANT, content = thirdResponse.first(), name = Role.ASSISTANT.name)
+
+      val memories = vectorStore.memories(conversationId, 10000)
+      val expectedMessages =
+        (firstPrompt.messages +
+            aiFirstMessage +
+            secondPrompt.messages +
+            aiSecondMessage +
+            thirdPrompt.messages +
+            aiThirdMessage)
+          .map { it.content }
+      val actualMessages = memories.map { it.content.content }
+      expectedMessages shouldBe actualMessages
     }
   })

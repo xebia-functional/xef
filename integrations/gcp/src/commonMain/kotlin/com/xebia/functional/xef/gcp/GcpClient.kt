@@ -18,7 +18,6 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 class GcpClient(
-  val modelId: String,
   private val config: GcpConfig,
 ) : AutoClose by autoClose() {
   private val http: HttpClient = jsonHttpClient()
@@ -66,6 +65,7 @@ class GcpClient(
   )
 
   suspend fun promptMessage(
+    modelId: String,
     prompt: String,
     temperature: Double? = null,
     maxOutputTokens: Int? = null,
@@ -131,7 +131,7 @@ class GcpClient(
       )
     val response =
       http.post(
-        "https://${config.location.officialName}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${config.location.officialName}/publishers/google/models/$modelId:predict"
+        "https://${config.location.officialName}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${config.location.officialName}/publishers/google/models/${request.model}:predict"
       ) {
         header("Authorization", "Bearer ${config.token}")
         contentType(ContentType.Application.Json)
