@@ -5,6 +5,10 @@ import com.xebia.functional.tokenizer.EncodingType.P50K_BASE
 import com.xebia.functional.tokenizer.EncodingType.R50K_BASE
 import kotlin.jvm.JvmStatic
 
+/**
+ * Formal description of a model and it's properties
+ * without any capabilities.
+ */
 sealed class ModelType(
   /**
    * Returns the name of the model type as used by the OpenAI API.
@@ -20,7 +24,11 @@ sealed class ModelType(
    *
    * @return the maximum context length for this model type
    */
-  open val maxContextLength: Int
+  open val maxContextLength: Int,
+
+  open val tokensPerMessage: Int = 0,
+  open val tokensPerName: Int = 0,
+  open val tokenPadding: Int = 20,
 ) {
 
   companion object {
@@ -30,11 +38,13 @@ sealed class ModelType(
 
   data class LocalModel(override val name: String, override val encodingType: EncodingType, override val maxContextLength: Int) : ModelType(name, encodingType, maxContextLength)
   // chat
-  object GPT_4 : ModelType("gpt-4", CL100K_BASE, 8192)
-  object GPT_4_32K : ModelType("gpt-4-32k", CL100K_BASE, 32768)
-  object GPT_3_5_TURBO : ModelType("gpt-3.5-turbo", CL100K_BASE, 4097)
+  object GPT_4 : ModelType("gpt-4", CL100K_BASE, 8192, tokensPerMessage = 3, tokensPerName = 2, tokenPadding = 5)
+
+  object GPT_4_0314 : ModelType("gpt-4-0314", CL100K_BASE, 8192, tokensPerMessage = 3, tokensPerName = 2, tokenPadding = 5)
+  object GPT_4_32K : ModelType("gpt-4-32k", CL100K_BASE, 32768, tokensPerMessage = 3, tokensPerName = 2, tokenPadding = 5)
+  object GPT_3_5_TURBO : ModelType("gpt-3.5-turbo", CL100K_BASE, 4097, tokensPerMessage = 4, tokensPerName = 0, tokenPadding = 5)
   object GPT_3_5_TURBO_16_K : ModelType("gpt-3.5-turbo-16k", CL100K_BASE, 4097 * 4)
-  object GPT_3_5_TURBO_FUNCTIONS : ModelType("gpt-3.5-turbo-0613", CL100K_BASE, 4097)
+  object GPT_3_5_TURBO_FUNCTIONS : ModelType("gpt-3.5-turbo-0613", CL100K_BASE, 4097, tokensPerMessage = 4, tokensPerName = 0, tokenPadding = 200)
   // text
   object TEXT_DAVINCI_003 : ModelType("text-davinci-003", P50K_BASE, 4097)
   object TEXT_DAVINCI_002 : ModelType("text-davinci-002", P50K_BASE, 4097)
@@ -73,6 +83,14 @@ sealed class ModelType(
   object TEXT_SEARCH_ADA_DOC_001 : ModelType("text-search-ada-doc-001", R50K_BASE, 2046)
   object CODE_SEARCH_BABBAGE_CODE_001 : ModelType("code-search-babbage-code-001", R50K_BASE, 2046)
   object CODE_SEARCH_ADA_CODE_001 : ModelType("code-search-ada-code-001", R50K_BASE, 2046)
+
+  /**
+   * Currently as of September 2023,
+   * [ModelType] has only implementations for OpenAI.
+   * Porting this class to other providers will hopefully be addressed in another PR.
+   * Meanwhile, [ModelType.TODO] serves as a placeholder.
+   */
+  class TODO(name: String) : ModelType(name = name, encodingType = EncodingType.CL100K_BASE, maxContextLength = 2048)
 
   inline val encoding: Encoding
     inline get() = encodingType.encoding

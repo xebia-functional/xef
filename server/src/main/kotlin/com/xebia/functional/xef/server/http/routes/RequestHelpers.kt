@@ -9,7 +9,6 @@ import com.xebia.functional.xef.llm.models.chat.Role
 @OptIn(BetaOpenAI::class)
 fun ChatCompletionRequest.toCore(): com.xebia.functional.xef.llm.models.chat.ChatCompletionRequest =
     com.xebia.functional.xef.llm.models.chat.ChatCompletionRequest(
-        model = model.id,
         messages = messages.map { Message(it.role.toCore(), it.content ?: "", it.name ?: "") },
         temperature = temperature ?: 0.0,
         topP = topP ?: 1.0,

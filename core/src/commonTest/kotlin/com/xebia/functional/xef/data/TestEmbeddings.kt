@@ -1,5 +1,6 @@
 package com.xebia.functional.xef.data
 
+import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.llm.Embeddings
 import com.xebia.functional.xef.llm.models.embeddings.Embedding
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
@@ -9,8 +10,7 @@ import com.xebia.functional.xef.llm.models.usage.Usage
 
 class TestEmbeddings : Embeddings {
 
-  override val name: String
-    get() = "test-embeddings"
+  override val modelType: ModelType = ModelType.TODO("test-embeddings")
 
   override suspend fun embedDocuments(
     texts: List<String>,

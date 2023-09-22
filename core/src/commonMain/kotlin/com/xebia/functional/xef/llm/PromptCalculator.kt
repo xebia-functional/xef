@@ -13,7 +13,7 @@ internal object PromptCalculator {
   suspend fun adaptPromptToConversationAndModel(
     prompt: Prompt,
     scope: Conversation,
-    chat: Chat
+    chat: LLM
   ): Prompt {
 
     // calculate tokens for history and context
@@ -55,7 +55,7 @@ internal object PromptCalculator {
     memories.map { it.content }
 
   private fun calculateMessagesFromHistory(
-    chat: Chat,
+    chat: LLM,
     memories: List<Memory>,
     maxHistoryTokens: Int
   ) =
@@ -94,7 +94,7 @@ internal object PromptCalculator {
     return maxHistoryTokens
   }
 
-  private fun calculateRemainingTokensForContext(chat: Chat, prompt: Prompt): Int {
+  private fun calculateRemainingTokensForContext(chat: LLM, prompt: Prompt): Int {
     val maxContextLength: Int = chat.modelType.maxContextLength
     val remainingTokens: Int = maxContextLength - prompt.configuration.minResponseTokens
 
