@@ -5,8 +5,7 @@ import com.xebia.functional.tokenizer.truncateText
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.prompt.Prompt
-import com.xebia.functional.xef.prompt.templates.assistant
-import com.xebia.functional.xef.prompt.templates.steps
+import com.xebia.functional.xef.prompt.templates.assistantSteps
 import com.xebia.functional.xef.prompt.templates.system
 import com.xebia.functional.xef.prompt.templates.user
 import com.xebia.functional.xef.reasoning.tools.Tool
@@ -60,12 +59,11 @@ class Summarize(
               """
           .trimMargin()
       )
-      +steps {
-        (listOf(
-            "Summarize the `text` in max $summaryLength words",
-            "Reply with an empty response: ` ` if the text can't be summarized"
-          ) + instructions)
-          .forEach { +assistant(it) }
+      +assistantSteps {
+        listOf(
+          "Summarize the `text` in max $summaryLength words",
+          "Reply with an empty response: ` ` if the text can't be summarized"
+        ) + instructions
       }
     }
 
