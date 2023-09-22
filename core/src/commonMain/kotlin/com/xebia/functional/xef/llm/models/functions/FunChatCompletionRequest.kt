@@ -1,6 +1,9 @@
-package com.xebia.functional.xef.llm.models.chat
+package com.xebia.functional.xef.llm.models.functions
 
-data class ChatCompletionRequest(
+import arrow.core.Nel
+import com.xebia.functional.xef.llm.models.chat.Message
+
+data class FunChatCompletionRequest(
   val messages: List<Message>,
   val temperature: Double = 0.0,
   val topP: Double = 1.0,
@@ -13,4 +16,6 @@ data class ChatCompletionRequest(
   val logitBias: Map<String, Int> = emptyMap(),
   val user: String?,
   val streamToStandardOut: Boolean = false,
+  val functions: Nel<CFunction>,
+  val functionCall: Map<String, String>? = null,
 )

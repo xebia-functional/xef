@@ -17,6 +17,10 @@ suspend fun Conversation.promptMessage(
 ): String = model.promptMessage(prompt, this)
 
 @AiDsl
+suspend fun Conversation.promptMessage(input: String, model: Chat = OpenAI().DEFAULT_CHAT): String =
+  model.promptMessage(Prompt(input), this)
+
+@AiDsl
 suspend fun Conversation.promptStreaming(
   prompt: Prompt,
   model: Chat = OpenAI().DEFAULT_CHAT
@@ -31,23 +35,12 @@ inline fun <reified A> Conversation.promptStreaming(
 @AiDsl
 suspend inline fun <reified A> Conversation.prompt(
   input: String,
-  model: ChatWithFunctions =
-    if (A::class == String::class) OpenAI().DEFAULT_CHAT else OpenAI().DEFAULT_SERIALIZATION
+  model: ChatWithFunctions = OpenAI().DEFAULT_SERIALIZATION
 ): A =
-  if (A::class == String::class)
-    model.promptMessage(prompt = Prompt { +user(input) }, scope = conversation) as A
-  else
-    model.prompt(
-      prompt = Prompt { +user(input) },
-      scope = conversation,
-      serializer = serializer<A>()
-    )
+  model.prompt(prompt = Prompt { +user(input) }, scope = conversation, serializer = serializer<A>())
 
 @AiDsl
 suspend inline fun <reified A> Conversation.prompt(
   prompt: Prompt,
-  model: ChatWithFunctions =
-    if (A::class == String::class) OpenAI().DEFAULT_CHAT else OpenAI().DEFAULT_SERIALIZATION
-): A =
-  if (A::class == String::class) model.promptMessage(prompt = prompt, scope = conversation) as A
-  else model.prompt(prompt = prompt, scope = conversation, serializer = serializer<A>())
+  model: ChatWithFunctions = OpenAI().DEFAULT_SERIALIZATION
+): A = model.prompt(prompt = prompt, scope = conversation, serializer = serializer<A>())
