@@ -7,7 +7,6 @@ import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingResult
 import com.xebia.functional.xef.llm.models.usage.Usage
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 
 class TestModel(
@@ -22,7 +21,6 @@ class TestModel(
     request: ChatCompletionRequest
   ): ChatCompletionResponse {
     requests.add(request)
-    delay(100) // Simulating a AI's delay response
     return ChatCompletionResponse(
       id = "fake-id",
       `object` = "fake-object",
