@@ -2,6 +2,8 @@ plugins {
     id(libs.plugins.kotlin.jvm.get().pluginId)
     id(libs.plugins.kotlinx.serialization.get().pluginId)
     alias(libs.plugins.node.gradle)
+    alias(libs.plugins.arrow.gradle.publish)
+    alias(libs.plugins.semver.gradle)
 }
 
 repositories {
@@ -90,4 +92,8 @@ task<JavaExec>("server") {
 
 tasks.named<Test>("test") {
     useJUnitPlatform()
+}
+
+tasks.withType<AbstractPublishToMaven> {
+    dependsOn(tasks.withType<Sign>())
 }
