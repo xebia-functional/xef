@@ -42,7 +42,7 @@ jsonschema = "4.31.1"
 jakarta = "3.0.2"
 suspend-transform = "0.5.1"
 suspendApp = "0.4.0"
-flyway = "9.22.1"
+flyway = "9.22.2"
 resources-kmp = "0.4.0"
 detekt = "1.23.1"
 
