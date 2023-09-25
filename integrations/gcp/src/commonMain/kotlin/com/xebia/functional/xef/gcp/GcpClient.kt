@@ -79,7 +79,7 @@ class GcpClient(
       )
     val response =
       http.post(
-        "https://${config.location.officialName}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/us-central1/publishers/google/models/$modelId:predict"
+        "https://${config.location.officialName}-aiplatform.googleapis.com/v1/projects/${config.projectId}/locations/${config.location.officialName}/publishers/google/models/$modelId:predict"
       ) {
         header("Authorization", "Bearer ${config.token}")
         contentType(ContentType.Application.Json)
