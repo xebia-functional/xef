@@ -54,7 +54,6 @@ export function Projects() {
   };
 
   const handleClickEditProject = (org: ProjectResponse) => {
-    console.log(org);
     setOpenAddEditProject(true);
     setProjectForUpdating({ ...org, orgId: org.org.id, });
   };
@@ -64,6 +63,10 @@ export function Projects() {
   };
 
   const handleSaveAddEditProject = async () => {
+    if (projectforUpdating.name == "") {
+      setShowAlert("Name must not be empty");
+      throw new Error("Name must not be emptyl");
+    }
     if (projectforUpdating.id == null) {
       if (projectforUpdating.orgId == null) {
         setShowAlert("Select an organization");
@@ -173,53 +176,59 @@ export function Projects() {
           </Button>
         </Grid>
         <Box sx={{ m: 2 }} />
-        <TableContainer component={Paper}>
-          <Table sx={{ minWidth: 650 }} aria-label="simple table">
-            <TableHead>
-              <TableRow>
-                <TableCell>Organization</TableCell>
-                <TableCell>Name</TableCell>
-                <TableCell></TableCell>
-                <TableCell></TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {projects.map((project) => (
-                <TableRow
-                  key={project.name}
-                  sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                >
-                  <TableCell component="th" scope="row" style={{ width: "30%" }}>
-                    {project.org.name}
-                  </TableCell>
-                  <TableCell component="th" scope="row" style={{ width: "60%" }}>
-                    {project.name}
-                  </TableCell>
-                  <TableCell align="right">
-                    <Button
-                      onClick={() => handleClickEditProject(project)}
-                      variant="text"
-                      disableElevation>
-                      <Typography variant="button">Edit</Typography>
-                    </Button>
-                  </TableCell>
-                  <TableCell align="right">
-                    <Button
-                      onClick={() => handleClickDeleteProject(project)}
-                      variant="text"
-                      disableElevation>
-                      <Typography variant="button">Delete</Typography>
-                    </Button>
-                  </TableCell>
+
+        {projects.length == 0 ?
+          <Typography >
+            No projects at this moment
+          </Typography> :
+          <TableContainer component={Paper}>
+            <Table sx={{ minWidth: 650 }} aria-label="simple table">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Organization</TableCell>
+                  <TableCell>Name</TableCell>
+                  <TableCell></TableCell>
+                  <TableCell></TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+              </TableHead>
+              <TableBody>
+                {projects.map((project) => (
+                  <TableRow
+                    key={project.name}
+                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                  >
+                    <TableCell component="th" scope="row" style={{ width: "30%" }}>
+                      {project.org.name}
+                    </TableCell>
+                    <TableCell component="th" scope="row" style={{ width: "60%" }}>
+                      {project.name}
+                    </TableCell>
+                    <TableCell align="right">
+                      <Button
+                        onClick={() => handleClickEditProject(project)}
+                        variant="text"
+                        disableElevation>
+                        <Typography variant="button">Edit</Typography>
+                      </Button>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Button
+                        onClick={() => handleClickDeleteProject(project)}
+                        variant="text"
+                        disableElevation>
+                        <Typography variant="button">Delete</Typography>
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        }
       </>
     }
 
-    {/* Add/Edit Project Dialog */}
+    { /* Add/Edit Project Dialog */}
 
     <Dialog open={openAddEditProject} onClose={handleCloseAddEditProject}>
       <DialogTitle>{projectforUpdating.id == null ? "New Project" : "Update Project"}</DialogTitle>
@@ -293,5 +302,6 @@ export function Projects() {
       autoHideDuration={5000}>
       <Alert severity="error">{showAlert}</Alert>
     </Snackbar>
-  </>;
-}
+  </>
+};
+
