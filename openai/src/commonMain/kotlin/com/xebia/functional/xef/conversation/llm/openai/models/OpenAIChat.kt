@@ -9,6 +9,7 @@ import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.conversation.llm.openai.toInternal
 import com.xebia.functional.xef.conversation.llm.openai.toOpenAI
 import com.xebia.functional.xef.llm.Chat
+import com.xebia.functional.xef.llm.FineTuneable
 import com.xebia.functional.xef.llm.models.chat.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -16,7 +17,10 @@ import kotlinx.coroutines.flow.map
 class OpenAIChat(
   override val modelType: ModelType,
   private val client: OpenAI,
-) : Chat {
+) : Chat, FineTuneable {
+
+  override fun fineTuned(name: String): OpenAIChat =
+    OpenAIChat(ModelType.FineTunedModel(name, modelType), client)
 
   override suspend fun createChatCompletion(
     request: ChatCompletionRequest
