@@ -2,9 +2,9 @@ package com.xebia.functional.xef.llm
 
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.StreamedFunction.Companion.PropertyType.*
-import com.xebia.functional.xef.llm.models.chat.ChatCompletionRequest
 import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.llm.models.functions.CFunction
+import com.xebia.functional.xef.llm.models.functions.FunChatCompletionRequest
 import com.xebia.functional.xef.llm.models.functions.FunctionCall
 import com.xebia.functional.xef.prompt.templates.assistant
 import kotlin.jvm.JvmSynthetic
@@ -31,6 +31,8 @@ sealed class StreamedFunction<out A> {
      * user before the final result for the function call is ready.
      *
      * @param chat the ChatWithFunctions object representing the chat.
+     * @param promptMessages prompt messages that are added to conversation history if request
+     *   successful.
      * @param request the ChatCompletionRequest object representing the completion request.
      * @param scope the Conversation object representing the conversation scope.
      * @param serializer the function used to deserialize JSON strings into objects of type A.
@@ -39,7 +41,8 @@ sealed class StreamedFunction<out A> {
     @JvmSynthetic
     internal suspend fun <A> FlowCollector<StreamedFunction<A>>.streamFunctionCall(
       chat: ChatWithFunctions,
-      request: ChatCompletionRequest,
+      promptMessages: List<Message>,
+      request: FunChatCompletionRequest,
       scope: Conversation,
       serializer: (json: String) -> A,
       function: CFunction
@@ -59,8 +62,11 @@ sealed class StreamedFunction<out A> {
       // as the LLM is sending us chunks with malformed JSON
       val example = createExampleFromSchema(schema)
       chat
-        .createChatCompletions(request)
-        .onCompletion { MemoryManagement.addMemoriesAfterStream(chat, request, scope, messages) }
+        .createChatCompletionsWithFunctions(request)
+        .onCompletion {
+          val newMessages = promptMessages + messages
+          newMessages.addToMemory(chat, scope)
+        }
         .collect { responseChunk ->
           // Each chunk is emitted from the LLM and it will include a delta.parameters with
           // the function is streaming, the JSON received will be partial and usually malformed

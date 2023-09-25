@@ -54,7 +54,7 @@ suspend fun taskSplitter(
 suspend fun main() {
 
   OpenAI.conversation {
-    val model = OpenAI().DEFAULT_SERIALIZATION
+    val model = OpenAI().DEFAULT_CHAT
     val math =
       LLMTool.create(
         name = "Calculator",
@@ -67,7 +67,7 @@ suspend fun main() {
     val plan =
       taskSplitter(
         scope = this,
-        model = model,
+        model = OpenAI().DEFAULT_SERIALIZATION,
         prompt =
           "Find and multiply the number of Leonardo di Caprio's girlfriends by the number of Metallica albums",
         tools = listOf(search, math)

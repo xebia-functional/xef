@@ -31,9 +31,9 @@ class TestModel(
           Choice(
             message =
               Message(
-                role = Role.USER,
+                role = Role.ASSISTANT,
                 content = responses[request.messages.last().content] ?: "fake-content",
-                name = Role.USER.name
+                name = Role.ASSISTANT.name
               ),
             finishReason = "fake-finish-reason",
             index = 0

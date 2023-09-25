@@ -6,6 +6,7 @@ import com.xebia.functional.xef.llm.Embeddings
 import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingResult
+import com.xebia.functional.xef.llm.models.functions.FunChatCompletionRequest
 import com.xebia.functional.xef.llm.models.functions.FunctionCall
 import com.xebia.functional.xef.llm.models.usage.Usage
 import kotlinx.coroutines.flow.Flow
@@ -16,39 +17,7 @@ class TestFunctionsModel(
   val responses: Map<String, String> = emptyMap(),
 ) : ChatWithFunctions, Embeddings, AutoCloseable {
 
-  var requests: MutableList<ChatCompletionRequest> = mutableListOf()
-
-  override suspend fun createChatCompletion(
-    request: ChatCompletionRequest
-  ): ChatCompletionResponse {
-    requests.add(request)
-    return ChatCompletionResponse(
-      id = "fake-id",
-      `object` = "fake-object",
-      created = 0,
-      model = "fake-model",
-      choices =
-        listOf(
-          Choice(
-            message =
-              Message(
-                role = Role.USER,
-                content = responses[request.messages.last().content] ?: "fake-content",
-                name = Role.USER.name
-              ),
-            finishReason = "fake-finish-reason",
-            index = 0
-          )
-        ),
-      usage = Usage.ZERO
-    )
-  }
-
-  override suspend fun createChatCompletions(
-    request: ChatCompletionRequest
-  ): Flow<ChatCompletionChunk> {
-    throw NotImplementedError()
-  }
+  var requests: MutableList<FunChatCompletionRequest> = mutableListOf()
 
   override fun tokensFromMessages(messages: List<Message>): Int {
     return messages.sumOf { it.content.length }
@@ -59,7 +28,7 @@ class TestFunctionsModel(
   }
 
   override suspend fun createChatCompletionWithFunctions(
-    request: ChatCompletionRequest
+    request: FunChatCompletionRequest
   ): ChatCompletionResponseWithFunctions {
     requests.add(request)
     val response = responses[request.messages.last().content] ?: "fake-content"
@@ -84,5 +53,11 @@ class TestFunctionsModel(
         ),
       usage = Usage.ZERO
     )
+  }
+
+  override suspend fun createChatCompletionsWithFunctions(
+    request: FunChatCompletionRequest
+  ): Flow<ChatCompletionChunk> {
+    TODO("Not yet implemented")
   }
 }
