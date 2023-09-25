@@ -2,6 +2,7 @@ package com.xebia.functional.xef.conversation.conversations
 
 import com.xebia.functional.xef.conversation.llm.openai.OpenAI
 import com.xebia.functional.xef.conversation.llm.openai.prompt
+import com.xebia.functional.xef.conversation.llm.openai.promptMessage
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.system
 import com.xebia.functional.xef.prompt.templates.user
@@ -25,7 +26,7 @@ suspend fun main() {
       +user("Write a short story of 200 words that involves the animal and the invention")
     }
 
-    val story: String = prompt(storyPrompt)
+    val story: String = promptMessage(storyPrompt)
 
     println(story)
   }

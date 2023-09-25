@@ -7,8 +7,8 @@ suspend fun main() {
   val model = OpenAI().DEFAULT_CHAT
   OpenAI.conversation {
     while (true) {
-      println(">")
-      val question = readLine() ?: break
+      print("> ")
+      val question = readlnOrNull() ?: break
       val answer = model.promptStreaming(Prompt(question), this)
       answer.collect(::print)
       println()

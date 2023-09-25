@@ -1,6 +1,7 @@
 package com.xebia.functional.gpt4all
 
 import ai.djl.huggingface.tokenizers.HuggingFaceTokenizer
+import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.llm.Embeddings
 import com.xebia.functional.xef.llm.models.embeddings.Embedding
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
@@ -8,9 +9,12 @@ import com.xebia.functional.xef.llm.models.embeddings.EmbeddingResult
 import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
 import com.xebia.functional.xef.llm.models.usage.Usage
 
-class HuggingFaceLocalEmbeddings(name: String, artifact: String) : Embeddings {
+class HuggingFaceLocalEmbeddings(
+  override val modelType: ModelType,
+  artifact: String,
+) : Embeddings {
 
-  private val tokenizer = HuggingFaceTokenizer.newInstance("$name/$artifact")
+  private val tokenizer = HuggingFaceTokenizer.newInstance("${modelType.name}/$artifact")
 
   override val name: String = HuggingFaceLocalEmbeddings::class.java.canonicalName
 
@@ -31,6 +35,6 @@ class HuggingFaceLocalEmbeddings(name: String, artifact: String) : Embeddings {
 
   companion object {
     @JvmField
-    val DEFAULT = HuggingFaceLocalEmbeddings("sentence-transformers", "msmarco-distilbert-dot-v5")
+    val DEFAULT = HuggingFaceLocalEmbeddings(ModelType.TODO("sentence-transformers"), artifact = "msmarco-distilbert-dot-v5")
   }
 }

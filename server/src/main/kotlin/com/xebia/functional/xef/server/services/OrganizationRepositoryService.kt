@@ -2,7 +2,6 @@ package com.xebia.functional.xef.server.services
 
 import com.xebia.functional.xef.server.db.tables.Organization
 import com.xebia.functional.xef.server.db.tables.User
-import com.xebia.functional.xef.server.db.tables.UsersTable
 import com.xebia.functional.xef.server.models.*
 import com.xebia.functional.xef.server.models.exceptions.XefExceptions.*
 import kotlinx.datetime.Clock
@@ -15,12 +14,12 @@ class OrganizationRepositoryService(
 ) {
     fun createOrganization(
         data: OrganizationRequest,
-        token: String
+        token: Token
     ): OrganizationSimpleResponse {
         logger.info("Creating organization with name: ${data.name}")
         return transaction {
             // Getting the user from the token
-            val user = getUser(token)
+            val user = token.getUser()
 
             // Creating the organization
             val organization = Organization.new {
@@ -30,64 +29,64 @@ class OrganizationRepositoryService(
             // Adding the organization to the user
             user.organizations = SizedCollection(user.organizations + organization)
             organization.users = SizedCollection(organization.users + user)
-            OrganizationSimpleResponse(organization.name)
+            organization.toOrganizationSimpleResponse()
         }
     }
 
     fun getOrganizations(
-        token: String
-    ): List<OrganizationWithIdResponse> {
-        logger.info("Getting organizations")
-        return transaction {
-            // Getting the user from the token
-            val user = getUser(token)
-
-            // Getting the organizations from the user
-            user.organizations.map { OrganizationWithIdResponse(it.id.value, it.name, it.users.count()) }
-        }
-    }
-
-    fun getOrganization(
-        token: String,
-        id: Int
+        token: Token
     ): List<OrganizationFullResponse> {
         logger.info("Getting organizations")
         return transaction {
             // Getting the user from the token
-            val user = getUser(token)
+            val user = token.getUser()
 
             // Getting the organizations from the user
-            user.organizations.filter {
+            user.organizations.map { it.toOrganizationFullResponse() }
+        }
+    }
+
+    fun getOrganization(
+        token: Token,
+        id: Int
+    ): OrganizationFullResponse {
+        logger.info("Getting organizations")
+        return transaction {
+            // Getting the user from the token
+            val user = token.getUser()
+
+            // Getting the organization
+            user.organizations.find {
                 it.id.value == id
-            }.map { OrganizationFullResponse(it.id.value, it.name, it.ownerId.value, it.users.count()) }
+            }?.toOrganizationFullResponse() ?: throw OrganizationsException("Organization not found")
         }
     }
 
     fun getUsersInOrganization(
-        token: String,
+        token: Token,
         id: Int
     ): List<UserResponse> {
         logger.info("Getting users in organization")
         return transaction {
             // Getting the user from the token
-            val user = getUser(token)
+            val user = token.getUser()
 
             // Getting the organizations from the user
             user.organizations.filter {
                 it.id.value == id
-            }.flatMap { it.users }.map { UserResponse(it.id.value, it.name) }
+            }.flatMap { it.users }.map { it.toUserResponse() }
         }
     }
 
     fun updateOrganization(
-        token: String,
+        token: Token,
         data: OrganizationUpdateRequest,
         id: Int
     ): OrganizationFullResponse {
         logger.info("Updating organization with name: ${data.name}")
         return transaction {
             // Getting the user from the token
-            val user = getUser(token)
+            val user = token.getUser()
 
             val organization = Organization.findById(id)
                 ?: throw OrganizationsException("Organization not found")
@@ -104,30 +103,25 @@ class OrganizationRepositoryService(
                 organization.ownerId = newOwner.id
             }
             organization.updatedAt = Clock.System.now()
-            OrganizationFullResponse(
-                organization.id.value,
-                organization.name,
-                organization.ownerId.value,
-                organization.users.count()
-            )
+            organization.toOrganizationFullResponse()
         }
     }
 
     fun deleteOrganization(
-        token: String,
+        token: Token,
         id: Int
     ) {
         logger.info("Deleting organization with id: $id")
         transaction {
-            val user = getUser(token)
+            val user = token.getUser()
             val organization = Organization.findById(id)
                 ?: throw OrganizationsException("Organization not found")
-            if (organization.ownerId == user.id) {
-                organization.delete()
+
+            if (organization.ownerId != user.id) {
+                throw OrganizationsException("You can't delete the organization. User is not the owner of the organization")
             }
+
+            organization.delete()
         }
     }
-
-    private fun getUser(token: String) =
-        User.find { UsersTable.authToken eq token }.firstOrNull() ?: throw UserException("User not found")
 }
