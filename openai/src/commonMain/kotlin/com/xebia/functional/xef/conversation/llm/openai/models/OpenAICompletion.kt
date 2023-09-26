@@ -8,7 +8,7 @@ import com.aallam.openai.client.OpenAI
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.conversation.llm.openai.toInternal
 import com.xebia.functional.xef.llm.Completion
-import com.xebia.functional.xef.llm.FineTuneable
+import com.xebia.functional.xef.llm.FineTunable
 import com.xebia.functional.xef.llm.models.text.CompletionChoice
 import com.xebia.functional.xef.llm.models.text.CompletionRequest
 import com.xebia.functional.xef.llm.models.text.CompletionResult
@@ -16,10 +16,11 @@ import com.xebia.functional.xef.llm.models.text.CompletionResult
 class OpenAICompletion(
   override val modelType: ModelType,
   private val client: OpenAI,
-) : Completion, FineTuneable {
+  override val fineTunable: Boolean = false,
+) : Completion, FineTunable<OpenAICompletion> {
 
-  override fun fineTuned(name: String): OpenAIChat =
-    OpenAIChat(ModelType.FineTunedModel(name, modelType), client)
+  override fun spawnFineTunedModel(name: String) =
+    OpenAICompletion(ModelType.FineTunedModel(name, modelType), client, fineTunable = false)
 
   @OptIn(LegacyOpenAI::class)
   override suspend fun createCompletion(request: CompletionRequest): CompletionResult {

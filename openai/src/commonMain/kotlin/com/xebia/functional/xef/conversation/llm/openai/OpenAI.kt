@@ -74,7 +74,9 @@ class OpenAI(internal var token: String? = null, internal var host: String? = nu
 
   val GPT_4_32K by lazy { autoClose(OpenAIChat(ModelType.GPT_4_32K, defaultClient)) }
 
-  val GPT_3_5_TURBO by lazy { autoClose(OpenAIChat(ModelType.GPT_3_5_TURBO, defaultClient)) }
+  val GPT_3_5_TURBO by lazy {
+    autoClose(OpenAIChat(ModelType.GPT_3_5_TURBO, defaultClient, fineTunable = true))
+  }
 
   val GPT_3_5_TURBO_16K by lazy {
     autoClose(OpenAIChat(ModelType.GPT_3_5_TURBO_16_K, defaultClient))
@@ -93,7 +95,7 @@ class OpenAI(internal var token: String? = null, internal var host: String? = nu
   }
 
   val TEXT_DAVINCI_002 by lazy {
-    autoClose(OpenAICompletion(ModelType.TEXT_DAVINCI_002, defaultClient))
+    autoClose(OpenAICompletion(ModelType.TEXT_DAVINCI_002, defaultClient, fineTunable = true))
   }
 
   val TEXT_CURIE_001 by lazy {
