@@ -43,7 +43,7 @@ export async function postOrganizations(authToken: string, {
   const createOrganizationApiConfig = apiConfigConstructor(
     createOrganizationApiOptions,
   );
-  const createOrganizationResponse = await apiFetch<LoginResponse>(
+  const createOrganizationResponse = await apiFetch(
     createOrganizationApiConfig,
   );
 
@@ -104,7 +104,7 @@ export async function putOrganizations(authToken: string, id: number, {
   const putOrganizationApiConfig = apiConfigConstructor(
     putOrganizationApiOptions,
   );
-  const putOrganizationResponse = await apiFetch<LoginResponse>(
+  const putOrganizationResponse = await apiFetch(
     putOrganizationApiConfig,
   );
 
@@ -130,7 +130,7 @@ export async function deleteOrganizations(authToken: string, id: number): Promis
   const deleteOrganizationApiConfig = apiConfigConstructor(
     deleteOrganizationApiOptions,
   );
-  const deleteOrganizationResponse = await apiFetch<LoginResponse>(
+  const deleteOrganizationResponse = await apiFetch(
     deleteOrganizationApiConfig,
   );
 
