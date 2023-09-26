@@ -129,7 +129,7 @@ class ProjectRepositoryService(
                 throw OrganizationsException("You can't delete the project. User is not the owner of the organization")
             }
 
-            organization.delete()
+            project.delete()
 
         }
     }
