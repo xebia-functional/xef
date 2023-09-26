@@ -858,3 +858,307 @@ alice:
 #  personality @ Personality's good
 
 ```
+
+### Examples
+
+#### Values
+
+```yaml
+"Hello, world!"
+```
+
+##### Named values
+
+###### String
+
+```yaml
+hello: "Hello, world!"
+```
+
+###### Numbers
+
+```yaml
+1
+```
+
+#### Arrays
+
+```yaml
+[1, 2, 3]
+``` 
+
+#### Matrices
+
+```yaml
+[1, 2, 3]
+[4, 5, 6]
+```
+
+#### Records
+
+```yaml
+greet:
+  message: 
+
+hello: 
+  greet:
+    message: "Hello, world!"
+
+print: hello.greet.message
+```
+
+#### Functions
+
+```yaml
+sayHi[name @ String, message @ String : "Hello"] @ String:
+  message + ", " + name + "!"
+```
+
+##### Function calls
+
+```yaml
+sayHi["Alice"] # "Hello, Alice!"
+```
+
+##### Function calls with named arguments
+
+```yaml
+sayHi[name: "Alice"] # "Hello, Alice!"
+```
+
+##### Function calls with named arguments in any order
+
+```yaml
+sayHi[message: "Hi", name: "Alice"] # "Hi, Alice!"
+```
+
+#### Higher order functions
+
+```yaml
+map[f @ f @ Int -> Int, elements @ [*Int]] @ [*Int]:
+    when elements:
+        []: []
+        else: [f[elements.first]] + map[f, elements.rest]
+```
+
+#### Union types
+
+```yaml
+foo @ Int | String: 1
+foo2 @ Int | String: "Hello"
+```
+
+#### Algebraic data types
+
+Character is either a hero or a villain
+
+```yaml
+Character: Hero, Villain
+```
+
+Character is either a hero, a villain or a neutral character
+
+```yaml
+Character: Hero, Villain, Neutral
+```
+
+Character is either a hero or a villain with properties
+
+```yaml
+Character:
+    Hero:
+        name @ String,
+        age @ Int,
+        location @ String
+    Villain:
+        name @ String,
+        age @ Int,
+        location @ String
+    Neutral:
+        name @ String,
+        age @ Int,
+        location @ String
+```
+
+Cases inherit the properties of the parent type
+
+```yaml
+Character:
+  name @ String,
+  age @ Int,
+  location @ String
+
+Hero: Character
+Villain: Character
+Neutral: Character
+```
+
+#### Pattern matching
+
+```yaml
+evaluateCharacter[character @ Character] @ String:
+    when character:
+        Hero: "A hero"
+        Villain: "A villain"
+        Neutral: "A neutral character"
+```
+
+##### Pattern matching with properties
+
+```yaml
+evaluateCharacter[character @ Character] @ String:
+    when character:
+        Hero:
+            when character.location:
+                "London": "A hero from London"
+                "New York": "A hero from New York"
+                else: "A hero from an unknown location"
+        Villain:
+              when character.location:
+                 "London": "A villain from London"
+                 "New York": "A villain from New York"
+                 else: "A villain from an unknown location"
+```
+
+##### Simplified pattern matching
+
+```yaml
+evaluateCharacter @ String:
+    Hero: "A hero"
+    Villain: "A villain"
+    Neutral: "A neutral character"
+
+hero @ Hero: 
+  name: "Alice"
+  age: 25
+  location: "London"
+
+main:
+    evaluateCharacter[hero] # "A hero"
+```
+
+##### Phrases and metaprogramming
+
+```yaml
+"${l} plus ${r}" : l + r
+two: 1 plus 1
+```
+
+This examples show how literate programming can be used to create a DSL for a quiz.
+The resulting macros will cause this program to properly typecheck and compile.
+
+```
+A number called 5
+```
+
+```yaml
+"A number called ${value}" : value
+
+five : A number called 5
+```
+
+Macros have precedence and affect parsing and lexing.
+Macro arguments can be typed.
+
+```yaml
+"create a character called ${name:String} with age ${age:Int}" @ Character :
+  Character: 
+    name : name
+    age : age
+
+alice : create a character called "Alice" with age 25
+```
+
+Macros can be used to define new syntax and control flow
+
+if then else
+
+```yaml
+"if ${condition} then ${then} else ${else}" :
+  when condition:
+    true: then
+    false: else
+```
+
+for loops as expressions
+
+```yaml
+"for ${element} in ${elements} do ${body}" :
+  when elements:
+    []: []
+    else: 
+      body[elements.first] + for element in elements.rest do body
+
+twoThreeFour : for i in [1, 2, 3] do i + 1 # [2, 3, 4]
+```
+
+#### Streams
+
+Emits a stream of values 1, 2, 3 supporting backpressure by the collect operation
+
+```yaml
+foo:
+  -> 1 # emits one
+  -> 2 # waits for collect and when 1 is collected emits 2
+  -> 3 # waits for collect and when 2 is collected emits 3
+```
+
+Collects the values and prints them
+
+```yaml
+bar:
+  value: <- foo # collects 1 and repeats the remaining values executing
+                # the remaining statements for each value collected
+  println: value
+```
+
+#### Support for Kotlin Flow
+
+```kotlin
+package com.example
+
+import kotlinx.coroutines.flow.Flow
+
+fun foo(): Flow<Int> = flow {
+    emit(1)
+    emit(2)
+    emit(3)
+}
+```
+
+```yaml
+foo : jvm:com.example.foo
+
+bar:
+  value: <- foo
+  println: value
+```
+
+#### Support for reactive streams
+
+```java
+package com.example;
+
+import reactor.core.publisher.Flux;
+
+public class Example {
+    public static Flux<Integer> foo() {
+        return Flux.just(1, 2, 3);
+    }
+}
+```
+
+```yaml
+foo : jvm:com.example.Example.foo
+
+bar:
+  value: <- foo
+  println: value
+```
+
+
+
+
+
+
+
