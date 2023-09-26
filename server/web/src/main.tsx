@@ -20,6 +20,7 @@ import { theme } from '@/styles/theme';
 import './main.css';
 import { AuthProvider } from './state/Auth';
 import { Login, RequireAuth } from './components/Login';
+import { Projects } from './components/Pages/Projects';
 
 const router = createBrowserRouter([
   {
@@ -50,6 +51,14 @@ const router = createBrowserRouter([
         element: (
           <RequireAuth>
             <Organizations />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: 'projects',
+        element: (
+          <RequireAuth>
+            <Projects />
           </RequireAuth>
         ),
       },

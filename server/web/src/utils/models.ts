@@ -22,3 +22,19 @@ type OrganizationResponse = {
     name: string;
     users: number;
 }
+
+type ProjectRequest = {
+    name: string;
+    orgId: number;
+}
+
+type PutProjectRequest = {
+    name: string;
+    orgId?: number;
+}
+
+type ProjectResponse = {
+    id: number;
+    name: string;
+    org: OrganizationResponse;
+}
