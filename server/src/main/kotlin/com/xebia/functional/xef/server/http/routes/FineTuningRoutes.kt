@@ -7,6 +7,7 @@ import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
+import kotlinx.serialization.json.JsonObject
 
 fun Routing.fineTuningRoutes(
     client: HttpClient,
@@ -23,6 +24,25 @@ fun Routing.fineTuningRoutes(
             val purpose = parts.filterIsInstance<PartData.FormItem>().find { it.name == "purpose" }
 
             client.makeRequest2(call, "$openAiUrl/files", bodyBytes)
+        }
+
+        post("v1/fine_tuning/jobs") {
+            val bodyBytes = call.receiveChannel().toByteArray()
+            val bodyJson = call.receive<JsonObject>()
+
+            println(bodyJson)
+
+            client.makeRequest2(call, "$openAiUrl/fine_tuning/jobs", bodyBytes)
+        }
+
+        post("v1/fine_tuning/jobs/{id}") {
+            val bodyBytes = call.receiveChannel().toByteArray()
+            val bodyJson = call.receive<JsonObject>()
+            call.request.path()
+
+            println(bodyJson)
+
+            client.makeRequest2(call, "$openAiUrl/fine_tuning/jobs", bodyBytes)
         }
     }
 }

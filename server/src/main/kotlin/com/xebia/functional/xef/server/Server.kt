@@ -85,6 +85,7 @@ object Server {
                 routing {
                     xefRoutes(logger)
                     aiRoutes(ktorClient)
+                    fineTuningRoutes(ktorClient)
                 }
             }
             awaitCancellation()

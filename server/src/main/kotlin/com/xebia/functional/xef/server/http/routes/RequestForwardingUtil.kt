@@ -10,8 +10,16 @@ import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
+import io.ktor.server.util.*
 import io.ktor.util.*
 import io.ktor.utils.io.jvm.javaio.*
+
+const val OAI_URL = "https://api.openai.com"
+
+internal fun buildProviderUrlFromRequest(request: ApplicationRequest) = url {
+    host = OAI_URL
+    encodedPath = request.path()
+}
 
 internal suspend fun HttpClient.makeRequest(
     call: ApplicationCall,
