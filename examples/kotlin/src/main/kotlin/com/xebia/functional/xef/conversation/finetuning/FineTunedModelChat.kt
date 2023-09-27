@@ -5,7 +5,7 @@ import com.xebia.functional.xef.prompt.Prompt
 
 suspend fun main() {
   val model =
-    OpenAI().GPT_3_5_TURBO.fineTuned("ft:gpt-3.5-turbo-0613:xebia-functional:ron-v1:81z5Sz3h")!!
+    OpenAI().GPT_3_5_TURBO.fineTuned("ft:gpt-3.5-turbo-0613:xebia-functional:ron-v2:830qZBwQ")!!
   OpenAI.conversation {
     while (true) {
       print("> ")
