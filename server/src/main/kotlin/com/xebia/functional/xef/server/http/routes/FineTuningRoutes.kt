@@ -6,43 +6,31 @@ import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
+import io.ktor.server.util.*
 import io.ktor.util.*
 import kotlinx.serialization.json.JsonObject
 
-fun Routing.fineTuningRoutes(
+fun Route.fineTuningRoutes(
     client: HttpClient,
 ) {
-    val openAiUrl = "https://api.openai.com/v1"
+    post("/v1/files") {
+        val multipartData = call.receiveMultipart()
+        val parts = multipartData.readAllParts()
+        val file = parts.filterIsInstance<PartData.FileItem>().find { it.name == "file" }
+        val purpose = parts.filterIsInstance<PartData.FormItem>().find { it.name == "purpose" }
 
-    authenticate("auth-bearer") {
-        post("/v1/files") {
-            val bodyBytes = call.receiveChannel().toByteArray()
+        handleForwardToProvider(client, call)
+    }
 
-            val multipartData = call.receiveMultipart()
-            val parts = multipartData.readAllParts()
-            val file = parts.filterIsInstance<PartData.FileItem>().find { it.name == "file" }
-            val purpose = parts.filterIsInstance<PartData.FormItem>().find { it.name == "purpose" }
+    post("v1/fine_tuning/jobs") {
+        val bodyJson = call.receive<JsonObject>()
 
-            client.makeRequest2(call, "$openAiUrl/files", bodyBytes)
-        }
+        handleForwardToProvider(client, call)
+    }
 
-        post("v1/fine_tuning/jobs") {
-            val bodyBytes = call.receiveChannel().toByteArray()
-            val bodyJson = call.receive<JsonObject>()
+    get("v1/fine_tuning/jobs/{id}") {
+        val id = call.parameters.getOrFail("id")
 
-            println(bodyJson)
-
-            client.makeRequest2(call, "$openAiUrl/fine_tuning/jobs", bodyBytes)
-        }
-
-        post("v1/fine_tuning/jobs/{id}") {
-            val bodyBytes = call.receiveChannel().toByteArray()
-            val bodyJson = call.receive<JsonObject>()
-            call.request.path()
-
-            println(bodyJson)
-
-            client.makeRequest2(call, "$openAiUrl/fine_tuning/jobs", bodyBytes)
-        }
+        handleForwardToProvider(client, call)
     }
 }

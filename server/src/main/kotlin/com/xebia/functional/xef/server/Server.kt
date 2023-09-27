@@ -85,7 +85,9 @@ object Server {
                 routing {
                     xefRoutes(logger)
                     aiRoutes(ktorClient)
-                    fineTuningRoutes(ktorClient)
+                    authenticate("auth-bearer") {
+                        fineTuningRoutes(ktorClient)
+                    }
                 }
             }
             awaitCancellation()

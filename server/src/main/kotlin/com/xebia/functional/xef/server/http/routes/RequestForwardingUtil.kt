@@ -12,15 +12,23 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.util.*
 import io.ktor.util.*
+import  io.ktor.http.URLBuilder
 import io.ktor.utils.io.jvm.javaio.*
 
-const val OAI_URL = "https://api.openai.com"
+private const val OAI_URL = "https://api.openai.com"
 
-internal fun buildProviderUrlFromRequest(request: ApplicationRequest) = url {
-    host = OAI_URL
+/**
+ * Retrieves the path from the incoming request and
+ * combines it with the provider specific host url.
+ * As we are copying the API from the providers,
+ * everything including the path structure has follow the API contract.
+ */
+private fun buildProviderUrlFromRequest(request: ApplicationRequest) =
+    URLBuilder().takeFrom(OAI_URL).apply {
     encodedPath = request.path()
-}
+}.build()
 
+@Deprecated("")
 internal suspend fun HttpClient.makeRequest(
     call: ApplicationCall,
     url: String,
@@ -39,18 +47,40 @@ internal suspend fun HttpClient.makeRequest(
     call.respond(response.status, response.body<String>())
 }
 
-internal suspend fun HttpClient.makeRequest2(
-    call: ApplicationCall,
-    url: String,
-    body: ByteArray,
+/**
+ * Makes a request to the provider forwarding headers and request body
+ * from the incoming request.
+ * The provider's response is then forwarded as a response of the server.
+ * [interceptResponse] may be used to process the provider's result.
+ *
+ * Takes in [body] as Bytes and responds in Bytes.
+ * No messing around with char sets. Just forwarding raw bytes.
+ */
+internal suspend fun handleForwardToProvider(client: HttpClient, call: ApplicationCall, interceptResponse: (HttpResponse) -> Unit = { }) {
+    val response = client.forwardRequest(call.request)
+    interceptResponse(response)
+    call.forwardResponse(response)
+}
+
+internal suspend fun HttpClient.forwardRequest(
+    request: ApplicationRequest,
+) = request {
+    url(buildProviderUrlFromRequest(request))
+    method = request.httpMethod
+    headers.copyFrom(request.headers) // copy headers
+
+    val body = request
+        .receiveChannel()
+        .toByteArray()
+        .let { ByteArrayContent(it, contentType = null) }
+    setBody(body)
+}
+
+internal suspend fun ApplicationCall.forwardResponse(
+    providerResponse: HttpResponse,
 ) {
-    val providerResponse = this.request(url) {
-        method = call.request.httpMethod
-        headers.copyFrom(call.request.headers) // copy headers
-        setBody(ByteArrayContent(body, contentType = null))
-    }
-    call.response.headers.copyFrom(providerResponse.headers)
-    call.respond(providerResponse.status, providerResponse.readBytes()) // respond in bytes, no messing around with Charsets
+    response.headers.copyFrom(providerResponse.headers)
+    respond(providerResponse.status, providerResponse.readBytes())
 }
 
 internal suspend fun HttpClient.makeStreaming(
