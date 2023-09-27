@@ -133,7 +133,6 @@ class XefDatabaseTest {
 
             val config = ProvidersConfig(
                 openAI = OpenAIConf(
-                    name = "dev",
                     token = "testToken",
                     url = "testUrl"
                 ),
