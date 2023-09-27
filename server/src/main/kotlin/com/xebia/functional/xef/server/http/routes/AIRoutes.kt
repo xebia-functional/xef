@@ -13,11 +13,13 @@ import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.util.*
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.jsonPrimitive
+import java.nio.charset.Charset
 
 enum class Provider {
     OPENAI, GPT4ALL, GCP
@@ -39,21 +41,22 @@ fun Routing.aiRoutes(
     authenticate("auth-bearer") {
         post("/chat/completions") {
             val token = call.getToken()
-            val body = call.receive<String>()
+            val byteArrayBody = call.receiveChannel().toByteArray()
+            val body = byteArrayBody.toString(Charsets.UTF_8)
             val data = Json.decodeFromString<JsonObject>(body)
 
             val isStream = data["stream"]?.jsonPrimitive?.boolean ?: false
 
             if (!isStream) {
-                client.makeRequest(call, "$openAiUrl/chat/completions", body, token)
+                client.makeRequest(call, "$openAiUrl/chat/completions", byteArrayBody, token)
             } else {
-                client.makeStreaming(call, "$openAiUrl/chat/completions", body, token)
+                client.makeStreaming(call, "$openAiUrl/chat/completions", byteArrayBody, token)
             }
         }
 
         post("/embeddings") {
             val token = call.getToken()
-            val context = call.receive<String>()
+            val context = call.receiveChannel().toByteArray()
             client.makeRequest(call, "$openAiUrl/embeddings", context, token)
         }
     }
@@ -62,32 +65,27 @@ fun Routing.aiRoutes(
 private suspend fun HttpClient.makeRequest(
     call: ApplicationCall,
     url: String,
-    body: String,
+    body: ByteArray,
     token: Token
 ) {
     val response = this.request(url) {
-        headers {
-            bearerAuth(token.value)
-        }
+        headers.copyFrom(call.request.headers)
         contentType(ContentType.Application.Json)
         method = HttpMethod.Post
         setBody(body)
     }
     call.response.headers.copyFrom(response.headers)
-    call.respond(response.status, response.body<String>())
+    call.respond(response.status, response.readBytes())
 }
 
 private suspend fun HttpClient.makeStreaming(
     call: ApplicationCall,
     url: String,
-    body: String,
+    body: ByteArray,
     token: Token
 ) {
     this.preparePost(url) {
-        headers {
-            bearerAuth(token.value)
-        }
-        contentType(ContentType.Application.Json)
+        headers.copyFrom(call.request.headers)
         method = HttpMethod.Post
         setBody(body)
     }.execute { httpResponse ->
@@ -106,6 +104,10 @@ private fun ResponseHeaders.copyFrom(headers: Headers) = headers
     .forEach { (key, values) ->
         values.forEach { value -> this.appendIfAbsent(key, value) }
     }
+
+internal fun HeadersBuilder.copyFrom(headers: Headers) = headers
+    .filter { key, value -> !key.equals("HOST", ignoreCase = true) }
+    .forEach { key, values -> appendAll(key, values) }
 
 private fun ApplicationCall.getProvider(): Provider =
     request.headers["xef-provider"]?.toProvider()
