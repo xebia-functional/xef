@@ -149,7 +149,7 @@ class XefDatabaseTest {
         }
         transaction {
             val token = XefTokens.all().first()
-            assertEquals("testToken", token)
+            assertEquals("testToken", token.token)
         }
     }
 
