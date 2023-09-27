@@ -10,10 +10,7 @@ import com.xebia.functional.xef.server.db.psql.XefVectorStoreConfig
 import com.xebia.functional.xef.server.db.psql.XefVectorStoreConfig.Companion.getVectorStoreService
 import com.xebia.functional.xef.server.exceptions.exceptionsHandler
 import com.xebia.functional.xef.server.http.routes.*
-import com.xebia.functional.xef.server.services.OrganizationRepositoryService
-import com.xebia.functional.xef.server.services.ProjectRepositoryService
 import com.xebia.functional.xef.server.services.RepositoryService
-import com.xebia.functional.xef.server.services.UserRepositoryService
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.auth.*
@@ -86,11 +83,8 @@ object Server {
                 }
                 exceptionsHandler()
                 routing {
-                    genAIRoutes(ktorClient, vectorStoreService)
-                    fineTuningRoutes(ktorClient)
-                    userRoutes(UserRepositoryService(logger))
-                    organizationRoutes(OrganizationRepositoryService(logger))
-                    projectsRoutes(ProjectRepositoryService(logger))
+                    xefRoutes(logger)
+                    aiRoutes(ktorClient)
                 }
             }
             awaitCancellation()

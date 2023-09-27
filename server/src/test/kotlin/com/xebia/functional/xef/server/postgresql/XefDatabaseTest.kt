@@ -139,17 +139,17 @@ class XefDatabaseTest {
                 ),
                 gcp = null
             )
-            XefTokensTable.insert {
-                it[userId] = user.id.value
-                it[projectId] = project.id.value
-                it[name] = "testEnv"
-                it[token] = "testToken"
-                it[providersConfig] = config
+            XefTokens.new {
+                userId = user.id
+                projectId = project.id
+                name = "testEnv"
+                token = "testToken"
+                providersConfig = config
             }
         }
         transaction {
-            val tokens = XefTokensTable.selectAll().map { it.toXefTokens() }
-            assertEquals("testToken", tokens[0].token)
+            val token = XefTokens.all().first()
+            assertEquals("testToken", token.token)
         }
     }
 

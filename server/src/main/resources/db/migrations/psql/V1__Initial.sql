@@ -53,15 +53,14 @@ CREATE TABLE IF NOT EXISTS users_org(
 );
 
 CREATE TABLE IF NOT EXISTS xef_tokens(
-    user_id INT,
-    project_id INT,
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    project_id INT NOT NULL,
     name VARCHAR(20) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
     token VARCHAR(128) UNIQUE,
     providers_config JSONB,
-
-    PRIMARY KEY (user_id, project_id, name),
 
     CONSTRAINT fk_user_id
             FOREIGN KEY (user_id)
