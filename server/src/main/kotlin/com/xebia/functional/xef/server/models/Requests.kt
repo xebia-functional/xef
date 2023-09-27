@@ -37,3 +37,15 @@ data class ProjectUpdateRequest(
     val name: String,
     val orgId: Int? = null
 )
+
+@Serializable
+data class TokenRequest(
+    val name: String,
+    val projectId: Int
+)
+
+@Serializable
+data class TokenUpdateRequest(
+    val name: String,
+    val providerConfig: ProvidersConfig
+)
