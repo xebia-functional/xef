@@ -1,19 +1,15 @@
 package com.xebia.functional.xef.server.http.routes
 
 import com.aallam.openai.api.BetaOpenAI
+import com.xebia.functional.xef.server.http.routes.providers.makeRequest
+import com.xebia.functional.xef.server.http.routes.providers.makeStreaming
 import com.xebia.functional.xef.server.models.Token
 import com.xebia.functional.xef.server.models.exceptions.XefExceptions
 import io.ktor.client.*
-import io.ktor.client.call.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
-import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.boolean

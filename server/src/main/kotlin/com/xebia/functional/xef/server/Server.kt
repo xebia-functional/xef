@@ -10,6 +10,7 @@ import com.xebia.functional.xef.server.db.psql.XefVectorStoreConfig
 import com.xebia.functional.xef.server.db.psql.XefVectorStoreConfig.Companion.getVectorStoreService
 import com.xebia.functional.xef.server.exceptions.exceptionsHandler
 import com.xebia.functional.xef.server.http.routes.*
+import com.xebia.functional.xef.server.http.routes.providers.oaiRoutes
 import com.xebia.functional.xef.server.services.RepositoryService
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
@@ -23,9 +24,7 @@ import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.doublereceive.*
-import io.ktor.server.request.*
 import io.ktor.server.resources.*
-import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.awaitCancellation
 import org.jetbrains.exposed.sql.Database
@@ -85,10 +84,7 @@ object Server {
                 routing {
                     xefRoutes(logger)
                     aiRoutes(ktorClient)
-                    authenticate("auth-bearer") {
-                        oaiFineTuning(ktorClient)
-                        oaiFiles(ktorClient)
-                    }
+                    oaiRoutes(ktorClient)
                 }
             }
             awaitCancellation()

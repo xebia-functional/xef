@@ -1,4 +1,4 @@
-package com.xebia.functional.xef.server.http.routes
+package com.xebia.functional.xef.server.http.routes.providers
 
 import com.xebia.functional.xef.server.models.Token
 import io.ktor.client.*
@@ -52,10 +52,11 @@ internal suspend fun HttpClient.makeRequest(
  * Makes a request to the provider forwarding headers and request body
  * from the incoming request.
  * The provider's response is then forwarded as a response of the server.
- * [interceptResponse] may be used to process the provider's result.
  *
  * Takes in [body] as Bytes and responds in Bytes.
  * No messing around with char sets. Just forwarding raw bytes.
+ *
+ * @return provider's response
  */
 internal suspend fun PipelineContext<Unit, ApplicationCall>.handleForwardToProvider(client: HttpClient): HttpResponse {
     val response = client.forwardRequest(call)
