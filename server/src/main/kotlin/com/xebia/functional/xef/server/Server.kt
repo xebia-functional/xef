@@ -86,7 +86,8 @@ object Server {
                     xefRoutes(logger)
                     aiRoutes(ktorClient)
                     authenticate("auth-bearer") {
-                        fineTuningRoutes(ktorClient)
+                        oaiFineTuning(ktorClient)
+                        oaiFiles(ktorClient)
                     }
                 }
             }

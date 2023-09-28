@@ -13,6 +13,7 @@ import io.ktor.server.response.*
 import io.ktor.server.util.*
 import io.ktor.util.*
 import  io.ktor.http.URLBuilder
+import io.ktor.util.pipeline.*
 import io.ktor.utils.io.jvm.javaio.*
 
 private const val OAI_URL = "https://api.openai.com"
@@ -56,18 +57,19 @@ internal suspend fun HttpClient.makeRequest(
  * Takes in [body] as Bytes and responds in Bytes.
  * No messing around with char sets. Just forwarding raw bytes.
  */
-internal suspend fun handleForwardToProvider(client: HttpClient, call: ApplicationCall, interceptResponse: (HttpResponse) -> Unit = { }) {
+internal suspend fun PipelineContext<Unit, ApplicationCall>.handleForwardToProvider(client: HttpClient): HttpResponse {
     val response = client.forwardRequest(call.request)
-    interceptResponse(response)
     call.forwardResponse(response)
+    return response
 }
 
-internal suspend fun HttpClient.forwardRequest(
+private suspend fun HttpClient.forwardRequest(
     request: ApplicationRequest,
 ) = request {
     url(buildProviderUrlFromRequest(request))
     method = request.httpMethod
     headers.copyFrom(request.headers) // copy headers
+    url.parameters.appendAll(request.queryParameters) // copy parameters
 
     val body = request
         .receiveChannel()
@@ -76,7 +78,7 @@ internal suspend fun HttpClient.forwardRequest(
     setBody(body)
 }
 
-internal suspend fun ApplicationCall.forwardResponse(
+private suspend fun ApplicationCall.forwardResponse(
     providerResponse: HttpResponse,
 ) {
     response.headers.copyFrom(providerResponse.headers)
@@ -106,13 +108,13 @@ internal suspend fun HttpClient.makeStreaming(
     }
 }
 
-internal fun ResponseHeaders.copyFrom(headers: Headers) = headers
+private fun ResponseHeaders.copyFrom(headers: Headers) = headers
     .entries()
     .filter { (key, _) -> !HttpHeaders.isUnsafe(key) } // setting unsafe headers results in exception
     .forEach { (key, values) ->
         values.forEach { value -> this.appendIfAbsent(key, value) }
     }
 
-internal fun HeadersBuilder.copyFrom(headers: Headers) = headers
+private fun HeadersBuilder.copyFrom(headers: Headers) = headers
     .filter { key, value -> !key.equals("HOST", ignoreCase = true) }
     .forEach { key, values -> appendAll(key, values) }
