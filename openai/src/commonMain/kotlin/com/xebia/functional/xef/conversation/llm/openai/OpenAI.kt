@@ -1,7 +1,9 @@
 package com.xebia.functional.xef.conversation.llm.openai
 
 import arrow.core.nonEmptyListOf
+import com.aallam.openai.api.exception.InvalidRequestException
 import com.aallam.openai.api.logging.LogLevel
+import com.aallam.openai.api.model.ModelId
 import com.aallam.openai.client.LoggingConfig
 import com.aallam.openai.client.OpenAI as OpenAIClient
 import com.aallam.openai.client.OpenAIHost
@@ -57,7 +59,7 @@ class OpenAI(internal var token: String? = null, internal var host: String? = nu
     }
   }
 
-  val defaultClient =
+  internal val defaultClient =
     OpenAIClient(
         host = getHost()?.let { OpenAIHost(it) } ?: OpenAIHost.OpenAI,
         token = getToken(),
@@ -66,53 +68,53 @@ class OpenAI(internal var token: String? = null, internal var host: String? = nu
       )
       .let { autoClose(it) }
 
-  val GPT_4 by lazy { autoClose(OpenAIChat(ModelType.GPT_4, defaultClient)) }
+  val GPT_4 by lazy { autoClose(OpenAIChat(this, ModelType.GPT_4)) }
 
   val GPT_4_0314 by lazy {
-    autoClose(OpenAIFunChat(ModelType.GPT_4_0314, defaultClient)) // legacy
+    autoClose(OpenAIFunChat(this, ModelType.GPT_4_0314)) // legacy
   }
 
-  val GPT_4_32K by lazy { autoClose(OpenAIChat(ModelType.GPT_4_32K, defaultClient)) }
+  val GPT_4_32K by lazy { autoClose(OpenAIChat(this, ModelType.GPT_4_32K)) }
 
   val GPT_3_5_TURBO by lazy {
-    autoClose(OpenAIChat(ModelType.GPT_3_5_TURBO, defaultClient, fineTunable = true))
+    autoClose(OpenAIChat(this, ModelType.GPT_3_5_TURBO))
   }
 
   val GPT_3_5_TURBO_16K by lazy {
-    autoClose(OpenAIChat(ModelType.GPT_3_5_TURBO_16_K, defaultClient))
+    autoClose(OpenAIChat(this, ModelType.GPT_3_5_TURBO_16_K))
   }
 
   val GPT_3_5_TURBO_FUNCTIONS by lazy {
-    autoClose(OpenAIFunChat(ModelType.GPT_3_5_TURBO_FUNCTIONS, defaultClient))
+    autoClose(OpenAIFunChat(this, ModelType.GPT_3_5_TURBO_FUNCTIONS))
   }
 
   val GPT_3_5_TURBO_0301 by lazy {
-    autoClose(OpenAIChat(ModelType.GPT_3_5_TURBO, defaultClient)) // legacy
+    autoClose(OpenAIChat(this, ModelType.GPT_3_5_TURBO)) // legacy
   }
 
   val TEXT_DAVINCI_003 by lazy {
-    autoClose(OpenAICompletion(ModelType.TEXT_DAVINCI_003, defaultClient))
+    autoClose(OpenAICompletion(this, ModelType.TEXT_DAVINCI_003))
   }
 
   val TEXT_DAVINCI_002 by lazy {
-    autoClose(OpenAICompletion(ModelType.TEXT_DAVINCI_002, defaultClient, fineTunable = true))
+    autoClose(OpenAICompletion(this, ModelType.TEXT_DAVINCI_002))
   }
 
   val TEXT_CURIE_001 by lazy {
-    autoClose(OpenAICompletion(ModelType.TEXT_SIMILARITY_CURIE_001, defaultClient))
+    autoClose(OpenAICompletion(this, ModelType.TEXT_SIMILARITY_CURIE_001))
   }
 
   val TEXT_BABBAGE_001 by lazy {
-    autoClose(OpenAICompletion(ModelType.TEXT_BABBAGE_001, defaultClient))
+    autoClose(OpenAICompletion(this, ModelType.TEXT_BABBAGE_001))
   }
 
-  val TEXT_ADA_001 by lazy { autoClose(OpenAICompletion(ModelType.TEXT_ADA_001, defaultClient)) }
+  val TEXT_ADA_001 by lazy { autoClose(OpenAICompletion(this, ModelType.TEXT_ADA_001)) }
 
   val TEXT_EMBEDDING_ADA_002 by lazy {
-    autoClose(OpenAIEmbeddings(ModelType.TEXT_EMBEDDING_ADA_002, defaultClient))
+    autoClose(OpenAIEmbeddings(this, ModelType.TEXT_EMBEDDING_ADA_002))
   }
 
-  val DALLE_2 by lazy { autoClose(OpenAIImages(ModelType.GPT_3_5_TURBO, defaultClient)) }
+  val DALLE_2 by lazy { autoClose(OpenAIImages(this, ModelType.GPT_3_5_TURBO)) }
 
   @JvmField val DEFAULT_CHAT = GPT_3_5_TURBO_16K
 
@@ -122,7 +124,7 @@ class OpenAI(internal var token: String? = null, internal var host: String? = nu
 
   @JvmField val DEFAULT_IMAGES = DALLE_2
 
-  fun supportedModels(): List<LLM> =
+  fun supportedModels(): List<LLM> = //TODO: impl of abstract provider function
     listOf(
       GPT_4,
       GPT_4_0314,
@@ -139,6 +141,25 @@ class OpenAI(internal var token: String? = null, internal var host: String? = nu
       TEXT_EMBEDDING_ADA_002,
       DALLE_2,
     )
+
+  suspend fun findModel(modelId: String): Any? { //TODO: impl of abstract provider function
+    val model = try {
+      defaultClient.model(ModelId(modelId))
+    } catch (e: InvalidRequestException) {
+      when(e.error.detail?.code) {
+        "model_not_found" -> return null
+        else -> throw e
+      }
+    }
+    return ModelType.TODO(model.id.id)
+  }
+
+  suspend fun <T : LLM> spawnModel(modelId: String, baseModel: T): T { //TODO: impl of abstract provider function
+    if(findModel(modelId) == null)
+      error("model not found")
+    return baseModel.copy(ModelType.FineTunedModel(modelId, baseModel = baseModel.modelType)) as? T
+      ?: error("${baseModel::class} does not follow contract to return the most specific type")
+  }
 
   companion object {
 
@@ -160,4 +181,5 @@ class OpenAI(internal var token: String? = null, internal var host: String? = nu
       store: VectorStore = LocalVectorStore(FromEnvironment.DEFAULT_EMBEDDING)
     ): PlatformConversation = Conversation(store)
   }
+
 }

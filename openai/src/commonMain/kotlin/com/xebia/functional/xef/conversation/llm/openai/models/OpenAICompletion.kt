@@ -4,23 +4,23 @@ import com.aallam.openai.api.LegacyOpenAI
 import com.aallam.openai.api.completion.Choice
 import com.aallam.openai.api.completion.completionRequest
 import com.aallam.openai.api.model.ModelId
-import com.aallam.openai.client.OpenAI
+import com.xebia.functional.xef.conversation.llm.openai.OpenAI
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.conversation.llm.openai.toInternal
 import com.xebia.functional.xef.llm.Completion
-import com.xebia.functional.xef.llm.FineTunable
 import com.xebia.functional.xef.llm.models.text.CompletionChoice
 import com.xebia.functional.xef.llm.models.text.CompletionRequest
 import com.xebia.functional.xef.llm.models.text.CompletionResult
 
 class OpenAICompletion(
+  private val provider: OpenAI, //TODO: use context receiver
   override val modelType: ModelType,
-  private val client: OpenAI,
-  override val fineTunable: Boolean = false,
-) : Completion, FineTunable<OpenAICompletion> {
+) : Completion {
 
-  override fun spawnFineTunedModel(name: String) =
-    OpenAICompletion(ModelType.FineTunedModel(name, modelType), client, fineTunable = false)
+  private val client = provider.defaultClient
+
+  override fun copy(modelType: ModelType) =
+    OpenAICompletion(provider, modelType)
 
   @OptIn(LegacyOpenAI::class)
   override suspend fun createCompletion(request: CompletionRequest): CompletionResult {

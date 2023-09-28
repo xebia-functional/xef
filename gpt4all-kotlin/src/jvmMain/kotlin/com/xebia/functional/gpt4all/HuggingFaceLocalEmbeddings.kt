@@ -3,6 +3,7 @@ package com.xebia.functional.gpt4all
 import ai.djl.huggingface.tokenizers.HuggingFaceTokenizer
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.llm.Embeddings
+import com.xebia.functional.xef.llm.LLM
 import com.xebia.functional.xef.llm.models.embeddings.Embedding
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingResult
@@ -11,12 +12,15 @@ import com.xebia.functional.xef.llm.models.usage.Usage
 
 class HuggingFaceLocalEmbeddings(
   override val modelType: ModelType,
-  artifact: String,
+  private val artifact: String,
 ) : Embeddings {
 
   private val tokenizer = HuggingFaceTokenizer.newInstance("${modelType.name}/$artifact")
 
   override val name: String = HuggingFaceLocalEmbeddings::class.java.canonicalName
+
+  override fun copy(modelType: ModelType) =
+    HuggingFaceLocalEmbeddings(modelType, artifact)
 
   override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult {
     val embedings = tokenizer.batchEncode(request.input)

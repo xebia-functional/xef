@@ -9,6 +9,7 @@ import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.PlatformConversation
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.llm.Completion
+import com.xebia.functional.xef.llm.LLM
 import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.llm.models.text.CompletionChoice
 import com.xebia.functional.xef.llm.models.text.CompletionRequest
@@ -65,6 +66,9 @@ interface GPT4All : AutoCloseable, Chat, Completion {
       }
 
       val llModel = LLModel(path)
+
+      override fun copy(modelType: ModelType) =
+        GPT4All(url, path)
 
       override suspend fun createCompletion(request: CompletionRequest): CompletionResult =
         with(request) {

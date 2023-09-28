@@ -2,7 +2,7 @@ package com.xebia.functional.xef.conversation.llm.openai.models
 
 import com.aallam.openai.api.chat.*
 import com.aallam.openai.api.model.ModelId
-import com.aallam.openai.client.OpenAI
+import com.xebia.functional.xef.conversation.llm.openai.OpenAI
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.conversation.llm.openai.toInternal
 import com.xebia.functional.xef.conversation.llm.openai.toOpenAI
@@ -17,9 +17,14 @@ import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
 
 class OpenAIFunChat(
+  private val provider: OpenAI, //TODO: use context receiver
   override val modelType: ModelType,
-  private val client: OpenAI,
 ) : ChatWithFunctions {
+
+  private val client = provider.defaultClient
+
+  override fun copy(modelType: ModelType) =
+    OpenAIFunChat(provider, modelType)
 
   override suspend fun createChatCompletionWithFunctions(
     request: FunChatCompletionRequest

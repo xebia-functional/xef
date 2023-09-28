@@ -4,24 +4,25 @@ import com.aallam.openai.api.chat.ChatChoice
 import com.aallam.openai.api.chat.ChatMessage
 import com.aallam.openai.api.chat.chatCompletionRequest
 import com.aallam.openai.api.model.ModelId
-import com.aallam.openai.client.OpenAI
+import com.aallam.openai.client.OpenAI as OpenAIClient
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.conversation.llm.openai.toInternal
 import com.xebia.functional.xef.conversation.llm.openai.toOpenAI
 import com.xebia.functional.xef.llm.Chat
-import com.xebia.functional.xef.llm.FineTunable
+import com.xebia.functional.xef.conversation.llm.openai.OpenAI
 import com.xebia.functional.xef.llm.models.chat.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class OpenAIChat(
+  private val provider: OpenAI, //TODO: use context receiver
   override val modelType: ModelType,
-  private val client: OpenAI,
-  override val fineTunable: Boolean = false,
-) : Chat, FineTunable<OpenAIChat> {
+) : Chat {
 
-  override fun spawnFineTunedModel(name: String) =
-    OpenAIChat(ModelType.FineTunedModel(name, modelType), client, fineTunable = false)
+  private val client = provider.defaultClient
+
+  override fun copy(modelType: ModelType) =
+    OpenAIChat(provider, modelType)
 
   override suspend fun createChatCompletion(
     request: ChatCompletionRequest
