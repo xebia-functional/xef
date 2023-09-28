@@ -6,6 +6,7 @@ import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.assistant
+import io.ktor.util.date.*
 import kotlinx.coroutines.flow.*
 
 interface Chat : LLM {
@@ -16,6 +17,9 @@ interface Chat : LLM {
 
   @AiDsl
   fun promptStreaming(prompt: Prompt, scope: Conversation): Flow<String> = flow {
+    val startTime = getTimeMillis()
+    val promptMessages = prompt.messages
+
     val messagesForRequestPrompt =
       PromptCalculator.adaptPromptToConversationAndModel(prompt, scope, this@Chat)
 
@@ -34,9 +38,8 @@ interface Chat : LLM {
       .onEach { emit(it) }
       .fold("", String::plus)
       .also { finalText ->
-        val aiResponseMessage = assistant(finalText)
-        val newMessages = prompt.messages + listOf(aiResponseMessage)
-        newMessages.addToMemory(this@Chat, scope)
+        listOf(assistant(finalText))
+          .addAssistantMessagesToMemory(this@Chat, scope, promptMessages, startTime)
       }
   }
 
@@ -46,7 +49,8 @@ interface Chat : LLM {
 
   @AiDsl
   suspend fun promptMessages(prompt: Prompt, scope: Conversation): List<String> {
-    val promptMemories = prompt.messages.toMemory(this@Chat, scope)
+    val startTime = getTimeMillis()
+    val promptMessages = prompt.messages
     val adaptedPrompt = PromptCalculator.adaptPromptToConversationAndModel(prompt, scope, this@Chat)
 
     val request =
@@ -59,8 +63,8 @@ interface Chat : LLM {
       )
 
     return createChatCompletion(request)
+      .addMessagesToMemory(this@Chat, scope, promptMessages, startTime)
       .choices
-      .addMessagesToMemory(this@Chat, scope, promptMemories)
       .mapNotNull { it.message?.content }
   }
 }

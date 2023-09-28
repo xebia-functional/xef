@@ -7,6 +7,7 @@ import com.xebia.functional.xef.llm.models.functions.CFunction
 import com.xebia.functional.xef.llm.models.functions.FunChatCompletionRequest
 import com.xebia.functional.xef.llm.models.functions.FunctionCall
 import com.xebia.functional.xef.prompt.templates.assistant
+import io.ktor.util.date.*
 import kotlin.jvm.JvmSynthetic
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.onCompletion
@@ -61,11 +62,13 @@ sealed class StreamedFunction<out A> {
       // we create an example from the schema from which we can expect and infer the paths
       // as the LLM is sending us chunks with malformed JSON
       val example = createExampleFromSchema(schema)
+      val startTime = getTimeMillis()
       chat
         .createChatCompletionsWithFunctions(request)
         .onCompletion {
           val newMessages = promptMessages + messages
-          newMessages.addToMemory(chat, scope)
+          messages.addAssistantMessagesToMemory(chat, scope, newMessages, startTime)
+          //          newMessages.addToMemory(chat, scope)
         }
         .collect { responseChunk ->
           // Each chunk is emitted from the LLM and it will include a delta.parameters with

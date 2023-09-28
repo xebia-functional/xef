@@ -1,8 +1,6 @@
 package com.xebia.functional.xef.store
 
 import com.xebia.functional.xef.llm.Embeddings
-import com.xebia.functional.xef.llm.models.chat.Message
-import com.xebia.functional.xef.llm.models.chat.Role
 import com.xebia.functional.xef.llm.models.embeddings.Embedding
 import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
 import com.xebia.functional.xef.store.postgresql.*
@@ -27,10 +25,11 @@ class PGVectorStore(
         update(addNewMemory) {
           bind(UUID.generateUUID().toString())
           bind(memory.conversationId.value)
-          bind(memory.content.role.name.lowercase())
-          bind(memory.content.content)
           bind(memory.timestamp)
-          bind(memory.approxTokens)
+          bind(memory.request)
+          bind(memory.aiResponse)
+          bind(memory.responseTimeInMillis)
+          bind(memory.tokens)
         }
       }
     }
@@ -44,19 +43,18 @@ class PGVectorStore(
       }) {
         val uuid = string()
         val cId = string()
-        val role = string()
-        val content = string()
         val timestamp = long()
-        val approxTokens = int()
+        val request = serializable<List<MessageWithTokens>>()
+        val aiResponse = serializable<List<MessageWithTokens>>()
+        val responseTimeInMillis = long()
+        val tokens = int()
         Memory(
           conversationId = ConversationId(cId),
-          content = Message(
-            role = Role.valueOf(role.uppercase()),
-            content = content,
-            name = role,
-          ),
           timestamp = timestamp,
-          approxTokens = approxTokens
+          request = request,
+          aiResponse = aiResponse,
+          responseTimeInMillis = responseTimeInMillis,
+          tokens = tokens
         )
       }
     }.reversed()

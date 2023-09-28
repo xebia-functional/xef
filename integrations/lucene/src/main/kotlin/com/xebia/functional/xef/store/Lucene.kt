@@ -1,10 +1,11 @@
 package com.xebia.functional.xef.store
 
 import com.xebia.functional.xef.llm.Embeddings
-import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.llm.models.chat.Role
 import com.xebia.functional.xef.llm.models.embeddings.Embedding
 import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.serializer
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.document.Document
 import org.apache.lucene.document.Field
@@ -31,15 +32,20 @@ open class Lucene(
 
   private val requestConfig = RequestConfig(RequestConfig.Companion.User("user"))
 
+  fun List<MessageWithTokens>.encode() = Json.encodeToString(serializer(), this)
+
+  fun String.decode() = Json.decodeFromString<List<MessageWithTokens>>(this)
+
   override suspend fun addMemories(memories: List<Memory>) {
     memories.forEach {
       val doc =
         Document().apply {
           add(TextField("conversationId", it.conversationId.value, Field.Store.YES))
-          add(TextField("content", it.content.content, Field.Store.YES))
-          add(TextField("role", it.content.role.name.lowercase(), Field.Store.YES))
           add(LongField("timestamp", it.timestamp, Field.Store.YES))
-          add(IntField("approxTokens", it.approxTokens, Field.Store.YES))
+          add(TextField("request", it.request.encode(), Field.Store.YES))
+          add(TextField("aiResponse", it.aiResponse.encode(), Field.Store.YES))
+          add(LongField("responseTimeInMillis", it.responseTimeInMillis, Field.Store.YES))
+          add(IntField("tokens", it.tokens, Field.Store.YES))
         }
       writer.addDocument(doc)
     }
@@ -100,13 +106,11 @@ open class Lucene(
       val role = Role.valueOf(doc.get("role").uppercase())
       Memory(
         conversationId = ConversationId(doc.get("conversationId")),
-        content = Message(
-          content = doc.get("content"),
-          role = role,
-          name = role.name
-        ),
         timestamp = doc.get("timestamp").toLong(),
-        approxTokens = doc.get("approxTokens").toInt()
+        request = doc.get("request").decode(),
+        aiResponse = doc.get("aiResponse").decode(),
+        responseTimeInMillis = doc.get("responseTimeInMillis").toLong(),
+        tokens = doc.get("tokens").toInt()
       )
     }
 

@@ -13,11 +13,11 @@ internal object PromptCalculator {
   suspend fun adaptPromptToConversationAndModel(
     prompt: Prompt,
     scope: Conversation,
-    chat: LLM
+    llm: LLM
   ): Prompt {
 
     // calculate tokens for history and context
-    val remainingTokensForContexts = calculateRemainingTokensForContext(chat, prompt)
+    val remainingTokensForContexts = calculateRemainingTokensForContext(llm, prompt)
 
     val maxHistoryTokens = calculateMaxHistoryTokens(prompt, remainingTokensForContexts)
 
@@ -28,7 +28,7 @@ internal object PromptCalculator {
     val memories: List<Memory> =
       scope.memories(maxHistoryTokens + prompt.configuration.messagePolicy.historyPaddingTokens)
 
-    val historyAllowed = calculateMessagesFromHistory(chat, memories, maxHistoryTokens)
+    val historyAllowed = calculateMessagesFromHistory(llm, memories, maxHistoryTokens)
 
     // calculate messages for context based on tokens
     val ctxInfo =
@@ -41,7 +41,7 @@ internal object PromptCalculator {
       if (ctxInfo.isNotEmpty()) {
         val ctx: String = ctxInfo.joinToString("\n")
 
-        val ctxTruncated: String = chat.modelType.encoding.truncateText(ctx, maxContextTokens)
+        val ctxTruncated: String = llm.modelType.encoding.truncateText(ctx, maxContextTokens)
 
         Prompt { +assistant(ctxTruncated) }.messages
       } else {
@@ -52,53 +52,65 @@ internal object PromptCalculator {
   }
 
   private fun messagesFromMemory(memories: List<Memory>): List<Message> =
-    memories.map { it.content }
+    memories.flatMap { it.getSortedMessages() }
 
+  /*
+   * Returns the list of messages that fit in the max history tokens
+   */
   private fun calculateMessagesFromHistory(
-    chat: LLM,
+    llm: LLM,
     memories: List<Memory>,
     maxHistoryTokens: Int
-  ) =
+  ): List<Message> =
     if (memories.isNotEmpty()) {
       val history = messagesFromMemory(memories)
 
       // since we have the approximate tokens in memory, we need to fit the messages back to the
       // number of tokens if necessary
-      val historyTokens = chat.tokensFromMessages(history)
+      val historyTokens = llm.tokensFromMessages(history)
       if (historyTokens <= maxHistoryTokens) history
       else {
-        val historyMessagesWithTokens =
-          history.map { Pair(it, chat.tokensFromMessages(listOf(it))) }
+        val historyMessagesWithTokens = history.map { Pair(it, llm.tokensFromMessages(listOf(it))) }
 
         val totalTokenWithMessages =
           historyMessagesWithTokens.foldRight(Pair(0, emptyList<Message>())) { pair, acc ->
-            if (acc.first + pair.second > maxHistoryTokens) {
+            val accPlusMessageTokens = acc.first + pair.second
+            if (accPlusMessageTokens > maxHistoryTokens) {
               acc
             } else {
-              Pair(acc.first + pair.second, acc.second + pair.first)
+              Pair(accPlusMessageTokens, acc.second + pair.first)
             }
           }
         totalTokenWithMessages.second.reversed()
       }
     } else emptyList()
 
+  /*
+   * Calculate the max context tokens based on the context percent
+   */
   private fun calculateMaxContextTokens(prompt: Prompt, remainingTokensForContexts: Int): Int {
     val contextPercent = prompt.configuration.messagePolicy.contextPercent
     val maxContextTokens = (remainingTokensForContexts * contextPercent) / 100
     return maxContextTokens
   }
 
+  /*
+   * Calculate the max history tokens based on the history percent
+   */
   private fun calculateMaxHistoryTokens(prompt: Prompt, remainingTokensForContexts: Int): Int {
     val historyPercent = prompt.configuration.messagePolicy.historyPercent
     val maxHistoryTokens = (remainingTokensForContexts * historyPercent) / 100
     return maxHistoryTokens
   }
 
-  private fun calculateRemainingTokensForContext(chat: LLM, prompt: Prompt): Int {
-    val maxContextLength: Int = chat.modelType.maxContextLength
+  /*
+   * Calculate the number of tokens that are available for the context removing the minimum number of tokens for the response
+   */
+  private fun calculateRemainingTokensForContext(llm: LLM, prompt: Prompt): Int {
+    val maxContextLength: Int = llm.modelType.maxContextLength
     val remainingTokens: Int = maxContextLength - prompt.configuration.minResponseTokens
 
-    val messagesTokens = chat.tokensFromMessages(prompt.messages)
+    val messagesTokens = llm.tokensFromMessages(prompt.messages)
 
     if (messagesTokens >= remainingTokens) {
       throw AIError.PromptExceedsMaxRemainingTokenLength(messagesTokens, remainingTokens)

@@ -13,6 +13,7 @@ import com.xebia.functional.xef.llm.models.functions.FunChatCompletionRequest
 import com.xebia.functional.xef.llm.models.functions.encodeJsonSchema
 import com.xebia.functional.xef.prompt.Prompt
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.ktor.util.date.*
 import kotlinx.coroutines.flow.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
@@ -88,10 +89,11 @@ interface ChatWithFunctions : LLM {
       serializer,
       promptWithFunctions.configuration.maxDeserializationAttempts
     ) {
-      val requestedMemories = prompt.messages.toMemory(this@ChatWithFunctions, scope)
+      val startTime = getTimeMillis()
+      val requestedMemories = prompt.messages
       createChatCompletionWithFunctions(request)
+        .addMessagesToMemory(this@ChatWithFunctions, scope, requestedMemories, startTime)
         .choices
-        .addMessagesToMemory(this@ChatWithFunctions, scope, requestedMemories)
         .mapNotNull { it.message?.functionCall?.arguments }
     }
   }

@@ -10,7 +10,6 @@ import com.xebia.functional.xef.prompt.templates.user
 import com.xebia.functional.xef.store.ConversationId
 import com.xebia.functional.xef.store.LocalVectorStore
 import io.kotest.core.spec.style.StringSpec
-import io.kotest.matchers.comparables.shouldBeLessThan
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.serialization.encodeToString
@@ -23,7 +22,7 @@ class ConversationSpec :
     "memories should have the correct size in the vector store" {
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
-      val model = TestModel(modelType = ModelType.ADA, name = "fake-model")
+      val model = TestModel(modelType = ModelType.ADA)
 
       val scope = Conversation(LocalVectorStore(TestEmbeddings()), conversationId = conversationId)
 
@@ -35,7 +34,9 @@ class ConversationSpec :
 
       val memories = vectorStore.memories(conversationId, 10000)
 
-      memories.size shouldBe 4
+      memories.size shouldBe 2
+      memories.get(0).getSortedMessages().size shouldBe 2
+      memories.get(1).getSortedMessages().size shouldBe 2
     }
 
     """"
@@ -45,19 +46,25 @@ class ConversationSpec :
       | the number of messages in the request must have fewer messages than
       | the total number of messages in the conversation
       |""" {
-      val messages = generateRandomMessages(50, 40, 60)
+      val numberOfMessages = 50
+      val messages = generateRandomMessages(numberOfMessages, 40, 60)
       val conversationId = ConversationId(UUID.generateUUID().toString())
       val scope = Conversation(LocalVectorStore(TestEmbeddings()), conversationId = conversationId)
       val vectorStore = scope.store
 
-      val modelAda = TestModel(modelType = ModelType.ADA, name = "fake-model", responses = messages)
+      val modelAda = TestModel(modelType = ModelType.ADA, responses = messages)
 
-      val totalTokens =
+      val numberOfMessagesForCalculatingTokens = 10
+      val tokenFor10Items =
         modelAda.tokensFromMessages(
-          messages.flatMap {
+          messages.keys.reversed().take(numberOfMessagesForCalculatingTokens).flatMap { key ->
             listOf(
-              Message(role = Role.USER, content = it.key, name = Role.USER.name),
-              Message(role = Role.ASSISTANT, content = it.value, name = Role.USER.name),
+              Message(role = Role.USER, content = key, name = Role.USER.name),
+              Message(
+                role = Role.ASSISTANT,
+                content = messages.get(key) ?: "",
+                name = Role.USER.name
+              ),
             )
           }
         )
@@ -66,14 +73,9 @@ class ConversationSpec :
         modelAda.promptMessages(prompt = Prompt(message.key), scope = scope)
       }
 
-      val lastRequest = modelAda.requests.last()
+      val memories = vectorStore.memories(conversationId, tokenFor10Items)
 
-      val memories = vectorStore.memories(conversationId, totalTokens)
-
-      // The messages in the request doesn't contain the message response
-      val messagesSizePlusMessageResponse = lastRequest.messages.size + 1
-
-      messagesSizePlusMessageResponse shouldBeLessThan memories.size
+      memories.size shouldBe numberOfMessagesForCalculatingTokens
     }
 
     """"
@@ -82,17 +84,14 @@ class ConversationSpec :
       | the space allotted for the message history in the prompt configuration
       | the request must send all messages in the conversation
       |""" {
-      val messages = generateRandomMessages(50, 40, 60)
+      val numberOfMessages = 50
+      val messages = generateRandomMessages(numberOfMessages, 40, 60)
       val conversationId = ConversationId(UUID.generateUUID().toString())
       val scope = Conversation(LocalVectorStore(TestEmbeddings()), conversationId = conversationId)
       val vectorStore = scope.store
 
       val modelGPTTurbo16K =
-        TestModel(
-          modelType = ModelType.GPT_3_5_TURBO_16_K,
-          name = "fake-model",
-          responses = messages
-        )
+        TestModel(modelType = ModelType.GPT_3_5_TURBO_16_K, responses = messages)
 
       val totalTokens =
         modelGPTTurbo16K.tokensFromMessages(
@@ -108,14 +107,9 @@ class ConversationSpec :
         modelGPTTurbo16K.promptMessages(prompt = Prompt(message.key), scope = scope)
       }
 
-      val lastRequest = modelGPTTurbo16K.requests.last()
-
       val memories = vectorStore.memories(conversationId, totalTokens)
 
-      // The messages in the request doesn't contain the message response
-      val messagesSizePlusMessageResponse = lastRequest.messages.size + 1
-
-      messagesSizePlusMessageResponse shouldBe memories.size
+      memories.size shouldBe numberOfMessages
     }
 
     "functionCall shouldn't be null when the model support functions and the prompt contain a function" {
@@ -128,11 +122,7 @@ class ConversationSpec :
       val scope = Conversation(LocalVectorStore(TestEmbeddings()), conversationId = conversationId)
 
       val model =
-        TestFunctionsModel(
-          modelType = ModelType.GPT_3_5_TURBO_FUNCTIONS,
-          name = "fake-model",
-          responses = message
-        )
+        TestFunctionsModel(modelType = ModelType.GPT_3_5_TURBO_FUNCTIONS, responses = message)
 
       val response: Answer =
         model.prompt(prompt = Prompt(question), scope = scope, serializer = Answer.serializer())
@@ -156,11 +146,7 @@ class ConversationSpec :
       val scope = Conversation(LocalVectorStore(TestEmbeddings()), conversationId = conversationId)
 
       val model =
-        TestFunctionsModel(
-          modelType = ModelType.GPT_3_5_TURBO_FUNCTIONS,
-          name = "fake-model",
-          responses = message
-        )
+        TestFunctionsModel(modelType = ModelType.GPT_3_5_TURBO_FUNCTIONS, responses = message)
 
       val response: Answer =
         model.prompt(
@@ -183,7 +169,7 @@ class ConversationSpec :
     "!the scope's store should contains all the messages" {
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
-      val model = TestModel(modelType = ModelType.ADA, name = "fake-model")
+      val model = TestModel(modelType = ModelType.ADA)
 
       val scope = Conversation(LocalVectorStore(TestEmbeddings()), conversationId = conversationId)
 
@@ -222,7 +208,7 @@ class ConversationSpec :
             thirdPrompt.messages +
             aiThirdMessage)
           .map { it.content }
-      val actualMessages = memories.map { it.content.content }
+      val actualMessages = memories.flatMap { it.getSortedMessages().map { it.content } }
       expectedMessages shouldBe actualMessages
     }
   })

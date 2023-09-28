@@ -2,6 +2,8 @@ package com.xebia.functional.xef.store.postgresql
 
 import arrow.core.raise.NullableRaise
 import arrow.core.raise.nullable
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.serializer
 import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
@@ -107,6 +109,9 @@ class JDBCSyntax(val conn: Connection) : Connection by conn {
     fun bind(string: String?): Unit =
       if (string == null) preparedStatement.setNull(index++, Types.VARCHAR)
       else preparedStatement.setString(index++, string)
+
+    inline fun <reified T>bind(value: T?): Unit =
+      bind(Json.encodeToString(serializer(), value))
   }
 
   class SqlCursor(private val resultSet: ResultSet) {
@@ -126,6 +131,7 @@ class JDBCSyntax(val conn: Connection) : Connection by conn {
     fun bytes(): ByteArray = raise.ensureNotNull(resultSet.getBytes(index++))
     fun long(): Long =
       raise.ensureNotNull(resultSet.getLong(index++).takeUnless { resultSet.wasNull() })
+    inline fun <reified T> serializable(): T = Json.decodeFromString(serializer(), string())
 
     fun double(): Double =
       raise.ensureNotNull(resultSet.getDouble(index++).takeUnless { resultSet.wasNull() })

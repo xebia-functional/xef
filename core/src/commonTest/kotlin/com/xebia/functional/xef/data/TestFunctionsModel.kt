@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.Flow
 
 class TestFunctionsModel(
   override val modelType: ModelType,
-  override val name: String,
   val responses: Map<String, String> = emptyMap(),
 ) : ChatWithFunctions, Embeddings, AutoCloseable {
 
@@ -32,6 +31,18 @@ class TestFunctionsModel(
   ): ChatCompletionResponseWithFunctions {
     requests.add(request)
     val response = responses[request.messages.last().content] ?: "fake-content"
+
+    val assistantResponse =
+      MessageWithFunctionCall(
+        role = Role.USER.name,
+        content = response,
+        functionCall = FunctionCall("fake-function-name", response),
+        name = Role.USER.name
+      )
+
+    val promptTokens = tokensFromMessages(request.messages)
+    val totalTokens = promptTokens + tokensFromMessages(listOf(assistantResponse.toMessage()))
+
     return ChatCompletionResponseWithFunctions(
       id = "fake-id",
       `object` = "fake-object",
@@ -40,18 +51,12 @@ class TestFunctionsModel(
       choices =
         listOf(
           ChoiceWithFunctions(
-            message =
-              MessageWithFunctionCall(
-                role = Role.USER.name,
-                content = response,
-                functionCall = FunctionCall("fake-function-name", response),
-                name = Role.USER.name
-              ),
+            message = assistantResponse,
             finishReason = "fake-finish-reason",
             index = 0
           )
         ),
-      usage = Usage.ZERO
+      usage = Usage(promptTokens, 0, totalTokens)
     )
   }
 

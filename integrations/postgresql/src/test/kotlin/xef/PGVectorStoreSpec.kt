@@ -10,6 +10,7 @@ import com.xebia.functional.xef.llm.models.embeddings.EmbeddingResult
 import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
 import com.xebia.functional.xef.store.ConversationId
 import com.xebia.functional.xef.store.Memory
+import com.xebia.functional.xef.store.MessageWithTokens
 import com.xebia.functional.xef.store.PGVectorStore
 import com.xebia.functional.xef.store.postgresql.PGDistanceStrategy
 import com.zaxxer.hikari.HikariConfig
@@ -96,9 +97,16 @@ class PGVectorStoreSpec :
       val memories = (0 until messages).flatMap {
         val m1 = Message(Role.USER, "question $it", "user")
         val m2 = Message(Role.ASSISTANT, "answer $it", "assistant")
+        val m1Tokens = calculateTokens(m1)
+        val m2Tokens = calculateTokens(m2)
         listOf(
-          Memory(conversationId, m1, 2 * it.toLong(), calculateTokens(m1)),
-          Memory(conversationId, m2, 2 * it.toLong() + 1, calculateTokens(m2))
+          Memory(
+            conversationId,
+            2 * it.toLong(),
+            listOf(MessageWithTokens(m1, m1Tokens)),
+            listOf(MessageWithTokens(m2, m2Tokens)),
+            100,
+            m1Tokens + m2Tokens),
         )
       }
       pg.addMemories(memories)

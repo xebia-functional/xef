@@ -11,10 +11,11 @@ CREATE TABLE IF NOT EXISTS xef_collections (
 CREATE TABLE IF NOT EXISTS xef_memory (
        uuid TEXT PRIMARY KEY,
        conversation_id TEXT NOT NULL,
-       role TEXT NOT NULL,
-       content TEXT UNIQUE NOT NULL,
+       request JSONB,
+       aiResponse JSONB,
        timestamp BIGINT NOT NULL,
-       approx_tokens INT NOT NULL
+       responseTimeInMillis INT NOT NULL,
+       tokens INT NOT NULL
      );
 
 -- Create embeddings table

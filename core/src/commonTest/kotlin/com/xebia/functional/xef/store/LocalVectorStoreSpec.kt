@@ -28,7 +28,7 @@ class LocalVectorStoreSpec :
       val messages1 = generateRandomMessages(4, startTimestamp = 1000)
       val messages2 = generateRandomMessages(3, startTimestamp = 2000)
 
-      val tokensForMessages2 = messages2.sumOf { calculateTokens(it.content) }
+      val tokensForMessages2 = messages2.sumOf { it.tokens }
 
       localVectorStore.addMemories(messages1)
       localVectorStore.addMemories(messages2)
@@ -49,8 +49,8 @@ class LocalVectorStoreSpec :
 
       localVectorStore.addMemories(messages1 + messages2)
 
-      val tokensForMessages1 = messages1.sumOf { calculateTokens(it.content) }
-      val tokensForMessages2 = messages2.sumOf { calculateTokens(it.content) }
+      val tokensForMessages1 = messages1.sumOf { it.tokens }
+      val tokensForMessages2 = messages2.sumOf { it.tokens }
 
       val messagesFirstId = localVectorStore.memories(firstId, tokensForMessages1)
 

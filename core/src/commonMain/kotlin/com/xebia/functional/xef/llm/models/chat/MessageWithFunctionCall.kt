@@ -7,4 +7,13 @@ data class MessageWithFunctionCall(
   val content: String? = null,
   val functionCall: FunctionCall?,
   val name: String? = Role.ASSISTANT.name
-)
+) {
+  fun toMessage(): Message {
+    val role = role.uppercase().let { Role.valueOf(it) } // TODO valueOf is unsafe
+    return Message(
+      role = role,
+      content = content ?: functionCall?.arguments ?: "",
+      name = role.name
+    )
+  }
+}

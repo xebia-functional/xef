@@ -11,12 +11,19 @@ fun generateRandomMessages(
   conversationId: ConversationId = defaultConversationId,
   startTimestamp: Long = 0
 ): List<Memory> =
-  (0 until n).flatMap {
+  (0 until n).map {
     val m1 = Message(Role.USER, "Question $it${append?.let { ": $it" } ?: ""}", "USER")
     val m2 = Message(Role.ASSISTANT, "Response $it${append?.let { ": $it" } ?: ""}", "ASSISTANT")
-    listOf(
-      Memory(conversationId, m1, startTimestamp + (it * 10), calculateTokens(m1)),
-      Memory(conversationId, m2, startTimestamp + (it * 10) + 1, calculateTokens(m2)),
+    val tokensM1 = calculateTokens(m1)
+    val tokensM2 = calculateTokens(m2)
+
+    Memory(
+      conversationId,
+      startTimestamp + (it * 10),
+      listOf(MessageWithTokens(m1, tokensM1)),
+      listOf(MessageWithTokens(m2, tokensM2)),
+      100,
+      tokensM1 + tokensM2
     )
   }
 
