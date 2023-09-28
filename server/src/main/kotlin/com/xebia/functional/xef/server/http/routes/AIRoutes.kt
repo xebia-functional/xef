@@ -1,6 +1,7 @@
 package com.xebia.functional.xef.server.http.routes
 
 import com.aallam.openai.api.BetaOpenAI
+import com.xebia.functional.xef.server.http.routes.providers.forwardToProvider
 import com.xebia.functional.xef.server.http.routes.providers.makeRequest
 import com.xebia.functional.xef.server.http.routes.providers.makeStreaming
 import com.xebia.functional.xef.server.models.Token
@@ -30,7 +31,7 @@ fun String.toProvider(): Provider? = when (this) {
 fun Routing.aiRoutes(
     client: HttpClient
 ) {
-    val openAiUrl = "https://api.openai.com/v1"
+    val openAiUrl = "https://api.openai.com"
 
     authenticate("auth-bearer") {
         post("/chat/completions") {
@@ -45,12 +46,16 @@ fun Routing.aiRoutes(
             } else {
                 client.makeStreaming(call, "$openAiUrl/chat/completions", body, token)
             }
+
+            //forwardToProvider(client, stream = isStream) //TODO
         }
 
         post("/embeddings") {
             val token = call.getToken()
             val context = call.receive<String>()
             client.makeRequest(call, "$openAiUrl/embeddings", context, token)
+
+            //forwardToProvider(client, stream = isStream) //TODO
         }
     }
 }
