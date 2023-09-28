@@ -31,7 +31,7 @@ fun String.toProvider(): Provider? = when (this) {
 fun Routing.aiRoutes(
     client: HttpClient
 ) {
-    val openAiUrl = "https://api.openai.com"
+    val openAiUrl = "https://api.openai.com/v1"
 
     authenticate("auth-bearer") {
         post("/chat/completions") {
