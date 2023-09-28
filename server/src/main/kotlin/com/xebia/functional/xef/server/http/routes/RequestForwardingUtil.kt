@@ -58,20 +58,20 @@ internal suspend fun HttpClient.makeRequest(
  * No messing around with char sets. Just forwarding raw bytes.
  */
 internal suspend fun PipelineContext<Unit, ApplicationCall>.handleForwardToProvider(client: HttpClient): HttpResponse {
-    val response = client.forwardRequest(call.request)
+    val response = client.forwardRequest(call)
     call.forwardResponse(response)
     return response
 }
 
 private suspend fun HttpClient.forwardRequest(
-    request: ApplicationRequest,
+    call: ApplicationCall,
 ) = request {
-    url(buildProviderUrlFromRequest(request))
-    method = request.httpMethod
-    headers.copyFrom(request.headers) // copy headers
-    url.parameters.appendAll(request.queryParameters) // copy parameters
+    url(buildProviderUrlFromRequest(call.request))
+    method = call.request.httpMethod
+    headers.copyFrom(call.request.headers) // copy headers
+    url.parameters.appendAll(call.request.queryParameters) // copy parameters
 
-    val body = request
+    val body = call
         .receiveChannel()
         .toByteArray()
         .let { ByteArrayContent(it, contentType = null) }
