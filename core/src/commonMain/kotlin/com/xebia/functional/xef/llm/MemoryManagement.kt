@@ -23,7 +23,7 @@ internal fun Message.toMemory(cid: ConversationId, index: Int): Memory =
 internal fun List<Message>.toMemory(scope: Conversation): List<Memory> {
   val cid = scope.conversationId
   return if (cid != null) {
-    mapIndexed { index, it -> it.toMemory(cid, scope.store.incrementIndexAndGet()) }
+    map { it.toMemory(cid, scope.store.incrementIndexAndGet()) }
   } else emptyList()
 }
 
