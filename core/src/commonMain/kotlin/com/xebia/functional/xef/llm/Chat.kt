@@ -36,7 +36,7 @@ interface Chat : LLM {
       .also { finalText ->
         val aiResponseMessage = assistant(finalText)
         val newMessages = prompt.messages + listOf(aiResponseMessage)
-        newMessages.addToMemory(this@Chat, scope)
+        newMessages.addToMemory(scope)
       }
   }
 
@@ -46,7 +46,7 @@ interface Chat : LLM {
 
   @AiDsl
   suspend fun promptMessages(prompt: Prompt, scope: Conversation): List<String> {
-    val promptMemories = prompt.messages.toMemory(this@Chat, scope)
+    val promptMemories = prompt.messages.toMemory(scope)
     val adaptedPrompt = PromptCalculator.adaptPromptToConversationAndModel(prompt, scope, this@Chat)
 
     val request =
@@ -60,7 +60,7 @@ interface Chat : LLM {
 
     return createChatCompletion(request)
       .choices
-      .addMessagesToMemory(this@Chat, scope, promptMemories)
+      .addChoiceToMemory(scope, promptMemories)
       .mapNotNull { it.message?.content }
   }
 }

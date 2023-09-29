@@ -1,13 +1,21 @@
 package com.xebia.functional.xef.store
 
+import arrow.atomic.AtomicInt
+import com.xebia.functional.xef.llm.LLM
 import com.xebia.functional.xef.llm.models.embeddings.Embedding
 import kotlin.jvm.JvmStatic
 
 interface VectorStore {
 
+  val indexValue: AtomicInt
+
+  fun incrementIndexAndGet(): Int = indexValue.addAndGet(1)
+
+  fun updateIndexByConversationId(conversationId: ConversationId)
+
   suspend fun addMemories(memories: List<Memory>)
 
-  suspend fun memories(conversationId: ConversationId, limitTokens: Int): List<Memory>
+  suspend fun memories(llm: LLM, conversationId: ConversationId, limitTokens: Int): List<Memory>
 
   /**
    * Add texts to the vector store after running them through the embeddings
@@ -41,10 +49,14 @@ interface VectorStore {
     @JvmStatic
     val EMPTY: VectorStore =
       object : VectorStore {
+        override val indexValue: AtomicInt = AtomicInt(0)
+
+        override fun updateIndexByConversationId(conversationId: ConversationId) {}
 
         override suspend fun addMemories(memories: List<Memory>) {}
 
         override suspend fun memories(
+          llm: LLM,
           conversationId: ConversationId,
           limitTokens: Int
         ): List<Memory> = emptyList()

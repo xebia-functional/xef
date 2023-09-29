@@ -97,8 +97,10 @@ actual constructor(
       .asCompletableFuture()
 
   actual companion object {
-    actual fun create(store: VectorStore, conversationId: ConversationId?): PlatformConversation =
-      JVMConversation(store, conversationId)
+    actual fun create(store: VectorStore, conversationId: ConversationId?): PlatformConversation {
+      conversationId?.let { store.updateIndexByConversationId(conversationId) }
+      return JVMConversation(store, conversationId)
+    }
   }
 
   override fun close() {

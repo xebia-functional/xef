@@ -1,5 +1,6 @@
 package com.xebia.functional.xef.store
 
+import com.xebia.functional.xef.llm.LLM
 import com.xebia.functional.xef.llm.models.embeddings.Embedding
 
 /**
@@ -11,13 +12,17 @@ import com.xebia.functional.xef.llm.models.embeddings.Embedding
 class CombinedVectorStore(private val top: VectorStore, private val bottom: VectorStore) :
   VectorStore by top {
 
-  override suspend fun memories(conversationId: ConversationId, limitTokens: Int): List<Memory> {
-    val bottomResults = bottom.memories(conversationId, limitTokens)
-    val topResults = top.memories(conversationId, limitTokens)
+  override suspend fun memories(
+    llm: LLM,
+    conversationId: ConversationId,
+    limitTokens: Int
+  ): List<Memory> {
+    val bottomResults = bottom.memories(llm, conversationId, limitTokens)
+    val topResults = top.memories(llm, conversationId, limitTokens)
 
     return (topResults + bottomResults)
-      .sortedByDescending { it.timestamp }
-      .reduceByLimitToken(limitTokens)
+      .sortedByDescending { it.index }
+      .reduceByLimitToken(llm, limitTokens)
       .reversed()
   }
 

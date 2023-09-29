@@ -5,6 +5,7 @@ import com.xebia.functional.xef.data.*
 import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.llm.models.chat.Role
 import com.xebia.functional.xef.prompt.Prompt
+import com.xebia.functional.xef.prompt.templates.assistant
 import com.xebia.functional.xef.prompt.templates.system
 import com.xebia.functional.xef.prompt.templates.user
 import com.xebia.functional.xef.store.ConversationId
@@ -23,7 +24,7 @@ class ConversationSpec :
     "memories should have the correct size in the vector store" {
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
-      val model = TestModel(modelType = ModelType.ADA, name = "fake-model")
+      val model = TestModel(modelType = ModelType.ADA)
 
       val scope = Conversation(LocalVectorStore(TestEmbeddings()), conversationId = conversationId)
 
@@ -33,7 +34,7 @@ class ConversationSpec :
 
       model.promptMessages(prompt = Prompt("question 2"), scope = scope)
 
-      val memories = vectorStore.memories(conversationId, 10000)
+      val memories = vectorStore.memories(model, conversationId, 10000)
 
       memories.size shouldBe 4
     }
@@ -50,7 +51,7 @@ class ConversationSpec :
       val scope = Conversation(LocalVectorStore(TestEmbeddings()), conversationId = conversationId)
       val vectorStore = scope.store
 
-      val modelAda = TestModel(modelType = ModelType.ADA, name = "fake-model", responses = messages)
+      val modelAda = TestModel(modelType = ModelType.ADA, responses = messages)
 
       val totalTokens =
         modelAda.tokensFromMessages(
@@ -68,7 +69,7 @@ class ConversationSpec :
 
       val lastRequest = modelAda.requests.last()
 
-      val memories = vectorStore.memories(conversationId, totalTokens)
+      val memories = vectorStore.memories(modelAda, conversationId, totalTokens)
 
       // The messages in the request doesn't contain the message response
       val messagesSizePlusMessageResponse = lastRequest.messages.size + 1
@@ -88,11 +89,7 @@ class ConversationSpec :
       val vectorStore = scope.store
 
       val modelGPTTurbo16K =
-        TestModel(
-          modelType = ModelType.GPT_3_5_TURBO_16_K,
-          name = "fake-model",
-          responses = messages
-        )
+        TestModel(modelType = ModelType.GPT_3_5_TURBO_16_K, responses = messages)
 
       val totalTokens =
         modelGPTTurbo16K.tokensFromMessages(
@@ -110,7 +107,7 @@ class ConversationSpec :
 
       val lastRequest = modelGPTTurbo16K.requests.last()
 
-      val memories = vectorStore.memories(conversationId, totalTokens)
+      val memories = vectorStore.memories(modelGPTTurbo16K, conversationId, totalTokens)
 
       // The messages in the request doesn't contain the message response
       val messagesSizePlusMessageResponse = lastRequest.messages.size + 1
@@ -128,11 +125,7 @@ class ConversationSpec :
       val scope = Conversation(LocalVectorStore(TestEmbeddings()), conversationId = conversationId)
 
       val model =
-        TestFunctionsModel(
-          modelType = ModelType.GPT_3_5_TURBO_FUNCTIONS,
-          name = "fake-model",
-          responses = message
-        )
+        TestFunctionsModel(modelType = ModelType.GPT_3_5_TURBO_FUNCTIONS, responses = message)
 
       val response: Answer =
         model.prompt(prompt = Prompt(question), scope = scope, serializer = Answer.serializer())
@@ -156,11 +149,7 @@ class ConversationSpec :
       val scope = Conversation(LocalVectorStore(TestEmbeddings()), conversationId = conversationId)
 
       val model =
-        TestFunctionsModel(
-          modelType = ModelType.GPT_3_5_TURBO_FUNCTIONS,
-          name = "fake-model",
-          responses = message
-        )
+        TestFunctionsModel(modelType = ModelType.GPT_3_5_TURBO_FUNCTIONS, responses = message)
 
       val response: Answer =
         model.prompt(
@@ -176,14 +165,10 @@ class ConversationSpec :
       response shouldBe answer
     }
 
-    // This test is ignored because we have some problems regarding the storing of
-    // the memory, that will need to be fixed before we can enable this test
-    // This is the ticket for the issue:
-    // https://github.com/xebia-functional/xef/issues/447
-    "!the scope's store should contains all the messages" {
+    "the scope's store should contains all the messages" {
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
-      val model = TestModel(modelType = ModelType.ADA, name = "fake-model")
+      val model = TestModel(modelType = ModelType.ADA)
 
       val scope = Conversation(LocalVectorStore(TestEmbeddings()), conversationId = conversationId)
 
@@ -213,7 +198,7 @@ class ConversationSpec :
       val aiThirdMessage =
         Message(role = Role.ASSISTANT, content = thirdResponse.first(), name = Role.ASSISTANT.name)
 
-      val memories = vectorStore.memories(conversationId, 10000)
+      val memories = vectorStore.memories(model, conversationId, 10000)
       val expectedMessages =
         (firstPrompt.messages +
             aiFirstMessage +
@@ -223,6 +208,36 @@ class ConversationSpec :
             aiThirdMessage)
           .map { it.content }
       val actualMessages = memories.map { it.content.content }
-      expectedMessages shouldBe actualMessages
+      actualMessages shouldBe expectedMessages
+    }
+
+    "when using 2 different scopes with the same conversationId, the index of the memories should be in order" {
+      val conversationId = ConversationId(UUID.generateUUID().toString())
+
+      val model = TestModel(modelType = ModelType.ADA)
+
+      val vectorStore = LocalVectorStore(TestEmbeddings())
+
+      val scope1 = Conversation(vectorStore, conversationId = conversationId)
+
+      val firstPrompt = Prompt {
+        +user("question in scope 1")
+        +assistant("answer in scope 1")
+      }
+
+      model.promptMessages(prompt = firstPrompt, scope = scope1)
+
+      val scope2 = Conversation(vectorStore, conversationId = conversationId)
+
+      val secondPrompt = Prompt {
+        +user("question in scope 2")
+        +assistant("answer in scope 2")
+      }
+
+      model.promptMessages(prompt = secondPrompt, scope = scope2)
+
+      val memories = vectorStore.memories(model, conversationId, 10000)
+
+      memories.map { it.index } shouldBe listOf(1, 2, 3, 4, 5, 6)
     }
   })

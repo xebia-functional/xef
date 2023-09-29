@@ -1,9 +1,11 @@
 package com.xebia.functional.xef.store
 
 import arrow.atomic.Atomic
+import arrow.atomic.AtomicInt
 import arrow.atomic.getAndUpdate
 import arrow.atomic.update
 import com.xebia.functional.xef.llm.Embeddings
+import com.xebia.functional.xef.llm.LLM
 import com.xebia.functional.xef.llm.models.embeddings.Embedding
 import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
 import kotlin.math.sqrt
@@ -27,6 +29,14 @@ private constructor(private val embeddings: Embeddings, private val state: Atomi
 
   private val requestConfig = RequestConfig(RequestConfig.Companion.User("user"))
 
+  override val indexValue: AtomicInt = AtomicInt(0)
+
+  override fun updateIndexByConversationId(conversationId: ConversationId) {
+    state.get().orderedMemories[conversationId]?.let { memories ->
+      memories.maxByOrNull { it.index }?.let { lastMemory -> indexValue.set(lastMemory.index) }
+    }
+  }
+
   override suspend fun addMemories(memories: List<Memory>) {
     state.update { prevState ->
       prevState.copy(
@@ -44,12 +54,16 @@ private constructor(private val embeddings: Embeddings, private val state: Atomi
     }
   }
 
-  override suspend fun memories(conversationId: ConversationId, limitTokens: Int): List<Memory> {
+  override suspend fun memories(
+    llm: LLM,
+    conversationId: ConversationId,
+    limitTokens: Int
+  ): List<Memory> {
     val memories = state.get().orderedMemories[conversationId]
     return memories
       .orEmpty()
-      .sortedByDescending { it.timestamp }
-      .reduceByLimitToken(limitTokens)
+      .sortedByDescending { it.index }
+      .reduceByLimitToken(llm, limitTokens)
       .reversed()
   }
 
