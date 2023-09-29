@@ -1,7 +1,7 @@
 [versions]
 arrow = "1.2.1"
 arrowGradle = "0.12.0-rc.5"
-exposed = "0.43.0"
+exposed = "0.44.0"
 kotlin = "1.9.10"
 kotlinx-json = "1.6.0"
 kotlinx-datetime = "0.4.1"
@@ -10,7 +10,7 @@ spotless = "6.21.0"
 okio = "3.5.0"
 kotest = "5.7.2"
 kotest-testcontainers = "2.0.2"
-kotest-arrow = "1.3.3"
+kotest-arrow = "1.4.0"
 klogging = "5.1.0"
 uuid = "0.0.21"
 postgresql = "42.6.0"
@@ -33,7 +33,7 @@ junit = "5.10.0"
 pdfbox = "3.0.0"
 mysql = "8.0.33"
 semverGradle = "0.5.0-rc.5"
-scala = "3.3.0"
+scala = "3.3.1"
 openai-client-version = "3.4.1"
 gpt4all-java = "1.1.5"
 ai-djl = "0.23.0"
@@ -42,7 +42,7 @@ jsonschema = "4.31.1"
 jakarta = "3.0.2"
 suspend-transform = "0.5.1"
 suspendApp = "0.4.0"
-flyway = "9.22.1"
+flyway = "9.22.2"
 resources-kmp = "0.4.0"
 detekt = "1.23.1"
 
@@ -83,6 +83,7 @@ ktor-server-contentNegotiation = { module = "io.ktor:ktor-server-content-negotia
 ktor-server-resources = { module = "io.ktor:ktor-server-resources", version.ref = "ktor" }
 ktor-server-cors = { module = "io.ktor:ktor-server-cors", version.ref = "ktor" }
 ktor-server-request-validation = { module = "io.ktor:ktor-server-request-validation", version.ref = "ktor" }
+ktor-server-double-receive = { module = "io.ktor:ktor-server-double-receive", version.ref = "ktor" }
 ktor-server-status-pages = { module = "io.ktor:ktor-server-status-pages", version.ref = "ktor" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 okio-fakefilesystem = { module = "com.squareup.okio:okio-fakefilesystem", version.ref = "okio" }

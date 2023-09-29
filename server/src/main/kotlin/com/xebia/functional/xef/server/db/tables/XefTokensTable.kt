@@ -1,29 +1,19 @@
 package com.xebia.functional.xef.server.db.tables
 
 import com.xebia.functional.xef.server.models.ProvidersConfig
-import kotlinx.datetime.Instant
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.json.Json
+import org.jetbrains.exposed.dao.IntEntity
+import org.jetbrains.exposed.dao.IntEntityClass
+import org.jetbrains.exposed.dao.id.EntityID
+import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ReferenceOption
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.json.jsonb
 import org.jetbrains.exposed.sql.kotlin.datetime.CurrentTimestamp
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 
 val format = Json { prettyPrint = true }
 
-data class XefTokens(
-    @SerialName("user_id") val userId: Int,
-    @SerialName("project_id") val projectId: Int,
-    @SerialName("name") val name: String,
-    @SerialName("created_at") val createdAt: Instant,
-    @SerialName("updated_at") val updatedAt: Instant,
-    @SerialName("token") val token: String,
-    @SerialName("providers_config") val providersConfig: ProvidersConfig
-)
-
-object XefTokensTable : Table("xef_tokens") {
+object XefTokensTable : IntIdTable("xef_tokens") {
     val userId = reference(
         name = "user_id",
         foreign = UsersTable,
@@ -40,17 +30,16 @@ object XefTokensTable : Table("xef_tokens") {
     val token = varchar("token", 128).uniqueIndex()
     val providersConfig = jsonb<ProvidersConfig>("providers_config", format)
 
-    override val primaryKey = PrimaryKey(userId, projectId, name)
 }
 
-fun ResultRow.toXefTokens(): XefTokens {
-    return XefTokens(
-        userId = this[XefTokensTable.userId].value,
-        projectId = this[XefTokensTable.projectId].value,
-        name = this[XefTokensTable.name],
-        createdAt = this[XefTokensTable.createdAt],
-        updatedAt = this[XefTokensTable.updatedAt],
-        token = this[XefTokensTable.token],
-        providersConfig = this[XefTokensTable.providersConfig]
-    )
+class XefTokens(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<XefTokens>(XefTokensTable)
+
+    var userId by XefTokensTable.userId
+    var projectId by XefTokensTable.projectId
+    var name by XefTokensTable.name
+    var createdAt by XefTokensTable.createdAt
+    var updatedAt by XefTokensTable.updatedAt
+    var token by XefTokensTable.token
+    var providersConfig by XefTokensTable.providersConfig
 }
