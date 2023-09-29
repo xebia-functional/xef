@@ -9,8 +9,9 @@ import com.xebia.functional.xef.server.db.psql.XefDatabaseConfig
 import com.xebia.functional.xef.server.db.psql.XefVectorStoreConfig
 import com.xebia.functional.xef.server.db.psql.XefVectorStoreConfig.Companion.getVectorStoreService
 import com.xebia.functional.xef.server.exceptions.exceptionsHandler
-import com.xebia.functional.xef.server.http.routes.*
+import com.xebia.functional.xef.server.http.routes.aiRoutes
 import com.xebia.functional.xef.server.http.routes.providers.oaiRoutes
+import com.xebia.functional.xef.server.http.routes.xefRoutes
 import com.xebia.functional.xef.server.services.RepositoryService
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
@@ -82,6 +83,7 @@ object Server {
                 }
                 exceptionsHandler()
                 routing {
+                    xefRoutes(logger)
                     aiRoutes(ktorClient)
                     oaiRoutes(ktorClient)
                 }

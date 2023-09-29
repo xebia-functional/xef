@@ -4,18 +4,15 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-@SerialName("open_ai")
 data class OpenAIConf(
-    val name: String,
     val token: String,
-    val url: String
+    val url: String?
 )
 
 @Serializable
-@SerialName("gcp")
 data class GCPConf(
-    val name: String,
     val token: String,
+    @SerialName("project_id")
     val projectId: String,
     val location: String
 )
@@ -26,4 +23,8 @@ data class ProvidersConfig(
     val openAI: OpenAIConf?,
     @SerialName("gcp")
     val gcp: GCPConf?
-)
+) {
+    companion object {
+        val empty = ProvidersConfig(null, null)
+    }
+}

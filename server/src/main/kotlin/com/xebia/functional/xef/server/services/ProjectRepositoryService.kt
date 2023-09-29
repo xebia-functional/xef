@@ -29,7 +29,7 @@ class ProjectRepositoryService(
                 name = data.name
                 orgId = organization.id
             }
-            ProjectSimpleResponse(project.name, project.orgId.value)
+            project.toProjectSimpleResponse()
         }
     }
 

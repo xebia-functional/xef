@@ -366,7 +366,7 @@
 					"response": []
 				},
 				{
-					"name": "Get Project",
+					"name": "Get Projects By Org",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -393,7 +393,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{url}}/v1/settings/projects/1",
+							"raw": "{{url}}/v1/settings/projects/org/1",
 							"host": [
 								"{{url}}"
 							],
@@ -401,6 +401,7 @@
 								"v1",
 								"settings",
 								"projects",
+								"org",
 								"1"
 							]
 						}
@@ -423,7 +424,7 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{url}}/v1/settings/projects/1",
+							"raw": "{{url}}/v1/settings/projects/4",
 							"host": [
 								"{{url}}"
 							],
@@ -431,6 +432,202 @@
 								"v1",
 								"settings",
 								"projects",
+								"4"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Xef Tokens",
+			"item": [
+				{
+					"name": "Create Token",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"My Token\",\n    \"projectId\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/v1/settings/tokens",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"v1",
+								"settings",
+								"tokens"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Token",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"My Token\",\n    \"providerConfig\": {\n        \"open_ai\": {\n            \"token\": \"openai_token\",\n            \"url\": null\n        },\n        \"gcp\": {\n            \"token\": \"openai_token\",\n            \"project_id\": \"my_project_id\",\n            \"location\": \"my_location\"\n        }\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/v1/settings/tokens/1",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"v1",
+								"settings",
+								"tokens",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Tokens",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/v1/settings/tokens",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"v1",
+								"settings",
+								"tokens"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Tokens by Project",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/v1/settings/tokens/projects/1",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"v1",
+								"settings",
+								"tokens",
+								"projects",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete tokens",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/v1/settings/tokens/1",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"v1",
+								"settings",
+								"tokens",
 								"1"
 							]
 						}
@@ -472,7 +669,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"name\": \"JC2\",\n    \"email\": \"jc2@xebia.com\",\n    \"password\": \"1234\"\n}",
+					"raw": "{\n    \"name\": \"JC\",\n    \"email\": \"jc2@xebia.com\",\n    \"password\": \"1234\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
