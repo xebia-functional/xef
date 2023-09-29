@@ -10,6 +10,7 @@ import com.xebia.functional.xef.server.db.psql.XefVectorStoreConfig
 import com.xebia.functional.xef.server.db.psql.XefVectorStoreConfig.Companion.getVectorStoreService
 import com.xebia.functional.xef.server.exceptions.exceptionsHandler
 import com.xebia.functional.xef.server.http.routes.aiRoutes
+import com.xebia.functional.xef.server.http.routes.organizationRoutes
 import com.xebia.functional.xef.server.http.routes.providers.oaiRoutes
 import com.xebia.functional.xef.server.http.routes.xefRoutes
 import com.xebia.functional.xef.server.services.RepositoryService
@@ -83,8 +84,8 @@ object Server {
                 }
                 exceptionsHandler()
                 routing {
-                    xefRoutes(logger)
                     aiRoutes(ktorClient)
+                    xefRoutes(logger)
                     oaiRoutes(ktorClient)
                 }
             }

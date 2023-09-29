@@ -62,6 +62,7 @@ fun Routing.aiRoutes(
     }
 }
 
+@Deprecated("will be removed in future pr")
 private suspend fun HttpClient.makeRequest(
     call: ApplicationCall,
     url: String,
@@ -78,6 +79,7 @@ private suspend fun HttpClient.makeRequest(
     call.respond(response.status, response.readBytes())
 }
 
+@Deprecated("will be removed in future pr")
 private suspend fun HttpClient.makeStreaming(
     call: ApplicationCall,
     url: String,
@@ -98,6 +100,7 @@ private suspend fun HttpClient.makeStreaming(
     }
 }
 
+@Deprecated("will be removed in future pr")
 private fun ResponseHeaders.copyFrom(headers: Headers) = headers
     .entries()
     .filter { (key, _) -> !HttpHeaders.isUnsafe(key) } // setting unsafe headers results in exception
@@ -105,6 +108,7 @@ private fun ResponseHeaders.copyFrom(headers: Headers) = headers
         values.forEach { value -> this.appendIfAbsent(key, value) }
     }
 
+@Deprecated("will be removed in future pr")
 internal fun HeadersBuilder.copyFrom(headers: Headers) = headers
     .filter { key, value -> !key.equals("HOST", ignoreCase = true) }
     .forEach { key, values -> appendAll(key, values) }
