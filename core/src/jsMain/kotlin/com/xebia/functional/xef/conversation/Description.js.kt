@@ -8,10 +8,15 @@ import kotlinx.serialization.SerialInfo
 @SerialInfo
 @Repeatable
 @Retention(AnnotationRetention.BINARY)
-@Target(AnnotationTarget.PROPERTY, AnnotationTarget.FIELD)
+@Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY, AnnotationTarget.FIELD)
 actual annotation class Description actual constructor(actual val value: String)
 
 @SerialInfo
 @Retention(AnnotationRetention.RUNTIME)
-@Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY, AnnotationTarget.FIELD)
+@Target(
+  AnnotationTarget.CLASS,
+  AnnotationTarget.CLASS,
+  AnnotationTarget.PROPERTY,
+  AnnotationTarget.FIELD
+)
 actual annotation class Descriptive actual constructor(actual val value: String)

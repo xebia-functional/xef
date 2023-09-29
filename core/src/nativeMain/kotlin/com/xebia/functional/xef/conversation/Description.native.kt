@@ -7,7 +7,7 @@ import kotlinx.serialization.SerialInfo
  */
 @SerialInfo
 @Retention(AnnotationRetention.RUNTIME)
-@Target(AnnotationTarget.PROPERTY, AnnotationTarget.FIELD)
+@Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY, AnnotationTarget.FIELD)
 actual annotation class Description actual constructor(actual val value: String)
 
 @SerialInfo
