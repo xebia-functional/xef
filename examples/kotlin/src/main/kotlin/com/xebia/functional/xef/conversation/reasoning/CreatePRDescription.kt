@@ -1,10 +1,9 @@
 package com.xebia.functional.xef.conversation.reasoning
 
 import com.xebia.functional.xef.conversation.llm.openai.OpenAI
-import com.xebia.functional.xef.prompt.Prompt
-import com.xebia.functional.xef.prompt.templates.user
 import com.xebia.functional.xef.reasoning.code.Code
 import com.xebia.functional.xef.reasoning.tools.ReActAgent
+import kotlinx.coroutines.flow.collect
 
 suspend fun main() {
   OpenAI.conversation {
@@ -23,12 +22,15 @@ suspend fun main() {
       )
     val prDescription =
       agent.run(
-        Prompt {
-          +user(
-            "Create a PR description for https://patch-diff.githubusercontent.com/raw/xebia-functional/xef/pull/283.diff"
-          )
-        }
+        "Create a PR description for https://patch-diff.githubusercontent.com/raw/xebia-functional/xef/pull/283.diff"
       )
-    println(prDescription)
+    prDescription.collect {
+      when (it) {
+        is ReActAgent.Result.Log -> println(it.message)
+        is ReActAgent.Result.ToolResult -> println("${it.tool}(${it.input}) = ${it.result}")
+        is ReActAgent.Result.Finish -> println(it.result)
+        is ReActAgent.Result.MaxIterationsReached -> println(it.message)
+      }
+    }
   }
 }

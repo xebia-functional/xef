@@ -1,11 +1,11 @@
 package com.xebia.functional.xef.conversation.reasoning
 
 import com.xebia.functional.xef.conversation.llm.openai.OpenAI
-import com.xebia.functional.xef.prompt.Prompt
-import com.xebia.functional.xef.prompt.templates.user
 import com.xebia.functional.xef.reasoning.tools.LLMTool
 import com.xebia.functional.xef.reasoning.tools.ReActAgent
-import com.xebia.functional.xef.reasoning.wikipedia.*
+import com.xebia.functional.xef.reasoning.wikipedia.SearchWikipedia
+import com.xebia.functional.xef.reasoning.wikipedia.SearchWikipediaByPageId
+import com.xebia.functional.xef.reasoning.wikipedia.SearchWikipediaByTitle
 
 suspend fun main() {
   OpenAI.conversation {
@@ -14,8 +14,7 @@ suspend fun main() {
     val math =
       LLMTool.create(
         name = "Calculator",
-        description =
-          "Perform math operations and calculations processing them with an LLM model. The tool input is a simple string containing the operation to solve expressed in numbers and math symbols.",
+        description = "Math operations expressed in numbers and math symbols",
         model = model,
         scope = this
       )
@@ -31,10 +30,15 @@ suspend fun main() {
       )
     val result =
       reActAgent.run(
-        Prompt {
-          +user("Find and multiply the number of human bones by the number of Metallica albums")
-        }
+        "Find and multiply the number of human bones by the number of Metallica albums"
       )
-    println(result)
+    result.collect {
+      when (it) {
+        is ReActAgent.Result.Log -> println(it.message)
+        is ReActAgent.Result.ToolResult -> println("${it.tool}(${it.input}) = ${it.result}")
+        is ReActAgent.Result.Finish -> println(it.result)
+        is ReActAgent.Result.MaxIterationsReached -> println(it.message)
+      }
+    }
   }
 }

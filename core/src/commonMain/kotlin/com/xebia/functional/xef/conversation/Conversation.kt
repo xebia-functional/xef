@@ -1,9 +1,7 @@
 package com.xebia.functional.xef.conversation
 
 import com.xebia.functional.xef.AIError
-import com.xebia.functional.xef.llm.Chat
-import com.xebia.functional.xef.llm.ChatWithFunctions
-import com.xebia.functional.xef.llm.Images
+import com.xebia.functional.xef.llm.*
 import com.xebia.functional.xef.llm.models.functions.CFunction
 import com.xebia.functional.xef.llm.models.images.ImagesGenerationResponse
 import com.xebia.functional.xef.prompt.Prompt
