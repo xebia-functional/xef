@@ -2,9 +2,7 @@ package com.xebia.functional.xef.gcp.models
 
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.gcp.GCP
-import com.xebia.functional.xef.gcp.GcpClient
 import com.xebia.functional.xef.llm.Completion
-import com.xebia.functional.xef.llm.LLM
 import com.xebia.functional.xef.llm.models.text.CompletionChoice
 import com.xebia.functional.xef.llm.models.text.CompletionRequest
 import com.xebia.functional.xef.llm.models.text.CompletionResult
@@ -14,14 +12,13 @@ import kotlinx.uuid.UUID
 import kotlinx.uuid.generateUUID
 
 class GcpCompletion(
-  private val provider: GCP, //TODO: use context receiver
+  private val provider: GCP, // TODO: use context receiver
   override val modelType: ModelType,
 ) : Completion {
 
   private val client = provider.defaultClient
 
-  override fun copy(modelType: ModelType) =
-    GcpCompletion(provider, modelType)
+  override fun copy(modelType: ModelType) = GcpCompletion(provider, modelType)
 
   override suspend fun createCompletion(request: CompletionRequest): CompletionResult {
     val response: String =

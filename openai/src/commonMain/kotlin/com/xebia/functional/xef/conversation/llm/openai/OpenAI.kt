@@ -78,9 +78,7 @@ class OpenAI(internal var token: String? = null, internal var host: String? = nu
 
   val GPT_3_5_TURBO by lazy { autoClose(OpenAIChat(this, ModelType.GPT_3_5_TURBO)) }
 
-  val GPT_3_5_TURBO_16K by lazy {
-    autoClose(OpenAIChat(this, ModelType.GPT_3_5_TURBO_16_K))
-  }
+  val GPT_3_5_TURBO_16K by lazy { autoClose(OpenAIChat(this, ModelType.GPT_3_5_TURBO_16_K)) }
 
   val GPT_3_5_TURBO_FUNCTIONS by lazy {
     autoClose(OpenAIFunChat(this, ModelType.GPT_3_5_TURBO_FUNCTIONS))
@@ -90,21 +88,15 @@ class OpenAI(internal var token: String? = null, internal var host: String? = nu
     autoClose(OpenAIChat(this, ModelType.GPT_3_5_TURBO)) // legacy
   }
 
-  val TEXT_DAVINCI_003 by lazy {
-    autoClose(OpenAICompletion(this, ModelType.TEXT_DAVINCI_003))
-  }
+  val TEXT_DAVINCI_003 by lazy { autoClose(OpenAICompletion(this, ModelType.TEXT_DAVINCI_003)) }
 
-  val TEXT_DAVINCI_002 by lazy {
-    autoClose(OpenAICompletion(this, ModelType.TEXT_DAVINCI_002))
-  }
+  val TEXT_DAVINCI_002 by lazy { autoClose(OpenAICompletion(this, ModelType.TEXT_DAVINCI_002)) }
 
   val TEXT_CURIE_001 by lazy {
     autoClose(OpenAICompletion(this, ModelType.TEXT_SIMILARITY_CURIE_001))
   }
 
-  val TEXT_BABBAGE_001 by lazy {
-    autoClose(OpenAICompletion(this, ModelType.TEXT_BABBAGE_001))
-  }
+  val TEXT_BABBAGE_001 by lazy { autoClose(OpenAICompletion(this, ModelType.TEXT_BABBAGE_001)) }
 
   val TEXT_ADA_001 by lazy { autoClose(OpenAICompletion(this, ModelType.TEXT_ADA_001)) }
 
@@ -122,8 +114,8 @@ class OpenAI(internal var token: String? = null, internal var host: String? = nu
 
   @JvmField val DEFAULT_IMAGES = DALLE_2
 
-  fun supportedModels(): List<LLM> = //TODO: impl of abstract provider function
-    listOf(
+  fun supportedModels(): List<LLM> = // TODO: impl of abstract provider function
+  listOf(
       GPT_4,
       GPT_4_0314,
       GPT_4_32K,
@@ -140,21 +132,24 @@ class OpenAI(internal var token: String? = null, internal var host: String? = nu
       DALLE_2,
     )
 
-  suspend fun findModel(modelId: String): Any? { //TODO: impl of abstract provider function
-    val model = try {
-      defaultClient.model(ModelId(modelId))
-    } catch (e: InvalidRequestException) {
-      when(e.error.detail?.code) {
-        "model_not_found" -> return null
-        else -> throw e
+  suspend fun findModel(modelId: String): Any? { // TODO: impl of abstract provider function
+    val model =
+      try {
+        defaultClient.model(ModelId(modelId))
+      } catch (e: InvalidRequestException) {
+        when (e.error.detail?.code) {
+          "model_not_found" -> return null
+          else -> throw e
+        }
       }
-    }
     return ModelType.TODO(model.id.id)
   }
 
-  suspend fun <T : LLM> spawnModel(modelId: String, baseModel: T): T { //TODO: impl of abstract provider function
-    if(findModel(modelId) == null)
-      error("model not found")
+  suspend fun <T : LLM> spawnModel(
+    modelId: String,
+    baseModel: T
+  ): T { // TODO: impl of abstract provider function
+    if (findModel(modelId) == null) error("model not found")
     return baseModel.copy(ModelType.FineTunedModel(modelId, baseModel = baseModel.modelType)) as? T
       ?: error("${baseModel::class} does not follow contract to return the most specific type")
   }

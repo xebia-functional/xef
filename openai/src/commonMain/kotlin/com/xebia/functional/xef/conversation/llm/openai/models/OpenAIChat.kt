@@ -14,14 +14,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class OpenAIChat(
-  private val provider: OpenAI, //TODO: use context receiver
+  private val provider: OpenAI, // TODO: use context receiver
   override val modelType: ModelType,
 ) : Chat {
 
   private val client = provider.defaultClient
 
-  override fun copy(modelType: ModelType) =
-    OpenAIChat(provider, modelType)
+  override fun copy(modelType: ModelType) = OpenAIChat(provider, modelType)
 
   override suspend fun createChatCompletion(
     request: ChatCompletionRequest

@@ -13,14 +13,13 @@ import com.xebia.functional.xef.llm.models.images.ImagesGenerationRequest
 import com.xebia.functional.xef.llm.models.images.ImagesGenerationResponse
 
 class OpenAIImages(
-  private val provider: OpenAI, //TODO: use context receiver
+  private val provider: OpenAI, // TODO: use context receiver
   override val modelType: ModelType,
 ) : Images {
 
   private val client = provider.defaultClient
 
-  override fun copy(modelType: ModelType) =
-    OpenAIImages(provider, modelType)
+  override fun copy(modelType: ModelType) = OpenAIImages(provider, modelType)
 
   @OptIn(BetaOpenAI::class)
   override suspend fun createImages(request: ImagesGenerationRequest): ImagesGenerationResponse {

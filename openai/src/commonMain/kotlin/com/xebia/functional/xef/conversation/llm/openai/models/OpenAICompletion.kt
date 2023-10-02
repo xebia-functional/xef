@@ -8,20 +8,18 @@ import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.conversation.llm.openai.OpenAI
 import com.xebia.functional.xef.conversation.llm.openai.toInternal
 import com.xebia.functional.xef.llm.Completion
-import com.xebia.functional.xef.llm.LLM
 import com.xebia.functional.xef.llm.models.text.CompletionChoice
 import com.xebia.functional.xef.llm.models.text.CompletionRequest
 import com.xebia.functional.xef.llm.models.text.CompletionResult
 
 class OpenAICompletion(
-  private val provider: OpenAI, //TODO: use context receiver
+  private val provider: OpenAI, // TODO: use context receiver
   override val modelType: ModelType,
 ) : Completion {
 
   private val client = provider.defaultClient
 
-  override fun copy(modelType: ModelType) =
-    OpenAICompletion(provider, modelType)
+  override fun copy(modelType: ModelType) = OpenAICompletion(provider, modelType)
 
   @OptIn(LegacyOpenAI::class)
   override suspend fun createCompletion(request: CompletionRequest): CompletionResult {

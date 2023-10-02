@@ -17,14 +17,13 @@ import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
 
 class OpenAIFunChat(
-  private val provider: OpenAI, //TODO: use context receiver
+  private val provider: OpenAI, // TODO: use context receiver
   override val modelType: ModelType,
 ) : ChatWithFunctions {
 
   private val client = provider.defaultClient
 
-  override fun copy(modelType: ModelType) =
-    OpenAIFunChat(provider, modelType)
+  override fun copy(modelType: ModelType) = OpenAIFunChat(provider, modelType)
 
   override suspend fun createChatCompletionWithFunctions(
     request: FunChatCompletionRequest
