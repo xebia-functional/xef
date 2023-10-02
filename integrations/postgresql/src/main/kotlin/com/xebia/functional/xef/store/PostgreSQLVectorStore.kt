@@ -1,6 +1,8 @@
 package com.xebia.functional.xef.store
 
+import arrow.atomic.AtomicInt
 import com.xebia.functional.xef.llm.Embeddings
+import com.xebia.functional.xef.llm.LLM
 import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.llm.models.chat.Role
 import com.xebia.functional.xef.llm.models.embeddings.Embedding
@@ -21,6 +23,12 @@ class PGVectorStore(
   private val chunkSize: Int?
 ) : VectorStore {
 
+  override val indexValue: AtomicInt = AtomicInt(0)
+
+  override fun updateIndexByConversationId(conversationId: ConversationId) {
+    getMemoryByConversationId(conversationId).firstOrNull()?.let { indexValue.set(it.index) }
+  }
+
   override suspend fun addMemories(memories: List<Memory>) {
     dataSource.connection {
       memories.forEach { memory ->
@@ -29,37 +37,14 @@ class PGVectorStore(
           bind(memory.conversationId.value)
           bind(memory.content.role.name.lowercase())
           bind(memory.content.content)
-          bind(memory.timestamp)
-          bind(memory.approxTokens)
+          bind(memory.index)
         }
       }
     }
   }
 
-  override suspend fun memories(conversationId: ConversationId, limitTokens: Int): List<Memory> =
-    dataSource.connection {
-      queryAsList(getMemoriesByConversationId, {
-        bind(conversationId.value)
-        bind(limitTokens)
-      }) {
-        val uuid = string()
-        val cId = string()
-        val role = string()
-        val content = string()
-        val timestamp = long()
-        val approxTokens = int()
-        Memory(
-          conversationId = ConversationId(cId),
-          content = Message(
-            role = Role.valueOf(role.uppercase()),
-            content = content,
-            name = role,
-          ),
-          timestamp = timestamp,
-          approxTokens = approxTokens
-        )
-      }
-    }.reversed()
+  override suspend fun memories(llm: LLM, conversationId: ConversationId, limitTokens: Int): List<Memory> =
+    getMemoryByConversationId(conversationId).reduceByLimitToken(llm, limitTokens).reversed()
 
   private fun JDBCSyntax.getCollection(collectionName: String): PGCollection =
     queryOneOrNull(getCollection, { bind(collectionName) }) {
@@ -143,4 +128,27 @@ class PGVectorStore(
         string()
       }
     }
+
+  private fun getMemoryByConversationId(conversationId: ConversationId): List<Memory> =
+    dataSource.connection {
+      queryAsList(getMemoriesByConversationId, {
+        bind(conversationId.value)
+      }) {
+        val uuid = string()
+        val cId = string()
+        val role = string()
+        val content = string()
+        val index = int()
+        Memory(
+          conversationId = ConversationId(cId),
+          content = Message(
+            role = Role.valueOf(role.uppercase()),
+            content = content,
+            name = role,
+          ),
+          index = index
+        )
+      }
+    }
+
 }

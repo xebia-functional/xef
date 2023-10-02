@@ -88,10 +88,10 @@ interface ChatWithFunctions : LLM {
       serializer,
       promptWithFunctions.configuration.maxDeserializationAttempts
     ) {
-      val requestedMemories = prompt.messages.toMemory(this@ChatWithFunctions, scope)
+      val requestedMemories = prompt.messages.toMemory(scope)
       createChatCompletionWithFunctions(request)
         .choices
-        .addMessagesToMemory(this@ChatWithFunctions, scope, requestedMemories)
+        .addChoiceWithFunctionsToMemory(scope, requestedMemories)
         .mapNotNull { it.message?.functionCall?.arguments }
     }
   }

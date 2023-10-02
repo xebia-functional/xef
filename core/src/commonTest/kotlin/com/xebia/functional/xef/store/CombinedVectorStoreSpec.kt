@@ -1,18 +1,25 @@
 package com.xebia.functional.xef.store
 
+import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.data.TestEmbeddings
+import com.xebia.functional.xef.data.TestModel
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
 class CombinedVectorStoreSpec :
   StringSpec({
     "memories function should return all of messages combined in the right order" {
-      val topMessages = generateRandomMessages(4, append = "top", startTimestamp = 1000)
-      val bottomMessages = generateRandomMessages(4, append = "bottom", startTimestamp = 2000)
+      val model = TestModel(modelType = ModelType.ADA)
+
+      val memoryData = MemoryData()
+
+      val topMessages = memoryData.generateRandomMessages(4, append = "top")
+      val bottomMessages = memoryData.generateRandomMessages(4, append = "bottom")
 
       val combinedVectorStore = topMessages.combine(bottomMessages)
 
-      val messages = combinedVectorStore.memories(defaultConversationId, Int.MAX_VALUE)
+      val messages =
+        combinedVectorStore.memories(model, memoryData.defaultConversationId, Int.MAX_VALUE)
 
       val messagesExpected = topMessages + bottomMessages
 
@@ -20,18 +27,23 @@ class CombinedVectorStoreSpec :
     }
 
     "memories function should return the last n combined messages in the right order" {
-      val topMessages = generateRandomMessages(4, append = "top", startTimestamp = 1000)
-      val bottomMessages = generateRandomMessages(4, append = "bottom", startTimestamp = 2000)
+      val model = TestModel(modelType = ModelType.ADA)
+
+      val memoryData = MemoryData()
+
+      val topMessages = memoryData.generateRandomMessages(4, append = "top")
+      val bottomMessages = memoryData.generateRandomMessages(4, append = "bottom")
 
       val combinedVectorStore = topMessages.combine(bottomMessages)
 
       val tokensForLast2TopMessages =
-        topMessages.takeLast(2 * 2).sumOf { calculateTokens(it.content) }
-      val tokensForBottomMessages = bottomMessages.sumOf { calculateTokens(it.content) }
+        model.tokensFromMessages(topMessages.takeLast(2 * 2).map { it.content })
+      val tokensForBottomMessages = model.tokensFromMessages(bottomMessages.map { it.content })
 
       val messages =
         combinedVectorStore.memories(
-          defaultConversationId,
+          model,
+          memoryData.defaultConversationId,
           tokensForLast2TopMessages + tokensForBottomMessages
         )
 
@@ -41,39 +53,27 @@ class CombinedVectorStoreSpec :
     }
 
     "memories function should return the messages with common conversation id combined in the right order" {
+      val model = TestModel(modelType = ModelType.ADA)
+
+      val memoryData = MemoryData()
+
       val topId = ConversationId("top-id")
       val bottomId = ConversationId("bottom-id")
       val commonId = ConversationId("common-id")
 
-      val topMessages =
-        generateRandomMessages(4, append = "top", conversationId = topId, startTimestamp = 1000)
+      val topMessages = memoryData.generateRandomMessages(4, append = "top", conversationId = topId)
       val commonTopMessages =
-        generateRandomMessages(
-          4,
-          append = "common-top",
-          conversationId = commonId,
-          startTimestamp = 2000
-        )
+        memoryData.generateRandomMessages(4, append = "common-top", conversationId = commonId)
 
       val bottomMessages =
-        generateRandomMessages(
-          4,
-          append = "bottom",
-          conversationId = bottomId,
-          startTimestamp = 3000
-        )
+        memoryData.generateRandomMessages(4, append = "bottom", conversationId = bottomId)
       val commonBottomMessages =
-        generateRandomMessages(
-          4,
-          append = "common-bottom",
-          conversationId = commonId,
-          startTimestamp = 4000
-        )
+        memoryData.generateRandomMessages(4, append = "common-bottom", conversationId = commonId)
 
       val combinedVectorStore =
         (topMessages + commonTopMessages).combine(bottomMessages + commonBottomMessages)
 
-      val messages = combinedVectorStore.memories(commonId, Int.MAX_VALUE)
+      val messages = combinedVectorStore.memories(model, commonId, Int.MAX_VALUE)
 
       val messagesExpected = commonTopMessages + commonBottomMessages
 
@@ -81,45 +81,35 @@ class CombinedVectorStoreSpec :
     }
 
     "adding messages to a combined vector store" {
+      val model = TestModel(modelType = ModelType.ADA)
+
+      val memoryData = MemoryData()
+
       val topId = ConversationId("top-id")
       val bottomId = ConversationId("bottom-id")
       val commonId = ConversationId("common-id")
 
-      val topMessages =
-        generateRandomMessages(4, append = "top", conversationId = topId, startTimestamp = 1000)
+      val topMessages = memoryData.generateRandomMessages(4, append = "top", conversationId = topId)
       val commonTopMessages =
-        generateRandomMessages(
-          4,
-          append = "common-top",
-          conversationId = commonId,
-          startTimestamp = 2000
-        )
+        memoryData.generateRandomMessages(4, append = "common-top", conversationId = commonId)
 
       val bottomMessages =
-        generateRandomMessages(
-          4,
-          append = "bottom",
-          conversationId = bottomId,
-          startTimestamp = 3000
-        )
+        memoryData.generateRandomMessages(4, append = "bottom", conversationId = bottomId)
       val commonBottomMessages =
-        generateRandomMessages(
-          4,
-          append = "common-bottom",
-          conversationId = commonId,
-          startTimestamp = 4000
-        )
+        memoryData.generateRandomMessages(4, append = "common-bottom", conversationId = commonId)
 
       val combinedVectorStore =
         (topMessages + commonTopMessages).combine(bottomMessages + commonBottomMessages)
 
       val newCommonMessages =
-        generateRandomMessages(4, append = "new", conversationId = commonId, startTimestamp = 5000)
+        memoryData.generateRandomMessages(4, append = "new", conversationId = commonId)
       combinedVectorStore.addMemories(newCommonMessages)
 
-      val tokensForNewCommonMessages = newCommonMessages.sumOf { calculateTokens(it.content) }
+      val tokensForNewCommonMessages =
+        model.tokensFromMessages(newCommonMessages.map { it.content })
 
-      combinedVectorStore.memories(commonId, tokensForNewCommonMessages) shouldBe newCommonMessages
+      combinedVectorStore.memories(model, commonId, tokensForNewCommonMessages) shouldBe
+        newCommonMessages
     }
   })
 

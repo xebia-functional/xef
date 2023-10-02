@@ -7,7 +7,9 @@ actual abstract class PlatformConversation
 actual constructor(store: VectorStore, conversationId: ConversationId?) :
   Conversation, AutoClose, AutoCloseable {
   actual companion object {
-    actual fun create(store: VectorStore, conversationId: ConversationId?): PlatformConversation =
-      NativeConversation(store, conversationId)
+    actual fun create(store: VectorStore, conversationId: ConversationId?): PlatformConversation {
+      conversationId?.let { store.updateIndexByConversationId(conversationId) }
+      return NativeConversation(store, conversationId)
+    }
   }
 }

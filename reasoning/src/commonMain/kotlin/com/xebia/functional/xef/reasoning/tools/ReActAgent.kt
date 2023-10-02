@@ -3,13 +3,15 @@ package com.xebia.functional.xef.reasoning.tools
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.Description
 import com.xebia.functional.xef.llm.ChatWithFunctions
-import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
 import com.xebia.functional.xef.prompt.templates.assistant
 import com.xebia.functional.xef.prompt.templates.system
 import com.xebia.functional.xef.prompt.templates.user
-import io.github.oshai.kotlinlogging.KotlinLogging
+import com.xebia.functional.xef.reasoning.tools.ReActAgent.CritiqueOutcome.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
+import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.Serializable
 
 class ReActAgent(
@@ -18,205 +20,205 @@ class ReActAgent(
   private val tools: List<Tool>,
   private val maxIterations: Int = 10,
   private val configuration: PromptConfiguration = PromptConfiguration(temperature = 0.0)
-) {
+) : Conversation by scope {
 
-  private val logger = KotlinLogging.logger {}
+  sealed class Result {
+    data class MaxIterationsReached(val message: String) : Result()
 
-  private suspend fun createExecutionPlan(
-    input: Prompt,
-    chain: List<ThoughtObservation>
-  ): AgentPlan {
-    val choice: AgentChoice = agentChoice(input, chain)
+    data class Log(val message: String) : Result()
 
-    return when (choice.choice) {
-      AgentChoiceType.CONTINUE -> agentAction(input, chain)
-      AgentChoiceType.FINISH -> {
-        agentFinish(input, chain)
-      }
-    }
+    data class ToolResult(val tool: String, val input: String, val result: String) : Result()
+
+    data class Finish(val result: String) : Result()
   }
 
-  private suspend fun agentFinish(input: Prompt, chain: List<ThoughtObservation>): AgentFinish =
-    model.prompt(
-      scope = scope,
-      serializer = AgentFinish.serializer(),
-      prompt =
-        Prompt {
-            +system("You are an expert in providing answers")
-            +chain.chainToMessages()
-            +user("Provide the final answer to the `input` in a sentence or paragraph")
-            +user("input: $input")
-            +assistant(
-              "I should create a AgentFinish object with the final answer based on the thoughts and observations"
-            )
-          }
-          .copy(configuration = configuration)
-    )
+  private data class ThoughtObservation(val thought: String, val observation: String)
 
-  private suspend fun agentAction(input: Prompt, chain: List<ThoughtObservation>): AgentAction =
-    model.prompt(
-      scope = scope,
-      serializer = AgentAction.serializer(),
-      prompt =
-        Prompt {
-            +system(
-              "You are an expert in tool selection. You are given a `input` and a `chain` of thoughts and observations."
-            )
-            +user("input:")
-            +input
-            +assistant("chain:")
-            +chain.chainToMessages()
-            +assistant("I can only use this tools:")
-            +tools.toolsToMessages()
-            +assistant(
-              "I will not repeat the `toolInput` if the same one produced no satisfactory results in the observations"
-            )
-            +user("Provide the next tool to use and the `toolInput` for the tool")
-          }
-          .copy(configuration = configuration)
-    )
-
-  private fun List<Tool>.toolsToMessages(): List<Message> = flatMap {
-    Prompt { +assistant("${it.name}: ${it.description}") }.messages
+  @Serializable
+  enum class NextStep {
+    RunTool,
+    Finish
   }
 
-  private fun List<ThoughtObservation>.chainToMessages(): List<Message> = flatMap {
-    Prompt {
-        +assistant("Thought: ${it.thought}")
-        +assistant("Observation: ${it.observation}")
-      }
-      .messages
+  @Description("Decide what to do next")
+  @Serializable
+  data class Decide(
+    @Description(
+      "`Finish` if we have all the info needed to answer the user request, `RunTool` if we need more information to provide a factual answer"
+    )
+    val nextStep: NextStep,
+    @Description("The thought that lead to the decision") val thought: String
+  )
+
+  @Description("Provide the final answer for the user request")
+  @Serializable
+  data class Finish(
+    @Description("The final answer for the user request which completes the conversation")
+    val result: String,
+    @Description("The reason why this answer covers all aspects of the user request")
+    val thought: String
+  )
+
+  @Description("Run a tool to get information from the Available Tools")
+  @Serializable
+  data class RunTool(
+    @Description("The name of the tool to run") val tool: String,
+    @Description("The input for the tool") val input: String,
+    @Description("The thought that lead to the decision to run this tool") val thought: String
+  )
+
+  @Serializable
+  enum class CritiqueOutcome {
+    CompleteAnswerForUserRequest,
+    IncompleteAnswerForUserRequest
   }
 
-  private suspend fun agentChoice(input: Prompt, chain: List<ThoughtObservation>): AgentChoice =
-    model.prompt(
-      prompt =
-        Prompt {
-            +input
-            +assistant("chain:")
-            +chain.chainToMessages()
-            +assistant(
-              "`CONTINUE` if the `input` has not been answered by the observations in the `chain`"
-            )
-            +assistant(
-              "`FINISH` if the `input` has been answered by the observations in the `chain`"
-            )
-          }
-          .copy(configuration = configuration),
-      scope = scope,
-      serializer = AgentChoice.serializer()
+  @Description(
+    "Critiques the final answer to ensure it answers the user original request completely"
+  )
+  @Serializable
+  data class Critique(
+    @Description(
+      "`CompleteAnswerForUserRequest` if the answer is valid and answers the user original request completely; IncompleteAnswerForUserRequest if we need more info"
     )
+    val outcome: CritiqueOutcome,
+    @Description(
+      "The thought that lead to the critique onwhy the final answer completely answer the user request or not"
+    )
+    val thought: String
+  )
 
-  private suspend fun createInitialThought(input: Prompt): Thought {
+  private suspend fun critiqueCall(prompt: String, finish: Finish): Critique {
     return model.prompt(
+      serializer = Critique.serializer(),
       prompt =
         Prompt {
-            +system("You are an expert in providing next steps to solve a problem")
-            +system("You are given a `input` provided by the user")
-            +user("input:")
-            +input
-            +assistant("I have access to tools:")
-            +tools.toolsToMessages()
-            +assistant(
-              "I should create a Thought object with the next thought based on the `input`"
+            +user(
+              "If your answer is valid, reply with `CompleteAnswerForUserRequest`, otherwise `IncompleteAnswerForUserRequest` so we can gather to answer all aspects of the my user request"
             )
-            +user("Provide the next thought based on the `input`")
+            +user(
+              "Always reply with `IncompleteAnswerForUserRequest` if the user request has unanswered questions or parts"
+            )
+            +user("user request: $prompt")
+            +assistant("answer: ${finish.result}")
           }
           .copy(configuration = configuration),
       scope = scope,
-      serializer = Thought.serializer()
     )
   }
 
-  private tailrec suspend fun runRec(
-    input: Prompt,
-    chain: List<ThoughtObservation>,
+  private suspend fun decideCall(
+    prompt: String,
+    iterations: Int,
+    thought: ThoughtObservation
+  ): Decide =
+    model.prompt(
+      serializer = Decide.serializer(),
+      prompt =
+        Prompt {
+            if (iterations == 0) {
+              +system("Available Tools:")
+              tools.forEach { +system("- ${it.name}: ${it.description}") }
+              +user(prompt)
+            }
+            +assistant("thought: ${thought.thought}")
+            +assistant("observation: ${thought.observation}")
+          }
+          .copy(configuration = configuration),
+      scope = scope,
+    )
+
+  private suspend fun runToolCall(): RunTool =
+    model.prompt(
+      serializer = RunTool.serializer(),
+      prompt =
+        Prompt {
+            +assistant(
+              "I will run the tool that I think is best suited to get information in order to answer the user request"
+            )
+          }
+          .copy(configuration = configuration),
+      scope = scope,
+    )
+
+  private suspend fun finishCall(prompt: String): Finish =
+    model.prompt(
+      serializer = Finish.serializer(),
+      prompt =
+        Prompt {
+            +user(prompt)
+            +assistant("I will finish with the `result` and `thought`")
+          }
+          .copy(configuration = configuration),
+      scope = scope,
+    )
+
+  private tailrec suspend fun FlowCollector<Result>.runRec(
+    prompt: String,
+    thought: ThoughtObservation,
     currentIteration: Int
-  ): String {
-
+  ): Unit =
     if (currentIteration > maxIterations) {
-      logger.info { "🤷‍ Max iterations reached" }
-      return "🤷‍ Max iterations reached"
-    }
-
-    val plan: AgentPlan = createExecutionPlan(input, chain)
-
-    return when (plan) {
-      is AgentAction -> {
-        logger.info { "🤔 ${plan.thought}" }
-        logger.info { "🛠 ${plan.tool}[${plan.toolInput}]" }
-        val observation: String? =
-          tools.find { it.name.equals(plan.tool, ignoreCase = true) }?.invoke(plan.toolInput)
-        if (observation == null) {
-          logger.info { "🤷‍ Could not find ${plan.tool}" }
-          runRec(
-            input,
-            chain +
-              ThoughtObservation(
-                plan.thought,
-                "Result of running ${plan.tool}[${plan.toolInput}]: " +
-                  "🤷‍ Could not find ${plan.tool}, will not try this tool again"
-              ),
-            currentIteration + 1
-          )
-        } else {
-          logger.info { "👀 $observation" }
-          runRec(
-            input,
-            chain +
-              ThoughtObservation(
-                plan.thought,
-                "Result of running ${plan.tool}[${plan.toolInput}]: " + observation
-              ),
-            currentIteration + 1
-          )
+      emit(Result.MaxIterationsReached("🤷‍ Max iterations reached"))
+    } else {
+      val decide = decideCall(prompt = prompt, thought = thought, iterations = currentIteration)
+      emit(Result.Log("🤖 I decided : ${decide.thought}"))
+      when (decide.nextStep) {
+        NextStep.RunTool -> {
+          val runTool = runToolCall()
+          val tool = tools.find { it.name.equals(runTool.tool, ignoreCase = true) }
+          if (tool == null) {
+            emit(Result.Log("🤖 I don't know how to use the tool ${runTool.tool}"))
+            runRec(
+              prompt = prompt,
+              thought =
+                ThoughtObservation("${runTool.tool} not found", "I won't use this tool again"),
+              currentIteration = currentIteration + 1
+            )
+          } else {
+            emit(Result.Log("🤖 ${tool.name}[${runTool.input}]"))
+            val toolResult = tool(input = runTool.input)
+            emit(Result.ToolResult(tool = tool.name, input = runTool.input, result = toolResult))
+            runRec(
+              prompt = prompt,
+              thought = ThoughtObservation("${tool.name}[${runTool.input}]", toolResult),
+              currentIteration = currentIteration + 1
+            )
+          }
+        }
+        NextStep.Finish -> {
+          val result = finishCall(prompt = prompt)
+          val critique = critiqueCall(prompt = prompt, finish = result)
+          emit(Result.Log("🤖 After critiquing the answer I decided : ${critique.thought}"))
+          when (critique.outcome) {
+            CompleteAnswerForUserRequest -> emit(Result.Finish(result.result))
+            IncompleteAnswerForUserRequest -> {
+              emit(Result.Log("🤖 I need more information to answer the user request"))
+              runRec(
+                prompt = prompt,
+                thought =
+                  ThoughtObservation(
+                    "I need more information",
+                    "I will run another tool to get more information"
+                  ),
+                currentIteration = currentIteration + 1
+              )
+            }
+          }
         }
       }
-      is AgentFinish -> {
-        logger.info { "✅ ${plan.finalAnswer}" }
-        plan.finalAnswer
-      }
     }
-  }
 
-  suspend fun run(input: Prompt): String {
-    val thought = createInitialThought(input)
-    logger.info { "🤔 ${thought.thought}" }
-    return runRec(input, listOf(ThoughtObservation("I should get started", thought.thought)), 0)
+  fun run(prompt: String): Flow<Result> = flow {
+    emit(Result.Log("🤖 Solving... $prompt"))
+    runRec(
+      prompt = prompt,
+      thought =
+        ThoughtObservation(
+          "I should get started",
+          "I need to use one of the tools from the Available tools to solve the user request"
+        ),
+      currentIteration = 0
+    )
   }
 }
-
-sealed class AgentPlan
-
-@Serializable
-data class AgentAction(
-  @Description("The reasoning behind the tool you are going to run") val thought: String,
-  @Description("The tool to execute the next step, one must be chosen from the `tools`")
-  val tool: String,
-  @Description("The input for the selected `tool`") val toolInput: String
-) : AgentPlan()
-
-@Serializable
-data class AgentFinish(
-  @Description(
-    "The final answer that satisfies ALL the `input` expressed in one text sentence or paragraph"
-  )
-  val finalAnswer: String
-) : AgentPlan()
-
-@Serializable
-data class AgentChoice(
-  @Description(
-    "Choose `CONTINUE` if you want to run a tool or `FINISH` if you want to provide the final answer"
-  )
-  val choice: AgentChoiceType
-)
-
-enum class AgentChoiceType {
-  CONTINUE,
-  FINISH
-}
-
-@Serializable data class Thought(val thought: String)
-
-data class ThoughtObservation(val thought: String, val observation: String)

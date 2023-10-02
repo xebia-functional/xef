@@ -1,10 +1,11 @@
 package xef
 
 import com.xebia.functional.tokenizer.ModelType
+import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.llm.Embeddings
+import com.xebia.functional.xef.llm.LLM
+import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.llm.models.embeddings.Embedding
-import com.xebia.functional.xef.llm.models.chat.Message
-import com.xebia.functional.xef.llm.models.chat.Role
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingResult
 import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
@@ -18,6 +19,7 @@ import io.kotest.core.extensions.install
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.extensions.testcontainers.ContainerExtension
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.flow.Flow
 import kotlinx.uuid.UUID
 import kotlinx.uuid.generateUUID
 import org.junit.jupiter.api.assertThrows
@@ -90,23 +92,42 @@ class PGVectorStoreSpec :
       pg.similaritySearchByVector(Embedding(listOf(1.0f, 2.0f, 3.0f)), 1) shouldBe listOf("foo")
     }
 
-    "memories added in chronological order should be obtained in the same order" {
+    "the added memories sorted by index should be obtained in the same order" {
       val messages = 10
+      val llm = TestLLM()
       val conversationId = ConversationId(UUID.generateUUID().toString())
       val memories = (0 until messages).flatMap {
         val m1 = Message(Role.USER, "question $it", "user")
         val m2 = Message(Role.ASSISTANT, "answer $it", "assistant")
         listOf(
-          Memory(conversationId, m1, 2 * it.toLong(), calculateTokens(m1)),
-          Memory(conversationId, m2, 2 * it.toLong() + 1, calculateTokens(m2))
+          Memory(conversationId, m1, 1),
+          Memory(conversationId, m2, 2)
         )
       }
       pg.addMemories(memories)
-      memories shouldBe pg.memories(conversationId, memories.size)
+      memories shouldBe pg.memories(llm, conversationId, 1000)
     }
   })
 
-private fun calculateTokens(message: Message): Int = message.content.split(" ").size + 2 // 2 is the role and name
+class TestLLM(override val modelType: ModelType = ModelType.ADA) : Chat, AutoCloseable {
+  override fun tokensFromMessages(messages: List<Message>): Int = messages.map { calculateTokens(it) }.sum()
+
+  private fun calculateTokens(message: Message): Int = message.content.split(" ").size + 2 // 2 is the role and name
+
+  override suspend fun createChatCompletion(request: ChatCompletionRequest): ChatCompletionResponse {
+    throw NotImplementedError()
+  }
+
+  override suspend fun createChatCompletions(request: ChatCompletionRequest): Flow<ChatCompletionChunk> {
+    throw NotImplementedError()
+  }
+
+  override fun close() {
+    throw NotImplementedError()
+  }
+}
+
+
 
 private fun Embeddings.Companion.mock(
   embedDocuments:
