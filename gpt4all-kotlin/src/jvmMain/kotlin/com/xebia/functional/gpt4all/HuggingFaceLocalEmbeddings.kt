@@ -11,12 +11,15 @@ import com.xebia.functional.xef.llm.models.usage.Usage
 
 class HuggingFaceLocalEmbeddings(
   override val modelType: ModelType,
-  artifact: String,
+  private val artifact: String,
 ) : Embeddings {
 
   private val tokenizer = HuggingFaceTokenizer.newInstance("${modelType.name}/$artifact")
 
   override val name: String = HuggingFaceLocalEmbeddings::class.java.canonicalName
+
+  override fun copy(modelType: ModelType) =
+    HuggingFaceLocalEmbeddings(modelType, artifact)
 
   override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult {
     val embedings = tokenizer.batchEncode(request.input)

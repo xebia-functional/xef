@@ -84,6 +84,9 @@ sealed class ModelType(
   object CODE_SEARCH_BABBAGE_CODE_001 : ModelType("code-search-babbage-code-001", R50K_BASE, 2046)
   object CODE_SEARCH_ADA_CODE_001 : ModelType("code-search-ada-code-001", R50K_BASE, 2046)
 
+  class FineTunedModel(name: String, val baseModel: ModelType)
+    : ModelType(name = name, encodingType = baseModel.encodingType, maxContextLength = baseModel.maxContextLength, tokensPerMessage = baseModel.tokensPerMessage, tokensPerName = baseModel.tokensPerName, tokenPadding = baseModel.tokenPadding)
+
   /**
    * Currently as of September 2023,
    * [ModelType] has only implementations for OpenAI.

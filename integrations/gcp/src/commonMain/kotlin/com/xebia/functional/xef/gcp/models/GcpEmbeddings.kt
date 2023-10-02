@@ -1,17 +1,24 @@
 package com.xebia.functional.xef.gcp.models
 
 import com.xebia.functional.tokenizer.ModelType
+import com.xebia.functional.xef.gcp.GCP
 import com.xebia.functional.xef.gcp.GcpClient
 import com.xebia.functional.xef.llm.Embeddings
+import com.xebia.functional.xef.llm.LLM
 import com.xebia.functional.xef.llm.models.embeddings.Embedding
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingResult
 import com.xebia.functional.xef.llm.models.usage.Usage
 
 class GcpEmbeddings(
+  private val provider: GCP, //TODO: use context receiver
   override val modelType: ModelType,
-  private val client: GcpClient,
 ) : Embeddings {
+
+  private val client = provider.defaultClient
+
+  override fun copy(modelType: ModelType) =
+    GcpEmbeddings(provider, modelType)
 
   override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult {
     fun requestToEmbedding(it: GcpClient.EmbeddingPredictions): Embedding =
