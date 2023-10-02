@@ -1,6 +1,8 @@
 package com.xebia.functional.xef.store
 
+import arrow.atomic.AtomicInt
 import com.xebia.functional.xef.llm.Embeddings
+import com.xebia.functional.xef.llm.LLM
 import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.llm.models.chat.Role
 import com.xebia.functional.xef.llm.models.embeddings.Embedding
@@ -26,8 +28,14 @@ import java.nio.file.Path
 open class Lucene(
   private val writer: IndexWriter,
   private val embeddings: Embeddings?,
-  private val similarity: VectorSimilarityFunction = VectorSimilarityFunction.EUCLIDEAN
+  private val similarity: VectorSimilarityFunction = VectorSimilarityFunction.EUCLIDEAN,
 ) : VectorStore, AutoCloseable {
+
+  override val indexValue: AtomicInt = AtomicInt(0)
+
+  override fun updateIndexByConversationId(conversationId: ConversationId) {
+    getMemoryByConversationId(conversationId).firstOrNull()?.let { indexValue.set(it.index) }
+  }
 
   private val requestConfig = RequestConfig(RequestConfig.Companion.User("user"))
 
@@ -38,29 +46,16 @@ open class Lucene(
           add(TextField("conversationId", it.conversationId.value, Field.Store.YES))
           add(TextField("content", it.content.content, Field.Store.YES))
           add(TextField("role", it.content.role.name.lowercase(), Field.Store.YES))
-          add(LongField("timestamp", it.timestamp, Field.Store.YES))
-          add(IntField("approxTokens", it.approxTokens, Field.Store.YES))
+          add(IntField("index", it.index, Field.Store.YES))
         }
       writer.addDocument(doc)
     }
     writer.commit()
   }
 
-  override suspend fun memories(conversationId: ConversationId, limitTokens: Int): List<Memory> {
-    val reader = DirectoryReader.open(writer)
-    val mlt = MoreLikeThis(reader)
-    mlt.analyzer = StandardAnalyzer()
-    mlt.minTermFreq = 1
-    mlt.minDocFreq = 1
-    mlt.minWordLen = 3
-    val sort = Sort(SortField("timestamp", SortField.Type.LONG, true))
-    val luceneQuery = mlt.like("conversationId", StringReader(conversationId.value))
-    val searcher = IndexSearcher(reader)
+  override suspend fun memories(llm: LLM, conversationId: ConversationId, limitTokens: Int): List<Memory> =
+    getMemoryByConversationId(conversationId).reduceByLimitToken(llm, limitTokens).reversed()
 
-    val docs = IndexSearcher(reader).search(luceneQuery, reader.numDocs(), sort)
-
-    return docs.scoreDocs.toList().extractMemory(searcher).reduceByLimitToken(limitTokens).reversed()
-  }
 
   override suspend fun addTexts(texts: List<String>) {
     texts.forEach {
@@ -105,8 +100,7 @@ open class Lucene(
           role = role,
           name = role.name
         ),
-        timestamp = doc.get("timestamp").toLong(),
-        approxTokens = doc.get("approxTokens").toInt()
+        index = doc.get("index").toInt()
       )
     }
 
@@ -118,6 +112,23 @@ open class Lucene(
   override fun close() {
     writer.close()
   }
+
+  private fun getMemoryByConversationId(conversationId: ConversationId): List<Memory> {
+    val reader = DirectoryReader.open(writer)
+    val mlt = MoreLikeThis(reader)
+    mlt.analyzer = StandardAnalyzer()
+    mlt.minTermFreq = 1
+    mlt.minDocFreq = 1
+    mlt.minWordLen = 3
+    val sort = Sort(SortField("index", SortField.Type.LONG, true))
+    val luceneQuery = mlt.like("conversationId", StringReader(conversationId.value))
+    val searcher = IndexSearcher(reader)
+
+    val docs = IndexSearcher(reader).search(luceneQuery, reader.numDocs(), sort)
+
+    return docs.scoreDocs.toList().extractMemory(searcher)
+  }
+
 }
 
 class DirectoryLucene(

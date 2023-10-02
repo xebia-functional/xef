@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.Flow
 
 class TestModel(
   override val modelType: ModelType,
-  override val name: String,
   val responses: Map<String, String> = emptyMap(),
 ) : Chat, Embeddings, AutoCloseable {
 

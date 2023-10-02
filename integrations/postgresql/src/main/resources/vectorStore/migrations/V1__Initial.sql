@@ -13,8 +13,7 @@ CREATE TABLE IF NOT EXISTS xef_memory (
        conversation_id TEXT NOT NULL,
        role TEXT NOT NULL,
        content TEXT UNIQUE NOT NULL,
-       timestamp BIGINT NOT NULL,
-       approx_tokens INT NOT NULL
+       index INT NOT NULL
      );
 
 -- Create embeddings table
