@@ -18,7 +18,7 @@ internal suspend fun List<Message>.addToMemory(scope: Conversation) {
 }
 
 internal fun Message.toMemory(cid: ConversationId, index: Int): Memory =
-  Memory(conversationId = cid, content = this, index = index)
+  Memory(conversationId = cid, content = copy(name = role.name), index = index)
 
 internal fun List<Message>.toMemory(scope: Conversation): List<Memory> {
   val cid = scope.conversationId
