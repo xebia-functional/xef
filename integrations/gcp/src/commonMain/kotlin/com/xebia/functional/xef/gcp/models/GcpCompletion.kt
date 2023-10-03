@@ -1,6 +1,5 @@
 package com.xebia.functional.xef.gcp.models
 
-import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.gcp.GcpClient
 import com.xebia.functional.xef.llm.Completion
 import com.xebia.functional.xef.llm.models.text.CompletionChoice
@@ -12,14 +11,18 @@ import kotlinx.uuid.UUID
 import kotlinx.uuid.generateUUID
 
 class GcpCompletion(
-  override val modelType: ModelType,
+  override val modelID: com.xebia.functional.xef.llm.models.ModelID,
   private val client: GcpClient,
 ) : Completion {
+
+  override suspend fun estimateTokens(message: String): Int {
+    TODO()
+  }
 
   override suspend fun createCompletion(request: CompletionRequest): CompletionResult {
     val response: String =
       client.promptMessage(
-        modelType.name,
+        modelID.value,
         request.prompt,
         temperature = request.temperature,
         maxOutputTokens = request.maxTokens,
@@ -27,9 +30,9 @@ class GcpCompletion(
       )
     return CompletionResult(
       UUID.generateUUID().toString(),
-      modelType.name,
+      modelID.value,
       getTimeMillis(),
-      modelType.name,
+      modelID.value,
       listOf(CompletionChoice(response, 0, null, null)),
       Usage.ZERO, // TODO: token usage - no information about usage provided by GCP codechat model
     )

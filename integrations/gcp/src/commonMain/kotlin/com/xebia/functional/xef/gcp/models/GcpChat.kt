@@ -1,8 +1,8 @@
 package com.xebia.functional.xef.gcp.models
 
-import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.gcp.GcpClient
 import com.xebia.functional.xef.llm.Chat
+import com.xebia.functional.xef.llm.models.ModelID
 import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.llm.models.usage.Usage
 import io.ktor.client.*
@@ -13,9 +13,13 @@ import kotlinx.uuid.UUID
 import kotlinx.uuid.generateUUID
 
 class GcpChat(
-  override val modelType: ModelType,
+  override val modelID: ModelID,
   private val client: GcpClient,
 ) : Chat {
+
+  override suspend fun estimateTokens(messages: List<Message>): Int {
+    TODO("Not yet implemented")
+  }
 
   override suspend fun createChatCompletion(
     request: ChatCompletionRequest
@@ -23,7 +27,7 @@ class GcpChat(
     val prompt: String = request.messages.buildPrompt()
     val response: String =
       client.promptMessage(
-        modelType.name,
+        modelID.value,
         prompt,
         temperature = request.temperature,
         maxOutputTokens = request.maxTokens,
@@ -31,9 +35,9 @@ class GcpChat(
       )
     return ChatCompletionResponse(
       UUID.generateUUID().toString(),
-      modelType.name,
+      modelID.value,
       getTimeMillis().toInt(),
-      modelType.name,
+      modelID.value,
       Usage.ZERO, // TODO: token usage - no information about usage provided by GCP
       listOf(Choice(Message(Role.ASSISTANT, response, Role.ASSISTANT.name), null, 0)),
     )
@@ -48,7 +52,7 @@ class GcpChat(
         val prompt: String = messages.buildPrompt()
         val response =
           client.promptMessage(
-            modelType.name,
+            modelID.value,
             prompt,
             temperature = request.temperature,
             maxOutputTokens = request.maxTokens,
@@ -58,7 +62,7 @@ class GcpChat(
           ChatCompletionChunk(
             UUID.generateUUID().toString(),
             getTimeMillis().toInt(),
-            modelType.name,
+            modelID.value,
             listOf(ChatChunk(delta = ChatDelta(Role.ASSISTANT, response))),
             Usage
               .ZERO, // TODO: token usage - no information about usage provided by GCP for codechat

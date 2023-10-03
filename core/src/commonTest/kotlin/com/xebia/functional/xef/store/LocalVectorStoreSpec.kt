@@ -1,6 +1,5 @@
 package com.xebia.functional.xef.store
 
-import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.data.TestEmbeddings
 import com.xebia.functional.xef.data.TestModel
 import io.kotest.core.spec.style.StringSpec

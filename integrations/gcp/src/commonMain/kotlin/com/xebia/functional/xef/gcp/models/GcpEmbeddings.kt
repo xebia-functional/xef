@@ -1,15 +1,15 @@
 package com.xebia.functional.xef.gcp.models
 
-import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.gcp.GcpClient
 import com.xebia.functional.xef.llm.Embeddings
+import com.xebia.functional.xef.llm.models.ModelID
 import com.xebia.functional.xef.llm.models.embeddings.Embedding
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingResult
 import com.xebia.functional.xef.llm.models.usage.Usage
 
 class GcpEmbeddings(
-  override val modelType: ModelType,
+  override val modelID: ModelID,
   private val client: GcpClient,
 ) : Embeddings {
 

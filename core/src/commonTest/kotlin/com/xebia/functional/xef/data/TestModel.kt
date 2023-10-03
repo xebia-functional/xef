@@ -1,6 +1,5 @@
 package com.xebia.functional.xef.data
 
-import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.llm.Embeddings
 import com.xebia.functional.xef.llm.models.chat.*
@@ -10,7 +9,7 @@ import com.xebia.functional.xef.llm.models.usage.Usage
 import kotlinx.coroutines.flow.Flow
 
 class TestModel(
-  override val modelType: ModelType,
+  override val modelID: com.xebia.functional.xef.llm.models.ModelID,
   val responses: Map<String, String> = emptyMap(),
 ) : Chat, Embeddings, AutoCloseable {
 

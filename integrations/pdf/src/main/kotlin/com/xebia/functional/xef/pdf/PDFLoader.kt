@@ -2,7 +2,6 @@
 @file:JvmMultifileClass
 package com.xebia.functional.xef.pdf
 
-import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.loaders.BaseLoader
 import com.xebia.functional.xef.textsplitters.TextSplitter
 import com.xebia.functional.xef.textsplitters.TokenTextSplitter

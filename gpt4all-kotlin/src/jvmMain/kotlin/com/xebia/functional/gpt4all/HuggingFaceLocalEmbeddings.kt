@@ -1,7 +1,6 @@
 package com.xebia.functional.gpt4all
 
 import ai.djl.huggingface.tokenizers.HuggingFaceTokenizer
-import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.llm.Embeddings
 import com.xebia.functional.xef.llm.models.embeddings.Embedding
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
@@ -10,11 +9,11 @@ import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
 import com.xebia.functional.xef.llm.models.usage.Usage
 
 class HuggingFaceLocalEmbeddings(
-  override val modelType: ModelType,
+  override val modelID: com.xebia.functional.xef.llm.models.ModelID,
   artifact: String,
 ) : Embeddings {
 
-  private val tokenizer = HuggingFaceTokenizer.newInstance("${modelType.name}/$artifact")
+  private val tokenizer = HuggingFaceTokenizer.newInstance("${modelID.value}/$artifact")
 
   override val name: String = HuggingFaceLocalEmbeddings::class.java.canonicalName
 

@@ -10,6 +10,8 @@ import io.ktor.utils.io.core.*
  */
 interface AutoClose : AutoCloseable {
   fun <A : AutoCloseable> autoClose(autoCloseable: A): A
+
+  fun <A : AutoCloseable> A.autoCloseBind(): A = autoClose(this)
 }
 
 /** DSL method to use AutoClose */

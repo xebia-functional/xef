@@ -21,6 +21,8 @@ import kotlinx.serialization.json.*
 
 interface ChatWithFunctions : LLM {
 
+  suspend fun estimateTokens(request: FunChatCompletionRequest): Int
+
   suspend fun createChatCompletionWithFunctions(
     request: FunChatCompletionRequest
   ): ChatCompletionResponseWithFunctions

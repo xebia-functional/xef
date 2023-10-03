@@ -5,7 +5,7 @@ import com.aallam.openai.api.completion.Choice
 import com.aallam.openai.api.completion.completionRequest
 import com.aallam.openai.api.model.ModelId
 import com.aallam.openai.client.OpenAI
-import com.xebia.functional.tokenizer.ModelType
+import com.xebia.functional.tokenizer.EncodingType
 import com.xebia.functional.xef.conversation.llm.openai.toInternal
 import com.xebia.functional.xef.llm.Completion
 import com.xebia.functional.xef.llm.models.text.CompletionChoice
@@ -13,9 +13,14 @@ import com.xebia.functional.xef.llm.models.text.CompletionRequest
 import com.xebia.functional.xef.llm.models.text.CompletionResult
 
 class OpenAICompletion(
-  override val modelType: ModelType,
+  override val modelID: com.xebia.functional.xef.llm.models.ModelID,
   private val client: OpenAI,
-) : Completion {
+  override val encodingType: EncodingType,
+) : Completion, OpenAIModel {
+
+  override suspend fun estimateTokens(message: String): Int {
+    return encoding.countTokens(message)
+  }
 
   @OptIn(LegacyOpenAI::class)
   override suspend fun createCompletion(request: CompletionRequest): CompletionResult {

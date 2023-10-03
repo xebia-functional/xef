@@ -1,7 +1,6 @@
 package com.xebia.functional.xef.textsplitters
 
 import com.xebia.functional.tokenizer.Encoding
-import com.xebia.functional.tokenizer.ModelType
 
 fun TokenTextSplitter(modelType: ModelType, chunkSize: Int, chunkOverlap: Int): TextSplitter =
   TokenTextSplitterImpl(modelType.encoding, chunkSize, chunkOverlap)

@@ -1,32 +1,17 @@
 package com.xebia.functional.xef.llm
 
-import com.xebia.functional.tokenizer.Encoding
-import com.xebia.functional.tokenizer.ModelType
-import com.xebia.functional.xef.llm.models.chat.Message
+import com.xebia.functional.xef.llm.models.ModelID
 
 sealed interface LLM : AutoCloseable {
 
-  val modelType: ModelType
+  val modelID: ModelID
 
-  @Deprecated("use modelType.name instead", replaceWith = ReplaceWith("modelType.name"))
+  val modelType: Nothing
+    get() = TODO()
+
+  @Deprecated("use modelID.value instead", replaceWith = ReplaceWith("modelID.value"))
   val name
-    get() = modelType.name
-
-  fun tokensFromMessages(
-    messages: List<Message>
-  ): Int { // TODO: naive implementation with magic numbers
-    fun Encoding.countTokensFromMessages(tokensPerMessage: Int, tokensPerName: Int): Int =
-      messages.sumOf { message ->
-        countTokens(message.role.name) +
-          countTokens(message.content) +
-          tokensPerMessage +
-          tokensPerName
-      } + 3
-    return modelType.encoding.countTokensFromMessages(
-      tokensPerMessage = modelType.tokensPerMessage,
-      tokensPerName = modelType.tokensPerName
-    ) + modelType.tokenPadding
-  }
+    get() = modelID.value
 
   override fun close() = Unit
 }

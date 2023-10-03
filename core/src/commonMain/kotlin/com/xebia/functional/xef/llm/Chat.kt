@@ -1,18 +1,27 @@
 package com.xebia.functional.xef.llm
 
+import com.xebia.functional.tokenizer.Encoding
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
+import com.xebia.functional.xef.llm.models.MaxContextLength
 import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.assistant
 import kotlinx.coroutines.flow.*
+import kotlin.math.roundToInt
 
 interface Chat : LLM {
+
+  val contextLength: MaxContextLength
 
   suspend fun createChatCompletion(request: ChatCompletionRequest): ChatCompletionResponse
 
   suspend fun createChatCompletions(request: ChatCompletionRequest): Flow<ChatCompletionChunk>
+
+  suspend fun estimateTokens(messages: List<Message>): Int
+
+  suspend fun estimateTokens(rawMessage: String): Int
 
   @AiDsl
   fun promptStreaming(prompt: Prompt, scope: Conversation): Flow<String> = flow {
@@ -62,5 +71,36 @@ interface Chat : LLM {
       .choices
       .addChoiceToMemory(scope, promptMemories)
       .mapNotNull { it.message?.content }
+  }
+}
+
+/**
+ * Truncates the given [text] to the given [maxTokens] by removing tokens from the end of the text.
+ * It removes tokens from the tail of the [text].
+ * Tokens are chosen to be removed based on the percentage of the [maxTokens]
+ * compared to the total amount of tokens in the [text].
+ *
+ * If the truncation fails,
+ * it will retry by recursively calling this function until a text with maxTokens is found.
+ *
+ * **WARNING:** for small [maxTokens] this function may hang forever,
+ * some [text] like emoticons, or special characters have token length of 9.
+ * So trying to truncateText to maxToken = 5 might hang forever for them.
+ *
+ * **WARNING:** This method might truncate crucial information from your prompt,
+ * and as a result might degrade reliability of your prompts.
+ */
+tailrec suspend fun Chat.truncateText(text: String, maxTokens: Int): String {
+  val tokenCount = estimateTokens(text)
+  return if (tokenCount <= maxTokens) text
+  else {
+    val percentage = maxTokens.toDouble() / tokenCount.toDouble()
+    val truncatedTextLength = (text.length * percentage).roundToInt()
+    val result = text.substring(0, truncatedTextLength)
+    val tokenCountResult = estimateTokens(result)
+    when {
+      tokenCountResult >= maxTokens -> truncateText(result, maxTokens)
+      else -> result
+    }
   }
 }
