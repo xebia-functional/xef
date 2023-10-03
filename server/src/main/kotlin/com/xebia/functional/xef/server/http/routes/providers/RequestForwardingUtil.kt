@@ -28,49 +28,6 @@ private fun buildProviderUrlFromRequest(request: ApplicationRequest) =
         encodedPath = request.path()
     }.build()
 
-@Deprecated("")
-internal suspend fun HttpClient.makeRequest(
-    call: ApplicationCall,
-    url: String,
-    body: String,
-    token: Token
-) {
-    val response = this.request(url) {
-        headers {
-            bearerAuth(token.value)
-        }
-        contentType(ContentType.Application.Json)
-        method = HttpMethod.Post
-        setBody(body)
-    }
-    call.response.headers.copyFrom(response.headers)
-    call.respond(response.status, response.body<String>())
-}
-
-@Deprecated("")
-internal suspend fun HttpClient.makeStreaming(
-    call: ApplicationCall,
-    url: String,
-    body: String,
-    token: Token
-) {
-    this.preparePost(url) {
-        headers {
-            bearerAuth(token.value)
-        }
-        contentType(ContentType.Application.Json)
-        method = HttpMethod.Post
-        setBody(body)
-    }.execute { httpResponse ->
-        call.response.headers.copyFrom(httpResponse.headers)
-        call.respondOutputStream {
-            httpResponse
-                .bodyAsChannel()
-                .copyTo(this@respondOutputStream)
-        }
-    }
-}
-
 /**
  * Makes a request to the provider forwarding headers and request body
  * from the incoming request.
