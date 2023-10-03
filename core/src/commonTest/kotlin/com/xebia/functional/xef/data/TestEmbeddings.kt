@@ -12,6 +12,8 @@ class TestEmbeddings : Embeddings {
 
   override val modelType: ModelType = ModelType.TODO("test-embeddings")
 
+  override fun copy(modelType: ModelType) = TestEmbeddings()
+
   override suspend fun embedDocuments(
     texts: List<String>,
     requestConfig: RequestConfig,

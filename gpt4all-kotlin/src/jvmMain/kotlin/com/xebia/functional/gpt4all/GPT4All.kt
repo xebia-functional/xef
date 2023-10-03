@@ -66,6 +66,9 @@ interface GPT4All : AutoCloseable, Chat, Completion {
 
       val llModel = LLModel(path)
 
+      override fun copy(modelType: ModelType) =
+        GPT4All(url, path)
+
       override suspend fun createCompletion(request: CompletionRequest): CompletionResult =
         with(request) {
           val config = LLModel.config()

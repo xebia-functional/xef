@@ -110,6 +110,9 @@ class PGVectorStoreSpec :
   })
 
 class TestLLM(override val modelType: ModelType = ModelType.ADA) : Chat, AutoCloseable {
+  override fun copy(modelType: ModelType) =
+    TestLLM(modelType)
+
   override fun tokensFromMessages(messages: List<Message>): Int = messages.map { calculateTokens(it) }.sum()
 
   private fun calculateTokens(message: Message): Int = message.content.split(" ").size + 2 // 2 is the role and name
@@ -145,6 +148,9 @@ private fun Embeddings.Companion.mock(
   }
 ): Embeddings =
   object : Embeddings {
+    override fun copy(modelType: ModelType): LLM {
+      throw NotImplementedError()
+    }
     override suspend fun embedDocuments(
       texts: List<String>,
       requestConfig: RequestConfig,

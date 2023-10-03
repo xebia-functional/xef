@@ -12,6 +12,12 @@ sealed interface LLM : AutoCloseable {
   val name
     get() = modelType.name
 
+  /**
+   * Copies this instance and uses [modelType] for [LLM.modelType]. Has to return the most specific
+   * type of this instance!
+   */
+  fun copy(modelType: ModelType): LLM
+
   fun tokensFromMessages(
     messages: List<Message>
   ): Int { // TODO: naive implementation with magic numbers
