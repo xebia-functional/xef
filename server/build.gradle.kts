@@ -58,8 +58,6 @@ dependencies {
     implementation(projects.xefCore)
     implementation(projects.xefLucene)
     implementation(projects.xefPostgresql)
-    implementation("io.ktor:ktor-server-core-jvm:2.3.4")
-    implementation("io.ktor:ktor-server-double-receive-jvm:2.3.4")
 
     testImplementation(libs.junit.jupiter.api)
     testImplementation(libs.junit.jupiter.engine)
