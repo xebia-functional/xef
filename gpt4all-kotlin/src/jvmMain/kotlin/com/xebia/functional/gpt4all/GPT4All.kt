@@ -4,11 +4,11 @@ import ai.djl.training.util.DownloadUtils
 import ai.djl.training.util.ProgressBar
 import com.hexadevlabs.gpt4all.LLModel
 import com.xebia.functional.tokenizer.EncodingType
-import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.PlatformConversation
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.llm.Completion
+import com.xebia.functional.xef.llm.models.ModelID
 import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.llm.models.text.CompletionChoice
 import com.xebia.functional.xef.llm.models.text.CompletionRequest
@@ -64,7 +64,16 @@ interface GPT4All : AutoCloseable, Chat, Completion {
         }
       }
 
+      override val modelID = ModelID(path.name)
       val llModel = LLModel(path)
+
+      override suspend fun estimateTokens(message: String): Int {
+        TODO("Not yet implemented")
+      }
+
+      override suspend fun estimateTokens(messages: List<Message>): Int {
+        return 0
+      }
 
       override suspend fun createCompletion(request: CompletionRequest): CompletionResult =
         with(request) {
@@ -155,15 +164,7 @@ interface GPT4All : AutoCloseable, Chat, Completion {
         )
       }
 
-      override fun tokensFromMessages(messages: List<Message>): Int {
-        return 0
-      }
-
-      override val name: String = path.name
-
       override fun close(): Unit = llModel.close()
-
-      override val modelType: ModelType = ModelType.LocalModel(name, EncodingType.CL100K_BASE, 4096)
 
       private fun List<Message>.buildPrompt(): String {
         val messages: String = joinToString("") { message ->

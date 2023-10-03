@@ -5,7 +5,7 @@ import com.aallam.openai.api.logging.LogLevel
 import com.aallam.openai.client.LoggingConfig
 import com.aallam.openai.client.OpenAI as OpenAIClient
 import com.aallam.openai.client.OpenAIHost
-import com.xebia.functional.tokenizer.ModelType
+import com.xebia.functional.tokenizer.EncodingType
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.AutoClose
 import com.xebia.functional.xef.conversation.Conversation
@@ -14,6 +14,8 @@ import com.xebia.functional.xef.conversation.autoClose
 import com.xebia.functional.xef.conversation.llm.openai.models.*
 import com.xebia.functional.xef.env.getenv
 import com.xebia.functional.xef.llm.LLM
+import com.xebia.functional.xef.llm.models.MaxContextLength
+import com.xebia.functional.xef.llm.models.ModelID
 import com.xebia.functional.xef.store.LocalVectorStore
 import com.xebia.functional.xef.store.VectorStore
 import kotlin.jvm.JvmField
@@ -28,6 +30,7 @@ class OpenAI(internal var token: String? = null, internal var host: String? = nu
   AutoCloseable, AutoClose by autoClose() {
 
   private fun openAITokenFromEnv(): String {
+    OpenAIHost.OpenAI.baseUrl
     return getenv(KEY_ENV_VAR)
       ?: throw AIError.Env.OpenAI(nonEmptyListOf("missing $KEY_ENV_VAR env var"))
   }
@@ -66,51 +69,98 @@ class OpenAI(internal var token: String? = null, internal var host: String? = nu
       )
       .let { autoClose(it) }
 
-  val GPT_4 by lazy { autoClose(OpenAIChat(ModelType.GPT_4, defaultClient)) }
-
-  val GPT_4_0314 by lazy {
-    autoClose(OpenAIFunChat(ModelType.GPT_4_0314, defaultClient)) // legacy
+  val GPT_4 by lazy {
+    OpenAIChat(
+        ModelID("gpt-4"),
+        defaultClient,
+        MaxContextLength.Combined(8192),
+        EncodingType.CL100K_BASE
+      )
+      .autoCloseBind()
   }
 
-  val GPT_4_32K by lazy { autoClose(OpenAIChat(ModelType.GPT_4_32K, defaultClient)) }
+  val GPT_4_0314 by lazy {
+    OpenAIFunChat(ModelID("gpt-4-0314"), defaultClient, EncodingType.CL100K_BASE)
+      .autoCloseBind() // legacy
+  }
 
-  val GPT_3_5_TURBO by lazy { autoClose(OpenAIChat(ModelType.GPT_3_5_TURBO, defaultClient)) }
+  val GPT_4_32K by lazy {
+    OpenAIChat(
+        ModelID("gpt-4-32k"),
+        defaultClient,
+        MaxContextLength.Combined(32768),
+        EncodingType.CL100K_BASE
+      )
+      .autoCloseBind()
+  }
+
+  val GPT_3_5_TURBO by lazy {
+    OpenAIChat(
+        ModelID("gpt-3.5-turbo"),
+        defaultClient,
+        MaxContextLength.Combined(4097),
+        EncodingType.CL100K_BASE
+      )
+      .autoCloseBind()
+  }
 
   val GPT_3_5_TURBO_16K by lazy {
-    autoClose(OpenAIChat(ModelType.GPT_3_5_TURBO_16_K, defaultClient))
+    OpenAIChat(
+        ModelID("gpt-3.5-turbo-16k"),
+        defaultClient,
+        MaxContextLength.Combined(4097 * 4),
+        EncodingType.CL100K_BASE
+      )
+      .autoCloseBind()
   }
 
   val GPT_3_5_TURBO_FUNCTIONS by lazy {
-    autoClose(OpenAIFunChat(ModelType.GPT_3_5_TURBO_FUNCTIONS, defaultClient))
+    OpenAIFunChat(ModelID("gpt-3.5-turbo-0613"), defaultClient, EncodingType.CL100K_BASE)
+      .autoCloseBind()
   }
 
   val GPT_3_5_TURBO_0301 by lazy {
-    autoClose(OpenAIChat(ModelType.GPT_3_5_TURBO, defaultClient)) // legacy
+    OpenAIChat(
+        ModelID("gpt-3.5-turbo-0301"),
+        defaultClient,
+        MaxContextLength.Combined(4097),
+        EncodingType.CL100K_BASE
+      )
+      .autoCloseBind() // legacy
   }
 
   val TEXT_DAVINCI_003 by lazy {
-    autoClose(OpenAICompletion(ModelType.TEXT_DAVINCI_003, defaultClient))
+    OpenAICompletion(ModelID("text-davinci-003"), defaultClient, EncodingType.P50K_BASE)
+      .autoCloseBind()
   }
 
   val TEXT_DAVINCI_002 by lazy {
-    autoClose(OpenAICompletion(ModelType.TEXT_DAVINCI_002, defaultClient))
+    OpenAICompletion(ModelID("text-davinci-002"), defaultClient, EncodingType.P50K_BASE)
+      .autoCloseBind()
   }
 
   val TEXT_CURIE_001 by lazy {
-    autoClose(OpenAICompletion(ModelType.TEXT_SIMILARITY_CURIE_001, defaultClient))
+    OpenAICompletion(ModelID("text-similarity-curie-001"), defaultClient, EncodingType.P50K_BASE)
+      .autoCloseBind()
   }
 
   val TEXT_BABBAGE_001 by lazy {
-    autoClose(OpenAICompletion(ModelType.TEXT_BABBAGE_001, defaultClient))
+    OpenAICompletion(ModelID("text-babbage-001"), defaultClient, EncodingType.P50K_BASE)
+      .autoCloseBind()
   }
 
-  val TEXT_ADA_001 by lazy { autoClose(OpenAICompletion(ModelType.TEXT_ADA_001, defaultClient)) }
+  val TEXT_ADA_001 by lazy {
+    OpenAICompletion(ModelID("text-ada-001"), defaultClient, EncodingType.P50K_BASE).autoCloseBind()
+  }
 
   val TEXT_EMBEDDING_ADA_002 by lazy {
-    autoClose(OpenAIEmbeddings(ModelType.TEXT_EMBEDDING_ADA_002, defaultClient))
+    OpenAIEmbeddings(ModelID("text-embedding-ada-002"), defaultClient, EncodingType.CL100K_BASE)
+      .autoCloseBind()
   }
 
-  val DALLE_2 by lazy { autoClose(OpenAIImages(ModelType.GPT_3_5_TURBO, defaultClient)) }
+  val DALLE_2 by lazy {
+    OpenAIImages(ModelID("dalle-2"), defaultClient, EncodingType.CL100K_BASE).autoCloseBind()
+  }
 
   @JvmField val DEFAULT_CHAT = GPT_3_5_TURBO_16K
 

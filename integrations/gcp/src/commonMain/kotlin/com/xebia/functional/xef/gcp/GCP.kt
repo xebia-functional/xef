@@ -1,7 +1,6 @@
 package com.xebia.functional.xef.gcp
 
 import arrow.core.nonEmptyListOf
-import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.PlatformConversation
@@ -9,6 +8,7 @@ import com.xebia.functional.xef.env.getenv
 import com.xebia.functional.xef.gcp.models.GcpChat
 import com.xebia.functional.xef.gcp.models.GcpEmbeddings
 import com.xebia.functional.xef.llm.LLM
+import com.xebia.functional.xef.llm.models.ModelID
 import com.xebia.functional.xef.store.LocalVectorStore
 import com.xebia.functional.xef.store.VectorStore
 import kotlin.jvm.JvmField
@@ -47,10 +47,8 @@ class GCP(projectId: String? = null, location: VertexAIRegion? = null, token: St
 
   val defaultClient = GcpClient(config)
 
-  val CODECHAT by lazy { GcpChat(ModelType.TODO("codechat-bison@001"), defaultClient) }
-  val TEXT_EMBEDDING_GECKO by lazy {
-    GcpEmbeddings(ModelType.TODO("textembedding-gecko"), defaultClient)
-  }
+  val CODECHAT by lazy { GcpChat(ModelID("codechat-bison@001"), defaultClient) }
+  val TEXT_EMBEDDING_GECKO by lazy { GcpEmbeddings(ModelID("textembedding-gecko"), defaultClient) }
 
   @JvmField val DEFAULT_CHAT = CODECHAT
   @JvmField val DEFAULT_EMBEDDING = TEXT_EMBEDDING_GECKO
