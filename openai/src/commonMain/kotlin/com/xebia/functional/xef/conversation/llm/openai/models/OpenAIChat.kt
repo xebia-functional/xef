@@ -4,8 +4,8 @@ import com.aallam.openai.api.chat.ChatChoice
 import com.aallam.openai.api.chat.ChatMessage
 import com.aallam.openai.api.chat.chatCompletionRequest
 import com.aallam.openai.api.model.ModelId
-import com.aallam.openai.client.OpenAI
 import com.xebia.functional.tokenizer.ModelType
+import com.xebia.functional.xef.conversation.llm.openai.OpenAI
 import com.xebia.functional.xef.conversation.llm.openai.toInternal
 import com.xebia.functional.xef.conversation.llm.openai.toOpenAI
 import com.xebia.functional.xef.llm.Chat
@@ -14,9 +14,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class OpenAIChat(
+  private val provider: OpenAI, // TODO: use context receiver
   override val modelType: ModelType,
-  private val client: OpenAI,
 ) : Chat {
+
+  private val client = provider.defaultClient
+
+  override fun copy(modelType: ModelType) = OpenAIChat(provider, modelType)
 
   override suspend fun createChatCompletion(
     request: ChatCompletionRequest

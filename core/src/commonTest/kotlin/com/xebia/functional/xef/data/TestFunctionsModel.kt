@@ -18,6 +18,8 @@ class TestFunctionsModel(
 
   var requests: MutableList<FunChatCompletionRequest> = mutableListOf()
 
+  override fun copy(modelType: ModelType) = TestFunctionsModel(modelType, responses)
+
   override fun tokensFromMessages(messages: List<Message>): Int {
     return messages.sumOf { it.content.length }
   }
