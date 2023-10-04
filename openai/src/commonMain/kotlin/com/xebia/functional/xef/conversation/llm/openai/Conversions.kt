@@ -55,5 +55,9 @@ internal fun OAIChatDelta.toInternal() =
   ChatDelta(
     role = role?.toInternal(),
     content = content,
-    functionCall = functionCall?.let { FunctionCall(it.name, it.arguments) }
+    functionCall =
+      functionCall?.let {
+        if (it.nameOrNull == null || it.argumentsOrNull == null) null
+        else FunctionCall(it.name, it.arguments)
+      }
   )
