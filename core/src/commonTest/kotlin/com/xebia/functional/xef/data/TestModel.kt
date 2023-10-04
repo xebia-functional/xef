@@ -16,6 +16,8 @@ class TestModel(
 
   var requests: MutableList<ChatCompletionRequest> = mutableListOf()
 
+  override fun copy(modelType: ModelType) = TestModel(modelType, responses)
+
   override suspend fun createChatCompletion(
     request: ChatCompletionRequest
   ): ChatCompletionResponse {

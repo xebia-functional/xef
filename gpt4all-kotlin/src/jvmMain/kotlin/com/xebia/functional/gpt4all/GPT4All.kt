@@ -67,13 +67,8 @@ interface GPT4All : AutoCloseable, Chat, Completion {
       override val modelID = ModelID(path.name)
       val llModel = LLModel(path)
 
-      override suspend fun estimateTokens(message: String): Int {
-        TODO("Not yet implemented")
-      }
-
-      override suspend fun estimateTokens(messages: List<Message>): Int {
-        return 0
-      }
+      override fun copy(modelType: ModelID) =
+        GPT4All(url, path)
 
       override suspend fun createCompletion(request: CompletionRequest): CompletionResult =
         with(request) {

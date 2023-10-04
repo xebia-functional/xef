@@ -47,8 +47,10 @@ class GCP(projectId: String? = null, location: VertexAIRegion? = null, token: St
 
   val defaultClient = GcpClient(config)
 
-  val CODECHAT by lazy { GcpChat(ModelID("codechat-bison@001"), defaultClient) }
-  val TEXT_EMBEDDING_GECKO by lazy { GcpEmbeddings(ModelID("textembedding-gecko"), defaultClient) }
+  val CODECHAT by lazy { GcpChat(this, ModelID("codechat-bison@001")) }
+  val TEXT_EMBEDDING_GECKO by lazy {
+    GcpEmbeddings(this, ModelID("textembedding-gecko"))
+  }
 
   @JvmField val DEFAULT_CHAT = CODECHAT
   @JvmField val DEFAULT_EMBEDDING = TEXT_EMBEDDING_GECKO

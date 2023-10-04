@@ -2,6 +2,7 @@ package com.xebia.functional.gpt4all
 
 import ai.djl.huggingface.tokenizers.HuggingFaceTokenizer
 import com.xebia.functional.xef.llm.Embeddings
+import com.xebia.functional.xef.llm.models.ModelID
 import com.xebia.functional.xef.llm.models.embeddings.Embedding
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingResult
@@ -9,13 +10,16 @@ import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
 import com.xebia.functional.xef.llm.models.usage.Usage
 
 class HuggingFaceLocalEmbeddings(
-  override val modelID: com.xebia.functional.xef.llm.models.ModelID,
-  artifact: String,
+  override val modelID: ModelID,
+  private val artifact: String,
 ) : Embeddings {
 
   private val tokenizer = HuggingFaceTokenizer.newInstance("${modelID.value}/$artifact")
 
   override val name: String = HuggingFaceLocalEmbeddings::class.java.canonicalName
+
+  override fun copy(modelID: ModelID) =
+    HuggingFaceLocalEmbeddings(modelID, artifact)
 
   override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult {
     val embedings = tokenizer.batchEncode(request.input)
@@ -34,6 +38,6 @@ class HuggingFaceLocalEmbeddings(
 
   companion object {
     @JvmField
-    val DEFAULT = HuggingFaceLocalEmbeddings(ModelType.TODO("sentence-transformers"), artifact = "msmarco-distilbert-dot-v5")
+    val DEFAULT = HuggingFaceLocalEmbeddings(ModelID("sentence-transformers"), artifact = "msmarco-distilbert-dot-v5")
   }
 }
