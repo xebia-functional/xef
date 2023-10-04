@@ -13,7 +13,8 @@ interface Chat : LLM {
 
   val contextLength: MaxIoContextLength
 
-  override val maxContextLength get() = (contextLength as MaxIoContextLength.Combined).total
+  override val maxContextLength
+    get() = (contextLength as MaxIoContextLength.Combined).total
 
   suspend fun createChatCompletion(request: ChatCompletionRequest): ChatCompletionResponse
 

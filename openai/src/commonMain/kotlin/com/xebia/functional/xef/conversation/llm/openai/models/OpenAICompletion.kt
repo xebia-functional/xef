@@ -23,7 +23,8 @@ class OpenAICompletion(
 
   private val client = provider.defaultClient
 
-  override fun copy(modelID: ModelID) = OpenAICompletion(provider, modelID, contextLength, encodingType)
+  override fun copy(modelID: ModelID) =
+    OpenAICompletion(provider, modelID, contextLength, encodingType)
 
   @OptIn(LegacyOpenAI::class)
   override suspend fun createCompletion(request: CompletionRequest): CompletionResult {

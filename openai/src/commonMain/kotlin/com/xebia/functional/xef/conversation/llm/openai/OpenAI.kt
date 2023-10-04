@@ -73,95 +73,140 @@ class OpenAI(internal var token: String? = null, internal var host: String? = nu
 
   val GPT_4 by lazy {
     OpenAIChat(
-        this,
-        ModelID("gpt-4"),
-        MaxIoContextLength.Combined(8192),
-        EncodingType.CL100K_BASE
+        provider = this,
+        modelID = ModelID("gpt-4"),
+        contextLength = MaxIoContextLength.Combined(8192),
+        encodingType = EncodingType.CL100K_BASE
       )
       .autoCloseBind()
   }
 
   val GPT_4_0314 by lazy {
-    OpenAIFunChat(this, ModelID("gpt-4-0314"), MaxIoContextLength.Combined(4097), EncodingType.CL100K_BASE)
+    OpenAIFunChat(
+        provider = this,
+        modelID = ModelID("gpt-4-0314"),
+        contextLength = MaxIoContextLength.Combined(4097),
+        encodingType = EncodingType.CL100K_BASE
+      )
       .autoCloseBind() // legacy
   }
 
   val GPT_4_32K by lazy {
     OpenAIChat(
-        this,
-        ModelID("gpt-4-32k"),
-        MaxIoContextLength.Combined(32768),
-        EncodingType.CL100K_BASE
+        provider = this,
+        modelID = ModelID("gpt-4-32k"),
+        contextLength = MaxIoContextLength.Combined(32768),
+        encodingType = EncodingType.CL100K_BASE
       )
       .autoCloseBind()
   }
 
   val GPT_3_5_TURBO by lazy {
     OpenAIChat(
-        this,
-        ModelID("gpt-3.5-turbo"),
-        MaxIoContextLength.Combined(4097),
-        EncodingType.CL100K_BASE
+        provider = this,
+        modelID = ModelID("gpt-3.5-turbo"),
+        contextLength = MaxIoContextLength.Combined(4097),
+        encodingType = EncodingType.CL100K_BASE
       )
       .autoCloseBind()
   }
 
   val GPT_3_5_TURBO_16K by lazy {
     OpenAIChat(
-        this,
-        ModelID("gpt-3.5-turbo-16k"),
-        MaxIoContextLength.Combined(4097 * 4),
-        EncodingType.CL100K_BASE
+        provider = this,
+        modelID = ModelID("gpt-3.5-turbo-16k"),
+        contextLength = MaxIoContextLength.Combined(4097 * 4),
+        encodingType = EncodingType.CL100K_BASE
       )
       .autoCloseBind()
   }
 
   val GPT_3_5_TURBO_FUNCTIONS by lazy {
-    OpenAIFunChat(this, ModelID("gpt-3.5-turbo-0613"), MaxIoContextLength.Combined(4097), EncodingType.CL100K_BASE)
+    OpenAIFunChat(
+        provider = this,
+        modelID = ModelID("gpt-3.5-turbo-0613"),
+        contextLength = MaxIoContextLength.Combined(4097),
+        encodingType = EncodingType.CL100K_BASE
+      )
       .autoCloseBind()
   }
 
   val GPT_3_5_TURBO_0301 by lazy {
     OpenAIChat(
-        this,
-        ModelID("gpt-3.5-turbo-0301"),
-        MaxIoContextLength.Combined(4097),
-        EncodingType.CL100K_BASE
+        provider = this,
+        modelID = ModelID("gpt-3.5-turbo-0301"),
+        contextLength = MaxIoContextLength.Combined(4097),
+        encodingType = EncodingType.CL100K_BASE
       )
       .autoCloseBind() // legacy
   }
 
   val TEXT_DAVINCI_003 by lazy {
-    OpenAICompletion(this, ModelID("text-davinci-003"), MaxIoContextLength.Combined(4097), EncodingType.P50K_BASE)
+    OpenAICompletion(
+        provider = this,
+        modelID = ModelID("text-davinci-003"),
+        contextLength = MaxIoContextLength.Combined(4097),
+        encodingType = EncodingType.P50K_BASE
+      )
       .autoCloseBind()
   }
 
   val TEXT_DAVINCI_002 by lazy {
-    OpenAICompletion(this, ModelID("text-davinci-002"), MaxIoContextLength.Combined(4097), EncodingType.P50K_BASE)
+    OpenAICompletion(
+        provider = this,
+        modelID = ModelID("text-davinci-002"),
+        contextLength = MaxIoContextLength.Combined(4097),
+        encodingType = EncodingType.P50K_BASE
+      )
       .autoCloseBind()
   }
 
   val TEXT_CURIE_001 by lazy {
-    OpenAICompletion(this, ModelID("text-similarity-curie-001"), MaxIoContextLength.Combined(2049), EncodingType.P50K_BASE)
+    OpenAICompletion(
+        provider = this,
+        modelID = ModelID("text-similarity-curie-001"),
+        contextLength = MaxIoContextLength.Combined(2049),
+        encodingType = EncodingType.P50K_BASE
+      )
       .autoCloseBind()
   }
 
   val TEXT_BABBAGE_001 by lazy {
-    OpenAICompletion(this, ModelID("text-babbage-001"), MaxIoContextLength.Combined(2049), EncodingType.P50K_BASE)
+    OpenAICompletion(
+        provider = this,
+        modelID = ModelID("text-babbage-001"),
+        contextLength = MaxIoContextLength.Combined(2049),
+        encodingType = EncodingType.P50K_BASE
+      )
       .autoCloseBind()
   }
 
   val TEXT_ADA_001 by lazy {
-    OpenAICompletion(this, ModelID("text-ada-001"), MaxIoContextLength.Combined(2049), EncodingType.P50K_BASE).autoCloseBind()
+    OpenAICompletion(
+        provider = this,
+        modelID = ModelID("text-ada-001"),
+        contextLength = MaxIoContextLength.Combined(2049),
+        encodingType = EncodingType.P50K_BASE
+      )
+      .autoCloseBind()
   }
 
   val TEXT_EMBEDDING_ADA_002 by lazy {
-    OpenAIEmbeddings(this, ModelID("text-embedding-ada-002"), EncodingType.CL100K_BASE)
+    OpenAIEmbeddings(
+        provider = this,
+        modelID = ModelID("text-embedding-ada-002"),
+        encodingType = EncodingType.CL100K_BASE
+      )
       .autoCloseBind()
   }
 
   val DALLE_2 by lazy {
-    OpenAIImages(this, ModelID("dalle-2"), EncodingType.CL100K_BASE).autoCloseBind()
+    OpenAIImages(
+        provider = this,
+        modelID = ModelID("dalle-2"),
+        encodingType = EncodingType.CL100K_BASE
+      )
+      .autoCloseBind()
   }
 
   @JvmField val DEFAULT_CHAT = GPT_3_5_TURBO_16K

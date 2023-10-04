@@ -27,7 +27,8 @@ class OpenAIFunChat(
 
   private val client = provider.defaultClient
 
-  override fun copy(modelID: ModelID) = OpenAIFunChat(provider, modelID, contextLength, encodingType)
+  override fun copy(modelID: ModelID) =
+    OpenAIFunChat(provider, modelID, contextLength, encodingType)
 
   override suspend fun createChatCompletionWithFunctions(
     request: FunChatCompletionRequest
