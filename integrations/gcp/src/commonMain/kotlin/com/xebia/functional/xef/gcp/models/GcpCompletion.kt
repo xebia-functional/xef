@@ -2,7 +2,7 @@ package com.xebia.functional.xef.gcp.models
 
 import com.xebia.functional.xef.gcp.GCP
 import com.xebia.functional.xef.llm.Completion
-import com.xebia.functional.xef.llm.models.MaxContextLength
+import com.xebia.functional.xef.llm.models.MaxIoContextLength
 import com.xebia.functional.xef.llm.models.ModelID
 import com.xebia.functional.xef.llm.models.text.CompletionChoice
 import com.xebia.functional.xef.llm.models.text.CompletionRequest
@@ -15,7 +15,7 @@ import kotlinx.uuid.generateUUID
 class GcpCompletion(
   private val provider: GCP, // TODO: use context receiver
   override val modelID: ModelID,
-  override val contextLength: MaxContextLength,
+  override val contextLength: MaxIoContextLength,
 ) : Completion {
 
   private val client = provider.defaultClient

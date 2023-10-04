@@ -9,7 +9,7 @@ import com.xebia.functional.xef.conversation.llm.openai.OpenAI
 import com.xebia.functional.xef.conversation.llm.openai.toInternal
 import com.xebia.functional.xef.conversation.llm.openai.toOpenAI
 import com.xebia.functional.xef.llm.Chat
-import com.xebia.functional.xef.llm.models.MaxContextLength
+import com.xebia.functional.xef.llm.models.MaxIoContextLength
 import com.xebia.functional.xef.llm.models.ModelID
 import com.xebia.functional.xef.llm.models.chat.*
 import kotlinx.coroutines.flow.Flow
@@ -18,7 +18,7 @@ import kotlinx.coroutines.flow.map
 class OpenAIChat(
   private val provider: OpenAI, // TODO: use context receiver
   override val modelID: ModelID,
-  override val contextLength: MaxContextLength,
+  override val contextLength: MaxIoContextLength,
   override val encodingType: EncodingType,
 ) : Chat, OpenAIModel {
 

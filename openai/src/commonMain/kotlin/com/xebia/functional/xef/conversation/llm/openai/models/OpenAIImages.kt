@@ -7,7 +7,6 @@ import com.aallam.openai.api.image.imageCreation
 import com.xebia.functional.tokenizer.EncodingType
 import com.xebia.functional.xef.conversation.llm.openai.OpenAI
 import com.xebia.functional.xef.llm.Images
-import com.xebia.functional.xef.llm.models.MaxContextLength
 import com.xebia.functional.xef.llm.models.ModelID
 import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.llm.models.images.ImageGenerationUrl

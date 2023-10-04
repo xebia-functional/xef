@@ -1,13 +1,11 @@
 package com.xebia.functional.xef.gcp.models
 
 import com.xebia.functional.xef.gcp.GCP
-import com.xebia.functional.xef.gcp.GcpClient
 import com.xebia.functional.xef.llm.Chat
-import com.xebia.functional.xef.llm.models.MaxContextLength
+import com.xebia.functional.xef.llm.models.MaxIoContextLength
 import com.xebia.functional.xef.llm.models.ModelID
 import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.llm.models.usage.Usage
-import io.ktor.client.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -17,7 +15,7 @@ import kotlinx.uuid.generateUUID
 class GcpChat(
   private val provider: GCP, // TODO: use context receiver
   override val modelID: ModelID,
-  override val contextLength: MaxContextLength
+  override val contextLength: MaxIoContextLength
 ) : Chat {
 
   private val client = provider.defaultClient

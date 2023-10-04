@@ -8,7 +8,7 @@ import com.xebia.functional.tokenizer.EncodingType
 import com.xebia.functional.xef.conversation.llm.openai.OpenAI
 import com.xebia.functional.xef.conversation.llm.openai.toInternal
 import com.xebia.functional.xef.llm.Completion
-import com.xebia.functional.xef.llm.models.MaxContextLength
+import com.xebia.functional.xef.llm.models.MaxIoContextLength
 import com.xebia.functional.xef.llm.models.ModelID
 import com.xebia.functional.xef.llm.models.text.CompletionChoice
 import com.xebia.functional.xef.llm.models.text.CompletionRequest
@@ -17,7 +17,7 @@ import com.xebia.functional.xef.llm.models.text.CompletionResult
 class OpenAICompletion(
   private val provider: OpenAI, // TODO: use context receiver
   override val modelID: ModelID,
-  override val contextLength: MaxContextLength,
+  override val contextLength: MaxIoContextLength,
   override val encodingType: EncodingType,
 ) : Completion, OpenAIModel {
 

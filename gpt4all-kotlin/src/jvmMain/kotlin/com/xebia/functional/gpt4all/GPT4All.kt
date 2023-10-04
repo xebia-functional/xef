@@ -3,12 +3,11 @@ package com.xebia.functional.gpt4all
 import ai.djl.training.util.DownloadUtils
 import ai.djl.training.util.ProgressBar
 import com.hexadevlabs.gpt4all.LLModel
-import com.xebia.functional.tokenizer.EncodingType
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.PlatformConversation
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.llm.Completion
-import com.xebia.functional.xef.llm.models.MaxContextLength
+import com.xebia.functional.xef.llm.models.MaxIoContextLength
 import com.xebia.functional.xef.llm.models.ModelID
 import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.llm.models.text.CompletionChoice
@@ -65,7 +64,7 @@ interface GPT4All : AutoCloseable, Chat, Completion {
         }
       }
 
-      override val contextLength = MaxContextLength.Combined(2048) //TODO: no hardcode
+      override val contextLength = MaxIoContextLength.Combined(2048) //TODO: no hardcode
 
       override val modelID = ModelID(path.name)
       val llModel = LLModel(path)

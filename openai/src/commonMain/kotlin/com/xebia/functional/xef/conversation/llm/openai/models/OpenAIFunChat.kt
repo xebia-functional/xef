@@ -7,7 +7,7 @@ import com.xebia.functional.xef.conversation.llm.openai.OpenAI
 import com.xebia.functional.xef.conversation.llm.openai.toInternal
 import com.xebia.functional.xef.conversation.llm.openai.toOpenAI
 import com.xebia.functional.xef.llm.ChatWithFunctions
-import com.xebia.functional.xef.llm.models.MaxContextLength
+import com.xebia.functional.xef.llm.models.MaxIoContextLength
 import com.xebia.functional.xef.llm.models.ModelID
 import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.llm.models.chat.ChatCompletionChunk
@@ -21,7 +21,7 @@ import kotlinx.serialization.json.Json
 class OpenAIFunChat(
   private val provider: OpenAI, // TODO: use context receiver
   override val modelID: ModelID,
-  override val contextLength: MaxContextLength,
+  override val contextLength: MaxIoContextLength,
   override val encodingType: EncodingType,
 ) : ChatWithFunctions, OpenAIModel {
 

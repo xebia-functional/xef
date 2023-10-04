@@ -16,7 +16,7 @@ import com.xebia.functional.xef.conversation.autoClose
 import com.xebia.functional.xef.conversation.llm.openai.models.*
 import com.xebia.functional.xef.env.getenv
 import com.xebia.functional.xef.llm.LLM
-import com.xebia.functional.xef.llm.models.MaxContextLength
+import com.xebia.functional.xef.llm.models.MaxIoContextLength
 import com.xebia.functional.xef.llm.models.ModelID
 import com.xebia.functional.xef.store.LocalVectorStore
 import com.xebia.functional.xef.store.VectorStore
@@ -75,14 +75,14 @@ class OpenAI(internal var token: String? = null, internal var host: String? = nu
     OpenAIChat(
         this,
         ModelID("gpt-4"),
-        MaxContextLength.Combined(8192),
+        MaxIoContextLength.Combined(8192),
         EncodingType.CL100K_BASE
       )
       .autoCloseBind()
   }
 
   val GPT_4_0314 by lazy {
-    OpenAIFunChat(this, ModelID("gpt-4-0314"), MaxContextLength.Combined(4097), EncodingType.CL100K_BASE)
+    OpenAIFunChat(this, ModelID("gpt-4-0314"), MaxIoContextLength.Combined(4097), EncodingType.CL100K_BASE)
       .autoCloseBind() // legacy
   }
 
@@ -90,7 +90,7 @@ class OpenAI(internal var token: String? = null, internal var host: String? = nu
     OpenAIChat(
         this,
         ModelID("gpt-4-32k"),
-        MaxContextLength.Combined(32768),
+        MaxIoContextLength.Combined(32768),
         EncodingType.CL100K_BASE
       )
       .autoCloseBind()
@@ -100,7 +100,7 @@ class OpenAI(internal var token: String? = null, internal var host: String? = nu
     OpenAIChat(
         this,
         ModelID("gpt-3.5-turbo"),
-        MaxContextLength.Combined(4097),
+        MaxIoContextLength.Combined(4097),
         EncodingType.CL100K_BASE
       )
       .autoCloseBind()
@@ -110,14 +110,14 @@ class OpenAI(internal var token: String? = null, internal var host: String? = nu
     OpenAIChat(
         this,
         ModelID("gpt-3.5-turbo-16k"),
-        MaxContextLength.Combined(4097 * 4),
+        MaxIoContextLength.Combined(4097 * 4),
         EncodingType.CL100K_BASE
       )
       .autoCloseBind()
   }
 
   val GPT_3_5_TURBO_FUNCTIONS by lazy {
-    OpenAIFunChat(this, ModelID("gpt-3.5-turbo-0613"), MaxContextLength.Combined(4097), EncodingType.CL100K_BASE)
+    OpenAIFunChat(this, ModelID("gpt-3.5-turbo-0613"), MaxIoContextLength.Combined(4097), EncodingType.CL100K_BASE)
       .autoCloseBind()
   }
 
@@ -125,34 +125,34 @@ class OpenAI(internal var token: String? = null, internal var host: String? = nu
     OpenAIChat(
         this,
         ModelID("gpt-3.5-turbo-0301"),
-        MaxContextLength.Combined(4097),
+        MaxIoContextLength.Combined(4097),
         EncodingType.CL100K_BASE
       )
       .autoCloseBind() // legacy
   }
 
   val TEXT_DAVINCI_003 by lazy {
-    OpenAICompletion(this, ModelID("text-davinci-003"), MaxContextLength.Combined(4097), EncodingType.P50K_BASE)
+    OpenAICompletion(this, ModelID("text-davinci-003"), MaxIoContextLength.Combined(4097), EncodingType.P50K_BASE)
       .autoCloseBind()
   }
 
   val TEXT_DAVINCI_002 by lazy {
-    OpenAICompletion(this, ModelID("text-davinci-002"), MaxContextLength.Combined(4097), EncodingType.P50K_BASE)
+    OpenAICompletion(this, ModelID("text-davinci-002"), MaxIoContextLength.Combined(4097), EncodingType.P50K_BASE)
       .autoCloseBind()
   }
 
   val TEXT_CURIE_001 by lazy {
-    OpenAICompletion(this, ModelID("text-similarity-curie-001"), MaxContextLength.Combined(2049), EncodingType.P50K_BASE)
+    OpenAICompletion(this, ModelID("text-similarity-curie-001"), MaxIoContextLength.Combined(2049), EncodingType.P50K_BASE)
       .autoCloseBind()
   }
 
   val TEXT_BABBAGE_001 by lazy {
-    OpenAICompletion(this, ModelID("text-babbage-001"), MaxContextLength.Combined(2049), EncodingType.P50K_BASE)
+    OpenAICompletion(this, ModelID("text-babbage-001"), MaxIoContextLength.Combined(2049), EncodingType.P50K_BASE)
       .autoCloseBind()
   }
 
   val TEXT_ADA_001 by lazy {
-    OpenAICompletion(this, ModelID("text-ada-001"), MaxContextLength.Combined(2049), EncodingType.P50K_BASE).autoCloseBind()
+    OpenAICompletion(this, ModelID("text-ada-001"), MaxIoContextLength.Combined(2049), EncodingType.P50K_BASE).autoCloseBind()
   }
 
   val TEXT_EMBEDDING_ADA_002 by lazy {
