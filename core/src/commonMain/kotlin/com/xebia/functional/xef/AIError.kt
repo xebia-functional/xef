@@ -26,5 +26,8 @@ sealed class AIError @JvmOverloads constructor(message: String, cause: Throwable
 
     data class HuggingFace(val errors: NonEmptyList<String>) :
       Env("HuggingFace Environment not found: ${errors.all.joinToString("\n")}")
+
+    data class MLflow(val errors: NonEmptyList<String>) :
+      Env("MLflow Environment not found: ${errors.all.joinToString("\n")}")
   }
 }
