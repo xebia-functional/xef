@@ -1,8 +1,8 @@
 package com.xebia.functional.xef.llm
 
-import com.xebia.functional.tokenizer.truncateText
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.Conversation
+import com.xebia.functional.xef.llm.models.MaxContextLength
 import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.assistant
@@ -13,7 +13,7 @@ internal object PromptCalculator {
   suspend fun adaptPromptToConversationAndModel(
     prompt: Prompt,
     scope: Conversation,
-    llm: LLM
+    llm: IChat
   ): Prompt {
 
     // calculate tokens for history and context
@@ -44,7 +44,7 @@ internal object PromptCalculator {
       if (ctxInfo.isNotEmpty()) {
         val ctx: String = ctxInfo.joinToString("\n")
 
-        val ctxTruncated: String = llm.modelType.encoding.truncateText(ctx, maxContextTokens)
+        val ctxTruncated: String = llm.truncateText(ctx, maxContextTokens)
 
         Prompt { +assistant(ctxTruncated) }.messages
       } else {
@@ -57,8 +57,8 @@ internal object PromptCalculator {
   private fun messagesFromMemory(memories: List<Memory>): List<Message> =
     memories.map { it.content }
 
-  private fun calculateMessagesFromHistory(
-    llm: LLM,
+  private suspend fun calculateMessagesFromHistory(
+    llm: IChat,
     memories: List<Memory>,
     maxHistoryTokens: Int
   ) =
@@ -67,10 +67,10 @@ internal object PromptCalculator {
 
       // since we have the approximate tokens in memory, we need to fit the messages back to the
       // number of tokens if necessary
-      val historyTokens = llm.tokensFromMessages(history)
+      val historyTokens = llm.estimateTokens(history)
       if (historyTokens <= maxHistoryTokens) history
       else {
-        val historyMessagesWithTokens = history.map { Pair(it, llm.tokensFromMessages(listOf(it))) }
+        val historyMessagesWithTokens = history.map { Pair(it, llm.estimateTokens(listOf(it))) }
 
         val totalTokenWithMessages =
           historyMessagesWithTokens.foldRight(Pair(0, emptyList<Message>())) { pair, acc ->
@@ -96,11 +96,14 @@ internal object PromptCalculator {
     return maxHistoryTokens
   }
 
-  private fun calculateRemainingTokensForContext(llm: LLM, prompt: Prompt): Int {
-    val maxContextLength: Int = llm.modelType.maxContextLength
+  private suspend fun calculateRemainingTokensForContext(llm: IChat, prompt: Prompt): Int {
+    val maxContextLength: Int = when(val contextLength = llm.contextLength) {
+      is MaxContextLength.Combined -> contextLength.total
+      is MaxContextLength.FixIO -> contextLength.input
+    }
     val remainingTokens: Int = maxContextLength - prompt.configuration.minResponseTokens
 
-    val messagesTokens = llm.tokensFromMessages(prompt.messages)
+    val messagesTokens = llm.estimateTokens(prompt.messages)
 
     if (messagesTokens >= remainingTokens) {
       throw AIError.PromptExceedsMaxRemainingTokenLength(messagesTokens, remainingTokens)

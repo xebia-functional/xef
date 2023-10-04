@@ -1,8 +1,6 @@
 package com.xebia.functional.xef.reasoning.text.summarize
 
-import arrow.core.nel
 import arrow.fx.coroutines.parMap
-import com.xebia.functional.tokenizer.truncateText
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.llm.models.MaxContextLength
@@ -43,7 +41,7 @@ class Summarize(
   private suspend fun summarizeChunk(chunk: String, summaryLength: SummaryLength): String {
     val maxContextLength = when(val contextLength = model.contextLength) {
       is MaxContextLength.Combined -> contextLength.total
-      is MaxContextLength.IO -> contextLength.input
+      is MaxContextLength.FixIO -> contextLength.input
     } - 1000 // magic padding for functions and memory
     val promptTokens: Int = model.estimateTokens(chunk)
     logger.info {
@@ -82,7 +80,7 @@ class Summarize(
   private suspend fun chunkText(text: String): List<String> {
     val maxTokens = when(val contextLength = model.contextLength) {
       is MaxContextLength.Combined -> contextLength.total
-      is MaxContextLength.IO -> contextLength.input
+      is MaxContextLength.FixIO -> contextLength.input
     } - 2000 // magic padding for functions and memory
     val firstPart = model.truncateText(text, maxTokens)
     val remainingText = text.removePrefix(firstPart)
