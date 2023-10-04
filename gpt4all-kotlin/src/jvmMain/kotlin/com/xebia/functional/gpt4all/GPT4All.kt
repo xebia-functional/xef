@@ -8,6 +8,7 @@ import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.PlatformConversation
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.llm.Completion
+import com.xebia.functional.xef.llm.models.MaxContextLength
 import com.xebia.functional.xef.llm.models.ModelID
 import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.llm.models.text.CompletionChoice
@@ -63,6 +64,8 @@ interface GPT4All : AutoCloseable, Chat, Completion {
           DownloadUtils.download(url, path.toFile().absolutePath, ProgressBar())
         }
       }
+
+      override val contextLength = MaxContextLength.Combined(2048) //TODO: no hardcode
 
       override val modelID = ModelID(path.name)
       val llModel = LLModel(path)

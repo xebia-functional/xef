@@ -82,7 +82,7 @@ class OpenAI(internal var token: String? = null, internal var host: String? = nu
   }
 
   val GPT_4_0314 by lazy {
-    OpenAIFunChat(this, ModelID("gpt-4-0314"), EncodingType.CL100K_BASE)
+    OpenAIFunChat(this, ModelID("gpt-4-0314"), MaxContextLength.Combined(4097), EncodingType.CL100K_BASE)
       .autoCloseBind() // legacy
   }
 
@@ -117,7 +117,7 @@ class OpenAI(internal var token: String? = null, internal var host: String? = nu
   }
 
   val GPT_3_5_TURBO_FUNCTIONS by lazy {
-    OpenAIFunChat(this, ModelID("gpt-3.5-turbo-0613"), EncodingType.CL100K_BASE)
+    OpenAIFunChat(this, ModelID("gpt-3.5-turbo-0613"), MaxContextLength.Combined(4097), EncodingType.CL100K_BASE)
       .autoCloseBind()
   }
 
@@ -132,27 +132,27 @@ class OpenAI(internal var token: String? = null, internal var host: String? = nu
   }
 
   val TEXT_DAVINCI_003 by lazy {
-    OpenAICompletion(this, ModelID("text-davinci-003"), EncodingType.P50K_BASE)
+    OpenAICompletion(this, ModelID("text-davinci-003"), MaxContextLength.Combined(4097), EncodingType.P50K_BASE)
       .autoCloseBind()
   }
 
   val TEXT_DAVINCI_002 by lazy {
-    OpenAICompletion(this, ModelID("text-davinci-002"), EncodingType.P50K_BASE)
+    OpenAICompletion(this, ModelID("text-davinci-002"), MaxContextLength.Combined(4097), EncodingType.P50K_BASE)
       .autoCloseBind()
   }
 
   val TEXT_CURIE_001 by lazy {
-    OpenAICompletion(this, ModelID("text-similarity-curie-001"), EncodingType.P50K_BASE)
+    OpenAICompletion(this, ModelID("text-similarity-curie-001"), MaxContextLength.Combined(2049), EncodingType.P50K_BASE)
       .autoCloseBind()
   }
 
   val TEXT_BABBAGE_001 by lazy {
-    OpenAICompletion(this, ModelID("text-babbage-001"), EncodingType.P50K_BASE)
+    OpenAICompletion(this, ModelID("text-babbage-001"), MaxContextLength.Combined(2049), EncodingType.P50K_BASE)
       .autoCloseBind()
   }
 
   val TEXT_ADA_001 by lazy {
-    OpenAICompletion(this, ModelID("text-ada-001"), EncodingType.P50K_BASE).autoCloseBind()
+    OpenAICompletion(this, ModelID("text-ada-001"), MaxContextLength.Combined(2049), EncodingType.P50K_BASE).autoCloseBind()
   }
 
   val TEXT_EMBEDDING_ADA_002 by lazy {
@@ -190,7 +190,7 @@ class OpenAI(internal var token: String? = null, internal var host: String? = nu
       DALLE_2,
     )
 
-  suspend fun findModel(modelId: String): Any? { // TODO: impl of abstract provider function
+  suspend fun findModel(modelId: String): ModelID? { // TODO: impl of abstract provider function
     val model =
       try {
         defaultClient.model(ModelId(modelId))
@@ -200,7 +200,7 @@ class OpenAI(internal var token: String? = null, internal var host: String? = nu
           else -> throw e
         }
       }
-    return ModelType.TODO(model.id.id)
+    return ModelID(model.id.id)
   }
 
   suspend fun <T : LLM> spawnModel(

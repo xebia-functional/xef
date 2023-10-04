@@ -2,6 +2,8 @@ package com.xebia.functional.xef.gcp.models
 
 import com.xebia.functional.xef.gcp.GCP
 import com.xebia.functional.xef.llm.Completion
+import com.xebia.functional.xef.llm.models.MaxContextLength
+import com.xebia.functional.xef.llm.models.ModelID
 import com.xebia.functional.xef.llm.models.text.CompletionChoice
 import com.xebia.functional.xef.llm.models.text.CompletionRequest
 import com.xebia.functional.xef.llm.models.text.CompletionResult
@@ -12,17 +14,18 @@ import kotlinx.uuid.generateUUID
 
 class GcpCompletion(
   private val provider: GCP, // TODO: use context receiver
-  override val modelType: ModelType,
+  override val modelID: ModelID,
+  override val contextLength: MaxContextLength,
 ) : Completion {
 
   private val client = provider.defaultClient
 
-  override fun copy(modelType: ModelType) = GcpCompletion(provider, modelType)
+  override fun copy(modelID: ModelID) = GcpCompletion(provider, modelID, contextLength)
 
   override suspend fun createCompletion(request: CompletionRequest): CompletionResult {
     val response: String =
       client.promptMessage(
-        modelType.name,
+        modelID.value,
         request.prompt,
         temperature = request.temperature,
         maxOutputTokens = request.maxTokens,
@@ -30,9 +33,9 @@ class GcpCompletion(
       )
     return CompletionResult(
       UUID.generateUUID().toString(),
-      modelType.name,
+      modelID.value,
       getTimeMillis(),
-      modelType.name,
+      modelID.value,
       listOf(CompletionChoice(response, 0, null, null)),
       Usage.ZERO, // TODO: token usage - no information about usage provided by GCP codechat model
     )

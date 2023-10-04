@@ -1,9 +1,11 @@
 package com.xebia.functional.xef.reasoning.text.summarize
 
 import arrow.fx.coroutines.parMap
+import com.xebia.functional.tokenizer.EncodingType
 import com.xebia.functional.tokenizer.truncateText
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.Chat
+import com.xebia.functional.xef.llm.models.MaxContextLength
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.assistantSteps
 import com.xebia.functional.xef.prompt.templates.system
@@ -38,9 +40,11 @@ class Summarize(
     summarizeLargeText(text = input, summaryLength = summaryLength)
 
   private suspend fun summarizeChunk(chunk: String, summaryLength: SummaryLength): String {
-    val maxContextLength: Int =
-      model.modelType.maxContextLength - 1000 // magic padding for functions and memory
-    val promptTokens: Int = model.modelType.encoding.countTokens(chunk)
+    val maxContextLength = when(val contextLength = model.contextLength) {
+      is MaxContextLength.Combined -> contextLength.total
+      is MaxContextLength.FixIO -> contextLength.input
+    } - 1000 // magic padding for functions and memory
+    val promptTokens: Int = encodingType.encoding.countTokens(chunk)
     logger.info {
       "📝 Summarizing chunk with prompt tokens $promptTokens for length $summaryLength"
     }
@@ -54,7 +58,7 @@ class Summarize(
         """|
                   |Given the following text:
                   |```text
-                  |${model.modelType.encoding.truncateText(chunk, remainingTokens)}
+                  |${encodingType.encoding.truncateText(chunk, remainingTokens)}
                   |```
               """
           .trimMargin()
@@ -68,15 +72,17 @@ class Summarize(
     }
 
     return model.promptMessage(messages, scope).also {
-      val tokens: Int = model.modelType.encoding.countTokens(it)
+      val tokens: Int = encodingType.encoding.countTokens(it)
       logger.info { "📝 Summarized chunk in tokens: $tokens" }
     }
   }
 
-  private fun chunkText(text: String): List<String> {
-    val maxTokens =
-      model.modelType.maxContextLength - 2000 // magic padding for functions and memory
-    val firstPart = model.modelType.encoding.truncateText(text, maxTokens)
+  private suspend fun chunkText(text: String): List<String> {
+    val maxTokens = when(val contextLength = model.contextLength) {
+      is MaxContextLength.Combined -> contextLength.total
+      is MaxContextLength.FixIO -> contextLength.input
+    } - 2000 // magic padding for functions and memory
+    val firstPart = model.truncateText(text, maxTokens)
     val remainingText = text.removePrefix(firstPart)
 
     return if (remainingText.isNotEmpty()) {
@@ -87,7 +93,7 @@ class Summarize(
   }
 
   tailrec suspend fun summarizeLargeText(text: String, summaryLength: SummaryLength): String {
-    val tokens = model.modelType.encoding.countTokens(text)
+    val tokens = encodingType.encoding.countTokens(text)
     logger.info {
       "📚 Summarizing large text of tokens ${tokens} to approximately $summaryLength tokens"
     }
@@ -110,7 +116,7 @@ class Summarize(
     // Join the chunk summaries into one text
     val joinedSummaries = chunkSummaries.joinToString(" ")
 
-    val joinedSummariesTokens = model.modelType.encoding.countTokens(joinedSummaries)
+    val joinedSummariesTokens = encodingType.encoding.countTokens(joinedSummaries)
 
     // Resummarize the joined summaries if it is longer than summaryLength
     return if (
