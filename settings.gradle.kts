@@ -51,6 +51,9 @@ project(":xef-gcp").projectDir = file("integrations/gcp")
 
 include("xef-opentelemetry")
 project(":xef-opentelemetry").projectDir = file("integrations/opentelemetry")
+
+include("xef-mlflow")
+project(":xef-mlflow").projectDir = file("integrations/mlflow")
 //</editor-fold>
 //</editor-fold>
 
