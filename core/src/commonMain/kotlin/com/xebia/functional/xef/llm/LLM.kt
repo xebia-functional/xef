@@ -17,13 +17,14 @@ import com.xebia.functional.xef.llm.models.chat.Message
    * Copies this instance and uses [modelType] for [LLM.modelType]. Has to return the most specific
    * type of this instance!
    */
-  fun copy(modelType: ModelType): LLM
+  fun copy(modelID: ModelID): LLM
 
-  fun tokensFromMessages(
-    messages: List<Message>
-  ): Int { // TODO: naive implementation with magic numbers
-    TODO()
-  }
+  @Deprecated("will be moved out of LLM in favor of abstracting former ModelType")
+  fun tokensFromMessages(messages: List<Message>): Int = TODO() // intermediary
+  @Deprecated("will be moved out of LLM in favor of abstracting former ModelType")
+  fun truncateText(text: String, maxTokens: Int): String = TODO() // intermediary
+  @Deprecated("will be moved out of LLM in favor of abstracting former ModelType")
+  val maxContextLength: Int get() = TODO()
 
   override fun close() = Unit
 }

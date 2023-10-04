@@ -20,7 +20,7 @@ class GcpChat(
 
   private val client = provider.defaultClient
 
-  override fun copy(modelType: ModelType) = GcpChat(provider, modelType)
+  override fun copy(modelID: ModelID) = GcpChat(provider, modelID)
 
   override suspend fun createChatCompletion(
     request: ChatCompletionRequest

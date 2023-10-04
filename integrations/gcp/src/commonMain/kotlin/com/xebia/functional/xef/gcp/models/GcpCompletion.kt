@@ -1,6 +1,5 @@
 package com.xebia.functional.xef.gcp.models
 
-import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.gcp.GCP
 import com.xebia.functional.xef.llm.Completion
 import com.xebia.functional.xef.llm.models.text.CompletionChoice

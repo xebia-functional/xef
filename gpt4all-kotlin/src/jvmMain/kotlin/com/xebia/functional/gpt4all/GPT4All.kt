@@ -67,7 +67,7 @@ interface GPT4All : AutoCloseable, Chat, Completion {
       override val modelID = ModelID(path.name)
       val llModel = LLModel(path)
 
-      override fun copy(modelType: ModelID) =
+      override fun copy(modelID: ModelID) =
         GPT4All(url, path)
 
       override suspend fun createCompletion(request: CompletionRequest): CompletionResult =

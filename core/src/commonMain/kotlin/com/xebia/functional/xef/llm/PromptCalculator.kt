@@ -44,7 +44,7 @@ internal object PromptCalculator {
       if (ctxInfo.isNotEmpty()) {
         val ctx: String = ctxInfo.joinToString("\n")
 
-        val ctxTruncated: String = llm.modelType.encoding.truncateText(ctx, maxContextTokens)
+        val ctxTruncated: String = llm.truncateText(ctx, maxContextTokens)
 
         Prompt { +assistant(ctxTruncated) }.messages
       } else {
@@ -97,7 +97,7 @@ internal object PromptCalculator {
   }
 
   private fun calculateRemainingTokensForContext(llm: LLM, prompt: Prompt): Int {
-    val maxContextLength: Int = llm.modelType.maxContextLength
+    val maxContextLength: Int = llm.maxContextLength
     val remainingTokens: Int = maxContextLength - prompt.configuration.minResponseTokens
 
     val messagesTokens = llm.tokensFromMessages(prompt.messages)

@@ -2,6 +2,7 @@ package com.xebia.functional.xef.conversation.llm.openai.models
 
 import com.xebia.functional.tokenizer.Encoding
 import com.xebia.functional.tokenizer.EncodingType
+import com.xebia.functional.tokenizer.truncateText
 import com.xebia.functional.xef.llm.LLM
 import com.xebia.functional.xef.llm.models.chat.Message
 
@@ -24,4 +25,7 @@ interface OpenAIModel : LLM {
       tokensPerName = 5
     ) + 10
   }
+
+  override fun truncateText(text: String, maxTokens: Int): String =
+    encoding.truncateText(text, maxTokens)
 }

@@ -1,6 +1,5 @@
 package com.xebia.functional.xef.conversation
 
-import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.data.*
 import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.llm.models.chat.Role

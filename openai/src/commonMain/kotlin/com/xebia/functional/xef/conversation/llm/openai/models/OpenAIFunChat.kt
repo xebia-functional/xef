@@ -2,11 +2,13 @@ package com.xebia.functional.xef.conversation.llm.openai.models
 
 import com.aallam.openai.api.chat.*
 import com.aallam.openai.api.model.ModelId
-import com.xebia.functional.tokenizer.ModelType
+import com.xebia.functional.tokenizer.EncodingType
 import com.xebia.functional.xef.conversation.llm.openai.OpenAI
 import com.xebia.functional.xef.conversation.llm.openai.toInternal
 import com.xebia.functional.xef.conversation.llm.openai.toOpenAI
 import com.xebia.functional.xef.llm.ChatWithFunctions
+import com.xebia.functional.xef.llm.models.MaxContextLength
+import com.xebia.functional.xef.llm.models.ModelID
 import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.llm.models.chat.ChatCompletionChunk
 import com.xebia.functional.xef.llm.models.functions.CFunction
@@ -18,18 +20,20 @@ import kotlinx.serialization.json.Json
 
 class OpenAIFunChat(
   private val provider: OpenAI, // TODO: use context receiver
-  override val modelType: ModelType,
-) : ChatWithFunctions {
+  override val modelID: ModelID,
+  override val contextLength: MaxContextLength,
+  override val encodingType: EncodingType,
+) : ChatWithFunctions, OpenAIModel {
 
   private val client = provider.defaultClient
 
-  override fun copy(modelType: ModelType) = OpenAIFunChat(provider, modelType)
+  override fun copy(modelID: ModelID) = OpenAIFunChat(provider, modelID, contextLength, encodingType)
 
   override suspend fun createChatCompletionWithFunctions(
     request: FunChatCompletionRequest
   ): ChatCompletionResponseWithFunctions {
     val openAIRequest = chatCompletionRequest {
-      model = ModelId(modelType.name)
+      model = ModelId(modelID.value)
       messages = request.messages.map { it.toOpenAI() }
       functions = request.functions.map { it.toOpenAI() }
       temperature = request.temperature
@@ -77,7 +81,7 @@ class OpenAIFunChat(
     request: FunChatCompletionRequest
   ): Flow<ChatCompletionChunk> {
     val clientRequest = chatCompletionRequest {
-      model = ModelId(modelType.name)
+      model = ModelId(modelID.value)
       messages = request.messages.map { it.toOpenAI() }
       temperature = request.temperature
       topP = request.topP

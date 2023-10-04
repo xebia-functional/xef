@@ -208,7 +208,7 @@ class OpenAI(internal var token: String? = null, internal var host: String? = nu
     baseModel: T
   ): T { // TODO: impl of abstract provider function
     if (findModel(modelId) == null) error("model not found")
-    return baseModel.copy(ModelType.FineTunedModel(modelId, baseModel = baseModel.modelType)) as? T
+    return baseModel.copy(ModelID(modelId)) as? T
       ?: error("${baseModel::class} does not follow contract to return the most specific type")
   }
 

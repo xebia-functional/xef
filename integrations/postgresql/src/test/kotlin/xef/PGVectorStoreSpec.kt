@@ -1,9 +1,9 @@
 package xef
 
-import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.llm.Embeddings
 import com.xebia.functional.xef.llm.LLM
+import com.xebia.functional.xef.llm.models.ModelID
 import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.llm.models.embeddings.Embedding
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
@@ -109,9 +109,12 @@ class PGVectorStoreSpec :
     }
   })
 
-class TestLLM(override val modelType: ModelType = ModelType.ADA) : Chat, AutoCloseable {
-  override fun copy(modelType: ModelType) =
-    TestLLM(modelType)
+class TestLLM : Chat, AutoCloseable {
+
+  override val modelID = ModelID("test-llm")
+
+  override fun copy(modelID: ModelID) =
+    TestLLM()
 
   override fun tokensFromMessages(messages: List<Message>): Int = messages.map { calculateTokens(it) }.sum()
 
@@ -148,7 +151,7 @@ private fun Embeddings.Companion.mock(
   }
 ): Embeddings =
   object : Embeddings {
-    override fun copy(modelType: ModelType): LLM {
+    override fun copy(modelID: ModelID): LLM {
       throw NotImplementedError()
     }
     override suspend fun embedDocuments(
@@ -164,5 +167,5 @@ private fun Embeddings.Companion.mock(
       createEmbeddings(request)
 
 
-    override val modelType: ModelType = ModelType.TODO("test-embeddings")
+    override val modelID = ModelID("test-embeddings")
   }

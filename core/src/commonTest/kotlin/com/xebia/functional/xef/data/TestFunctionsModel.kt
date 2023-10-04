@@ -1,8 +1,8 @@
 package com.xebia.functional.xef.data
 
-import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.llm.Embeddings
+import com.xebia.functional.xef.llm.models.ModelID
 import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingResult
@@ -12,13 +12,13 @@ import com.xebia.functional.xef.llm.models.usage.Usage
 import kotlinx.coroutines.flow.Flow
 
 class TestFunctionsModel(
-  override val modelType: ModelType,
+  override val modelID: ModelID,
   val responses: Map<String, String> = emptyMap(),
 ) : ChatWithFunctions, Embeddings, AutoCloseable {
 
   var requests: MutableList<FunChatCompletionRequest> = mutableListOf()
 
-  override fun copy(modelType: ModelType) = TestFunctionsModel(modelType, responses)
+  override fun copy(modelID: ModelID) = TestFunctionsModel(modelID, responses)
 
   override fun tokensFromMessages(messages: List<Message>): Int {
     return messages.sumOf { it.content.length }

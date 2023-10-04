@@ -3,12 +3,17 @@ package com.xebia.functional.xef.llm
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
+import com.xebia.functional.xef.llm.models.MaxContextLength
 import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.assistant
 import kotlinx.coroutines.flow.*
 
 interface Chat : LLM {
+
+  val contextLength: MaxContextLength
+
+  override val maxContextLength get() = (contextLength as MaxContextLength.Combined).total
 
   suspend fun createChatCompletion(request: ChatCompletionRequest): ChatCompletionResponse
 
