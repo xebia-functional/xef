@@ -4,6 +4,9 @@ import arrow.continuations.SuspendApp
 import arrow.continuations.ktor.server
 import arrow.fx.coroutines.resourceScope
 import com.typesafe.config.ConfigFactory
+import com.xebia.functional.xef.server.ai.providers.DefaultPathProvider
+import com.xebia.functional.xef.server.ai.providers.MLflowApiProvider
+import com.xebia.functional.xef.server.ai.providers.OpenAIApiProvider
 import com.xebia.functional.xef.server.db.psql.Migrate
 import com.xebia.functional.xef.server.db.psql.XefDatabaseConfig
 import com.xebia.functional.xef.server.db.psql.XefVectorStoreConfig
@@ -80,7 +83,9 @@ object Server {
                 exceptionsHandler()
                 routing {
                     xefRoutes(logger)
-                    aiRoutes(ktorClient)
+                    aiRoutes(OpenAIApiProvider(ktorClient))
+                    // TODO - Remove before merge
+//                    aiRoutes(MLflowApiProvider("http://127.0.0.1:5000/gateway", DefaultPathProvider, ktorClient))
                 }
             }
             awaitCancellation()
