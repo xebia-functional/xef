@@ -43,10 +43,10 @@ class MLflowChat(
     )
   }
 
-  /** MLFlow currently doesn't support streaming responses */
   override suspend fun createChatCompletions(
     request: ChatCompletionRequest
   ): Flow<ChatCompletionChunk> =
+    // TODO - Review if MLflow Gateway has streaming support
     with(request) {
       return flow {
         val response: MLflowClient.ChatResponse =
