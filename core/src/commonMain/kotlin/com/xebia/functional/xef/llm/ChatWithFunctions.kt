@@ -26,7 +26,11 @@ interface ChatWithFunctions : LLM {
 
   @Deprecated("will be moved out of LLM in favor of abstracting former ModelType")
   override val maxContextLength
-    get() = (contextLength as MaxIoContextLength.Combined).total
+    get() =
+      (contextLength as? MaxIoContextLength.Combined)?.total
+        ?: error(
+          "accessing maxContextLength requires model's context length to be of type ${MaxIoContextLength.Combined::class.qualifiedName}"
+        )
 
   suspend fun createChatCompletionWithFunctions(
     request: FunChatCompletionRequest

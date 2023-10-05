@@ -4,7 +4,6 @@ import arrow.fx.coroutines.parMap
 import com.xebia.functional.tokenizer.truncateText
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.Chat
-import com.xebia.functional.xef.llm.models.MaxIoContextLength
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.assistantSteps
 import com.xebia.functional.xef.prompt.templates.system
@@ -39,11 +38,8 @@ class Summarize(
     summarizeLargeText(text = input, summaryLength = summaryLength)
 
   private suspend fun summarizeChunk(chunk: String, summaryLength: SummaryLength): String {
-    val maxContextLength =
-      when (val contextLength = model.contextLength) {
-        is MaxIoContextLength.Combined -> contextLength.total
-        is MaxIoContextLength.Fix -> contextLength.input
-      } - 1000 // magic padding for functions and memory
+    val maxContextLength: Int =
+      model.maxContextLength - 1000 // magic padding for functions and memory
     val promptTokens: Int = model.modelType.encoding.countTokens(chunk)
     logger.info {
       "📝 Summarizing chunk with prompt tokens $promptTokens for length $summaryLength"
@@ -77,12 +73,8 @@ class Summarize(
     }
   }
 
-  private suspend fun chunkText(text: String): List<String> {
-    val maxTokens =
-      when (val contextLength = model.contextLength) {
-        is MaxIoContextLength.Combined -> contextLength.total
-        is MaxIoContextLength.Fix -> contextLength.input
-      } - 2000 // magic padding for functions and memory
+  private fun chunkText(text: String): List<String> {
+    val maxTokens = model.maxContextLength - 2000 // magic padding for functions and memory
     val firstPart = model.modelType.encoding.truncateText(text, maxTokens)
     val remainingText = text.removePrefix(firstPart)
 
