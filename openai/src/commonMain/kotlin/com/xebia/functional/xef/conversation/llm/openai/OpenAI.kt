@@ -32,7 +32,6 @@ class OpenAI(internal var token: String? = null, internal var host: String? = nu
   AutoCloseable, AutoClose by autoClose() {
 
   private fun openAITokenFromEnv(): String {
-    OpenAIHost.OpenAI.baseUrl
     return getenv(KEY_ENV_VAR)
       ?: throw AIError.Env.OpenAI(nonEmptyListOf("missing $KEY_ENV_VAR env var"))
   }

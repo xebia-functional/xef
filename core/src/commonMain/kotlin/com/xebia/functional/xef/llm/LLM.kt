@@ -42,7 +42,7 @@ import com.xebia.functional.xef.llm.models.chat.Message
   override fun close() = Unit
 }
 
-/** intermediary solution */
+@Deprecated("intermediary solution; see #405")
 class ModelType(
   val encodingType: EncodingType,
 ) {
