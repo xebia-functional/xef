@@ -1,5 +1,6 @@
 package com.xebia.functional.xef.llm
 
+import com.xebia.functional.tokenizer.EncodingType
 import com.xebia.functional.xef.llm.models.ModelID
 import com.xebia.functional.xef.llm.models.chat.Message
 
@@ -8,6 +9,14 @@ import com.xebia.functional.xef.llm.models.chat.Message
 /*sealed */ interface LLM : AutoCloseable {
 
   val modelID: ModelID
+
+  @Deprecated("intermediary solution, will be removed in future PR")
+  val modelType: ModelType
+    get() = when {
+      modelID.value.lowercase().startsWith("gpt") -> EncodingType.CL100K_BASE
+      modelID.value.lowercase() == "text-embedding-ada-002" -> EncodingType.CL100K_BASE
+      else -> EncodingType.P50K_BASE
+    }.let { ModelType(it) }
 
   @Deprecated("use modelID.value instead", replaceWith = ReplaceWith("modelID.value"))
   val name
@@ -30,4 +39,13 @@ import com.xebia.functional.xef.llm.models.chat.Message
     get() = TODO()
 
   override fun close() = Unit
+}
+
+/**
+ * intermediary solution
+ */
+class ModelType(
+  val encodingType: EncodingType,
+) {
+  val encoding get() = encodingType.encoding
 }

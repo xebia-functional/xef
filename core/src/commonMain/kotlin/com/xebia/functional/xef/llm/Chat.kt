@@ -13,6 +13,7 @@ interface Chat : LLM {
 
   val contextLength: MaxIoContextLength
 
+  @Deprecated("will be moved out of LLM in favor of abstracting former ModelType")
   override val maxContextLength
     get() = (contextLength as MaxIoContextLength.Combined).total
 

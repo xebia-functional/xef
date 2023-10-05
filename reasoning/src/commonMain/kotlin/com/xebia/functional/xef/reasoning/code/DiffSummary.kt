@@ -66,7 +66,7 @@ class DiffSummary(
       "Could not read diff from url ${extracted.url}"
     } else {
       val content = diff.bodyAsText()
-      if (chat.modelType.encoding.countTokens(content) >= chat.modelType.maxContextLength / 2) {
+      if (chat.modelType.encoding.countTokens(content) >= chat.maxContextLength / 2) {
         val summary = summarize(diff.bodyAsText())
         createPRDescription(summary)
       } else {

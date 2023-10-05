@@ -98,7 +98,7 @@ private class JDBCSQLImpl(
       val results = resultSet.toDocuments(prompt)
       logger.debug { "Found: ${results.size} records" }
       val splitter = TokenTextSplitter(
-        modelType = config.model.modelType, chunkSize = config.model.modelType.maxContextLength / 2, chunkOverlap = 10
+        encodingType = config.model.modelType.encodingType, chunkSize = config.model.maxContextLength / 2, chunkOverlap = 10
       )
       val splitDocuments = splitter.splitDocuments(results)
       logger.debug { "Split into: ${splitDocuments.size} documents" }

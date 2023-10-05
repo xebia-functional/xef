@@ -8,6 +8,7 @@ import com.xebia.functional.xef.env.getenv
 import com.xebia.functional.xef.gcp.models.GcpChat
 import com.xebia.functional.xef.gcp.models.GcpEmbeddings
 import com.xebia.functional.xef.llm.LLM
+import com.xebia.functional.xef.llm.models.MaxIoContextLength
 import com.xebia.functional.xef.llm.models.ModelID
 import com.xebia.functional.xef.store.LocalVectorStore
 import com.xebia.functional.xef.store.VectorStore
@@ -47,8 +48,15 @@ class GCP(projectId: String? = null, location: VertexAIRegion? = null, token: St
 
   val defaultClient = GcpClient(config)
 
-  val CODECHAT by lazy { GcpChat(this, ModelID("codechat-bison@001")) }
-  val TEXT_EMBEDDING_GECKO by lazy { GcpEmbeddings(this, ModelID("textembedding-gecko")) }
+  val CODECHAT by lazy { GcpChat(
+    provider = this,
+    modelID = ModelID("codechat-bison@001"),
+    contextLength = MaxIoContextLength.Fix(6144, 1024),
+  ) }
+  val TEXT_EMBEDDING_GECKO by lazy { GcpEmbeddings(
+    provider = this,
+    modelID = ModelID("textembedding-gecko"),
+  ) }
 
   @JvmField val DEFAULT_CHAT = CODECHAT
   @JvmField val DEFAULT_EMBEDDING = TEXT_EMBEDDING_GECKO
