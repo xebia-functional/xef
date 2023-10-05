@@ -6,5 +6,6 @@ import com.xebia.functional.xef.llm.models.text.CompletionResult
 
 interface Completion : LLM {
   val contextLength: MaxIoContextLength
+
   suspend fun createCompletion(request: CompletionRequest): CompletionResult
 }

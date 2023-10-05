@@ -12,11 +12,12 @@ import com.xebia.functional.xef.llm.models.chat.Message
 
   @Deprecated("intermediary solution, will be removed in future PR")
   val modelType: ModelType
-    get() = when {
-      modelID.value.lowercase().startsWith("gpt") -> EncodingType.CL100K_BASE
-      modelID.value.lowercase() == "text-embedding-ada-002" -> EncodingType.CL100K_BASE
-      else -> EncodingType.P50K_BASE
-    }.let { ModelType(it) }
+    get() =
+      when {
+        modelID.value.lowercase().startsWith("gpt") -> EncodingType.CL100K_BASE
+        modelID.value.lowercase() == "text-embedding-ada-002" -> EncodingType.CL100K_BASE
+        else -> EncodingType.P50K_BASE
+      }.let { ModelType(it) }
 
   @Deprecated("use modelID.value instead", replaceWith = ReplaceWith("modelID.value"))
   val name
@@ -41,11 +42,10 @@ import com.xebia.functional.xef.llm.models.chat.Message
   override fun close() = Unit
 }
 
-/**
- * intermediary solution
- */
+/** intermediary solution */
 class ModelType(
   val encodingType: EncodingType,
 ) {
-  val encoding get() = encodingType.encoding
+  val encoding
+    get() = encodingType.encoding
 }
