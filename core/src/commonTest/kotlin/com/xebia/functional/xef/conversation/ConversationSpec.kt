@@ -1,6 +1,7 @@
 package com.xebia.functional.xef.conversation
 
 import com.xebia.functional.xef.data.*
+import com.xebia.functional.xef.llm.models.MaxIoContextLength
 import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.llm.models.chat.Role
 import com.xebia.functional.xef.prompt.Prompt
@@ -23,7 +24,7 @@ class ConversationSpec :
     "memories should have the correct size in the vector store" {
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
-      val model = TestModel(modelType = ModelType.ADA)
+      val model = TestModel()
 
       val scope = Conversation(LocalVectorStore(TestEmbeddings()), conversationId = conversationId)
 
@@ -50,7 +51,7 @@ class ConversationSpec :
       val scope = Conversation(LocalVectorStore(TestEmbeddings()), conversationId = conversationId)
       val vectorStore = scope.store
 
-      val modelAda = TestModel(modelType = ModelType.ADA, responses = messages)
+      val modelAda = TestModel(responses = messages)
 
       val totalTokens =
         modelAda.tokensFromMessages(
@@ -88,7 +89,7 @@ class ConversationSpec :
       val vectorStore = scope.store
 
       val modelGPTTurbo16K =
-        TestModel(modelType = ModelType.GPT_3_5_TURBO_16_K, responses = messages)
+        TestModel(contextLength = MaxIoContextLength.Combined(16388), responses = messages)
 
       val totalTokens =
         modelGPTTurbo16K.tokensFromMessages(
@@ -123,8 +124,7 @@ class ConversationSpec :
       val conversationId = ConversationId(UUID.generateUUID().toString())
       val scope = Conversation(LocalVectorStore(TestEmbeddings()), conversationId = conversationId)
 
-      val model =
-        TestFunctionsModel(modelType = ModelType.GPT_3_5_TURBO_FUNCTIONS, responses = message)
+      val model = TestFunctionsModel(responses = message)
 
       val response: Answer =
         model.prompt(prompt = Prompt(question), scope = scope, serializer = Answer.serializer())
@@ -147,8 +147,7 @@ class ConversationSpec :
       val conversationId = ConversationId(UUID.generateUUID().toString())
       val scope = Conversation(LocalVectorStore(TestEmbeddings()), conversationId = conversationId)
 
-      val model =
-        TestFunctionsModel(modelType = ModelType.GPT_3_5_TURBO_FUNCTIONS, responses = message)
+      val model = TestFunctionsModel(responses = message)
 
       val response: Answer =
         model.prompt(
@@ -167,7 +166,7 @@ class ConversationSpec :
     "the scope's store should contains all the messages" {
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
-      val model = TestModel(modelType = ModelType.ADA)
+      val model = TestModel()
 
       val scope = Conversation(LocalVectorStore(TestEmbeddings()), conversationId = conversationId)
 
@@ -213,7 +212,7 @@ class ConversationSpec :
     "when using 2 different scopes with the same conversationId, the index of the memories should be in order" {
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
-      val model = TestModel(modelType = ModelType.ADA)
+      val model = TestModel()
 
       val vectorStore = LocalVectorStore(TestEmbeddings())
 

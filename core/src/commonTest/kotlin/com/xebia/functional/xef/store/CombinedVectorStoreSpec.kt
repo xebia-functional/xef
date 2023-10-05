@@ -8,7 +8,7 @@ import io.kotest.matchers.shouldBe
 class CombinedVectorStoreSpec :
   StringSpec({
     "memories function should return all of messages combined in the right order" {
-      val model = TestModel(modelType = ModelType.ADA)
+      val model = TestModel()
 
       val memoryData = MemoryData()
 
@@ -26,7 +26,7 @@ class CombinedVectorStoreSpec :
     }
 
     "memories function should return the last n combined messages in the right order" {
-      val model = TestModel(modelType = ModelType.ADA)
+      val model = TestModel()
 
       val memoryData = MemoryData()
 
@@ -52,7 +52,7 @@ class CombinedVectorStoreSpec :
     }
 
     "memories function should return the messages with common conversation id combined in the right order" {
-      val model = TestModel(modelType = ModelType.ADA)
+      val model = TestModel()
 
       val memoryData = MemoryData()
 
@@ -80,7 +80,7 @@ class CombinedVectorStoreSpec :
     }
 
     "adding messages to a combined vector store" {
-      val model = TestModel(modelType = ModelType.ADA)
+      val model = TestModel()
 
       val memoryData = MemoryData()
 

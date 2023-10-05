@@ -3,6 +3,7 @@ package xef
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.llm.Embeddings
 import com.xebia.functional.xef.llm.LLM
+import com.xebia.functional.xef.llm.models.MaxIoContextLength
 import com.xebia.functional.xef.llm.models.ModelID
 import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.llm.models.embeddings.Embedding
@@ -112,6 +113,7 @@ class PGVectorStoreSpec :
 class TestLLM : Chat, AutoCloseable {
 
   override val modelID = ModelID("test-llm")
+  override val contextLength = MaxIoContextLength.Combined(Integer.MAX_VALUE)
 
   override fun copy(modelID: ModelID) =
     TestLLM()

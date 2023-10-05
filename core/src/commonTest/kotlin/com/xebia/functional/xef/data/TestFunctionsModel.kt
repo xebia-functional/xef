@@ -2,6 +2,7 @@ package com.xebia.functional.xef.data
 
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.llm.Embeddings
+import com.xebia.functional.xef.llm.models.MaxIoContextLength
 import com.xebia.functional.xef.llm.models.ModelID
 import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
@@ -12,13 +13,15 @@ import com.xebia.functional.xef.llm.models.usage.Usage
 import kotlinx.coroutines.flow.Flow
 
 class TestFunctionsModel(
-  override val modelID: ModelID,
+  override val contextLength: MaxIoContextLength = MaxIoContextLength.Combined(Int.MAX_VALUE),
   val responses: Map<String, String> = emptyMap(),
 ) : ChatWithFunctions, Embeddings, AutoCloseable {
 
+  override val modelID = ModelID("test-model")
+
   var requests: MutableList<FunChatCompletionRequest> = mutableListOf()
 
-  override fun copy(modelID: ModelID) = TestFunctionsModel(modelID, responses)
+  override fun copy(modelID: ModelID) = TestFunctionsModel(contextLength, responses)
 
   override fun tokensFromMessages(messages: List<Message>): Int {
     return messages.sumOf { it.content.length }

@@ -8,7 +8,7 @@ import io.kotest.matchers.shouldBe
 class LocalVectorStoreSpec :
   StringSpec({
     "memories function should return all of messages in the right order when the limit is greater than the number of stored messages" {
-      val model = TestModel(modelType = ModelType.ADA)
+      val model = TestModel()
       val localVectorStore = LocalVectorStore(TestEmbeddings())
 
       val memoryData = MemoryData()
@@ -28,7 +28,7 @@ class LocalVectorStoreSpec :
     }
 
     "memories function should return the last n messages in the right order" {
-      val model = TestModel(modelType = ModelType.ADA)
+      val model = TestModel()
       val localVectorStore = LocalVectorStore(TestEmbeddings())
 
       val memoryData = MemoryData()
@@ -48,7 +48,7 @@ class LocalVectorStoreSpec :
     }
 
     "memories function should return the last n messages in the right order for a specific conversation id" {
-      val model = TestModel(modelType = ModelType.ADA)
+      val model = TestModel()
       val localVectorStore = LocalVectorStore(TestEmbeddings())
 
       val firstId = ConversationId("first-id")
