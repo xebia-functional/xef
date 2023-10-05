@@ -19,6 +19,36 @@ import kotlin.jvm.JvmSynthetic
 
 private const val MLFLOW_GATEWAY_URI = "MLFLOW_GATEWAY_URI"
 
+/**
+ * MLflow Gateway integration. Model types are specified in the MLflow configuration
+ * and the client needs to specify the route path. An example of a configuration compatible
+ * with the model defined is:
+ *
+ * routes:
+ *   - name: completions
+ *     route_type: llm/v1/completions
+ *     model:
+ *       provider: openai
+ *       name: gpt-3.5-turbo
+ *       config:
+ *         openai_api_key: $OPENAI_API_KEY
+ *
+ *   - name: chat
+ *     route_type: llm/v1/chat
+ *     model:
+ *       provider: openai
+ *       name: gpt-3.5-turbo
+ *       config:
+ *         openai_api_key: $OPENAI_API_KEY
+ *
+ *   - name: embeddings
+ *     route_type: llm/v1/embeddings
+ *     model:
+ *       provider: openai
+ *       name: text-embedding-ada-002
+ *       config:
+ *         openai_api_key: $OPENAI_API_KEY
+ */
 class MLflow(gatewayUri: String? = null) {
   private val config = MLflowConfig(gatewayUri ?: gatewayUriFromEnv())
 
