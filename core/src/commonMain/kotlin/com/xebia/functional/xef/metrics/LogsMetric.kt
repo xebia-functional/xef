@@ -16,7 +16,7 @@ class LogsMetric : Metric {
     block: suspend Metric.() -> A
   ): A {
     val milis = getTimeMillis()
-    val name = "Prompt: ${prompt.messages.lastOrNull()?.content?.substring(0, 15) ?: "empty"}"
+    val name = "Prompt: ${prompt.messages.lastOrNull()?.content ?: "empty"}"
     logger.info { "Start span: $name" }
     val output = block()
     logger.info { "End span (${getTimeMillis()-milis} ms): $name" }

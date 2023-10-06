@@ -3,11 +3,9 @@ package com.xebia.functional.xef.conversation.conversations
 import com.xebia.functional.xef.conversation.llm.openai.OpenAI
 import com.xebia.functional.xef.conversation.llm.openai.prompt
 import com.xebia.functional.xef.conversation.llm.openai.promptMessage
-import com.xebia.functional.xef.opentelemetry.OpenTelemetryMetric
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.system
 import com.xebia.functional.xef.prompt.templates.user
-import com.xebia.functional.xef.store.LocalVectorStore
 import kotlinx.serialization.Serializable
 
 @Serializable data class Animal(val name: String, val habitat: String, val diet: String)
