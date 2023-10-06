@@ -64,37 +64,36 @@ interface ChatWithFunctions : LLM {
     scope: Conversation,
     function: CFunction,
     serializer: (json: String) -> A,
-  ): A {
-    val promptWithFunctions = prompt.copy(function = function)
-    val adaptedPrompt =
-      PromptCalculator.adaptPromptToConversationAndModel(
-        promptWithFunctions,
-        scope,
-        this@ChatWithFunctions
-      )
+  ): A =
+    scope.metric.promptSpan(scope, prompt) {
+      val promptWithFunctions = prompt.copy(function = function)
+      val adaptedPrompt =
+        PromptCalculator.adaptPromptToConversationAndModel(
+          promptWithFunctions,
+          scope,
+          this@ChatWithFunctions
+        )
 
-    val request =
-      FunChatCompletionRequest(
-        user = adaptedPrompt.configuration.user,
-        messages = adaptedPrompt.messages,
-        n = adaptedPrompt.configuration.numberOfPredictions,
-        temperature = adaptedPrompt.configuration.temperature,
-        maxTokens = adaptedPrompt.configuration.minResponseTokens,
-        functions = adaptedPrompt.function!!.nel(),
-        functionCall = mapOf("name" to (adaptedPrompt.function.name)),
-      )
+      val request =
+        FunChatCompletionRequest(
+          user = adaptedPrompt.configuration.user,
+          messages = adaptedPrompt.messages,
+          n = adaptedPrompt.configuration.numberOfPredictions,
+          temperature = adaptedPrompt.configuration.temperature,
+          maxTokens = adaptedPrompt.configuration.minResponseTokens,
+          functions = adaptedPrompt.function!!.nel(),
+          functionCall = mapOf("name" to (adaptedPrompt.function.name)),
+        )
 
-    return tryDeserialize(
-      serializer,
-      promptWithFunctions.configuration.maxDeserializationAttempts
-    ) {
-      val requestedMemories = prompt.messages.toMemory(scope)
-      createChatCompletionWithFunctions(request)
-        .choices
-        .addChoiceWithFunctionsToMemory(scope, requestedMemories)
-        .mapNotNull { it.message?.functionCall?.arguments }
+      tryDeserialize(serializer, promptWithFunctions.configuration.maxDeserializationAttempts) {
+        val requestedMemories = prompt.messages.toMemory(scope)
+        createChatCompletionWithFunctions(request)
+          .addMetrics(scope)
+          .choices
+          .addChoiceWithFunctionsToMemory(scope, requestedMemories)
+          .mapNotNull { it.message?.functionCall?.arguments }
+      }
     }
-  }
 
   @AiDsl
   fun <A> promptStreaming(

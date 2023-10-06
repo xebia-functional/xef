@@ -1,10 +1,13 @@
 package com.xebia.functional.gpt4all
 
 import com.xebia.functional.xef.conversation.Conversation
+import com.xebia.functional.xef.metrics.LogsMetric
+import com.xebia.functional.xef.metrics.Metric
 import com.xebia.functional.xef.store.LocalVectorStore
 import com.xebia.functional.xef.store.VectorStore
 
 suspend inline fun <A> conversation(
     store: VectorStore = LocalVectorStore(HuggingFaceLocalEmbeddings.DEFAULT),
+    metric: Metric = LogsMetric(),
     noinline block: suspend Conversation.() -> A
-): A = block(Conversation(store))
+): A = block(Conversation(store, metric))

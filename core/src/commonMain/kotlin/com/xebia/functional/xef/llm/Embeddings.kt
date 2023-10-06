@@ -18,7 +18,9 @@ interface Embeddings : LLM {
     else
       texts
         .chunked(chunkSize ?: 400)
-        .parMap { createEmbeddings(EmbeddingRequest(name, texts, requestConfig.user.id)).data }
+        .parMap {
+          createEmbeddings(EmbeddingRequest(modelType.name, texts, requestConfig.user.id)).data
+        }
         .flatten()
 
   suspend fun embedQuery(text: String, requestConfig: RequestConfig): List<Embedding> =

@@ -4,6 +4,7 @@ import com.xebia.functional.gpt4all.GPT4All
 import com.xebia.functional.gpt4all.HuggingFaceLocalEmbeddings
 import com.xebia.functional.gpt4all.huggingFaceUrl
 import com.xebia.functional.xef.conversation.Conversation
+import com.xebia.functional.xef.metrics.LogsMetric
 import com.xebia.functional.xef.pdf.pdf
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.store.LocalVectorStore
@@ -24,7 +25,7 @@ suspend fun main() {
 
   // Create an instance of the embeddings
   val embeddings = HuggingFaceLocalEmbeddings.DEFAULT
-  val scope = Conversation(LocalVectorStore(embeddings))
+  val scope = Conversation(LocalVectorStore(embeddings), LogsMetric())
 
   // Fetch and add texts from a PDF document to the vector store
   val results = pdf("https://arxiv.org/pdf/2305.10601.pdf")
