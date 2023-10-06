@@ -1,6 +1,8 @@
 package com.xebia.functional.xef.server.ai.providers
 
 import com.xebia.functional.xef.server.ai.copyFrom
+import com.xebia.functional.xef.server.ai.providers.mlflow.PathProvider
+import com.xebia.functional.xef.server.ai.providers.mlflow.mlflowPathProvider
 import com.xebia.functional.xef.server.models.exceptions.XefExceptions
 import com.xebia.functional.xef.server.models.mlflow.*
 import io.ktor.client.*
@@ -10,9 +12,12 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
+import org.slf4j.Logger
 
+@OptIn(ExperimentalSerializationApi::class)
 class MLflowApiProvider(
     private val gatewayUrl: String,
     private val pathProvider: PathProvider,
@@ -31,7 +36,7 @@ class MLflowApiProvider(
             val path = pathProvider.chatPath(model, principal)
             val newData = requestData.filterKeys { !filterOutFields.contains(it) }.mapKeys {mappedFields.getOrDefault(it.key, it.key) }
             val newBody = Json.encodeToString(JsonObject(newData)).toByteArray(Charsets.UTF_8)
-            val response = client.post("$gatewayUrl/$path/invocations")  {
+            val response = client.post("$gatewayUrl$path")  {
                 accept(ContentType.Application.Json)
                 contentType(ContentType.Application.Json)
                 setBody(newBody)
@@ -47,6 +52,8 @@ class MLflowApiProvider(
         }
     }
 
+    private val json = Json { explicitNulls = false }
+
     override suspend fun embeddingsRequest(call: ApplicationCall, requestBody: ByteArray) {
         val stringRequestBody = requestBody.toString(Charsets.UTF_8)
         val requestData = Json.decodeFromString<JsonObject>(stringRequestBody)
@@ -55,7 +62,7 @@ class MLflowApiProvider(
         val path = pathProvider.embeddingsPath(model, principal)
         val newData = requestData.filterKeys { !it.equals("model", true) }
         val newBody = Json.encodeToString(JsonObject(newData)).toByteArray(Charsets.UTF_8)
-        val response = client.post("$gatewayUrl/$path/invocations")  {
+        val response = client.post("$gatewayUrl$path")  {
             accept(ContentType.Application.Json)
             contentType(ContentType.Application.Json)
             setBody(newBody)
@@ -67,7 +74,12 @@ class MLflowApiProvider(
             val stringResponseBody = response.bodyAsText()
             val responseData = Json.decodeFromString<EmbeddingsResponse>(stringResponseBody)
             // TODO - Any way to ignore nulls on serialization?
-            call.respond(response.status, Json.encodeToString(responseData.toOpenAI()).toByteArray(Charsets.UTF_8))
+            call.respond(response.status, json.encodeToString(responseData.toOpenAI()).toByteArray(Charsets.UTF_8))
         } else call.respond(response.status, response.readBytes())
     }
+}
+
+suspend fun mlflowApiProvider(gatewayUrl: String, client: HttpClient): MLflowApiProvider {
+    val pathProvider = mlflowPathProvider(gatewayUrl, client)
+    return MLflowApiProvider(gatewayUrl, pathProvider, client)
 }
