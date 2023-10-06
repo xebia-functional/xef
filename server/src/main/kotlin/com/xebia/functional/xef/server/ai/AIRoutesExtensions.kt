@@ -20,7 +20,7 @@ suspend fun HttpClient.makeRequest(
         method = HttpMethod.Post
         setBody(body)
     }
-    call.response.headers.copyFrom(response.headers)
+    call.response.headers.copyFrom(response.headers, "Content-Length")
     call.respond(response.status, response.readBytes())
 }
 
@@ -34,7 +34,7 @@ suspend fun HttpClient.makeStreaming(
         method = HttpMethod.Post
         setBody(body)
     }.execute { httpResponse ->
-        call.response.headers.copyFrom(httpResponse.headers)
+        call.response.headers.copyFrom(httpResponse.headers, "Content-Length")
         call.respondOutputStream {
             httpResponse
                 .bodyAsChannel()

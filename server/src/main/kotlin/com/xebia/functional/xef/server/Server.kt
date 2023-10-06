@@ -82,7 +82,7 @@ object Server {
                 exceptionsHandler()
                 routing {
                     xefRoutes(logger)
-                    aiRoutes(OpenAIApiProvider(ktorClient))
+                    aiRoutes(OpenAIApiProvider("https://api.openai.com/v1", ktorClient))
                 }
             }
             awaitCancellation()
