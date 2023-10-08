@@ -40,74 +40,16 @@ fun Routing.aiRoutes(
 
     authenticate("auth-bearer") {
         post("/chat/completions") {
-            val token = call.getToken()
-            val byteArrayBody = call.receiveChannel().toByteArray()
-            val body = byteArrayBody.toString(Charsets.UTF_8)
-            val data = Json.decodeFromString<JsonObject>(body)
-
+            val data = call.receive<JsonObject>()
             val isStream = data["stream"]?.jsonPrimitive?.boolean ?: false
-
-            if (!isStream) {
-                client.makeRequest(call, "$openAiUrl/chat/completions", byteArrayBody, token)
-            } else {
-                client.makeStreaming(call, "$openAiUrl/chat/completions", byteArrayBody, token)
-            }
+            forwardToProvider(client, stream = isStream, url = "$openAiUrl/chat/completions")
         }
 
         post("/embeddings") {
-            val token = call.getToken()
-            val context = call.receiveChannel().toByteArray()
-            client.makeRequest(call, "$openAiUrl/embeddings", context, token)
+            forwardToProvider(client, url = "$openAiUrl/embeddings")
         }
     }
 }
-
-private suspend fun HttpClient.makeRequest(
-    call: ApplicationCall,
-    url: String,
-    body: ByteArray,
-    token: Token
-) {
-    val response = this.request(url) {
-        headers.copyFrom(call.request.headers)
-        contentType(ContentType.Application.Json)
-        method = HttpMethod.Post
-        setBody(body)
-    }
-    call.response.headers.copyFrom(response.headers)
-    call.respond(response.status, response.readBytes())
-}
-
-private suspend fun HttpClient.makeStreaming(
-    call: ApplicationCall,
-    url: String,
-    body: ByteArray,
-    token: Token
-) {
-    this.preparePost(url) {
-        headers.copyFrom(call.request.headers)
-        method = HttpMethod.Post
-        setBody(body)
-    }.execute { httpResponse ->
-        call.response.headers.copyFrom(httpResponse.headers)
-        call.respondOutputStream {
-            httpResponse
-                .bodyAsChannel()
-                .copyTo(this@respondOutputStream)
-        }
-    }
-}
-
-private fun ResponseHeaders.copyFrom(headers: Headers) = headers
-    .entries()
-    .filter { (key, _) -> !HttpHeaders.isUnsafe(key) } // setting unsafe headers results in exception
-    .forEach { (key, values) ->
-        values.forEach { value -> this.appendIfAbsent(key, value) }
-    }
-
-internal fun HeadersBuilder.copyFrom(headers: Headers) = headers
-    .filter { key, value -> !key.equals("HOST", ignoreCase = true) }
-    .forEach { key, values -> appendAll(key, values) }
 
 private fun ApplicationCall.getProvider(): Provider =
     request.headers["xef-provider"]?.toProvider()

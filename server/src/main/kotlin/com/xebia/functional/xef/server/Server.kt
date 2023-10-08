@@ -22,7 +22,10 @@ import io.ktor.server.auth.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
+import io.ktor.server.plugins.doublereceive.*
+import io.ktor.server.request.*
 import io.ktor.server.resources.*
+import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.awaitCancellation
 import org.jetbrains.exposed.sql.Database
@@ -69,6 +72,7 @@ object Server {
                     anyHost()
                 }
                 install(ContentNegotiation) { json() }
+                install(DoubleReceive)
                 install(Resources)
                 install(Authentication) {
                     bearer("auth-bearer") {
