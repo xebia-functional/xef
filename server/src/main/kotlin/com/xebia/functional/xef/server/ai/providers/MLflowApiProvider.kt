@@ -21,28 +21,19 @@ class MLflowApiProvider(
     private val client: HttpClient
 ): ApiProvider {
 
-    private val mappedChatFields: Map<String, String> = mapOf("n" to "candidate_count")
-    private val mappedEmbeddingsFields: Map<String, String> = mapOf("input" to "text")
-
-    private val chatKeys = setOf("messages", "temperature", "candidate_count", "stop", "max_tokens")
-    private val embeddingsKeys = setOf("text")
-
     private val json = Json { explicitNulls = false }
 
-    private suspend inline fun <reified T, reified R> makeRequest(
+    private suspend inline fun <reified R1, reified R2> makeRequest(
         call: ApplicationCall,
         requestData: JsonObject,
-        path: (String, UserIdPrincipal) -> String?,
-        mappedFields: Map<String, String>,
-        keys: Set<String>,
-        map: (T) -> R
+        reqResMap: ReqResMap<R1, R2>
     ) {
         val model = requestData["model"]!!.jsonPrimitive.content
         val principal = call.principal<UserIdPrincipal>() ?: throw XefExceptions.AuthorizationException("")
-        val resolvedPath = path(model, principal)
+        val resolvedPath = reqResMap.path(pathProvider, model, principal)
         resolvedPath ?. let {
-            val newData = requestData.mapKeys { mappedFields.getOrDefault(it.key, it.key) }.filterKeys { keys.contains(it) }
-            val newBody = json.encodeToString(JsonObject(newData)).toByteArray(Charsets.UTF_8)
+            val newData = reqResMap.mapRequest(requestData)
+            val newBody = json.encodeToString(newData).toByteArray(Charsets.UTF_8)
             val response = client.post("$gatewayUrl$resolvedPath")  {
                 accept(ContentType.Application.Json)
                 contentType(ContentType.Application.Json)
@@ -53,8 +44,8 @@ class MLflowApiProvider(
             call.response.headers.copyFrom(response.headers, "Content-Length")
             if (response.status.isSuccess()) {
                 val stringResponseBody = response.bodyAsText()
-                val responseData = Json.decodeFromString<T>(stringResponseBody)
-                call.respond(response.status, Json.encodeToString(map(responseData)).toByteArray(Charsets.UTF_8))
+                val responseData = Json.decodeFromString<R1>(stringResponseBody)
+                call.respond(response.status, Json.encodeToString(reqResMap.mapResponse(responseData)).toByteArray(Charsets.UTF_8))
             } else call.respond(response.status, response.readBytes())
         } ?: let {
             call.respond(HttpStatusCode.NotFound, "Model not found")
@@ -70,28 +61,14 @@ class MLflowApiProvider(
         if (isStream) {
             call.respond(HttpStatusCode.NotImplemented, "Stream not supported")
         } else {
-            makeRequest<ChatResponse, OpenAIResponse>(
-                call,
-                requestData,
-                { m, p -> pathProvider.chatPath(m, p) } ,
-                mappedChatFields,
-                chatKeys,
-                { it.toOpenAI() }
-            )
+            makeRequest<ChatResponse, OpenAIResponse>(call, requestData, ChatReqResMap)
         }
     }
 
     override suspend fun embeddingsRequest(call: ApplicationCall, requestBody: ByteArray) {
         val stringRequestBody = requestBody.toString(Charsets.UTF_8)
         val requestData = Json.decodeFromString<JsonObject>(stringRequestBody)
-        makeRequest<EmbeddingsResponse, OpenAIEmbeddingResponse>(
-            call,
-            requestData,
-            { m, p -> pathProvider.embeddingsPath(m, p) } ,
-            mappedEmbeddingsFields,
-            embeddingsKeys,
-            { it.toOpenAI() }
-        )
+        makeRequest<EmbeddingsResponse, OpenAIEmbeddingResponse>(call, requestData, EmbeddingsReqResMap)
     }
 }
 

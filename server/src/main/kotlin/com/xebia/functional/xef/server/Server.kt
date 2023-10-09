@@ -5,7 +5,6 @@ import arrow.continuations.ktor.server
 import arrow.fx.coroutines.resourceScope
 import com.typesafe.config.ConfigFactory
 import com.xebia.functional.xef.server.ai.providers.OpenAIApiProvider
-import com.xebia.functional.xef.server.ai.providers.mlflowApiProvider
 import com.xebia.functional.xef.server.db.psql.Migrate
 import com.xebia.functional.xef.server.db.psql.XefDatabaseConfig
 import com.xebia.functional.xef.server.db.psql.XefVectorStoreConfig
