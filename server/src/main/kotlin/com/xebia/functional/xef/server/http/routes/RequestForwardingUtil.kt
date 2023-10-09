@@ -87,11 +87,11 @@ private suspend fun ApplicationCall.forwardResponse(
 private fun ResponseHeaders.copyFrom(headers: Headers) = headers
     .entries()
     .filter { (key, _) -> !HttpHeaders.isUnsafe(key) } // setting unsafe headers results in exception
-    .filter { (key, _) -> !key.equals("Content-Length", ignoreCase = true) }
+    .filter { (key, _) -> !key.equals(HttpHeaders.ContentLength, ignoreCase = true) }
     .forEach { (key, values) ->
         values.forEach { value -> this.appendIfAbsent(key, value) }
     }
 
 private fun HeadersBuilder.copyFrom(headers: Headers) = headers
-    .filter { key, value -> !key.equals("HOST", ignoreCase = true) }
+    .filter { key, _ -> !key.equals(HttpHeaders.Host, ignoreCase = true) }
     .forEach { key, values -> appendAll(key, values) }
