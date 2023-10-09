@@ -5,7 +5,6 @@ import arrow.continuations.ktor.server
 import arrow.fx.coroutines.resourceScope
 import com.typesafe.config.ConfigFactory
 import com.xebia.functional.xef.server.ai.providers.OpenAIApiProvider
-import com.xebia.functional.xef.server.ai.providers.mlflowApiProvider
 import com.xebia.functional.xef.server.db.psql.Migrate
 import com.xebia.functional.xef.server.db.psql.XefDatabaseConfig
 import com.xebia.functional.xef.server.db.psql.XefVectorStoreConfig
@@ -82,7 +81,7 @@ object Server {
                 exceptionsHandler()
                 routing {
                     xefRoutes(logger)
-                    aiRoutes(OpenAIApiProvider("https://api.openai.com/v1", ktorClient))
+                    aiRoutes(OpenAIApiProvider(ktorClient))
                 }
             }
             awaitCancellation()
