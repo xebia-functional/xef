@@ -18,14 +18,6 @@ interface PathProvider {
     fun chatPath(model: String, principal: UserIdPrincipal): String?
     fun embeddingsPath(model: String, principal: UserIdPrincipal): String?
 }
-object DefaultPathProvider: PathProvider {
-    override fun chatPath(model: String, principal: UserIdPrincipal): String {
-        return "chat"
-    }
-    override fun embeddingsPath(model: String, principal: UserIdPrincipal): String {
-        return "embeddings"
-    }
-}
 
 @Serializable
 data class RoutesResponse(

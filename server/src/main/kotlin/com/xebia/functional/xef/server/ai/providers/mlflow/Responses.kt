@@ -1,4 +1,4 @@
-package com.xebia.functional.xef.server.models.mlflow
+package com.xebia.functional.xef.server.ai.providers.mlflow
 
 import io.ktor.util.date.*
 import kotlinx.serialization.SerialName

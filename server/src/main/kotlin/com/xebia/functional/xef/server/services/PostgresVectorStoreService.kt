@@ -2,7 +2,6 @@ package com.xebia.functional.xef.server.services
 
 import com.xebia.functional.xef.conversation.llm.openai.OpenAI
 import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
-import com.xebia.functional.xef.server.http.routes.Provider
 import com.xebia.functional.xef.store.PGVectorStore
 import com.xebia.functional.xef.store.VectorStore
 import com.xebia.functional.xef.store.postgresql.PGDistanceStrategy
