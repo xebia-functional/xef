@@ -59,13 +59,14 @@ internal suspend inline fun <reified ReqBody : Any> PipelineContext<Unit, Applic
     url: String = buildProviderUrlFromRequest(call.request).toString(),
     noinline transformReqHeaders: HeadersBuilder.() -> Unit = { },
     noinline transformReqParams: ParametersBuilder.() -> Unit = { },
+    reqContentType: ContentType?,
     transformReqBody: (ApplicationCall) -> ReqBody,
 ): HttpResponse = if (stream) {
     client
         .prepareRequest { prepareRequest(call, url) }
         .execute { res -> call.forwardResponse(res, stream = stream); res }
 } else {
-    val response = client.request { prepareRequest(call, urlParam = url, transformReqHeaders, transformReqParams, transformReqBody) }
+    val response = client.request { prepareRequest(call, urlParam = url, transformReqHeaders, transformReqParams, reqContentType, transformReqBody) }
     call.forwardResponse(response, stream = stream)
     response
 }
@@ -75,10 +76,11 @@ internal suspend inline fun <reified ReqBody : Any, reified ResBody : Any> Pipel
     url: String = buildProviderUrlFromRequest(call.request).toString(),
     noinline transformReqHeaders: HeadersBuilder.() -> Unit = { },
     noinline transformReqParams: ParametersBuilder.() -> Unit = { },
+    reqContentType: ContentType? = null,
     transformReqBody: (ApplicationCall) -> ReqBody,
     transformResBody: (HttpResponse) -> ResBody,
 ): HttpResponse {
-    val response = client.request { prepareRequest(call, urlParam = url, transformReqHeaders, transformReqParams, transformReqBody) }
+    val response = client.request { prepareRequest(call, urlParam = url, transformReqHeaders, transformReqParams, reqContentType, transformReqBody) }
     call.forwardResponse(response, transformResBody)
     return response
 }
@@ -93,7 +95,7 @@ private suspend fun HttpRequestBuilder.prepareRequest(
     method = call.request.httpMethod
 
     headers
-        .apply { copyFrom(call.request.headers) } // copy headers
+        .apply { copyFrom(call.request.headers, removeContentType = false) } // copy headers
         .apply(transformHeaders)
     url.parameters
         .apply { appendAll(call.request.queryParameters) } // copy parameters
@@ -111,18 +113,25 @@ private inline fun <reified T : Any> HttpRequestBuilder.prepareRequest(
     urlParam: String,
     transformHeaders: HeadersBuilder.() -> Unit = { },
     transformParams: ParametersBuilder.() -> Unit = { },
+    reqContentType: ContentType?,
     transformBody: (ApplicationCall) -> T,
 ) {
     url(urlParam)
     method = call.request.httpMethod
-    setBody(transformBody(call))
 
     headers
-        .apply { copyFrom(call.request.headers) } // copy headers
+        .apply { copyFrom(call.request.headers, removeContentType = true) } // copy headers
         .apply(transformHeaders)
     url.parameters
         .apply { appendAll(call.request.queryParameters) } // copy parameters
         .apply(transformParams)
+
+    val requestContentType = call.request.headers[HttpHeaders.ContentType]
+    if(reqContentType != null)
+        contentType(reqContentType)
+    else if(requestContentType != null)
+        headers[HttpHeaders.ContentType] = requestContentType // idk why but you actively have to set the content type header
+    setBody<T>(transformBody(call))
 }
 
 private suspend fun ApplicationCall.forwardResponse(
@@ -130,6 +139,7 @@ private suspend fun ApplicationCall.forwardResponse(
     stream: Boolean,
 ) {
     if(stream) {
+        response.headers.copyFrom(providerResponse.headers, removeContentType = false)
         respondOutputStream {
             providerResponse
                 .bodyAsChannel()
@@ -144,17 +154,20 @@ private suspend inline fun <reified T : Any> ApplicationCall.forwardResponse(
     providerResponse: HttpResponse,
     transformBody: (HttpResponse) -> T,
 ) {
+    response.headers.copyFrom(providerResponse.headers, removeContentType = true)
     respond(providerResponse.status, transformBody(providerResponse))
 }
 
-private fun ResponseHeaders.copyFrom(headers: Headers) = headers
+private fun ResponseHeaders.copyFrom(headers: Headers, removeContentType: Boolean) = headers
     .entries()
     .filter { (key, _) -> !HttpHeaders.isUnsafe(key) } // setting unsafe headers results in exception
-    .filter { (key, _) -> !key.equals(HttpHeaders.ContentLength, ignoreCase = true) }
+    .filter { (key, _) -> removeContentType && !key.equals(HttpHeaders.ContentLength, ignoreCase = true) }
     .forEach { (key, values) ->
         values.forEach { value -> this.appendIfAbsent(key, value) }
     }
 
-private fun HeadersBuilder.copyFrom(headers: Headers) = headers
-    .filter { key, _ -> !key.equals(HttpHeaders.Host, ignoreCase = true) }
-    .forEach { key, values -> appendAll(key, values) }
+private fun HeadersBuilder.copyFrom(headers: Headers, removeContentType: Boolean) = headers
+    .entries()
+    .filter { (key, _) -> !key.equals(HttpHeaders.Host, ignoreCase = true) }
+    .filter { (key, _) -> !removeContentType || !key.equals(HttpHeaders.ContentLength, ignoreCase = true) }
+    .forEach { (key, values) -> appendAll(key, values) }
