@@ -88,18 +88,8 @@ data class ResponseMetadata(
 )
 
 @Serializable
-enum class ChatRole {
-    @SerialName("system")
-    SYSTEM,
-    @SerialName("user")
-    USER,
-    @SerialName("assistant")
-    ASSISTANT
-}
-
-@Serializable
 data class ChatMessage(
-    val role: ChatRole,
+    val role: String,
     val content: String
 )
 
@@ -121,7 +111,7 @@ data class EmbeddingsResponse(
     val metadata: ResponseMetadata
 )
 
-fun ResponseMetadata.toOpenAI(): OpenAIResponseUsage =
+private fun ResponseMetadata.toOpenAI(): OpenAIResponseUsage =
     OpenAIResponseUsage(inputTokens, outputTokens, totalTokens)
 
 fun ChatResponse.toOpenAI(): OpenAIResponse =
@@ -133,7 +123,7 @@ fun ChatResponse.toOpenAI(): OpenAIResponse =
         candidates.mapIndexed { index, candidate ->
             OpenAIResponseChoice(
                 index,
-                OpenAIResponseMessage(candidate.message.role.name, candidate.message.content),
+                OpenAIResponseMessage(candidate.message.role, candidate.message.content),
                 candidate.metadata.finishReason
             )
         },
