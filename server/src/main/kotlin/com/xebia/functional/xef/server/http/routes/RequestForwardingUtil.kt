@@ -41,24 +41,63 @@ internal suspend fun PipelineContext<Unit, ApplicationCall>.forwardToProvider(
     client: HttpClient,
     stream: Boolean = false,
     url: String = buildProviderUrlFromRequest(call.request).toString(),
+    transformReqHeaders: HeadersBuilder.() -> Unit = { },
+    transformReqParams: ParametersBuilder.() -> Unit = { },
+): HttpResponse = if (stream) {
+    client
+        .prepareRequest { prepareRequest(call, url, transformReqHeaders, transformReqParams) }
+        .execute { res -> call.forwardResponse(res, stream = stream); res }
+} else {
+    val response = client.request { prepareRequest(call, urlParam = url, transformReqHeaders, transformReqParams) }
+    call.forwardResponse(response, stream = stream)
+    response
+}
+
+internal suspend inline fun <reified ReqBody : Any> PipelineContext<Unit, ApplicationCall>.forwardToProvider(
+    client: HttpClient,
+    stream: Boolean = false,
+    url: String = buildProviderUrlFromRequest(call.request).toString(),
+    noinline transformReqHeaders: HeadersBuilder.() -> Unit = { },
+    noinline transformReqParams: ParametersBuilder.() -> Unit = { },
+    transformReqBody: (ApplicationCall) -> ReqBody,
 ): HttpResponse = if (stream) {
     client
         .prepareRequest { prepareRequest(call, url) }
         .execute { res -> call.forwardResponse(res, stream = stream); res }
 } else {
-    val response = client.request { prepareRequest(call, url) }
+    val response = client.request { prepareRequest(call, urlParam = url, transformReqHeaders, transformReqParams, transformReqBody) }
     call.forwardResponse(response, stream = stream)
     response
+}
+
+internal suspend inline fun <reified ReqBody : Any, reified ResBody : Any> PipelineContext<Unit, ApplicationCall>.forwardToProvider(
+    client: HttpClient,
+    url: String = buildProviderUrlFromRequest(call.request).toString(),
+    noinline transformReqHeaders: HeadersBuilder.() -> Unit = { },
+    noinline transformReqParams: ParametersBuilder.() -> Unit = { },
+    transformReqBody: (ApplicationCall) -> ReqBody,
+    transformResBody: (HttpResponse) -> ResBody,
+): HttpResponse {
+    val response = client.request { prepareRequest(call, urlParam = url, transformReqHeaders, transformReqParams, transformReqBody) }
+    call.forwardResponse(response, transformResBody)
+    return response
 }
 
 private suspend fun HttpRequestBuilder.prepareRequest(
     call: ApplicationCall,
     urlParam: String,
+    transformHeaders: HeadersBuilder.() -> Unit = { },
+    transformParams: ParametersBuilder.() -> Unit = { },
 ) {
     url(urlParam)
     method = call.request.httpMethod
-    headers.copyFrom(call.request.headers) // copy headers
-    url.parameters.appendAll(call.request.queryParameters) // copy parameters
+
+    headers
+        .apply { copyFrom(call.request.headers) } // copy headers
+        .apply(transformHeaders)
+    url.parameters
+        .apply { appendAll(call.request.queryParameters) } // copy parameters
+        .apply(transformParams)
 
     val body = call
         .receiveChannel()
@@ -67,12 +106,29 @@ private suspend fun HttpRequestBuilder.prepareRequest(
     setBody(body)
 }
 
+private inline fun <reified T : Any> HttpRequestBuilder.prepareRequest(
+    call: ApplicationCall,
+    urlParam: String,
+    transformHeaders: HeadersBuilder.() -> Unit = { },
+    transformParams: ParametersBuilder.() -> Unit = { },
+    transformBody: (ApplicationCall) -> T,
+) {
+    url(urlParam)
+    method = call.request.httpMethod
+    setBody(transformBody(call))
+
+    headers
+        .apply { copyFrom(call.request.headers) } // copy headers
+        .apply(transformHeaders)
+    url.parameters
+        .apply { appendAll(call.request.queryParameters) } // copy parameters
+        .apply(transformParams)
+}
+
 private suspend fun ApplicationCall.forwardResponse(
     providerResponse: HttpResponse,
     stream: Boolean,
 ) {
-    response.headers.copyFrom(providerResponse.headers)
-
     if(stream) {
         respondOutputStream {
             providerResponse
@@ -82,6 +138,13 @@ private suspend fun ApplicationCall.forwardResponse(
     } else {
         respond(providerResponse.status, providerResponse.readBytes())
     }
+}
+
+private suspend inline fun <reified T : Any> ApplicationCall.forwardResponse(
+    providerResponse: HttpResponse,
+    transformBody: (HttpResponse) -> T,
+) {
+    respond(providerResponse.status, transformBody(providerResponse))
 }
 
 private fun ResponseHeaders.copyFrom(headers: Headers) = headers
