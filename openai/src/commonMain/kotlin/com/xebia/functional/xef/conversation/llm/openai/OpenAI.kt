@@ -35,7 +35,7 @@ class OpenAI(
   internal var timeout: Timeout = Timeout.default()
 ) : AutoCloseable, AutoClose by autoClose() {
 
-  class Timeout private constructor(
+  class Timeout(
     val request: Duration,
     val connect: Duration,
     val socket: Duration,
