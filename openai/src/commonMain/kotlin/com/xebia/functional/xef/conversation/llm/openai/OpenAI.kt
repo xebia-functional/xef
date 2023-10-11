@@ -22,12 +22,32 @@ import kotlin.jvm.JvmField
 import kotlin.jvm.JvmOverloads
 import kotlin.jvm.JvmStatic
 import kotlin.jvm.JvmSynthetic
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 private const val KEY_ENV_VAR = "OPENAI_TOKEN"
 private const val HOST_ENV_VAR = "OPENAI_HOST"
 
-class OpenAI(internal var token: String? = null, internal var host: String? = null) :
-  AutoCloseable, AutoClose by autoClose() {
+class OpenAI(
+  internal var token: String? = null,
+  internal var host: String? = null,
+  internal var timeout: Timeout = Timeout.default()
+) : AutoCloseable, AutoClose by autoClose() {
+
+  class Timeout private constructor(
+    val request: Duration,
+    val connect: Duration,
+    val socket: Duration,
+  ) {
+    companion object {
+      private val REQUEST_TIMEOUT = 30.seconds
+      private val CONNECT_TIMEOUT = 10.minutes
+      private val SOCKET_TIMEOUT = 10.minutes
+
+      fun default(): Timeout = Timeout(REQUEST_TIMEOUT, CONNECT_TIMEOUT, SOCKET_TIMEOUT)
+    }
+  }
 
   private fun openAITokenFromEnv(): String {
     return getenv(KEY_ENV_VAR)
@@ -65,6 +85,7 @@ class OpenAI(internal var token: String? = null, internal var host: String? = nu
         token = getToken(),
         logging = LoggingConfig(LogLevel.None),
         headers = mapOf("Authorization" to " Bearer ${getToken()}"),
+        timeout = this.timeout.toOAITimeout()
       )
       .let { autoClose(it) }
 
@@ -132,7 +153,16 @@ class OpenAI(internal var token: String? = null, internal var host: String? = nu
       DALLE_2,
     )
 
-  suspend fun findModel(modelId: String): Any? { // TODO: impl of abstract provider function
+  suspend fun <T : LLM> spawnModel(
+    modelId: String,
+    baseModel: T
+  ): T { // TODO: impl of abstract provider function
+    if (findModel(modelId) == null) error("model not found")
+    return baseModel.copy(ModelType.FineTunedModel(modelId, baseModel = baseModel.modelType)) as? T
+      ?: error("${baseModel::class} does not follow contract to return the most specific type")
+  }
+
+  private suspend fun findModel(modelId: String): Any? { // TODO: impl of abstract provider function
     val model =
       try {
         defaultClient.model(ModelId(modelId))
@@ -143,15 +173,6 @@ class OpenAI(internal var token: String? = null, internal var host: String? = nu
         }
       }
     return ModelType.TODO(model.id.id)
-  }
-
-  suspend fun <T : LLM> spawnModel(
-    modelId: String,
-    baseModel: T
-  ): T { // TODO: impl of abstract provider function
-    if (findModel(modelId) == null) error("model not found")
-    return baseModel.copy(ModelType.FineTunedModel(modelId, baseModel = baseModel.modelType)) as? T
-      ?: error("${baseModel::class} does not follow contract to return the most specific type")
   }
 
   companion object {
