@@ -5,7 +5,7 @@ import com.xebia.functional.xef.llm.Completion
 import com.xebia.functional.xef.llm.models.text.CompletionRequest
 import com.xebia.functional.xef.llm.models.text.CompletionResult
 import com.xebia.functional.xef.mlflow.MLflow
-import com.xebia.functional.xef.mlflow.MLflowClient
+import com.xebia.functional.xef.mlflow.MlflowClient
 import io.ktor.util.date.*
 import kotlinx.uuid.UUID
 import kotlinx.uuid.generateUUID
@@ -20,7 +20,7 @@ class MLflowCompletion(
   override fun copy(modelType: ModelType) = MLflowCompletion(provider, modelType)
 
   override suspend fun createCompletion(request: CompletionRequest): CompletionResult {
-    val response: MLflowClient.PromptResponse =
+    val response: MlflowClient.PromptResponse =
       client.prompt(
         // TODO - The model name used by MLflow is just an identifier
         modelType.name,

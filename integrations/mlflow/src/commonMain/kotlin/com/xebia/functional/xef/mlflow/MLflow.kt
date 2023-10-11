@@ -50,14 +50,13 @@ private const val MLFLOW_GATEWAY_URI = "MLFLOW_GATEWAY_URI"
  *         openai_api_key: $OPENAI_API_KEY
  */
 class MLflow(gatewayUri: String? = null) {
-  private val config = MLflowConfig(gatewayUri ?: gatewayUriFromEnv())
 
   private fun gatewayUriFromEnv(): String = fromEnv(MLFLOW_GATEWAY_URI)
 
   private fun fromEnv(name: String): String =
     getenv(name) ?: throw AIError.Env.MLflow(nonEmptyListOf("missing $name env var"))
 
-  val defaultClient = MLflowClient(config)
+  val defaultClient = MlflowClient(gatewayUri ?: gatewayUriFromEnv())
 
   val COMPLETION by lazy { MLflowCompletion(this, ModelType.TODO("completion")) }
   val CODECHAT by lazy { MLflowChat(this, ModelType.TODO("chat")) }

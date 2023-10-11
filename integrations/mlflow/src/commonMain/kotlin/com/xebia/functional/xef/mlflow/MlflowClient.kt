@@ -12,11 +12,33 @@ import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 
-class MLflowClient(private val config: MLflowConfig) : AutoClose by autoClose() {
+class MlflowClient(private val gatewayUrl: String) : AutoClose by autoClose() {
   private val http: HttpClient = jsonHttpClient()
 
   @Serializable
+    data class RoutesResponse(
+        val routes: List<RouteDefinition>
+    )
+
+    @Serializable
+    data class RouteDefinition(
+        val name: String,
+        @SerialName("route_type")
+        val routeType: String,
+        val model: RouteModel,
+        @SerialName("route_url")
+        val routeUrl: String,
+    )
+
+    @Serializable
+    data class RouteModel(
+        val name: String,
+        val provider: String,
+    )
+
+    @Serializable
   private data class Prompt(
     val prompt: String,
     val temperature: Double? = null,
@@ -53,17 +75,35 @@ class MLflowClient(private val config: MLflowConfig) : AutoClose by autoClose() 
 
   @Serializable data class ValidationError(val detail: List<ValidationDetail>?)
 
-  suspend fun prompt(
-    route: String,
-    prompt: String,
-    candidateCount: Int? = null,
-    temperature: Double? = null,
-    maxTokens: Int? = null,
-    stop: List<String>? = null
-  ): PromptResponse {
-    val body = Prompt(prompt, temperature, candidateCount, stop, maxTokens)
-    val response =
-      http.post("${config.gatewayUri}/gateway/$route/invocations") {
+  private val json = Json { ignoreUnknownKeys = true }
+
+    private suspend fun routes(): List<RouteDefinition> {
+        val response = http.get("$gatewayUrl/api/2.0/gateway/routes/")
+        if (response.status.isSuccess()) {
+            val textResponse = response.bodyAsText()
+            val data = json.decodeFromString<RoutesResponse>(textResponse)
+            return data.routes
+        } else {
+            throw MLflowClientUnexpectedError(response.status, response.bodyAsText())
+        }
+    }
+
+    suspend fun searchRoutes(): List<RouteDefinition> = routes()
+
+    suspend fun getRoute(name: String): RouteDefinition? = routes().find { it.name == name }
+
+    suspend fun prompt(
+        route: String,
+        prompt: String,
+        candidateCount: Int? = null,
+        temperature: Double? = null,
+        maxTokens: Int? = null,
+        stop: List<String>? = null
+    ): PromptResponse {
+        val body = Prompt(prompt, temperature, candidateCount, stop, maxTokens)
+        val response =
+            http.post(
+                "$gatewayUrl/gateway/$route/invocations") {
         accept(ContentType.Application.Json)
         contentType(ContentType.Application.Json)
         setBody(body)
@@ -111,7 +151,7 @@ class MLflowClient(private val config: MLflowConfig) : AutoClose by autoClose() 
   ): ChatResponse {
     val body = Chat(messages, temperature, candidateCount, stop, maxTokens)
     val response =
-      http.post("${config.gatewayUri}/gateway/$route/invocations") {
+      http.post("$gatewayUrl/gateway/$route/invocations") {
         accept(ContentType.Application.Json)
         contentType(ContentType.Application.Json)
         setBody(body)
@@ -134,7 +174,7 @@ class MLflowClient(private val config: MLflowConfig) : AutoClose by autoClose() 
   suspend fun embeddings(route: String, text: List<String>): EmbeddingsResponse {
     val body = Embeddings(text)
     val response =
-      http.post("${config.gatewayUri}/gateway/$route/invocations") {
+      http.post("$gatewayUrl/gateway/$route/invocations") {
         accept(ContentType.Application.Json)
         contentType(ContentType.Application.Json)
         setBody(body)

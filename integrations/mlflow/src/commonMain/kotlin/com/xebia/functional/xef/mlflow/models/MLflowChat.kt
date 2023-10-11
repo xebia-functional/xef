@@ -4,7 +4,7 @@ import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.mlflow.MLflow
-import com.xebia.functional.xef.mlflow.MLflowClient
+import com.xebia.functional.xef.mlflow.MlflowClient
 import io.ktor.util.date.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -23,7 +23,7 @@ class MLflowChat(
   override suspend fun createChatCompletion(
     request: ChatCompletionRequest
   ): ChatCompletionResponse {
-    val response: MLflowClient.ChatResponse =
+    val response: MlflowClient.ChatResponse =
       client.chat(
         // TODO - The model name used by MLflow is just an identifier
         modelType.name,
@@ -49,7 +49,7 @@ class MLflowChat(
     // TODO - Review if MLflow Gateway has streaming support
     with(request) {
       return flow {
-        val response: MLflowClient.ChatResponse =
+        val response: MlflowClient.ChatResponse =
           client.chat(
             // TODO - The model name used by MLflow is just an identifier
             modelType.name,

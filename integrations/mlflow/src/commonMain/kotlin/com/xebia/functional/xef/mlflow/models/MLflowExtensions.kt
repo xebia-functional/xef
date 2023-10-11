@@ -4,33 +4,33 @@ import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.llm.models.embeddings.Embedding
 import com.xebia.functional.xef.llm.models.text.CompletionChoice
 import com.xebia.functional.xef.llm.models.usage.Usage
-import com.xebia.functional.xef.mlflow.MLflowClient
+import com.xebia.functional.xef.mlflow.MlflowClient
 
-fun Role.toMLflow(): MLflowClient.ChatRole {
+fun Role.toMLflow(): MlflowClient.ChatRole {
   return when (this) {
-    Role.SYSTEM -> MLflowClient.ChatRole.SYSTEM
-    Role.USER -> MLflowClient.ChatRole.USER
-    Role.ASSISTANT -> MLflowClient.ChatRole.ASSISTANT
+    Role.SYSTEM -> MlflowClient.ChatRole.SYSTEM
+    Role.USER -> MlflowClient.ChatRole.USER
+    Role.ASSISTANT -> MlflowClient.ChatRole.ASSISTANT
   }
 }
 
-fun MLflowClient.ChatRole.fromMLflow(): Role {
+fun MlflowClient.ChatRole.fromMLflow(): Role {
   return when (this) {
-    MLflowClient.ChatRole.SYSTEM -> Role.SYSTEM
-    MLflowClient.ChatRole.USER -> Role.USER
-    MLflowClient.ChatRole.ASSISTANT -> Role.ASSISTANT
+    MlflowClient.ChatRole.SYSTEM -> Role.SYSTEM
+    MlflowClient.ChatRole.USER -> Role.USER
+    MlflowClient.ChatRole.ASSISTANT -> Role.ASSISTANT
   }
 }
 
-fun List<Message>.buildPrompt(): List<MLflowClient.ChatMessage> {
-  return this.map { it -> MLflowClient.ChatMessage(it.role.toMLflow(), it.content) }
+fun List<Message>.buildPrompt(): List<MlflowClient.ChatMessage> {
+  return this.map { it -> MlflowClient.ChatMessage(it.role.toMLflow(), it.content) }
 }
 
-fun MLflowClient.ResponseMetadata.toUsage(): Usage {
+fun MlflowClient.ResponseMetadata.toUsage(): Usage {
   return Usage(this.inputTokens, this.outputTokens, this.totalTokens)
 }
 
-fun MLflowClient.ChatResponse.toChoices(): List<Choice> {
+fun MlflowClient.ChatResponse.toChoices(): List<Choice> {
   return this.candidates.mapIndexed { idx, value ->
     Choice(
       Message(value.message.role.fromMLflow(), value.message.content, ""),
@@ -40,18 +40,18 @@ fun MLflowClient.ChatResponse.toChoices(): List<Choice> {
   }
 }
 
-fun MLflowClient.ChatResponse.toChunks(): List<ChatChunk> {
+fun MlflowClient.ChatResponse.toChunks(): List<ChatChunk> {
   return this.candidates.mapIndexed { idx, value ->
     ChatChunk(idx, ChatDelta(value.message.role.fromMLflow()), value.metadata.finishReason)
   }
 }
 
-fun MLflowClient.PromptResponse.toCompletionChoices(): List<CompletionChoice> {
+fun MlflowClient.PromptResponse.toCompletionChoices(): List<CompletionChoice> {
   return this.candidates.mapIndexed { idx, value ->
     CompletionChoice(value.text, idx, finishReason = value.metadata?.finishReason)
   }
 }
 
-fun MLflowClient.EmbeddingsResponse.toEmbeddings(): List<Embedding> {
+fun MlflowClient.EmbeddingsResponse.toEmbeddings(): List<Embedding> {
   return this.embeddings.map { Embedding(it) }
 }
