@@ -21,13 +21,11 @@ fun Routing.aiRoutes(
 ) {
     authenticate("auth-bearer") {
         post("/chat/completions") {
-            val byteArrayBody = call.receiveChannel().toByteArray()
-            provider.chatRequest(call, byteArrayBody)
+            with(provider) { chatRequest() }
         }
 
         post("/embeddings") {
-            val byteArrayBody = call.receiveChannel().toByteArray()
-            provider.embeddingsRequest(call, byteArrayBody)
+            with(provider) { embeddingsRequest() }
         }
     }
 }
