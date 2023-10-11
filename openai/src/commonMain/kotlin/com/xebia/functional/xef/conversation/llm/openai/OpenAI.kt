@@ -41,7 +41,7 @@ class OpenAI(
     val socket: Duration,
   ) {
     companion object {
-      private val REQUEST_TIMEOUT = 30.seconds
+      private val REQUEST_TIMEOUT = 60.seconds
       private val CONNECT_TIMEOUT = 10.minutes
       private val SOCKET_TIMEOUT = 10.minutes
 
