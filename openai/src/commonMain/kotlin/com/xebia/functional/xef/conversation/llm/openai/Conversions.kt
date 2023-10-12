@@ -63,5 +63,4 @@ internal fun OAIChatDelta.toInternal() =
       }
   )
 
-internal fun OpenAI.Timeout.toOAITimeout() =
-  OAITimeout(this.request, this.connect, this.socket)
+internal fun OpenAI.Timeout.toOAITimeout() = OAITimeout(this.request, this.connect, this.socket)
