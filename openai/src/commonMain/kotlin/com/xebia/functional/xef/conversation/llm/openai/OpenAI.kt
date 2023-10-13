@@ -81,12 +81,12 @@ class OpenAI(
 
   internal val defaultClient =
     OpenAIClient(
-      host = getHost()?.let { OpenAIHost(it) } ?: OpenAIHost.OpenAI,
-      token = getToken(),
-      logging = LoggingConfig(LogLevel.None),
-      headers = mapOf("Authorization" to " Bearer ${getToken()}"),
-      timeout = this.timeout.toOAITimeout()
-    )
+        host = getHost()?.let { OpenAIHost(it) } ?: OpenAIHost.OpenAI,
+        token = getToken(),
+        logging = LoggingConfig(LogLevel.None),
+        headers = mapOf("Authorization" to " Bearer ${getToken()}"),
+        timeout = this.timeout.toOAITimeout()
+      )
       .let { autoClose(it) }
 
   val GPT_4 by lazy { autoClose(OpenAIChat(this, ModelType.GPT_4)) }
@@ -127,20 +127,16 @@ class OpenAI(
 
   val DALLE_2 by lazy { autoClose(OpenAIImages(this, ModelType.GPT_3_5_TURBO)) }
 
-  @JvmField
-  val DEFAULT_CHAT = GPT_3_5_TURBO_16K
+  @JvmField val DEFAULT_CHAT = GPT_3_5_TURBO_16K
 
-  @JvmField
-  val DEFAULT_SERIALIZATION = GPT_3_5_TURBO_FUNCTIONS
+  @JvmField val DEFAULT_SERIALIZATION = GPT_3_5_TURBO_FUNCTIONS
 
-  @JvmField
-  val DEFAULT_EMBEDDING = TEXT_EMBEDDING_ADA_002
+  @JvmField val DEFAULT_EMBEDDING = TEXT_EMBEDDING_ADA_002
 
-  @JvmField
-  val DEFAULT_IMAGES = DALLE_2
+  @JvmField val DEFAULT_IMAGES = DALLE_2
 
   fun supportedModels(): List<LLM> = // TODO: impl of abstract provider function
-    listOf(
+  listOf(
       GPT_4,
       GPT_4_0314,
       GPT_4_32K,
@@ -181,8 +177,7 @@ class OpenAI(
 
   companion object {
 
-    @JvmField
-    val FromEnvironment: OpenAI = OpenAI()
+    @JvmField val FromEnvironment: OpenAI = OpenAI()
 
     @JvmSynthetic
     suspend inline fun <A> conversation(
