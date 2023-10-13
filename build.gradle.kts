@@ -42,6 +42,7 @@ fun Project.configureBuildAndTestTask(
         when (moduleType) {
           ModuleType.MULTIPLATFORM -> {
             multiPlatformModules.forEach { module ->
+              println(":$module:${platform}Test")
               commandLine(gradleCommand, ":$module:${platform}Test")
             }
           }
