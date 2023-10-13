@@ -41,8 +41,6 @@ fun Project.configureBuildAndTestTask(
         commandLine(gradleCommand, "spotlessCheck")
       }
       project.exec {
-//        val gradleCommand = getGradleCommand(platform)
-//        commandLine(gradleCommand, "spotlessCheck")
         when (moduleType) {
           ModuleType.MULTIPLATFORM -> {
             multiPlatformModules.forEach { module ->
