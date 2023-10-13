@@ -32,7 +32,7 @@ private const val HOST_ENV_VAR = "OPENAI_HOST"
 class OpenAI(
   internal var token: String? = null,
   internal var host: String? = null,
-  internal var timeout: Timeout = Timeout.default()
+    internal var timeout: Timeout = Timeout.default()
 ) : AutoCloseable, AutoClose by autoClose() {
 
   class Timeout(
