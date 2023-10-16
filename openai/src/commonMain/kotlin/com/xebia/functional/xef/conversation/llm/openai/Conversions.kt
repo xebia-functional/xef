@@ -5,6 +5,7 @@ import com.aallam.openai.api.chat.ChatCompletionChunk as OAIChatCompletionChunk
 import com.aallam.openai.api.chat.ChatDelta as OAIChatDelta
 import com.aallam.openai.api.chat.ChatRole
 import com.aallam.openai.api.core.Usage as OAIUsage
+import com.aallam.openai.api.http.Timeout as OAITimeout
 import com.xebia.functional.xef.llm.models.chat.ChatChunk
 import com.xebia.functional.xef.llm.models.chat.ChatCompletionChunk
 import com.xebia.functional.xef.llm.models.chat.ChatDelta
@@ -61,3 +62,5 @@ internal fun OAIChatDelta.toInternal() =
         else FunctionCall(it.name, it.arguments)
       }
   )
+
+internal fun OpenAI.Timeout.toOAITimeout() = OAITimeout(this.request, this.connect, this.socket)
