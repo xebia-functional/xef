@@ -12,8 +12,9 @@ import io.ktor.util.*
 
 @OptIn(BetaOpenAI::class)
 fun Routing.aiRoutes(
-    client: HttpClient
-) = aiRoutes(OpenAIApiProvider(client))
+    client: HttpClient,
+    baseUrl: String = "https://api.openai.com/v1"
+) = aiRoutes(OpenAIApiProvider(client, baseUrl))
 
 @OptIn(BetaOpenAI::class)
 fun Routing.aiRoutes(

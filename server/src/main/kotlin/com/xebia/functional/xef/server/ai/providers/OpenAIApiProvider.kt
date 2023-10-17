@@ -8,7 +8,7 @@ import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import kotlinx.serialization.json.*
 
-class OpenAIApiProvider(private val client: HttpClient, private val baseUrl: String = "https://api.openai.com/v1"): ApiProvider {
+class OpenAIApiProvider(private val client: HttpClient, private val baseUrl: String): ApiProvider {
 
     override suspend fun PipelineContext<Unit, ApplicationCall>.chatRequest() {
         val requestBody = call.receiveChannel().toByteArray()
