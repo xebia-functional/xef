@@ -12,15 +12,11 @@ suspend fun main() {
   val fineTunedModelId = getenv("OPENAI_FINE_TUNED_MODEL_ID")
   val fineTuneJobId = getenv("OPENAI_FINE_TUNE_JOB_ID")
 
-  val model =
-    when {
-      fineTunedModelId != null -> OAI.spawnModel(fineTunedModelId, baseModel)
-      fineTuneJobId != null -> OAI.spawnFineTunedModel(fineTuneJobId, baseModel)
-      else ->
-        error(
-          "Please set the OPENAI_FINE_TUNED_MODEL_ID or OPENAI_FINE_TUNE_JOB_ID environment variable."
-        )
-    }.getOrElse { error(it) }
+  val model = when {
+    fineTunedModelId != null -> OAI.spawnModel(fineTunedModelId, baseModel)
+    fineTuneJobId != null -> OAI.spawnFineTunedModel(fineTuneJobId, baseModel)
+    else -> error("Please set the OPENAI_FINE_TUNED_MODEL_ID or OPENAI_FINE_TUNE_JOB_ID environment variable.")
+  }.getOrElse { error(it) }
 
   OpenAI.conversation {
     while (true) {
