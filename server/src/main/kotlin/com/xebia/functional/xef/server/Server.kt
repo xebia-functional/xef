@@ -4,6 +4,10 @@ import arrow.continuations.SuspendApp
 import arrow.continuations.ktor.server
 import arrow.fx.coroutines.resourceScope
 import com.typesafe.config.ConfigFactory
+import com.xebia.functional.xef.server.ai.providers.AIProvider
+import com.xebia.functional.xef.server.ai.providers.AIProviderConfig
+import com.xebia.functional.xef.server.ai.providers.OpenAIApiProvider
+import com.xebia.functional.xef.server.ai.providers.mlflowApiProvider
 import com.xebia.functional.xef.server.db.psql.Migrate
 import com.xebia.functional.xef.server.db.psql.XefDatabaseConfig
 import com.xebia.functional.xef.server.db.psql.XefVectorStoreConfig
@@ -33,7 +37,7 @@ object Server {
     @JvmStatic
     fun main(args: Array<String>) = SuspendApp {
         resourceScope {
-            val config = ConfigFactory.load("database.conf").resolve()
+            val config = ConfigFactory.load("server.conf").resolve()
             val xefDBConfig = XefDatabaseConfig.load("xef", config)
             Migrate.migrate(xefDBConfig)
 
@@ -61,6 +65,12 @@ object Server {
                 install(ClientContentNegotiation)
             }
 
+            val aiProviderConfig = AIProviderConfig.load("ai-routes", config)
+            val aiProvider = when (aiProviderConfig.aiProvider) {
+                AIProvider.OpenAI -> OpenAIApiProvider(ktorClient, aiProviderConfig.baseUri)
+                AIProvider.MLflow -> mlflowApiProvider(ktorClient, aiProviderConfig.baseUri)
+            }
+
             server(factory = Netty, port = 8081, host = "0.0.0.0") {
                 install(CORS) {
                     allowNonSimpleContentTypes = true
@@ -80,7 +90,7 @@ object Server {
                 exceptionsHandler()
                 routing {
                     xefRoutes(logger)
-                    aiRoutes(ktorClient)
+                    aiRoutes(aiProvider)
                 }
             }
             awaitCancellation()

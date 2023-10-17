@@ -42,7 +42,7 @@ data class RouteModel(
 
 private val json = Json { ignoreUnknownKeys = true }
 
-suspend fun mlflowPathProvider(gatewayUrl: String, client: HttpClient): PathProvider {
+suspend fun mlflowPathProvider(client: HttpClient, gatewayUrl: String): PathProvider {
     val response = client.get("$gatewayUrl/api/2.0/gateway/routes/")
     if (response.status.isSuccess()) {
         val textResponse = response.bodyAsText()

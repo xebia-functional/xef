@@ -19,9 +19,9 @@ import kotlinx.serialization.json.*
 
 @OptIn(ExperimentalSerializationApi::class)
 class MLflowApiProvider(
+    private val client: HttpClient,
     private val gatewayUrl: String,
-    private val pathProvider: PathProvider,
-    private val client: HttpClient
+    private val pathProvider: PathProvider
 ): ApiProvider {
 
     private val json = Json { explicitNulls = false }
@@ -74,7 +74,7 @@ class MLflowApiProvider(
     }
 }
 
-suspend fun mlflowApiProvider(gatewayUrl: String, client: HttpClient): MLflowApiProvider {
-    val pathProvider = mlflowPathProvider(gatewayUrl, client)
-    return MLflowApiProvider(gatewayUrl, pathProvider, client)
+suspend fun mlflowApiProvider(client: HttpClient, gatewayUrl: String): MLflowApiProvider {
+    val pathProvider = mlflowPathProvider(client, gatewayUrl)
+    return MLflowApiProvider(client, gatewayUrl, pathProvider)
 }
