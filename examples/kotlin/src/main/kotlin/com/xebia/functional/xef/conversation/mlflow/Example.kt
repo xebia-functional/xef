@@ -9,29 +9,47 @@ suspend fun main() {
 
     val client = MlflowClient(gatewayUri)
 
+    println("MLflow Gateway client created. Press any key to continue...")
+    readlnOrNull()
+
+    println("Searching available models...")
+    println()
     val routes = client.searchRoutes()
 
     println("""
        |######### Routes found ######### 
        |${routes.joinToString(separator = "\n") { printRoute(it) }}
     """.trimMargin())
+    println()
 
-    val gptRoute = client.getRoute("chat")
-    println("Route found: ${gptRoute?.name}")
+    while (true) {
 
-    val response = gptRoute?.name?.let {route ->
-        client.chat(
-            route,
-            listOf(
-                ChatMessage(ChatRole.SYSTEM, "You are a helpful assistant. Be concise"),
-                ChatMessage(ChatRole.USER, "What's the best day of the week and why?"),
-            ),
-            temperature = 0.7,
-            maxTokens = 200
-        )
+        println("Select the route you want to interact with")
+        val route = readlnOrNull() ?: "chat"
+
+        val gptRoute = client.getRoute(route)
+        println("Route found: ${gptRoute?.name}. What do you want to ask?")
+
+        val question = readlnOrNull() ?: "What's the best day of the week and why?"
+
+        val response = gptRoute?.name?.let { it ->
+            client.chat(
+                it,
+                listOf(
+                    ChatMessage(ChatRole.SYSTEM, "You are a helpful assistant. Be concise"),
+                    ChatMessage(ChatRole.USER, question),
+                ),
+                temperature = 0.7,
+                maxTokens = 200
+            )
+        }
+
+        val chatResponse = response?.candidates?.get(0)?.message?.content
+
+        println("Chat GPT response was: \n\n$chatResponse")
+        println()
+        println("Do you want to continue? (y/N)")
+        val userInput = readlnOrNull() ?: ""
+        if (!userInput.equals("y", true)) break
     }
-
-    val chatResponse = response?.candidates?.get(0)?.message?.content
-
-    println("Chat GPT response was: \n\n$chatResponse")
 }
