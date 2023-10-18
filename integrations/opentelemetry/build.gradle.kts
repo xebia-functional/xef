@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.arrow.gradle.publish)
     alias(libs.plugins.semver.gradle)
     alias(libs.plugins.detekt)
+    alias(libs.plugins.spotless)
 }
 
 dependencies { detektPlugins(project(":detekt-rules")) }
@@ -37,6 +38,15 @@ dependencies {
     testImplementation(libs.kotest.framework)
     testImplementation(libs.kotest.assertions)
     testRuntimeOnly(libs.kotest.junit5)
+}
+
+spotless {
+    kotlin {
+        target("**/*.kt")
+        ktfmt().googleStyle().configure {
+            it.setRemoveUnusedImport(true)
+        }
+    }
 }
 
 tasks {

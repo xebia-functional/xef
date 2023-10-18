@@ -8,23 +8,23 @@ import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.kotlin.datetime.CurrentTimestamp
 import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 
-object ProjectsTable: IntIdTable("projects") {
-    val name = varchar("name", 20)
-    val createdAt = timestamp("created_at").defaultExpression(CurrentTimestamp())
-    val updatedAt = timestamp("updated_at").defaultExpression(CurrentTimestamp())
-    val orgId = reference(
-        name = "org_id",
-        refColumn = OrganizationsTable.id,
-        onDelete = ReferenceOption.CASCADE
+object ProjectsTable : IntIdTable("projects") {
+  val name = varchar("name", 20)
+  val createdAt = timestamp("created_at").defaultExpression(CurrentTimestamp())
+  val updatedAt = timestamp("updated_at").defaultExpression(CurrentTimestamp())
+  val orgId =
+    reference(
+      name = "org_id",
+      refColumn = OrganizationsTable.id,
+      onDelete = ReferenceOption.CASCADE
     )
 }
 
 class Project(id: EntityID<Int>) : IntEntity(id) {
-    companion object : IntEntityClass<Project>(ProjectsTable)
+  companion object : IntEntityClass<Project>(ProjectsTable)
 
-    var name by ProjectsTable.name
-    var createdAt by ProjectsTable.createdAt
-    var updatedAt by ProjectsTable.updatedAt
-    var orgId by ProjectsTable.orgId
+  var name by ProjectsTable.name
+  var createdAt by ProjectsTable.createdAt
+  var updatedAt by ProjectsTable.updatedAt
+  var orgId by ProjectsTable.orgId
 }
-

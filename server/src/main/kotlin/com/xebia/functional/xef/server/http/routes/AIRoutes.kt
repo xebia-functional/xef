@@ -19,105 +19,104 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.jsonPrimitive
-import java.nio.charset.Charset
 
 enum class Provider {
-    OPENAI, GPT4ALL, GCP
+  OPENAI,
+  GPT4ALL,
+  GCP
 }
 
-fun String.toProvider(): Provider? = when (this) {
+fun String.toProvider(): Provider? =
+  when (this) {
     "openai" -> Provider.OPENAI
     "gpt4all" -> Provider.GPT4ALL
     "gcp" -> Provider.GCP
     else -> Provider.OPENAI
-}
+  }
 
 @OptIn(BetaOpenAI::class)
-fun Routing.aiRoutes(
-    client: HttpClient
-) {
-    val openAiUrl = "https://api.openai.com/v1"
+fun Routing.aiRoutes(client: HttpClient) {
+  val openAiUrl = "https://api.openai.com/v1"
 
-    authenticate("auth-bearer") {
-        post("/chat/completions") {
-            val token = call.getToken()
-            val byteArrayBody = call.receiveChannel().toByteArray()
-            val body = byteArrayBody.toString(Charsets.UTF_8)
-            val data = Json.decodeFromString<JsonObject>(body)
+  authenticate("auth-bearer") {
+    post("/chat/completions") {
+      val token = call.getToken()
+      val byteArrayBody = call.receiveChannel().toByteArray()
+      val body = byteArrayBody.toString(Charsets.UTF_8)
+      val data = Json.decodeFromString<JsonObject>(body)
 
-            val isStream = data["stream"]?.jsonPrimitive?.boolean ?: false
+      val isStream = data["stream"]?.jsonPrimitive?.boolean ?: false
 
-            if (!isStream) {
-                client.makeRequest(call, "$openAiUrl/chat/completions", byteArrayBody, token)
-            } else {
-                client.makeStreaming(call, "$openAiUrl/chat/completions", byteArrayBody, token)
-            }
-        }
-
-        post("/embeddings") {
-            val token = call.getToken()
-            val context = call.receiveChannel().toByteArray()
-            client.makeRequest(call, "$openAiUrl/embeddings", context, token)
-        }
+      if (!isStream) {
+        client.makeRequest(call, "$openAiUrl/chat/completions", byteArrayBody, token)
+      } else {
+        client.makeStreaming(call, "$openAiUrl/chat/completions", byteArrayBody, token)
+      }
     }
+
+    post("/embeddings") {
+      val token = call.getToken()
+      val context = call.receiveChannel().toByteArray()
+      client.makeRequest(call, "$openAiUrl/embeddings", context, token)
+    }
+  }
 }
 
 private suspend fun HttpClient.makeRequest(
-    call: ApplicationCall,
-    url: String,
-    body: ByteArray,
-    token: Token
+  call: ApplicationCall,
+  url: String,
+  body: ByteArray,
+  token: Token
 ) {
-    val response = this.request(url) {
-        headers.copyFrom(call.request.headers)
-        contentType(ContentType.Application.Json)
-        method = HttpMethod.Post
-        setBody(body)
+  val response =
+    this.request(url) {
+      headers.copyFrom(call.request.headers)
+      contentType(ContentType.Application.Json)
+      method = HttpMethod.Post
+      setBody(body)
     }
-    call.response.headers.copyFrom(response.headers)
-    call.respond(response.status, response.readBytes())
+  call.response.headers.copyFrom(response.headers)
+  call.respond(response.status, response.readBytes())
 }
 
 private suspend fun HttpClient.makeStreaming(
-    call: ApplicationCall,
-    url: String,
-    body: ByteArray,
-    token: Token
+  call: ApplicationCall,
+  url: String,
+  body: ByteArray,
+  token: Token
 ) {
-    this.preparePost(url) {
-        headers.copyFrom(call.request.headers)
-        method = HttpMethod.Post
-        setBody(body)
-    }.execute { httpResponse ->
-        call.response.headers.copyFrom(httpResponse.headers)
-        call.respondOutputStream {
-            httpResponse
-                .bodyAsChannel()
-                .copyTo(this@respondOutputStream)
-        }
+  this.preparePost(url) {
+      headers.copyFrom(call.request.headers)
+      method = HttpMethod.Post
+      setBody(body)
+    }
+    .execute { httpResponse ->
+      call.response.headers.copyFrom(httpResponse.headers)
+      call.respondOutputStream { httpResponse.bodyAsChannel().copyTo(this@respondOutputStream) }
     }
 }
 
-private fun ResponseHeaders.copyFrom(headers: Headers) = headers
+private fun ResponseHeaders.copyFrom(headers: Headers) =
+  headers
     .entries()
-    .filter { (key, _) -> !HttpHeaders.isUnsafe(key) } // setting unsafe headers results in exception
-    .forEach { (key, values) ->
-        values.forEach { value -> this.appendIfAbsent(key, value) }
-    }
+    .filter { (key, _) ->
+      !HttpHeaders.isUnsafe(key)
+    } // setting unsafe headers results in exception
+    .forEach { (key, values) -> values.forEach { value -> this.appendIfAbsent(key, value) } }
 
-internal fun HeadersBuilder.copyFrom(headers: Headers) = headers
+internal fun HeadersBuilder.copyFrom(headers: Headers) =
+  headers
     .filter { key, value -> !key.equals("HOST", ignoreCase = true) }
     .forEach { key, values -> appendAll(key, values) }
 
 private fun ApplicationCall.getProvider(): Provider =
-    request.headers["xef-provider"]?.toProvider()
-        ?: Provider.OPENAI
+  request.headers["xef-provider"]?.toProvider() ?: Provider.OPENAI
 
 fun ApplicationCall.getToken(): Token =
-    principal<UserIdPrincipal>()?.name?.let { Token(it) } ?: throw XefExceptions.AuthorizationException("No token found")
+  principal<UserIdPrincipal>()?.name?.let { Token(it) }
+    ?: throw XefExceptions.AuthorizationException("No token found")
 
 fun ApplicationCall.getId(): Int = getInt("id")
 
 fun ApplicationCall.getInt(field: String): Int =
-    this.parameters[field]?.toInt() ?: throw XefExceptions.ValidationException("Invalid $field")
-
+  this.parameters[field]?.toInt() ?: throw XefExceptions.ValidationException("Invalid $field")
