@@ -6,6 +6,7 @@ import com.xebia.functional.xef.conversation.{FromJson, JVMConversation}
 import com.xebia.functional.xef.llm.*
 import com.xebia.functional.xef.llm.models.images.*
 import com.xebia.functional.xef.store.{ConversationId, LocalVectorStore, VectorStore}
+import com.xebia.functional.xef.metrics.{LogsMetric, Metric}
 import io.circe.Decoder
 import io.circe.parser.parse
 import org.reactivestreams.{Subscriber, Subscription}
@@ -15,7 +16,8 @@ import java.util.UUID
 import java.util.concurrent.LinkedBlockingQueue
 import scala.jdk.CollectionConverters.*
 
-class ScalaConversation(store: VectorStore, conversationId: Option[ConversationId]) extends JVMConversation(store, conversationId.orNull)
+class ScalaConversation(store: VectorStore, metric: Metric, conversationId: Option[ConversationId])
+    extends JVMConversation(store, metric, conversationId.orNull)
 
 def addContext(context: Array[String])(using conversation: ScalaConversation): Unit =
   conversation.addContextFromArray(context).join()
@@ -79,4 +81,4 @@ def images(
 def conversation[A](
     block: ScalaConversation ?=> A,
     conversationId: Option[ConversationId] = Some(ConversationId(UUID.randomUUID().toString))
-): A = block(using ScalaConversation(LocalVectorStore(OpenAI.FromEnvironment.DEFAULT_EMBEDDING), conversationId))
+): A = block(using ScalaConversation(LocalVectorStore(OpenAI.FromEnvironment.DEFAULT_EMBEDDING), LogsMetric(), conversationId))

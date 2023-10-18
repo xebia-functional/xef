@@ -9,6 +9,8 @@ import com.xebia.functional.xef.env.getenv
 import com.xebia.functional.xef.gcp.models.GcpChat
 import com.xebia.functional.xef.gcp.models.GcpEmbeddings
 import com.xebia.functional.xef.llm.LLM
+import com.xebia.functional.xef.metrics.LogsMetric
+import com.xebia.functional.xef.metrics.Metric
 import com.xebia.functional.xef.store.LocalVectorStore
 import com.xebia.functional.xef.store.VectorStore
 import kotlin.jvm.JvmField
@@ -62,8 +64,9 @@ class GCP(projectId: String? = null, location: VertexAIRegion? = null, token: St
     @JvmSynthetic
     suspend inline fun <A> conversation(
       store: VectorStore,
+      metric: Metric,
       noinline block: suspend Conversation.() -> A
-    ): A = block(conversation(store))
+    ): A = block(conversation(store, metric))
 
     @JvmSynthetic
     suspend fun <A> conversation(block: suspend Conversation.() -> A): A =
@@ -72,10 +75,11 @@ class GCP(projectId: String? = null, location: VertexAIRegion? = null, token: St
     @JvmStatic
     @JvmOverloads
     fun conversation(
-      store: VectorStore = LocalVectorStore(FromEnvironment.DEFAULT_EMBEDDING)
-    ): PlatformConversation = Conversation(store)
+      store: VectorStore = LocalVectorStore(FromEnvironment.DEFAULT_EMBEDDING),
+      metric: Metric = LogsMetric(),
+    ): PlatformConversation = Conversation(store, metric)
   }
 }
 
 suspend inline fun <A> GCP.conversation(noinline block: suspend Conversation.() -> A): A =
-  block(Conversation(LocalVectorStore(DEFAULT_EMBEDDING)))
+  block(Conversation(LocalVectorStore(DEFAULT_EMBEDDING), LogsMetric()))
