@@ -2,13 +2,11 @@ package com.xebia.functional.xef.metrics
 
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.prompt.Prompt
-import io.github.oshai.kotlinlogging.KLogger
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.util.date.*
 
 class LogsMetric : Metric {
 
-  private val logger: KLogger = KotlinLogging.logger {}
+  private val identSize = 4
 
   override suspend fun <A> promptSpan(
     conversation: Conversation,
@@ -16,14 +14,16 @@ class LogsMetric : Metric {
     block: suspend Metric.() -> A
   ): A {
     val milis = getTimeMillis()
-    val name = "Prompt: ${prompt.messages.lastOrNull()?.content ?: "empty"}"
-    logger.info { "Start span: $name" }
+    val name = prompt.messages.lastOrNull()?.content ?: "empty"
+    println("Prompt-Span: $name")
     val output = block()
-    logger.info { "End span (${getTimeMillis()-milis} ms): $name" }
+    println("${writeIdent()}|-- Finished in ${getTimeMillis()-milis} ms")
     return output
   }
 
   override fun log(conversation: Conversation, message: String) {
-    logger.info { message }
+    println("${writeIdent()}|-- $message".padStart(identSize, ' '))
   }
+
+  private fun writeIdent(times: Int = 1) = (1 .. identSize * times).fold("") { a, b -> "$a " }
 }
