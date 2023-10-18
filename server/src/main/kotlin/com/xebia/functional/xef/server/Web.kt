@@ -7,14 +7,9 @@ import io.ktor.server.routing.*
 
 object WebApp {
 
-    @JvmStatic
-    fun main(args: Array<String>) {
-        embeddedServer(Netty, port = 8080) {
-            routing {
-                singlePageApplication {
-                    react("web/dist")
-                }
-            }
-        }.start(wait = true)
-    }
+  @JvmStatic
+  fun main(args: Array<String>) {
+    embeddedServer(Netty, port = 8080) { routing { singlePageApplication { react("web/dist") } } }
+      .start(wait = true)
+  }
 }

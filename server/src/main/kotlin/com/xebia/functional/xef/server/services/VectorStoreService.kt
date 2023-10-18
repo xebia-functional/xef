@@ -4,14 +4,13 @@ import com.xebia.functional.xef.store.VectorStore
 
 abstract class VectorStoreService {
 
-    enum class Provider {
-        OPENAI, GPT4ALL, GCP
-    }
+  enum class Provider {
+    OPENAI,
+    GPT4ALL,
+    GCP
+  }
 
-    abstract fun addCollection(): Unit
+  abstract fun addCollection(): Unit
 
-    abstract fun getVectorStore(
-        provider: Provider = Provider.OPENAI,
-        token: String
-    ): VectorStore
+  abstract fun getVectorStore(provider: Provider = Provider.OPENAI, token: String): VectorStore
 }

@@ -6,9 +6,10 @@ import io.ktor.server.application.*
 import io.ktor.server.auth.*
 
 fun ApplicationCall.getToken(): Token =
-    principal<UserIdPrincipal>()?.name?.let { Token(it) } ?: throw XefExceptions.AuthorizationException("No token found")
+  principal<UserIdPrincipal>()?.name?.let { Token(it) }
+    ?: throw XefExceptions.AuthorizationException("No token found")
 
 fun ApplicationCall.getId(): Int = getInt("id")
 
 fun ApplicationCall.getInt(field: String): Int =
-    this.parameters[field]?.toInt() ?: throw XefExceptions.ValidationException("Invalid $field")
+  this.parameters[field]?.toInt() ?: throw XefExceptions.ValidationException("Invalid $field")

@@ -18,8 +18,8 @@ import com.xebia.functional.xef.server.services.RepositoryService
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.auth.*
-import io.ktor.client.plugins.logging.*
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation as ClientContentNegotiation
+import io.ktor.client.plugins.logging.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -34,66 +34,64 @@ import org.jetbrains.exposed.sql.Database
 import org.slf4j.LoggerFactory
 
 object Server {
-    @JvmStatic
-    fun main(args: Array<String>) = SuspendApp {
-        resourceScope {
-            val config = ConfigFactory.load("server.conf").resolve()
-            val xefDBConfig = XefDatabaseConfig.load("xef", config)
-            Migrate.migrate(xefDBConfig)
+  @JvmStatic
+  fun main(args: Array<String>) = SuspendApp {
+    resourceScope {
+      val config = ConfigFactory.load("server.conf").resolve()
+      val xefDBConfig = XefDatabaseConfig.load("xef", config)
+      Migrate.migrate(xefDBConfig)
 
-            val logger = LoggerFactory.getLogger("xef-server")
+      val logger = LoggerFactory.getLogger("xef-server")
 
-            val hikariDataSourceXefDB = RepositoryService.getHikariDataSource(
-                xefDBConfig.getUrl(),
-                xefDBConfig.user,
-                xefDBConfig.password
-            )
-            Database.connect(hikariDataSourceXefDB)
-            val vectorStoreConfig = XefVectorStoreConfig.load("xef-vector-store", config)
-            val vectorStoreService = vectorStoreConfig.getVectorStoreService(config, logger)
-            vectorStoreService.addCollection()
+      val hikariDataSourceXefDB =
+        RepositoryService.getHikariDataSource(
+          xefDBConfig.getUrl(),
+          xefDBConfig.user,
+          xefDBConfig.password
+        )
+      Database.connect(hikariDataSourceXefDB)
+      val vectorStoreConfig = XefVectorStoreConfig.load("xef-vector-store", config)
+      val vectorStoreService = vectorStoreConfig.getVectorStoreService(config, logger)
+      vectorStoreService.addCollection()
 
-
-            val ktorClient = HttpClient(CIO) {
-                engine {
-                    requestTimeout = 0 // disabled
-                }
-                install(Auth)
-                install(Logging) {
-                    level = LogLevel.INFO
-                }
-                install(ClientContentNegotiation)
-            }
-
-            val aiProviderConfig = AIProviderConfig.load("ai-routes", config)
-            val aiProvider = when (aiProviderConfig.aiProvider) {
-                AIProvider.OpenAI -> OpenAIApiProvider(ktorClient, aiProviderConfig.baseUri)
-                AIProvider.MLflow -> mlflowApiProvider(ktorClient, aiProviderConfig.baseUri)
-            }
-
-            server(factory = Netty, port = 8081, host = "0.0.0.0") {
-                install(CORS) {
-                    allowNonSimpleContentTypes = true
-                    HttpMethod.DefaultMethods.forEach { allowMethod(it) }
-                    allowHeaders { true }
-                    anyHost()
-                }
-                install(ContentNegotiation) { json() }
-                install(Resources)
-                install(Authentication) {
-                    bearer("auth-bearer") {
-                        authenticate { tokenCredential ->
-                            UserIdPrincipal(tokenCredential.token)
-                        }
-                    }
-                }
-                exceptionsHandler()
-                routing {
-                    xefRoutes(logger)
-                    aiRoutes(aiProvider)
-                }
-            }
-            awaitCancellation()
+      val ktorClient =
+        HttpClient(CIO) {
+          engine {
+            requestTimeout = 0 // disabled
+          }
+          install(Auth)
+          install(Logging) { level = LogLevel.INFO }
+          install(ClientContentNegotiation)
         }
+
+      val aiProviderConfig = AIProviderConfig.load("ai-routes", config)
+      val aiProvider =
+        when (aiProviderConfig.aiProvider) {
+          AIProvider.OpenAI -> OpenAIApiProvider(ktorClient, aiProviderConfig.baseUri)
+          AIProvider.MLflow -> mlflowApiProvider(ktorClient, aiProviderConfig.baseUri)
+        }
+
+      server(factory = Netty, port = 8081, host = "0.0.0.0") {
+        install(CORS) {
+          allowNonSimpleContentTypes = true
+          HttpMethod.DefaultMethods.forEach { allowMethod(it) }
+          allowHeaders { true }
+          anyHost()
+        }
+        install(ContentNegotiation) { json() }
+        install(Resources)
+        install(Authentication) {
+          bearer("auth-bearer") {
+            authenticate { tokenCredential -> UserIdPrincipal(tokenCredential.token) }
+          }
+        }
+        exceptionsHandler()
+        routing {
+          xefRoutes(logger)
+          aiRoutes(aiProvider)
+        }
+      }
+      awaitCancellation()
     }
+  }
 }

@@ -4,6 +4,7 @@ import io.ktor.server.application.*
 import io.ktor.util.pipeline.*
 
 sealed interface ApiProvider {
-    suspend fun PipelineContext<Unit, ApplicationCall>.chatRequest()
-    suspend fun PipelineContext<Unit, ApplicationCall>.embeddingsRequest()
+  suspend fun PipelineContext<Unit, ApplicationCall>.chatRequest()
+
+  suspend fun PipelineContext<Unit, ApplicationCall>.embeddingsRequest()
 }

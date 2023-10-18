@@ -11,23 +11,14 @@ import io.ktor.server.routing.*
 import io.ktor.util.*
 
 @OptIn(BetaOpenAI::class)
-fun Routing.aiRoutes(
-    client: HttpClient,
-    baseUrl: String = "https://api.openai.com/v1"
-) = aiRoutes(OpenAIApiProvider(client, baseUrl))
+fun Routing.aiRoutes(client: HttpClient, baseUrl: String = "https://api.openai.com/v1") =
+  aiRoutes(OpenAIApiProvider(client, baseUrl))
 
 @OptIn(BetaOpenAI::class)
-fun Routing.aiRoutes(
-    provider: ApiProvider
-) {
-    authenticate("auth-bearer") {
-        post("/chat/completions") {
-            with(provider) { chatRequest() }
-        }
+fun Routing.aiRoutes(provider: ApiProvider) {
+  authenticate("auth-bearer") {
+    post("/chat/completions") { with(provider) { chatRequest() } }
 
-        post("/embeddings") {
-            with(provider) { embeddingsRequest() }
-        }
-    }
+    post("/embeddings") { with(provider) { embeddingsRequest() } }
+  }
 }
-

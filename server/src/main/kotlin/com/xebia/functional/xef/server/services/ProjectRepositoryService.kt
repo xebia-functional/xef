@@ -7,130 +7,116 @@ import kotlinx.datetime.Clock
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.Logger
 
-class ProjectRepositoryService(
-    private val logger: Logger
-) {
-    fun createProject(
-        data: ProjectRequest,
-        token: Token
-    ): ProjectSimpleResponse {
-        logger.info("Creating project with name: ${data.name}")
-        return transaction {
-            val user = token.getUser()
+class ProjectRepositoryService(private val logger: Logger) {
+  fun createProject(data: ProjectRequest, token: Token): ProjectSimpleResponse {
+    logger.info("Creating project with name: ${data.name}")
+    return transaction {
+      val user = token.getUser()
 
-            val organization =
-                Organization.findById(data.orgId) ?: throw OrganizationsException("Organization not found")
+      val organization =
+        Organization.findById(data.orgId) ?: throw OrganizationsException("Organization not found")
 
-            if (user.organizations.none { it.id.value == data.orgId }) {
-                throw OrganizationsException("User is not part of the organization")
-            }
+      if (user.organizations.none { it.id.value == data.orgId }) {
+        throw OrganizationsException("User is not part of the organization")
+      }
 
-            val project = Project.new {
-                name = data.name
-                orgId = organization.id
-            }
-            project.toProjectSimpleResponse()
+      val project =
+        Project.new {
+          name = data.name
+          orgId = organization.id
+        }
+      project.toProjectSimpleResponse()
+    }
+  }
+
+  fun getProjects(token: Token): List<ProjectFullResponse> {
+    logger.info("Getting projects")
+    return transaction {
+      val user = token.getUser()
+
+      Project.find { ProjectsTable.orgId inList user.organizations.map { it.id } }
+        .mapNotNull { project ->
+          val org = user.organizations.find { org -> org.id == project.orgId }
+          org?.let { project.toProjectFullResponse(it) }
         }
     }
+  }
 
-    fun getProjects(
-        token: Token
-    ): List<ProjectFullResponse> {
-        logger.info("Getting projects")
-        return transaction {
-            val user = token.getUser()
+  fun getProject(token: Token, id: Int): ProjectFullResponse {
+    logger.info("Getting project")
+    return transaction {
+      val user = token.getUser()
 
-            Project.find { ProjectsTable.orgId inList user.organizations.map { it.id } }.mapNotNull { project ->
-                val org = user.organizations.find { org -> org.id == project.orgId }
-                org?.let {
-                    project.toProjectFullResponse(it)
-                }
-            }
-        }
+      val project = Project.findById(id) ?: throw ProjectException("Project not found")
+
+      val org =
+        user.organizations.find { it.id == project.orgId }
+          ?: throw OrganizationsException("User is not part of the organization")
+
+      project.toProjectFullResponse(org)
     }
+  }
 
-    fun getProject(
-        token: Token,
-        id: Int
-    ): ProjectFullResponse {
-        logger.info("Getting project")
-        return transaction {
-            val user = token.getUser()
+  fun getProjectsByOrganization(token: Token, orgId: Int): List<ProjectSimpleResponse> {
+    logger.info("Getting projects")
+    return transaction {
+      val user = token.getUser()
 
-            val project = Project.findById(id) ?: throw ProjectException("Project not found")
+      if (user.organizations.none { it.id.value == orgId }) {
+        throw OrganizationsException("User is not part of the organization")
+      }
 
-            val org = user.organizations.find { it.id == project.orgId }
-                ?: throw OrganizationsException("User is not part of the organization")
-
-            project.toProjectFullResponse(org)
-        }
+      Project.find { ProjectsTable.orgId eq orgId }.map { it.toProjectSimpleResponse() }
     }
+  }
 
-    fun getProjectsByOrganization(
-        token: Token,
-        orgId: Int
-    ): List<ProjectSimpleResponse> {
-        logger.info("Getting projects")
-        return transaction {
-            val user = token.getUser()
+  fun updateProject(token: Token, data: ProjectUpdateRequest, id: Int): ProjectFullResponse {
+    logger.info("Updating project with name: ${data.name}")
+    return transaction {
+      val user = token.getUser()
 
-            if (user.organizations.none { it.id.value == orgId }) {
-                throw OrganizationsException("User is not part of the organization")
-            }
+      val project = Project.findById(id) ?: throw ProjectException("Project not found")
 
-            Project.find { ProjectsTable.orgId eq orgId }.map { it.toProjectSimpleResponse() }
-        }
+      val organization =
+        Organization.findById(project.orgId)
+          ?: throw OrganizationsException("Organization not found")
+
+      if (organization.ownerId != user.id) {
+        throw OrganizationsException(
+          "You can't update the project. User is not the owner of the organization"
+        )
+      }
+
+      // Updating the project
+      project.name = data.name
+      if (data.orgId != null) {
+        val newOrg =
+          Organization.findById(data.orgId)
+            ?: throw OrganizationsException("Organization not found")
+        project.orgId = newOrg.id
+      }
+      project.updatedAt = Clock.System.now()
+      project.toProjectFullResponse(organization)
     }
+  }
 
-    fun updateProject(
-        token: Token,
-        data: ProjectUpdateRequest,
-        id: Int
-    ): ProjectFullResponse {
-        logger.info("Updating project with name: ${data.name}")
-        return transaction {
-            val user = token.getUser()
+  fun deleteProject(token: Token, id: Int) {
+    logger.info("Deleting project with id: $id")
+    transaction {
+      val user = token.getUser()
+      val project = Project.findById(id) ?: throw ProjectException("Project not found")
 
-            val project = Project.findById(id) ?: throw ProjectException("Project not found")
+      val organization =
+        Organization.findById(project.orgId)
+          ?: throw OrganizationsException("Organization not found")
 
-            val organization = Organization.findById(project.orgId)
-                ?: throw OrganizationsException("Organization not found")
+      if (organization.ownerId != user.id) {
+        throw OrganizationsException(
+          "You can't delete the project. User is not the owner of the organization"
+        )
+      }
 
-            if (organization.ownerId != user.id) {
-                throw OrganizationsException("You can't update the project. User is not the owner of the organization")
-            }
-
-            // Updating the project
-            project.name = data.name
-            if (data.orgId != null) {
-                val newOrg = Organization.findById(data.orgId)
-                    ?: throw OrganizationsException("Organization not found")
-                project.orgId = newOrg.id
-            }
-            project.updatedAt = Clock.System.now()
-            project.toProjectFullResponse(organization)
-        }
+      project.delete()
     }
-
-    fun deleteProject(
-        token: Token,
-        id: Int
-    ) {
-        logger.info("Deleting project with id: $id")
-        transaction {
-            val user = token.getUser()
-            val project = Project.findById(id)
-                ?: throw ProjectException("Project not found")
-
-            val organization = Organization.findById(project.orgId)
-                ?: throw OrganizationsException("Organization not found")
-
-            if (organization.ownerId != user.id) {
-                throw OrganizationsException("You can't delete the project. User is not the owner of the organization")
-            }
-
-            project.delete()
-
-        }
-    }
+  }
 }

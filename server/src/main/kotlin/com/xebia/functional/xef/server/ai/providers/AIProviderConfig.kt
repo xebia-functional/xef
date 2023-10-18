@@ -10,26 +10,19 @@ import kotlinx.serialization.hocon.Hocon
 
 @Serializable
 enum class AIProvider {
-    OpenAI,
-    MLflow
+  OpenAI,
+  MLflow
 }
 
 @Serializable
-class AIProviderConfig(
-    val aiProvider: AIProvider,
-    val baseUri: String
-) {
-    companion object {
-        @OptIn(ExperimentalSerializationApi::class)
-        suspend fun load(
-            configNamespace: String,
-            config: Config? = null
-        ): AIProviderConfig =
-            withContext(Dispatchers.IO) {
-                val rawConfig = config ?: ConfigFactory.load().resolve()
-                val jdbcConfig = rawConfig.getConfig(configNamespace)
-                Hocon.decodeFromConfig(serializer(), jdbcConfig)
-            }
-
-    }
+class AIProviderConfig(val aiProvider: AIProvider, val baseUri: String) {
+  companion object {
+    @OptIn(ExperimentalSerializationApi::class)
+    suspend fun load(configNamespace: String, config: Config? = null): AIProviderConfig =
+      withContext(Dispatchers.IO) {
+        val rawConfig = config ?: ConfigFactory.load().resolve()
+        val jdbcConfig = rawConfig.getConfig(configNamespace)
+        Hocon.decodeFromConfig(serializer(), jdbcConfig)
+      }
+  }
 }

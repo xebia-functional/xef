@@ -10,18 +10,16 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.json.Json
 
-fun Routing.userRoutes(
-    userRepositoryService: UserRepositoryService
-) {
-    post("/register") {
-        val request = Json.decodeFromString<RegisterRequest>(call.receive<String>())
-        val response = userRepositoryService.register(request)
-        call.respond(response)
-    }
+fun Routing.userRoutes(userRepositoryService: UserRepositoryService) {
+  post("/register") {
+    val request = Json.decodeFromString<RegisterRequest>(call.receive<String>())
+    val response = userRepositoryService.register(request)
+    call.respond(response)
+  }
 
-    post("/login") {
-        val request = Json.decodeFromString<LoginRequest>(call.receive<String>())
-        val response = userRepositoryService.login(request)
-        call.respond(response)
-    }
+  post("/login") {
+    val request = Json.decodeFromString<LoginRequest>(call.receive<String>())
+    val response = userRepositoryService.login(request)
+    call.respond(response)
+  }
 }
