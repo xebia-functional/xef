@@ -25,5 +25,5 @@ class LogsMetric : Metric {
     println("${writeIdent()}|-- $message".padStart(identSize, ' '))
   }
 
-  private fun writeIdent(times: Int = 1) = (1 .. identSize * times).fold("") { a, b -> "$a " }
+  private fun writeIdent(times: Int = 1) = (1..identSize * times).fold("") { a, b -> "$a " }
 }
