@@ -20,6 +20,8 @@ import com.xebia.functional.xef.conversation.autoClose
 import com.xebia.functional.xef.conversation.llm.openai.models.*
 import com.xebia.functional.xef.env.getenv
 import com.xebia.functional.xef.llm.LLM
+import com.xebia.functional.xef.metrics.LogsMetric
+import com.xebia.functional.xef.metrics.Metric
 import com.xebia.functional.xef.store.LocalVectorStore
 import com.xebia.functional.xef.store.VectorStore
 import kotlin.jvm.JvmField
@@ -214,17 +216,18 @@ class OpenAI(
     @JvmSynthetic
     suspend inline fun <A> conversation(
       store: VectorStore,
+      metric: Metric,
       noinline block: suspend Conversation.() -> A
-    ): A = block(conversation(store))
+    ): A = block(conversation(store, metric))
 
     @JvmSynthetic
-    suspend fun <A> conversation(block: suspend Conversation.() -> A): A =
-      block(conversation(LocalVectorStore(FromEnvironment.DEFAULT_EMBEDDING)))
+    suspend fun <A> conversation(block: suspend Conversation.() -> A): A = block(conversation())
 
     @JvmStatic
     @JvmOverloads
     fun conversation(
-      store: VectorStore = LocalVectorStore(FromEnvironment.DEFAULT_EMBEDDING)
-    ): PlatformConversation = Conversation(store)
+      store: VectorStore = LocalVectorStore(FromEnvironment.DEFAULT_EMBEDDING),
+      metric: Metric = LogsMetric()
+    ): PlatformConversation = Conversation(store, metric)
   }
 }

@@ -1,10 +1,12 @@
 package com.xebia.functional.xef.conversation
 
+import com.xebia.functional.xef.metrics.Metric
 import com.xebia.functional.xef.store.ConversationId
 import com.xebia.functional.xef.store.VectorStore
 
 class JSConversation(
   override val store: VectorStore,
+  override val metric: Metric,
   override val conversationId: ConversationId?
 ) : PlatformConversation(store, conversationId) {
 

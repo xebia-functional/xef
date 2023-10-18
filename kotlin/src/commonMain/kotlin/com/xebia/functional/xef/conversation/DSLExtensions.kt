@@ -1,6 +1,8 @@
 package com.xebia.functional.xef.conversation
 
 import com.xebia.functional.xef.llm.Embeddings
+import com.xebia.functional.xef.metrics.LogsMetric
+import com.xebia.functional.xef.metrics.Metric
 import com.xebia.functional.xef.store.LocalVectorStore
 import com.xebia.functional.xef.store.VectorStore
 
@@ -15,5 +17,6 @@ import com.xebia.functional.xef.store.VectorStore
 suspend inline fun <A> conversation(
   embeddings: Embeddings,
   store: VectorStore = LocalVectorStore(embeddings),
+  metric: Metric = LogsMetric(),
   noinline block: suspend Conversation.() -> A
-): A = block(Conversation(store))
+): A = block(Conversation(store, metric))

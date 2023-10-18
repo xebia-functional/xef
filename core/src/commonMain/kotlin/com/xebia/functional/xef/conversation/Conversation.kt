@@ -4,6 +4,7 @@ import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.llm.*
 import com.xebia.functional.xef.llm.models.functions.CFunction
 import com.xebia.functional.xef.llm.models.images.ImagesGenerationResponse
+import com.xebia.functional.xef.metrics.Metric
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.store.ConversationId
 import com.xebia.functional.xef.store.VectorStore
@@ -16,6 +17,8 @@ import kotlinx.uuid.generateUUID
 interface Conversation : AutoClose, AutoCloseable {
 
   val store: VectorStore
+
+  val metric: Metric
 
   val conversationId: ConversationId?
 
@@ -80,14 +83,16 @@ interface Conversation : AutoClose, AutoCloseable {
 
     operator fun invoke(
       store: VectorStore,
+      metric: Metric,
       conversationId: ConversationId? = ConversationId(UUID.generateUUID().toString())
-    ): PlatformConversation = PlatformConversation.create(store, conversationId)
+    ): PlatformConversation = PlatformConversation.create(store, metric, conversationId)
 
     @JvmSynthetic
     suspend operator fun <A> invoke(
       store: VectorStore,
+      metric: Metric,
       conversationId: ConversationId? = ConversationId(UUID.generateUUID().toString()),
       block: suspend PlatformConversation.() -> A
-    ): A = block(invoke(store, conversationId))
+    ): A = block(invoke(store, metric, conversationId))
   }
 }
