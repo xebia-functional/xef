@@ -12,51 +12,42 @@ import kotlinx.uuid.generateUUID
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.Logger
 
-class UserRepositoryService(
-    private val logger: Logger
-) {
+class UserRepositoryService(private val logger: Logger) {
 
-    fun register(request: RegisterRequest): LoginResponse {
-        logger.info("Registering user ${request.email}" )
+  fun register(request: RegisterRequest): LoginResponse {
+    logger.info("Registering user ${request.email}")
 
-        return transaction {
-            if (User.find { UsersTable.email eq request.email }.count() > 0) {
-                throw UserException("User already exists")
-            }
+    return transaction {
+      if (User.find { UsersTable.email eq request.email }.count() > 0) {
+        throw UserException("User already exists")
+      }
 
-            val newSalt = HashUtils.generateSalt()
-            val passwordHashed = HashUtils.createHash(request.password, newSalt)
-            val user = transaction {
-                User.new {
-                    name = request.name
-                    email = request.email
-                    passwordHash = passwordHashed
-                    salt = newSalt
-                    authToken = UUID.generateUUID(passwordHashed).toString()
-                }
-            }
-            LoginResponse(user.authToken)
+      val newSalt = HashUtils.generateSalt()
+      val passwordHashed = HashUtils.createHash(request.password, newSalt)
+      val user = transaction {
+        User.new {
+          name = request.name
+          email = request.email
+          passwordHash = passwordHashed
+          salt = newSalt
+          authToken = UUID.generateUUID(passwordHashed).toString()
         }
+      }
+      LoginResponse(user.authToken)
     }
+  }
 
-    fun login(request: LoginRequest): LoginResponse {
-        logger.info("Login user ${request.email}")
-        return transaction {
-            val user =
-                User.find { UsersTable.email eq request.email }.firstOrNull() ?: throw UserException("User not found")
+  fun login(request: LoginRequest): LoginResponse {
+    logger.info("Login user ${request.email}")
+    return transaction {
+      val user =
+        User.find { UsersTable.email eq request.email }.firstOrNull()
+          ?: throw UserException("User not found")
 
-            if (!HashUtils.checkPassword(
-                    request.password,
-                    user.salt,
-                    user.passwordHash
-                )
-            )
-                throw Exception("Invalid password")
+      if (!HashUtils.checkPassword(request.password, user.salt, user.passwordHash))
+        throw Exception("Invalid password")
 
-            LoginResponse(user.authToken)
-        }
-
-
+      LoginResponse(user.authToken)
     }
-
+  }
 }

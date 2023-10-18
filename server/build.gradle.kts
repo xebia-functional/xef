@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.node.gradle)
     alias(libs.plugins.arrow.gradle.publish)
     alias(libs.plugins.semver.gradle)
+    alias(libs.plugins.spotless)
 }
 
 repositories {
@@ -66,6 +67,15 @@ dependencies {
     testImplementation(libs.kotest.testcontainers)
     testImplementation(libs.testcontainers.postgresql)
     testRuntimeOnly(libs.kotest.junit5)
+}
+
+spotless {
+    kotlin {
+        target("**/*.kt")
+        ktfmt().googleStyle().configure {
+            it.setRemoveUnusedImport(true)
+        }
+    }
 }
 
 tasks.getByName<Copy>("processResources") {
