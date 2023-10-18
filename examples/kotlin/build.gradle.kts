@@ -26,6 +26,7 @@ dependencies {
   implementation(projects.xefGcp)
   implementation(projects.xefOpenai)
   implementation(projects.xefReasoning)
+  implementation(projects.xefOpentelemetry)
   implementation(libs.kotlinx.serialization.json)
   implementation(libs.logback)
   implementation(libs.klogging)

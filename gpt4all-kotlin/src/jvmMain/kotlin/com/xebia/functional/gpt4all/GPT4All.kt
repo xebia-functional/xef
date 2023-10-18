@@ -14,6 +14,8 @@ import com.xebia.functional.xef.llm.models.text.CompletionChoice
 import com.xebia.functional.xef.llm.models.text.CompletionRequest
 import com.xebia.functional.xef.llm.models.text.CompletionResult
 import com.xebia.functional.xef.llm.models.usage.Usage
+import com.xebia.functional.xef.metrics.LogsMetric
+import com.xebia.functional.xef.metrics.Metric
 import com.xebia.functional.xef.store.LocalVectorStore
 import com.xebia.functional.xef.store.VectorStore
 import kotlinx.coroutines.Dispatchers
@@ -45,13 +47,14 @@ interface GPT4All : AutoCloseable, Chat, Completion {
     @JvmSynthetic
     suspend fun <A> conversation(
       block: suspend Conversation.() -> A
-    ): A = block(conversation(LocalVectorStore(HuggingFaceLocalEmbeddings.DEFAULT)))
+    ): A = block(conversation())
 
     @JvmStatic
     @JvmOverloads
     fun conversation(
-      store: VectorStore = LocalVectorStore(HuggingFaceLocalEmbeddings.DEFAULT)
-    ): PlatformConversation = Conversation(store)
+      store: VectorStore = LocalVectorStore(HuggingFaceLocalEmbeddings.DEFAULT),
+      metric: Metric = LogsMetric()
+    ): PlatformConversation = Conversation(store, metric)
 
     operator fun invoke(
       url: String,

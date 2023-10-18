@@ -48,6 +48,9 @@ project(":xef-sql").projectDir = file("integrations/sql")
 
 include("xef-gcp")
 project(":xef-gcp").projectDir = file("integrations/gcp")
+
+include("xef-opentelemetry")
+project(":xef-opentelemetry").projectDir = file("integrations/opentelemetry")
 //</editor-fold>
 //</editor-fold>
 

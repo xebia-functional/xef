@@ -14,6 +14,12 @@ import kotlinx.serialization.Serializable
 data class Invention(val name: String, val inventor: String, val year: Int, val purpose: String)
 
 suspend fun main() {
+  // This example contemplate the case of using OpenTelemetry for metrics
+  // To run the example with OpenTelemetry, you can execute the following commands:
+  //  - # docker compose-up server/docker/opentelemetry
+
+  // OpenAI.conversation(LocalVectorStore(OpenAI().DEFAULT_EMBEDDING), OpenTelemetryMetric())
+
   OpenAI.conversation {
     val animal: Animal = prompt("A unique animal species.")
     val invention: Invention = prompt("A groundbreaking invention from the 20th century.")

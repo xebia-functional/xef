@@ -4,6 +4,7 @@ import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.data.*
 import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.llm.models.chat.Role
+import com.xebia.functional.xef.metrics.LogsMetric
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.assistant
 import com.xebia.functional.xef.prompt.templates.system
@@ -26,7 +27,12 @@ class ConversationSpec :
 
       val model = TestModel(modelType = ModelType.ADA)
 
-      val scope = Conversation(LocalVectorStore(TestEmbeddings()), conversationId = conversationId)
+      val scope =
+        Conversation(
+          LocalVectorStore(TestEmbeddings()),
+          LogsMetric(),
+          conversationId = conversationId
+        )
 
       val vectorStore = scope.store
 
@@ -48,7 +54,12 @@ class ConversationSpec :
       |""" {
       val messages = generateRandomMessages(50, 40, 60)
       val conversationId = ConversationId(UUID.generateUUID().toString())
-      val scope = Conversation(LocalVectorStore(TestEmbeddings()), conversationId = conversationId)
+      val scope =
+        Conversation(
+          LocalVectorStore(TestEmbeddings()),
+          LogsMetric(),
+          conversationId = conversationId
+        )
       val vectorStore = scope.store
 
       val modelAda = TestModel(modelType = ModelType.ADA, responses = messages)
@@ -85,7 +96,12 @@ class ConversationSpec :
       |""" {
       val messages = generateRandomMessages(50, 40, 60)
       val conversationId = ConversationId(UUID.generateUUID().toString())
-      val scope = Conversation(LocalVectorStore(TestEmbeddings()), conversationId = conversationId)
+      val scope =
+        Conversation(
+          LocalVectorStore(TestEmbeddings()),
+          LogsMetric(),
+          conversationId = conversationId
+        )
       val vectorStore = scope.store
 
       val modelGPTTurbo16K =
@@ -122,7 +138,12 @@ class ConversationSpec :
       val message = mapOf(question to Json.encodeToString(answer))
 
       val conversationId = ConversationId(UUID.generateUUID().toString())
-      val scope = Conversation(LocalVectorStore(TestEmbeddings()), conversationId = conversationId)
+      val scope =
+        Conversation(
+          LocalVectorStore(TestEmbeddings()),
+          LogsMetric(),
+          conversationId = conversationId
+        )
 
       val model =
         TestFunctionsModel(modelType = ModelType.GPT_3_5_TURBO_FUNCTIONS, responses = message)
@@ -146,7 +167,12 @@ class ConversationSpec :
       val message = mapOf(questionJsonString to answerJsonString)
 
       val conversationId = ConversationId(UUID.generateUUID().toString())
-      val scope = Conversation(LocalVectorStore(TestEmbeddings()), conversationId = conversationId)
+      val scope =
+        Conversation(
+          LocalVectorStore(TestEmbeddings()),
+          LogsMetric(),
+          conversationId = conversationId
+        )
 
       val model =
         TestFunctionsModel(modelType = ModelType.GPT_3_5_TURBO_FUNCTIONS, responses = message)
@@ -170,7 +196,12 @@ class ConversationSpec :
 
       val model = TestModel(modelType = ModelType.ADA)
 
-      val scope = Conversation(LocalVectorStore(TestEmbeddings()), conversationId = conversationId)
+      val scope =
+        Conversation(
+          LocalVectorStore(TestEmbeddings()),
+          LogsMetric(),
+          conversationId = conversationId
+        )
 
       val vectorStore = scope.store
 
@@ -218,7 +249,7 @@ class ConversationSpec :
 
       val vectorStore = LocalVectorStore(TestEmbeddings())
 
-      val scope1 = Conversation(vectorStore, conversationId = conversationId)
+      val scope1 = Conversation(vectorStore, LogsMetric(), conversationId = conversationId)
 
       val firstPrompt = Prompt {
         +user("question in scope 1")
@@ -227,7 +258,7 @@ class ConversationSpec :
 
       model.promptMessages(prompt = firstPrompt, scope = scope1)
 
-      val scope2 = Conversation(vectorStore, conversationId = conversationId)
+      val scope2 = Conversation(vectorStore, LogsMetric(), conversationId = conversationId)
 
       val secondPrompt = Prompt {
         +user("question in scope 2")
