@@ -34,6 +34,7 @@ dependencies {
   implementation(libs.bundles.arrow)
   implementation(libs.okio)
   implementation(libs.jdbc.mysql.connector)
+  implementation(libs.postgresql)
   api(libs.ktor.client)
 }
 

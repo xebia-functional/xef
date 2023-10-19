@@ -32,6 +32,9 @@ dependencies {
     implementation(projects.xefCore)
     implementation(projects.xefTokenizer)
     implementation(libs.klogging)
+    implementation(libs.exposed.core)
+    implementation(libs.exposed.dao)
+    implementation(libs.exposed.jdbc)
 }
 
 tasks {

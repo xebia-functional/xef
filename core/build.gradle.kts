@@ -39,6 +39,7 @@ detekt {
 }
 
 kotlin {
+
   jvm {
     withJava()
     compilations {
@@ -218,8 +219,13 @@ tasks {
       }
     }
   }
+
 }
 
 tasks.withType<AbstractPublishToMaven> {
   dependsOn(tasks.withType<Sign>())
+}
+
+tasks.named<org.gradle.jvm.tasks.Jar>("jvmJar") {
+  duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
