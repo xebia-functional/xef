@@ -6,6 +6,7 @@ import arrow.atomic.getAndUpdate
 import arrow.atomic.update
 import com.xebia.functional.xef.llm.Embeddings
 import com.xebia.functional.xef.llm.LLM
+import com.xebia.functional.xef.llm.models.chat.Role
 import com.xebia.functional.xef.llm.models.embeddings.Embedding
 import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
 import kotlin.math.sqrt
@@ -65,6 +66,11 @@ private constructor(private val embeddings: Embeddings, private val state: Atomi
       .sortedByDescending { it.index }
       .reduceByLimitToken(llm, limitTokens)
       .reversed()
+  }
+
+  override suspend fun systemMessage(conversationId: ConversationId): Memory? {
+    val memories = state.get().orderedMemories[conversationId]
+    return memories?.firstOrNull { it.content.role == Role.SYSTEM }
   }
 
   override suspend fun addTexts(texts: List<String>) {

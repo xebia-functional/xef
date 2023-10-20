@@ -51,7 +51,7 @@ interface GPT4All : AutoCloseable, Chat, Completion {
 
     @JvmStatic
     @JvmOverloads
-    fun conversation(
+    suspend fun conversation(
       store: VectorStore = LocalVectorStore(HuggingFaceLocalEmbeddings.DEFAULT),
       metric: Metric = LogsMetric()
     ): PlatformConversation = Conversation(store, metric)

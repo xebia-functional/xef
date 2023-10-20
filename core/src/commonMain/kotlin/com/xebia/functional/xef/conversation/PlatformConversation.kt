@@ -10,10 +10,11 @@ expect abstract class PlatformConversation(
 ) : Conversation {
 
   companion object {
-    fun create(
+    suspend fun create(
       store: VectorStore,
       metric: Metric,
       conversationId: ConversationId?,
+      system: String?,
     ): PlatformConversation
   }
 }

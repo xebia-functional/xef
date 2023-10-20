@@ -46,6 +46,9 @@ class PGVectorStore(
   override suspend fun memories(llm: LLM, conversationId: ConversationId, limitTokens: Int): List<Memory> =
     getMemoryByConversationId(conversationId).reduceByLimitToken(llm, limitTokens).reversed()
 
+  override suspend fun systemMessage(conversationId: ConversationId): Memory? =
+    getMemoryByConversationId(conversationId).firstOrNull { it.content.role == Role.SYSTEM }
+
   private fun JDBCSyntax.getCollection(collectionName: String): PGCollection =
     queryOneOrNull(getCollection, { bind(collectionName) }) {
       PGCollection(UUID(string()), string())

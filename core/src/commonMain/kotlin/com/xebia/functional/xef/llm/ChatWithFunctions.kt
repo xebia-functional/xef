@@ -74,6 +74,8 @@ interface ChatWithFunctions : LLM {
           this@ChatWithFunctions
         )
 
+      adaptedPrompt.addMetrics(scope)
+
       val request =
         FunChatCompletionRequest(
           user = adaptedPrompt.configuration.user,
@@ -90,7 +92,11 @@ interface ChatWithFunctions : LLM {
         createChatCompletionWithFunctions(request)
           .addMetrics(scope)
           .choices
-          .addChoiceWithFunctionsToMemory(scope, requestedMemories)
+          .addChoiceWithFunctionsToMemory(
+            scope,
+            requestedMemories,
+            prompt.configuration.messagePolicy.addMessagesToConversation
+          )
           .mapNotNull { it.message?.functionCall?.arguments }
       }
     }
@@ -128,7 +134,7 @@ interface ChatWithFunctions : LLM {
       ) {
         streamFunctionCall(
           chat = this@ChatWithFunctions,
-          promptMessages = prompt.messages,
+          prompt = prompt,
           request = request,
           scope = scope,
           serializer = serializer,

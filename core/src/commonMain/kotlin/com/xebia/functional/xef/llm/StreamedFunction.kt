@@ -6,6 +6,7 @@ import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.llm.models.functions.CFunction
 import com.xebia.functional.xef.llm.models.functions.FunChatCompletionRequest
 import com.xebia.functional.xef.llm.models.functions.FunctionCall
+import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.assistant
 import kotlin.jvm.JvmSynthetic
 import kotlinx.coroutines.flow.FlowCollector
@@ -41,7 +42,7 @@ sealed class StreamedFunction<out A> {
     @JvmSynthetic
     internal suspend fun <A> FlowCollector<StreamedFunction<A>>.streamFunctionCall(
       chat: ChatWithFunctions,
-      promptMessages: List<Message>,
+      prompt: Prompt,
       request: FunChatCompletionRequest,
       scope: Conversation,
       serializer: (json: String) -> A,
@@ -64,8 +65,11 @@ sealed class StreamedFunction<out A> {
       chat
         .createChatCompletionsWithFunctions(request)
         .onCompletion {
-          val newMessages = promptMessages + messages
-          newMessages.addToMemory(scope)
+          val newMessages = prompt.messages + messages
+          newMessages.addToMemory(
+            scope,
+            prompt.configuration.messagePolicy.addMessagesToConversation
+          )
         }
         .collect { responseChunk ->
           // Each chunk is emitted from the LLM and it will include a delta.parameters with

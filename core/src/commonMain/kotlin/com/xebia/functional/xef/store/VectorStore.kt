@@ -17,6 +17,8 @@ interface VectorStore {
 
   suspend fun memories(llm: LLM, conversationId: ConversationId, limitTokens: Int): List<Memory>
 
+  suspend fun systemMessage(conversationId: ConversationId): Memory?
+
   /**
    * Add texts to the vector store after running them through the embeddings
    *
@@ -60,6 +62,8 @@ interface VectorStore {
           conversationId: ConversationId,
           limitTokens: Int
         ): List<Memory> = emptyList()
+
+        override suspend fun systemMessage(conversationId: ConversationId): Memory? = null
 
         override suspend fun addTexts(texts: List<String>) {}
 

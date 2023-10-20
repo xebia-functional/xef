@@ -1,15 +1,16 @@
 package com.xebia.functional.xef.llm
 
 import com.xebia.functional.xef.conversation.Conversation
+import com.xebia.functional.xef.conversation.MessagesToHistory
 import com.xebia.functional.xef.llm.models.chat.Choice
 import com.xebia.functional.xef.llm.models.chat.ChoiceWithFunctions
 import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.store.ConversationId
 import com.xebia.functional.xef.store.Memory
 
-internal suspend fun List<Message>.addToMemory(scope: Conversation) {
+internal suspend fun List<Message>.addToMemory(scope: Conversation, history: MessagesToHistory) {
   val cid = scope.conversationId
-  if (cid != null) {
+  if (history != MessagesToHistory.NONE && cid != null) {
     val memories = toMemory(scope)
     if (memories.isNotEmpty()) {
       scope.store.addMemories(memories)
@@ -29,10 +30,11 @@ internal fun List<Message>.toMemory(scope: Conversation): List<Memory> {
 
 internal suspend fun List<ChoiceWithFunctions>.addChoiceWithFunctionsToMemory(
   scope: Conversation,
-  previousMemories: List<Memory>
+  previousMemories: List<Memory>,
+  history: MessagesToHistory
 ): List<ChoiceWithFunctions> = also {
   val cid = scope.conversationId
-  if (isNotEmpty() && cid != null) {
+  if (history != MessagesToHistory.NONE && isNotEmpty() && cid != null) {
     val aiMemory =
       this.mapNotNull { it.message }
         .map { it.toMessage().toMemory(cid, scope.store.incrementIndexAndGet()) }
@@ -43,10 +45,11 @@ internal suspend fun List<ChoiceWithFunctions>.addChoiceWithFunctionsToMemory(
 
 internal suspend fun List<Choice>.addChoiceToMemory(
   scope: Conversation,
-  previousMemories: List<Memory>
+  previousMemories: List<Memory>,
+  history: MessagesToHistory
 ): List<Choice> = also {
   val cid = scope.conversationId
-  if (isNotEmpty() && cid != null) {
+  if (history != MessagesToHistory.NONE && isNotEmpty() && cid != null) {
     val aiMemory =
       this.mapNotNull { it.message }.map { it.toMemory(cid, scope.store.incrementIndexAndGet()) }
     val newMessages = previousMemories + aiMemory

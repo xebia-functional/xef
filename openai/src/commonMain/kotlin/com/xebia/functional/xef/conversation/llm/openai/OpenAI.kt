@@ -185,17 +185,20 @@ class OpenAI(
     suspend inline fun <A> conversation(
       store: VectorStore,
       metric: Metric,
+      system: String? = null,
       noinline block: suspend Conversation.() -> A
-    ): A = block(conversation(store, metric))
+    ): A = block(conversation(store, metric, system))
 
     @JvmSynthetic
-    suspend fun <A> conversation(block: suspend Conversation.() -> A): A = block(conversation())
+    suspend fun <A> conversation(system: String? = null, block: suspend Conversation.() -> A): A =
+      block(conversation(system = system))
 
     @JvmStatic
     @JvmOverloads
-    fun conversation(
+    suspend fun conversation(
       store: VectorStore = LocalVectorStore(FromEnvironment.DEFAULT_EMBEDDING),
-      metric: Metric = LogsMetric()
-    ): PlatformConversation = Conversation(store, metric)
+      metric: Metric = LogsMetric(),
+      system: String? = null,
+    ): PlatformConversation = Conversation(store, metric, system)
   }
 }

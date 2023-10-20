@@ -56,6 +56,8 @@ open class Lucene(
   override suspend fun memories(llm: LLM, conversationId: ConversationId, limitTokens: Int): List<Memory> =
     getMemoryByConversationId(conversationId).reduceByLimitToken(llm, limitTokens).reversed()
 
+  override suspend fun systemMessage(conversationId: ConversationId): Memory? =
+    getMemoryByConversationId(conversationId).firstOrNull { it.content.role == Role.SYSTEM }
 
   override suspend fun addTexts(texts: List<String>) {
     texts.forEach {
