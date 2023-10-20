@@ -1,5 +1,7 @@
 package com.xebia.functional.xef.conversation
 
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.xebia.functional.xef.conversation.serialization.JacksonSerialization
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.llm.ChatWithFunctions
@@ -17,6 +19,9 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.reactive.asPublisher
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonObject
 import org.reactivestreams.Publisher
 
 actual abstract class PlatformConversation
@@ -58,12 +63,15 @@ actual constructor(
       }
       .asCompletableFuture()
 
-  fun chatFunction(target: Class<*>): CFunction =
-    CFunction(
+  fun chatFunction(target: Class<*>): CFunction {
+    val targetString = JacksonSerialization.schemaGenerator.generateSchema(target).toString()
+    return CFunction(
       name = target.simpleName,
       description = "Generated function for ${target.simpleName}",
-      parameters = JacksonSerialization.schemaGenerator.generateSchema(target).toString()
+      parameters = Json.parseToJsonElement(targetString).jsonObject
     )
+  }
+
 
   fun promptMessage(chat: Chat, prompt: Prompt): CompletableFuture<String> =
     coroutineScope

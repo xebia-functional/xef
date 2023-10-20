@@ -102,7 +102,7 @@ private fun CFunction.toOpenAI() =
   ChatCompletionFunction(
     name = name,
     description = description,
-    parameters = Parameters(Json.parseToJsonElement(parameters)),
+    parameters = Parameters(parameters)
   )
 
 private fun Message.toOpenAI() =
