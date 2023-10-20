@@ -26,15 +26,20 @@ class MLflowApiProvider(
 
   private val json = Json { explicitNulls = false }
 
-  private suspend inline fun <reified R1, reified R2> PipelineContext<Unit, ApplicationCall>
-    .makeRequest(requestData: JsonObject, reqResMap: ReqResMap<R1, R2>) {
-    val model = requestData["model"]!!.jsonPrimitive.content
+  private suspend inline fun <reified Req, reified R1, reified R2> PipelineContext<
+    Unit, ApplicationCall
+  >
+    .makeRequest(
+    model: String,
+    requestData: Req,
+    path: (String, UserIdPrincipal) -> String?,
+    toXef: R1.() -> R2
+  ) {
     val principal =
       call.principal<UserIdPrincipal>() ?: throw XefExceptions.AuthorizationException("")
-    val resolvedPath = reqResMap.path(pathProvider, model, principal)
+    val resolvedPath = path(model, principal)
     resolvedPath?.let {
-      val newData = reqResMap.mapRequest(requestData)
-      val newBody = json.encodeToString(newData).toByteArray(Charsets.UTF_8)
+      val newBody = json.encodeToString(requestData).toByteArray(Charsets.UTF_8)
       val response =
         client.post("$gatewayUrl$resolvedPath") {
           accept(ContentType.Application.Json)
@@ -47,7 +52,7 @@ class MLflowApiProvider(
         val responseData = Json.decodeFromString<R1>(stringResponseBody)
         call.respond(
           response.status,
-          json.encodeToString(reqResMap.mapResponse(responseData)).toByteArray(Charsets.UTF_8)
+          json.encodeToString(responseData.toXef()).toByteArray(Charsets.UTF_8)
         )
       } else call.respond(response.status, response.readBytes())
     }
@@ -57,20 +62,32 @@ class MLflowApiProvider(
   override suspend fun PipelineContext<Unit, ApplicationCall>.chatRequest() {
     val requestBody = call.receiveChannel().toByteArray()
     val stringRequestBody = requestBody.toString(Charsets.UTF_8)
-    val requestData = Json.decodeFromString<JsonObject>(stringRequestBody)
-    val isStream = requestData["stream"]?.jsonPrimitive?.boolean ?: false
-    if (isStream) {
+    val requestData = Json.decodeFromString<XefChatRequest>(stringRequestBody)
+    if (requestData.stream == true) {
       call.respond(HttpStatusCode.NotImplemented, "Stream not supported")
     } else {
-      makeRequest<ChatResponse, OpenAIResponse>(requestData, ChatReqResMap)
+      makeRequest(
+        requestData.model,
+        requestData.toMLflow(),
+        pathProvider::chatPath,
+        MLflowChatResponse::toXef
+      )
     }
   }
 
   override suspend fun PipelineContext<Unit, ApplicationCall>.embeddingsRequest() {
     val requestBody = call.receiveChannel().toByteArray()
     val stringRequestBody = requestBody.toString(Charsets.UTF_8)
-    val requestData = Json.decodeFromString<JsonObject>(stringRequestBody)
-    makeRequest<EmbeddingsResponse, OpenAIEmbeddingResponse>(requestData, EmbeddingsReqResMap)
+    val requestData = Json.decodeFromString<XefEmbeddingsRequest>(stringRequestBody)
+    if (requestData.encodingFormat == XefEncodingFormat.BASE64) {
+      call.respond(HttpStatusCode.NotImplemented, "Base64 format not supported")
+    } else
+      makeRequest(
+        requestData.model,
+        requestData.toMLflow(),
+        pathProvider::embeddingsPath,
+        MLflowEmbeddingsResponse::toXef
+      )
   }
 }
 
