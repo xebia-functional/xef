@@ -16,6 +16,6 @@ val postgres = JdbcConfig(
 
 suspend fun main() = OpenAI.conversation {
     QueryPrompter.fromJdbcConfig(postgres) {
-        println(query("I want to know the most expensive transaction", listOf("transaction"), ""))
+        println(promptQuery("Give me top 5 transactions most expensive", listOf("transaction"), ""))
     }
 }
