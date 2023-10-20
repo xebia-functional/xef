@@ -11,7 +11,6 @@ import com.xebia.functional.xef.llm.models.chat.ChatCompletionResponseWithFuncti
 import com.xebia.functional.xef.llm.models.functions.CFunction
 import com.xebia.functional.xef.llm.models.functions.FunChatCompletionRequest
 import com.xebia.functional.xef.llm.models.functions.buildJsonSchema
-import com.xebia.functional.xef.llm.models.functions.encodeJsonSchema
 import com.xebia.functional.xef.prompt.Prompt
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.*

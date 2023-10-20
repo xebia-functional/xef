@@ -1,7 +1,5 @@
 package com.xebia.functional.xef.conversation
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.xebia.functional.xef.conversation.serialization.JacksonSerialization
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.llm.ChatWithFunctions
@@ -20,7 +18,6 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.reactive.asPublisher
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import org.reactivestreams.Publisher
 
@@ -71,7 +68,6 @@ actual constructor(
       parameters = Json.parseToJsonElement(targetString).jsonObject
     )
   }
-
 
   fun promptMessage(chat: Chat, prompt: Prompt): CompletableFuture<String> =
     coroutineScope
