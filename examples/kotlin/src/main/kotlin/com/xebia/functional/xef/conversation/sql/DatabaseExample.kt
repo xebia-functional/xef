@@ -3,13 +3,13 @@ package com.xebia.functional.xef.conversation.sql
 import arrow.core.raise.catch
 import com.xebia.functional.xef.conversation.llm.openai.OpenAI
 import com.xebia.functional.xef.prompt.Prompt
-import com.xebia.functional.xef.sql.SQL
-import com.xebia.functional.xef.sql.jdbc.JdbcConfig
+import com.xebia.functional.xef.sql.SQL_deprecated
+import com.xebia.functional.xef.sql.jdbc.JdbcConfig_deprecated
 
 val model = OpenAI().DEFAULT_CHAT
 
 val config =
-  JdbcConfig(
+  JdbcConfig_deprecated(
     vendor = System.getenv("XEF_SQL_DB_VENDOR") ?: "mysql",
     host = System.getenv("XEF_SQL_DB_HOST") ?: "localhost",
     username = System.getenv("XEF_SQL_DB_USER") ?: "user",
@@ -21,7 +21,7 @@ val config =
 
 suspend fun main() =
   OpenAI.conversation {
-    SQL.fromJdbcConfig(config) {
+    SQL_deprecated.fromJdbcConfig(config) {
       println("llmdb> Welcome to the LLMDB (An LLM interface to your SQL Database) !")
       println("llmdb> You can ask me questions about the database and I will try to answer them.")
       println("llmdb> You can type `exit` to exit the program.")

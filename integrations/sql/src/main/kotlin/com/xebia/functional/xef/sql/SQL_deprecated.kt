@@ -3,7 +3,7 @@ package com.xebia.functional.xef.sql
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.prompt.Prompt
-import com.xebia.functional.xef.sql.jdbc.JdbcConfig
+import com.xebia.functional.xef.sql.jdbc.JdbcConfig_deprecated
 import com.xebia.functional.xef.textsplitters.TokenTextSplitter
 import io.github.oshai.kotlinlogging.KotlinLogging
 import java.sql.Connection
@@ -13,14 +13,14 @@ import java.util.Properties
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-interface SQL {
+interface SQL_deprecated {
 
   companion object {
-    suspend fun <A> fromJdbcConfig(config: JdbcConfig, block: suspend SQL.() -> A) : A = JDBCSQLImpl(config).use {
+    suspend fun <A> fromJdbcConfig(config: JdbcConfig_deprecated, block: suspend SQL_deprecated.() -> A) : A = JDBCSQLImpl(config).use {
       block(it)
     }
 
-    fun fromJdbcConfigSync(config: JdbcConfig): SQL {
+    fun fromJdbcConfigSync(config: JdbcConfig_deprecated): SQL_deprecated {
       return JDBCSQLImpl(config)
     }
   }
@@ -53,8 +53,8 @@ interface SQL {
 }
 
 private class JDBCSQLImpl(
-  private val config: JdbcConfig
-) : SQL, Connection by jdbcConnection(config) {
+  private val config: JdbcConfig_deprecated
+) : SQL_deprecated, Connection by jdbcConnection(config) {
 
   val logger = KotlinLogging.logger {}
 
@@ -195,7 +195,7 @@ private class JDBCSQLImpl(
   }
 
   companion object {
-    private fun jdbcConnection(config: JdbcConfig): Connection {
+    private fun jdbcConnection(config: JdbcConfig_deprecated): Connection {
       val connectionProps = Properties().apply {
         put("user", config.username)
         put("password", config.password)
