@@ -3,7 +3,6 @@ package com.xebia.functional.xef.llm
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.models.chat.ChatCompletionResponse
 import com.xebia.functional.xef.llm.models.chat.ChatCompletionResponseWithFunctions
-import com.xebia.functional.xef.llm.models.chat.Role
 import com.xebia.functional.xef.prompt.Prompt
 
 fun ChatCompletionResponseWithFunctions.addMetrics(
