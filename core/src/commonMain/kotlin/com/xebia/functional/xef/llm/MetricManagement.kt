@@ -27,11 +27,10 @@ fun ChatCompletionResponse.addMetrics(conversation: Conversation): ChatCompletio
 }
 
 fun Prompt.addMetrics(conversation: Conversation) {
-  conversation.metric.log(conversation, "Number of messages: ${messages.size}")
-  conversation.metric.log(conversation, "Functions: ${function?.let { "yes" } ?: "no"}")
   conversation.metric.log(
     conversation,
-    "Has system message: ${if (messages.map { it.role }.contains(Role.SYSTEM)) "yes" else "no"}"
+    "Number of messages: ${messages.size} (${messages.map { it.role.toString().firstOrNull() ?: "" }.joinToString("-")})"
   )
+  conversation.metric.log(conversation, "Functions: ${function?.let { "yes" } ?: "no"}")
   conversation.metric.log(conversation, "Temperature: ${configuration.temperature}")
 }

@@ -7,6 +7,7 @@ import com.xebia.functional.xef.conversation.llm.openai.prompt
 import com.xebia.functional.xef.conversation.llm.openai.promptMessage
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
+import com.xebia.functional.xef.prompt.templates.system
 import com.xebia.functional.xef.prompt.templates.user
 import kotlinx.serialization.Serializable
 
@@ -22,27 +23,21 @@ suspend fun main() {
 
   // OpenAI.conversation(LocalVectorStore(OpenAI().DEFAULT_EMBEDDING), OpenTelemetryMetric())
 
-  val configNothingFromConversation = PromptConfiguration {
-    temperature = 0.0
+  val configNoneFromConversation = PromptConfiguration {
     messagePolicy { addMessagesFromConversation = MessagesFromHistory.NONE }
   }
 
-  val configNothingToConversation = PromptConfiguration {
-    temperature = 0.0
-    messagePolicy { addMessagesToConversation = MessagesToHistory.NONE }
-  }
-
-  OpenAI.conversation(system = "You are a writer for a science fiction magazine.") {
+  OpenAI.conversation {
     val animal: Animal =
       prompt<Animal>(
         Prompt { +user("A unique animal species.") }
-          .copy(configuration = configNothingFromConversation)
+          .copy(configuration = configNoneFromConversation)
       )
 
     val invention: Invention =
       prompt(
         Prompt { +user("A groundbreaking invention from the 20th century.") }
-          .copy(configuration = configNothingFromConversation)
+          .copy(configuration = configNoneFromConversation)
       )
 
     println()
@@ -52,9 +47,15 @@ suspend fun main() {
 
     val storyPrompt =
       Prompt {
+          +system("You are a writer for a science fiction magazine.")
           +user("Write a short story of 200 words that involves the animal and the invention")
         }
-        .copy(configuration = configNothingToConversation)
+        .copy(
+          configuration =
+            PromptConfiguration {
+              messagePolicy { addMessagesToConversation = MessagesToHistory.ONLY_SYSTEM_MESSAGES }
+            }
+        )
 
     val story: String = promptMessage(storyPrompt)
 
@@ -65,11 +66,9 @@ suspend fun main() {
     println()
     println()
 
-    val storyPrompt2 =
-      Prompt {
-          +user("Write a short story of 100 words that involves the animal in a city called Cadiz")
-        }
-        .copy(configuration = configNothingToConversation)
+    val storyPrompt2 = Prompt {
+      +user("Write a short story of 100 words that involves the animal in a city called Cadiz")
+    }
 
     val story2: String = promptMessage(storyPrompt2)
 

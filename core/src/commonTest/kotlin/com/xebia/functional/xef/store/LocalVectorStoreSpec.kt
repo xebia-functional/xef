@@ -72,4 +72,24 @@ class LocalVectorStoreSpec :
       messagesFirstId shouldBe messages1
       messagesSecondId shouldBe messages2
     }
+
+    "otro" {
+      val model = TestModel(modelType = ModelType.GPT_3_5_TURBO)
+      val localVectorStore = LocalVectorStore(TestEmbeddings())
+
+      val memoryData = MemoryData()
+
+      val messages1 =
+        memoryData.generateRandomMessages(4, conversationId = memoryData.defaultConversationId)
+      val messages2 =
+        memoryData.generateRandomMessages(3, conversationId = memoryData.defaultConversationId)
+
+      localVectorStore.addMemories(messages1)
+      localVectorStore.addMemories(messages2)
+
+      val messagesSecondId =
+        localVectorStore.memories(model, memoryData.defaultConversationId, Int.MAX_VALUE)
+
+      messagesSecondId shouldBe messages2
+    }
   })

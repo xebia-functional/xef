@@ -5,16 +5,16 @@ import com.xebia.functional.xef.conversation.MessagesToHistory
 import com.xebia.functional.xef.llm.models.chat.Choice
 import com.xebia.functional.xef.llm.models.chat.ChoiceWithFunctions
 import com.xebia.functional.xef.llm.models.chat.Message
+import com.xebia.functional.xef.llm.models.chat.Role
 import com.xebia.functional.xef.store.ConversationId
 import com.xebia.functional.xef.store.Memory
+import com.xebia.functional.xef.store.VectorStore
 
 internal suspend fun List<Message>.addToMemory(scope: Conversation, history: MessagesToHistory) {
   val cid = scope.conversationId
   if (history != MessagesToHistory.NONE && cid != null) {
     val memories = toMemory(scope)
-    if (memories.isNotEmpty()) {
-      scope.store.addMemories(memories)
-    }
+    scope.store.addMemoriesByHistory(history, memories)
   }
 }
 
@@ -39,7 +39,7 @@ internal suspend fun List<ChoiceWithFunctions>.addChoiceWithFunctionsToMemory(
       this.mapNotNull { it.message }
         .map { it.toMessage().toMemory(cid, scope.store.incrementIndexAndGet()) }
     val newMessages = previousMemories + aiMemory
-    scope.store.addMemories(newMessages)
+    scope.store.addMemoriesByHistory(history, newMessages)
   }
 }
 
@@ -53,6 +53,21 @@ internal suspend fun List<Choice>.addChoiceToMemory(
     val aiMemory =
       this.mapNotNull { it.message }.map { it.toMemory(cid, scope.store.incrementIndexAndGet()) }
     val newMessages = previousMemories + aiMemory
-    scope.store.addMemories(newMessages)
+    scope.store.addMemoriesByHistory(history, newMessages)
+  }
+}
+
+suspend fun VectorStore.addMemoriesByHistory(history: MessagesToHistory, memories: List<Memory>) {
+  when (history) {
+    MessagesToHistory.ALL -> {
+      addMemories(memories)
+    }
+    MessagesToHistory.ONLY_SYSTEM_MESSAGES -> {
+      addMemories(memories.filter { it.content.role == Role.SYSTEM })
+    }
+    MessagesToHistory.NOT_SYSTEM_MESSAGES -> {
+      addMemories(memories.filter { it.content.role != Role.SYSTEM })
+    }
+    MessagesToHistory.NONE -> {}
   }
 }

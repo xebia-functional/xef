@@ -22,11 +22,12 @@ data class MessagePolicy(
 
 enum class MessagesFromHistory {
   ALL,
-  ONLY_SYSTEM,
   NONE,
 }
 
 enum class MessagesToHistory {
   ALL,
+  ONLY_SYSTEM_MESSAGES,
+  NOT_SYSTEM_MESSAGES,
   NONE,
 }

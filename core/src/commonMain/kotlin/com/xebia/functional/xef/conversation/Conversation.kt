@@ -84,17 +84,15 @@ interface Conversation : AutoClose, AutoCloseable {
     suspend operator fun invoke(
       store: VectorStore,
       metric: Metric,
-      system: String? = null,
       conversationId: ConversationId? = ConversationId(UUID.generateUUID().toString()),
-    ): PlatformConversation = PlatformConversation.create(store, metric, conversationId, system)
+    ): PlatformConversation = PlatformConversation.create(store, metric, conversationId)
 
     @JvmSynthetic
     suspend operator fun <A> invoke(
       store: VectorStore,
       metric: Metric,
-      system: String? = null,
       conversationId: ConversationId? = ConversationId(UUID.generateUUID().toString()),
       block: suspend PlatformConversation.() -> A
-    ): A = block(invoke(store, metric, system, conversationId))
+    ): A = block(invoke(store, metric, conversationId))
   }
 }

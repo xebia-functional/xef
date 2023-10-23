@@ -12,7 +12,6 @@ import org.apache.lucene.document.Document
 import org.apache.lucene.document.Field
 import org.apache.lucene.document.IntField
 import org.apache.lucene.document.KnnFloatVectorField
-import org.apache.lucene.document.LongField
 import org.apache.lucene.document.TextField
 import org.apache.lucene.index.DirectoryReader
 import org.apache.lucene.index.IndexWriter
@@ -55,9 +54,6 @@ open class Lucene(
 
   override suspend fun memories(llm: LLM, conversationId: ConversationId, limitTokens: Int): List<Memory> =
     getMemoryByConversationId(conversationId).reduceByLimitToken(llm, limitTokens).reversed()
-
-  override suspend fun systemMessage(conversationId: ConversationId): Memory? =
-    getMemoryByConversationId(conversationId).firstOrNull { it.content.role == Role.SYSTEM }
 
   override suspend fun addTexts(texts: List<String>) {
     texts.forEach {
