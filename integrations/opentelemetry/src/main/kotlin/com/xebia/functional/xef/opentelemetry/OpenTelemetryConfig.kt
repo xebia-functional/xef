@@ -17,7 +17,6 @@ import io.opentelemetry.sdk.trace.SdkTracerProvider
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor
 import java.util.concurrent.TimeUnit
 
-
 data class OpenTelemetryConfig(
   val endpointConfig: String,
   val defaultScopeName: String,
@@ -32,7 +31,8 @@ data class OpenTelemetryConfig(
         .build()
 
     val resource =
-      Resource.getDefault().toBuilder()
+      Resource.getDefault()
+        .toBuilder()
         .put(AttributeKey.stringKey("service.name"), serviceName)
         .build()
 
@@ -42,24 +42,29 @@ data class OpenTelemetryConfig(
         .setResource(resource)
         .build()
 
-    val meterProvider = SdkMeterProvider.builder()
-      .registerMetricReader(PeriodicMetricReader.builder(OtlpGrpcMetricExporter.builder().build()).build())
-      .setResource(resource)
-      .build()
+    val meterProvider =
+      SdkMeterProvider.builder()
+        .registerMetricReader(
+          PeriodicMetricReader.builder(OtlpGrpcMetricExporter.builder().build()).build()
+        )
+        .setResource(resource)
+        .build()
 
-    val loggerProvider = SdkLoggerProvider.builder()
-      .addLogRecordProcessor(
-        BatchLogRecordProcessor.builder(OtlpGrpcLogRecordExporter.builder().build()).build()
-      )
-      .setResource(resource)
-      .build()
+    val loggerProvider =
+      SdkLoggerProvider.builder()
+        .addLogRecordProcessor(
+          BatchLogRecordProcessor.builder(OtlpGrpcLogRecordExporter.builder().build()).build()
+        )
+        .setResource(resource)
+        .build()
 
-    val openTelemetry = OpenTelemetrySdk.builder()
-      .setTracerProvider(tracerProvider)
-      .setMeterProvider(meterProvider)
-      .setLoggerProvider(loggerProvider)
-      .setPropagators(ContextPropagators.create(W3CTraceContextPropagator.getInstance()))
-      .buildAndRegisterGlobal()
+    val openTelemetry =
+      OpenTelemetrySdk.builder()
+        .setTracerProvider(tracerProvider)
+        .setMeterProvider(meterProvider)
+        .setLoggerProvider(loggerProvider)
+        .setPropagators(ContextPropagators.create(W3CTraceContextPropagator.getInstance()))
+        .buildAndRegisterGlobal()
 
     Runtime.getRuntime().addShutdownHook(Thread { openTelemetry.close() })
     return openTelemetry
