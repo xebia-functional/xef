@@ -1,13 +1,16 @@
 package com.xebia.functional.xef.conversation.mlflow
 
+import com.xebia.functional.xef.mlflow.*
 import com.xebia.functional.xef.mlflow.MlflowClient
-import com.xebia.functional.xef.mlflow.MlflowClient.*
+import io.ktor.client.*
 
 suspend fun main() {
 
   val gatewayUri = "http://localhost:5000"
 
-  val client = MlflowClient(gatewayUri)
+  val httpClient = HttpClient()
+
+  val client = MlflowClient(gatewayUri, httpClient)
 
   println("MLflow Gateway client created. Press any key to continue...")
   readlnOrNull()
@@ -20,6 +23,7 @@ suspend fun main() {
     """
        |######### Routes found ######### 
        |${routes.joinToString(separator = "\n") { printRoute(it) }}
+       |
     """
       .trimMargin()
   )
@@ -56,6 +60,8 @@ suspend fun main() {
     val userInput = readlnOrNull() ?: ""
     if (!userInput.equals("y", true)) break
   }
+
+  httpClient.close()
 }
 
 private fun printModel(model: RouteModel): String =
@@ -63,9 +69,8 @@ private fun printModel(model: RouteModel): String =
 
 private fun printRoute(r: RouteDefinition): String =
   """
-    Name: ${r.name}
-    * Route type: ${r.routeType}
-    * Route url: ${r.routeUrl}
-    * Model: ${printModel(r.model)}
-"""
-    .trimIndent()
+    |Name: ${r.name}
+    |  * Route type: ${r.routeType}
+    |  * Route url: ${r.routeUrl}
+    |  * Model: ${printModel(r.model)}"""
+    .trimMargin()

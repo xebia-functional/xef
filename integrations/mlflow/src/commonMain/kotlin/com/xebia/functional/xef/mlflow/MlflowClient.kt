@@ -4,21 +4,36 @@ import com.xebia.functional.xef.conversation.AutoClose
 import com.xebia.functional.xef.conversation.autoClose
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
+import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 
-class MlflowClient(private val gatewayUrl: String) : AutoClose by autoClose() {
-  private val http: HttpClient = jsonHttpClient()
+class MlflowClient(private val gatewayUrl: String, client: HttpClient) : AutoClose by autoClose() {
+
+  private val internal =
+    client.config {
+      install(ContentNegotiation) {
+        json(
+          Json {
+            encodeDefaults = false
+            isLenient = true
+            ignoreUnknownKeys = true
+          }
+        )
+      }
+    }
 
   private val json = Json { ignoreUnknownKeys = true }
 
   private suspend fun routes(): List<RouteDefinition> {
-    val response = http.get("$gatewayUrl/api/2.0/gateway/routes/")
+
+    val response = internal.get("$gatewayUrl/api/2.0/gateway/routes/")
     if (response.status.isSuccess()) {
       val textResponse = response.bodyAsText()
       val data = json.decodeFromString<RoutesResponse>(textResponse)
@@ -42,7 +57,7 @@ class MlflowClient(private val gatewayUrl: String) : AutoClose by autoClose() {
   ): PromptResponse {
     val body = Prompt(prompt, temperature, candidateCount, stop, maxTokens)
     val response =
-      http.post("$gatewayUrl/gateway/$route/invocations") {
+      internal.post("$gatewayUrl/gateway/$route/invocations") {
         accept(ContentType.Application.Json)
         contentType(ContentType.Application.Json)
         setBody(body)
@@ -67,7 +82,7 @@ class MlflowClient(private val gatewayUrl: String) : AutoClose by autoClose() {
   ): ChatResponse {
     val body = Chat(messages, temperature, candidateCount, stop, maxTokens)
     val response =
-      http.post("$gatewayUrl/gateway/$route/invocations") {
+      internal.post("$gatewayUrl/gateway/$route/invocations") {
         accept(ContentType.Application.Json)
         contentType(ContentType.Application.Json)
         setBody(body)
@@ -85,7 +100,7 @@ class MlflowClient(private val gatewayUrl: String) : AutoClose by autoClose() {
   suspend fun embeddings(route: String, text: List<String>): EmbeddingsResponse {
     val body = Embeddings(text)
     val response =
-      http.post("$gatewayUrl/gateway/$route/invocations") {
+      internal.post("$gatewayUrl/gateway/$route/invocations") {
         accept(ContentType.Application.Json)
         contentType(ContentType.Application.Json)
         setBody(body)
