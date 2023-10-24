@@ -7,7 +7,7 @@ import com.xebia.functional.xef.store.VectorStore
 class JSConversation(
   override val store: VectorStore,
   override val metric: Metric,
-  override val conversationId: ConversationId?,
+  override val conversationId: ConversationId?
 ) : PlatformConversation(store, conversationId) {
 
   override val conversation: Conversation = this

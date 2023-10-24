@@ -74,7 +74,7 @@ class GCP(projectId: String? = null, location: VertexAIRegion? = null, token: St
 
     @JvmStatic
     @JvmOverloads
-    suspend fun conversation(
+    fun conversation(
       store: VectorStore = LocalVectorStore(FromEnvironment.DEFAULT_EMBEDDING),
       metric: Metric = LogsMetric(),
     ): PlatformConversation = Conversation(store, metric)

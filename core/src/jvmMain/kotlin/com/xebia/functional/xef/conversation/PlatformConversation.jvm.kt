@@ -98,7 +98,7 @@ actual constructor(
       .asCompletableFuture()
 
   actual companion object {
-    actual suspend fun create(
+    actual fun create(
       store: VectorStore,
       metric: Metric,
       conversationId: ConversationId?

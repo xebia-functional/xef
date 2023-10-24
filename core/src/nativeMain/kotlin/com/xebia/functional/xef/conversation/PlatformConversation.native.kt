@@ -8,7 +8,7 @@ actual abstract class PlatformConversation
 actual constructor(store: VectorStore, conversationId: ConversationId?) :
   Conversation, AutoClose, AutoCloseable {
   actual companion object {
-    actual suspend fun create(
+    actual fun create(
       store: VectorStore,
       metric: Metric,
       conversationId: ConversationId?

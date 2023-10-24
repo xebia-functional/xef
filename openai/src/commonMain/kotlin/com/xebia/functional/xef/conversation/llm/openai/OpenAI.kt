@@ -225,9 +225,9 @@ class OpenAI(
 
     @JvmStatic
     @JvmOverloads
-    suspend fun conversation(
+    fun conversation(
       store: VectorStore = LocalVectorStore(FromEnvironment.DEFAULT_EMBEDDING),
-      metric: Metric = LogsMetric(),
+      metric: Metric = LogsMetric()
     ): PlatformConversation = Conversation(store, metric)
   }
 }

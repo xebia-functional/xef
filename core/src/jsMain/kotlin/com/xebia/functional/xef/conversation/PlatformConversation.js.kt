@@ -7,7 +7,7 @@ import com.xebia.functional.xef.store.VectorStore
 actual abstract class PlatformConversation
 actual constructor(store: VectorStore, conversationId: ConversationId?) : Conversation, AutoClose {
   actual companion object {
-    actual suspend fun create(
+    actual fun create(
       store: VectorStore,
       metric: Metric,
       conversationId: ConversationId?
