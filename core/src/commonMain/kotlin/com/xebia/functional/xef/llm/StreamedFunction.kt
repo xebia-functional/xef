@@ -57,7 +57,7 @@ sealed class StreamedFunction<out A> {
       // the path to this potential nested property
       var path: List<String> = emptyList()
       // we extract the expected JSON schema before the LLM replies
-      val schema = Json.parseToJsonElement(function.parameters)
+      val schema = function.parameters
       // we create an example from the schema from which we can expect and infer the paths
       // as the LLM is sending us chunks with malformed JSON
       val example = createExampleFromSchema(schema)
