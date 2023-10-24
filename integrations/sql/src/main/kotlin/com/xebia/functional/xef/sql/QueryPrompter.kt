@@ -11,6 +11,8 @@ import com.xebia.functional.xef.sql.ResultSetOps.toQueryResult
 import com.xebia.functional.xef.sql.jdbc.JdbcConfig
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
@@ -36,12 +38,7 @@ interface QueryPrompter {
      * Generates SQL from the databases and input prompt
      */
     @AiDsl
-    suspend fun Conversation.query(
-        input: String,
-        tables: List<String>,
-        columns: String,
-        context: String?
-    ): QueriesAnswer
+    suspend fun Conversation.query(input: String, tables: List<String>, context: String?): QueriesAnswer
 }
 
 class QueryPrompterImpl(private val config: JdbcConfig) : QueryPrompter {
@@ -50,50 +47,44 @@ class QueryPrompterImpl(private val config: JdbcConfig) : QueryPrompter {
         prompt: String, tables: List<String>, context: String?
     ): QueryResult {
         logger.debug { "[Input]: $prompt" }
-
         Database.connect(url = config.toJDBCUrl(), user = config.username, password = config.password)
-
-        val columnsPerTable = tables.associateWith {
-            transaction {
-                val query = "select * from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME='$it'"
-                connection.prepareStatement(query, false).executeQuery().getColumnByName("column_name")
-            }
-        }
-
-        val columnsCtx =
-            columnsPerTable.entries.joinToString("\n") { "${it.key}: ${it.value.joinToString(",")}" }
-
-        logger.debug { "[Columns per table]: $columnsCtx" }
-
-        val answer = query(prompt, tables, columnsCtx, context)
-
+        val answer = query(prompt, tables, context)
         logger.debug { "[answer]: $answer" }
-
         return transaction {
             connection.prepareStatement(answer.mainQuery, false).executeQuery().toQueryResult()
         }
     }
 
+    private fun getColumnsFromTables(tables: List<String>): String {
+        val columns = tables.associateWith {
+            transaction {
+                val query = "select * from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME='$it'"
+                connection.prepareStatement(query, false).executeQuery().getColumnByName("column_name")
+            }
+        }
+        logger.debug { "[Columns]: $columns" }
+        return Json.encodeToString(columns)
+    }
+
     override suspend fun Conversation.query(
         input: String,
         tables: List<String>,
-        columns: String,
         context: String?
     ): QueriesAnswer {
         val prompt = Prompt {
             +system(
                 """
-                 |You are an expert in SQL queries which selects the best tables and generates the query.
+                 |You are an expert in SQL queries who has to select the best tables and generate the SQL query.
                  |Select from this list of SQL `tables` the tables that you may need to solve the input.
                  |Keep into account today's date is ${LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))}
-                 |Use the `columns` to have more information about the fields of the table to answer properly.
+                 |Use the json `schema` to have more information about the fields of the table to answer properly.
                  |Use the `context` to accurate the answer.
                  | 
                  |```tables
                  |$tables
                  |```
-                 |```columns
-                 |$columns
+                 |```schema
+                 |${getColumnsFromTables(tables)}
                  |```
                  |```context
                  |$context
@@ -107,9 +98,10 @@ class QueryPrompterImpl(private val config: JdbcConfig) : QueryPrompter {
                  |Instructions:
                  |1. Select the tables that you think is the best to solve the input.
                  |2. The tables should be selected from the list of tables above.
-                 |3. Analyse the `context`.
-                 |4. Generate the SQL query.
-                 |5. Finally generate the expected output described in ExpectedOutput, the output has to accomplish the expectations of the user and the output format described above.
+                 |3. Analyse the `columns`.
+                 |5. Analyse the `context`.
+                 |6. Generate the SQL query.
+                 |7. Finally generate the expected output described in ExpectedOutput, the output has to accomplish the expectations of the user and the output format described above.
                 """.trimIndent()
             )
             +user(
@@ -137,5 +129,5 @@ data class QueriesAnswer(
     val input: String,
     val mainQuery: String,
     val friendlyResponse: String,
-    val detailedQuery: String
+    val detailedQuery: String?
 )
