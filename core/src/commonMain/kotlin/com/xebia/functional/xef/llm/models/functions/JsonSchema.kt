@@ -107,9 +107,6 @@ annotation class JsonSchema {
   annotation class NoDefinition
 }
 
-fun encodeJsonSchema(descriptor: SerialDescriptor): String =
-  Json.encodeToString(JsonObject.serializer(), buildJsonSchema(descriptor))
-
 /** Creates a Json Schema using the provided [descriptor] */
 fun buildJsonSchema(descriptor: SerialDescriptor): JsonObject {
   val autoDefinitions = false
