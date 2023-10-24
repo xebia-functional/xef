@@ -13,6 +13,8 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.serializer
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDate
@@ -51,16 +53,15 @@ class QueryPrompterImpl(private val config: JdbcConfig) : QueryPrompter {
 
         Database.connect(url = config.toJDBCUrl(), user = config.username, password = config.password)
 
-        val columnsPerTable = tables.map {
-            Pair(it, transaction {
+        val columnsPerTable = tables.associateWith {
+            transaction {
                 val query = "select * from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME='$it'"
-                TransactionManager.current().connection.prepareStatement(query, false).executeQuery()
-                    .getColumnByName("column_name")
-            })
+                connection.prepareStatement(query, false).executeQuery().getColumnByName("column_name")
+            }
         }
 
         val columnsCtx =
-            columnsPerTable.joinToString("\n") { "${it.first}: ${it.second.joinToString(",")}" }
+            columnsPerTable.entries.joinToString("\n") { "${it.key}: ${it.value.joinToString(",")}" }
 
         logger.debug { "[Columns per table]: $columnsCtx" }
 
@@ -69,8 +70,7 @@ class QueryPrompterImpl(private val config: JdbcConfig) : QueryPrompter {
         logger.debug { "[answer]: $answer" }
 
         return transaction {
-            TransactionManager.current().connection.prepareStatement(answer.mainQuery, false).executeQuery()
-                .toQueryResult()
+            connection.prepareStatement(answer.mainQuery, false).executeQuery().toQueryResult()
         }
     }
 
