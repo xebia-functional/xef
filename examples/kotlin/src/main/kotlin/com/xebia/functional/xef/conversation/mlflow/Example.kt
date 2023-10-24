@@ -53,3 +53,14 @@ suspend fun main() {
         if (!userInput.equals("y", true)) break
     }
 }
+
+private fun printModel(model: RouteModel): String =
+    "(name = '${model.name}', provider = '${model.provider}')"
+
+private fun printRoute(r: RouteDefinition): String =
+    """
+    Name: ${r.name}
+    * Route type: ${r.routeType}
+    * Route url: ${r.routeUrl}
+    * Model: ${printModel(r.model)}
+""".trimIndent()
