@@ -30,8 +30,7 @@ suspend fun main() = OpenAI.conversation {
 //        println(promptQuery("I want to know witch category is the most expensive", listOf("transaction"), ""))
         println(promptQuery("Which is the month I have spent the most", listOf("transaction"), ""))
 //        println(promptQuery("the 5 most expensive transactions", listOf("transaction", "user"), ""))
-//        println(promptQuery("How much I spend in cinema?", listOf("transaction", "user"), context))
+        println(promptQuery("How much I spend in cinema?", listOf("transaction", "user"), context))
 //        println(promptQuery("did I get any refund from MixedMart in the last year?", listOf("transaction", "user"), context))
-//        println(promptQuery("How many users are born in may", listOf("transaction", "user"), ""))
     }
 }

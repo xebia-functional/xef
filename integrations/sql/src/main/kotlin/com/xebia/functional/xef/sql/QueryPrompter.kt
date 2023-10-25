@@ -7,7 +7,7 @@ import com.xebia.functional.xef.prompt.templates.system
 import com.xebia.functional.xef.prompt.templates.user
 import com.xebia.functional.xef.sql.ResultSetOps.QueryResult
 import com.xebia.functional.xef.sql.ResultSetOps.toQueryResult
-import com.xebia.functional.xef.sql.ResultSetOps.toTableDDL
+import com.xebia.functional.xef.sql.ResultSetOps.toTableSchema
 import com.xebia.functional.xef.sql.jdbc.JdbcConfig
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.Serializable
@@ -48,7 +48,7 @@ class QueryPrompterImpl(private val config: JdbcConfig) : QueryPrompter {
         val queriesAnswer = query(prompt, tables, context)
         logger.debug { "[answer]: $queriesAnswer" }
         val mainResult = generateResult(queriesAnswer.mainQuery)
-        val answerReplaced = if (mainResult.isSingleValue) {
+        val answerReplaced = if (queriesAnswer.friendlyResponse.contains("XXX")) {
             val total = mainResult.rows.flatten().first() ?: "0"
             queriesAnswer.friendlyResponse.replace("XXX", total)
         } else queriesAnswer.friendlyResponse
@@ -64,14 +64,13 @@ class QueryPrompterImpl(private val config: JdbcConfig) : QueryPrompter {
         connection.prepareStatement(sql, false).executeQuery().toQueryResult()
     }
 
-    private fun getColumnsFromTables(tables: List<String>): String {
+    private fun getSchemaFromTables(tables: List<String>): String {
         val columns = tables.map { table ->
             transaction {
                 val schemaQuery = """
-                    SELECT column_name as "column", data_type as "type" 
-                    FROM INFORMATION_SCHEMA.COLUMNS where TABLE_NAME='$table'
+                    SELECT column_name, data_type FROM INFORMATION_SCHEMA.COLUMNS where TABLE_NAME='$table'
                 """.trimIndent()
-                this.connection.prepareStatement(schemaQuery, false).executeQuery().toTableDDL(table)
+                this.connection.prepareStatement(schemaQuery, false).executeQuery().toTableSchema(table)
             }
         }
 
@@ -98,7 +97,7 @@ class QueryPrompterImpl(private val config: JdbcConfig) : QueryPrompter {
                  |$tables
                  |```
                  |```schema
-                 |${getColumnsFromTables(tables)}
+                 |${getSchemaFromTables(tables)}
                  |```
                  |```context
                  |$context

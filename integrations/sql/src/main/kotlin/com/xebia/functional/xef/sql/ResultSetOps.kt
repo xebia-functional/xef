@@ -8,12 +8,10 @@ object ResultSetOps {
     data class QueryResult(
         val columns: List<Column>,
         val rows: List<List<String?>>
-    ) {
-        val isSingleValue: Boolean = rows.size == 1 && columns.size == 1
-    }
+    )
 
     @Serializable
-    data class TableDDL(
+    data class TableSchema(
         val table: String,
         val columns: List<Column>
     )
@@ -49,16 +47,16 @@ object ResultSetOps {
         return columns
     }
 
-    fun ResultSet.toTableDDL(table: String): TableDDL {
+    fun ResultSet.toTableSchema(table: String): TableSchema {
         val rows = mutableListOf<Column>()
 
         while (next()) {
-            val column = this.findColumn("column")
-            val type = this.findColumn("type")
+            val column = this.findColumn("column_name")
+            val type = this.findColumn("data_type")
             rows.add(Column(getString(column), getString(type)))
         }
 
-        return TableDDL(table, rows)
+        return TableSchema(table, rows)
     }
 
 
