@@ -13,7 +13,7 @@ expect abstract class PlatformConversation(
     fun create(
       store: VectorStore,
       metric: Metric,
-      conversationId: ConversationId?,
+      conversationId: ConversationId?
     ): PlatformConversation
   }
 }

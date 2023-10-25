@@ -107,7 +107,7 @@ actual constructor(
       metric: Metric,
       conversationId: ConversationId?
     ): PlatformConversation {
-      conversationId?.let { store.updateIndexByConversationId(conversationId) }
+      conversationId?.let { cid -> store.updateIndexByConversationId(cid) }
       return JVMConversation(store, metric, conversationId)
     }
   }
