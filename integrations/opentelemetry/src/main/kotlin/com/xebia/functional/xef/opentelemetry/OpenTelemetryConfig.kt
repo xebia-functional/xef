@@ -2,9 +2,16 @@ package com.xebia.functional.xef.opentelemetry
 
 import io.opentelemetry.api.OpenTelemetry
 import io.opentelemetry.api.common.AttributeKey
-import io.opentelemetry.api.common.Attributes
+import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator
+import io.opentelemetry.context.propagation.ContextPropagators
+import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogRecordExporter
+import io.opentelemetry.exporter.otlp.metrics.OtlpGrpcMetricExporter
 import io.opentelemetry.exporter.otlp.trace.OtlpGrpcSpanExporter
 import io.opentelemetry.sdk.OpenTelemetrySdk
+import io.opentelemetry.sdk.logs.SdkLoggerProvider
+import io.opentelemetry.sdk.logs.export.BatchLogRecordProcessor
+import io.opentelemetry.sdk.metrics.SdkMeterProvider
+import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader
 import io.opentelemetry.sdk.resources.Resource
 import io.opentelemetry.sdk.trace.SdkTracerProvider
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor
@@ -17,24 +24,49 @@ data class OpenTelemetryConfig(
 ) {
 
   fun newInstance(): OpenTelemetry {
-    val jaegerOtlpExporter: OtlpGrpcSpanExporter =
+    val otlpGrpcSpanExporter: OtlpGrpcSpanExporter =
       OtlpGrpcSpanExporter.builder()
         .setEndpoint(endpointConfig)
         .setTimeout(30, TimeUnit.SECONDS)
         .build()
 
-    val serviceNameResource: Resource =
-      Resource.create(Attributes.of(AttributeKey.stringKey("service.name"), serviceName))
+    val resource =
+      Resource.getDefault()
+        .toBuilder()
+        .put(AttributeKey.stringKey("service.name"), serviceName)
+        .build()
 
     val tracerProvider =
       SdkTracerProvider.builder()
-        .addSpanProcessor(BatchSpanProcessor.builder(jaegerOtlpExporter).build())
-        .setResource(Resource.getDefault().merge(serviceNameResource))
+        .addSpanProcessor(BatchSpanProcessor.builder(otlpGrpcSpanExporter).build())
+        .setResource(resource)
         .build()
 
-    val openTelemetry = OpenTelemetrySdk.builder().setTracerProvider(tracerProvider).build()
+    val meterProvider =
+      SdkMeterProvider.builder()
+        .registerMetricReader(
+          PeriodicMetricReader.builder(OtlpGrpcMetricExporter.builder().build()).build()
+        )
+        .setResource(resource)
+        .build()
 
-    Runtime.getRuntime().addShutdownHook(Thread { tracerProvider.close() })
+    val loggerProvider =
+      SdkLoggerProvider.builder()
+        .addLogRecordProcessor(
+          BatchLogRecordProcessor.builder(OtlpGrpcLogRecordExporter.builder().build()).build()
+        )
+        .setResource(resource)
+        .build()
+
+    val openTelemetry =
+      OpenTelemetrySdk.builder()
+        .setTracerProvider(tracerProvider)
+        .setMeterProvider(meterProvider)
+        .setLoggerProvider(loggerProvider)
+        .setPropagators(ContextPropagators.create(W3CTraceContextPropagator.getInstance()))
+        .buildAndRegisterGlobal()
+
+    Runtime.getRuntime().addShutdownHook(Thread { openTelemetry.close() })
     return openTelemetry
   }
 

@@ -21,7 +21,9 @@ suspend fun main() {
   // To run the example with OpenTelemetry, you can execute the following commands:
   //  - # docker compose-up server/docker/opentelemetry
 
-  // OpenAI.conversation(LocalVectorStore(OpenAI().DEFAULT_EMBEDDING), OpenTelemetryMetric())
+  //   OpenAI.conversation(
+  //     com.xebia.functional.xef.store.LocalVectorStore(OpenAI().DEFAULT_EMBEDDING),
+  //     com.xebia.functional.xef.opentelemetry.OpenTelemetryMetric()) {
 
   val configNoneFromConversation = PromptConfiguration {
     messagePolicy { addMessagesFromConversation = MessagesFromHistory.NONE }
