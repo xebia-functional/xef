@@ -12,7 +12,7 @@ actual constructor(store: VectorStore, conversationId: ConversationId?) : Conver
       metric: Metric,
       conversationId: ConversationId?
     ): PlatformConversation {
-      conversationId?.let { store.updateIndexByConversationId(conversationId) }
+      conversationId?.let { cid -> store.updateIndexByConversationId(cid) }
       return JSConversation(store, metric, conversationId)
     }
   }
