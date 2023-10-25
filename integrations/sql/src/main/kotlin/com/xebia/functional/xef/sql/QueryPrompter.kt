@@ -5,7 +5,7 @@ import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.system
 import com.xebia.functional.xef.prompt.templates.user
-import com.xebia.functional.xef.sql.ResultSetOps.getColumnByName
+import com.xebia.functional.xef.sql.ResultSetOps.QueryResult
 import com.xebia.functional.xef.sql.ResultSetOps.toQueryResult
 import com.xebia.functional.xef.sql.ResultSetOps.toTableDDL
 import com.xebia.functional.xef.sql.jdbc.JdbcConfig
@@ -48,9 +48,14 @@ class QueryPrompterImpl(private val config: JdbcConfig) : QueryPrompter {
         val queriesAnswer = query(prompt, tables, context)
         logger.debug { "[answer]: $queriesAnswer" }
         val mainResult = generateResult(queriesAnswer.mainQuery)
+        val answerReplaced = if (mainResult.isSingleValue) {
+            val total = mainResult.rows.flatten().first() ?: "0"
+            queriesAnswer.friendlyResponse.replace("XXX", total)
+        } else queriesAnswer.friendlyResponse
+
         return AnswerResponse(
             input = prompt,
-            answer = queriesAnswer.friendlyResponse,
+            answer = answerReplaced,
             queryResult = mainResult
         )
     }
@@ -63,11 +68,10 @@ class QueryPrompterImpl(private val config: JdbcConfig) : QueryPrompter {
         val columns = tables.map { table ->
             transaction {
                 val schemaQuery = """
-                    SELECT column_name as "column",
-                           data_type as "type"
+                    SELECT column_name as "column", data_type as "type" 
                     FROM INFORMATION_SCHEMA.COLUMNS where TABLE_NAME='$table'
                 """.trimIndent()
-                connection.prepareStatement(schemaQuery, false).executeQuery().toTableDDL(table)
+                this.connection.prepareStatement(schemaQuery, false).executeQuery().toTableDDL(table)
             }
         }
 
@@ -84,8 +88,8 @@ class QueryPrompterImpl(private val config: JdbcConfig) : QueryPrompter {
         val prompt = Prompt {
             +system(
                 """
-                 |You are an expert in SQL queries who has to generate the SQL queries.
-                 |Select from this list of `tables` the SQL tables that you may need to solve the input.
+                 |You are an expert in SQL queries who has to generate the SQL query to solve the input.
+                 |Select from this list of `tables` the SQL tables that you may need to generate the query.
                  |Keep into account today's date is ${LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))}
                  |The queries have to be compatible with ${config.vendor}.
                  |Use the json `schema` to have more information about the fields of the table to answer properly.
@@ -101,7 +105,7 @@ class QueryPrompterImpl(private val config: JdbcConfig) : QueryPrompter {
                  |```
                  |ExpectedOutput {
                  |    The expected result need to include 3 fields. These are the criteria to generate all the fields that compose the final result:
-                 |    - MainResponse: It is the SQL that satisfies the input of the user in case that is not possible to have a SQL give me a blank sentence.
+                 |    - MainResponse: This is mandatory and it is the SQL that satisfies the input of the user. If the FriendlyResponse contains XXX, the query should return a single value.
                  |    - FriendlyResponse: This is mandatory and this is a friendly sentence that summarize the output. In case that the MainResponse is a query that returns one single item (when the query includes COUNT, MAX, MIN, SUM, AVG, etc.), the friendly sentence can refer that data as XXX, that we can inject once we run the sql query.
                  |    - DetailedResponse: This is an optional field. In case that the MainResponse represents an operation like COUNT, MAX, MIN, AVG, SUM, etc, you have to generate another similar query to show all the transactions involved in the MainResponse.
                  |}

@@ -1,32 +1,40 @@
 package com.xebia.functional.xef.sql
 
+import kotlinx.serialization.Serializable
 import java.sql.ResultSet
 
 object ResultSetOps {
-    /**
-     * Converts a JDBC ResultSet into a QueryResult.
-     */
+    @Serializable
+    data class QueryResult(
+        val columns: List<Column>,
+        val rows: List<List<String?>>
+    ) {
+        val isSingleValue: Boolean = rows.size == 1 && columns.size == 1
+    }
+
+    @Serializable
+    data class TableDDL(
+        val table: String,
+        val columns: List<Column>
+    )
+
+    @Serializable
+    data class Column(
+        val name: String,
+        val type: String
+    )
+
     fun ResultSet.toQueryResult(): QueryResult {
         val columns = this.getColumns()
         val rows = mutableListOf<List<String?>>()
 
-        while (next()) {
+        while (this.next()) {
             val row = mutableListOf<String?>()
             for (i in 1..this.metaData.columnCount) row.add(getString(i))
             rows.add(row)
         }
 
         return QueryResult(columns, rows)
-    }
-
-    fun ResultSet.toTableDDL(table: String): QueryTableDDL {
-        val rows = mutableListOf<Column>()
-
-        while (next()) {
-            rows.add(Column(getString(1), getString(2)))
-        }
-
-        return QueryTableDDL(table, rows)
     }
 
     private fun ResultSet.getColumns(): List<Column> {
@@ -41,14 +49,17 @@ object ResultSetOps {
         return columns
     }
 
-    /**
-     * Obtains the values of a column of a JDBC ResultSet.
-     */
-    fun ResultSet.getColumnByName(name: String): List<String> {
-        val rows = mutableListOf<String>()
+    fun ResultSet.toTableDDL(table: String): TableDDL {
+        val rows = mutableListOf<Column>()
+
         while (next()) {
-            rows.add(this.getString(name))
+            val column = this.findColumn("column")
+            val type = this.findColumn("type")
+            rows.add(Column(getString(column), getString(type)))
         }
-        return rows
+
+        return TableDDL(table, rows)
     }
+
+
 }
