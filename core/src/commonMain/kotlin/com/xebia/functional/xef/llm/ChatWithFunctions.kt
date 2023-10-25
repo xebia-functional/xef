@@ -10,7 +10,7 @@ import com.xebia.functional.xef.llm.models.chat.ChatCompletionChunk
 import com.xebia.functional.xef.llm.models.chat.ChatCompletionResponseWithFunctions
 import com.xebia.functional.xef.llm.models.functions.CFunction
 import com.xebia.functional.xef.llm.models.functions.FunChatCompletionRequest
-import com.xebia.functional.xef.llm.models.functions.encodeJsonSchema
+import com.xebia.functional.xef.llm.models.functions.buildJsonSchema
 import com.xebia.functional.xef.prompt.Prompt
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.*
@@ -32,10 +32,10 @@ interface ChatWithFunctions : LLM {
   @OptIn(ExperimentalSerializationApi::class)
   fun chatFunction(descriptor: SerialDescriptor): CFunction {
     val fnName = descriptor.serialName.substringAfterLast(".")
-    return chatFunction(fnName, encodeJsonSchema(descriptor))
+    return chatFunction(fnName, buildJsonSchema(descriptor))
   }
 
-  fun chatFunction(fnName: String, schema: String): CFunction =
+  fun chatFunction(fnName: String, schema: JsonObject): CFunction =
     CFunction(fnName, "Generated function for $fnName", schema)
 
   @AiDsl
