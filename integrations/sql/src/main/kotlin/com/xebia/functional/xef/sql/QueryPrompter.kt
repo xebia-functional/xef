@@ -7,6 +7,7 @@ import com.xebia.functional.xef.prompt.templates.system
 import com.xebia.functional.xef.prompt.templates.user
 import com.xebia.functional.xef.sql.ResultSetOps.getColumnByName
 import com.xebia.functional.xef.sql.ResultSetOps.toQueryResult
+import com.xebia.functional.xef.sql.ResultSetOps.toTableDDL
 import com.xebia.functional.xef.sql.jdbc.JdbcConfig
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.Serializable
@@ -54,18 +55,22 @@ class QueryPrompterImpl(private val config: JdbcConfig) : QueryPrompter {
         )
     }
 
-
     private fun generateResult(sql: String): QueryResult = transaction {
         connection.prepareStatement(sql, false).executeQuery().toQueryResult()
     }
 
     private fun getColumnsFromTables(tables: List<String>): String {
-        val columns = tables.associateWith { table ->
+        val columns = tables.map { table ->
             transaction {
-                val schemaQuery = "select * from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME='$table'"
-                connection.prepareStatement(schemaQuery, false).executeQuery().getColumnByName("column_name")
+                val schemaQuery = """
+                    SELECT column_name as "column",
+                           data_type as "type"
+                    FROM INFORMATION_SCHEMA.COLUMNS where TABLE_NAME='$table'
+                """.trimIndent()
+                connection.prepareStatement(schemaQuery, false).executeQuery().toTableDDL(table)
             }
         }
+
         val jsonSchema = Json.encodeToString(columns)
         logger.debug { "[Columns per table]: $jsonSchema" }
         return jsonSchema
@@ -96,7 +101,7 @@ class QueryPrompterImpl(private val config: JdbcConfig) : QueryPrompter {
                  |```
                  |ExpectedOutput {
                  |    The expected result need to include 3 fields. These are the criteria to generate all the fields that compose the final result:
-                 |    - MainResponse: This is mandatory and it is the SQL that satisfies the input of the user.
+                 |    - MainResponse: It is the SQL that satisfies the input of the user in case that is not possible to have a SQL give me a blank sentence.
                  |    - FriendlyResponse: This is mandatory and this is a friendly sentence that summarize the output. In case that the MainResponse is a query that returns one single item (when the query includes COUNT, MAX, MIN, SUM, AVG, etc.), the friendly sentence can refer that data as XXX, that we can inject once we run the sql query.
                  |    - DetailedResponse: This is an optional field. In case that the MainResponse represents an operation like COUNT, MAX, MIN, AVG, SUM, etc, you have to generate another similar query to show all the transactions involved in the MainResponse.
                  |}
@@ -126,7 +131,7 @@ data class QueriesAnswer(
     val input: String,
     val mainQuery: String,
     val friendlyResponse: String,
-    val detailedQuery: String? = null
+    val detailedQuery: String?
 )
 
 @Serializable

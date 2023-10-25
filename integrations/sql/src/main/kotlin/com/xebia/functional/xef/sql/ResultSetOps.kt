@@ -1,6 +1,5 @@
 package com.xebia.functional.xef.sql
 
-import com.xebia.functional.xef.sql.ResultSetOps.getColumns
 import java.sql.ResultSet
 
 object ResultSetOps {
@@ -18,6 +17,16 @@ object ResultSetOps {
         }
 
         return QueryResult(columns, rows)
+    }
+
+    fun ResultSet.toTableDDL(table: String): QueryTableDDL {
+        val rows = mutableListOf<Column>()
+
+        while (next()) {
+            rows.add(Column(getString(1), getString(2)))
+        }
+
+        return QueryTableDDL(table, rows)
     }
 
     private fun ResultSet.getColumns(): List<Column> {

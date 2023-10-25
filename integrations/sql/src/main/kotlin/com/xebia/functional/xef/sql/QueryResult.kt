@@ -9,6 +9,12 @@ data class QueryResult(
 )
 
 @Serializable
+data class QueryTableDDL(
+    val table: String,
+    val columns: List<Column>
+)
+
+@Serializable
 data class Column(
     val name: String,
     val type: String
