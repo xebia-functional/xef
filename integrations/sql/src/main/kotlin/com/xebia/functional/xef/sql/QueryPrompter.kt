@@ -62,7 +62,7 @@ class QueryPrompterImpl(private val config: JdbcConfig) : QueryPrompter {
                 connection.prepareStatement(query, false).executeQuery().getColumnByName("column_name")
             }
         }
-        logger.debug { "[Columns]: $columns" }
+        logger.debug { "[Columns per table]: $columns" }
         return Json.encodeToString(columns)
     }
 
@@ -74,12 +74,12 @@ class QueryPrompterImpl(private val config: JdbcConfig) : QueryPrompter {
         val prompt = Prompt {
             +system(
                 """
-                 |You are an expert in SQL queries who has to select the best tables and generate the SQL query.
-                 |Select from this list of SQL `tables` the tables that you may need to solve the input.
+                 |You are an expert in SQL queries who has to generate the SQL queries.
+                 |Select from this list of `tables` the SQL tables that you may need to solve the input.
                  |Keep into account today's date is ${LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))}
+                 |The queries have to be compatible with ${config.vendor}.
                  |Use the json `schema` to have more information about the fields of the table to answer properly.
                  |Use the `context` to accurate the answer.
-                 | 
                  |```tables
                  |$tables
                  |```
@@ -95,13 +95,7 @@ class QueryPrompterImpl(private val config: JdbcConfig) : QueryPrompter {
                  |    - FriendlyResponse: This is mandatory and this is a friendly sentence that summarize the output. In case that the MainResponse is a query that returns one single item (when the query includes COUNT, MAX, MIN, SUM, AVG, etc.), the friendly sentence can refer that data as XXX, that we can inject once we run the sql query.
                  |    - DetailedResponse: This is an optional field. In case that the MainResponse represents an operation like COUNT, MAX, MIN, AVG, SUM, etc, you have to generate another similar query to show all the transactions involved in the MainResponse.
                  |}
-                 |Instructions:
-                 |1. Select the tables that you think is the best to solve the input.
-                 |2. The tables should be selected from the list of tables above.
-                 |3. Analyse the `columns`.
-                 |5. Analyse the `context`.
-                 |6. Generate the SQL query.
-                 |7. Finally generate the expected output described in ExpectedOutput, the output has to accomplish the expectations of the user and the output format described above.
+                 |Generate the expected output described in ExpectedOutput, the output has to accomplish the expectations of the user and the output format described above.
                 """.trimIndent()
             )
             +user(
@@ -129,5 +123,5 @@ data class QueriesAnswer(
     val input: String,
     val mainQuery: String,
     val friendlyResponse: String,
-    val detailedQuery: String?
+    val detailedQuery: String? = null
 )
