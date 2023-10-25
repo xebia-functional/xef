@@ -1,9 +1,12 @@
 package com.xebia.functional.xef.conversation.conversations
 
+import com.xebia.functional.xef.conversation.MessagesFromHistory
+import com.xebia.functional.xef.conversation.MessagesToHistory
 import com.xebia.functional.xef.conversation.llm.openai.OpenAI
 import com.xebia.functional.xef.conversation.llm.openai.prompt
 import com.xebia.functional.xef.conversation.llm.openai.promptMessage
 import com.xebia.functional.xef.prompt.Prompt
+import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
 import com.xebia.functional.xef.prompt.templates.system
 import com.xebia.functional.xef.prompt.templates.user
 import kotlinx.serialization.Serializable
@@ -18,22 +21,62 @@ suspend fun main() {
   // To run the example with OpenTelemetry, you can execute the following commands:
   //  - # docker compose-up server/docker/opentelemetry
 
-  // OpenAI.conversation(LocalVectorStore(OpenAI().DEFAULT_EMBEDDING), OpenTelemetryMetric())
+  //   OpenAI.conversation(
+  //     com.xebia.functional.xef.store.LocalVectorStore(OpenAI().DEFAULT_EMBEDDING),
+  //     com.xebia.functional.xef.opentelemetry.OpenTelemetryMetric()) {
+
+  val configNoneFromConversation = PromptConfiguration {
+    messagePolicy { addMessagesFromConversation = MessagesFromHistory.NONE }
+  }
 
   OpenAI.conversation {
-    val animal: Animal = prompt("A unique animal species.")
-    val invention: Invention = prompt("A groundbreaking invention from the 20th century.")
+    val animal: Animal =
+      prompt<Animal>(
+        Prompt { +user("A unique animal species.") }
+          .copy(configuration = configNoneFromConversation)
+      )
 
+    val invention: Invention =
+      prompt(
+        Prompt { +user("A groundbreaking invention from the 20th century.") }
+          .copy(configuration = configNoneFromConversation)
+      )
+
+    println()
     println("Animal: $animal")
     println("Invention: $invention")
+    println()
 
-    val storyPrompt = Prompt {
-      +system("You are a writer for a science fiction magazine.")
-      +user("Write a short story of 200 words that involves the animal and the invention")
-    }
+    val storyPrompt =
+      Prompt {
+          +system("You are a writer for a science fiction magazine.")
+          +user("Write a short story of 200 words that involves the animal and the invention")
+        }
+        .copy(
+          configuration =
+            PromptConfiguration {
+              messagePolicy { addMessagesToConversation = MessagesToHistory.ONLY_SYSTEM_MESSAGES }
+            }
+        )
 
     val story: String = promptMessage(storyPrompt)
 
+    println()
+    println("Story 1:")
+    println()
     println(story)
+    println()
+    println()
+
+    val storyPrompt2 = Prompt {
+      +user("Write a short story of 100 words that involves the animal in a city called Cadiz")
+    }
+
+    val story2: String = promptMessage(storyPrompt2)
+
+    println()
+    println("Story 2:")
+    println()
+    println(story2)
   }
 }

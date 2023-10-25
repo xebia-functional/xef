@@ -13,7 +13,7 @@ actual constructor(store: VectorStore, conversationId: ConversationId?) :
       metric: Metric,
       conversationId: ConversationId?
     ): PlatformConversation {
-      conversationId?.let { store.updateIndexByConversationId(conversationId) }
+      conversationId?.let { cid -> store.updateIndexByConversationId(cid) }
       return NativeConversation(store, metric, conversationId)
     }
   }

@@ -16,13 +16,14 @@ class LogsMetric : Metric {
     val milis = getTimeMillis()
     val name = prompt.messages.lastOrNull()?.content ?: "empty"
     println("Prompt-Span: $name")
+    println("${writeIdent()}|-- Conversation Id: ${conversation.conversationId?.value ?: "empty"}")
     val output = block()
     println("${writeIdent()}|-- Finished in ${getTimeMillis()-milis} ms")
     return output
   }
 
   override fun log(conversation: Conversation, message: String) {
-    println("${writeIdent()}|-- $message".padStart(identSize, ' '))
+    println("${writeIdent()}|-- $message")
   }
 
   private fun writeIdent(times: Int = 1) = (1..identSize * times).fold("") { a, b -> "$a " }

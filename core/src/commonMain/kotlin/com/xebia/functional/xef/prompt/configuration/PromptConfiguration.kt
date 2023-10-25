@@ -10,15 +10,21 @@ import kotlinx.serialization.Serializable
 data class PromptConfiguration
 @JvmOverloads
 constructor(
-  val maxDeserializationAttempts: Int = 3,
-  val user: String = Role.USER.name,
-  val temperature: Double = 0.4,
-  val numberOfPredictions: Int = 1,
-  val docsInContext: Int = 5,
-  val minResponseTokens: Int = 500,
-  val messagePolicy: MessagePolicy = MessagePolicy(),
+  var maxDeserializationAttempts: Int = 3,
+  var user: String = Role.USER.name,
+  var temperature: Double = 0.4,
+  var numberOfPredictions: Int = 1,
+  var docsInContext: Int = 5,
+  var minResponseTokens: Int = 500,
+  var messagePolicy: MessagePolicy = MessagePolicy(),
 ) {
+
+  fun messagePolicy(block: MessagePolicy.() -> Unit) = messagePolicy.apply { block() }
+
   companion object {
     @JvmField val DEFAULTS = PromptConfiguration()
+
+    operator fun invoke(block: PromptConfiguration.() -> Unit) =
+      PromptConfiguration().apply { block() }
   }
 }
