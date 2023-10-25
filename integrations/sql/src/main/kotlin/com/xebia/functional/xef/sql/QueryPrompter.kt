@@ -3,7 +3,6 @@ package com.xebia.functional.xef.sql
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.prompt.Prompt
-import com.xebia.functional.xef.prompt.templates.Delimiter
 import com.xebia.functional.xef.prompt.templates.system
 import com.xebia.functional.xef.prompt.templates.user
 import com.xebia.functional.xef.sql.ResultSetOps.getColumnByName
@@ -15,9 +14,6 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -50,25 +46,29 @@ class QueryPrompterImpl(private val config: JdbcConfig) : QueryPrompter {
         logger.debug { "[Input]: $prompt" }
         val queriesAnswer = query(prompt, tables, context)
         logger.debug { "[answer]: $queriesAnswer" }
-        val result = transaction {
-            connection.prepareStatement(queriesAnswer.mainQuery, false).executeQuery().toQueryResult()
-        }
+        val mainResult = generateResult(queriesAnswer.mainQuery)
         return AnswerResponse(
             input = prompt,
             answer = queriesAnswer.friendlyResponse,
-            queryResult = result
+            queryResult = mainResult
         )
     }
 
+
+    private fun generateResult(sql: String): QueryResult = transaction {
+        connection.prepareStatement(sql, false).executeQuery().toQueryResult()
+    }
+
     private fun getColumnsFromTables(tables: List<String>): String {
-        val columns = tables.associateWith {
+        val columns = tables.associateWith { table ->
             transaction {
-                val query = "select * from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME='$it'"
-                connection.prepareStatement(query, false).executeQuery().getColumnByName("column_name")
+                val schemaQuery = "select * from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME='$table'"
+                connection.prepareStatement(schemaQuery, false).executeQuery().getColumnByName("column_name")
             }
         }
-        logger.debug { "[Columns per table]: $columns" }
-        return Json.encodeToString(columns)
+        val jsonSchema = Json.encodeToString(columns)
+        logger.debug { "[Columns per table]: $jsonSchema" }
+        return jsonSchema
     }
 
     override suspend fun Conversation.query(
