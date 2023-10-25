@@ -4,7 +4,7 @@ import java.sql.ResultSet
 
 object ResultSetOps {
     /**
-     * Converts a JDBC ResultSet into a QueryResult
+     * Converts a JDBC ResultSet into a QueryResult.
      */
     fun ResultSet.toQueryResult(): QueryResult {
         val columns = mutableListOf<Column>()
@@ -25,6 +25,9 @@ object ResultSetOps {
         return QueryResult(columns, rows)
     }
 
+    /**
+     * Obtains the values of a column of a JDBC ResultSet.
+     */
     fun ResultSet.getColumnByName(name: String): List<String> {
         val rows = mutableListOf<String>()
         while (next()) {

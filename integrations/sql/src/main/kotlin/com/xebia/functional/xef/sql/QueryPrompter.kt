@@ -32,10 +32,10 @@ interface QueryPrompter {
      * Returns a queryResult found in the database for the given [prompt]
      */
     @AiDsl
-    suspend fun Conversation.promptQuery(prompt: String, tables: List<String>, context: String?): QueryResult
+    suspend fun Conversation.promptQuery(prompt: String, tables: List<String>, context: String?): AnswerResponse
 
     /**
-     * Generates SQL from the databases and input prompt
+     * Generates SQL queries based on table information and a context.
      */
     @AiDsl
     suspend fun Conversation.query(input: String, tables: List<String>, context: String?): QueriesAnswer
@@ -45,14 +45,19 @@ class QueryPrompterImpl(private val config: JdbcConfig) : QueryPrompter {
     private val logger = KotlinLogging.logger {}
     override suspend fun Conversation.promptQuery(
         prompt: String, tables: List<String>, context: String?
-    ): QueryResult {
-        logger.debug { "[Input]: $prompt" }
+    ): AnswerResponse {
         Database.connect(url = config.toJDBCUrl(), user = config.username, password = config.password)
-        val answer = query(prompt, tables, context)
-        logger.debug { "[answer]: $answer" }
-        return transaction {
-            connection.prepareStatement(answer.mainQuery, false).executeQuery().toQueryResult()
+        logger.debug { "[Input]: $prompt" }
+        val queriesAnswer = query(prompt, tables, context)
+        logger.debug { "[answer]: $queriesAnswer" }
+        val result = transaction {
+            connection.prepareStatement(queriesAnswer.mainQuery, false).executeQuery().toQueryResult()
         }
+        return AnswerResponse(
+            input = prompt,
+            answer = queriesAnswer.friendlyResponse,
+            queryResult = result
+        )
     }
 
     private fun getColumnsFromTables(tables: List<String>): String {
@@ -107,12 +112,10 @@ class QueryPrompterImpl(private val config: JdbcConfig) : QueryPrompter {
             )
         }
 
-        val queriesAnswerSerializer = serializer<QueriesAnswer>()
-
         return config.model.prompt(
             prompt = prompt,
             scope = this,
-            serializer = queriesAnswerSerializer
+            serializer = serializer<QueriesAnswer>()
         )
     }
 
@@ -124,4 +127,11 @@ data class QueriesAnswer(
     val mainQuery: String,
     val friendlyResponse: String,
     val detailedQuery: String? = null
+)
+
+@Serializable
+data class AnswerResponse(
+    val input: String,
+    val answer: String,
+    val queryResult: QueryResult? = null
 )
