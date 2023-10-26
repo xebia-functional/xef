@@ -40,7 +40,8 @@ interface GPT4All : AutoCloseable, Chat, Completion {
 
     @JvmSynthetic
     suspend inline fun <A> conversation(
-      store: VectorStore,
+      store: VectorStore = LocalVectorStore(HuggingFaceLocalEmbeddings.DEFAULT),
+      metric: Metric = Metric.EMPTY,
       noinline block: suspend Conversation.() -> A
     ): A = block(conversation(store))
 
@@ -53,7 +54,7 @@ interface GPT4All : AutoCloseable, Chat, Completion {
     @JvmOverloads
     fun conversation(
       store: VectorStore = LocalVectorStore(HuggingFaceLocalEmbeddings.DEFAULT),
-      metric: Metric = LogsMetric()
+      metric: Metric = Metric.EMPTY
     ): PlatformConversation = Conversation(store, metric)
 
     operator fun invoke(
