@@ -5,6 +5,7 @@ import com.xebia.functional.xef.conversation.MessagesToHistory
 import com.xebia.functional.xef.conversation.llm.openai.OpenAI
 import com.xebia.functional.xef.conversation.llm.openai.prompt
 import com.xebia.functional.xef.conversation.llm.openai.promptMessage
+import com.xebia.functional.xef.metrics.LogsMetric
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
 import com.xebia.functional.xef.prompt.templates.system
@@ -29,7 +30,7 @@ suspend fun main() {
     messagePolicy { addMessagesFromConversation = MessagesFromHistory.NONE }
   }
 
-  OpenAI.conversation {
+  OpenAI.conversation(metric = LogsMetric()) {
     val animal: Animal =
       prompt<Animal>(
         Prompt { +user("A unique animal species.") }
@@ -42,10 +43,8 @@ suspend fun main() {
           .copy(configuration = configNoneFromConversation)
       )
 
-    println()
-    println("Animal: $animal")
+    println("\nAnimal: $animal")
     println("Invention: $invention")
-    println()
 
     val storyPrompt =
       Prompt {
@@ -61,12 +60,7 @@ suspend fun main() {
 
     val story: String = promptMessage(storyPrompt)
 
-    println()
-    println("Story 1:")
-    println()
-    println(story)
-    println()
-    println()
+    println("\nStory 1:\n$story\n")
 
     val storyPrompt2 = Prompt {
       +user("Write a short story of 100 words that involves the animal in a city called Cadiz")
@@ -74,9 +68,6 @@ suspend fun main() {
 
     val story2: String = promptMessage(storyPrompt2)
 
-    println()
-    println("Story 2:")
-    println()
-    println(story2)
+    println("\nStory 2:\n$story2\n")
   }
 }

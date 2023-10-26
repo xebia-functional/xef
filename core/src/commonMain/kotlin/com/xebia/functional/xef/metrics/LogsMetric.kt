@@ -6,25 +6,25 @@ import io.ktor.util.date.*
 
 class LogsMetric : Metric {
 
-  private val identSize = 4
+  private val indentSize = 4
 
   override suspend fun <A> promptSpan(
     conversation: Conversation,
     prompt: Prompt,
     block: suspend Metric.() -> A
   ): A {
-    val milis = getTimeMillis()
+    val millis = getTimeMillis()
     val name = prompt.messages.lastOrNull()?.content ?: "empty"
     println("Prompt-Span: $name")
-    println("${writeIdent()}|-- Conversation Id: ${conversation.conversationId?.value ?: "empty"}")
+    println("${writeIndent()}|-- Conversation Id: ${conversation.conversationId?.value ?: "empty"}")
     val output = block()
-    println("${writeIdent()}|-- Finished in ${getTimeMillis()-milis} ms")
+    println("${writeIndent()}|-- Finished in ${getTimeMillis() - millis} ms")
     return output
   }
 
   override fun log(conversation: Conversation, message: String) {
-    println("${writeIdent()}|-- $message")
+    println("${writeIndent()}|-- $message")
   }
 
-  private fun writeIdent(times: Int = 1) = (1..identSize * times).fold("") { a, b -> "$a " }
+  private fun writeIndent(times: Int = 1) = (1..indentSize * times).fold("") { a, b -> "$a " }
 }

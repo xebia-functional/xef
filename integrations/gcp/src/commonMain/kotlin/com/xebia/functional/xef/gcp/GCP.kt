@@ -9,7 +9,6 @@ import com.xebia.functional.xef.env.getenv
 import com.xebia.functional.xef.gcp.models.GcpChat
 import com.xebia.functional.xef.gcp.models.GcpEmbeddings
 import com.xebia.functional.xef.llm.LLM
-import com.xebia.functional.xef.metrics.LogsMetric
 import com.xebia.functional.xef.metrics.Metric
 import com.xebia.functional.xef.store.LocalVectorStore
 import com.xebia.functional.xef.store.VectorStore
@@ -63,8 +62,8 @@ class GCP(projectId: String? = null, location: VertexAIRegion? = null, token: St
 
     @JvmSynthetic
     suspend inline fun <A> conversation(
-      store: VectorStore,
-      metric: Metric,
+      store: VectorStore = LocalVectorStore(FromEnvironment.DEFAULT_EMBEDDING),
+      metric: Metric = Metric.EMPTY,
       noinline block: suspend Conversation.() -> A
     ): A = block(conversation(store, metric))
 
@@ -76,10 +75,7 @@ class GCP(projectId: String? = null, location: VertexAIRegion? = null, token: St
     @JvmOverloads
     fun conversation(
       store: VectorStore = LocalVectorStore(FromEnvironment.DEFAULT_EMBEDDING),
-      metric: Metric = LogsMetric(),
+      metric: Metric = Metric.EMPTY,
     ): PlatformConversation = Conversation(store, metric)
   }
 }
-
-suspend inline fun <A> GCP.conversation(noinline block: suspend Conversation.() -> A): A =
-  block(Conversation(LocalVectorStore(DEFAULT_EMBEDDING), LogsMetric()))

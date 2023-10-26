@@ -8,6 +8,6 @@ import com.xebia.functional.xef.store.VectorStore
 
 suspend inline fun <A> conversation(
     store: VectorStore = LocalVectorStore(HuggingFaceLocalEmbeddings.DEFAULT),
-    metric: Metric = LogsMetric(),
+    metric: Metric = Metric.EMPTY,
     noinline block: suspend Conversation.() -> A
 ): A = block(Conversation(store, metric))
