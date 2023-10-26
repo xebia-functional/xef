@@ -2,6 +2,7 @@ package com.xebia.functional.xef.sql
 
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
+import com.xebia.functional.xef.conversation.Description
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.system
@@ -136,13 +137,6 @@ class QueryPrompterImpl(private val model: ChatWithFunctions, private val db: Da
                  |```context
                  |$context
                  |```
-                 |ExpectedOutput {
-                 |    The expected result need to include 3 fields. These are the criteria to generate all the fields that compose the final result:
-                 |    - MainResponse: This is mandatory and it is the SQL that satisfies the input of the user. If the FriendlyResponse contains XXX, the query should return a single value.
-                 |    - FriendlyResponse: This is mandatory and this is a friendly sentence that summarize the output. In case that the MainResponse is a query that returns one single item (when the query includes COUNT, MAX, MIN, SUM, AVG, etc.), the friendly sentence can refer that data as XXX, that we can inject once we run the sql query.
-                 |    - DetailedResponse: This is an optional field. In case that the MainResponse represents an operation like COUNT, MAX, MIN, AVG, SUM, etc, you have to generate another similar query to show all the transactions involved in the MainResponse otherwise return an empty string. 
-                 |}
-                 |Generate the expected output described in ExpectedOutput, the output has to accomplish the expectations of the user and the output format described above.
                 """.trimIndent()
             )
             +user(
@@ -169,8 +163,11 @@ data class PromptsAnswer(val prompts: List<String>)
 @Serializable
 data class QueriesAnswer(
     val input: String,
+    @Description("This is mandatory and it is the SQL that satisfies the input of the user. If the FriendlyResponse contains XXX, the query should return a single value.")
     val mainQuery: String,
+    @Description("This is mandatory and this is a friendly sentence that summarize the output. In case that the MainResponse is a query that returns one single item (when the query includes COUNT, MAX, MIN, SUM, AVG, etc.), the friendly sentence can refer that data as XXX, that we can inject once we run the sql query.")
     val friendlyResponse: String,
+    @Description("This is an optional field. In case that the MainResponse represents an operation like COUNT, MAX, MIN, AVG, SUM, etc, you have to generate another similar query to show all the transactions involved in the MainResponse otherwise return an empty string.")
     val detailedQuery: String
 )
 
