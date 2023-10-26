@@ -2,6 +2,7 @@ package com.xebia.functional.xef.sql
 
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
+import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.system
 import com.xebia.functional.xef.prompt.templates.user
@@ -21,8 +22,17 @@ import java.time.format.DateTimeFormatter
 
 interface QueryPrompter {
     companion object {
-        suspend fun <A> fromJdbcConfig(config: JdbcConfig, block: suspend QueryPrompter.() -> A): A =
-            block(QueryPrompterImpl(config))
+        suspend fun <A> fromJdbcConfig(config: JdbcConfig, block: suspend QueryPrompter.() -> A): A = block(
+            QueryPrompterImpl(
+                config.model, Database.connect(url = config.toJDBCUrl(), user = config.username, password = config.password)
+            )
+        )
+
+        suspend fun <A> fromDatabase(
+            model: ChatWithFunctions,
+            database: Database,
+            block: suspend QueryPrompter.() -> A
+        ): A = block(QueryPrompterImpl(model, database))
     }
 
     /**
@@ -32,18 +42,27 @@ interface QueryPrompter {
     suspend fun Conversation.promptQuery(prompt: String, tables: List<String>, context: String?): AnswerResponse
 
     /**
+     * Returns a recommendation of prompts that are interesting for the database
+     * based on the internal ddl schema
+     */
+    @AiDsl
+    suspend fun Conversation.getInterestingPromptsForDatabase(tables: List<String>): PromptsAnswer
+
+    /**
      * Generates SQL queries based on table information and a context.
      */
     @AiDsl
     suspend fun Conversation.query(input: String, tables: List<String>, context: String?): QueriesAnswer
 }
 
-class QueryPrompterImpl(private val config: JdbcConfig) : QueryPrompter {
+class QueryPrompterImpl(private val model: ChatWithFunctions, private val db: Database) : QueryPrompter {
     private val logger = KotlinLogging.logger {}
+
     override suspend fun Conversation.promptQuery(
-        prompt: String, tables: List<String>, context: String?
+        prompt: String,
+        tables: List<String>,
+        context: String?
     ): AnswerResponse {
-        Database.connect(url = config.toJDBCUrl(), user = config.username, password = config.password)
         logger.debug { "[Input]: $prompt" }
         val queriesAnswer = query(prompt, tables, context)
         logger.debug { "[answer]: $queriesAnswer" }
@@ -60,17 +79,17 @@ class QueryPrompterImpl(private val config: JdbcConfig) : QueryPrompter {
         )
     }
 
-    private fun generateResult(sql: String): QueryResult = transaction {
+    private fun generateResult(sql: String): QueryResult = transaction(db){
         connection.prepareStatement(sql, false).executeQuery().toQueryResult()
     }
 
     private fun getSchemaFromTables(tables: List<String>): String {
         val columns = tables.map { table ->
-            transaction {
+            transaction(db) {
                 val schemaQuery = """
                     SELECT column_name, data_type FROM INFORMATION_SCHEMA.COLUMNS where TABLE_NAME='$table'
                 """.trimIndent()
-                this.connection.prepareStatement(schemaQuery, false).executeQuery().toTableSchema(table)
+                connection.prepareStatement(schemaQuery, false).executeQuery().toTableSchema(table)
             }
         }
 
@@ -79,18 +98,32 @@ class QueryPrompterImpl(private val config: JdbcConfig) : QueryPrompter {
         return jsonSchema
     }
 
-    override suspend fun Conversation.query(
-        input: String,
-        tables: List<String>,
-        context: String?
-    ): QueriesAnswer {
+    override suspend fun Conversation.getInterestingPromptsForDatabase(tables: List<String>): PromptsAnswer {
+        return model.prompt(
+            Prompt(
+                """
+               |You are an AI assistant which replies with a list of the best prompts based on the content of this database:
+               |Instructions:
+               |1. Generate 3 prompts from this `ddl` 3 that the user could ask about this database
+               |   in order to interact with it. 
+               |```ddl
+               |${getSchemaFromTables(tables)}}
+               |```
+               |2. Do not include prompts about system, user and permissions related tables.
+               |3. Return the list of recommended prompts separated by a comma.
+               |""".trimMargin()
+            ), serializer<PromptsAnswer>()
+        )
+    }
+
+    override suspend fun Conversation.query(input: String, tables: List<String>, context: String?): QueriesAnswer {
         val prompt = Prompt {
             +system(
                 """
                  |You are an expert in SQL queries who has to generate the SQL query to solve the input.
                  |Select from this list of `tables` the SQL tables that you may need to generate the query.
                  |Keep into account today's date is ${LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))}
-                 |The queries have to be compatible with ${config.vendor}.
+                 |The queries have to be compatible with ${db.vendor}.
                  |Use the json `schema` to have more information about the fields of the table to answer properly.
                  |Use the `context` to accurate the answer.
                  |```tables
@@ -120,7 +153,7 @@ class QueryPrompterImpl(private val config: JdbcConfig) : QueryPrompter {
             )
         }
 
-        return config.model.prompt(
+        return model.prompt(
             prompt = prompt,
             scope = this,
             serializer = serializer<QueriesAnswer>()
@@ -128,6 +161,9 @@ class QueryPrompterImpl(private val config: JdbcConfig) : QueryPrompter {
     }
 
 }
+
+@Serializable
+data class PromptsAnswer(val prompts: List<String>)
 
 @Serializable
 data class QueriesAnswer(
