@@ -68,7 +68,7 @@ class QueryPrompterImpl(private val model: ChatWithFunctions, private val db: Da
         logger.debug { "[answer]: $queriesAnswer" }
         val mainResult = generateResult(queriesAnswer.mainQuery)
         val answerReplaced = if (queriesAnswer.friendlyResponse.contains("XXX")) {
-            val total = mainResult.rows.flatten().first() ?: "0"
+            val total = mainResult.rows.flatten().firstOrNull() ?: "0"
             queriesAnswer.friendlyResponse.replace("XXX", total)
         } else queriesAnswer.friendlyResponse
 
@@ -123,7 +123,7 @@ class QueryPrompterImpl(private val model: ChatWithFunctions, private val db: Da
                  |You are an expert in SQL queries who has to generate the SQL query to solve the input.
                  |Select from this list of `tables` the SQL tables that you may need to generate the query.
                  |Keep into account today's date is ${LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))}
-                 |The queries have to be compatible with ${db.vendor}.
+                 |The queries have to be compatible with ${db.vendor} in the version ${db.version}.
                  |Use the json `schema` to have more information about the fields of the table to answer properly.
                  |Use the `context` to accurate the answer.
                  |```tables
@@ -170,7 +170,7 @@ data class QueriesAnswer(
     val input: String,
     val mainQuery: String,
     val friendlyResponse: String,
-    val detailedQuery: String?
+    val detailedQuery: String? = null
 )
 
 @Serializable
