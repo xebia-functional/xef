@@ -24,7 +24,8 @@ interface QueryPrompter {
     companion object {
         suspend fun <A> fromJdbcConfig(config: JdbcConfig, block: suspend QueryPrompter.() -> A): A = block(
             QueryPrompterImpl(
-                config.model, Database.connect(url = config.toJDBCUrl(), user = config.username, password = config.password)
+                config.model,
+                Database.connect(url = config.toJDBCUrl(), user = config.username, password = config.password)
             )
         )
 
@@ -79,7 +80,7 @@ class QueryPrompterImpl(private val model: ChatWithFunctions, private val db: Da
         )
     }
 
-    private fun generateResult(sql: String): QueryResult = transaction(db){
+    private fun generateResult(sql: String): QueryResult = transaction(db) {
         connection.prepareStatement(sql, false).executeQuery().toQueryResult()
     }
 
@@ -139,7 +140,7 @@ class QueryPrompterImpl(private val model: ChatWithFunctions, private val db: Da
                  |    The expected result need to include 3 fields. These are the criteria to generate all the fields that compose the final result:
                  |    - MainResponse: This is mandatory and it is the SQL that satisfies the input of the user. If the FriendlyResponse contains XXX, the query should return a single value.
                  |    - FriendlyResponse: This is mandatory and this is a friendly sentence that summarize the output. In case that the MainResponse is a query that returns one single item (when the query includes COUNT, MAX, MIN, SUM, AVG, etc.), the friendly sentence can refer that data as XXX, that we can inject once we run the sql query.
-                 |    - DetailedResponse: This is an optional field. In case that the MainResponse represents an operation like COUNT, MAX, MIN, AVG, SUM, etc, you have to generate another similar query to show all the transactions involved in the MainResponse.
+                 |    - DetailedResponse: This is an optional field. In case that the MainResponse represents an operation like COUNT, MAX, MIN, AVG, SUM, etc, you have to generate another similar query to show all the transactions involved in the MainResponse otherwise return an empty string. 
                  |}
                  |Generate the expected output described in ExpectedOutput, the output has to accomplish the expectations of the user and the output format described above.
                 """.trimIndent()
@@ -170,7 +171,7 @@ data class QueriesAnswer(
     val input: String,
     val mainQuery: String,
     val friendlyResponse: String,
-    val detailedQuery: String? = null
+    val detailedQuery: String
 )
 
 @Serializable
