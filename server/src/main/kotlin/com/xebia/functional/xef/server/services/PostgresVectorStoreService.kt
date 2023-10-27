@@ -24,7 +24,7 @@ object PostgreSQLXef {
 
   data class PGVectorStoreConfig(
     val dbConfig: DBConfig,
-    val vectorSize: Int = 3,
+    val vectorSize: Int = 1536, // OpenAI default
     val collectionName: String = "xef_collection",
     val preDeleteCollection: Boolean = false,
     val chunkSize: Int? = null,
