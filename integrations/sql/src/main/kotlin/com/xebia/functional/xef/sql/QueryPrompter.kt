@@ -94,10 +94,7 @@ class QueryPrompterImpl(private val model: ChatWithFunctions, private val db: Da
                 connection.prepareStatement(schemaQuery, false).executeQuery().toTableSchema(table)
             }
         }
-
-        val jsonSchema = Json.encodeToString(columns)
-        logger.debug { "[Columns per table]: $jsonSchema" }
-        return jsonSchema
+        return Json.encodeToString(columns)
     }
 
     override suspend fun Conversation.getInterestingPromptsForDatabase(tables: List<String>): PromptsAnswer {
@@ -123,7 +120,6 @@ class QueryPrompterImpl(private val model: ChatWithFunctions, private val db: Da
             +system(
                 """
                  |You are an expert in SQL queries who has to generate the SQL query to solve the input.
-                 |Select from this list of `tables` the SQL tables that you may need to generate the query.
                  |Keep into account today's date is ${LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))}
                  |The queries have to be compatible with ${db.vendor} in the version ${db.version}.
                  |Use the json `schema` to have more information about the fields of the table to answer properly.
@@ -137,13 +133,13 @@ class QueryPrompterImpl(private val model: ChatWithFunctions, private val db: Da
                  |```context
                  |$context
                  |```
-                 |These are the criteria to generate all the fields that compose the final result:
-                 |  - The SQL has to satisfies the input of the user and If the friendly response contains XXX, the query should return a single value.
-                 |  - In case that the main SQL query is a query that returns one single item (when the query includes COUNT, MAX, MIN, SUM, AVG, etc.), 
-                 |    the friendly sentence can refer that data as XXX, that we can inject once we run the sql query.
-                 |  - Only if the main SQL query returns a single value, you have to generate another similar query to show all the transactions involved,
-                 |    otherwise return an empty string.
-                 |The output has to accomplish the expectations of the user and the criteria described above.
+                 |Instructions:
+                 |1. Select from this list of `tables` the SQL tables that you may need to generate the query.
+                 |2. Generate a SQL query has to satisfy the input of the user.
+                 |3. Generate a friendly sentence that summarize the output. 
+                 |4. In case that the main SQL query returns a single item (when the query includes COUNT, MAX, MIN, SUM, AVG, etc.), 
+                 |    - You have to generate another SQL query to show all the data involved in the query generated in step 1.
+                 |    - The friendly sentence can refer that data as XXX, that we can inject once we run the sql query.
                 """.trimIndent()
             )
             +user(
@@ -169,14 +165,12 @@ data class PromptsAnswer(val prompts: List<String>)
 
 @Serializable
 data class QueriesAnswer(
-    @Description("User's prompt.")
-    val input: String,
     @Description("The SQL that satisfies the input of the user.")
     val mainQuery: String,
     @Description("Friendly sentence that summarize the output.")
     val friendlyResponse: String,
-    @Description("Optional SQL query to complement the main query.")
-    val detailedQuery: String
+    @Description("Optional SQL to complement the main query.")
+    val detailedQuery: String?
 )
 
 @Serializable
