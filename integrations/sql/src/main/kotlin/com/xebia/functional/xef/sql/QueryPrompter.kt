@@ -67,7 +67,7 @@ class QueryPrompterImpl(private val model: ChatWithFunctions, private val db: Da
     ): AnswerResponse {
         logger.debug { "[Input]: $prompt" }
         val queriesAnswer = query(prompt, tables, context)
-        logger.debug { "[answer]: $queriesAnswer" }
+        logger.debug { "[Queries]: $queriesAnswer" }
         val mainResult = generateResult(queriesAnswer.mainQuery)
         val answerReplaced = if (queriesAnswer.friendlyResponse.contains("XXX")) {
             val total = mainResult.rows.flatten().firstOrNull() ?: "0"
@@ -137,13 +137,13 @@ class QueryPrompterImpl(private val model: ChatWithFunctions, private val db: Da
                  |```context
                  |$context
                  |```
-                 |ExpectedOutput {
-                 |    The expected result need to include 3 fields. These are the criteria to generate all the fields that compose the final result:
-                 |    - MainQuery: This is mandatory and it is the SQL that satisfies the input of the user. If the FriendlyResponse contains XXX, the query should return a single value.
-                 |    - FriendlyResponse: This is mandatory and this is a friendly sentence that summarize the output. In case that the MainQuery is a query that returns one single item (when the query includes COUNT, MAX, MIN, SUM, AVG, etc.), the friendly sentence can refer that data as XXX, that we can inject once we run the sql query.
-                 |    - DetailedQuery: This is an optional field. In case that the MainQuery represents an operation like COUNT, MAX, MIN, AVG, SUM, etc, you have to generate another similar query to show all the transactions involved in the MainResponse otherwise return an empty string. 
-                 |}
-                 |Generate the expected output described in ExpectedOutput, the output has to accomplish the expectations of the user and the output format described above.
+                 |These are the criteria to generate all the fields that compose the final result:
+                 |  - The SQL has to satisfies the input of the user and If the friendly response contains XXX, the query should return a single value.
+                 |  - In case that the main SQL query is a query that returns one single item (when the query includes COUNT, MAX, MIN, SUM, AVG, etc.), 
+                 |    the friendly sentence can refer that data as XXX, that we can inject once we run the sql query.
+                 |  - Only if the main SQL query returns a single value, you have to generate another similar query to show all the transactions involved,
+                 |    otherwise return an empty string.
+                 |The output has to accomplish the expectations of the user and the criteria described above.
                 """.trimIndent()
             )
             +user(
@@ -169,9 +169,13 @@ data class PromptsAnswer(val prompts: List<String>)
 
 @Serializable
 data class QueriesAnswer(
+    @Description("User's prompt.")
     val input: String,
+    @Description("The SQL that satisfies the input of the user.")
     val mainQuery: String,
+    @Description("Friendly sentence that summarize the output.")
     val friendlyResponse: String,
+    @Description("Optional SQL query to complement the main query.")
     val detailedQuery: String
 )
 
