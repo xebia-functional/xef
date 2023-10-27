@@ -51,3 +51,7 @@ tasks {
 
     withType<AbstractPublishToMaven> { dependsOn(withType<Sign>()) }
 }
+
+tasks.test{
+    useJUnitPlatform()
+}
