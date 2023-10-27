@@ -49,7 +49,7 @@ fun createEmbeddingTable(vectorSize: Int): String =
 
 val addNewMemory: String =
   """INSERT INTO xef_memory(uuid, conversation_id, role, content, index)
-     VALUES (?, ?, ?, ?, ?, ?)
+     VALUES (?, ?, ?, ?, ?)
      ON CONFLICT DO NOTHING;"""
     .trimIndent()
 
