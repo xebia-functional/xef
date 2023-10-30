@@ -68,18 +68,19 @@ class QueryPrompterImpl(private val model: ChatWithFunctions, private val db: Da
         logger.debug { "[Input]: $prompt" }
         val queriesAnswer = query(prompt, tables, context)
         logger.debug { "[Queries]: $queriesAnswer" }
-        val mainResult = generateResult(queriesAnswer.mainQuery)
-        val answerReplaced = if (queriesAnswer.friendlyResponse.contains("XXX")) {
-            val total = mainResult.rows.flatten().firstOrNull() ?: "0"
-            queriesAnswer.friendlyResponse.replace("XXX", total)
+        val queryResult = queriesAnswer.mainQuery?.let { generateResult(it) }
+        val answerReplaced = replaceFriendlyResponse(queriesAnswer, queryResult)
+        return AnswerResponse(input = prompt, answer = answerReplaced, queryResult = queryResult)
+    }
+
+    private fun replaceFriendlyResponse(queriesAnswer: QueriesAnswer, result: QueryResult?): String =
+        if (queriesAnswer.friendlyResponse.contains("XXX")) {
+            val name = result?.columns?.find { it.name == queriesAnswer.columnToReplace }
+            val columnIndex = result?.columns?.indexOf(name)
+            val value = columnIndex?.let { if (it >= 0) result.rows[it].first() else "0" } ?: "0"
+            queriesAnswer.friendlyResponse.replace("XXX", value)
         } else queriesAnswer.friendlyResponse
 
-        return AnswerResponse(
-            input = prompt,
-            answer = answerReplaced,
-            queryResult = mainResult
-        )
-    }
 
     private fun generateResult(sql: String): QueryResult = transaction(db) {
         connection.prepareStatement(sql, false).executeQuery().toQueryResult()
@@ -135,11 +136,14 @@ class QueryPrompterImpl(private val model: ChatWithFunctions, private val db: Da
                  |```
                  |Instructions:
                  |1. Select from this list of `tables` the SQL tables that you may need to generate the query.
-                 |2. Generate a SQL query has to satisfy the input of the user.
-                 |3. Generate a friendly sentence that summarize the output. 
-                 |4. In case that the main SQL query returns a single item (when the query includes COUNT, MAX, MIN, SUM, AVG, etc.), 
-                 |    - You have to generate another SQL query to show all the data involved in the query generated in step 1.
-                 |    - The friendly sentence can refer that data as XXX, that we can inject once we run the sql query.
+                 |2. Generate a main SQL query that has to satisfy the input of the user if it's possible.
+                 |3. If it has been possible to generate the SQL query, create a friendly sentence summarizing the output; otherwise,
+                 |   generate a friendly sentence indicating that it has not been possible. 
+                 |4. You have to complement the main SQL query with another SQL query to provide more context.
+                 |   If the main SQL query returns a single item or aggregated, You can generate a query to show the list of items involved.
+                 |Queries must be valid to be executed.
+                 |Only if the result of the SQL query is a single value, the friendly sentence can refer that data as XXX, that we can inject once we run the sql query. 
+                 |Add the column name tu extract the value to replace after.
                 """.trimIndent()
             )
             +user(
@@ -164,16 +168,18 @@ class QueryPrompterImpl(private val model: ChatWithFunctions, private val db: Da
 data class PromptsAnswer(val prompts: List<String>)
 
 @Serializable
+@Description("SQL queries")
 data class QueriesAnswer(
     @Description("The SQL that satisfies the input of the user.")
-    val mainQuery: String,
+    val mainQuery: String?,
+    @Description("Column name to extract the data to replace the XXX")
+    val columnToReplace: String?,
     @Description("Friendly sentence that summarize the output.")
     val friendlyResponse: String,
-    @Description("Optional SQL to complement the main query.")
+    @Description("SQL to complement the main query.")
     val detailedQuery: String?
 )
 
-@Serializable
 data class AnswerResponse(
     val input: String,
     val answer: String,
