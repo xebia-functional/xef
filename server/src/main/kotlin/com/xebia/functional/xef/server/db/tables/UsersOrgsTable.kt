@@ -1,4 +1,4 @@
-package com.xebia.functional.xef.server.db.psql.tables
+package com.xebia.functional.xef.server.db.tables
 
 import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.Table

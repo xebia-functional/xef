@@ -1,4 +1,4 @@
-package com.xebia.functional.xef.server.db.psql.tables
+package com.xebia.functional.xef.server.db.tables
 
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass

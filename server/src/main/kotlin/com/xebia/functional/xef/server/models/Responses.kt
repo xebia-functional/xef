@@ -1,9 +1,9 @@
 package com.xebia.functional.xef.server.models
 
-import com.xebia.functional.xef.server.db.psql.tables.Organization
-import com.xebia.functional.xef.server.db.psql.tables.Project
-import com.xebia.functional.xef.server.db.psql.tables.User
-import com.xebia.functional.xef.server.db.psql.tables.XefTokens
+import com.xebia.functional.xef.server.db.tables.Organization
+import com.xebia.functional.xef.server.db.tables.Project
+import com.xebia.functional.xef.server.db.tables.User
+import com.xebia.functional.xef.server.db.tables.XefTokens
 import kotlinx.serialization.Serializable
 
 @Serializable data class LoginResponse(val authToken: String)

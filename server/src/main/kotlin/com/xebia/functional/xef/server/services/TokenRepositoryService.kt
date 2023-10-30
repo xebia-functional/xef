@@ -1,10 +1,10 @@
 package com.xebia.functional.xef.server.services
 
-import com.xebia.functional.xef.server.db.psql.tables.Project
-import com.xebia.functional.xef.server.db.psql.tables.ProjectsTable
-import com.xebia.functional.xef.server.db.psql.tables.XefTokens
-import com.xebia.functional.xef.server.db.psql.tables.XefTokensTable
 import com.xebia.functional.xef.server.db.tables.*
+import com.xebia.functional.xef.server.db.tables.Project
+import com.xebia.functional.xef.server.db.tables.ProjectsTable
+import com.xebia.functional.xef.server.db.tables.XefTokens
+import com.xebia.functional.xef.server.db.tables.XefTokensTable
 import com.xebia.functional.xef.server.models.*
 import com.xebia.functional.xef.server.models.exceptions.XefExceptions.*
 import java.util.UUID

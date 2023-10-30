@@ -1,8 +1,8 @@
 package com.xebia.functional.xef.server.postgresql
 
-import com.xebia.functional.xef.server.db.psql.tables.Organization
-import com.xebia.functional.xef.server.db.psql.tables.Project
-import com.xebia.functional.xef.server.db.psql.tables.User
+import com.xebia.functional.xef.server.db.tables.Organization
+import com.xebia.functional.xef.server.db.tables.Project
+import com.xebia.functional.xef.server.db.tables.User
 import org.jetbrains.exposed.dao.id.EntityID
 
 object DBHelpers {
