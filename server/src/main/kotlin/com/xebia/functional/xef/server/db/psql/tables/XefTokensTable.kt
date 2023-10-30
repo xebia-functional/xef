@@ -1,4 +1,4 @@
-package com.xebia.functional.xef.server.db.tables
+package com.xebia.functional.xef.server.db.psql.tables
 
 import com.xebia.functional.xef.server.models.ProvidersConfig
 import kotlinx.serialization.json.Json

@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.server.services
 
-import com.xebia.functional.xef.server.db.tables.Organization
-import com.xebia.functional.xef.server.db.tables.User
+import com.xebia.functional.xef.server.db.psql.tables.Organization
+import com.xebia.functional.xef.server.db.psql.tables.User
 import com.xebia.functional.xef.server.models.*
 import com.xebia.functional.xef.server.models.exceptions.XefExceptions.*
 import kotlinx.datetime.Clock

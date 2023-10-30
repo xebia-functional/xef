@@ -1,5 +1,6 @@
 package com.xebia.functional.xef.server.postgresql
 
+import com.xebia.functional.xef.server.db.psql.tables.*
 import com.xebia.functional.xef.server.db.tables.*
 import com.xebia.functional.xef.server.models.OpenAIConf
 import com.xebia.functional.xef.server.models.ProvidersConfig
