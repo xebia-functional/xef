@@ -1,8 +1,8 @@
 package com.xebia.functional.xef.scala.conversation
 
+import com.xebia.functional.xef.conversation.*
 import com.xebia.functional.xef.conversation.llm.openai.*
 import com.xebia.functional.xef.conversation.llm.openai.OpenAI.FromEnvironment.*
-import com.xebia.functional.xef.conversation.*
 import com.xebia.functional.xef.llm.*
 import com.xebia.functional.xef.llm.models.images.*
 import com.xebia.functional.xef.metrics.*
@@ -34,12 +34,12 @@ def promptMessages(prompt: Prompt, chat: Chat = DEFAULT_CHAT)(using conversation
 def promptStreaming(prompt: Prompt, chat: Chat = DEFAULT_CHAT)(using conversation: ScalaConversation): LazyList[String] =
   val publisher = conversation.promptStreamingToPublisher(chat, prompt)
   val queue = new LinkedBlockingQueue[String]()
-  publisher.subscribe(new Subscriber[String] { // TODO change to fs2 or similar
+  publisher.subscribe(new Subscriber[String]: // TODO change to fs2 or similar
     def onSubscribe(s: Subscription): Unit = s.request(Long.MaxValue)
     def onNext(t: String): Unit = queue.add(t); ()
     def onError(t: Throwable): Unit = throw t
     def onComplete(): Unit = ()
-  })
+  )
   LazyList.continually(queue.take)
 
 def prompt[A: Decoder: SerialDescriptor](message: String)(using ScalaConversation): A =
