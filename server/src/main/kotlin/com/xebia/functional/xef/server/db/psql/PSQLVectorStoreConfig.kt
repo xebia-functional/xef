@@ -54,9 +54,9 @@ class PSQLVectorStoreConfig(
       withContext(Dispatchers.IO) {
         val rawConfig = config ?: ConfigFactory.load().resolve()
         val jdbcConfig = rawConfig.getConfig(configNamespace)
-        val config = Hocon.decodeFromConfig(serializer(), jdbcConfig)
-        config.toPSQLConfig().migrate()
-        config
+        val psqlConfig = Hocon.decodeFromConfig(serializer(), jdbcConfig)
+        psqlConfig.toPSQLConfig().migrate()
+        psqlConfig
       }
 
     private fun PSQLVectorStoreConfig.toPSQLConfig(): PsqlVectorStoreConfig =
