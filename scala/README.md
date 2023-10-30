@@ -9,7 +9,8 @@ Build the project locally, from the project root:
 ## Scalafmt
 
 The Scala module uses the [spotless](https://github.com/diffplug/spotless/tree/main/plugin-gradle#scala) plugin. 
-Therefore, the previous command (`./gradlew build`) will fail in case there is any formatting issue. To apply format, you can run the following command:
+Therefore, the previous command (`./gradlew build`) will fail if there are any formatting issues. 
+To apply formatting, you can run the following command:
 
 ```bash
 ./gradlew spotlessApply
@@ -23,6 +24,6 @@ Check out some use case at the [Scala examples](../examples/scala) folder.
 
 How to run the examples (from IntelliJ IDEA):
 
-* Set Java version 19
-* Set VM options: "--enable-preview"
-* Set Env variable: "OPENAI_TOKEN=xxx"
+* Set Java version 20
+* Set VM options: `--enable-preview`
+* Set Env variable: `OPENAI_TOKEN=xxx`

@@ -1,4 +1,4 @@
-package com.xebia.functional.xef.scala.conversation
+package com.xebia.functional.xef.scala.serialization
 
 import com.xebia.functional.xef.conversation.jvm.Description as JvmDescription
 import kotlinx.serialization.descriptors.{SerialDescriptor as KtSerialDescriptor, SerialKind, StructureKind}
@@ -81,7 +81,7 @@ object SerialDescriptor extends SerialDescriptorInstances:
         // Does the element at the given index have a default value, or is it wrapped in `Option`, or is a union with `Null`?
         override def isElementOptional(index: Int): Boolean = false
 
-      def serialDescriptor = serialDescriptorImpl
+      def serialDescriptor: KtSerialDescriptor = serialDescriptorImpl
 
 inline def getStaticAnnotations[A]: List[Any] = ${ getAnnotationsImpl[A] }
 

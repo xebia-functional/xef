@@ -1,6 +1,7 @@
-package com.xebia.functional.xef.scala.conversation
+package com.xebia.functional.xef.scala.serialization
 
 import cats.syntax.either.*
+import com.xebia.functional.xef.scala.serialization.*
 import kotlinx.serialization.builtins.BuiltinSerializersKt
 import munit.FunSuite
 
