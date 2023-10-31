@@ -6,11 +6,11 @@ import arrow.fx.coroutines.resourceScope
 import com.typesafe.config.ConfigFactory
 import com.xebia.functional.xef.server.db.psql.Migrate
 import com.xebia.functional.xef.server.db.psql.XefDatabaseConfig
-import com.xebia.functional.xef.server.db.psql.XefVectorStoreConfig
-import com.xebia.functional.xef.server.db.psql.XefVectorStoreConfig.Companion.getVectorStoreService
 import com.xebia.functional.xef.server.exceptions.exceptionsHandler
 import com.xebia.functional.xef.server.http.routes.*
+import com.xebia.functional.xef.server.services.PostgresVectorStoreService
 import com.xebia.functional.xef.server.services.RepositoryService
+import com.xebia.functional.xef.server.services.VectorStoreService
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.auth.*
@@ -46,9 +46,11 @@ object Server {
           xefDBConfig.password
         )
       Database.connect(hikariDataSourceXefDB)
-      val vectorStoreConfig = XefVectorStoreConfig.load("xef-vector-store", config)
-      val vectorStoreService = vectorStoreConfig.getVectorStoreService(config, logger)
-      vectorStoreService.addCollection()
+
+      val vectorStoreService =
+        VectorStoreService.load("xef-vector-store", config).getVectorStoreService(logger)
+
+      (vectorStoreService as? PostgresVectorStoreService)?.addCollection()
 
       val ktorClient =
         HttpClient(CIO) {

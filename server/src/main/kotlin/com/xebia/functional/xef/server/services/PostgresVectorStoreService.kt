@@ -24,7 +24,7 @@ object PostgreSQLXef {
 
   data class PGVectorStoreConfig(
     val dbConfig: DBConfig,
-    val vectorSize: Int = 3,
+    val vectorSize: Int = 1536, // OpenAI default
     val collectionName: String = "xef_collection",
     val preDeleteCollection: Boolean = false,
     val chunkSize: Int? = null,
@@ -37,7 +37,7 @@ class PostgresVectorStoreService(
   private val dataSource: HikariDataSource
 ) : VectorStoreService() {
 
-  override fun addCollection() {
+  fun addCollection() {
     dataSource.connection {
       // Create collection
       val uuid = UUID.generateUUID()
@@ -49,7 +49,7 @@ class PostgresVectorStoreService(
     }
   }
 
-  override fun getVectorStore(provider: Provider, token: String): VectorStore {
+  override fun getVectorStore(provider: Provider, token: String?): VectorStore {
     val embeddings =
       when (provider) {
         Provider.OPENAI -> OpenAI(token).DEFAULT_EMBEDDING

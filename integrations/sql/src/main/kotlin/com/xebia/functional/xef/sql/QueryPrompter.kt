@@ -26,32 +26,19 @@ interface QueryPrompter {
                 Database.connect(url = config.toJDBCUrl(), user = config.username, password = config.password)
             )
         )
-
-        suspend fun <A> fromDatabase(
-            model: ChatWithFunctions,
-            database: Database,
-            block: suspend QueryPrompter.() -> A
-        ): A = block(QueryPrompterImpl(model, database))
     }
 
     /**
      * Returns a queryResult found in the database for the given [prompt]
      */
     @AiDsl
-    suspend fun Conversation.promptQuery(prompt: String, tables: List<String>, context: String?): AnswerResponse
-
-    /**
-     * Returns a recommendation of prompts that are interesting for the database
-     * based on the internal ddl schema
-     */
-    @AiDsl
-    suspend fun Conversation.getInterestingPromptsForDatabase(tables: List<String>): PromptsAnswer
+    suspend fun Conversation.promptQuery(prompt: String, tableNames: List<String>, context: String?): AnswerResponse
 
     /**
      * Generates SQL queries based on table information and a context.
      */
     @AiDsl
-    suspend fun Conversation.query(input: String, tables: List<String>, context: String?): QueriesAnswer
+    suspend fun Conversation.query(input: String, tableNames: List<String>, context: String?): QueriesAnswer
 }
 
 class QueryPrompterImpl(private val model: ChatWithFunctions, private val db: Database) : QueryPrompter {
@@ -59,76 +46,67 @@ class QueryPrompterImpl(private val model: ChatWithFunctions, private val db: Da
 
     override suspend fun Conversation.promptQuery(
         prompt: String,
-        tables: List<String>,
+        tableNames: List<String>,
         context: String?
     ): AnswerResponse {
-        logger.debug { "[Input]: $prompt" }
-        val queriesAnswer = query(prompt, tables, context)
-        logger.debug { "[Queries]: $queriesAnswer" }
-        val queryResult = queriesAnswer.mainQuery?.let { generateResult(it) }
-        val answerReplaced = replaceFriendlyResponse(queriesAnswer, queryResult)
-        return AnswerResponse(input = prompt, answer = answerReplaced, queryResult = queryResult)
+        val queriesAnswer = query(prompt, tableNames, context)
+        logger.debug { "[MAIN QUERY]: ${queriesAnswer.mainQuery}" }
+        logger.debug { "[DETAILED QUERY]: ${queriesAnswer.detailedQuery}" }
+        logger.debug { "[COLUMN]: ${queriesAnswer.columnToReplace}" }
+        val mainTable = queriesAnswer.mainQuery?.let { generateResult(it) }
+        val detailedTable = queriesAnswer.detailedQuery?.let { if (it.isNotBlank()) generateResult(it) else null }
+        val answerReplaced = replaceFriendlyResponse(queriesAnswer, mainTable)
+        logger.debug { "[FRIENDLY RESPONSE]: $answerReplaced" }
+        return AnswerResponse(
+            input = prompt,
+            answer = answerReplaced,
+            mainQuery = queriesAnswer.mainQuery,
+            detailedQuery = queriesAnswer.detailedQuery,
+            mainTable = mainTable,
+            detailedTable = detailedTable
+        )
     }
 
     private fun replaceFriendlyResponse(queriesAnswer: QueriesAnswer, result: QueryResult?): String =
         if (queriesAnswer.friendlyResponse.contains("XXX")) {
             val name = result?.columns?.find { it.name == queriesAnswer.columnToReplace }
             val columnIndex = result?.columns?.indexOf(name)
-            val value = columnIndex?.let { if (it >= 0) result.rows[it].first() else "0" } ?: "0"
+            logger.debug { "[COLUMN INDEX]: $columnIndex" }
+            val value = columnIndex?.let { if (it >= 0) result.rows[it].first() else "" } ?: ""
             queriesAnswer.friendlyResponse.replace("XXX", value)
         } else queriesAnswer.friendlyResponse
 
 
-    private fun generateResult(sql: String): QueryResult = transaction(db) {
+    private fun generateResult(sql: String): QueryResult = transaction {
         connection.prepareStatement(sql, false).executeQuery().toQueryResult()
     }
 
-    override suspend fun Conversation.getInterestingPromptsForDatabase(tables: List<String>): PromptsAnswer {
-        return model.prompt(
-            Prompt(
-                """
-               |You are an AI assistant which replies with a list of the best prompts based on the content of this database:
-               |Instructions:
-               |1. Generate 3 prompts from this `ddl` 3 that the user could ask about this database
-               |   in order to interact with it. 
-               |```ddl
-               |${db.tableDDL(tables)}}
-               |```
-               |2. Do not include prompts about system, user and permissions related tables.
-               |3. Return the list of recommended prompts separated by a comma.
-               |""".trimMargin()
-            ), serializer<PromptsAnswer>()
-        )
-    }
-
-    override suspend fun Conversation.query(input: String, tables: List<String>, context: String?): QueriesAnswer {
+    override suspend fun Conversation.query(
+        input: String,
+        tableNames: List<String>,
+        context: String?
+    ): QueriesAnswer {
         val prompt = Prompt {
             +system(
                 """
-                 |You are an expert in SQL queries who has to generate the SQL query to solve the input.
-                 |Keep into account today's date is ${LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))}
-                 |The queries have to be compatible with ${db.vendor} in the version ${db.version}.
-                 |Use the json `schema` to have more information about the fields of the table to answer properly.
-                 |Use the `context` to accurate the answer.
-                 |```tables
-                 |$tables
-                 |```
-                 |```schema
-                 |${db.tableDDL(tables)}
-                 |```
-                 |```context
-                 |$context
-                 |```
-                 |Instructions:
-                 |1. Select from this list of `tables` the SQL tables that you may need to generate the query.
-                 |2. Generate a main SQL query that has to satisfy the input of the user if it's possible.
-                 |3. If it has been possible to generate the SQL query, create a friendly sentence summarizing the output; otherwise,
-                 |   generate a friendly sentence indicating that it has not been possible. 
-                 |4. You have to complement the main SQL query with another SQL query to provide more context.
-                 |   If the main SQL query returns a single item or aggregated, You can generate a query to show the list of items involved.
-                 |Queries must be valid to be executed.
-                 |Only if the result of the SQL query is a single value, the friendly sentence can refer that data as XXX, that we can inject once we run the sql query. 
-                 |Add the column name tu extract the value to replace after.
+                 As an SQL expert, your main goal is to generate SQL queries, but you must be able to answer any SQL-related question that solves the input.
+                 
+                 Keep into account today's date is ${LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))}
+                 The queries have to be compatible with ${db.vendor} in the version ${db.version}.
+                 
+                 We have the tables named: ${tableNames.joinToString { "," }} whose SQL schema are the next:
+                 ${db.tableDDL(tableNames)}
+                 Please check the fields of the tables to be able to generate consistent and valid SQL results.
+
+                 "${context.let { "Analyse the following context to accurate the answer: $it" }}"
+                                  
+                 In case you have to generate a SQL query to solve the input:
+                     - Select from this list of `tables` the SQL tables that you may need to generate the query.
+                     - Generate a main SQL query that has to satisfy the input of the user if it's possible.
+                     - If the SQL query is successfully generated, provide a friendly sentence summary; otherwise, provide a friendly notice of failure.
+                     - If the query generated returns a single item, the friendly sentence can refer the data with XXX.
+                     - If the friendly sentence refer the data with XXX, add the column name tu extract the value to replace it when I run the query.
+                     - If the main SQL query returns a single item (normally when aggregate operations are used.), analyze if it would be useful to generate another query with details to complement the main one.
                 """.trimIndent()
             )
             +user(
@@ -149,26 +127,25 @@ class QueryPrompterImpl(private val model: ChatWithFunctions, private val db: Da
 
 }
 
-@Serializable
-data class PromptsAnswer(val prompts: List<String>)
 
 @Serializable
 @Description("SQL queries")
 data class QueriesAnswer(
-    @Description("The SQL that satisfies the input of the user.")
+    @Description("The main SQL that satisfies the input of the user.")
     val mainQuery: String?,
-    @Description("Column name to extract the data to replace the XXX")
-    val columnToReplace: String?,
     @Description("Friendly sentence that summarize the output.")
     val friendlyResponse: String,
-    @Description("SQL to complement the main query.")
+    @Description("Column name to extract the data to replace the placeholder.")
+    val columnToReplace: String?,
+    @Description("The optional SQL to complement the main query.")
     val detailedQuery: String?
 )
 
 data class AnswerResponse(
     val input: String,
     val answer: String,
-    val queryResult: QueryResult? = null
+    val mainQuery: String?,
+    val detailedQuery: String?,
+    val mainTable: QueryResult?,
+    val detailedTable: QueryResult?
 )
-
-

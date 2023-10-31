@@ -4,17 +4,19 @@ import com.xebia.functional.xef.conversation.llm.openai.OpenAI
 import com.xebia.functional.xef.sql.QueryPrompter
 import com.xebia.functional.xef.sql.jdbc.JdbcConfig
 
-val postgres = JdbcConfig(
-    vendor = System.getenv("XEF_SQL_DB_VENDOR") ?: "postgresql",
-    host = System.getenv("XEF_SQL_DB_HOST") ?: "localhost",
-    username = System.getenv("XEF_SQL_DB_USER") ?: "admin",
-    password = System.getenv("XEF_SQL_DB_PASSWORD") ?: "admin",
-    port = System.getenv("XEF_SQL_DB_PORT")?.toInt() ?: 5432,
-    database = System.getenv("XEF_SQL_DB_DATABASE") ?: "capidata",
-    model = OpenAI().DEFAULT_SERIALIZATION
-)
+val postgres =
+    JdbcConfig(
+        vendor = System.getenv("XEF_SQL_DB_VENDOR") ?: "postgresql",
+        host = System.getenv("XEF_SQL_DB_HOST") ?: "localhost",
+        username = System.getenv("XEF_SQL_DB_USER") ?: "admin",
+        password = System.getenv("XEF_SQL_DB_PASSWORD") ?: "admin",
+        port = System.getenv("XEF_SQL_DB_PORT")?.toInt() ?: 5432,
+        database = System.getenv("XEF_SQL_DB_DATABASE") ?: "capidata",
+        model = OpenAI().DEFAULT_SERIALIZATION
+    )
 
-val context = """
+val context =
+    """
   These are the existing values for some fields:
         - The field "amount" is the amount of the transaction. If it is a credit transaction, the amount has a negative value. Keep that into account when the input ask for expenses, or for the most expensive debit transactions.
         - The field "type" can have only two possible values: Credit or Debit
@@ -23,16 +25,28 @@ val context = """
         - The field "channel" can have one out of these six value: Cash, SWIFTTransfer, CreditCardRepayment, IntraBankTransfer, PoS, Online
         - The field "city" can be whatever city in the world
         - The field "carbon" is the kilograms of CO2e footprint. If the input is interested in carbon footprint or pollutants transaction, make sure you only include transactions where carbon is not null
-""".trimIndent()
+"""
+        .trimIndent()
 
-suspend fun main() = OpenAI.conversation {
-    QueryPrompter.fromJdbcConfig(postgres) {
+suspend fun main() =
+    OpenAI.conversation {
+        QueryPrompter.fromJdbcConfig(postgres) {
+            promptQuery("How are you?", listOf("transaction"), context)
+            promptQuery("What is a SQL query?", listOf("transaction"), context)
+            promptQuery("What kind of questions I can ask you?", listOf("transaction"), context)
 //        println(getInterestingPromptsForDatabase(listOf("transaction")))
-        println(promptQuery("fail", listOf(), ""))
-        println(promptQuery("I want to know witch category is the most expensive", listOf("transaction"), ""))
-        println(promptQuery("Which is the month I have spent the most", listOf("transaction"), ""))
-        println(promptQuery("the 5 most expensive transactions", listOf("transaction", "user"), ""))
-        println(promptQuery("How much I spend in cinema?", listOf("transaction", "user"), context))
+//        promptQuery("fail", listOf(), "")
+//        promptQuery("The category MAINTENANCE exists?", listOf("transaction"), context)
+//        promptQuery("I want to know witch category is the most expensive", listOf("transaction"), context)
+            promptQuery("Show me the 10 categories which I spent more money", listOf("transaction"), context)
+            promptQuery(
+                "Which is the month I have spent the most? Provide the month in letters. ",
+                listOf("transaction"),
+                context
+            )
+            promptQuery("the 5 most expensive transactions", listOf("transaction", "user"), context)
+            promptQuery("How much I spend in cinema?", listOf("transaction", "user"), context)
 //        println(promptQuery("did I get any refund from MixedMart in the last year?", listOf("transaction", "user"), context))
+            println("hi")
+        }
     }
-}
