@@ -11,12 +11,6 @@ object ResultSetOps {
     )
 
     @Serializable
-    data class TableSchema(
-        val table: String,
-        val columns: List<Column>
-    )
-
-    @Serializable
     data class Column(
         val name: String,
         val type: String
@@ -46,18 +40,4 @@ object ResultSetOps {
 
         return columns
     }
-
-    fun ResultSet.toTableSchema(table: String): TableSchema {
-        val rows = mutableListOf<Column>()
-
-        while (next()) {
-            val column = this.findColumn("column_name")
-            val type = this.findColumn("data_type")
-            rows.add(Column(getString(column), getString(type)))
-        }
-
-        return TableSchema(table, rows)
-    }
-
-
 }

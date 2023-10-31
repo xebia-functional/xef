@@ -9,12 +9,9 @@ import com.xebia.functional.xef.prompt.templates.system
 import com.xebia.functional.xef.prompt.templates.user
 import com.xebia.functional.xef.sql.ResultSetOps.QueryResult
 import com.xebia.functional.xef.sql.ResultSetOps.toQueryResult
-import com.xebia.functional.xef.sql.ResultSetOps.toTableSchema
 import com.xebia.functional.xef.sql.jdbc.JdbcConfig
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -86,18 +83,6 @@ class QueryPrompterImpl(private val model: ChatWithFunctions, private val db: Da
         connection.prepareStatement(sql, false).executeQuery().toQueryResult()
     }
 
-    private fun getSchemaFromTables(tables: List<String>): String {
-        val columns = tables.map { table ->
-            transaction(db) {
-                val schemaQuery = """
-                    SELECT column_name, data_type FROM INFORMATION_SCHEMA.COLUMNS where TABLE_NAME='$table'
-                """.trimIndent()
-                connection.prepareStatement(schemaQuery, false).executeQuery().toTableSchema(table)
-            }
-        }
-        return Json.encodeToString(columns)
-    }
-
     override suspend fun Conversation.getInterestingPromptsForDatabase(tables: List<String>): PromptsAnswer {
         return model.prompt(
             Prompt(
@@ -107,7 +92,7 @@ class QueryPrompterImpl(private val model: ChatWithFunctions, private val db: Da
                |1. Generate 3 prompts from this `ddl` 3 that the user could ask about this database
                |   in order to interact with it. 
                |```ddl
-               |${getSchemaFromTables(tables)}}
+               |${db.tableDDL(tables)}}
                |```
                |2. Do not include prompts about system, user and permissions related tables.
                |3. Return the list of recommended prompts separated by a comma.
@@ -129,7 +114,7 @@ class QueryPrompterImpl(private val model: ChatWithFunctions, private val db: Da
                  |$tables
                  |```
                  |```schema
-                 |${getSchemaFromTables(tables)}
+                 |${db.tableDDL(tables)}
                  |```
                  |```context
                  |$context
@@ -185,3 +170,5 @@ data class AnswerResponse(
     val answer: String,
     val queryResult: QueryResult? = null
 )
+
+
