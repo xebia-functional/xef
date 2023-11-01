@@ -85,7 +85,7 @@ spotless {
 }
 
 tasks {
-	withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
+    withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
         dependsOn(":detekt-rules:assemble")
         autoCorrect = true
     }
@@ -97,5 +97,5 @@ tasks {
         dependsOn(":detekt-rules:assemble")
         getByName("build").dependsOn(this)
     }
-	withType<AbstractPublishToMaven> { dependsOn(withType<Sign>()) }
+    withType<AbstractPublishToMaven> { dependsOn(withType<Sign>()) }
 }

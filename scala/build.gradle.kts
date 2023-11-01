@@ -12,7 +12,7 @@ plugins {
 dependencies {
     implementation(projects.xefCore)
     implementation(projects.xefOpenai)
-	implementation(libs.kotlinx.coroutines.reactive)
+    implementation(libs.kotlinx.coroutines.reactive)
     // TODO split to separate Scala library
     implementation(projects.xefPdf)
     implementation(libs.circe.parser)

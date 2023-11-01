@@ -2,7 +2,7 @@ plugins {
     id(libs.plugins.kotlin.jvm.get().pluginId)
     alias(libs.plugins.arrow.gradle.publish)
     alias(libs.plugins.semver.gradle)
-	alias(libs.plugins.detekt)
+    alias(libs.plugins.detekt)
 }
 
 dependencies { detektPlugins(project(":detekt-rules")) }

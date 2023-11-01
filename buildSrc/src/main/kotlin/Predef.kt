@@ -1,13 +1,13 @@
 import org.gradle.api.Project
 import org.gradle.api.publish.maven.MavenPublication
 
-internal fun Project.configValue(propertyName: String, environmentVariableName: String): String? {
+internal fun Project.configValue(propertyName: String, envVarName: String): String? {
   val property: String? = project.properties[propertyName]?.toString()
-  val environmentVariable: String? = System.getenv(environmentVariableName)
-  val configValue = property ?: environmentVariable
+  val envVar: String? = System.getenv(envVarName)
+  val configValue = property ?: envVar
   return configValue.also {
     if (configValue.isNullOrBlank()) {
-      errorMessage("$propertyName Gradle property and $environmentVariableName environment variable are missing")
+      errorMessage("$propertyName Gradle property and $envVarName environment variable are missing")
     }
   }
 }
