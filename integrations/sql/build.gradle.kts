@@ -1,24 +1,18 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
     id(libs.plugins.kotlin.jvm.get().pluginId)
     alias(libs.plugins.arrow.gradle.publish)
     alias(libs.plugins.semver.gradle)
-		alias(libs.plugins.detekt)
+	alias(libs.plugins.detekt)
 }
 
 dependencies { detektPlugins(project(":detekt-rules")) }
 
-repositories {
-    mavenCentral()
-}
+repositories { mavenCentral() }
 
 java {
     sourceCompatibility = JavaVersion.VERSION_11
     targetCompatibility = JavaVersion.VERSION_11
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(11)
-    }
+    toolchain { languageVersion = JavaLanguageVersion.of(11) }
 }
 
 detekt {
@@ -43,6 +37,5 @@ tasks {
         dependsOn(":detekt-rules:assemble")
         getByName("build").dependsOn(this)
     }
-
     withType<AbstractPublishToMaven> { dependsOn(withType<Sign>()) }
 }

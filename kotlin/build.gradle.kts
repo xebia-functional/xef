@@ -35,12 +35,10 @@ kotlin {
         browser()
         nodejs()
     }
-
     linuxX64()
     macosX64()
     macosArm64()
     mingwX64()
-
     sourceSets {
         val commonMain by getting {
             dependencies {
@@ -79,7 +77,6 @@ tasks {
             setEvents(listOf("passed", "skipped", "failed", "standardOut", "standardError"))
         }
     }
-
     withType<DokkaTask>().configureEach {
         kotlin.sourceSets.forEach { kotlinSourceSet ->
             dokkaSourceSets.named(kotlinSourceSet.name) {
@@ -89,15 +86,11 @@ tasks {
                 }
                 skipDeprecated.set(true)
                 reportUndocumented.set(false)
-                val baseUrl: String = checkNotNull(project.properties["pom.smc.url"]?.toString())
-
+                val baseUrl = checkNotNull(project.properties["pom.smc.url"]?.toString())
                 kotlinSourceSet.kotlin.srcDirs.filter { it.exists() }.forEach { srcDir ->
                     sourceLink {
                         localDirectory.set(srcDir)
-                        remoteUrl.set(
-                                uri("$baseUrl/blob/main/${srcDir.relativeTo(rootProject.rootDir)}")
-                                        .toURL()
-                        )
+                        remoteUrl.set(uri("$baseUrl/blob/main/${srcDir.relativeTo(rootProject.rootDir)}").toURL())
                         remoteLineSuffix.set("#L")
                     }
                 }

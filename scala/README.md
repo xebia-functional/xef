@@ -2,7 +2,7 @@
 
 Build the project locally, from the project root:
 
-```bash
+```shell
 ./gradlew build
 ```
 
@@ -12,7 +12,7 @@ The Scala module uses the [spotless](https://github.com/diffplug/spotless/tree/m
 Therefore, the previous command (`./gradlew build`) will fail if there are any formatting issues. 
 To apply formatting, you can run the following command:
 
-```bash
+```shell
 ./gradlew spotlessApply
 ```
 
@@ -24,6 +24,6 @@ Check out some use case at the [Scala examples](../examples/scala) folder.
 
 How to run the examples (from IntelliJ IDEA):
 
-* Set Java version 20
-* Set VM options: `--enable-preview`
+* Set Java version 20 or above
+* Set VM options: `--enable-preview` (if using Java 20 specifically)
 * Set Env variable: `OPENAI_TOKEN=xxx`

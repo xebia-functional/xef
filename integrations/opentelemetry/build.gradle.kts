@@ -32,7 +32,6 @@ dependencies {
     implementation(libs.opentelemetry.semconv)
     implementation(libs.opentelemetry.extension.kotlin)
     implementation(libs.opentelemetry.exporter.otlp)
-
     testImplementation(libs.junit.jupiter.api)
     testImplementation(libs.kotest.property)
     testImplementation(libs.kotest.framework)
@@ -43,9 +42,7 @@ dependencies {
 spotless {
     kotlin {
         target("**/*.kt")
-        ktfmt().googleStyle().configure {
-            it.setRemoveUnusedImport(true)
-        }
+        ktfmt().googleStyle().configure { it.setRemoveUnusedImport(true) }
     }
 }
 
@@ -58,6 +55,5 @@ tasks {
         dependsOn(":detekt-rules:assemble")
         getByName("build").dependsOn(this)
     }
-
     withType<AbstractPublishToMaven> { dependsOn(withType<Sign>()) }
 }

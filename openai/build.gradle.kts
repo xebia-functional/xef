@@ -14,7 +14,6 @@ plugins {
     alias(libs.plugins.arrow.gradle.publish)
     alias(libs.plugins.semver.gradle)
     alias(libs.plugins.detekt)
-    // id("com.xebia.asfuture").version("0.0.1")
 }
 
 dependencies { detektPlugins(project(":detekt-rules")) }
@@ -35,21 +34,16 @@ detekt {
 kotlin {
     jvm {
         compilations {
-            val integrationTest by
-                    compilations.creating {
-                        // Create a test task to run the tests produced by this compilation:
-                        tasks.register<Test>("integrationTest") {
-                            description = "Run the integration tests"
-                            group = "verification"
-                            classpath =
-                                    compileDependencyFiles +
-                                            runtimeDependencyFiles +
-                                            output.allOutputs
-                            testClassesDirs = output.classesDirs
-
-                            testLogging { events("passed") }
-                        }
-                    }
+            val integrationTest by compilations.creating {
+                // Create a test task to run the tests produced by this compilation:
+                tasks.register<Test>("integrationTest") {
+                    description = "Run the integration tests"
+                    group = "verification"
+                    classpath = compileDependencyFiles + runtimeDependencyFiles + output.allOutputs
+                    testClassesDirs = output.classesDirs
+                    testLogging { events("passed") }
+                }
+            }
             val test by compilations.getting
             integrationTest.associateWith(test)
         }
@@ -58,15 +52,12 @@ kotlin {
         browser()
         nodejs()
     }
-
     linuxX64()
     macosX64()
     macosArm64()
     mingwX64()
-
     sourceSets {
         all { languageSettings.optIn("kotlin.ExperimentalStdlibApi") }
-
         val commonMain by getting {
             dependencies {
                 implementation(projects.xefCore)
@@ -74,7 +65,6 @@ kotlin {
                 implementation(libs.klogging)
             }
         }
-
         val commonTest by getting {
             dependencies {
                 implementation(libs.kotest.property)
@@ -82,31 +72,22 @@ kotlin {
                 implementation(libs.kotest.assertions)
             }
         }
-
         val jvmMain by getting {
             dependencies {
                 implementation(libs.logback)
                 api(libs.ktor.client.cio)
             }
         }
-
         val jvmTest by getting { dependencies { implementation(libs.kotest.junit5) } }
-
         val jsMain by getting { dependencies { api(libs.ktor.client.js) } }
-
         val linuxX64Main by getting { dependencies { api(libs.ktor.client.cio) } }
-
         val macosX64Main by getting { dependencies { api(libs.ktor.client.cio) } }
-
         val macosArm64Main by getting { dependencies { api(libs.ktor.client.cio) } }
-
         val mingwX64Main by getting { dependencies { api(libs.ktor.client.winhttp) } }
-
         val linuxX64Test by getting
         val macosX64Test by getting
         val macosArm64Test by getting
         val mingwX64Test by getting
-
         create("nativeMain") {
             dependsOn(commonMain)
             linuxX64Main.dependsOn(this)
@@ -114,7 +95,6 @@ kotlin {
             macosArm64Main.dependsOn(this)
             mingwX64Main.dependsOn(this)
         }
-
         create("nativeTest") {
             dependsOn(commonTest)
             linuxX64Test.dependsOn(this)
@@ -153,7 +133,6 @@ tasks {
             setEvents(listOf("passed", "skipped", "failed", "standardOut", "standardError"))
         }
     }
-
     withType<DokkaTask>().configureEach {
         kotlin.sourceSets.forEach { kotlinSourceSet ->
             dokkaSourceSets.named(kotlinSourceSet.name) {
@@ -163,15 +142,11 @@ tasks {
                 }
                 skipDeprecated.set(true)
                 reportUndocumented.set(false)
-                val baseUrl: String = checkNotNull(project.properties["pom.smc.url"]?.toString())
-
+                val baseUrl = checkNotNull(project.properties["pom.smc.url"]?.toString())
                 kotlinSourceSet.kotlin.srcDirs.filter { it.exists() }.forEach { srcDir ->
                     sourceLink {
                         localDirectory.set(srcDir)
-                        remoteUrl.set(
-                                uri("$baseUrl/blob/main/${srcDir.relativeTo(rootProject.rootDir)}")
-                                        .toURL()
-                        )
+                        remoteUrl.set(uri("$baseUrl/blob/main/${srcDir.relativeTo(rootProject.rootDir)}").toURL())
                         remoteLineSuffix.set("#L")
                     }
                 }
