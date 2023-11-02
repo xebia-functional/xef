@@ -34,19 +34,24 @@ suspend fun main() =
             promptQuery("How are you?", listOf("transaction"), context)
             promptQuery("What is a SQL query?", listOf("transaction"), context)
             promptQuery("What kind of questions I can ask you?", listOf("transaction"), context)
-//        println(getInterestingPromptsForDatabase(listOf("transaction")))
-//        promptQuery("fail", listOf(), "")
-//        promptQuery("The category MAINTENANCE exists?", listOf("transaction"), context)
-//        promptQuery("I want to know witch category is the most expensive", listOf("transaction"), context)
+            promptQuery("fail", listOf(), "")
+            promptQuery("The category MAINTENANCE exists?", listOf("transaction"), context)
+            promptQuery("I want to know witch category is the most expensive", listOf("transaction"), context)
             promptQuery("Show me the 10 categories which I spent more money", listOf("transaction"), context)
             promptQuery(
-                "Which is the month I have spent the most? Provide the month in letters. ",
+                "Which is the month I have spent the most?",
                 listOf("transaction"),
                 context
             )
             promptQuery("the 5 most expensive transactions", listOf("transaction", "user"), context)
             promptQuery("How much I spend in cinema?", listOf("transaction", "user"), context)
-//        println(promptQuery("did I get any refund from MixedMart in the last year?", listOf("transaction", "user"), context))
+            println(
+                promptQuery(
+                    "did I get any refund from MixedMart in the last year?",
+                    listOf("transaction", "user"),
+                    context
+                )
+            )
             println("hi")
         }
     }
