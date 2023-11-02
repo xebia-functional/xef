@@ -7,21 +7,15 @@ plugins {
     alias(libs.plugins.spotless)
 }
 
-repositories {
-    mavenCentral()
-}
+repositories { mavenCentral() }
 
 java {
     sourceCompatibility = JavaVersion.VERSION_11
     targetCompatibility = JavaVersion.VERSION_11
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(11)
-    }
+    toolchain { languageVersion = JavaLanguageVersion.of(11) }
 }
 
-node {
-    nodeProjectDir.set(file("${project.projectDir}/web"))
-}
+node { nodeProjectDir.set(file("${project.projectDir}/web")) }
 
 dependencies {
     implementation(libs.exposed.core)
@@ -58,7 +52,6 @@ dependencies {
     implementation(projects.xefCore)
     implementation(projects.xefLucene)
     implementation(projects.xefPostgresql)
-
     testImplementation(libs.junit.jupiter.api)
     testImplementation(libs.junit.jupiter.engine)
     testImplementation(libs.kotest.property)
@@ -72,9 +65,7 @@ dependencies {
 spotless {
     kotlin {
         target("**/*.kt")
-        ktfmt().googleStyle().configure {
-            it.setRemoveUnusedImport(true)
-        }
+        ktfmt().googleStyle().configure { it.setRemoveUnusedImport(true) }
     }
 }
 
@@ -90,7 +81,7 @@ task<JavaExec>("web-app") {
     description = "xef-server web application"
     classpath = sourceSets.main.get().runtimeClasspath
     mainClass.set("com.xebia.functional.xef.server.WebApp")
-  }
+}
 
 task<JavaExec>("server") {
     dependsOn("compileKotlin")
@@ -100,10 +91,6 @@ task<JavaExec>("server") {
     mainClass.set("com.xebia.functional.xef.server.Server")
 }
 
-tasks.named<Test>("test") {
-    useJUnitPlatform()
-}
+tasks.named<Test>("test") { useJUnitPlatform() }
 
-tasks.withType<AbstractPublishToMaven> {
-    dependsOn(tasks.withType<Sign>())
-}
+tasks.withType<AbstractPublishToMaven> { dependsOn(tasks.withType<Sign>()) }

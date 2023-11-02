@@ -16,9 +16,9 @@ It is also possible to use a GPT4All local installation by setting the `jna.libr
 
 In order to use the library, apart from the previous configuration, you must have downloaded some GPT4All model in your local, and pass both the model path and the model type:
 
-```
+```kotlin
 GPT4All(Path.of("models/gpt4all/ggml-gpt4all-j-v1.3-groovy.bin"), GPT4AllModel.Type.GPTJ).use { gpt4All ->
-                val promptMessage = Message(Message.Role.USER, "Some prompt goes here")
-                gpt4All.chatCompletion(listOf(promptMessage))
+    val promptMessage = Message(Message.Role.USER, "Some prompt goes here")
+    gpt4All.chatCompletion(listOf(promptMessage))
 }
 ```

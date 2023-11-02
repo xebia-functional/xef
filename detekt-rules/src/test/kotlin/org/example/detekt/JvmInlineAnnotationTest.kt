@@ -13,8 +13,8 @@ internal class JvmInlineAnnotationTest(private val env: KotlinCoreEnvironment) {
   @Test
   fun `reports missing jvminline annotations`() {
     val code = """
-        value class User(val id: String)
-        """
+      value class User(val id: String)
+      """
     val findings = JvmInlineAnnotation(Config.empty).compileAndLintWithContext(env, code)
     findings shouldHaveSize 1
   }
@@ -23,9 +23,9 @@ internal class JvmInlineAnnotationTest(private val env: KotlinCoreEnvironment) {
   fun `doesn't report annotated value classes`() {
     val code =
       """
-				import kotlin.jvm.JvmInline
-        @JvmInline value class User(val id: String)
-        """
+      import kotlin.jvm.JvmInline
+      @JvmInline value class User(val id: String)
+      """
     val findings = JvmInlineAnnotation(Config.empty).compileAndLintWithContext(env, code)
     findings shouldHaveSize 0
   }

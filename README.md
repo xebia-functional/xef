@@ -56,15 +56,13 @@ Libraries are published in Maven Central, under the `com.xebia` group.
 Libraries are published in Maven Central. You may need to  add that repository explicitly
 in your build, if you haven't done it before.
 
-```kotlin
-repositories {
-    mavenCentral()
-}
+```groovy
+repositories { mavenCentral() }
 ```
 
 Then add the library in the usual way.
 
-```kotlin
+```groovy
 // In Gradle Kotlin 
 dependencies {
     implementation("com.xebia:xef-kotlin:<version>")

@@ -1,6 +1,6 @@
 # Quick introduction to xef.ai (Scala version)
 
-After adding the library to your project(see the 
+After adding the library to your project (see the 
 [main README](https://github.com/xebia-functional/xef/blob/main/README.md) for instructions),
 you get access to the `conversation` function, which is your port of entry to the modern AI world.
 Inside of it, you can _prompt_ for information, which means posing the question to an LLM
@@ -44,8 +44,8 @@ Set the environment variable `OPENAI_TOKEN=xxx`
 ### Project Loom
 
 The Scala module depends on project [Loom](https://openjdk.org/projects/loom/), 
-so you will need at least Java 20 to use the library. Furthermore, you need to pass
-the `--enable-preview` flag.
+so you will need at least Java 20 to use the library. Furthermore, if using Java 20 specifically,
+you need to pass the `--enable-preview` flag.
 
 <details>
 <summary>SBT</summary>
@@ -59,7 +59,7 @@ env OPENAI_TOKEN=<your-token> sbt -J--enable-preview <your-command>
 <summary>IntelliJ</summary>
 
 - Set the Java version to at least 20
-- Set VM options to `--enable-preview`
+- If using Java 20 specifically, set VM options to `--enable-preview`
 
 </details>
 
