@@ -7,10 +7,7 @@ plugins {
     alias(libs.plugins.detekt)
 }
 
-
-dependencies {
-    detektPlugins(project(":detekt-rules"))
-}
+dependencies { detektPlugins(project(":detekt-rules")) }
 
 detekt {
     toolVersion = "1.23.1"
@@ -19,17 +16,12 @@ detekt {
     autoCorrect = true
 }
 
-
-repositories {
-    mavenCentral()
-}
+repositories { mavenCentral() }
 
 java {
     sourceCompatibility = JavaVersion.VERSION_11
     targetCompatibility = JavaVersion.VERSION_11
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(11)
-    }
+    toolchain { languageVersion = JavaLanguageVersion.of(11) }
 }
 
 kotlin {
@@ -38,12 +30,10 @@ kotlin {
         browser()
         nodejs()
     }
-
     linuxX64()
     macosX64()
     macosArm64()
     mingwX64()
-
     sourceSets {
         val commonMain by getting {
             dependencies {
@@ -53,38 +43,32 @@ kotlin {
                 implementation(libs.kotlinx.datetime)
             }
         }
-
         val jvmMain by getting {
             dependencies {
                 implementation(libs.logback)
                 api(libs.ktor.client.cio)
             }
         }
-
         val jsMain by getting {
             dependencies {
                 api(libs.ktor.client.js)
             }
         }
-
         val linuxX64Main by getting {
             dependencies {
                 api(libs.ktor.client.cio)
             }
         }
-
         val macosX64Main by getting {
             dependencies {
                 api(libs.ktor.client.cio)
             }
         }
-
         val macosArm64Main by getting {
             dependencies {
                 api(libs.ktor.client.cio)
             }
         }
-
         val mingwX64Main by getting {
             dependencies {
                 api(libs.ktor.client.winhttp)
@@ -96,9 +80,7 @@ kotlin {
 spotless {
     kotlin {
         target("**/*.kt")
-        ktfmt().googleStyle().configure {
-            it.setRemoveUnusedImport(true)
-        }
+        ktfmt().googleStyle().configure { it.setRemoveUnusedImport(true) }
     }
 }
 
@@ -118,6 +100,4 @@ tasks{
     withType<AbstractPublishToMaven> {
         dependsOn(withType<Sign>())
     }
-
 }
-

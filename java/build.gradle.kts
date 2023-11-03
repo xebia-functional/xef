@@ -27,10 +27,6 @@ java {
     withSourcesJar()
 }
 
-tasks.withType<Test>().configureEach {
-    useJUnit()
-}
+tasks.withType<Test>().configureEach { useJUnit() }
 
-tasks.withType<AbstractPublishToMaven> {
-    dependsOn(tasks.withType<Sign>())
-}
+tasks.withType<AbstractPublishToMaven> { dependsOn(tasks.withType<Sign>()) }

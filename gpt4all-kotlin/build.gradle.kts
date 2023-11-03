@@ -28,31 +28,23 @@ detekt {
 kotlin {
     jvm {
         compilations {
-            val integrationTest by
-                    compilations.creating {
-                        // Create a test task to run the tests produced by this compilation:
-                        tasks.register<Test>("integrationTest") {
-                            description = "Run the integration tests"
-                            group = "verification"
-                            classpath =
-                                    compileDependencyFiles +
-                                            runtimeDependencyFiles +
-                                            output.allOutputs
-                            testClassesDirs = output.classesDirs
-
-                            testLogging { events("passed") }
-                        }
-                    }
+            val integrationTest by compilations.creating {
+                // Create a test task to run the tests produced by this compilation:
+                tasks.register<Test>("integrationTest") {
+                    description = "Run the integration tests"
+                    group = "verification"
+                    classpath = compileDependencyFiles + runtimeDependencyFiles + output.allOutputs
+                    testClassesDirs = output.classesDirs
+                    testLogging { events("passed") }
+                }
+            }
             val test by compilations.getting
             integrationTest.associateWith(test)
         }
     }
-
     js(IR) { browser() }
-
     sourceSets {
         val commonMain by getting { dependencies { implementation(projects.xefCore) } }
-
         commonTest {
             dependencies {
                 implementation(kotlin("test"))
@@ -61,16 +53,13 @@ kotlin {
                 implementation(libs.kotest.assertions)
             }
         }
-
         val jvmMain by getting {
             dependencies {
                 implementation(libs.gpt4all.java.bindings)
                 implementation(libs.ai.djl.huggingface.tokenizers)
             }
         }
-
         val jsMain by getting {}
-
         val jvmTest by getting { dependencies { implementation(libs.kotest.junit5) } }
     }
 }
@@ -96,6 +85,5 @@ tasks {
             setEvents(listOf("passed", "skipped", "failed", "standardOut", "standardError"))
         }
     }
-
     withType<AbstractPublishToMaven> { dependsOn(withType<Sign>()) }
 }

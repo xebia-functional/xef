@@ -1,4 +1,4 @@
-package com.xebia.functional.xef.scala.conversation
+package com.xebia.functional.xef.scala.serialization
 
 import cats.syntax.either.*
 import kotlinx.serialization.builtins.BuiltinSerializersKt

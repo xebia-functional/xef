@@ -11,14 +11,14 @@ The most simple solution would be to copy an existing http module, and modify th
 But let's cover the different important pieces. First we need to set up the Gradle plugins to configure both
 _Kotlin Multiplatform_, and _KotlinX Serialization_ for content negotiation.
 
-```kotlin
-id("org.jetbrains.kotlin.multiplatform") version "1.9.0"
+```groovy
+id("org.jetbrains.kotlin.multiplatform") version "1.9.10"
 ```
 
 In the Xef project we've already defined these dependencies in the [Version Catalog](),
 so you get a typed DSL inside Gradle to set this up with automatic versioning.
 
-```kotlin
+```groovy
 id(libs.plugins.kotlin.multiplatform.get().pluginId)
 ```
 
@@ -27,7 +27,7 @@ and set up the targets for the desired platforms.
 
 For Xef we set up following targets:
 
-```kotlin
+```groovy
 kotlin {
   jvm()
   js(IR) {
@@ -56,14 +56,14 @@ but remember you only have access to _common_ Kotlin code. So now JDK specific p
 So now we've configured Kotlin, we should set up KotlinX Serialization, and it's compiler plugin.
 This is needed so we can send `JSON`, and different formats over the network.
 
-```kotlin
-id("org.jetbrains.kotlin.plugin.serialization") version "1.9.0"
+```groovy
+id("org.jetbrains.kotlin.plugin.serialization") version "1.9.10"
 ```
 
 In the Xef project we've already defined these dependencies in the [Version Catalog](),
 so you get a typed DSL inside Gradle to set this up with automatic versioning.
 
-```kotlin
+```groovy
 id(libs.plugins.kotlinx.serialization.get().pluginId)
 ```
 
@@ -78,7 +78,7 @@ We'll start with setting up some _common_ dependencies, we do so again within `k
 First let's add a dependency on `xef-core`, such that we can implement the `Chat`, `ChatWithFunction`, etc. interfaces
 based on our integration.
 
-```kotlin
+```groovy
 kotlin {
   sourceSets {
     val commonMain by getting {
@@ -92,7 +92,7 @@ kotlin {
 
 Finally, we also need to set up Ktor. For most HTTP integration we need 3 _common_ dependencies.
 
-```kotlin
+```groovy
 implementation("io.ktor:ktor-client-core:2.3.2")
 implementation("io.ktor:ktor-client-content-negotiation:2.3.2")
 implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.2")
@@ -100,7 +100,7 @@ implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.2")
 
 There are bundles in the Xef project, so we can more easily depend on them in a typed way.
 
-```kotlin
+```groovy
 kotlin {
   sourceSets {
     val commonMain by getting {
@@ -123,42 +123,36 @@ Almost all targets are relying on the `CIO` engine, which is the _Coroutines_ en
 There are plenty of other options we can choose, more
 info [here](https://ktor.io/docs/http-client-engines.html#minimal-version).
 
-```kotlin
+```groovy
 kotlin {
   sourceSets {
     ...
-
     val jvmMain by getting {
       dependencies {
         implementation(libs.logback)
         api(libs.ktor.client.cio)
       }
     }
-
     val jsMain by getting {
       dependencies {
         api(libs.ktor.client.js)
       }
     }
-
     val linuxX64Main by getting {
       dependencies {
         api(libs.ktor.client.cio)
       }
     }
-
     val macosX64Main by getting {
       dependencies {
         api(libs.ktor.client.cio)
       }
     }
-
     val macosArm64Main by getting {
       dependencies {
         api(libs.ktor.client.cio)
       }
     }
-
     val mingwX64Main by getting {
       dependencies {
         api(libs.ktor.client.winhttp)
