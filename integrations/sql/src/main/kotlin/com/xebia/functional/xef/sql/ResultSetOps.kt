@@ -1,20 +1,8 @@
 package com.xebia.functional.xef.sql
 
-import kotlinx.serialization.Serializable
 import java.sql.ResultSet
 
 object ResultSetOps {
-    @Serializable
-    data class QueryResult(
-        val columns: List<Column>,
-        val rows: List<List<String?>>
-    )
-
-    @Serializable
-    data class Column(
-        val name: String,
-        val type: String
-    )
 
     fun ResultSet.toQueryResult(): QueryResult {
         val columns = this.getColumns()

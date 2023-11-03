@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.conversation.sql
 
 import com.xebia.functional.xef.conversation.llm.openai.OpenAI
-import com.xebia.functional.xef.sql.QueryPrompter
+import com.xebia.functional.xef.sql.SQL
 import com.xebia.functional.xef.sql.jdbc.JdbcConfig
 
 val postgres =
@@ -28,9 +28,9 @@ val context =
 """
         .trimIndent()
 
-suspend fun main() =
+suspend fun main() {
     OpenAI.conversation {
-        QueryPrompter.fromJdbcConfig(postgres) {
+        SQL.fromJdbcConfig(postgres) {
             promptQuery("How are you?", listOf("transaction"), context)
             promptQuery("What is a SQL query?", listOf("transaction"), context)
             promptQuery("What kind of questions I can ask you?", listOf("transaction"), context)
@@ -45,13 +45,7 @@ suspend fun main() =
             )
             promptQuery("the 5 most expensive transactions", listOf("transaction", "user"), context)
             promptQuery("How much I spend in cinema?", listOf("transaction", "user"), context)
-            println(
-                promptQuery(
-                    "did I get any refund from MixedMart in the last year?",
-                    listOf("transaction", "user"),
-                    context
-                )
-            )
             println("hi")
         }
     }
+}

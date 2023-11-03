@@ -7,7 +7,6 @@ import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.system
 import com.xebia.functional.xef.prompt.templates.user
-import com.xebia.functional.xef.sql.ResultSetOps.QueryResult
 import com.xebia.functional.xef.sql.ResultSetOps.toQueryResult
 import com.xebia.functional.xef.sql.jdbc.JdbcConfig
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -18,10 +17,10 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-interface QueryPrompter {
+interface SQL {
     companion object {
-        suspend fun <A> fromJdbcConfig(config: JdbcConfig, block: suspend QueryPrompter.() -> A): A = block(
-            QueryPrompterImpl(
+        suspend fun <A> fromJdbcConfig(config: JdbcConfig, block: suspend SQL.() -> A): A = block(
+            SQLImpl(
                 config.model,
                 Database.connect(url = config.toJDBCUrl(), user = config.username, password = config.password)
             )
@@ -29,21 +28,19 @@ interface QueryPrompter {
     }
 
     /**
-     * Returns a queryResult found in the database for the given [prompt]
+     * Generates a SQL query and obtains the table data from a user's prompt.
+     *
+     * @param prompt The input prompt.
+     * @param tableNames A list of table names that may be needed for query generation.
+     * @param context Additional context information.
+     * @return An AnswerResponse object containing the response, query details, and result tables.
      */
     @AiDsl
     suspend fun Conversation.promptQuery(prompt: String, tableNames: List<String>, context: String?): AnswerResponse
-
-    /**
-     * Generates SQL queries based on table information and a context.
-     */
-    @AiDsl
-    suspend fun Conversation.query(input: String, tableNames: List<String>, context: String?): QueriesAnswer
 }
 
-class QueryPrompterImpl(private val model: ChatWithFunctions, private val db: Database) : QueryPrompter {
+class SQLImpl(private val model: ChatWithFunctions, private val db: Database) : SQL {
     private val logger = KotlinLogging.logger {}
-
 
     override suspend fun Conversation.promptQuery(
         prompt: String,
@@ -51,15 +48,13 @@ class QueryPrompterImpl(private val model: ChatWithFunctions, private val db: Da
         context: String?
     ): AnswerResponse {
         val queriesAnswer = query(prompt, tableNames, context)
-        logger.debug { "[INPUT]: $prompt" }
-        logger.debug { "[MAIN QUERY]: ${queriesAnswer.mainQuery}" }
-        logger.debug { "[DETAILED QUERY]: ${queriesAnswer.detailedQuery}" }
-        logger.debug { "[COLUMN]: ${queriesAnswer.columnToReplace}" }
         val mainTable = queriesAnswer.mainQuery?.let { executeSQL(it) }
         val detailedTable =
             queriesAnswer.detailedQuery?.let { if (it.isNotBlank()) executeSQL(it) else null }
         val friendlyResponseReplaced = replaceFriendlyResponse(queriesAnswer, mainTable)
-        logger.debug { "[FRIENDLY RESPONSE]: $friendlyResponseReplaced" }
+        logger.info { "Main query: ${queriesAnswer.mainQuery}" }
+        logger.info { "Detailed query: ${queriesAnswer.detailedQuery}" }
+        logger.info { "Friendly response: $friendlyResponseReplaced" }
         return AnswerResponse(
             input = prompt,
             answer = friendlyResponseReplaced,
@@ -73,16 +68,20 @@ class QueryPrompterImpl(private val model: ChatWithFunctions, private val db: Da
     private fun replaceFriendlyResponse(queriesAnswer: QueriesAnswer, result: QueryResult?): String =
         if (queriesAnswer.friendlyResponse.contains("XXX")) {
             val columnIndex = result?.columns?.indexOfFirst { it.name == queriesAnswer.columnToReplace }
-            logger.debug { "[COLUMN INDEX]: $columnIndex" }
-            val value = columnIndex?.let { if (it >= 0) result.rows[it].first() else "" } ?: ""
+            val value = columnIndex?.takeIf { it >= 0 }?.let { result.rows[it].first() } ?: ""
             queriesAnswer.friendlyResponse.replace("XXX", value)
         } else queriesAnswer.friendlyResponse
 
     private fun executeSQL(sql: String): QueryResult = transaction {
-        connection.prepareStatement(sql, false).executeQuery().toQueryResult()
+        try {
+            connection.prepareStatement(sql, false).executeQuery().toQueryResult()
+        } catch (e: Exception) {
+            logger.info { "Failing executing SQL query: $sql" }
+            QueryResult.empty()
+        }
     }
 
-    override suspend fun Conversation.query(
+    private suspend fun Conversation.query(
         input: String,
         tableNames: List<String>,
         context: String?
@@ -96,19 +95,21 @@ class QueryPrompterImpl(private val model: ChatWithFunctions, private val db: Da
                  The queries have to be compatible with ${db.vendor} in the version ${db.version}.
                  Aggregate data must have an alias.
                  
-                 We have the tables named: ${tableNames.joinToString { "," }} whose SQL schema are the next:
+                 We have the tables named: ${tableNames.joinToString(", ")} whose SQL schema are the next:
                  ${tableDDL(tableNames)}
-                 Please check the fields of the tables to be able to generate consistent and valid SQL results. 
-
+                 
                  "${context.let { "Analyse the following context to accurate the answer: $it" }}"
-                                  
+                 
+                 Please check the fields of the tables to be able to generate consistent and valid SQL results. 
+                 Make sure that the result includes all the mandatory fields, and analyze if the optional ones are needed.
+
                  In case you have to generate a SQL query to solve the input:
                      - Select from this list of `tables` the SQL tables that you may need to generate the query.
                      - Generate a main SQL query that has to satisfy the input of the user if it's possible.
                      - If the SQL query is successfully generated, provide a friendly sentence summary; otherwise, provide a friendly notice of failure.
                      - If the query generated returns a single item, the friendly sentence can refer the data with XXX.
-                     - If the friendly sentence refer the data with XXX, add the column name tu extract the value to replace it when I run the query otherwise is null.
-                     - If the main SQL query returns a single item, analyze if it is useful to generate another SQL query to show the data involved.
+                     - If the friendly sentence refers the data with XXX, add the column name tu extract the value to replace it when I run the query.
+                     - If the main SQL query returns a single item, analyze if it is useful to generate another SQL query to show the disaggregated data.
                 """.trimIndent()
             )
             +user(
@@ -139,7 +140,7 @@ data class QueriesAnswer(
     val friendlyResponse: String,
     @Description("Column name to extract the data to replace the placeholder.")
     val columnToReplace: String?,
-    @Description("The optional SQL to show the data involved in the main query.")
+    @Description("SQL to show the disaggregated data.")
     val detailedQuery: String?
 )
 
