@@ -75,7 +75,7 @@ private suspend fun HttpClient.makeRequest(
       method = HttpMethod.Post
       setBody(body)
     }
-  call.response.headers.copyFrom(response.headers)
+  call.response.headers.copyFrom(response.headers, "Content-Length")
   call.respond(response.status, response.readBytes())
 }
 
@@ -91,17 +91,18 @@ private suspend fun HttpClient.makeStreaming(
       setBody(body)
     }
     .execute { httpResponse ->
-      call.response.headers.copyFrom(httpResponse.headers)
+      call.response.headers.copyFrom(httpResponse.headers, "Content-Length")
       call.respondOutputStream { httpResponse.bodyAsChannel().copyTo(this@respondOutputStream) }
     }
 }
 
-private fun ResponseHeaders.copyFrom(headers: Headers) =
+private fun ResponseHeaders.copyFrom(headers: Headers, vararg filterOut: String) =
   headers
     .entries()
     .filter { (key, _) ->
       !HttpHeaders.isUnsafe(key)
     } // setting unsafe headers results in exception
+    .filterNot { (key, _) -> filterOut.any { it.equals(key, true) } }
     .forEach { (key, values) -> values.forEach { value -> this.appendIfAbsent(key, value) } }
 
 internal fun HeadersBuilder.copyFrom(headers: Headers) =

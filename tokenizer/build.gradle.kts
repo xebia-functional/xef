@@ -35,10 +35,8 @@ kotlin {
     macosX64()
     macosArm64()
     mingwX64()
-
     sourceSets {
         val commonMain by getting
-
         commonTest {
             dependencies {
                 implementation(kotlin("test"))
@@ -48,19 +46,15 @@ kotlin {
                 implementation("com.goncalossilva:resources:0.3.2")
             }
         }
-
         val jvmTest by getting { dependencies { implementation(libs.kotest.junit5) } }
-
         js {
             nodejs { testTask { useMocha { timeout = "10000" } } }
             browser { testTask { useMocha { timeout = "10000" } } }
         }
-
         val linuxX64Main by getting
         val macosX64Main by getting
         val macosArm64Main by getting
         val mingwX64Main by getting
-
         create("nativeMain") {
             dependsOn(commonMain)
             linuxX64Main.dependsOn(this)
