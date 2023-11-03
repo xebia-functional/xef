@@ -7,9 +7,6 @@ import com.typesafe.config.ConfigFactory
 import com.xebia.functional.xef.server.db.psql.Migrate
 import com.xebia.functional.xef.server.db.psql.XefDatabaseConfig
 import com.xebia.functional.xef.server.exceptions.exceptionsHandler
-import com.xebia.functional.xef.server.http.client.ModelUriAdapter
-import com.xebia.functional.xef.server.http.client.OpenAIPathType
-import com.xebia.functional.xef.server.http.client.mlflow.MLflowModelAdapter
 import com.xebia.functional.xef.server.http.routes.*
 import com.xebia.functional.xef.server.services.PostgresVectorStoreService
 import com.xebia.functional.xef.server.services.RepositoryService
@@ -19,9 +16,7 @@ import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.auth.*
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation as ClientContentNegotiation
 import io.ktor.client.plugins.logging.*
-import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.http.content.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -65,12 +60,6 @@ object Server {
           install(Auth)
           install(Logging) { level = LogLevel.INFO }
           install(ClientContentNegotiation)
-          install(ModelUriAdapter) {
-            addToPath(OpenAIPathType.EMBEDDINGS, "ojete/calor" to "https://ca0f47a7-ade7-430a-8735-e1cea32ac960.mock.pstmn.io/http://127.0.0.1:5000/gateway/embeddings/invocations")
-          }
-          install(MLflowModelAdapter) {
-            addToPath("https://ca0f47a7-ade7-430a-8735-e1cea32ac960.mock.pstmn.io/http://127.0.0.1:5000/gateway/embeddings/invocations", OpenAIPathType.EMBEDDINGS)
-          }
         }
 
       server(factory = Netty, port = 8081, host = "0.0.0.0") {
