@@ -5,6 +5,7 @@ import com.typesafe.config.ConfigFactory
 import com.xebia.functional.xef.server.db.VectorStoreConfig
 import com.xebia.functional.xef.server.db.local.LocalVectorStoreConfig
 import com.xebia.functional.xef.server.db.psql.PSQLVectorStoreConfig
+import com.xebia.functional.xef.server.http.routes.Provider
 import com.xebia.functional.xef.store.VectorStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -15,10 +16,6 @@ import kotlinx.serialization.hocon.Hocon
 enum class XefVectorStoreType {
   PSQL,
   LOCAL
-}
-
-enum class Provider {
-  OPENAI
 }
 
 abstract class VectorStoreService {

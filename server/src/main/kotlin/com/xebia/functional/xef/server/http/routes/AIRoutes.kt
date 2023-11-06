@@ -4,6 +4,7 @@ import com.aallam.openai.api.BetaOpenAI
 import com.xebia.functional.xef.server.models.Token
 import com.xebia.functional.xef.server.models.exceptions.XefExceptions
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -19,12 +20,27 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.jsonPrimitive
 
+enum class Provider {
+  OPENAI,
+  GPT4ALL,
+  GCP
+}
+
+fun String.toProvider(): Provider? =
+  when (this) {
+    "openai" -> Provider.OPENAI
+    "gpt4all" -> Provider.GPT4ALL
+    "gcp" -> Provider.GCP
+    else -> Provider.OPENAI
+  }
+
 @OptIn(BetaOpenAI::class)
 fun Routing.aiRoutes(client: HttpClient) {
   val openAiUrl = "https://api.openai.com/v1"
 
   authenticate("auth-bearer") {
     post("/chat/completions") {
+      val token = call.getToken()
       val byteArrayBody = call.receiveChannel().toByteArray()
       val body = byteArrayBody.toString(Charsets.UTF_8)
       val data = Json.decodeFromString<JsonObject>(body)
@@ -32,15 +48,16 @@ fun Routing.aiRoutes(client: HttpClient) {
       val isStream = data["stream"]?.jsonPrimitive?.boolean ?: false
 
       if (!isStream) {
-        client.makeRequest(call, "$openAiUrl/chat/completions", byteArrayBody)
+        client.makeRequest(call, "$openAiUrl/chat/completions", byteArrayBody, token)
       } else {
-        client.makeStreaming(call, "$openAiUrl/chat/completions", byteArrayBody)
+        client.makeStreaming(call, "$openAiUrl/chat/completions", byteArrayBody, token)
       }
     }
 
     post("/embeddings") {
+      val token = call.getToken()
       val context = call.receiveChannel().toByteArray()
-      client.makeRequest(call, "$openAiUrl/embeddings", context)
+      client.makeRequest(call, "$openAiUrl/embeddings", context, token)
     }
   }
 }
@@ -49,7 +66,12 @@ private val conflictingRequestHeaders =
   listOf("Host", "Content-Type", "Content-Length", "Accept", "Accept-Encoding")
 private val conflictingResponseHeaders = listOf("Content-Length")
 
-private suspend fun HttpClient.makeRequest(call: ApplicationCall, url: String, body: ByteArray) {
+private suspend fun HttpClient.makeRequest(
+  call: ApplicationCall,
+  url: String,
+  body: ByteArray,
+  token: Token
+) {
   val response =
     this.request(url) {
       headers.copyFrom(call.request.headers)
@@ -58,10 +80,16 @@ private suspend fun HttpClient.makeRequest(call: ApplicationCall, url: String, b
       setBody(body)
     }
   call.response.headers.copyFrom(response.headers)
+  // `response.bodyAsText()` is needed for triggering responsePipeline intercept
   call.respond(response.status, response.bodyAsText())
 }
 
-private suspend fun HttpClient.makeStreaming(call: ApplicationCall, url: String, body: ByteArray) {
+private suspend fun HttpClient.makeStreaming(
+  call: ApplicationCall,
+  url: String,
+  body: ByteArray,
+  token: Token
+) {
   this.preparePost(url) {
       headers.copyFrom(call.request.headers)
       method = HttpMethod.Post
@@ -86,6 +114,9 @@ internal fun HeadersBuilder.copyFrom(headers: Headers) =
   headers
     .filter { key, _ -> !conflictingRequestHeaders.any { it.equals(key, true) } }
     .forEach { key, values -> appendMissing(key, values) }
+
+private fun ApplicationCall.getProvider(): Provider =
+  request.headers["xef-provider"]?.toProvider() ?: Provider.OPENAI
 
 fun ApplicationCall.getToken(): Token =
   principal<UserIdPrincipal>()?.name?.let { Token(it) }
