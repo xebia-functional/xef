@@ -1,3 +1,6 @@
+import org.gradle.internal.io.NullOutputStream
+import java.io.OutputStream
+
 plugins {
     id(libs.plugins.kotlin.jvm.get().pluginId)
     id(libs.plugins.kotlinx.serialization.get().pluginId)
@@ -31,6 +34,9 @@ dependencies {
     implementation(libs.okio)
     implementation(libs.jdbc.mysql.connector)
     implementation(libs.postgresql)
+    implementation(libs.exposed.core)
+    implementation(libs.exposed.dao)
+    implementation(libs.exposed.jdbc)
     api(libs.ktor.client)
 }
 
@@ -43,6 +49,33 @@ spotless {
 
 tasks.getByName<Copy>("processResources") {
     dependsOn(projects.xefGpt4all.dependencyProject.tasks.getByName("jvmProcessResources"))
-    from("${projects.xefGpt4all.dependencyProject.buildDir}/processedResources/jvm/main")
-    into("$buildDir/resources/main")
+    from("${projects.xefGpt4all.dependencyProject.layout.buildDirectory}/processedResources/jvm/main")
+    into("${layout.buildDirectory}/resources/main")
+}
+
+@Suppress("MaxLineLength")
+tasks.create<Exec>("docker-sql-example-up") {
+    commandLine("docker", "compose", "-f", "$projectDir/src/main/resources/sql/stack.yml", "up", "-d")
+
+    doLast {
+        println(">> Docker compose up done!")
+        println(">> IMPORTANT: Execute `./gradlew docker-sql-example-populate` to populate the databases")
+    }
+}
+
+@Suppress("MaxLineLength")
+tasks.create<Exec>("docker-sql-example-populate") {
+    this.standardOutput = OutputStream.nullOutputStream()
+
+    commandLine("docker", "exec", "-i", "xef-sql-example-mysql", "bash", "-c", "cd /root/; mysql -ptoor < mysql_dump.sql")
+    commandLine("docker", "exec", "-i", "xef-sql-example-postgres", "bash", "-c", "cd /root/; psql -U postgres < postgres_dump.sql")
+
+    doLast {
+        println(">> Databases populated")
+    }
+}
+
+@Suppress("MaxLineLength")
+tasks.create<Exec>("docker-sql-example-down") {
+    commandLine("docker", "compose", "-f", "$projectDir/src/main/resources/sql/stack.yml", "down", "-v", "--rmi", "local", "--remove-orphans")
 }
