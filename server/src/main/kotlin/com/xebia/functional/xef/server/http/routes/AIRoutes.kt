@@ -62,6 +62,10 @@ fun Routing.aiRoutes(client: HttpClient) {
   }
 }
 
+private val conflictingRequestHeaders =
+  listOf("Host", "Content-Type", "Content-Length", "Accept", "Accept-Encoding")
+private val conflictingResponseHeaders = listOf("Content-Length")
+
 private suspend fun HttpClient.makeRequest(
   call: ApplicationCall,
   url: String,
@@ -75,8 +79,9 @@ private suspend fun HttpClient.makeRequest(
       method = HttpMethod.Post
       setBody(body)
     }
-  call.response.headers.copyFrom(response.headers, "Content-Length")
-  call.respond(response.status, response.readBytes())
+  call.response.headers.copyFrom(response.headers)
+  // `response.bodyAsText()` is needed for triggering responsePipeline intercept
+  call.respond(response.status, response.bodyAsText())
 }
 
 private suspend fun HttpClient.makeStreaming(
@@ -91,24 +96,24 @@ private suspend fun HttpClient.makeStreaming(
       setBody(body)
     }
     .execute { httpResponse ->
-      call.response.headers.copyFrom(httpResponse.headers, "Content-Length")
+      call.response.headers.copyFrom(httpResponse.headers)
       call.respondOutputStream { httpResponse.bodyAsChannel().copyTo(this@respondOutputStream) }
     }
 }
 
-private fun ResponseHeaders.copyFrom(headers: Headers, vararg filterOut: String) =
+private fun ResponseHeaders.copyFrom(headers: Headers) =
   headers
     .entries()
     .filter { (key, _) ->
       !HttpHeaders.isUnsafe(key)
     } // setting unsafe headers results in exception
-    .filterNot { (key, _) -> filterOut.any { it.equals(key, true) } }
+    .filterNot { (key, _) -> conflictingResponseHeaders.any { it.equals(key, true) } }
     .forEach { (key, values) -> values.forEach { value -> this.appendIfAbsent(key, value) } }
 
 internal fun HeadersBuilder.copyFrom(headers: Headers) =
   headers
-    .filter { key, value -> !key.equals("HOST", ignoreCase = true) }
-    .forEach { key, values -> appendAll(key, values) }
+    .filter { key, _ -> !conflictingRequestHeaders.any { it.equals(key, true) } }
+    .forEach { key, values -> appendMissing(key, values) }
 
 private fun ApplicationCall.getProvider(): Provider =
   request.headers["xef-provider"]?.toProvider() ?: Provider.OPENAI
