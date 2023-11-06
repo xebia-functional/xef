@@ -50,7 +50,7 @@ class SQLImpl(private val model: ChatWithFunctions, private val db: Database) : 
         val queriesAnswer = query(prompt, tableNames, context)
         val mainTable = queriesAnswer.mainQuery?.let { executeSQL(it) }
         val detailedTable =
-            queriesAnswer.detailedQuery?.let { if (it.isNotBlank()) executeSQL(it) else null }
+            queriesAnswer.detailedQuery?.let { executeSQL(it) }
         val friendlyResponseReplaced = replaceFriendlyResponse(queriesAnswer, mainTable)
         logger.info { "Main query: ${queriesAnswer.mainQuery}" }
         logger.info { "Detailed query: ${queriesAnswer.detailedQuery}" }
@@ -68,14 +68,12 @@ class SQLImpl(private val model: ChatWithFunctions, private val db: Database) : 
     private fun replaceFriendlyResponse(queriesAnswer: QueriesAnswer, result: QueryResult?): String =
         if (queriesAnswer.friendlyResponse.contains("XXX")) {
             val columnIndex = result?.columns?.indexOfFirst { it.name == queriesAnswer.columnToReplace }
-            val value = columnIndex?.takeIf { it >= 0 }?.let { result.rows[it].first() } ?: ""
+            val value = columnIndex?.takeIf { it >= 0 }?.let { result.rows[it].first() } ?: "0"
             queriesAnswer.friendlyResponse.replace("XXX", value)
         } else queriesAnswer.friendlyResponse
 
     private fun executeSQL(sql: String): QueryResult = transaction {
-        try {
-            connection.prepareStatement(sql, false).executeQuery().toQueryResult()
-        } catch (e: Exception) {
+        runCatching { connection.prepareStatement(sql, false).executeQuery().toQueryResult() }.getOrElse {
             logger.info { "Failing executing SQL query: $sql" }
             QueryResult.empty()
         }
@@ -90,7 +88,7 @@ class SQLImpl(private val model: ChatWithFunctions, private val db: Database) : 
             +system(
                 """
                  As an SQL expert, your main goal is to generate SQL queries, but you must be able to answer any SQL-related question that solves the input.
-                 
+
                  Keep into account today's date is ${LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))}
                  The queries have to be compatible with ${db.vendor} in the version ${db.version}.
                  Aggregate data must have an alias.
@@ -104,11 +102,11 @@ class SQLImpl(private val model: ChatWithFunctions, private val db: Database) : 
                  Make sure that the result includes all the mandatory fields, and analyze if the optional ones are needed.
 
                  In case you have to generate a SQL query to solve the input:
-                     - Select from this list of `tables` the SQL tables that you may need to generate the query.
+                     - Select from this list of `tables` the SQL tables that you need to generate the query.
                      - Generate a main SQL query that has to satisfy the input of the user if it's possible.
                      - If the SQL query is successfully generated, provide a friendly sentence summary; otherwise, provide a friendly notice of failure.
                      - If the query generated returns a single item, the friendly sentence can refer the data with XXX.
-                     - If the friendly sentence refers the data with XXX, add the column name tu extract the value to replace it when I run the query.
+                     - If the friendly sentence refers the data with XXX, add the column name to extract the value to replace it when I run the query.
                      - If the main SQL query returns a single item, analyze if it is useful to generate another SQL query to show the disaggregated data.
                 """.trimIndent()
             )
@@ -136,7 +134,7 @@ class SQLImpl(private val model: ChatWithFunctions, private val db: Database) : 
 data class QueriesAnswer(
     @Description("The main SQL that satisfies the input of the user.")
     val mainQuery: String?,
-    @Description("Friendly sentence that summarize the input.")
+    @Description("Friendly sentence that summarize the output.")
     val friendlyResponse: String,
     @Description("Column name to extract the data to replace the placeholder.")
     val columnToReplace: String?,
