@@ -12,6 +12,7 @@ import org.gradle.kotlin.dsl.register
 import org.gradle.plugins.signing.SigningExtension
 
 class ScalaPublishingConventionsPlugin : Plugin<Project> {
+
   override fun apply(project: Project): Unit = project.run {
     val scaladocJarTask: TaskProvider<Jar> = tasks.register<Jar>("scaladocJar") {
       group = BasePlugin.BUILD_GROUP
@@ -37,11 +38,9 @@ class ScalaPublishingConventionsPlugin : Plugin<Project> {
       publications {
         register<MavenPublication>("maven") {
           val scala3Suffix = "_3"
-
           artifactId = basePluginExtension.archivesName.get() + scala3Suffix
           from(components["java"])
           artifact(scaladocJarTask)
-
           pomConfiguration(project)
         }
       }
@@ -52,7 +51,6 @@ class ScalaPublishingConventionsPlugin : Plugin<Project> {
       val signingKeyId: String? = configValue("signing.keyId", "SIGNING_KEY_ID")
       val signingKey: String? = configValue("signing.key", "SIGNING_KEY")
       val signingPassphrase: String? = configValue("signing.passphrase", "SIGNING_KEY_PASSPHRASE")
-
       isRequired = !isLocal
       useGpgCmd()
       useInMemoryPgpKeys(signingKeyId, signingKey, signingPassphrase)

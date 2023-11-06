@@ -2,7 +2,7 @@
 
 Build the project locally, from the project root:
 
-```bash
+```shell
 ./gradlew build
 ```
 
@@ -11,7 +11,7 @@ Build the project locally, from the project root:
 The Java module uses the [spotless](https://github.com/diffplug/spotless/tree/main/plugin-gradle#java) plugin. 
 Therefore, the previous command (`./gradlew build`) will fail in case there is any formatting issue. To apply format, you can run the following command:
 
-```bash
+```shell
 ./gradlew spotlessApply
 ```
 
@@ -23,4 +23,4 @@ Check out some use case at the [Java examples](../examples/java) folder.
 
 How to run the examples (from IntelliJ IDEA):
 
-* Set Env variable: "OPENAI_TOKEN=xxx"
+* Set Env variable: `OPENAI_TOKEN=xxx`

@@ -62,6 +62,10 @@ fun Routing.aiRoutes(client: HttpClient) {
   }
 }
 
+private val conflictingRequestHeaders =
+  listOf("Host", "Content-Type", "Content-Length", "Accept", "Accept-Encoding")
+private val conflictingResponseHeaders = listOf("Content-Length")
+
 private suspend fun HttpClient.makeRequest(
   call: ApplicationCall,
   url: String,
@@ -76,7 +80,8 @@ private suspend fun HttpClient.makeRequest(
       setBody(body)
     }
   call.response.headers.copyFrom(response.headers)
-  call.respond(response.status, response.readBytes())
+  // `response.bodyAsText()` is needed for triggering responsePipeline intercept
+  call.respond(response.status, response.bodyAsText())
 }
 
 private suspend fun HttpClient.makeStreaming(
@@ -102,12 +107,13 @@ private fun ResponseHeaders.copyFrom(headers: Headers) =
     .filter { (key, _) ->
       !HttpHeaders.isUnsafe(key)
     } // setting unsafe headers results in exception
+    .filterNot { (key, _) -> conflictingResponseHeaders.any { it.equals(key, true) } }
     .forEach { (key, values) -> values.forEach { value -> this.appendIfAbsent(key, value) } }
 
 internal fun HeadersBuilder.copyFrom(headers: Headers) =
   headers
-    .filter { key, value -> !key.equals("HOST", ignoreCase = true) }
-    .forEach { key, values -> appendAll(key, values) }
+    .filter { key, _ -> !conflictingRequestHeaders.any { it.equals(key, true) } }
+    .forEach { key, values -> appendMissing(key, values) }
 
 private fun ApplicationCall.getProvider(): Provider =
   request.headers["xef-provider"]?.toProvider() ?: Provider.OPENAI

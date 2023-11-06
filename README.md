@@ -56,15 +56,13 @@ Libraries are published in Maven Central, under the `com.xebia` group.
 Libraries are published in Maven Central. You may need to  add that repository explicitly
 in your build, if you haven't done it before.
 
-```kotlin
-repositories {
-    mavenCentral()
-}
+```groovy
+repositories { mavenCentral() }
 ```
 
 Then add the library in the usual way.
 
-```kotlin
+```groovy
 // In Gradle Kotlin 
 dependencies {
     implementation("com.xebia:xef-kotlin:<version>")
@@ -110,7 +108,7 @@ in your build, if you haven't done it before.
 
 ## 📖 Quick Introduction
 
-In this small introduction we look at the main features of xef, including the `ai` function.
+In this small introduction we look at the main features of xef, including the `conversation` function.
 
 - [<img src="https://upload.wikimedia.org/wikipedia/commons/3/37/Kotlin_Icon_2021.svg" height="15px" alt="Kotlin logo"> Kotlin version](https://github.com/xebia-functional/xef/blob/main/docs/intro/kotlin.md)
 - [<img src="https://www.scala-lang.org/resources/img/frontpage/scala-spiral.png" height="15px" alt="Scala logo"> Scala version](https://github.com/xebia-functional/xef/blob/main/docs/intro/scala.md)
@@ -121,5 +119,5 @@ In this small introduction we look at the main features of xef, including the `a
 You can also have a look at the examples to have a feeling of how using the library looks like.
 
 - [<img src="https://upload.wikimedia.org/wikipedia/commons/3/37/Kotlin_Icon_2021.svg" height="15px" alt="Kotlin logo"> Examples in Kotlin](https://github.com/xebia-functional/xef/tree/main/examples/kotlin/src/main/kotlin/com/xebia/functional/xef/conversation)
-- [<img src="https://www.scala-lang.org/resources/img/frontpage/scala-spiral.png" height="15px" alt="Scala logo"> Examples in Scala](https://github.com/xebia-functional/xef/tree/main/examples/scala/src/main/scala/com/xebia/functional/xef/scala/conversation)
+- [<img src="https://www.scala-lang.org/resources/img/frontpage/scala-spiral.png" height="15px" alt="Scala logo"> Examples in Scala](https://github.com/xebia-functional/xef/tree/main/examples/scala/src/main/scala/com/xebia/functional/xef/examples/scala)
 - [<img src="https://upload.wikimedia.org/wikipedia/en/thumb/3/30/Java_programming_language_logo.svg/234px-Java_programming_language_logo.svg.png" height="15px" alt="Java logo"> Examples in Java](https://github.com/xebia-functional/xef/tree/main/examples/java/src/main/java/com/xebia/functional/xef/java/auto)

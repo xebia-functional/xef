@@ -1,19 +1,18 @@
-package com.xebia.functional.xef.scala.conversation
+package com.xebia.functional.xef.scala.serialization
 
 import com.xebia.functional.xef.conversation.jvm.Description as JvmDescription
-import kotlinx.serialization.descriptors.{SerialDescriptor as KtSerialDescriptor, SerialKind, StructureKind}
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.descriptors.{SerialDescriptor as KtSerialDescriptor, SerialKind, StructureKind}
 import kotlinx.serialization.encoding.{Decoder as KtDecoder, Encoder as KtEncoder}
 
-import scala.quoted.*
 import java.lang.annotation.Annotation
 import java.util
-import scala.compiletime.{constValue, erasedValue, summonInline}
+import scala.annotation.meta.*
+import scala.compiletime.*
 import scala.deriving.*
 import scala.jdk.CollectionConverters.*
+import scala.quoted.*
 import scala.reflect.ClassTag
-
-import scala.annotation.meta._
 
 trait SerialDescriptor[A]:
   def serialDescriptor: KtSerialDescriptor
@@ -81,40 +80,33 @@ object SerialDescriptor extends SerialDescriptorInstances:
         // Does the element at the given index have a default value, or is it wrapped in `Option`, or is a union with `Null`?
         override def isElementOptional(index: Int): Boolean = false
 
-      def serialDescriptor = serialDescriptorImpl
+      def serialDescriptor: KtSerialDescriptor = serialDescriptorImpl
 
 inline def getStaticAnnotations[A]: List[Any] = ${ getAnnotationsImpl[A] }
 
-def getAnnotationsImpl[A: Type](using Quotes): Expr[List[Any]] = {
+def getAnnotationsImpl[A: Type](using Quotes): Expr[List[Any]] =
   import quotes.reflect.*
   val annotations = TypeRepr.of[A].typeSymbol.annotations.map(_.asExpr)
   Expr.ofList(annotations)
-}
 
 inline def getFieldAnnotationsMap[A]: Map[String, List[Any]] =
   ${ getFieldAnnotationsMapImpl[A] }
 
-def getFieldAnnotationsMapImpl[A: Type](using Quotes): Expr[Map[String, List[Any]]] = {
-  import quotes.reflect._
-
+def getFieldAnnotationsMapImpl[A: Type](using Quotes): Expr[Map[String, List[Any]]] =
+  import quotes.reflect.*
   // Extract the fields from the type
   val fields = TypeRepr.of[A].typeSymbol.primaryConstructor.paramSymss.flatten
-
   // For each field, extract its name and annotations
-  val fieldAnnotationsMap: List[Expr[(String, List[Any])]] = fields.map { field =>
+  val fieldAnnotationsMap: List[Expr[(String, List[Any])]] = fields.map: field =>
     val fieldName = Expr(field.name)
     val annotations = Expr.ofList(field.annotations.map(_.asExpr))
     '{ ($fieldName, $annotations) }
-  }
-
   // Convert list of (String, List[Any]) tuples to a map
-  fieldAnnotationsMap match {
+  fieldAnnotationsMap match
     case Nil => '{ Map.empty[String, List[Any]] }
     case _ =>
       val mapExpr = Expr.ofList(fieldAnnotationsMap)
       '{ $mapExpr.toMap }
-  }
-}
 
 /**
  * A scala annotation that maps to the jvm description annotation

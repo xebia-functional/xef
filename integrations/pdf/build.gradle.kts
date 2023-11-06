@@ -38,6 +38,5 @@ tasks {
         dependsOn(":detekt-rules:assemble")
         getByName("build").dependsOn(this)
     }
-
     withType<AbstractPublishToMaven> { dependsOn(withType<Sign>()) }
 }
