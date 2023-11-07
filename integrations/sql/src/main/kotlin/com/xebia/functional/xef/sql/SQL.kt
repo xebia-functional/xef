@@ -104,7 +104,7 @@ class SQLImpl(private val model: ChatWithFunctions, private val db: Database) : 
                  Make sure that the result includes all the mandatory fields, and analyze if the optional ones are needed.
 
                  In case you have to generate a SQL query to solve the input:
-                     - Select from this list of `tables` the SQL tables that you need to generate the query.
+                     - Select from this list of tables the SQL tables that you need to generate the query.
                      - Generate a main SQL query that has to satisfy the input of the user if it's possible.
                      - If the SQL query is successfully generated, provide a friendly sentence summary; otherwise, provide a friendly notice of failure.
                      - If the query generated returns a single item, the friendly sentence can refer the data with XXX.
