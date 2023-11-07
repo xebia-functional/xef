@@ -9,10 +9,9 @@ fun ChatCompletionResponseWithFunctions.addMetrics(
   conversation: Conversation
 ): ChatCompletionResponseWithFunctions {
   conversation.metric.parameter("model", `object`)
-  conversation.metric.parameter(
-    "tokens",
-    "${usage.promptTokens} (prompt) + ${usage.completionTokens} (completion) = ${usage.totalTokens}"
-  )
+  conversation.metric.parameter("promptTokens", usage.promptTokens.toString())
+  conversation.metric.parameter("completionTokens", usage.completionTokens.toString())
+  conversation.metric.parameter("totalTokens", usage.totalTokens.toString())
   return this
 }
 
