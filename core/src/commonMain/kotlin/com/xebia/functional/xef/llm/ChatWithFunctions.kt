@@ -65,7 +65,7 @@ interface ChatWithFunctions : LLM {
     function: CFunction,
     serializer: (json: String) -> A,
   ): A =
-    scope.metric.promptSpan(scope, prompt) {
+    scope.metric.promptSpan(prompt) {
       val promptWithFunctions = prompt.copy(function = function)
       val adaptedPrompt =
         PromptCalculator.adaptPromptToConversationAndModel(

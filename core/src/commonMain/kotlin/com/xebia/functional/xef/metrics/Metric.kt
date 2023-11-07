@@ -1,27 +1,28 @@
 package com.xebia.functional.xef.metrics
 
-import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.prompt.Prompt
 
 interface Metric {
-  suspend fun <A> promptSpan(
-    conversation: Conversation,
-    prompt: Prompt,
-    block: suspend Metric.() -> A
-  ): A
+  suspend fun <A> customSpan(name: String, block: suspend Metric.() -> A): A
 
-  fun log(conversation: Conversation, message: String)
+  suspend fun <A> promptSpan(prompt: Prompt, block: suspend Metric.() -> A): A
+
+  fun event(message: String)
+
+  fun parameter(key: String, value: String)
 
   companion object {
     val EMPTY: Metric =
       object : Metric {
-        override suspend fun <A> promptSpan(
-          conversation: Conversation,
-          prompt: Prompt,
-          block: suspend Metric.() -> A
-        ): A = block()
+        override suspend fun <A> customSpan(name: String, block: suspend Metric.() -> A): A =
+          block()
 
-        override fun log(conversation: Conversation, message: String) {}
+        override suspend fun <A> promptSpan(prompt: Prompt, block: suspend Metric.() -> A): A =
+          block()
+
+        override fun event(message: String) {}
+
+        override fun parameter(key: String, value: String) {}
       }
   }
 }

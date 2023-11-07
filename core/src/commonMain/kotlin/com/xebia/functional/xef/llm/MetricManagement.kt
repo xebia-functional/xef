@@ -8,28 +8,29 @@ import com.xebia.functional.xef.prompt.Prompt
 fun ChatCompletionResponseWithFunctions.addMetrics(
   conversation: Conversation
 ): ChatCompletionResponseWithFunctions {
-  conversation.metric.log(conversation, "Model: ${`object`}")
-  conversation.metric.log(
-    conversation,
-    "Tokens: ${usage.promptTokens} (prompt) + ${usage.completionTokens} (completion) = ${usage.totalTokens}"
+  conversation.metric.parameter("model", `object`)
+  conversation.metric.parameter(
+    "tokens",
+    "${usage.promptTokens} (prompt) + ${usage.completionTokens} (completion) = ${usage.totalTokens}"
   )
   return this
 }
 
 fun ChatCompletionResponse.addMetrics(conversation: Conversation): ChatCompletionResponse {
-  conversation.metric.log(conversation, "Model: ${`object`}")
-  conversation.metric.log(
-    conversation,
-    "Tokens: ${usage.promptTokens} (prompt) + ${usage.completionTokens} (completion) = ${usage.totalTokens}"
+  conversation.metric.parameter("model", `object`)
+  conversation.metric.parameter(
+    "tokens",
+    "${usage.promptTokens} (prompt) + ${usage.completionTokens} (completion) = ${usage.totalTokens}"
   )
   return this
 }
 
 fun Prompt.addMetrics(conversation: Conversation) {
-  conversation.metric.log(
-    conversation,
-    "Number of messages: ${messages.size} (${messages.map { it.role.toString().firstOrNull() ?: "" }.joinToString("-")})"
+  conversation.metric.parameter(
+    "number-of-messages",
+    "${messages.size} (${messages.map { it.role.toString().firstOrNull() ?: "" }.joinToString("-")})"
   )
-  conversation.metric.log(conversation, "Functions: ${function?.let { "yes" } ?: "no"}")
-  conversation.metric.log(conversation, "Temperature: ${configuration.temperature}")
+  conversation.metric.parameter("conversation-id", conversation.conversationId?.value ?: "none")
+  conversation.metric.parameter("functions", function?.let { "yes" } ?: "no")
+  conversation.metric.parameter("temperature", "${configuration.temperature}")
 }
