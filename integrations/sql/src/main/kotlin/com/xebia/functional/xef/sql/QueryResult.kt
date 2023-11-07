@@ -13,15 +13,13 @@ data class QueryResult(
 
     fun getFieldByColumnName(name: String): String? =
         columns.indexOfFirst { it.name == name }.takeIf { it >= 0 }?.let { index ->
-            rows.firstOrNull()?.findByIndex(index)
+            rows.firstOrNull()?.fields?.getOrNull(index)
         }
 }
 
 
 @Serializable
-data class Row(val fields: List<String?>) {
-    fun findByIndex(index: Int): String? = fields.getOrNull(index)
-}
+data class Row(val fields: List<String?>)
 
 @Serializable
 data class Column(

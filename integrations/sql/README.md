@@ -14,6 +14,7 @@ repositories {
 }
 
 dependencies {
+    implementation("com.xebia.functional.xef.sql:sql-kotlin:<version>")
     implementation("com.xebia.functional.xef.sql:sql-module:<version>")
 }
 ```
@@ -31,7 +32,14 @@ The SQL module is built upon the Exposed framework, which means it is compatible
 6. Oracle Database
 7. MariaDB
 
-Ensure you have the corresponding database driver library added to your project's dependencies. For example, if you plan to use PostgreSQL, include the PostgreSQL JDBC driver in your project's build configuration
+Ensure you have the corresponding database driver library added to your project's dependencies. 
+
+For example, if you plan to use PostgreSQL, include the PostgreSQL JDBC driver in your project's build configuration
+```gradle
+dependencies {
+    implementation("org.postgresql:postgresql:<version>")
+}
+```
 
 ## Getting Started
 To get started with the SQL module, you must initialize it with your database configuration.
