@@ -13,6 +13,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.serializer
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.name
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -68,7 +69,7 @@ class SQLImpl(private val model: ChatWithFunctions, private val db: Database) : 
     private fun replaceFriendlyResponse(queriesAnswer: QueriesAnswer, result: QueryResult?): String =
         if (queriesAnswer.friendlyResponse.contains("XXX")) {
             val columnIndex = result?.columns?.indexOfFirst { it.name == queriesAnswer.columnToReplace }
-            val value = columnIndex?.takeIf { it >= 0 }?.let { result.rows[it].first() } ?: "0"
+            val value = columnIndex?.takeIf { it >= 0 }?.let { result.rows[it].first() } ?: ""
             queriesAnswer.friendlyResponse.replace("XXX", value)
         } else queriesAnswer.friendlyResponse
 
@@ -91,8 +92,9 @@ class SQLImpl(private val model: ChatWithFunctions, private val db: Database) : 
 
                  Keep into account today's date is ${LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))}
                  The queries have to be compatible with ${db.vendor} in the version ${db.version}.
-                 Aggregate data must have an alias.
+                 You must always use aliases to generate the queries.
                  
+                 The database name is: ${db.name}
                  We have the tables named: ${tableNames.joinToString(", ")} whose SQL schema are the next:
                  ${tableDDL(tableNames)}
                  

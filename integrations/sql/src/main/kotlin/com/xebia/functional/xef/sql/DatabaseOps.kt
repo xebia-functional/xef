@@ -1,12 +1,15 @@
 package com.xebia.functional.xef.sql
 
 import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.exists
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.sql.JDBCType
 
 fun tableDDL(tableNames: List<String>): String = transaction {
     tableNames.joinToString("\n") { tableName ->
         val table = Table(tableName)
+        require(table.exists()) { "Table $tableName does not exist" }
+
         this.connection.metadata {
             val columns = this.columns(table)
                 .values
@@ -23,7 +26,7 @@ fun tableDDL(tableNames: List<String>): String = transaction {
 
             val primaryKeys = this.existingPrimaryKeys(table)
                 .values
-                .fold("") { _, it -> it?.columnNames?.joinToString { name -> "\tPRIMARY KEY ($name),\n" } ?: "" }
+                .fold("") { _, pk -> pk?.columnNames?.joinToString { name -> "\tPRIMARY KEY ($name),\n" } ?: "" }
 
             """TABLE $tableName (
           |$columns
