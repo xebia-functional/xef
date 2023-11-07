@@ -22,7 +22,7 @@ suspend fun main() {
   //  - # docker compose-up server/docker/opentelemetry
 
   OpenAI.conversation(
-    //metric = com.xebia.functional.xef.opentelemetry.OpenTelemetryMetric()
+    // metric = com.xebia.functional.xef.opentelemetry.OpenTelemetryMetric()
     metric = com.xebia.functional.xef.metrics.LogsMetric()
   ) {
     metric.customSpan("Animal Example") {
