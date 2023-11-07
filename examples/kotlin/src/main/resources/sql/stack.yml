@@ -1,19 +1,6 @@
 version: '3.1'
 
 services:
-  postgres:
-    container_name: xef-sql-example-postgres
-    image: postgres
-    restart: always
-    environment:
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_USER: postgres
-    ports:
-      - "5433:5432"
-    volumes:
-      - ./data/postgres_dump.sql:/root/postgres_dump.sql:ro
-      - xef-sql-example-postgres-data:/var/lib/postgresql/data
-
   mysql:
     container_name: xef-sql-example-mysql
     image: mysql
@@ -33,5 +20,4 @@ services:
       - xef-sql-example-mysql-data:/var/lib/mysql
 
 volumes:
-  xef-sql-example-postgres-data:
   xef-sql-example-mysql-data:

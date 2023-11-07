@@ -33,10 +33,6 @@ dependencies {
     implementation(libs.bundles.arrow)
     implementation(libs.okio)
     implementation(libs.jdbc.mysql.connector)
-    implementation(libs.postgresql)
-    implementation(libs.exposed.core)
-    implementation(libs.exposed.dao)
-    implementation(libs.exposed.jdbc)
     api(libs.ktor.client)
 }
 
@@ -55,11 +51,12 @@ tasks.getByName<Copy>("processResources") {
 
 @Suppress("MaxLineLength")
 tasks.create<Exec>("docker-sql-example-up") {
-    commandLine("docker", "compose", "-f", "$projectDir/src/main/resources/sql/stack.yml", "up", "-d")
+
+    commandLine("docker", "compose", "-f", "$projectDir/src/main/resources/sql/stack.yml", "up", "-d", "mysql")
 
     doLast {
         println(">> Docker compose up done!")
-        println(">> IMPORTANT: Execute `./gradlew docker-sql-example-populate` to populate the databases")
+        println(">> IMPORTANT: Execute `./gradlew docker-sql-example-populate` to populate the database that you want")
     }
 }
 
@@ -68,14 +65,17 @@ tasks.create<Exec>("docker-sql-example-populate") {
     this.standardOutput = OutputStream.nullOutputStream()
 
     commandLine("docker", "exec", "-i", "xef-sql-example-mysql", "bash", "-c", "cd /root/; mysql -ptoor < mysql_dump.sql")
-    commandLine("docker", "exec", "-i", "xef-sql-example-postgres", "bash", "-c", "cd /root/; psql -U postgres < postgres_dump.sql")
 
     doLast {
-        println(">> Databases populated")
+        println(">> Database populated!")
     }
 }
 
 @Suppress("MaxLineLength")
 tasks.create<Exec>("docker-sql-example-down") {
     commandLine("docker", "compose", "-f", "$projectDir/src/main/resources/sql/stack.yml", "down", "-v", "--rmi", "local", "--remove-orphans")
+
+    doLast {
+        println(">> Docker compose down done!")
+    }
 }

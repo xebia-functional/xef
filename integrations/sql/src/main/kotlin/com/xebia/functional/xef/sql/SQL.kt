@@ -49,13 +49,14 @@ class SQLImpl(private val model: ChatWithFunctions, private val db: Database) : 
         context: String?
     ): AnswerResponse {
         val queriesAnswer = query(prompt, tableNames, context)
-        val mainTable = queriesAnswer.mainQuery?.let { executeSQL(it) }
-        val detailedTable =
-            queriesAnswer.detailedQuery?.let { executeSQL(it) }
+        val mainTable = queriesAnswer.mainQuery?.takeIf { it.isNotBlank() }?.let { executeSQL(it) }
+        val detailedTable = queriesAnswer.detailedQuery?.takeIf { it.isNotBlank() }?.let { executeSQL(it) }
         val friendlyResponseReplaced = replaceFriendlyResponse(queriesAnswer, mainTable)
+
         logger.info { "Main query: ${queriesAnswer.mainQuery}" }
         logger.info { "Detailed query: ${queriesAnswer.detailedQuery}" }
         logger.info { "Friendly response: $friendlyResponseReplaced" }
+
         return AnswerResponse(
             input = prompt,
             answer = friendlyResponseReplaced,
@@ -68,8 +69,7 @@ class SQLImpl(private val model: ChatWithFunctions, private val db: Database) : 
 
     private fun replaceFriendlyResponse(queriesAnswer: QueriesAnswer, result: QueryResult?): String =
         if (queriesAnswer.friendlyResponse.contains("XXX")) {
-            val columnIndex = result?.columns?.indexOfFirst { it.name == queriesAnswer.columnToReplace }
-            val value = columnIndex?.takeIf { it >= 0 }?.let { result.rows[it].first() } ?: ""
+            val value = queriesAnswer.columnToReplace?.let { result?.getFieldByColumnName(it) } ?: ""
             queriesAnswer.friendlyResponse.replace("XXX", value)
         } else queriesAnswer.friendlyResponse
 
