@@ -6,16 +6,16 @@ object ResultSetOps {
 
     fun ResultSet.toQueryResult(): QueryResult {
         val columns = this.getColumns()
-        val rows = mutableListOf<Row>()
+        val rows = mutableListOf<List<String?>>()
 
         while (this.next()) {
-            val fields = mutableListOf<String>()
+            val row = mutableListOf<String>()
 
             for (i in 1..this.metaData.columnCount) {
-                fields.add(getString(i))
+                row.add(getString(i))
             }
 
-            rows.add(Row(fields))
+            rows.add(row)
         }
 
         return QueryResult(columns, rows)

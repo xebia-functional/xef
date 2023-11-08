@@ -51,15 +51,15 @@ class SQLImpl(private val model: ChatWithFunctions, private val db: Database) : 
         val queriesAnswer = query(prompt, tableNames, context)
         val mainTable = queriesAnswer.mainQuery?.takeIf { it.isNotBlank() }?.let { executeSQL(it) }
         val detailedTable = queriesAnswer.detailedQuery?.takeIf { it.isNotBlank() }?.let { executeSQL(it) }
-        val friendlyResponseReplaced = replaceFriendlyResponse(queriesAnswer, mainTable)
+        val friendlyResponse = replaceResponse(queriesAnswer.columnToReplace, queriesAnswer.friendlyResponse, mainTable)
 
         logger.info { "Main query: ${queriesAnswer.mainQuery}" }
         logger.info { "Detailed query: ${queriesAnswer.detailedQuery}" }
-        logger.info { "Friendly response: $friendlyResponseReplaced" }
+        logger.info { "Friendly response: $friendlyResponse" }
 
         return AnswerResponse(
             input = prompt,
-            answer = friendlyResponseReplaced,
+            answer = friendlyResponse,
             mainQuery = queriesAnswer.mainQuery,
             detailedQuery = queriesAnswer.detailedQuery,
             mainTable = mainTable,
@@ -67,11 +67,14 @@ class SQLImpl(private val model: ChatWithFunctions, private val db: Database) : 
         )
     }
 
-    private fun replaceFriendlyResponse(queriesAnswer: QueriesAnswer, result: QueryResult?): String =
-        if (queriesAnswer.friendlyResponse.contains("XXX")) {
-            val value = queriesAnswer.columnToReplace?.let { result?.getFieldByColumnName(it) } ?: ""
-            queriesAnswer.friendlyResponse.replace("XXX", value)
-        } else queriesAnswer.friendlyResponse
+    private fun replaceResponse(columnToReplace: String?, friendlyResponse: String, result: QueryResult?): String =
+        if (friendlyResponse.contains("XXX")) {
+            val value = columnToReplace?.let { colName ->
+                result?.let { r -> r.rows.firstOrNull()?.elementAtOrNull(r.index(colName)) }
+            }
+            friendlyResponse.replace("XXX", value ?: "")
+        } else friendlyResponse
+
 
     private fun executeSQL(sql: String): QueryResult = transaction {
         runCatching { connection.prepareStatement(sql, false).executeQuery().toQueryResult() }.getOrElse {
@@ -98,7 +101,7 @@ class SQLImpl(private val model: ChatWithFunctions, private val db: Database) : 
                  We have the tables named: ${tableNames.joinToString(", ")} whose SQL schema are the next:
                  ${tableDDL(tableNames)}
                  
-                 "${context.let { "Analyse the following context to accurate the answer: $it" }}"
+                 "${context?.let { "Analyse the following context to accurate the answer: $it" }}"
                  
                  Please check the fields of the tables to be able to generate consistent and valid SQL results. 
                  Make sure that the result includes all the mandatory fields, and analyze if the optional ones are needed.
@@ -107,9 +110,9 @@ class SQLImpl(private val model: ChatWithFunctions, private val db: Database) : 
                      - Select from this list of tables the SQL tables that you need to generate the query.
                      - Generate a main SQL query that has to satisfy the input of the user if it's possible.
                      - If the SQL query is successfully generated, provide a friendly sentence summary; otherwise, provide a friendly notice of failure.
-                     - If the query generated returns a single item, the friendly sentence can refer the data with XXX.
+                     - If the query generated returns an amount, the friendly sentence can refer the data with XXX.
                      - If the friendly sentence refers the data with XXX, add the column name to extract the value to replace it when I run the query.
-                     - If the main SQL query returns a single item, analyze if it is useful to generate another SQL query to show the disaggregated data.
+                     - If the SQL query returns an amount, analyze if it is useful to generate a another query to show the disaggregated data.
                 """.trimIndent()
             )
             +user(

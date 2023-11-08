@@ -83,14 +83,14 @@ suspend fun main() {
             println(promptQuery("How many users live in the United States?", listOf("users", "countries"), context))
 
             println(promptQuery(
-                "Give me the transactions where the product has an excellent rating and has been sold in the Spain",
+                "Give me the transactions where the product has an excellent rating and has been sold in Spain",
                 listOf("users", "countries", "transactions", "product_ratings"),
                 context
             ))
 
-            println(promptQuery("""From category Electronics give me the transaction of the product
-                |that has the highest price that has been sold in France in the city of Lyon,
-                |and also that the rating is better than Good
+            println(promptQuery("""Give me the Electronics transaction of the product that 
+                |has the highest price that has been sold in France in the city of Lyon,
+                |and also that the rating is better than Good.
                 |""".trimMargin(),
                 listOf("products", "users", "countries", "cities", "transactions", "product_ratings", "categories"),
                 context
