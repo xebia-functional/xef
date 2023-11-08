@@ -51,7 +51,7 @@ class SQLImpl(private val model: ChatWithFunctions, private val db: Database) : 
         val queriesAnswer = query(prompt, tableNames, context)
         val mainTable = queriesAnswer.mainQuery?.takeIf { it.isNotBlank() }?.let { executeSQL(it) }
         val detailedTable = queriesAnswer.detailedQuery?.takeIf { it.isNotBlank() }?.let { executeSQL(it) }
-        val friendlyResponse = replaceResponse(queriesAnswer.columnToReplace, queriesAnswer.friendlyResponse, mainTable)
+        val friendlyResponse = queriesAnswer.replaceFriendlyResponse(mainTable)
 
         logger.info { "Main query: ${queriesAnswer.mainQuery}" }
         logger.info { "Detailed query: ${queriesAnswer.detailedQuery}" }
@@ -66,15 +66,6 @@ class SQLImpl(private val model: ChatWithFunctions, private val db: Database) : 
             detailedTable = detailedTable
         )
     }
-
-    private fun replaceResponse(columnToReplace: String?, friendlyResponse: String, result: QueryResult?): String =
-        if (friendlyResponse.contains("XXX")) {
-            val value = columnToReplace?.let { colName ->
-                result?.let { r -> r.rows.firstOrNull()?.elementAtOrNull(r.index(colName)) }
-            }
-            friendlyResponse.replace("XXX", value ?: "")
-        } else friendlyResponse
-
 
     private fun executeSQL(sql: String): QueryResult = transaction {
         runCatching { connection.prepareStatement(sql, false).executeQuery().toQueryResult() }.getOrElse {
@@ -145,7 +136,15 @@ data class QueriesAnswer(
     val columnToReplace: String?,
     @Description("SQL to show the disaggregated data.")
     val detailedQuery: String?
-)
+) {
+    fun replaceFriendlyResponse(result: QueryResult?): String =
+        if (friendlyResponse.contains("XXX")) {
+            val value = columnToReplace?.let { colName ->
+                result?.let { r -> r.rows.firstOrNull()?.elementAtOrNull(r.index(colName)) }
+            } ?: ""
+            friendlyResponse.replace("XXX", value)
+        } else friendlyResponse
+}
 
 data class AnswerResponse(
     val input: String,
