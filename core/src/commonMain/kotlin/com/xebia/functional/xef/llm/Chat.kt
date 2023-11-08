@@ -46,7 +46,7 @@ interface Chat : LLM {
 
   @AiDsl
   suspend fun promptMessages(prompt: Prompt, scope: Conversation): List<String> =
-    scope.metric.promptSpan(scope, prompt) {
+    scope.metric.promptSpan(prompt) {
       val promptMemories = prompt.messages.toMemory(scope)
       val adaptedPrompt =
         PromptCalculator.adaptPromptToConversationAndModel(prompt, scope, this@Chat)
