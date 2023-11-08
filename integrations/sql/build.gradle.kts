@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
     id(libs.plugins.kotlin.jvm.get().pluginId)
     alias(libs.plugins.arrow.gradle.publish)

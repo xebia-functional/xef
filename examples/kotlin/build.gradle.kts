@@ -1,4 +1,3 @@
-import org.gradle.internal.io.NullOutputStream
 import java.io.OutputStream
 
 plugins {
@@ -27,6 +26,7 @@ dependencies {
     implementation(projects.xefReasoning)
     implementation(projects.xefOpentelemetry)
     implementation(projects.xefMlflow)
+    implementation(libs.suspendApp.core)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.logback)
     implementation(libs.klogging)
@@ -78,4 +78,12 @@ tasks.create<Exec>("docker-sql-example-down") {
     doLast {
         println(">> Docker compose down done!")
     }
+}
+
+tasks.create<JavaExec>("run-sql-example") {
+    dependsOn("compileKotlin")
+    group = "Execution"
+    description = "Run SQL example"
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass = "com.xebia.functional.xef.conversation.sql.MysqlExample"
 }

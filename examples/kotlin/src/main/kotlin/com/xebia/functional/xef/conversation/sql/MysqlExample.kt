@@ -1,20 +1,22 @@
 package com.xebia.functional.xef.conversation.sql
 
+import arrow.continuations.SuspendApp
 import com.xebia.functional.xef.conversation.llm.openai.OpenAI
 import com.xebia.functional.xef.sql.SQL
 import com.xebia.functional.xef.sql.jdbc.JdbcConfig
 
-val mysqlConfig = JdbcConfig(
-    vendor = "mysql",
-    host = "localhost",
-    username = "root",
-    password = "toor",
-    port = 3307,
-    database = "example_db",
-    model = OpenAI().DEFAULT_SERIALIZATION
-)
+object MysqlExample {
+    private val mysqlConfig = JdbcConfig(
+        vendor = "mysql",
+        host = "localhost",
+        username = "root",
+        password = "toor",
+        port = 3307,
+        database = "example_db",
+        model = OpenAI().DEFAULT_SERIALIZATION
+    )
 
-val context = """
+    private val context = """
         Our database is about a small application for selling second-hand products from user to user.
         We operate only in this countries (United States, United Kingdom, Germany, France, Spain). 
         These are the categories that we support in our application
@@ -71,30 +73,33 @@ val context = """
         - product_ratings and products is 1 to N.
     """.trimIndent()
 
-suspend fun main() {
-    OpenAI.conversation {
-        SQL.fromJdbcConfig(mysqlConfig) {
-            println(promptQuery("How many tables I have?", listOf(), context))
-            println(promptQuery("What kind of questions I can ask you?", listOf(), context))
+    @JvmStatic
+    fun main(args: Array<String>) = SuspendApp {
+        OpenAI.conversation {
+            SQL.fromJdbcConfig(mysqlConfig) {
+                println(promptQuery("How many tables I have?", listOf(), context))
+                println(promptQuery("What kind of questions I can ask you?", listOf(), context))
 
-            println(promptQuery("How many users are active?", listOf("users"), context))
+                println(promptQuery("How many users are active?", listOf("users"), context))
 
-            println(promptQuery("How many users live in Murcia?", listOf("users", "cities"), context))
-            println(promptQuery("How many users live in the United States?", listOf("users", "countries"), context))
+                println(promptQuery("How many users live in Murcia?", listOf("users", "cities"), context))
+                println(promptQuery("How many users live in the United States?", listOf("users", "countries"), context))
 
-            println(promptQuery(
-                "Give me the transactions where the product has an excellent rating and has been sold in Spain",
-                listOf("users", "countries", "transactions", "product_ratings"),
-                context
-            ))
+                println(promptQuery(
+                    "Give me the transactions where the product has an excellent rating and has been sold in Spain",
+                    listOf("users", "countries", "transactions", "product_ratings"),
+                    context
+                ))
 
-            println(promptQuery("""Give me the Electronics transaction of the product that 
+                println(promptQuery("""Give me the Electronics transaction of the product that 
                 |has the highest price that has been sold in France in the city of Lyon,
                 |and also that the rating is better than Good.
                 |""".trimMargin(),
-                listOf("products", "users", "countries", "cities", "transactions", "product_ratings", "categories"),
-                context
-            ))
+                    listOf("products", "users", "countries", "cities", "transactions", "product_ratings", "categories"),
+                    context
+                ))
+            }
         }
     }
 }
+
