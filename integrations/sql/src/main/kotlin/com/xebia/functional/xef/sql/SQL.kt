@@ -101,9 +101,8 @@ class SQLImpl(private val model: ChatWithFunctions, private val db: Database) : 
                      - Select from this list of tables the SQL tables that you need to generate the query.
                      - Generate a main SQL query that has to satisfy the input of the user if it's possible.
                      - If the SQL query is successfully generated, provide a friendly sentence summary; otherwise, provide a friendly notice of failure.
-                     - If the query generated returns an amount, the friendly sentence can refer the data with XXX.
+                     - If the query generated returns an amount, the friendly sentence can refer the data with XXX and you have to generate a another query to show the disaggregated data.
                      - If the friendly sentence refers the data with XXX, add the column name to extract the value to replace it when I run the query.
-                     - If the SQL query returns an amount, analyze if it is useful to generate a another query to show the disaggregated data.
                 """.trimIndent()
             )
             +user(
