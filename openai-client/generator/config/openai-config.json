@@ -31,7 +31,7 @@
     "FineTuningJobRequest_hyperparameters_n_epochs": "com.xebia.functional.openai.models.ext.finetune.job.FineTuningJobRequestHyperparametersNEpochs",
     "FineTuningJob_hyperparameters_n_epochs": "com.xebia.functional.openai.models.ext.finetune.job.FineTuningJobHyperparametersNEpochs"
   },
-  "templateDir": "generator",
+  "templateDir": "config",
   "files": {
     "api.mustache": {
       "templateType": "API",

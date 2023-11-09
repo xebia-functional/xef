@@ -28,7 +28,10 @@ include("xef-tokenizer")
 project(":xef-tokenizer").projectDir = file("tokenizer")
 
 include("xef-openai-client")
-project(":xef-openai-client").projectDir = file("openai-client")
+project(":xef-openai-client").projectDir = file("openai-client/client")
+
+include("xef-openai-client-generator")
+project(":xef-openai-client-generator").projectDir = file("openai-client/generator")
 
 include("xef-openai")
 project(":xef-openai").projectDir = file("openai")

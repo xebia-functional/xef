@@ -48,11 +48,10 @@ kotlin {
             integrationTest.associateWith(test)
         }
     }
-    // JavaScript not supported due to reserved words
-//    js(IR) {
-//        browser()
-//        nodejs()
-//    }
+    js(IR) {
+        browser()
+        nodejs()
+    }
     linuxX64()
     macosX64()
     macosArm64()
@@ -82,7 +81,7 @@ kotlin {
             }
         }
         val jvmTest by getting { dependencies { implementation(libs.kotest.junit5) } }
-//        val jsMain by getting { dependencies { api(libs.ktor.client.js) } }
+        val jsMain by getting { dependencies { api(libs.ktor.client.js) } }
         val linuxX64Main by getting { dependencies { api(libs.ktor.client.cio) } }
         val macosX64Main by getting { dependencies { api(libs.ktor.client.cio) } }
         val macosArm64Main by getting { dependencies { api(libs.ktor.client.cio) } }
