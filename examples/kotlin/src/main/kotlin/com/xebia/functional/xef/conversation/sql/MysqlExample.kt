@@ -30,11 +30,11 @@ object MysqlExample {
          - Birthdate to calculate the age and know if they are of legal age.
          - Are active or not
          - City and country identifier.
-         - With the creation and update date.
+         - The creation and update date.
          
         City and country information:
-         - name of the city or country
-         - With the creation and update date.
+         - Name of the city or country
+         - The creation and update date.
 
         Product features and information:
         - Name of the product
@@ -47,7 +47,7 @@ object MysqlExample {
 
         Categories information:
         - The name of each category
-        - With the creation and update date.
+        - The creation and update date.
 
         Transactions information:
         - The product, seller and buyer identifiers
