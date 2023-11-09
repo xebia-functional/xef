@@ -50,7 +50,6 @@ Libraries are published in Maven Central, under the `com.xebia` group.
 1. `xef-kotlin` for Kotlin support.
 2. The name of a library we provide integration for, like `xef-lucene`.
 
-<summary><img src="https://upload.wikimedia.org/wikipedia/commons/3/37/Kotlin_Icon_2021.svg" height="15px" alt="Kotlin logo"> Gradle (Kotlin DSL)</summary>
 
 Libraries are published in Maven Central. You may need to  add that repository explicitly
 in your build, if you haven't done it before.
@@ -74,12 +73,9 @@ could be useful.
 
 ## 📖 Quick Introduction
 
-In this small introduction we look at the main features of xef, including the `conversation` function.
-
-- [<img src="https://upload.wikimedia.org/wikipedia/commons/3/37/Kotlin_Icon_2021.svg" height="15px" alt="Kotlin logo"> Quick introduction to xef.ai](https://github.com/xebia-functional/xef/blob/main/docs/intro/kotlin.md)
+In [this](https://github.com/xebia-functional/xef/blob/main/docs/intro/kotlin.md) small introduction we look at the main features of xef, including the `conversation` function.
 
 ## 🚀 Examples
 
-You can also have a look at the examples to have a feeling of how using the library looks like.
+You can also have a look at the [examples](https://github.com/xebia-functional/xef/tree/main/examples/kotlin/src/main/kotlin/com/xebia/functional/xef/conversation) to have a feeling of how using the library looks like.
 
-- [<img src="https://upload.wikimedia.org/wikipedia/commons/3/37/Kotlin_Icon_2021.svg" height="15px" alt="Kotlin logo"> Examples in Kotlin](https://github.com/xebia-functional/xef/tree/main/examples/kotlin/src/main/kotlin/com/xebia/functional/xef/conversation)
