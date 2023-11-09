@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.arrow.gradle.publish)
     alias(libs.plugins.semver.gradle)
     alias(libs.plugins.detekt)
+    alias(libs.plugins.kotlinx.serialization)
 }
 
 dependencies { detektPlugins(project(":detekt-rules")) }
@@ -26,6 +27,9 @@ dependencies {
     implementation(projects.xefCore)
     implementation(projects.xefTokenizer)
     implementation(libs.klogging)
+    implementation(libs.exposed.core)
+    implementation(libs.exposed.dao)
+    implementation(libs.exposed.jdbc)
 }
 
 tasks {
