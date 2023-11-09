@@ -71,29 +71,8 @@ include("xef-kotlin-examples")
 project(":xef-kotlin-examples").projectDir = file("examples/kotlin")
 //</editor-fold>
 
-//<editor-fold desc="Scala">
-include("xef-scala-examples")
-project(":xef-scala-examples").projectDir = file("examples/scala")
-
-include("xef-scala")
-project(":xef-scala").projectDir = file("scala")
-//</editor-fold>
-
-//<editor-fold desc="Java">
-include("xef-java")
-project(":xef-java").projectDir = file("java")
-
-include("xef-java-examples")
-project(":xef-java-examples").projectDir = file("examples/java")
-//</editor-fold>
-
-//<editor-fold desc="Java">
 include("xef-reasoning")
 project(":xef-reasoning").projectDir = file("reasoning")
-
-include("xef-java-examples")
-project(":xef-java-examples").projectDir = file("examples/java")
-//</editor-fold>
 
 //<editor-fold desc="Kotlin">
 include("xef-server")

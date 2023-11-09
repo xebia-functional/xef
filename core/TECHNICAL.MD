@@ -14,11 +14,9 @@ The breakdown is only in terms of JVM, since that's where we _mostly_ care about
 
 We include the following dependencies in our _core_ module to implement a _common_ layer to interact with LLMs.
 The dependency on Kotlin Stdlib is unavoidable, since we use Kotlin as our main language.
-We also require KotlinX Coroutines such that we can leverage the `suspend` keyword in our API and expose `Future` to the
-Java/Scala API.
-Additionally, we also have a need for a HTTP client, and a serialization framework. Here we use Ktor and KotlinX
-Serialization respectively,
-and Xef relies on the CIO engine for Ktor, which avoids any additional dependencies.
+We also require KotlinX Coroutines such that we can leverage the `suspend` keyword in our API.
+Additionally, we also have a need for an HTTP client, and a serialization framework. Here we use Ktor and KotlinX
+Serialization respectively, and Xef relies on the CIO engine for Ktor, which avoids any additional dependencies.
 
 - kotlin-stdlib (1810 Kb = 1598 Kb + 212 Kb)
 - kotlinx-coroutines-core (1608 Kb = 1442 Kb + 166 Kb)
