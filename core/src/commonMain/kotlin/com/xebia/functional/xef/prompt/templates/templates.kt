@@ -1,35 +1,36 @@
 package com.xebia.functional.xef.prompt.templates
 
-import com.xebia.functional.xef.llm.models.chat.Message
-import com.xebia.functional.xef.llm.models.chat.Role
+import com.xebia.functional.openai.models.ChatCompletionRequestMessage
+import com.xebia.functional.openai.models.ChatCompletionRole
+import com.xebia.functional.openai.models.ChatCompletionRole.*
 import com.xebia.functional.xef.prompt.message
 
-fun system(context: String): Message = context.message(Role.SYSTEM)
+fun system(context: String): ChatCompletionRequestMessage = context.message(system)
 
-fun assistant(context: String): Message = context.message(Role.ASSISTANT)
+fun assistant(context: String): ChatCompletionRequestMessage = context.message(assistant)
 
-fun user(context: String): Message = context.message(Role.USER)
+fun user(context: String): ChatCompletionRequestMessage = context.message(user)
 
-inline fun <reified A> system(data: A): Message = data.message(Role.SYSTEM)
+inline fun <reified A> system(data: A): ChatCompletionRequestMessage = data.message(system)
 
-inline fun <reified A> assistant(data: A): Message = data.message(Role.ASSISTANT)
+inline fun <reified A> assistant(data: A): ChatCompletionRequestMessage = data.message(assistant)
 
-inline fun <reified A> user(data: A): Message = data.message(Role.USER)
+inline fun <reified A> user(data: A): ChatCompletionRequestMessage = data.message(user)
 
-fun steps(role: Role, content: () -> List<String>): Message =
+fun steps(role: ChatCompletionRole, content: () -> List<String>): ChatCompletionRequestMessage =
   content().mapIndexed { ix, elt -> "${ix + 1} - $elt" }.joinToString("\n").message(role)
 
-fun systemSteps(content: () -> List<String>): Message = steps(Role.SYSTEM, content)
+fun systemSteps(content: () -> List<String>): ChatCompletionRequestMessage = steps(system, content)
 
-fun assistantSteps(content: () -> List<String>): Message = steps(Role.ASSISTANT, content)
+fun assistantSteps(content: () -> List<String>): ChatCompletionRequestMessage = steps(assistant, content)
 
-fun userSteps(content: () -> List<String>): Message = steps(Role.USER, content)
+fun userSteps(content: () -> List<String>): ChatCompletionRequestMessage = steps(user, content)
 
 fun writeSequenceOf(
   content: String,
   prefix: String = "Step",
-  role: Role = Role.ASSISTANT
-): Message =
+  role: ChatCompletionRole = assistant
+): ChatCompletionRequestMessage =
   """
             Write a sequence of $content in the following format:
             $prefix 1 - ...
@@ -44,10 +45,10 @@ fun code(
   code: String,
   delimiter: Delimiter?,
   name: String? = null,
-  role: Role = Role.ASSISTANT
-): Message =
+  role: ChatCompletionRole = assistant
+): ChatCompletionRequestMessage =
   """
-    ${name ?: "" }
+    ${name ?: ""}
     ${delimiter?.start() ?: ""}
     $code
     ${delimiter?.end() ?: ""}

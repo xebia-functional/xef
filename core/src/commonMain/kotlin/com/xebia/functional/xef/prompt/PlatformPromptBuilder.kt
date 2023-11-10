@@ -1,12 +1,12 @@
 package com.xebia.functional.xef.prompt
 
-import com.xebia.functional.xef.llm.models.chat.Message
+import com.xebia.functional.openai.models.ChatCompletionRequestMessage
 
 expect abstract class PlatformPromptBuilder() : PromptBuilder {
 
-  override val items: MutableList<Message>
+  override val items: MutableList<ChatCompletionRequestMessage>
 
-  override fun preprocess(elements: List<Message>): List<Message>
+  override fun preprocess(elements: List<ChatCompletionRequestMessage>): List<ChatCompletionRequestMessage>
 
   override fun build(): Prompt
 

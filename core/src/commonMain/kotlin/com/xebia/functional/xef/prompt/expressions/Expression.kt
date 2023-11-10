@@ -1,8 +1,8 @@
 package com.xebia.functional.xef.prompt.expressions
 
+import com.xebia.functional.openai.models.ChatCompletionRequestMessage
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.ChatWithFunctions
-import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.assistant
 import com.xebia.functional.xef.prompt.templates.system
@@ -17,11 +17,11 @@ class Expression(
 
   private val logger: KLogger = KotlinLogging.logger {}
 
-  private val messages: MutableList<Message> = mutableListOf()
+  private val messages: MutableList<ChatCompletionRequestMessage> = mutableListOf()
 
   private val generationKeys: MutableList<String> = mutableListOf()
 
-  fun addMessages(newMessages: List<Message>) {
+  fun addMessages(newMessages: List<ChatCompletionRequestMessage>) {
     messages.addAll(newMessages)
   }
 
@@ -48,7 +48,7 @@ class Expression(
     val replacedTemplate =
       messages.fold("") { acc, message ->
         val replacedMessage =
-          generationKeys.fold(message.content) { acc, key ->
+          generationKeys.fold(message.content ?: "") { acc, key ->
             acc.replace(
               "{{$key}}",
               values.replacements.firstOrNull { it.key == key }?.value ?: "{{$key}}"

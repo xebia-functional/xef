@@ -48,10 +48,10 @@ kotlin {
             integrationTest.associateWith(test)
         }
     }
-    js(IR) {
-        browser()
-        nodejs()
-    }
+//    js(IR) {
+//        browser()
+//        nodejs()
+//    }
     linuxX64()
     macosX64()
     macosArm64()
@@ -61,7 +61,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(projects.xefCore)
-                implementation(libs.openai.client)
+                implementation(projects.xefOpenaiClient)
                 implementation(libs.klogging)
             }
         }
@@ -79,7 +79,7 @@ kotlin {
             }
         }
         val jvmTest by getting { dependencies { implementation(libs.kotest.junit5) } }
-        val jsMain by getting { dependencies { api(libs.ktor.client.js) } }
+        //val jsMain by getting { dependencies { api(libs.ktor.client.js) } }
         val linuxX64Main by getting { dependencies { api(libs.ktor.client.cio) } }
         val macosX64Main by getting { dependencies { api(libs.ktor.client.cio) } }
         val macosArm64Main by getting { dependencies { api(libs.ktor.client.cio) } }

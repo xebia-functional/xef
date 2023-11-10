@@ -1,9 +1,9 @@
 package com.xebia.functional.xef.llm
 
+import com.xebia.functional.openai.models.ChatCompletionRequestMessage
+import com.xebia.functional.openai.models.CreateMessageRequest
 import com.xebia.functional.tokenizer.Encoding
 import com.xebia.functional.tokenizer.ModelType
-import com.xebia.functional.xef.llm.models.chat.Message
-
 sealed interface LLM : AutoCloseable {
 
   val modelType: ModelType
@@ -19,12 +19,12 @@ sealed interface LLM : AutoCloseable {
   fun copy(modelType: ModelType): LLM
 
   fun tokensFromMessages(
-    messages: List<Message>
+    messages: List<ChatCompletionRequestMessage>
   ): Int { // TODO: naive implementation with magic numbers
     fun Encoding.countTokensFromMessages(tokensPerMessage: Int, tokensPerName: Int): Int =
       messages.sumOf { message ->
         countTokens(message.role.name) +
-          countTokens(message.content) +
+          countTokens(message.content ?: "") +
           tokensPerMessage +
           tokensPerName
       } + 3

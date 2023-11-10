@@ -1,15 +1,11 @@
 package com.xebia.functional.xef.llm
 
-import arrow.core.nel
 import arrow.core.nonFatalOrThrow
 import arrow.core.raise.catch
+import com.xebia.functional.openai.models.*
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
-import com.xebia.functional.xef.llm.models.chat.ChatCompletionChunk
-import com.xebia.functional.xef.llm.models.chat.ChatCompletionResponseWithFunctions
-import com.xebia.functional.xef.llm.models.functions.CFunction
-import com.xebia.functional.xef.llm.models.functions.FunChatCompletionRequest
 import com.xebia.functional.xef.llm.models.functions.buildJsonSchema
 import com.xebia.functional.xef.prompt.Prompt
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -22,21 +18,21 @@ import kotlinx.serialization.json.*
 interface ChatWithFunctions : LLM {
 
   suspend fun createChatCompletionWithFunctions(
-    request: FunChatCompletionRequest
-  ): ChatCompletionResponseWithFunctions
+    request: CreateChatCompletionRequest
+  ): CreateChatCompletionResponse
 
   suspend fun createChatCompletionsWithFunctions(
-    request: FunChatCompletionRequest
-  ): Flow<ChatCompletionChunk>
+    request: CreateChatCompletionRequest
+  ): Flow<CreateChatCompletionResponse>
 
   @OptIn(ExperimentalSerializationApi::class)
-  fun chatFunction(descriptor: SerialDescriptor): CFunction {
+  fun chatFunction(descriptor: SerialDescriptor): FunctionObject {
     val fnName = descriptor.serialName.substringAfterLast(".")
     return chatFunction(fnName, buildJsonSchema(descriptor))
   }
 
-  fun chatFunction(fnName: String, schema: JsonObject): CFunction =
-    CFunction(fnName, "Generated function for $fnName", schema)
+  fun chatFunction(fnName: String, schema: JsonObject): FunctionObject =
+    FunctionObject(fnName, schema, "Generated function for $fnName")
 
   @AiDsl
   suspend fun <A> prompt(
@@ -62,7 +58,7 @@ interface ChatWithFunctions : LLM {
   suspend fun <A> prompt(
     prompt: Prompt,
     scope: Conversation,
-    function: CFunction,
+    function: FunctionObject,
     serializer: (json: String) -> A,
   ): A =
     scope.metric.promptSpan(prompt) {
@@ -77,14 +73,23 @@ interface ChatWithFunctions : LLM {
       adaptedPrompt.addMetrics(scope)
 
       val request =
-        FunChatCompletionRequest(
+        CreateChatCompletionRequest(
           user = adaptedPrompt.configuration.user,
           messages = adaptedPrompt.messages,
           n = adaptedPrompt.configuration.numberOfPredictions,
           temperature = adaptedPrompt.configuration.temperature,
           maxTokens = adaptedPrompt.configuration.minResponseTokens,
-          functions = adaptedPrompt.function!!.nel(),
-          functionCall = mapOf("name" to (adaptedPrompt.function.name)),
+          tools = listOf(
+            ChatCompletionTool(
+              type = ChatCompletionTool.Type.function,
+              function = adaptedPrompt.function!!
+            )
+          ),
+          toolChoice = ChatCompletionToolChoiceOption(
+            type = ChatCompletionToolChoiceOption.Type.function,
+            function = ChatCompletionNamedToolChoiceFunction(adaptedPrompt.function.name)
+          ),
+          model = modelType.toRequestModel(),
         )
 
       tryDeserialize(serializer, promptWithFunctions.configuration.maxDeserializationAttempts) {
@@ -105,7 +110,7 @@ interface ChatWithFunctions : LLM {
   fun <A> promptStreaming(
     prompt: Prompt,
     scope: Conversation,
-    function: CFunction,
+    function: FunctionObject,
     serializer: (json: String) -> A,
   ): Flow<StreamedFunction<A>> = flow {
     val promptWithFunctions = prompt.copy(function = function)
@@ -117,15 +122,24 @@ interface ChatWithFunctions : LLM {
       )
 
     val request =
-      FunChatCompletionRequest(
+      CreateChatCompletionRequest(
         stream = true,
         user = promptWithFunctions.configuration.user,
         messages = messagesForRequestPrompt.messages,
         n = promptWithFunctions.configuration.numberOfPredictions,
         temperature = promptWithFunctions.configuration.temperature,
         maxTokens = promptWithFunctions.configuration.minResponseTokens,
-        functions = promptWithFunctions.function!!.nel(),
-        functionCall = mapOf("name" to (promptWithFunctions.function.name)),
+        tools = listOf(
+          ChatCompletionTool(
+            type = ChatCompletionTool.Type.function,
+            function = promptWithFunctions.function!!
+          )
+        ),
+        toolChoice = ChatCompletionToolChoiceOption(
+          type = ChatCompletionToolChoiceOption.Type.function,
+          function = ChatCompletionNamedToolChoiceFunction(promptWithFunctions.function.name)
+        ),
+        model = modelType.toRequestModel(),
       )
 
     StreamedFunction.run {

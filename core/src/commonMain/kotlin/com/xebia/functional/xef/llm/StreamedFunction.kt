@@ -1,11 +1,10 @@
 package com.xebia.functional.xef.llm
 
+import com.xebia.functional.openai.models.CreateChatCompletionRequest
+import com.xebia.functional.openai.models.FunctionObject
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.StreamedFunction.Companion.PropertyType.*
 import com.xebia.functional.xef.llm.models.chat.Message
-import com.xebia.functional.xef.llm.models.functions.CFunction
-import com.xebia.functional.xef.llm.models.functions.FunChatCompletionRequest
-import com.xebia.functional.xef.llm.models.functions.FunctionCall
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.assistant
 import kotlin.jvm.JvmSynthetic
@@ -43,10 +42,10 @@ sealed class StreamedFunction<out A> {
     internal suspend fun <A> FlowCollector<StreamedFunction<A>>.streamFunctionCall(
       chat: ChatWithFunctions,
       prompt: Prompt,
-      request: FunChatCompletionRequest,
+      request: CreateChatCompletionRequest,
       scope: Conversation,
       serializer: (json: String) -> A,
-      function: CFunction
+      function: FunctionObject
     ) {
       val messages = mutableListOf<Message>()
       // this function call is mutable and will be updated as the stream progresses

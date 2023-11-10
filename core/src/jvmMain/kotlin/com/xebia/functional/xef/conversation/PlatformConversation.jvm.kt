@@ -1,11 +1,12 @@
 package com.xebia.functional.xef.conversation
 
+import com.xebia.functional.openai.models.CreateImageRequest
+import com.xebia.functional.openai.models.FunctionObject
+import com.xebia.functional.openai.models.ImagesResponse
 import com.xebia.functional.xef.conversation.serialization.JacksonSerialization
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.llm.Images
-import com.xebia.functional.xef.llm.models.functions.CFunction
-import com.xebia.functional.xef.llm.models.images.ImagesGenerationResponse
 import com.xebia.functional.xef.metrics.Metric
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.store.ConversationId
@@ -38,7 +39,7 @@ actual constructor(
   fun <A> prompt(
     chat: ChatWithFunctions,
     prompt: Prompt,
-    function: CFunction,
+    function: FunctionObject,
     serializer: FromJson<A>
   ): CompletableFuture<A> =
     coroutineScope
@@ -60,9 +61,9 @@ actual constructor(
       }
       .asCompletableFuture()
 
-  fun chatFunction(target: Class<*>): CFunction {
+  fun chatFunction(target: Class<*>): FunctionObject {
     val targetString = JacksonSerialization.schemaGenerator.generateSchema(target).toString()
-    return CFunction(
+    return FunctionObject(
       name = target.simpleName,
       description = "Generated function for ${target.simpleName}",
       parameters = Json.parseToJsonElement(targetString).jsonObject
@@ -93,12 +94,12 @@ actual constructor(
   @AiDsl
   fun images(
     images: Images,
-    prompt: Prompt,
+    prompt: String,
     numberImages: Int = 1,
-    size: String = "1024x1024"
-  ): CompletableFuture<ImagesGenerationResponse> =
+    quality: CreateImageRequest.Quality = CreateImageRequest.Quality.standard
+  ): CompletableFuture<ImagesResponse> =
     coroutineScope
-      .async { images.images(prompt = prompt, numberImages = numberImages, size = size) }
+      .async { images.images(prompt = prompt, numberImages = numberImages, quality = quality) }
       .asCompletableFuture()
 
   actual companion object {

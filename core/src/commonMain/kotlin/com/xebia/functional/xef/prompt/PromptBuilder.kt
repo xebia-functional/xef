@@ -1,18 +1,17 @@
 package com.xebia.functional.xef.prompt
 
-import com.xebia.functional.xef.llm.models.chat.Message
-import com.xebia.functional.xef.llm.models.chat.Role
+import com.xebia.functional.openai.models.ChatCompletionRequestMessage
 import com.xebia.functional.xef.prompt.templates.assistant
 import com.xebia.functional.xef.prompt.templates.system
 import com.xebia.functional.xef.prompt.templates.user
-import kotlin.jvm.JvmSynthetic
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
+import kotlin.jvm.JvmSynthetic
 
 interface PromptBuilder {
-  val items: MutableList<Message>
+  val items: MutableList<ChatCompletionRequestMessage>
 
-  fun preprocess(elements: List<Message>): List<Message>
+  fun preprocess(elements: List<ChatCompletionRequestMessage>): List<ChatCompletionRequestMessage>
 
   fun build(): Prompt
 
@@ -22,12 +21,12 @@ interface PromptBuilder {
   }
 
   @JvmSynthetic
-  operator fun Message.unaryPlus() {
+  operator fun ChatCompletionRequestMessage.unaryPlus() {
     addMessage(this)
   }
 
   @JvmSynthetic
-  operator fun List<Message>.unaryPlus() {
+  operator fun List<ChatCompletionRequestMessage>.unaryPlus() {
     addMessages(this)
   }
 
@@ -39,8 +38,8 @@ interface PromptBuilder {
 
   fun addUserMessage(message: String): PromptBuilder = apply { addMessage(user(message)) }
 
-  fun addMessage(message: Message): PromptBuilder = apply {
-    val lastMessageWithSameRole: Message? = items.lastMessageWithSameRole(message)
+  fun addMessage(message: ChatCompletionRequestMessage): PromptBuilder = apply {
+    val lastMessageWithSameRole: ChatCompletionRequestMessage? = items.lastMessageWithSameRole(message)
     if (lastMessageWithSameRole != null) {
       val messageUpdated = lastMessageWithSameRole.addContent(message)
       items.remove(lastMessageWithSameRole)
@@ -50,7 +49,7 @@ interface PromptBuilder {
     }
   }
 
-  fun addMessages(messages: List<Message>): PromptBuilder = apply {
+  fun addMessages(messages: List<ChatCompletionRequestMessage>): PromptBuilder = apply {
     val last = items.removeLastOrNull()
     items.addAll(((last?.let { listOf(it) } ?: emptyList()) + messages).flatten())
   }
@@ -61,14 +60,20 @@ interface PromptBuilder {
   }
 }
 
-fun String.message(role: Role): Message = Message(role, this, role.name)
+fun String.message(role: ChatCompletionRequestMessage.Role): ChatCompletionRequestMessage = ChatCompletionRequestMessage(
+  role = role,
+  content = this,
+  name = role.name,
+  toolCallId = )
 
-inline fun <reified A> A.message(role: Role): Message =
+//TODO this fails because of the ChatCompletionRequestMessage role fixed to function in the generator
+// check with Fede
+inline fun <reified A> A.message(role: Role): ChatCompletionRequestMessage =
   Message(role, Json.encodeToString(serializer(), this), role.name)
 
-private fun List<Message>.flatten(): List<Message> =
+private fun List<ChatCompletionRequestMessage>.flatten(): List<ChatCompletionRequestMessage> =
   fold(mutableListOf()) { acc, message ->
-    val lastMessageWithSameRole: Message? = acc.lastMessageWithSameRole(message)
+    val lastMessageWithSameRole: ChatCompletionRequestMessage? = acc.lastMessageWithSameRole(message)
     if (lastMessageWithSameRole != null) {
       val messageUpdated = lastMessageWithSameRole.addContent(message)
       acc.remove(lastMessageWithSameRole)
@@ -79,8 +84,8 @@ private fun List<Message>.flatten(): List<Message> =
     acc
   }
 
-private fun Message.addContent(message: Message): Message =
+private fun ChatCompletionRequestMessage.addContent(message: ChatCompletionRequestMessage): ChatCompletionRequestMessage =
   copy(content = "${content}\n${message.content}")
 
-private fun List<Message>.lastMessageWithSameRole(message: Message): Message? =
+private fun List<ChatCompletionRequestMessage>.lastMessageWithSameRole(message: ChatCompletionRequestMessage): ChatCompletionRequestMessage? =
   lastOrNull()?.let { if (it.role == message.role) it else null }

@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.prompt
 
-import com.xebia.functional.xef.llm.models.chat.Message
-import com.xebia.functional.xef.llm.models.functions.CFunction
+import com.xebia.functional.openai.models.ChatCompletionRequestMessage
+import com.xebia.functional.openai.models.FunctionObject
 import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
 import com.xebia.functional.xef.prompt.templates.user
 import kotlin.jvm.JvmOverloads
@@ -14,8 +14,8 @@ import kotlin.jvm.JvmSynthetic
 data class Prompt
 @JvmOverloads
 constructor(
-  val messages: List<Message>,
-  val function: CFunction? = null,
+  val messages: List<ChatCompletionRequestMessage>,
+  val function: FunctionObject? = null,
   val configuration: PromptConfiguration = PromptConfiguration.DEFAULTS
 ) {
 

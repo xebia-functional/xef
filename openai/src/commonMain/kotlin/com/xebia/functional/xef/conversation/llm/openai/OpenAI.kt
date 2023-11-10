@@ -4,13 +4,7 @@ import arrow.core.nonEmptyListOf
 import arrow.core.raise.either
 import arrow.core.raise.ensure
 import arrow.core.raise.ensureNotNull
-import com.aallam.openai.api.exception.InvalidRequestException
-import com.aallam.openai.api.finetuning.FineTuningId
-import com.aallam.openai.api.logging.LogLevel
-import com.aallam.openai.api.model.ModelId
-import com.aallam.openai.client.LoggingConfig
-import com.aallam.openai.client.OpenAI as OpenAIClient
-import com.aallam.openai.client.OpenAIHost
+import com.xebia.functional.openai.infrastructure.ApiClient
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.AutoClose
@@ -85,8 +79,8 @@ class OpenAI(
   }
 
   internal val defaultClient =
-    OpenAIClient(
-        host = getHost()?.let { OpenAIHost(it) } ?: OpenAIHost.OpenAI,
+    ApiClient(
+        baseUrl = getHost() ?: ApiClient.BASE_URL,
         token = getToken(),
         logging = LoggingConfig(LogLevel.None),
         headers = mapOf("Authorization" to " Bearer ${getToken()}"),

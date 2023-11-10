@@ -1,15 +1,10 @@
 package com.xebia.functional.xef.conversation.llm.openai.models
 
-import com.aallam.openai.api.chat.ChatChoice
-import com.aallam.openai.api.chat.ChatMessage
-import com.aallam.openai.api.chat.chatCompletionRequest
-import com.aallam.openai.api.model.ModelId
+import com.xebia.functional.openai.models.CreateChatCompletionRequest
+import com.xebia.functional.openai.models.CreateChatCompletionResponse
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.conversation.llm.openai.OpenAI
-import com.xebia.functional.xef.conversation.llm.openai.toInternal
-import com.xebia.functional.xef.conversation.llm.openai.toOpenAI
 import com.xebia.functional.xef.llm.Chat
-import com.xebia.functional.xef.llm.models.chat.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -23,15 +18,15 @@ class OpenAIChat(
   override fun copy(modelType: ModelType) = OpenAIChat(provider, modelType)
 
   override suspend fun createChatCompletion(
-    request: ChatCompletionRequest
-  ): ChatCompletionResponse {
-    val response = client.chatCompletion(request.toOpenAI())
-    return ChatCompletionResponse(
+    request: CreateChatCompletionRequest
+  ): CreateChatCompletionResponse {
+    val response = client.
+    return CreateChatCompletionResponse(
       id = response.id,
       `object` = response.model.id,
       created = response.created,
       model = response.model.id,
-      choices = response.choices.map { it.toInternal() },
+      choices = response.map { it.toInternal() },
       usage = response.usage.toInternal(),
     )
   }

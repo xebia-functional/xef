@@ -1,12 +1,13 @@
 package com.xebia.functional.xef.llm
 
+import com.xebia.functional.openai.models.ChatCompletionRequestMessage
 import com.xebia.functional.tokenizer.truncateText
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.MessagesFromHistory
-import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.assistant
+import com.xebia.functional.xef.store.MemorizedMessage
 import com.xebia.functional.xef.store.Memory
 
 internal object PromptCalculator {
@@ -45,13 +46,13 @@ internal object PromptCalculator {
     val historyAllowed = calculateMessagesFromHistory(llm, memories, maxHistoryTokens)
 
     // calculate messages for context based on tokens
-    val ctxInfo =
+    val ctxInfo: List<String> =
       scope.store.similaritySearch(
-        prompt.messages.joinToString("\n") { it.content },
+        prompt.messages.joinToString("\n") { it.content ?: "" },
         prompt.configuration.docsInContext,
       )
 
-    val contextAllowed =
+    val contextAllowed: List<ChatCompletionRequestMessage> =
       if (ctxInfo.isNotEmpty()) {
         val ctx: String = ctxInfo.joinToString("\n")
 
@@ -65,8 +66,13 @@ internal object PromptCalculator {
     return prompt.copy(messages = contextAllowed + historyAllowed + prompt.messages)
   }
 
-  private fun messagesFromMemory(memories: List<Memory>): List<Message> =
-    memories.map { it.content }
+  private fun messagesFromMemory(memories: List<Memory>): List<ChatCompletionRequestMessage> =
+    memories.map {
+      ChatCompletionRequestMessage(
+        content = it.content.,
+        role = ChatCompletionRequestMessage.Role.it.content.role,
+      )
+    }
 
   private fun calculateMessagesFromHistory(
     llm: LLM,

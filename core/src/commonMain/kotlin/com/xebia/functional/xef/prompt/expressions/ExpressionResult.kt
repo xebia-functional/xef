@@ -1,9 +1,9 @@
 package com.xebia.functional.xef.prompt.expressions
 
-import com.xebia.functional.xef.llm.models.chat.Message
+import com.xebia.functional.openai.models.ChatCompletionRequestMessage
 
 data class ExpressionResult(
-  val messages: List<Message>,
+  val messages: List<ChatCompletionRequestMessage>,
   val result: String,
   val values: ReplacedValues,
 )

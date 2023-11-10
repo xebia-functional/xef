@@ -1,17 +1,17 @@
 package com.xebia.functional.xef.llm
 
 import arrow.fx.coroutines.parMap
-import com.xebia.functional.xef.llm.models.embeddings.Embedding
-import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
-import com.xebia.functional.xef.llm.models.embeddings.EmbeddingResult
-import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
+import com.xebia.functional.openai.models.CreateEmbeddingRequest
+import com.xebia.functional.openai.models.CreateEmbeddingResponse
+import com.xebia.functional.openai.models.Embedding
+import com.xebia.functional.openai.models.ext.embedding.create.CreateEmbeddingRequestInput
+import com.xebia.functional.openai.models.ext.embedding.create.CreateEmbeddingRequestModel
 
 interface Embeddings : LLM {
-  suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult
+  suspend fun createEmbeddings(request: CreateEmbeddingRequest): CreateEmbeddingResponse
 
   suspend fun embedDocuments(
     texts: List<String>,
-    requestConfig: RequestConfig,
     chunkSize: Int?
   ): List<Embedding> =
     if (texts.isEmpty()) emptyList()
@@ -19,12 +19,15 @@ interface Embeddings : LLM {
       texts
         .chunked(chunkSize ?: 400)
         .parMap {
-          createEmbeddings(EmbeddingRequest(modelType.name, it, requestConfig.user.id)).data
+          createEmbeddings(CreateEmbeddingRequest(
+            model = CreateEmbeddingRequestModel.valueOf(modelType.name),
+            input = CreateEmbeddingRequestInput.StringArrayValue(it)
+          )).data
         }
         .flatten()
 
-  suspend fun embedQuery(text: String, requestConfig: RequestConfig): List<Embedding> =
-    if (text.isNotEmpty()) embedDocuments(listOf(text), requestConfig, null) else emptyList()
+  suspend fun embedQuery(text: String): List<Embedding> =
+    if (text.isNotEmpty()) embedDocuments(listOf(text), null) else emptyList()
 
   companion object
 }

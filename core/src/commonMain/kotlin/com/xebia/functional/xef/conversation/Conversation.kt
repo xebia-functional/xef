@@ -1,9 +1,10 @@
 package com.xebia.functional.xef.conversation
 
+import com.xebia.functional.openai.models.CreateImageRequest
+import com.xebia.functional.openai.models.FunctionObject
+import com.xebia.functional.openai.models.ImagesResponse
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.llm.*
-import com.xebia.functional.xef.llm.models.functions.CFunction
-import com.xebia.functional.xef.llm.models.images.ImagesGenerationResponse
 import com.xebia.functional.xef.metrics.Metric
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.store.ConversationId
@@ -45,7 +46,7 @@ interface Conversation : AutoClose, AutoCloseable {
   @JvmSynthetic
   suspend fun <A> ChatWithFunctions.prompt(
     prompt: Prompt,
-    function: CFunction,
+    function: FunctionObject,
     serializer: (String) -> A
   ): A = prompt(prompt, conversation, function, serializer)
 
@@ -74,10 +75,10 @@ interface Conversation : AutoClose, AutoCloseable {
   @AiDsl
   @JvmSynthetic
   suspend fun Images.images(
-    prompt: Prompt,
+    prompt: String,
     numberImages: Int = 1,
-    size: String = "1024x1024"
-  ): ImagesGenerationResponse = images(prompt, store, numberImages, size)
+    quality: CreateImageRequest.Quality = CreateImageRequest.Quality.standard
+  ): ImagesResponse = images(prompt, store, numberImages, quality)
 
   companion object {
 

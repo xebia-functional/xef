@@ -1,8 +1,8 @@
 package com.xebia.functional.xef.store
 
 import arrow.atomic.AtomicInt
+import com.xebia.functional.openai.models.Embedding
 import com.xebia.functional.xef.llm.LLM
-import com.xebia.functional.xef.llm.models.embeddings.Embedding
 import kotlin.jvm.JvmStatic
 
 interface VectorStore {

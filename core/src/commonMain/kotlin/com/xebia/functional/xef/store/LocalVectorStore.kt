@@ -4,10 +4,9 @@ import arrow.atomic.Atomic
 import arrow.atomic.AtomicInt
 import arrow.atomic.getAndUpdate
 import arrow.atomic.update
+import com.xebia.functional.openai.models.Embedding
 import com.xebia.functional.xef.llm.Embeddings
 import com.xebia.functional.xef.llm.LLM
-import com.xebia.functional.xef.llm.models.embeddings.Embedding
-import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
 import kotlin.math.sqrt
 
 private data class State(
@@ -26,8 +25,6 @@ class LocalVectorStore
 private constructor(private val embeddings: Embeddings, private val state: AtomicState) :
   VectorStore {
   constructor(embeddings: Embeddings) : this(embeddings, Atomic(State.empty()))
-
-  private val requestConfig = RequestConfig(RequestConfig.Companion.User("user"))
 
   override val indexValue: AtomicInt = AtomicInt(0)
 
@@ -68,7 +65,7 @@ private constructor(private val embeddings: Embeddings, private val state: Atomi
   }
 
   override suspend fun addTexts(texts: List<String>) {
-    val embeddingsList = embeddings.embedDocuments(texts, requestConfig = requestConfig, null)
+    val embeddingsList = embeddings.embedDocuments(texts, null)
     state.getAndUpdate { prevState ->
       val newEmbeddings = prevState.precomputedEmbeddings + texts.zip(embeddingsList)
       State(prevState.orderedMemories, prevState.documents + texts, newEmbeddings)
@@ -76,7 +73,7 @@ private constructor(private val embeddings: Embeddings, private val state: Atomi
   }
 
   override suspend fun similaritySearch(query: String, limit: Int): List<String> {
-    val queryEmbedding = embeddings.embedQuery(query, requestConfig = requestConfig).firstOrNull()
+    val queryEmbedding = embeddings.embedQuery(query).firstOrNull()
     return queryEmbedding?.let { similaritySearchByVector(it, limit) }.orEmpty()
   }
 

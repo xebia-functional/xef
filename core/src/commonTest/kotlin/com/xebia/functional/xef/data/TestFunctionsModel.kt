@@ -6,8 +6,6 @@ import com.xebia.functional.xef.llm.Embeddings
 import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingResult
-import com.xebia.functional.xef.llm.models.functions.FunChatCompletionRequest
-import com.xebia.functional.xef.llm.models.functions.FunctionCall
 import com.xebia.functional.xef.llm.models.usage.Usage
 import kotlinx.coroutines.flow.Flow
 

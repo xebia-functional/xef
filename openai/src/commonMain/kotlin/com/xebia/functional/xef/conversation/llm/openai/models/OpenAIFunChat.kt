@@ -9,9 +9,6 @@ import com.xebia.functional.xef.conversation.llm.openai.toOpenAI
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.llm.models.chat.ChatCompletionChunk
-import com.xebia.functional.xef.llm.models.functions.CFunction
-import com.xebia.functional.xef.llm.models.functions.FunChatCompletionRequest
-import com.xebia.functional.xef.llm.models.functions.FunctionCall
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 

@@ -1,25 +1,14 @@
 package com.xebia.functional.xef.llm
 
+import com.xebia.functional.openai.models.CreateChatCompletionResponse
 import com.xebia.functional.xef.conversation.Conversation
-import com.xebia.functional.xef.llm.models.chat.ChatCompletionResponse
-import com.xebia.functional.xef.llm.models.chat.ChatCompletionResponseWithFunctions
 import com.xebia.functional.xef.prompt.Prompt
 
-fun ChatCompletionResponseWithFunctions.addMetrics(
-  conversation: Conversation
-): ChatCompletionResponseWithFunctions {
-  conversation.metric.parameter("model", `object`)
-  conversation.metric.parameter("promptTokens", usage.promptTokens.toString())
-  conversation.metric.parameter("completionTokens", usage.completionTokens.toString())
-  conversation.metric.parameter("totalTokens", usage.totalTokens.toString())
-  return this
-}
-
-fun ChatCompletionResponse.addMetrics(conversation: Conversation): ChatCompletionResponse {
-  conversation.metric.parameter("model", `object`)
+fun CreateChatCompletionResponse.addMetrics(conversation: Conversation): CreateChatCompletionResponse {
+  conversation.metric.parameter("model", model)
   conversation.metric.parameter(
     "tokens",
-    "${usage.promptTokens} (prompt) + ${usage.completionTokens} (completion) = ${usage.totalTokens}"
+    "${usage?.promptTokens} (prompt) + ${usage?.completionTokens} (completion) = ${usage?.totalTokens}"
   )
   return this
 }

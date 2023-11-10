@@ -1,8 +1,8 @@
 package com.xebia.functional.xef.llm
 
-import com.xebia.functional.xef.llm.models.text.CompletionRequest
-import com.xebia.functional.xef.llm.models.text.CompletionResult
+import com.xebia.functional.openai.models.CreateCompletionRequest
+import com.xebia.functional.openai.models.CreateCompletionResponse
 
 interface Completion : LLM {
-  suspend fun createCompletion(request: CompletionRequest): CompletionResult
+  suspend fun createCompletion(request: CreateCompletionRequest): CreateCompletionResponse
 }

@@ -1,18 +1,23 @@
 package com.xebia.functional.xef.llm
 
+import com.xebia.functional.openai.models.ChatCompletionResponseMessage
+import com.xebia.functional.openai.models.CreateChatCompletionRequest
+import com.xebia.functional.openai.models.CreateChatCompletionResponse
+import com.xebia.functional.openai.models.CreateChatCompletionStreamResponse
+import com.xebia.functional.openai.models.ext.chat.create.CreateChatCompletionRequestModel
+import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
-import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.assistant
 import kotlinx.coroutines.flow.*
 
 interface Chat : LLM {
 
-  suspend fun createChatCompletion(request: ChatCompletionRequest): ChatCompletionResponse
+  suspend fun createChatCompletion(request: CreateChatCompletionRequest): CreateChatCompletionResponse
 
-  suspend fun createChatCompletions(request: ChatCompletionRequest): Flow<ChatCompletionChunk>
+  suspend fun createChatCompletions(request: CreateChatCompletionRequest): Flow<CreateChatCompletionStreamResponse>
 
   @AiDsl
   fun promptStreaming(prompt: Prompt, scope: Conversation): Flow<String> = flow {
@@ -20,13 +25,13 @@ interface Chat : LLM {
       PromptCalculator.adaptPromptToConversationAndModel(prompt, scope, this@Chat)
 
     val request =
-      ChatCompletionRequest(
+      CreateChatCompletionRequest(
         user = prompt.configuration.user,
         messages = messagesForRequestPrompt.messages,
         n = prompt.configuration.numberOfPredictions,
         temperature = prompt.configuration.temperature,
         maxTokens = prompt.configuration.minResponseTokens,
-        streamToStandardOut = true
+        model = modelType.toRequestModel()
       )
 
     createChatCompletions(request)
@@ -54,12 +59,13 @@ interface Chat : LLM {
       adaptedPrompt.addMetrics(scope)
 
       val request =
-        ChatCompletionRequest(
+        CreateChatCompletionRequest(
           user = adaptedPrompt.configuration.user,
           messages = adaptedPrompt.messages,
           n = adaptedPrompt.configuration.numberOfPredictions,
           temperature = adaptedPrompt.configuration.temperature,
           maxTokens = adaptedPrompt.configuration.minResponseTokens,
+          model = modelType.toRequestModel()
         )
 
       createChatCompletion(request)

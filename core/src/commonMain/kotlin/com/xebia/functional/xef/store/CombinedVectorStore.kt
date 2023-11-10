@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.store
 
+import com.xebia.functional.openai.models.Embedding
 import com.xebia.functional.xef.llm.LLM
-import com.xebia.functional.xef.llm.models.embeddings.Embedding
 
 /**
  * A way of composing two [VectorStore] instances together, this class will **first search** [top],
