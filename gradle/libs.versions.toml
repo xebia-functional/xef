@@ -23,14 +23,11 @@ kotlinx-coroutines = "1.7.3"
 scrapeit = "1.1.5"
 rssreader = "3.5.0"
 lucene = "9.8.0"
-assertj = "3.24.2"
 junit = "5.10.0"
 pdfbox = "3.0.0"
 mysql = "8.0.33"
 semverGradle = "0.5.0-rc.5"
 openai-client-version = "3.5.1"
-gpt4all-java = "1.1.5"
-ai-djl = "0.24.0"
 jackson = "2.15.3"
 jsonschema = "4.32.0"
 jakarta = "3.0.2"
@@ -59,7 +56,6 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 kotlinx-serialization-hocon = { module = "org.jetbrains.kotlinx:kotlinx-serialization-hocon", version.ref = "kotlinx-json" }
 kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref="kotlinx-coroutines" }
 kotlinx-coroutines-reactive = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-reactive", version.ref="kotlinx-coroutines" }
-kotlinx-coroutines-jdk8 = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8", version.ref="kotlinx-coroutines" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 ktor-utils = { module = "io.ktor:ktor-utils", version.ref = "ktor" }
 ktor-http = { module = "io.ktor:ktor-http", version.ref = "ktor" }
@@ -104,12 +100,9 @@ skrape-async-fetcher = { module = "it.skrape:skrapeit-asyn-fetcher", version.ref
 rss-reader = { module = "com.apptasticsoftware:rssreader", version.ref = "rssreader" }
 lucene-core = { module = "org.apache.lucene:lucene-core", version.ref = "lucene" }
 lucene-queries = { module = "org.apache.lucene:lucene-queries", version.ref = "lucene" }
-assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 apache-pdf-box = { module = "org.apache.pdfbox:pdfbox", version.ref = "pdfbox" }
 jdbc-mysql-connector = { module = "mysql:mysql-connector-java", version.ref = "mysql" }
 openai-client = { module = "com.aallam.openai:openai-client", version.ref = "openai-client-version" }
-gpt4all-java-bindings = { module = "com.hexadevlabs:gpt4all-java-binding", version.ref = "gpt4all-java" }
-ai-djl-huggingface-tokenizers = { module = "ai.djl.huggingface:tokenizers", version.ref = "ai-djl" }
 jackson = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
 jackson-schema = { module = "com.github.victools:jsonschema-generator", version.ref = "jsonschema" }
 jackson-schema-jakarta = { module = "com.github.victools:jsonschema-module-jakarta-validation", version.ref = "jsonschema" }

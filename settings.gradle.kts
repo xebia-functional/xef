@@ -35,9 +35,7 @@ project(":xef-tokenizer").projectDir = file("tokenizer")
 
 include("xef-openai")
 project(":xef-openai").projectDir = file("openai")
-
-include("xef-gpt4all")
-project(":xef-gpt4all").projectDir = file("gpt4all-kotlin")
+//</editor-fold>
 
 //<editor-fold desc="Integrations">
 include("xef-lucene")
@@ -61,15 +59,9 @@ project(":xef-opentelemetry").projectDir = file("integrations/opentelemetry")
 include("xef-mlflow")
 project(":xef-mlflow").projectDir = file("integrations/mlflow")
 //</editor-fold>
-//</editor-fold>
 
-//<editor-fold desc="Kotlin">
-include("xef-kotlin")
-project(":xef-kotlin").projectDir = file("kotlin")
-
-include("xef-kotlin-examples")
-project(":xef-kotlin-examples").projectDir = file("examples/kotlin")
-//</editor-fold>
+include("xef-examples")
+project(":xef-examples").projectDir = file("examples")
 
 include("xef-reasoning")
 project(":xef-reasoning").projectDir = file("reasoning")

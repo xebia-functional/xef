@@ -15,14 +15,13 @@ java {
 }
 
 dependencies {
-    implementation(projects.xefKotlin)
+    implementation(projects.xefCore)
+    implementation(projects.xefOpenai)
     implementation(projects.xefFilesystem)
     implementation(projects.xefPdf)
     implementation(projects.xefSql)
     implementation(projects.xefTokenizer)
-    implementation(projects.xefGpt4all)
     implementation(projects.xefGcp)
-    implementation(projects.xefOpenai)
     implementation(projects.xefReasoning)
     implementation(projects.xefOpentelemetry)
     implementation(projects.xefMlflow)
@@ -41,12 +40,6 @@ spotless {
         target("**/*.kt")
         ktfmt().googleStyle().configure { it.setRemoveUnusedImport(true) }
     }
-}
-
-tasks.getByName<Copy>("processResources") {
-    dependsOn(projects.xefGpt4all.dependencyProject.tasks.getByName("jvmProcessResources"))
-    from("${projects.xefGpt4all.dependencyProject.layout.buildDirectory}/processedResources/jvm/main")
-    into("${layout.buildDirectory}/resources/main")
 }
 
 @Suppress("MaxLineLength")
