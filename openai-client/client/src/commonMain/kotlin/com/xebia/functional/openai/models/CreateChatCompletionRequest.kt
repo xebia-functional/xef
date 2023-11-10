@@ -66,7 +66,10 @@ data class CreateChatCompletionRequest(
   /* A list of messages comprising the conversation so far. [Example Python code](https://cookbook.openai.com/examples/how_to_format_inputs_to_chatgpt_models). */
   @SerialName(value = "messages")
   @Required
-  val messages: kotlin.collections.List<ChatCompletionRequestMessage>,
+  val messages:
+    kotlin.collections.List<
+      com.xebia.functional.openai.apis.com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage
+    >,
   @SerialName(value = "model")
   @Required
   val model: com.xebia.functional.openai.models.ext.chat.create.CreateChatCompletionRequestModel,
