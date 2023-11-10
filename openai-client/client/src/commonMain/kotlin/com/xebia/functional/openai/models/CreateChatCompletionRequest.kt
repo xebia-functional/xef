@@ -68,7 +68,7 @@ data class CreateChatCompletionRequest(
   @Required
   val messages:
     kotlin.collections.List<
-      com.xebia.functional.openai.apis.com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage
+      com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage
     >,
   @SerialName(value = "model")
   @Required
