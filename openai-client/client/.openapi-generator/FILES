@@ -39,13 +39,7 @@ src/commonMain/kotlin/com/xebia/functional/openai/models/ChatCompletionMessageTo
 src/commonMain/kotlin/com/xebia/functional/openai/models/ChatCompletionMessageToolCallFunction.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/ChatCompletionNamedToolChoice.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/ChatCompletionNamedToolChoiceFunction.kt
-src/commonMain/kotlin/com/xebia/functional/openai/models/ChatCompletionRequestAssistantMessage.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/ChatCompletionRequestAssistantMessageFunctionCall.kt
-src/commonMain/kotlin/com/xebia/functional/openai/models/ChatCompletionRequestFunctionMessage.kt
-src/commonMain/kotlin/com/xebia/functional/openai/models/ChatCompletionRequestMessage.kt
-src/commonMain/kotlin/com/xebia/functional/openai/models/ChatCompletionRequestSystemMessage.kt
-src/commonMain/kotlin/com/xebia/functional/openai/models/ChatCompletionRequestToolMessage.kt
-src/commonMain/kotlin/com/xebia/functional/openai/models/ChatCompletionRequestUserMessage.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/ChatCompletionResponseMessage.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/ChatCompletionRole.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/ChatCompletionStreamResponseDelta.kt
