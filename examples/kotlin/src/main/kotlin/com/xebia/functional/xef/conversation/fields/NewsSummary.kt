@@ -22,7 +22,7 @@ data class NewsItems(
 
 suspend fun main() {
   OpenAI.conversation {
-    val search = Search(OpenAI.FromEnvironment.DEFAULT_CHAT, this)
+    val search = Search(OpenAI.fromEnvironment().DEFAULT_CHAT, this)
     addContext(search("Covid news on ${LocalDate.now()}"))
     val news: NewsItems = prompt(Prompt("Provide news about covid."))
     println(news)

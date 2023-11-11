@@ -119,7 +119,7 @@ import com.xebia.functional.xef.scala.conversation.*
 import com.xebia.functional.xef.scala.serialization.*
 import io.circe.Decoder
 
-val openAI: OpenAI = OpenAI.FromEnvironment
+val openAI: OpenAI = OpenAI.fromEnvironment()
 
 def setContext(query: String)(using conversation: ScalaConversation): Unit =
   addContext(Search(openAI.DEFAULT_CHAT, conversation, 3).search(query).get)

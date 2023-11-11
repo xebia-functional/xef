@@ -80,7 +80,7 @@ data class RecipePrompt(
 
 suspend fun main() {
   OpenAI.conversation {
-    val infer = Infer(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, conversation)
+    val infer = Infer(OpenAI.fromEnvironment().DEFAULT_SERIALIZATION, conversation)
     val recipe: RecipePrompt =
       infer(
         Prompt(

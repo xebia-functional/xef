@@ -41,7 +41,7 @@ suspend fun main() {
   // To run the example with the Xef Server, you can execute the following commands:
   //  - # docker compose-up server/docker/postgresql
   //  - # ./gradlew server
-  val openAI = OpenAI()
+  val openAI = OpenAI.fromEnvironment()
   //  val openAI = OpenAI(host = "http://localhost:8081/")
   val model = openAI.DEFAULT_SERIALIZATION
 

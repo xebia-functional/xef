@@ -30,7 +30,7 @@ public class ControlSignals {
                 "    5. Ensure the guidance accounts for previous answers in the `history`.\n" +
                 "    \n"));
 
-            return Problems.Memory.getAiScope().prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, guidancePrompt, ControlSignal.class);
+            return Problems.Memory.getAiScope().prompt(OpenAI.fromEnvironment().DEFAULT_SERIALIZATION, guidancePrompt, ControlSignal.class);
     }
 
 }

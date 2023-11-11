@@ -34,6 +34,6 @@ public class Critiques {
                 "    1. Provide a critique and determine if the answer truly accomplishes the goal.\n" +
                 "    \n"));
 
-        return Problems.Memory.getAiScope().prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, prompt, Critique.class);
+        return Problems.Memory.getAiScope().prompt(OpenAI.fromEnvironment().DEFAULT_SERIALIZATION, prompt, Critique.class);
     }
 }

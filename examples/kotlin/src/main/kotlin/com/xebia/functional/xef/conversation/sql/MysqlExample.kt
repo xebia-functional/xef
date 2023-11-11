@@ -14,7 +14,7 @@ object MysqlExample {
       password = "toor",
       port = 3307,
       database = "example_db",
-      model = OpenAI().DEFAULT_SERIALIZATION
+      model = OpenAI.fromEnvironment().DEFAULT_SERIALIZATION
     )
 
   private val context =

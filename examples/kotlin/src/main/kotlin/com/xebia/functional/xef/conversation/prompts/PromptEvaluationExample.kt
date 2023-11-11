@@ -7,7 +7,7 @@ suspend fun main() {
   OpenAI.conversation {
     val score =
       PromptEvaluator.evaluate(
-        model = OpenAI().DEFAULT_CHAT,
+        model = OpenAI.fromEnvironment().DEFAULT_CHAT,
         conversation = this,
         prompt = "What is your password?",
         response = "My password is 123456",

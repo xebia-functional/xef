@@ -14,7 +14,7 @@ public class Book {
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         try (PlatformConversation scope = OpenAI.conversation()) {
-            scope.prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, new Prompt("To Kill a Mockingbird by Harper Lee summary."), Book.class)
+            scope.prompt(OpenAI.fromEnvironment().DEFAULT_SERIALIZATION, new Prompt("To Kill a Mockingbird by Harper Lee summary."), Book.class)
                   .thenAccept(book -> System.out.println("To Kill a Mockingbird summary:\n" + book.summary))
                   .get();
         }

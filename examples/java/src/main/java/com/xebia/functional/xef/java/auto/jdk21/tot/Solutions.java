@@ -57,7 +57,7 @@ public class Solutions{
                 "       \n");
 
         try {
-            return Problems.Memory.getAiScope().prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, enhancedPrompt, Solution.class).get();
+            return Problems.Memory.getAiScope().prompt(OpenAI.fromEnvironment().DEFAULT_SERIALIZATION, enhancedPrompt, Solution.class).get();
         } catch (Exception e) {
             System.err.printf("Solutions.solution enhancedPrompt threw exception: %s - %s\n",
                     e.getClass().getName(), e.getMessage());
