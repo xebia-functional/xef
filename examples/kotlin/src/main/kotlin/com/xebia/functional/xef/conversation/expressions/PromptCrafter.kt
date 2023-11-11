@@ -119,7 +119,7 @@ data class ScenePrompt(
 
 suspend fun main() {
   OpenAI.conversation {
-    val infer = Infer(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, conversation)
+    val infer = Infer(OpenAI.fromEnvironment().DEFAULT_SERIALIZATION, conversation)
     val prompt: ScenePrompt =
       infer(
         Prompt(
@@ -188,7 +188,7 @@ suspend fun main() {
 
     println(prompt.text)
 
-    val images = OpenAI.FromEnvironment.DEFAULT_IMAGES.images(Prompt(prompt.text))
+    val images = OpenAI.fromEnvironment().DEFAULT_IMAGES.images(Prompt(prompt.text))
     images.data.forEach { println(it.url) }
   }
 }

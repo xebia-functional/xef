@@ -30,7 +30,7 @@ public class ChessAI {
                       currentPlayer,
                       moves.stream().map(ChessMove::toString).collect(Collectors.joining(", ")));
 
-                ChessMove move = scope.prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, new Prompt(prompt), ChessMove.class).get();
+                ChessMove move = scope.prompt(OpenAI.fromEnvironment().DEFAULT_SERIALIZATION, new Prompt(prompt), ChessMove.class).get();
                 moves.add(move);
 
                 // Update boardState according to move.move
@@ -42,7 +42,7 @@ public class ChessAI {
                             Add a brief description of the move and it's implications""",
                     moves.stream().map(it -> it.player + ":" + it.move).collect(Collectors.joining(", ")));
 
-                ChessBoard chessBoard= scope.prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, new Prompt(boardPrompt), ChessBoard.class).get();
+                ChessBoard chessBoard= scope.prompt(OpenAI.fromEnvironment().DEFAULT_SERIALIZATION, new Prompt(boardPrompt), ChessBoard.class).get();
                 System.out.println("Current board:\n" + chessBoard.board);
 
                 var gameStatePrompt = String.format("""
@@ -50,7 +50,7 @@ public class ChessAI {
                             has the game ended (win, draw, or stalemate)?""",
                       moves.stream().map(ChessMove::toString).collect(Collectors.joining(", ")));
 
-                GameState gameState  = scope.prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, new Prompt(gameStatePrompt), GameState.class).get();
+                GameState gameState  = scope.prompt(OpenAI.fromEnvironment().DEFAULT_SERIALIZATION, new Prompt(gameStatePrompt), GameState.class).get();
 
                 gameEnded = gameState.ended;
                 winner = gameState.winner;

@@ -21,14 +21,14 @@ public class BreakingNews {
     private static CompletableFuture<Void> writeParagraph(PlatformConversation scope) {
         var currentDate = dtf.format(now);
 
-        return scope.prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, new Prompt("write a paragraph of about 300 words about: " + currentDate + " Covid News"), BreakingNews.BreakingNew.class)
+        return scope.prompt(OpenAI.fromEnvironment().DEFAULT_SERIALIZATION, new Prompt("write a paragraph of about 300 words about: " + currentDate + " Covid News"), BreakingNews.BreakingNew.class)
                 .thenAccept(breakingNews -> System.out.println(currentDate + " Covid news summary:\n" + breakingNews));
     }
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         try (PlatformConversation scope = OpenAI.conversation()) {
             var currentDate = dtf.format(now);
-            var search = new Search(OpenAI.FromEnvironment.DEFAULT_CHAT, scope, 3);
+            var search = new Search(OpenAI.fromEnvironment().DEFAULT_CHAT, scope, 3);
             scope.addContextFromArray(search.search(currentDate + " Covid News").get());
             writeParagraph(scope).get();
         }

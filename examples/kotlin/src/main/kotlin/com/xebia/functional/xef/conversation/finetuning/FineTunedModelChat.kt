@@ -6,7 +6,7 @@ import com.xebia.functional.xef.env.getenv
 import com.xebia.functional.xef.prompt.Prompt
 
 suspend fun main() {
-  val OAI = OpenAI()
+  val OAI = OpenAI.fromEnvironment()
   val baseModel = OAI.GPT_3_5_TURBO
 
   val fineTunedModelId = getenv("OPENAI_FINE_TUNED_MODEL_ID")

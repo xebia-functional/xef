@@ -25,7 +25,7 @@ public class PDFDocument {
         if (line == null || line.isBlank()) {
             return CompletableFuture.completedFuture(null);
         } else {
-            scope.prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, new Prompt(line), AIResponse.class)
+            scope.prompt(OpenAI.fromEnvironment().DEFAULT_SERIALIZATION, new Prompt(line), AIResponse.class)
                     .thenAccept(aiRes -> System.out.println(aiRes.answer + "\n---\n" +
                             aiRes.source + "\n---\n"));
 
@@ -35,8 +35,8 @@ public class PDFDocument {
 
     public static void main(String[] args) throws Exception {
         try (PlatformConversation scope = OpenAI.conversation()) {
-            PDF pdf = new PDF(OpenAI.FromEnvironment.DEFAULT_CHAT,
-                    OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, scope);
+            PDF pdf = new PDF(OpenAI.fromEnvironment().DEFAULT_CHAT,
+                    OpenAI.fromEnvironment().DEFAULT_SERIALIZATION, scope);
             scope.addContext(List.of(pdf.readPDFFromUrl.readPDFFromUrl(PDF_URL).get()));
             askQuestion(scope).get();
         }

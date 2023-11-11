@@ -9,7 +9,7 @@ import kotlinx.serialization.Serializable
 
 suspend fun main() {
   OpenAI.conversation {
-    val search = Search(OpenAI.FromEnvironment.DEFAULT_CHAT, this)
+    val search = Search(OpenAI.fromEnvironment().DEFAULT_CHAT, this)
     addContext(search("Estimate amount of medical needles in the world"))
     val needlesInWorld: NumberOfMedicalNeedlesInWorld =
       prompt("Provide the number of medical needles in the world")
