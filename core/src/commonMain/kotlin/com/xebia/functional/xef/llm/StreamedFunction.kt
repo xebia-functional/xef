@@ -1,5 +1,7 @@
 package com.xebia.functional.xef.llm
 
+import com.xebia.functional.openai.models.ChatCompletionMessageToolCallChunk
+import com.xebia.functional.openai.models.ChatCompletionMessageToolCallFunction
 import com.xebia.functional.openai.models.CreateChatCompletionRequest
 import com.xebia.functional.openai.models.FunctionObject
 import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage
@@ -49,7 +51,7 @@ sealed class StreamedFunction<out A> {
     ) {
       val messages = mutableListOf<ChatCompletionRequestMessage>()
       // this function call is mutable and will be updated as the stream progresses
-      var functionCall = FunctionCall(null, null)
+      var functionCall = ChatCompletionMessageToolCallFunction("", "")
       // the current property is mutable and will be updated as the stream progresses
       var currentProperty: String? = null
       // we keep track to not emit the same property multiple times
@@ -82,13 +84,17 @@ sealed class StreamedFunction<out A> {
             val delta = responseChunk.choices.first().delta
             // at any point the delta may be the last one
             val finishReason = responseChunk.choices.first().finishReason
-            if (delta?.functionCall != null) {
-              if (delta.functionCall.name != null)
+            val toolCalls = delta.toolCalls.orEmpty()
+            toolCalls.forEach { toolCall ->
+              val fn = toolCall.function
+              val functionName = fn?.name
+              val arguments = fn?.arguments.orEmpty()
+              if (functionName != null)
               // update the function name with the latest one
-              functionCall = functionCall.copy(name = delta.functionCall.name)
-              if (delta.functionCall.arguments != null) {
+                functionCall = functionCall.copy(name = functionName)
+              if (arguments.isNotEmpty()) {
                 // update the function arguments with the latest ones
-                functionCall = mergeArgumentsWithDelta(functionCall, delta.functionCall)
+                functionCall = mergeArgumentsWithDelta(functionCall, toolCall)
                 // once we have info about the args we detect the last property referenced
                 // while streaming the arguments for the function call
                 val currentArg = getLastReferencedPropertyInArguments(functionCall)
@@ -102,22 +108,22 @@ sealed class StreamedFunction<out A> {
                 // update the current property being evaluated
                 currentProperty = currentArg
               }
-            }
-            if (finishReason != null) {
-              // the stream is finished and we try to stream the last property
-              // because the previous chunk may had a partial property whose body
-              // may had not been fully streamed
-              streamProperty(path, currentProperty, functionCall.arguments, streamedProperties)
+              if (finishReason != null) {
+                // the stream is finished and we try to stream the last property
+                // because the previous chunk may had a partial property whose body
+                // may had not been fully streamed
+                streamProperty(path, currentProperty, functionCall.arguments, streamedProperties)
 
-              // we stream the result
-              streamResult(functionCall, messages, serializer)
+                // we stream the result
+                streamResult(functionCall, messages, serializer)
+              }
             }
           }
         }
     }
 
     private suspend fun <A> FlowCollector<StreamedFunction<A>>.streamResult(
-      functionCall: FunctionCall,
+      functionCall: ChatCompletionMessageToolCallFunction,
       messages: MutableList<ChatCompletionRequestMessage>,
       serializer: (json: String) -> A
     ) {
@@ -248,6 +254,7 @@ sealed class StreamedFunction<out A> {
         in '0'..'9' -> NUMBER
         't',
         'f' -> BOOLEAN
+
         '[' -> ARRAY
         '{' -> OBJECT
         'n' -> NULL
@@ -279,12 +286,12 @@ sealed class StreamedFunction<out A> {
     }
 
     private fun mergeArgumentsWithDelta(
-      functionCall: FunctionCall,
-      functionCall0: FunctionCall
-    ): FunctionCall =
-      functionCall.copy(arguments = (functionCall.arguments ?: "") + (functionCall0.arguments))
+      functionCall: ChatCompletionMessageToolCallFunction,
+      functionCall0: ChatCompletionMessageToolCallChunk
+    ): ChatCompletionMessageToolCallFunction =
+      functionCall.copy(arguments = functionCall.arguments + (functionCall0.function?.arguments))
 
-    private fun getLastReferencedPropertyInArguments(functionCall: FunctionCall): String? =
+    private fun getLastReferencedPropertyInArguments(functionCall: ChatCompletionMessageToolCallFunction): String? =
       """"(.*?)":"""
         .toRegex()
         .findAll(functionCall.arguments!!)
@@ -314,10 +321,12 @@ sealed class StreamedFunction<out A> {
             findPropertyPathTailrec(remainingStack + newStack, targetProperty)
           }
         }
+
         is JsonArray -> {
           val newStack = currentElement.map { it to currentPath }
           findPropertyPathTailrec(remainingStack + newStack, targetProperty)
         }
+
         else -> findPropertyPathTailrec(remainingStack, targetProperty)
       }
     }
@@ -335,16 +344,19 @@ sealed class StreamedFunction<out A> {
               }
               JsonObject(resultMap)
             }
+
             "array" -> {
               val items = jsonElement["items"]
               val exampleItems = items?.let { createExampleFromSchema(it) }
               JsonArray(listOfNotNull(exampleItems))
             }
+
             "string" -> JsonPrimitive("default_string")
             "number" -> JsonPrimitive(0)
             else -> JsonPrimitive(null)
           }
         }
+
         else -> JsonPrimitive(null)
       }
     }

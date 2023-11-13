@@ -4,6 +4,8 @@ import arrow.core.nonEmptyListOf
 import arrow.core.raise.either
 import arrow.core.raise.ensure
 import arrow.core.raise.ensureNotNull
+import com.xebia.functional.openai.apis.FineTuningApi
+import com.xebia.functional.openai.apis.ModelsApi
 import com.xebia.functional.openai.infrastructure.ApiClient
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.AIError
@@ -69,12 +71,18 @@ class OpenAI(
   internal val defaultClient =
     ApiClient(
         baseUrl = getHost() ?: ApiClient.BASE_URL,
-        token = getToken(),
-        logging = LoggingConfig(LogLevel.None),
-        headers = mapOf("Authorization" to " Bearer ${getToken()}"),
-        timeout = this.timeout.toOAITimeout()
-      )
-      .let { autoClose(it) }
+//        token = getToken(),
+//        logging = LoggingConfig(LogLevel.None),
+//        headers = mapOf("Authorization" to " Bearer ${getToken()}"),
+//        timeout = this.timeout.toOAITimeout()
+      ).also {
+        //it.setAccessToken(getToken())
+        it.setBearerToken(getToken())
+      }
+      .let {
+       // autoClose(it) TODO add support for closeable unless we remove this module
+        it
+      }
 
   val GPT_4 by lazy { autoClose(OpenAIChat(this, ModelType.GPT_4)) }
 
@@ -164,14 +172,14 @@ class OpenAI(
    * model was derived from matches [baseModel].
    */
   suspend fun <T : LLM> spawnFineTunedModel(fineTuningJobId: String, baseModel: T) = either {
-    val job = defaultClient.fineTuningJob(FineTuningId(fineTuningJobId))
+    val job = FineTuningApi().retrieveFineTuningJob((fineTuningJobId)).body()
     ensureNotNull(job) { "job $fineTuningJobId not found" }
     val fineTunedModel = job.fineTunedModel
     ensureNotNull(fineTunedModel) { "fine tuned model not available, status ${job.status}" }
-    ensure(baseModel.modelType.name == job.model.id) {
+    ensure(baseModel.modelType.name == job.model) {
       "base model instance does not match the job's base model"
     }
-    spawnModel(fineTunedModel.id, baseModel).bind()
+    spawnModel(fineTunedModel, baseModel).bind()
   }
 
   /** Checks if the model exists. */
@@ -180,7 +188,7 @@ class OpenAI(
   ): Boolean { // TODO: impl of abstract provider function
     val model =
       try {
-        defaultClient.model(ModelId(modelId))
+        ModelsApi(defaultClient).retrieveModel(modelId).body()
       } catch (e: InvalidRequestException) {
         when (e.error.detail?.code) {
           "model_not_found" -> return false

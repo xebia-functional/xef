@@ -23,7 +23,7 @@ interface ChatWithFunctions : LLM {
 
   suspend fun createChatCompletionsWithFunctions(
     request: CreateChatCompletionRequest
-  ): Flow<CreateChatCompletionResponse>
+  ): Flow<CreateChatCompletionStreamResponse>
 
   @OptIn(ExperimentalSerializationApi::class)
   fun chatFunction(descriptor: SerialDescriptor): FunctionObject {
