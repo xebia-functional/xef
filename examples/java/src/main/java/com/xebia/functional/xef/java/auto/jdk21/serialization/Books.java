@@ -19,7 +19,7 @@ public class Books {
     public record Book(@NotNull String title, @NotNull String author, @NotNull int year, @NotNull String genre){}
 
     public CompletableFuture<Books.Book> bookSelection(String topic) {
-        return scope.prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, new Prompt("Give me a selection of books about " + topic), Books.Book.class);
+        return scope.prompt(OpenAI.fromEnvironment().DEFAULT_SERIALIZATION, new Prompt("Give me a selection of books about " + topic), Books.Book.class);
     }
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {

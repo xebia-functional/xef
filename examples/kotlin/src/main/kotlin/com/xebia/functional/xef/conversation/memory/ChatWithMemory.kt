@@ -4,7 +4,7 @@ import com.xebia.functional.xef.conversation.llm.openai.OpenAI
 import com.xebia.functional.xef.prompt.Prompt
 
 suspend fun main() {
-  val model = OpenAI().DEFAULT_CHAT
+  val model = OpenAI.fromEnvironment().DEFAULT_CHAT
   OpenAI.conversation {
     while (true) {
       print("> ")

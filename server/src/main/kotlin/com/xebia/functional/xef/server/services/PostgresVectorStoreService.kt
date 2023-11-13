@@ -50,10 +50,12 @@ class PostgresVectorStoreService(
   }
 
   override fun getVectorStore(provider: Provider, token: String?): VectorStore {
+    val openAI = if (token == null) OpenAI.fromEnvironment() else OpenAI(token)
+
     val embeddings =
       when (provider) {
-        Provider.OPENAI -> OpenAI(token).DEFAULT_EMBEDDING
-        else -> OpenAI(token).DEFAULT_EMBEDDING
+        Provider.OPENAI -> openAI.DEFAULT_EMBEDDING
+        else -> openAI.DEFAULT_EMBEDDING
       }
 
     return PGVectorStore(

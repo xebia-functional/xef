@@ -1,7 +1,8 @@
-package com.xebia.functional.openai.apis.com.xebia.functional.openai.models.ext.chat
+package com.xebia.functional.openai.models.ext.chat
 
 import com.xebia.functional.openai.models.ChatCompletionMessageToolCall
 import com.xebia.functional.openai.models.ChatCompletionRequestAssistantMessageFunctionCall
+import com.xebia.functional.openai.models.ChatCompletionRole
 import kotlinx.serialization.Required
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -30,7 +31,9 @@ sealed interface ChatCompletionRequestMessage {
      */
     @Serializable
     enum class Role(val value: String) {
-      @SerialName(value = "system") system("system")
+      @SerialName(value = "system") system("system");
+
+      val asRole: ChatCompletionRole = ChatCompletionRole.system
     }
   }
 
@@ -40,10 +43,7 @@ sealed interface ChatCompletionRequestMessage {
    */
   @Serializable
   data class ChatCompletionRequestUserMessage(
-    @SerialName(value = "content")
-    @Required
-    val content:
-      com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestUserMessageContent?,
+    @SerialName(value = "content") @Required val content: ChatCompletionRequestUserMessageContent?,
 
     /* The role of the messages author, in this case `user`. */
     @SerialName(value = "role") @Required val role: ChatCompletionRequestUserMessage.Role
@@ -56,7 +56,9 @@ sealed interface ChatCompletionRequestMessage {
      */
     @Serializable
     enum class Role(val value: String) {
-      @SerialName(value = "user") user("user")
+      @SerialName(value = "user") user("user");
+
+      val asRole: ChatCompletionRole = ChatCompletionRole.user
     }
   }
 
@@ -89,7 +91,9 @@ sealed interface ChatCompletionRequestMessage {
      */
     @Serializable
     enum class Role(val value: String) {
-      @SerialName(value = "assistant") assistant("assistant")
+      @SerialName(value = "assistant") assistant("assistant");
+
+      val asRole: ChatCompletionRole = ChatCompletionRole.assistant
     }
   }
 
@@ -118,7 +122,9 @@ sealed interface ChatCompletionRequestMessage {
      */
     @Serializable
     enum class Role(val value: String) {
-      @SerialName(value = "tool") tool("tool")
+      @SerialName(value = "tool") tool("tool");
+
+      val asRole: ChatCompletionRole = ChatCompletionRole.tool
     }
   }
 
@@ -135,10 +141,10 @@ sealed interface ChatCompletionRequestMessage {
     @SerialName(value = "role") @Required val role: ChatCompletionRequestFunctionMessage.Role,
 
     /* The return value from the function call, to return to the model. */
-    @SerialName(value = "content") @Required val content: kotlin.String?,
+    @SerialName(value = "content") @Required val content: String?,
 
     /* The name of the function to call. */
-    @SerialName(value = "name") @Required val name: kotlin.String
+    @SerialName(value = "name") @Required val name: String
   ) {
 
     /**
@@ -147,8 +153,10 @@ sealed interface ChatCompletionRequestMessage {
      * Values: function
      */
     @Serializable
-    enum class Role(val value: kotlin.String) {
-      @SerialName(value = "function") function("function")
+    enum class Role(val value: String) {
+      @SerialName(value = "function") function("function");
+
+      val asRole: ChatCompletionRole = ChatCompletionRole.function
     }
   }
 }

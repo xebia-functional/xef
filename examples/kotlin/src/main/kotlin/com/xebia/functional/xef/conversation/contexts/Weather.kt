@@ -10,7 +10,7 @@ suspend fun main() {
   val question = Prompt("Knowing this forecast, what clothes do you recommend I should wear?")
 
   OpenAI.conversation {
-    val search = Search(OpenAI.FromEnvironment.DEFAULT_CHAT, this)
+    val search = Search(OpenAI.fromEnvironment().DEFAULT_CHAT, this)
     addContext(search("Weather in Cádiz, Spain"))
     val answer = promptMessage(question)
     println(answer)

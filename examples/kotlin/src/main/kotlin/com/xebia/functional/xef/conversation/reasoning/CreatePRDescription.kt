@@ -9,14 +9,14 @@ suspend fun main() {
   OpenAI.conversation {
     val code =
       Code(
-        model = OpenAI().DEFAULT_CHAT,
-        serialization = OpenAI().DEFAULT_SERIALIZATION,
+        model = OpenAI.fromEnvironment().DEFAULT_CHAT,
+        serialization = OpenAI.fromEnvironment().DEFAULT_SERIALIZATION,
         scope = this
       )
 
     val agent =
       ReActAgent(
-        model = OpenAI().DEFAULT_SERIALIZATION,
+        model = OpenAI.fromEnvironment().DEFAULT_SERIALIZATION,
         scope = this,
         tools = listOf(code.diffSummaryFromUrl)
       )
