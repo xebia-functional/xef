@@ -138,7 +138,6 @@ arrow-gradle-nexus = { id = "io.arrow-kt.arrow-gradle-config-nexus", version.ref
 arrow-gradle-publish = { id = "io.arrow-kt.arrow-gradle-config-publish", version.ref = "arrowGradle" }
 kotest-multiplatform = { id = "io.kotest.multiplatform", version.ref = "kotest" }
 semver-gradle = { id="com.javiersc.semver", version.ref="semverGradle" }
-suspend-transform-plugin = { id="love.forte.plugin.suspend-transform", version.ref="suspend-transform" }
 resources = { id="com.goncalossilva.resources", version.ref="resources-kmp" }
 detekt = { id="io.gitlab.arturbosch.detekt", version.ref="detekt"}
 node-gradle = { id = "com.github.node-gradle.node", version.ref = "node-gradle" }
