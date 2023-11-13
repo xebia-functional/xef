@@ -37,6 +37,20 @@ class PSQLVectorStoreConfig(
     )
 
   companion object {
+    operator fun invoke(
+      host: String,
+      port: Int,
+      database: String,
+      driver: String,
+      user: String,
+      password: String,
+      collectionName: String,
+      vectorSize: Int
+    ): PSQLVectorStoreConfig {
+      val url = "jdbc:postgresql://${host}:${port}/${database}"
+      return PSQLVectorStoreConfig(url, driver, user, password, collectionName, vectorSize)
+    }
+
     @OptIn(ExperimentalSerializationApi::class)
     suspend fun load(configNamespace: String, config: Config?): PSQLVectorStoreConfig =
       withContext(Dispatchers.IO) {
