@@ -1,11 +1,8 @@
 package com.xebia.functional.xef.llm
 
-import com.xebia.functional.openai.models.ChatCompletionResponseMessage
 import com.xebia.functional.openai.models.CreateChatCompletionRequest
 import com.xebia.functional.openai.models.CreateChatCompletionResponse
 import com.xebia.functional.openai.models.CreateChatCompletionStreamResponse
-import com.xebia.functional.openai.models.ext.chat.create.CreateChatCompletionRequestModel
-import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
@@ -15,9 +12,13 @@ import kotlinx.coroutines.flow.*
 
 interface Chat : LLM {
 
-  suspend fun createChatCompletion(request: CreateChatCompletionRequest): CreateChatCompletionResponse
+  suspend fun createChatCompletion(
+    request: CreateChatCompletionRequest
+  ): CreateChatCompletionResponse
 
-  suspend fun createChatCompletions(request: CreateChatCompletionRequest): Flow<CreateChatCompletionStreamResponse>
+  suspend fun createChatCompletions(
+    request: CreateChatCompletionRequest
+  ): Flow<CreateChatCompletionStreamResponse>
 
   @AiDsl
   fun promptStreaming(prompt: Prompt, scope: Conversation): Flow<String> = flow {

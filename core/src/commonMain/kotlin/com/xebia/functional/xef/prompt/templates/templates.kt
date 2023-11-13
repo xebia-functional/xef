@@ -1,8 +1,8 @@
 package com.xebia.functional.xef.prompt.templates
 
-import com.xebia.functional.openai.models.ChatCompletionRequestMessage
 import com.xebia.functional.openai.models.ChatCompletionRole
 import com.xebia.functional.openai.models.ChatCompletionRole.*
+import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage
 import com.xebia.functional.xef.prompt.message
 
 fun system(context: String): ChatCompletionRequestMessage = context.message(system)
@@ -22,7 +22,8 @@ fun steps(role: ChatCompletionRole, content: () -> List<String>): ChatCompletion
 
 fun systemSteps(content: () -> List<String>): ChatCompletionRequestMessage = steps(system, content)
 
-fun assistantSteps(content: () -> List<String>): ChatCompletionRequestMessage = steps(assistant, content)
+fun assistantSteps(content: () -> List<String>): ChatCompletionRequestMessage =
+  steps(assistant, content)
 
 fun userSteps(content: () -> List<String>): ChatCompletionRequestMessage = steps(user, content)
 

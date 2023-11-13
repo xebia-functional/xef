@@ -10,19 +10,19 @@ import com.xebia.functional.openai.models.ext.embedding.create.CreateEmbeddingRe
 interface Embeddings : LLM {
   suspend fun createEmbeddings(request: CreateEmbeddingRequest): CreateEmbeddingResponse
 
-  suspend fun embedDocuments(
-    texts: List<String>,
-    chunkSize: Int?
-  ): List<Embedding> =
+  suspend fun embedDocuments(texts: List<String>, chunkSize: Int?): List<Embedding> =
     if (texts.isEmpty()) emptyList()
     else
       texts
         .chunked(chunkSize ?: 400)
         .parMap {
-          createEmbeddings(CreateEmbeddingRequest(
-            model = CreateEmbeddingRequestModel.valueOf(modelType.name),
-            input = CreateEmbeddingRequestInput.StringArrayValue(it)
-          )).data
+          createEmbeddings(
+              CreateEmbeddingRequest(
+                model = CreateEmbeddingRequestModel.valueOf(modelType.name),
+                input = CreateEmbeddingRequestInput.StringArrayValue(it)
+              )
+            )
+            .data
         }
         .flatten()
 

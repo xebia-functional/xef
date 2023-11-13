@@ -7,5 +7,8 @@ package com.xebia.functional.xef.store
  * @property conversationId uniquely identifies the conversation in which the message took place.
  * @property index autoincrement index.
  */
-data class Memory(val conversationId: ConversationId, val content: MemorizedMessage, val index: Int)
-
+data class Memory(
+  val conversationId: ConversationId,
+  val content: MemorizedMessage,
+  val index: Int
+)

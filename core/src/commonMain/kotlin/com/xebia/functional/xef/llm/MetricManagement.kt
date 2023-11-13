@@ -4,7 +4,9 @@ import com.xebia.functional.openai.models.CreateChatCompletionResponse
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.prompt.Prompt
 
-fun CreateChatCompletionResponse.addMetrics(conversation: Conversation): CreateChatCompletionResponse {
+fun CreateChatCompletionResponse.addMetrics(
+  conversation: Conversation
+): CreateChatCompletionResponse {
   conversation.metric.parameter("model", model)
   conversation.metric.parameter(
     "tokens",
@@ -16,7 +18,7 @@ fun CreateChatCompletionResponse.addMetrics(conversation: Conversation): CreateC
 fun Prompt.addMetrics(conversation: Conversation) {
   conversation.metric.parameter(
     "number-of-messages",
-    "${messages.size} (${messages.map { it.role.toString().firstOrNull() ?: "" }.joinToString("-")})"
+    "${messages.size} (${messages.map { it.role().value.firstOrNull() ?: "" }.joinToString("-")})"
   )
   conversation.metric.parameter("conversation-id", conversation.conversationId?.value ?: "none")
   conversation.metric.parameter("functions", function?.let { "yes" } ?: "no")

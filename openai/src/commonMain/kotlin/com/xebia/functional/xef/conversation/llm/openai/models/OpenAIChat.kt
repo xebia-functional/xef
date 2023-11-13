@@ -20,15 +20,16 @@ class OpenAIChat(
   override suspend fun createChatCompletion(
     request: CreateChatCompletionRequest
   ): CreateChatCompletionResponse {
-    val response = client.
-    return CreateChatCompletionResponse(
-      id = response.id,
-      `object` = response.model.id,
-      created = response.created,
-      model = response.model.id,
-      choices = response.map { it.toInternal() },
-      usage = response.usage.toInternal(),
-    )
+    val response =
+      client
+        .return CreateChatCompletionResponse(
+          id = response.id,
+          `object` = response.model.id,
+          created = response.created,
+          model = response.model.id,
+          choices = response.map { it.toInternal() },
+          usage = response.usage.toInternal(),
+        )
   }
 
   override suspend fun createChatCompletions(
