@@ -48,7 +48,7 @@ dependencies {
     implementation(libs.suspendApp.core)
     implementation(libs.suspendApp.ktor)
     implementation(libs.uuid)
-    implementation(projects.xefKotlin)
+    implementation(projects.xefOpenai)
     implementation(projects.xefCore)
     implementation(projects.xefLucene)
     implementation(projects.xefPostgresql)
@@ -67,12 +67,6 @@ spotless {
         target("**/*.kt")
         ktfmt().googleStyle().configure { it.setRemoveUnusedImport(true) }
     }
-}
-
-tasks.getByName<Copy>("processResources") {
-    dependsOn(projects.xefGpt4all.dependencyProject.tasks.getByName("jvmProcessResources"))
-    from("${projects.xefGpt4all.dependencyProject.buildDir}/processedResources/jvm/main")
-    into("$buildDir/resources/main")
 }
 
 task<JavaExec>("web-app") {
