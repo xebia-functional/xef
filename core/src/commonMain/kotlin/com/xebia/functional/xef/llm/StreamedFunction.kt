@@ -2,9 +2,9 @@ package com.xebia.functional.xef.llm
 
 import com.xebia.functional.openai.models.CreateChatCompletionRequest
 import com.xebia.functional.openai.models.FunctionObject
+import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.StreamedFunction.Companion.PropertyType.*
-import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.assistant
 import kotlin.jvm.JvmSynthetic
@@ -47,7 +47,7 @@ sealed class StreamedFunction<out A> {
       serializer: (json: String) -> A,
       function: FunctionObject
     ) {
-      val messages = mutableListOf<Message>()
+      val messages = mutableListOf<ChatCompletionRequestMessage>()
       // this function call is mutable and will be updated as the stream progresses
       var functionCall = FunctionCall(null, null)
       // the current property is mutable and will be updated as the stream progresses
@@ -118,7 +118,7 @@ sealed class StreamedFunction<out A> {
 
     private suspend fun <A> FlowCollector<StreamedFunction<A>>.streamResult(
       functionCall: FunctionCall,
-      messages: MutableList<Message>,
+      messages: MutableList<ChatCompletionRequestMessage>,
       serializer: (json: String) -> A
     ) {
       val arguments = functionCall.arguments ?: error("No arguments provided for function call")

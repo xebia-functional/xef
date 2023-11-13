@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.prompt.expressions
 
-import com.xebia.functional.openai.models.ChatCompletionRequestMessage
+import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.prompt.Prompt
@@ -48,7 +48,7 @@ class Expression(
     val replacedTemplate =
       messages.fold("") { acc, message ->
         val replacedMessage =
-          generationKeys.fold(message.content ?: "") { acc, key ->
+          generationKeys.fold(message.content() ?: "") { acc, key ->
             acc.replace(
               "{{$key}}",
               values.replacements.firstOrNull { it.key == key }?.value ?: "{{$key}}"

@@ -1,9 +1,9 @@
 package com.xebia.functional.xef.llm
 
-import com.xebia.functional.openai.models.ChatCompletionRequestMessage
 import com.xebia.functional.openai.models.ChatCompletionResponseMessage
 import com.xebia.functional.openai.models.ChatCompletionRole
 import com.xebia.functional.openai.models.CreateChatCompletionResponseChoicesInner
+import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.MessagesToHistory
 import com.xebia.functional.xef.store.ConversationId
@@ -11,7 +11,10 @@ import com.xebia.functional.xef.store.MemorizedMessage
 import com.xebia.functional.xef.store.Memory
 import com.xebia.functional.xef.store.VectorStore
 
-internal suspend fun List<ChatCompletionRequestMessage>.addToMemory(scope: Conversation, history: MessagesToHistory) {
+internal suspend fun List<ChatCompletionRequestMessage>.addToMemory(
+  scope: Conversation,
+  history: MessagesToHistory
+) {
   val cid = scope.conversationId
   if (history != MessagesToHistory.NONE && cid != null) {
     val memories = toMemory(scope)
@@ -40,8 +43,7 @@ internal suspend fun List<CreateChatCompletionResponseChoicesInner>.addChoiceWit
   val cid = scope.conversationId
   if (history != MessagesToHistory.NONE && isNotEmpty() && cid != null) {
     val aiMemory =
-      this.mapNotNull { it.message }
-        .map { it:toMessage().toMemory(cid, scope.store.incrementIndexAndGet()) }
+      this.mapNotNull { it.message }.map { it.toMemory(cid, scope.store.incrementIndexAndGet()) }
     val newMessages = previousMemories + aiMemory
     scope.store.addMemoriesByHistory(history, newMessages)
   }

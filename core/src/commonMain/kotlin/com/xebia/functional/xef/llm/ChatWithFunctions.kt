@@ -79,16 +79,18 @@ interface ChatWithFunctions : LLM {
           n = adaptedPrompt.configuration.numberOfPredictions,
           temperature = adaptedPrompt.configuration.temperature,
           maxTokens = adaptedPrompt.configuration.minResponseTokens,
-          tools = listOf(
-            ChatCompletionTool(
-              type = ChatCompletionTool.Type.function,
-              function = adaptedPrompt.function!!
-            )
-          ),
-          toolChoice = ChatCompletionToolChoiceOption(
-            type = ChatCompletionToolChoiceOption.Type.function,
-            function = ChatCompletionNamedToolChoiceFunction(adaptedPrompt.function.name)
-          ),
+          tools =
+            listOf(
+              ChatCompletionTool(
+                type = ChatCompletionTool.Type.function,
+                function = adaptedPrompt.function!!
+              )
+            ),
+          toolChoice =
+            ChatCompletionToolChoiceOption(
+              type = ChatCompletionToolChoiceOption.Type.function,
+              function = ChatCompletionNamedToolChoiceFunction(adaptedPrompt.function.name)
+            ),
           model = modelType.toRequestModel(),
         )
 
@@ -129,16 +131,18 @@ interface ChatWithFunctions : LLM {
         n = promptWithFunctions.configuration.numberOfPredictions,
         temperature = promptWithFunctions.configuration.temperature,
         maxTokens = promptWithFunctions.configuration.minResponseTokens,
-        tools = listOf(
-          ChatCompletionTool(
-            type = ChatCompletionTool.Type.function,
-            function = promptWithFunctions.function!!
-          )
-        ),
-        toolChoice = ChatCompletionToolChoiceOption(
-          type = ChatCompletionToolChoiceOption.Type.function,
-          function = ChatCompletionNamedToolChoiceFunction(promptWithFunctions.function.name)
-        ),
+        tools =
+          listOf(
+            ChatCompletionTool(
+              type = ChatCompletionTool.Type.function,
+              function = promptWithFunctions.function!!
+            )
+          ),
+        toolChoice =
+          ChatCompletionToolChoiceOption(
+            type = ChatCompletionToolChoiceOption.Type.function,
+            function = ChatCompletionNamedToolChoiceFunction(promptWithFunctions.function.name)
+          ),
         model = modelType.toRequestModel(),
       )
 
