@@ -16,12 +16,10 @@ java {
 
 dependencies {
     implementation(projects.xefCore)
-    implementation(projects.xefOpenai)
     implementation(projects.xefFilesystem)
     implementation(projects.xefPdf)
     implementation(projects.xefSql)
     implementation(projects.xefTokenizer)
-    implementation(projects.xefGcp)
     implementation(projects.xefReasoning)
     implementation(projects.xefOpentelemetry)
     implementation(projects.xefMlflow)

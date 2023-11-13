@@ -44,7 +44,6 @@ class PostgresVectorStoreService(
   }
 
   override fun getVectorStore(provider: Provider, token: String?): VectorStore {
-    val openAI = if (token == null) OpenAI.fromEnvironment() else OpenAI(token)
 
     val embeddings =
       when (provider) {
@@ -59,7 +58,6 @@ class PostgresVectorStoreService(
       collectionName = config.collectionName,
       distanceStrategy = PGDistanceStrategy.Euclidean,
       preDeleteCollection = config.preDeleteCollection,
-      requestConfig = RequestConfig(user = RequestConfig.Companion.User("user")),
       chunkSize = config.chunkSize
     )
   }

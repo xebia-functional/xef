@@ -79,4 +79,11 @@ interface Chat : LLM {
         )
         .mapNotNull { it.message?.content }
     }
+
+  companion object {
+
+
+
+    fun fromEnvironment(): Chat = ChatImpl()
+  }
 }

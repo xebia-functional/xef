@@ -14,7 +14,6 @@ which states the following:
 // TODO: We should consider a fork and maintain it ourselves.
  */
 import com.xebia.functional.xef.conversation.Description
-import com.xebia.functional.xef.conversation.Descriptive
 import kotlin.jvm.JvmMultifileClass
 import kotlin.jvm.JvmName
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -332,7 +331,7 @@ private fun JsonObjectBuilder.applyJsonSchemaDefaults(
     val description =
       if (multiplatformDescription.isEmpty()) {
         try {
-          val jvmDescription = annotations.filterIsInstance<Descriptive>()
+          val jvmDescription = annotations.filterIsInstance<Description>()
           jvmDescription.firstOrNull()?.value
         } catch (e: Throwable) {
           null

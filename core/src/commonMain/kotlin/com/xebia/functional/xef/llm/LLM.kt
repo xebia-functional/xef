@@ -23,8 +23,8 @@ sealed interface LLM : AutoCloseable {
   ): Int { // TODO: naive implementation with magic numbers
     fun Encoding.countTokensFromMessages(tokensPerMessage: Int, tokensPerName: Int): Int =
       messages.sumOf { message ->
-        countTokens(message.role().name) +
-          countTokens(message.content() ?: "") +
+        countTokens(message.completionRole().name) +
+          countTokens(message.contentAsString() ?: "") +
           tokensPerMessage +
           tokensPerName
       } + 3

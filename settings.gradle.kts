@@ -33,8 +33,6 @@ project(":xef-openai-client").projectDir = file("openai-client/client")
 include("xef-openai-client-generator")
 project(":xef-openai-client-generator").projectDir = file("openai-client/generator")
 
-include("xef-openai")
-project(":xef-openai").projectDir = file("openai")
 //</editor-fold>
 
 //<editor-fold desc="Integrations">
@@ -49,9 +47,6 @@ project(":xef-postgresql").projectDir = file("integrations/postgresql")
 
 include("xef-sql")
 project(":xef-sql").projectDir = file("integrations/sql")
-
-include("xef-gcp")
-project(":xef-gcp").projectDir = file("integrations/gcp")
 
 include("xef-opentelemetry")
 project(":xef-opentelemetry").projectDir = file("integrations/opentelemetry")

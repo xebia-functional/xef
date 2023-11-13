@@ -1,12 +1,10 @@
 package com.xebia.functional.xef.store
 
 import arrow.atomic.AtomicInt
+import com.xebia.functional.openai.models.ChatCompletionRole
+import com.xebia.functional.openai.models.Embedding
 import com.xebia.functional.xef.llm.Embeddings
 import com.xebia.functional.xef.llm.LLM
-import com.xebia.functional.xef.llm.models.chat.Message
-import com.xebia.functional.xef.llm.models.chat.Role
-import com.xebia.functional.xef.llm.models.embeddings.Embedding
-import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
 import com.xebia.functional.xef.store.postgresql.*
 import kotlinx.uuid.UUID
 import kotlinx.uuid.generateUUID
@@ -19,7 +17,6 @@ class PGVectorStore(
   private val collectionName: String,
   private val distanceStrategy: PGDistanceStrategy,
   private val preDeleteCollection: Boolean,
-  private val requestConfig: RequestConfig,
   private val chunkSize: Int?
 ) : VectorStore {
 
@@ -36,7 +33,7 @@ class PGVectorStore(
           bind(UUID.generateUUID().toString())
           bind(memory.conversationId.value)
           bind(memory.content.role.name.lowercase())
-          bind(memory.content.content)
+          bind(memory.content.asRequestMessage().contentAsString())
           bind(memory.index)
         }
       }
@@ -80,7 +77,7 @@ class PGVectorStore(
 
   override suspend fun addTexts(texts: List<String>): Unit =
     dataSource.connection {
-      val embeddings = embeddings.embedDocuments(texts, requestConfig, chunkSize)
+      val embeddings = embeddings.embedDocuments(texts, chunkSize)
       val collection = getCollection(collectionName)
       texts.zip(embeddings) { text, embedding ->
         val uuid = UUID.generateUUID()
@@ -96,7 +93,7 @@ class PGVectorStore(
   override suspend fun similaritySearch(query: String, limit: Int): List<String> =
     dataSource.connection {
       val embeddings =
-        embeddings.embedQuery(query, requestConfig).ifEmpty {
+        embeddings.embedQuery(query).ifEmpty {
           throw IllegalStateException(
             "Embedding for text: '$query', has not been properly generated"
           )
@@ -141,11 +138,7 @@ class PGVectorStore(
         val index = int()
         Memory(
           conversationId = ConversationId(cId),
-          content = Message(
-            role = Role.valueOf(role.uppercase()),
-            content = content,
-            name = role,
-          ),
+          content = memorizedMessage(ChatCompletionRole.valueOf(role.lowercase()), content),
           index = index
         )
       }

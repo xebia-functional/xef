@@ -18,7 +18,7 @@ fun CreateChatCompletionResponse.addMetrics(
 fun Prompt.addMetrics(conversation: Conversation) {
   conversation.metric.parameter(
     "number-of-messages",
-    "${messages.size} (${messages.map { it.role().value.firstOrNull() ?: "" }.joinToString("-")})"
+    "${messages.size} (${messages.map { it.completionRole().value.firstOrNull() ?: "" }.joinToString("-")})"
   )
   conversation.metric.parameter("conversation-id", conversation.conversationId?.value ?: "none")
   conversation.metric.parameter("functions", function?.let { "yes" } ?: "no")

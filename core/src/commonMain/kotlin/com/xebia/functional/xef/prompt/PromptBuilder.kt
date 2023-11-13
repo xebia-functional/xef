@@ -103,9 +103,9 @@ private fun List<ChatCompletionRequestMessage>.flatten(): List<ChatCompletionReq
 
 private fun ChatCompletionRequestMessage.addContent(
   message: ChatCompletionRequestMessage
-): ChatCompletionRequestMessage = "${content()}\n${message.content()}".message(role())
+): ChatCompletionRequestMessage = "${contentAsString()}\n${message.contentAsString()}".message(completionRole())
 
 private fun List<ChatCompletionRequestMessage>.lastMessageWithSameRole(
   message: ChatCompletionRequestMessage
 ): ChatCompletionRequestMessage? =
-  lastOrNull()?.let { if (it.role() == message.role()) it else null }
+  lastOrNull()?.let { if (it.completionRole() == message.completionRole()) it else null }

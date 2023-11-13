@@ -1,15 +1,11 @@
 package xef
 
+import com.xebia.functional.openai.models.*
+import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.llm.Embeddings
 import com.xebia.functional.xef.llm.LLM
-import com.xebia.functional.xef.llm.models.chat.*
-import com.xebia.functional.xef.llm.models.embeddings.Embedding
-import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
-import com.xebia.functional.xef.llm.models.embeddings.EmbeddingResult
-import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
-import com.xebia.functional.xef.llm.models.usage.Usage
 import com.xebia.functional.xef.store.PGVectorStore
 import com.xebia.functional.xef.store.postgresql.PGDistanceStrategy
 import com.zaxxer.hikari.HikariConfig
@@ -51,7 +47,6 @@ class PGVectorStoreSpec :
         collectionName = "test_collection",
         distanceStrategy = PGDistanceStrategy.Euclidean,
         preDeleteCollection = false,
-        requestConfig = RequestConfig(RequestConfig.Companion.User("user")),
         chunkSize = null
       )
 
@@ -74,7 +69,7 @@ class PGVectorStoreSpec :
     }
 
     "similaritySearchByVector should return both documents" {
-      pg.similaritySearchByVector(Embedding(listOf(4.0f, 5.0f, 6.0f)), 2) shouldBe
+      pg.similaritySearchByVector(Embedding(0, listOf(4.0, 5.0, 6.0), Embedding.Object.embedding), 2) shouldBe
         listOf("bar", "foo")
     }
 
@@ -86,7 +81,10 @@ class PGVectorStoreSpec :
     }
 
     "similaritySearchByVector should return document" {
-      pg.similaritySearchByVector(Embedding(listOf(1.0f, 2.0f, 3.0f)), 1) shouldBe listOf("foo")
+      pg.similaritySearchByVector(
+        Embedding(0, listOf(1.0, 2.0, 3.0), Embedding.Object.embedding),
+        1
+      ) shouldBe listOf("foo")
     }
 
     "the added memories sorted by index should be obtained in the same order" {
@@ -102,15 +100,17 @@ class TestLLM(override val modelType: ModelType = ModelType.ADA) : Chat, AutoClo
   override fun copy(modelType: ModelType) =
     TestLLM(modelType)
 
-  override fun tokensFromMessages(messages: List<Message>): Int = messages.map { calculateTokens(it) }.sum()
+  override fun tokensFromMessages(messages: List<ChatCompletionRequestMessage>): Int =
+    messages.map { calculateTokens(it) }.sum()
 
-  private fun calculateTokens(message: Message): Int = message.content.split(" ").size + 2 // 2 is the role and name
+  private fun calculateTokens(message: ChatCompletionRequestMessage): Int =
+    message.contentAsString().orEmpty().split(" ").size + 2 // 2 is the role and name
 
-  override suspend fun createChatCompletion(request: ChatCompletionRequest): ChatCompletionResponse {
+  override suspend fun createChatCompletion(request: CreateChatCompletionRequest): CreateChatCompletionResponse {
     throw NotImplementedError()
   }
 
-  override suspend fun createChatCompletions(request: ChatCompletionRequest): Flow<ChatCompletionChunk> {
+  override suspend fun createChatCompletions(request: CreateChatCompletionRequest): Flow<CreateChatCompletionStreamResponse> {
     throw NotImplementedError()
   }
 
@@ -121,36 +121,47 @@ class TestLLM(override val modelType: ModelType = ModelType.ADA) : Chat, AutoClo
 
 private fun Embeddings.Companion.mock(
   embedDocuments:
-  suspend (texts: List<String>, config: RequestConfig, chunkSize: Int?) -> List<Embedding> =
-    { _, _, _ ->
-      listOf(Embedding(listOf(1.0f, 2.0f, 3.0f)), Embedding(listOf(4.0f, 5.0f, 6.0f)))
+  suspend (texts: List<String>, chunkSize: Int?) -> List<Embedding> =
+    { _, _ ->
+      listOf(
+        Embedding(0, listOf(1.0, 2.0, 3.0), Embedding.Object.embedding),
+        Embedding(1, listOf(4.0, 5.0, 6.0), Embedding.Object.embedding)
+      )
     },
-  embedQuery: suspend (text: String, config: RequestConfig) -> List<Embedding> = { text, _ ->
+  embedQuery: suspend (text: String) -> List<Embedding> = { text ->
     when (text) {
-      "foo" -> listOf(Embedding(listOf(1.0f, 2.0f, 3.0f)))
-      "bar" -> listOf(Embedding(listOf(4.0f, 5.0f, 6.0f)))
+      "foo" -> listOf(Embedding(0, listOf(1.0, 2.0, 3.0), Embedding.Object.embedding))
+      "bar" -> listOf(Embedding(0, listOf(4.0, 5.0, 6.0), Embedding.Object.embedding))
       "baz" -> listOf()
       else -> listOf()
     }
   },
-  createEmbeddings: suspend (request: EmbeddingRequest) -> EmbeddingResult = { _ ->
-    EmbeddingResult(listOf(Embedding(listOf(1.0f, 2.0f, 3.0f)), Embedding(listOf(4.0f, 5.0f, 6.0f))), Usage.ZERO)
+  createEmbeddings: suspend (request: CreateEmbeddingRequest) -> CreateEmbeddingResponse = { _ ->
+    CreateEmbeddingResponse(
+      data = listOf(
+        Embedding(0, listOf(1.0, 2.0, 3.0), Embedding.Object.embedding),
+        Embedding(1, listOf(4.0, 5.0, 6.0), Embedding.Object.embedding)
+      ),
+      model = "test-model",
+      `object` = CreateEmbeddingResponse.Object.list,
+      usage = CreateEmbeddingResponseUsage(0, 0)
+    )
   }
 ): Embeddings =
   object : Embeddings {
     override fun copy(modelType: ModelType): LLM {
       throw NotImplementedError()
     }
+
     override suspend fun embedDocuments(
       texts: List<String>,
-      requestConfig: RequestConfig,
       chunkSize: Int?
-    ): List<Embedding> = embedDocuments(texts, requestConfig, chunkSize)
+    ): List<Embedding> = embedDocuments(texts, chunkSize)
 
-    override suspend fun embedQuery(text: String, requestConfig: RequestConfig): List<Embedding> =
-      embedQuery(text, requestConfig)
+    override suspend fun embedQuery(text: String): List<Embedding> =
+      embedQuery(text)
 
-    override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult =
+    override suspend fun createEmbeddings(request: CreateEmbeddingRequest): CreateEmbeddingResponse =
       createEmbeddings(request)
 
 

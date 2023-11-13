@@ -1,12 +1,10 @@
 package com.xebia.functional.xef.data
 
+import com.xebia.functional.openai.models.*
+import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.llm.Embeddings
-import com.xebia.functional.xef.llm.models.chat.*
-import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
-import com.xebia.functional.xef.llm.models.embeddings.EmbeddingResult
-import com.xebia.functional.xef.llm.models.usage.Usage
 import kotlinx.coroutines.flow.Flow
 
 class TestModel(
@@ -14,47 +12,51 @@ class TestModel(
   val responses: Map<String, String> = emptyMap(),
 ) : Chat, Embeddings, AutoCloseable {
 
-  var requests: MutableList<ChatCompletionRequest> = mutableListOf()
+  var requests: MutableList<CreateChatCompletionRequest> = mutableListOf()
 
   override fun copy(modelType: ModelType) = TestModel(modelType, responses)
 
   override suspend fun createChatCompletion(
-    request: ChatCompletionRequest
-  ): ChatCompletionResponse {
+    request: CreateChatCompletionRequest
+  ): CreateChatCompletionResponse {
     requests.add(request)
-    return ChatCompletionResponse(
+    return CreateChatCompletionResponse(
       id = "fake-id",
-      `object` = "fake-object",
+      `object` = CreateChatCompletionResponse.Object.chatPeriodCompletion,
       created = 0,
       model = "fake-model",
       choices =
-        listOf(
-          Choice(
-            message =
-              Message(
-                role = Role.ASSISTANT,
-                content = responses[request.messages.last().content] ?: "fake-content",
-                name = Role.ASSISTANT.name
-              ),
-            finishReason = "fake-finish-reason",
-            index = 0
-          )
-        ),
-      usage = Usage.ZERO
+      listOf(
+        CreateChatCompletionResponseChoicesInner(
+          message =
+          ChatCompletionResponseMessage(
+            role = ChatCompletionResponseMessage.Role.assistant,
+            content = responses[request.messages.last().contentAsString()] ?: "fake-content",
+          ),
+          finishReason = CreateChatCompletionResponseChoicesInner.FinishReason.stop,
+          index = 0
+        )
+      ),
+      usage = CompletionUsage(0, 0, 0)
     )
   }
 
   override suspend fun createChatCompletions(
-    request: ChatCompletionRequest
-  ): Flow<ChatCompletionChunk> {
+    request: CreateChatCompletionRequest
+  ): Flow<CreateChatCompletionStreamResponse> {
     throw NotImplementedError()
   }
 
-  override fun tokensFromMessages(messages: List<Message>): Int {
-    return messages.sumOf { it.content.length }
+  override fun tokensFromMessages(messages: List<ChatCompletionRequestMessage>): Int {
+    return messages.sumOf { it.contentAsString()?.length ?: 0 }
   }
 
-  override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult {
-    return EmbeddingResult(data = emptyList(), usage = Usage.ZERO)
+  override suspend fun createEmbeddings(request: CreateEmbeddingRequest): CreateEmbeddingResponse {
+    return CreateEmbeddingResponse(
+      data = emptyList(),
+      model = "",
+      `object` = CreateEmbeddingResponse.Object.list,
+      usage = CreateEmbeddingResponseUsage(0, 0)
+    )
   }
 }

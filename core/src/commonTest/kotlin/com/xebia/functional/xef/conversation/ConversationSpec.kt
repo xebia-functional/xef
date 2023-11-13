@@ -1,9 +1,10 @@
 package com.xebia.functional.xef.conversation
 
+import com.xebia.functional.openai.models.ChatCompletionRole
+import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage.*
+import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestUserMessageContent
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.data.*
-import com.xebia.functional.xef.llm.models.chat.Message
-import com.xebia.functional.xef.llm.models.chat.Role
 import com.xebia.functional.xef.metrics.LogsMetric
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
@@ -69,8 +70,8 @@ class ConversationSpec :
         modelAda.tokensFromMessages(
           messages.flatMap {
             listOf(
-              Message(role = Role.USER, content = it.key, name = Role.USER.name),
-              Message(role = Role.ASSISTANT, content = it.value, name = Role.USER.name),
+              ChatCompletionRequestUserMessage(content = ChatCompletionRequestUserMessageContent.TextContent(it.key)),
+              ChatCompletionRequestAssistantMessage(content = it.value),
             )
           }
         )
@@ -112,8 +113,8 @@ class ConversationSpec :
         modelGPTTurbo16K.tokensFromMessages(
           messages.flatMap {
             listOf(
-              Message(role = Role.USER, content = it.key, name = Role.USER.name),
-              Message(role = Role.ASSISTANT, content = it.value, name = Role.ASSISTANT.name),
+              ChatCompletionRequestUserMessage(content = ChatCompletionRequestUserMessageContent.TextContent(it.key)),
+              ChatCompletionRequestAssistantMessage(content = it.value)
             )
           }
         )
@@ -187,7 +188,7 @@ class ConversationSpec :
 
       val lastRequest = model.requests.last()
 
-      lastRequest.messages.last().content shouldBe questionJsonString
+      lastRequest.messages.last().contentAsString() shouldBe questionJsonString
 
       response shouldBe answer
     }
@@ -211,24 +212,23 @@ class ConversationSpec :
         +user("question 2")
       }
 
-      val firstResponse = model.promptMessages(prompt = firstPrompt, scope = scope)
-      val aiFirstMessage =
-        Message(role = Role.ASSISTANT, content = firstResponse.first(), name = Role.ASSISTANT.name)
+      val firstResponse = model.promptMessage(prompt = firstPrompt, scope = scope)
+      val aiFirstMessage = ChatCompletionRequestAssistantMessage(content = firstResponse)
 
       val secondPrompt = Prompt { +user("question 3") }
 
-      val secondResponse = model.promptMessages(prompt = secondPrompt, scope = scope)
+      val secondResponse = model.promptMessage(prompt = secondPrompt, scope = scope)
       val aiSecondMessage =
-        Message(role = Role.ASSISTANT, content = secondResponse.first(), name = Role.ASSISTANT.name)
+        ChatCompletionRequestAssistantMessage(content = secondResponse)
 
       val thirdPrompt = Prompt {
         +system("question 4")
         +user("question 5")
       }
 
-      val thirdResponse = model.promptMessages(prompt = thirdPrompt, scope = scope)
+      val thirdResponse = model.promptMessage(prompt = thirdPrompt, scope = scope)
       val aiThirdMessage =
-        Message(role = Role.ASSISTANT, content = thirdResponse.first(), name = Role.ASSISTANT.name)
+        ChatCompletionRequestAssistantMessage(content = secondResponse)
 
       val memories = vectorStore.memories(model, conversationId, 10000)
       val expectedMessages =
@@ -238,8 +238,8 @@ class ConversationSpec :
             aiSecondMessage +
             thirdPrompt.messages +
             aiThirdMessage)
-          .map { it.content }
-      val actualMessages = memories.map { it.content.content }
+          .mapNotNull { it.contentAsString() }
+      val actualMessages = memories.mapNotNull { it.content.asRequestMessage().contentAsString() }
       actualMessages shouldBe expectedMessages
     }
 
@@ -326,7 +326,7 @@ class ConversationSpec :
 
       val messagesStored = scope.store.memories(model, conversationId, Int.MAX_VALUE)
 
-      messagesStored.filter { it.content.role == Role.SYSTEM } shouldBe messagesStored
+      messagesStored.filter { it.content.role == ChatCompletionRole.system } shouldBe messagesStored
     }
 
     "when using MessagesToHistory.NOT_SYSTEM_MESSAGES policy, the scope's store shouldn't contains system messages" {
@@ -354,7 +354,7 @@ class ConversationSpec :
 
       val messagesStored = scope.store.memories(model, conversationId, Int.MAX_VALUE)
 
-      messagesStored.filter { it.content.role != Role.SYSTEM } shouldBe messagesStored
+      messagesStored.filter { it.content.role != ChatCompletionRole.system } shouldBe messagesStored
     }
 
     "when using MessagesToHistory.NONE policy, the scope's store shouldn't contains messages" {
@@ -382,7 +382,7 @@ class ConversationSpec :
 
       val messagesStored =
         scope.store.memories(model, conversationId, Int.MAX_VALUE).filter {
-          it.content.role == Role.SYSTEM
+          it.content.role == ChatCompletionRole.system
         }
 
       messagesStored.size shouldBe 0

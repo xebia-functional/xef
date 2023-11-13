@@ -47,7 +47,7 @@ internal object PromptCalculator {
     // calculate messages for context based on tokens
     val ctxInfo: List<String> =
       scope.store.similaritySearch(
-        prompt.messages.joinToString("\n") { it.content() ?: "" },
+        prompt.messages.joinToString("\n") { it.contentAsString() ?: "" },
         prompt.configuration.docsInContext,
       )
 

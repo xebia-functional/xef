@@ -1,10 +1,8 @@
 package com.xebia.functional.xef.server.http.routes
 
-import com.aallam.openai.api.BetaOpenAI
 import com.xebia.functional.xef.server.models.Token
 import com.xebia.functional.xef.server.models.exceptions.XefExceptions
 import io.ktor.client.*
-import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -20,21 +18,6 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.jsonPrimitive
 
-enum class Provider {
-  OPENAI,
-  GPT4ALL,
-  GCP
-}
-
-fun String.toProvider(): Provider? =
-  when (this) {
-    "openai" -> Provider.OPENAI
-    "gpt4all" -> Provider.GPT4ALL
-    "gcp" -> Provider.GCP
-    else -> Provider.OPENAI
-  }
-
-@OptIn(BetaOpenAI::class)
 fun Routing.aiRoutes(client: HttpClient) {
   val openAiUrl = "https://api.openai.com/v1"
 
@@ -114,9 +97,6 @@ internal fun HeadersBuilder.copyFrom(headers: Headers) =
   headers
     .filter { key, _ -> !conflictingRequestHeaders.any { it.equals(key, true) } }
     .forEach { key, values -> appendMissing(key, values) }
-
-private fun ApplicationCall.getProvider(): Provider =
-  request.headers["xef-provider"]?.toProvider() ?: Provider.OPENAI
 
 fun ApplicationCall.getToken(): Token =
   principal<UserIdPrincipal>()?.name?.let { Token(it) }

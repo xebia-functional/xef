@@ -10,7 +10,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 sealed interface ChatCompletionRequestMessage {
 
-  fun content(): String? =
+  fun contentAsString(): String? =
     when (this) {
       is ChatCompletionRequestAssistantMessage -> content
       is ChatCompletionRequestFunctionMessage -> content
@@ -29,7 +29,7 @@ sealed interface ChatCompletionRequestMessage {
         }
     }
 
-  fun role(): ChatCompletionRole =
+  fun completionRole(): ChatCompletionRole =
     when (this) {
       is ChatCompletionRequestAssistantMessage -> role.asRole
       is ChatCompletionRequestFunctionMessage -> role.asRole

@@ -1,12 +1,11 @@
 package com.xebia.functional.xef.data
 
+import com.xebia.functional.openai.models.CreateEmbeddingRequest
+import com.xebia.functional.openai.models.CreateEmbeddingResponse
+import com.xebia.functional.openai.models.CreateEmbeddingResponseUsage
+import com.xebia.functional.openai.models.Embedding
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.llm.Embeddings
-import com.xebia.functional.xef.llm.models.embeddings.Embedding
-import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
-import com.xebia.functional.xef.llm.models.embeddings.EmbeddingResult
-import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
-import com.xebia.functional.xef.llm.models.usage.Usage
 
 class TestEmbeddings : Embeddings {
 
@@ -16,13 +15,12 @@ class TestEmbeddings : Embeddings {
 
   override suspend fun embedDocuments(
     texts: List<String>,
-    requestConfig: RequestConfig,
     chunkSize: Int?
   ): List<Embedding> = emptyList()
 
-  override suspend fun embedQuery(text: String, requestConfig: RequestConfig): List<Embedding> =
+  override suspend fun embedQuery(text: String): List<Embedding> =
     emptyList()
 
-  override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult =
-    EmbeddingResult(emptyList(), Usage.ZERO)
+  override suspend fun createEmbeddings(request: CreateEmbeddingRequest): CreateEmbeddingResponse =
+    CreateEmbeddingResponse(emptyList(), "", CreateEmbeddingResponse.Object.list, CreateEmbeddingResponseUsage(0, 0))
 }

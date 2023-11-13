@@ -1,9 +1,10 @@
 package xef
 
 import arrow.atomic.AtomicInt
-import com.xebia.functional.xef.llm.models.chat.Message
-import com.xebia.functional.xef.llm.models.chat.Role
+import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage
+import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestUserMessageContent
 import com.xebia.functional.xef.store.ConversationId
+import com.xebia.functional.xef.store.MemorizedMessage
 import com.xebia.functional.xef.store.Memory
 
 class MemoryData {
@@ -17,11 +18,12 @@ class MemoryData {
         conversationId: ConversationId = defaultConversationId
     ): List<Memory> =
         (0 until n).flatMap {
-            val m1 = Message(Role.USER, "Question $it${append?.let { ": $it" } ?: ""}", Role.USER.toString().lowercase())
-            val m2 = Message(Role.ASSISTANT, "Response $it${append?.let { ": $it" } ?: ""}", Role.ASSISTANT.toString().lowercase())
+            val m1 = ChatCompletionRequestMessage.ChatCompletionRequestUserMessage(
+                ChatCompletionRequestUserMessageContent.TextContent("Question $it${append?.let { ": $it" } ?: ""}"))
+            val m2 = ChatCompletionRequestMessage.ChatCompletionRequestAssistantMessage("Response $it${append?.let { ": $it" } ?: ""}")
             listOf(
-                Memory(conversationId, m1, atomicInt.addAndGet(1)),
-                Memory(conversationId, m2, atomicInt.addAndGet(1)),
+                Memory(conversationId, MemorizedMessage.Request(m1), atomicInt.addAndGet(1)),
+                Memory(conversationId, MemorizedMessage.Request(m2), atomicInt.addAndGet(1)),
             )
         }
 }

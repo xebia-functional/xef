@@ -2,7 +2,6 @@ package com.xebia.functional.xef.reasoning.serpapi
 
 import com.xebia.functional.xef.conversation.AutoClose
 import com.xebia.functional.xef.conversation.autoClose
-import com.xebia.functional.xef.env.getenv
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.*
@@ -12,13 +11,13 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 
-class SerpApiClient(private val serpApiKey: String? = getenv("SERP_API_KEY")) :
+class SerpApiClient(private val serpApiKey: String) :
   AutoCloseable, AutoClose by autoClose() {
 
   private val SERP_API_KEY_NOT_FOUND = "Missing SERP_API_KEY env var"
 
   init {
-    if (serpApiKey.isNullOrBlank())
+    if (serpApiKey.isBlank())
       throw SerpApiClientException(HttpStatusCode.Unauthorized, SERP_API_KEY_NOT_FOUND)
   }
 

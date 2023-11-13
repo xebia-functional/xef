@@ -37,8 +37,8 @@ class CombinedVectorStoreSpec :
       val combinedVectorStore = topMessages.combine(bottomMessages)
 
       val tokensForLast2TopMessages =
-        model.tokensFromMessages(topMessages.takeLast(2 * 2).map { it.content })
-      val tokensForBottomMessages = model.tokensFromMessages(bottomMessages.map { it.content })
+        model.tokensFromMessages(topMessages.takeLast(2 * 2).map { it.content.asRequestMessage() })
+      val tokensForBottomMessages = model.tokensFromMessages(bottomMessages.map { it.content.asRequestMessage() })
 
       val messages =
         combinedVectorStore.memories(
@@ -106,7 +106,7 @@ class CombinedVectorStoreSpec :
       combinedVectorStore.addMemories(newCommonMessages)
 
       val tokensForNewCommonMessages =
-        model.tokensFromMessages(newCommonMessages.map { it.content })
+        model.tokensFromMessages(newCommonMessages.map { it.content.asRequestMessage() })
 
       combinedVectorStore.memories(model, commonId, tokensForNewCommonMessages) shouldBe
         newCommonMessages

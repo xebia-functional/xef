@@ -4,6 +4,12 @@ import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.Chat
 import kotlin.jvm.JvmOverloads
 
-expect class Search
+class Search
 @JvmOverloads
-constructor(model: Chat, scope: Conversation, maxResultsInContext: Int = 3) : SearchTool
+constructor(
+  private val serpApiKey: String,
+  override val model: Chat, override val scope: Conversation, override val maxResultsInContext: Int = 3
+) : SearchTool {
+  override val client: SerpApiClient =
+    SerpApiClient(serpApiKey = serpApiKey)
+}

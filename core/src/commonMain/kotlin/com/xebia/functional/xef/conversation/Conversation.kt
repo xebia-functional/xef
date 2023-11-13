@@ -15,7 +15,7 @@ import kotlinx.serialization.KSerializer
 import kotlinx.uuid.UUID
 import kotlinx.uuid.generateUUID
 
-interface Conversation : AutoClose, AutoCloseable {
+interface Conversation {
 
   val store: VectorStore
 
@@ -82,18 +82,26 @@ interface Conversation : AutoClose, AutoCloseable {
 
   companion object {
 
+    class Default(
+      override val store: VectorStore,
+      override val metric: Metric,
+      override val conversationId: ConversationId? = ConversationId(UUID.generateUUID().toString()),
+    ) : Conversation {
+      override val conversation: Conversation = this
+    }
+
     operator fun invoke(
       store: VectorStore,
       metric: Metric,
       conversationId: ConversationId? = ConversationId(UUID.generateUUID().toString())
-    ): PlatformConversation = PlatformConversation.create(store, metric, conversationId)
+    ): Conversation = Default(store, metric, conversationId)
 
     @JvmSynthetic
     suspend operator fun <A> invoke(
       store: VectorStore,
       metric: Metric,
       conversationId: ConversationId? = ConversationId(UUID.generateUUID().toString()),
-      block: suspend PlatformConversation.() -> A
+      block: suspend Conversation.() -> A
     ): A = block(invoke(store, metric, conversationId))
   }
 }
