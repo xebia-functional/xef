@@ -7,7 +7,7 @@ import org.flywaydb.core.api.configuration.FluentConfiguration
 import org.flywaydb.core.api.output.MigrateResult
 
 class PsqlVectorStoreConfig(
-  val uri: String,
+  val url: String,
   val driver: String,
   val user: String,
   val password: String,
@@ -18,7 +18,7 @@ class PsqlVectorStoreConfig(
     withContext(Dispatchers.IO) {
       val migration: FluentConfiguration = Flyway.configure()
         .dataSource(
-          uri,
+          url,
           user,
           password
         )
