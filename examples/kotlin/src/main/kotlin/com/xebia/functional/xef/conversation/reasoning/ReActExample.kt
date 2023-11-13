@@ -6,8 +6,8 @@ import com.xebia.functional.xef.reasoning.tools.ReActAgent
 
 suspend fun main() {
   OpenAI.conversation {
-    val model = OpenAI().DEFAULT_CHAT
-    val serialization = OpenAI().DEFAULT_SERIALIZATION
+    val model = OpenAI.fromEnvironment().DEFAULT_CHAT
+    val serialization = OpenAI.fromEnvironment().DEFAULT_SERIALIZATION
     val search = Search(model = model, scope = this)
 
     val reActAgent =

@@ -14,13 +14,7 @@ import kotlinx.uuid.generateUUID
 import org.slf4j.Logger
 
 object PostgreSQLXef {
-  data class DBConfig(
-    val host: String,
-    val port: Int,
-    val database: String,
-    val user: String,
-    val password: String
-  )
+  data class DBConfig(val url: String, val user: String, val password: String)
 
   data class PGVectorStoreConfig(
     val dbConfig: DBConfig,
@@ -50,10 +44,12 @@ class PostgresVectorStoreService(
   }
 
   override fun getVectorStore(provider: Provider, token: String?): VectorStore {
+    val openAI = if (token == null) OpenAI.fromEnvironment() else OpenAI(token)
+
     val embeddings =
       when (provider) {
-        Provider.OPENAI -> OpenAI(token).DEFAULT_EMBEDDING
-        else -> OpenAI(token).DEFAULT_EMBEDDING
+        Provider.OPENAI -> openAI.DEFAULT_EMBEDDING
+        else -> openAI.DEFAULT_EMBEDDING
       }
 
     return PGVectorStore(

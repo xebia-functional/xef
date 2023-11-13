@@ -13,7 +13,7 @@ public class Weather {
     public List<String> answer;
 
     private static CompletableFuture<Void> clothesRecommend(PlatformConversation scope) {
-        return scope.prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, new Prompt("Knowing this forecast, what clothes do you recommend I should wear?"), Weather.class)
+        return scope.prompt(OpenAI.fromEnvironment().DEFAULT_SERIALIZATION, new Prompt("Knowing this forecast, what clothes do you recommend I should wear?"), Weather.class)
                 .thenAccept(weather ->
                         System.out.println(weather.answer)
                 );
@@ -21,7 +21,7 @@ public class Weather {
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         try (PlatformConversation scope = OpenAI.conversation()) {
-            Search search = new Search(OpenAI.FromEnvironment.DEFAULT_CHAT, scope, 3);
+            Search search = new Search(OpenAI.fromEnvironment().DEFAULT_CHAT, scope, 3);
             scope.addContextFromArray(search.search("Weather in Cádiz, Spain").get());
             clothesRecommend(scope).get();
         }

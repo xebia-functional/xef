@@ -11,7 +11,7 @@ public class ASCIIArt {
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         try (PlatformConversation scope = OpenAI.conversation()) {
-            scope.prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, new Prompt("ASCII art of a cat dancing"), ASCIIArt.class)
+            scope.prompt(OpenAI.fromEnvironment().DEFAULT_SERIALIZATION, new Prompt("ASCII art of a cat dancing"), ASCIIArt.class)
                     .thenAccept(art -> System.out.println(art.art))
                     .get();
         }

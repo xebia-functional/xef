@@ -41,7 +41,7 @@ data class ItineraryRecommendationPrompt(
 
 suspend fun main() {
   OpenAI.conversation {
-    val infer = Infer(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, conversation)
+    val infer = Infer(OpenAI.fromEnvironment().DEFAULT_SERIALIZATION, conversation)
     val itinerary: ItineraryRecommendationPrompt =
       infer(
         Prompt(

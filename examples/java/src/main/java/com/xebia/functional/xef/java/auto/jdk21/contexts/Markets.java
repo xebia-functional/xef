@@ -19,7 +19,7 @@ public class Markets {
     private static CompletableFuture<Void> stockMarketSummary(PlatformConversation scope) {
         var news = new Prompt("Write a short summary of the stock market results given the provided context.");
 
-        return scope.prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, news, Market.class)
+        return scope.prompt(OpenAI.fromEnvironment().DEFAULT_SERIALIZATION, news, Market.class)
                 .thenAccept(markets -> System.out.println(markets));
     }
 
@@ -28,7 +28,7 @@ public class Markets {
             var dtf = DateTimeFormatter.ofPattern("dd/M/yyyy");
             var now = LocalDateTime.now();
             var currentDate = dtf.format(now);
-            var search = new Search(OpenAI.FromEnvironment.DEFAULT_CHAT, scope, 3);
+            var search = new Search(OpenAI.fromEnvironment().DEFAULT_CHAT, scope, 3);
             scope.addContextFromArray(search.search(currentDate + "Stock market results, raising stocks, decreasing stocks").get());
             stockMarketSummary(scope).get();
         }

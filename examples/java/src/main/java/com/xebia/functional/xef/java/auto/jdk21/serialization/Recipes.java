@@ -13,7 +13,7 @@ public class Recipes {
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
         try (PlatformConversation scope = OpenAI.conversation()) {
-            var recipe = scope.prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, new Prompt("Recipe for chocolate chip cookies."), Recipe.class).get();
+            var recipe = scope.prompt(OpenAI.fromEnvironment().DEFAULT_SERIALIZATION, new Prompt("Recipe for chocolate chip cookies."), Recipe.class).get();
             System.out.println("The recipe for " + recipe.name + " is " + recipe.ingredients );
         }
     }

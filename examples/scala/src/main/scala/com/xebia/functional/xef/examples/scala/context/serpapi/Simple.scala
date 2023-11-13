@@ -9,7 +9,7 @@ import io.circe.Decoder
 import java.text.SimpleDateFormat
 import java.util.Date
 
-val openAI: OpenAI = OpenAI.FromEnvironment
+val openAI: OpenAI = OpenAI.fromEnvironment()
 
 val sdf = SimpleDateFormat("dd/M/yyyy")
 def currentDate: String = sdf.format(new Date)

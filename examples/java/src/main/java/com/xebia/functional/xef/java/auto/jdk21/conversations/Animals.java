@@ -17,11 +17,11 @@ public class Animals {
     }
 
     public CompletableFuture<Animal> uniqueAnimal() {
-        return scope.prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, new Prompt("A unique animal species."), Animal.class);
+        return scope.prompt(OpenAI.fromEnvironment().DEFAULT_SERIALIZATION, new Prompt("A unique animal species."), Animal.class);
     }
 
     public CompletableFuture<Invention> groundbreakingInvention() {
-        return scope.prompt(OpenAI.FromEnvironment.DEFAULT_SERIALIZATION, new Prompt("A groundbreaking invention from the 20th century."), Invention.class);
+        return scope.prompt(OpenAI.fromEnvironment().DEFAULT_SERIALIZATION, new Prompt("A groundbreaking invention from the 20th century."), Invention.class);
     }
 
     public CompletableFuture<String> story(Animal animal, Invention invention) {
@@ -29,7 +29,7 @@ public class Animals {
                 .addSystemMessage("You are a writer for a science fiction magazine.")
                 .addUserMessage("Write a short story of 200 words that involves the animal and the invention")
                 .build();
-        return scope.promptMessage(OpenAI.FromEnvironment.DEFAULT_CHAT, storyPrompt);
+        return scope.promptMessage(OpenAI.fromEnvironment().DEFAULT_CHAT, storyPrompt);
     }
 
     public record Animal(String name, String habitat, String diet){}
