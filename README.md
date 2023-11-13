@@ -73,9 +73,8 @@ could be useful.
 
 ## 📖 Quick Introduction
 
-In [this](https://github.com/xebia-functional/xef/blob/main/docs/intro/kotlin.md) small introduction we look at the main features of xef, including the `conversation` function.
+In [this](https://github.com/xebia-functional/xef/blob/main/docs/intro.md) small introduction we look at the main features of xef, including the `conversation` function.
 
 ## 🚀 Examples
 
-You can also have a look at the [examples](https://github.com/xebia-functional/xef/tree/main/examples/kotlin/src/main/kotlin/com/xebia/functional/xef/conversation) to have a feeling of how using the library looks like.
-
+You can also have a look at the [examples](https://github.com/xebia-functional/xef/tree/main/examples/src/main/kotlin/com/xebia/functional/xef/conversation) to have a feeling of how using the library looks like.
