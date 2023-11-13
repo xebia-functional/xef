@@ -16,9 +16,7 @@ import org.slf4j.Logger
 
 @Serializable
 class PSQLVectorStoreConfig(
-  val host: String,
-  val port: Int,
-  val database: String,
+  val url: String,
   val driver: String,
   val user: String,
   val password: String,
@@ -26,24 +24,14 @@ class PSQLVectorStoreConfig(
   val vectorSize: Int
 ) : VectorStoreConfig {
 
-  fun getUrl(): String = "jdbc:postgresql://$host:$port/$database"
-
   override suspend fun getVectorStoreService(logger: Logger): PostgresVectorStoreService {
-    val vectorStoreHikariDataSource =
-      RepositoryService.getHikariDataSource(getUrl(), user, password)
+    val vectorStoreHikariDataSource = RepositoryService.getHikariDataSource(url, user, password)
     return PostgresVectorStoreService(toPGVectorStoreConfig(), logger, vectorStoreHikariDataSource)
   }
 
   private fun toPGVectorStoreConfig() =
     PostgreSQLXef.PGVectorStoreConfig(
-      dbConfig =
-        PostgreSQLXef.DBConfig(
-          host = host,
-          port = port,
-          database = database,
-          user = user,
-          password = password
-        ),
+      dbConfig = PostgreSQLXef.DBConfig(url = url, user = user, password = password),
       collectionName = collectionName,
       vectorSize = vectorSize
     )
@@ -61,9 +49,7 @@ class PSQLVectorStoreConfig(
 
     private fun PSQLVectorStoreConfig.toPSQLConfig(): PsqlVectorStoreConfig =
       PsqlVectorStoreConfig(
-        host = this.host,
-        port = this.port,
-        database = this.database,
+        url = this.url,
         driver = this.driver,
         user = this.user,
         password = this.password,
