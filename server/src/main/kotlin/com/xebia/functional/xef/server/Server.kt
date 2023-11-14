@@ -7,24 +7,28 @@ import com.typesafe.config.ConfigFactory
 import com.xebia.functional.xef.server.db.psql.XefDatabaseConfig
 import com.xebia.functional.xef.server.db.psql.runDatabaseMigration
 import com.xebia.functional.xef.server.exceptions.exceptionsHandler
-import com.xebia.functional.xef.server.http.routes.*
+import com.xebia.functional.xef.server.http.routes.aiRoutes
+import com.xebia.functional.xef.server.http.routes.xefRoutes
 import com.xebia.functional.xef.server.services.PostgresVectorStoreService
-import com.xebia.functional.xef.server.services.RepositoryService
 import com.xebia.functional.xef.server.services.VectorStoreService
-import io.ktor.client.*
-import io.ktor.client.engine.cio.*
-import io.ktor.client.plugins.auth.*
+import com.xebia.functional.xef.server.services.hikariDataSource
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.cio.CIO
+import io.ktor.client.plugins.auth.Auth
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation as ClientContentNegotiation
-import io.ktor.client.plugins.logging.*
-import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
-import io.ktor.server.application.*
-import io.ktor.server.auth.*
-import io.ktor.server.netty.*
-import io.ktor.server.plugins.contentnegotiation.*
-import io.ktor.server.plugins.cors.routing.*
-import io.ktor.server.resources.*
-import io.ktor.server.routing.*
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logging
+import io.ktor.http.HttpMethod
+import io.ktor.serialization.kotlinx.json.json
+import io.ktor.server.application.install
+import io.ktor.server.auth.Authentication
+import io.ktor.server.auth.UserIdPrincipal
+import io.ktor.server.auth.bearer
+import io.ktor.server.netty.Netty
+import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.plugins.cors.routing.CORS
+import io.ktor.server.resources.Resources
+import io.ktor.server.routing.routing
 import kotlinx.coroutines.awaitCancellation
 import org.jetbrains.exposed.sql.Database
 import org.slf4j.LoggerFactory
@@ -35,17 +39,19 @@ object Server {
     resourceScope {
       val config = ConfigFactory.load("database.conf").resolve()
       val xefDBConfig = XefDatabaseConfig.load("xef", config)
-      runDatabaseMigration(xefDBConfig)
+
+      val xefDatasource =
+        hikariDataSource(xefDBConfig.getUrl(), xefDBConfig.user, xefDBConfig.password)
+
+      runDatabaseMigration(
+        xefDatasource,
+        xefDBConfig.migrationsTable,
+        xefDBConfig.migrationsLocations
+      )
 
       val logger = LoggerFactory.getLogger("xef-server")
 
-      val hikariDataSourceXefDB =
-        RepositoryService.getHikariDataSource(
-          xefDBConfig.getUrl(),
-          xefDBConfig.user,
-          xefDBConfig.password
-        )
-      Database.connect(hikariDataSourceXefDB)
+      Database.connect(xefDatasource)
 
       val vectorStoreService =
         VectorStoreService.load("xef-vector-store", config).getVectorStoreService(logger)
