@@ -118,7 +118,7 @@ jobs:
       - name: Update commit
         if: env.CURRENT_API_COMMIT != env.LATEST_API_COMMIT
         run: |
-          echo $LATEST_API_COMMIT > $GITHUB_WORKSPACE/generator/config/openai-api-commit
+          echo $LATEST_API_COMMIT > $GITHUB_WORKSPACE/openai-client/generator/config/openai-api-commit
       - name: Set up Java
         if: env.CURRENT_API_COMMIT != env.LATEST_API_COMMIT
         uses: actions/setup-java@v3
