@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.store
 
 import com.xebia.functional.openai.models.Embedding
-import com.xebia.functional.xef.llm.LLM
+import com.xebia.functional.openai.models.ext.chat.create.CreateChatCompletionRequestModel
 
 /**
  * A way of composing two [VectorStore] instances together, this class will **first search** [top],
@@ -13,16 +13,16 @@ class CombinedVectorStore(private val top: VectorStore, private val bottom: Vect
   VectorStore by top {
 
   override suspend fun memories(
-    llm: LLM,
+    model: CreateChatCompletionRequestModel,
     conversationId: ConversationId,
     limitTokens: Int
   ): List<Memory> {
-    val bottomResults = bottom.memories(llm, conversationId, limitTokens)
-    val topResults = top.memories(llm, conversationId, limitTokens)
+    val bottomResults = bottom.memories(model, conversationId, limitTokens)
+    val topResults = top.memories(model, conversationId, limitTokens)
 
     return (topResults + bottomResults)
       .sortedByDescending { it.index }
-      .reduceByLimitToken(llm, limitTokens)
+      .reduceByLimitToken(model, limitTokens)
       .reversed()
   }
 

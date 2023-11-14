@@ -1,7 +1,9 @@
 package com.xebia.functional.xef.prompt.evaluator
 
+import com.xebia.functional.openai.apis.ChatApi
+import com.xebia.functional.openai.models.ext.chat.create.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.conversation.Conversation
-import com.xebia.functional.xef.llm.Chat
+import com.xebia.functional.xef.llm.promptMessages
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.system
 import com.xebia.functional.xef.prompt.templates.user
@@ -104,7 +106,8 @@ object PromptEvaluator {
   }
 
   suspend fun evaluate(
-    model: Chat,
+    requestModel: CreateChatCompletionRequestModel,
+    model: ChatApi,
     conversation: Conversation,
     prompt: String,
     response: String,
@@ -162,7 +165,7 @@ ${scoreConfig.joinToString("\n") { printReturn(it) }}
     val result: List<String> =
       model.promptMessages(
         prompt =
-          Prompt {
+          Prompt(requestModel) {
             +system(message)
             +user("Set Prompt = $prompt")
             +user("Set Response = $response")

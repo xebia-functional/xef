@@ -2,14 +2,14 @@ package com.xebia.functional.xef.store
 
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.data.TestEmbeddings
-import com.xebia.functional.xef.data.TestModel
+import com.xebia.functional.xef.data.TestChatModel
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
 class LocalVectorStoreSpec :
   StringSpec({
     "memories function should return all of messages in the right order when the limit is greater than the number of stored messages" {
-      val model = TestModel(modelType = ModelType.ADA)
+      val model = TestChatModel(modelType = ModelType.ADA)
       val localVectorStore = LocalVectorStore(TestEmbeddings())
 
       val memoryData = MemoryData()
@@ -29,7 +29,7 @@ class LocalVectorStoreSpec :
     }
 
     "memories function should return the last n messages in the right order" {
-      val model = TestModel(modelType = ModelType.ADA)
+      val model = TestChatModel(modelType = ModelType.ADA)
       val localVectorStore = LocalVectorStore(TestEmbeddings())
 
       val memoryData = MemoryData()
@@ -49,7 +49,7 @@ class LocalVectorStoreSpec :
     }
 
     "memories function should return the last n messages in the right order for a specific conversation id" {
-      val model = TestModel(modelType = ModelType.ADA)
+      val model = TestChatModel(modelType = ModelType.ADA)
       val localVectorStore = LocalVectorStore(TestEmbeddings())
 
       val firstId = ConversationId("first-id")

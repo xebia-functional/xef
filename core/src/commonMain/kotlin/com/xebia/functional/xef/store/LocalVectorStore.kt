@@ -4,9 +4,11 @@ import arrow.atomic.Atomic
 import arrow.atomic.AtomicInt
 import arrow.atomic.getAndUpdate
 import arrow.atomic.update
+import com.xebia.functional.openai.apis.EmbeddingsApi
 import com.xebia.functional.openai.models.Embedding
-import com.xebia.functional.xef.llm.Embeddings
-import com.xebia.functional.xef.llm.LLM
+import com.xebia.functional.openai.models.ext.chat.create.CreateChatCompletionRequestModel
+import com.xebia.functional.xef.llm.embedDocuments
+import com.xebia.functional.xef.llm.embedQuery
 import kotlin.math.sqrt
 
 private data class State(
@@ -22,9 +24,9 @@ private data class State(
 private typealias AtomicState = Atomic<State>
 
 class LocalVectorStore
-private constructor(private val embeddings: Embeddings, private val state: AtomicState) :
+private constructor(private val embeddings: EmbeddingsApi, private val state: AtomicState) :
   VectorStore {
-  constructor(embeddings: Embeddings) : this(embeddings, Atomic(State.empty()))
+  constructor(embeddings: EmbeddingsApi) : this(embeddings, Atomic(State.empty()))
 
   override val indexValue: AtomicInt = AtomicInt(0)
 
@@ -52,7 +54,7 @@ private constructor(private val embeddings: Embeddings, private val state: Atomi
   }
 
   override suspend fun memories(
-    llm: LLM,
+    model: CreateChatCompletionRequestModel,
     conversationId: ConversationId,
     limitTokens: Int
   ): List<Memory> {
@@ -60,7 +62,7 @@ private constructor(private val embeddings: Embeddings, private val state: Atomi
     return memories
       .orEmpty()
       .sortedByDescending { it.index }
-      .reduceByLimitToken(llm, limitTokens)
+      .reduceByLimitToken(model, limitTokens)
       .reversed()
   }
 

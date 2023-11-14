@@ -2,6 +2,7 @@ package com.xebia.functional.xef.prompt
 
 import com.xebia.functional.openai.models.FunctionObject
 import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage
+import com.xebia.functional.openai.models.ext.chat.create.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
 import com.xebia.functional.xef.prompt.templates.user
 import kotlin.jvm.JvmOverloads
@@ -14,21 +15,23 @@ import kotlin.jvm.JvmSynthetic
 data class Prompt
 @JvmOverloads
 constructor(
+  val model : CreateChatCompletionRequestModel,
   val messages: List<ChatCompletionRequestMessage>,
   val function: FunctionObject? = null,
   val configuration: PromptConfiguration = PromptConfiguration.DEFAULTS
 ) {
 
-  constructor(value: String) : this(listOf(user(value)), null)
+  constructor(model : CreateChatCompletionRequestModel, value: String) : this(model, listOf(user(value)), null)
 
   constructor(
+    model : CreateChatCompletionRequestModel,
     value: String,
     configuration: PromptConfiguration
-  ) : this(listOf(user(value)), null, configuration)
+  ) : this(model, listOf(user(value)), null, configuration)
 
   companion object {
     @JvmSynthetic
-    operator fun invoke(block: PlatformPromptBuilder.() -> Unit): Prompt =
-      PlatformPromptBuilder.create().apply { block() }.build()
+    operator fun invoke(model : CreateChatCompletionRequestModel, block: PlatformPromptBuilder.() -> Unit): Prompt =
+      PlatformPromptBuilder.create(model).apply { block() }.build()
   }
 }

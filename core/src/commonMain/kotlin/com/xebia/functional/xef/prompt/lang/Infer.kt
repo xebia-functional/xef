@@ -1,7 +1,9 @@
 package com.xebia.functional.xef.prompt.lang
 
+import com.xebia.functional.openai.apis.ChatApi
+import com.xebia.functional.openai.models.ext.chat.create.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.conversation.Conversation
-import com.xebia.functional.xef.llm.ChatWithFunctions
+import com.xebia.functional.xef.llm.prompt
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.system
 import com.xebia.functional.xef.prompt.templates.user
@@ -15,7 +17,8 @@ import kotlinx.serialization.serializer
  * input.
  */
 class Infer(
-  val model: ChatWithFunctions,
+  val requestModel: CreateChatCompletionRequestModel,
+  val model: ChatApi,
   val conversation: Conversation,
 ) {
 
@@ -74,7 +77,7 @@ class Infer(
     }
     return model.prompt(
       prompt =
-        Prompt {
+        Prompt(requestModel) {
           +prompt
           +system("Stay in role and follow the directives of the function `Process`")
           +system(

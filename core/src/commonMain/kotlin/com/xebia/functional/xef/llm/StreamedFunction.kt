@@ -1,10 +1,12 @@
 package com.xebia.functional.xef.llm
 
+import com.xebia.functional.openai.apis.ChatApi
 import com.xebia.functional.openai.models.ChatCompletionMessageToolCallChunk
 import com.xebia.functional.openai.models.ChatCompletionMessageToolCallFunction
 import com.xebia.functional.openai.models.CreateChatCompletionRequest
 import com.xebia.functional.openai.models.FunctionObject
 import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage
+import com.xebia.functional.openai.models.ext.chat.stream.createChatCompletionStream
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.StreamedFunction.Companion.PropertyType.*
 import com.xebia.functional.xef.prompt.Prompt
@@ -42,7 +44,7 @@ sealed class StreamedFunction<out A> {
      */
     @JvmSynthetic
     internal suspend fun <A> FlowCollector<StreamedFunction<A>>.streamFunctionCall(
-      chat: ChatWithFunctions,
+      chat: ChatApi,
       prompt: Prompt,
       request: CreateChatCompletionRequest,
       scope: Conversation,
@@ -64,7 +66,7 @@ sealed class StreamedFunction<out A> {
       // as the LLM is sending us chunks with malformed JSON
       val example = createExampleFromSchema(schema)
       chat
-        .createChatCompletionsWithFunctions(request)
+        .createChatCompletionStream(request)
         .onCompletion {
           val newMessages = prompt.messages + messages
           newMessages.addToMemory(

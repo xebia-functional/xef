@@ -1,10 +1,12 @@
 package com.xebia.functional.xef.store
 
 import arrow.atomic.AtomicInt
+import com.xebia.functional.openai.apis.EmbeddingsApi
 import com.xebia.functional.openai.models.ChatCompletionRole
 import com.xebia.functional.openai.models.Embedding
-import com.xebia.functional.xef.llm.Embeddings
-import com.xebia.functional.xef.llm.LLM
+import com.xebia.functional.openai.models.ext.chat.create.CreateChatCompletionRequestModel
+import com.xebia.functional.xef.llm.embedDocuments
+import com.xebia.functional.xef.llm.embedQuery
 import com.xebia.functional.xef.store.postgresql.*
 import kotlinx.uuid.UUID
 import kotlinx.uuid.generateUUID
@@ -13,7 +15,7 @@ import javax.sql.DataSource
 class PGVectorStore(
   private val vectorSize: Int,
   private val dataSource: DataSource,
-  private val embeddings: Embeddings,
+  private val embeddings: EmbeddingsApi,
   private val collectionName: String,
   private val distanceStrategy: PGDistanceStrategy,
   private val preDeleteCollection: Boolean,
@@ -40,8 +42,8 @@ class PGVectorStore(
     }
   }
 
-  override suspend fun memories(llm: LLM, conversationId: ConversationId, limitTokens: Int): List<Memory> =
-    getMemoryByConversationId(conversationId).reduceByLimitToken(llm, limitTokens).reversed()
+  override suspend fun memories(model: CreateChatCompletionRequestModel, conversationId: ConversationId, limitTokens: Int): List<Memory> =
+    getMemoryByConversationId(conversationId).reduceByLimitToken(model, limitTokens).reversed()
 
   private fun JDBCSyntax.getCollection(collectionName: String): PGCollection =
     queryOneOrNull(getCollection, { bind(collectionName) }) {

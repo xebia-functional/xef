@@ -1,5 +1,6 @@
 package com.xebia.functional.xef.llm
 
+import com.xebia.functional.openai.apis.ChatApi
 import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage
 import com.xebia.functional.tokenizer.truncateText
 import com.xebia.functional.xef.AIError
@@ -13,22 +14,20 @@ internal object PromptCalculator {
 
   suspend fun adaptPromptToConversationAndModel(
     prompt: Prompt,
-    scope: Conversation,
-    llm: LLM
+    scope: Conversation
   ): Prompt =
     when (prompt.configuration.messagePolicy.addMessagesFromConversation) {
-      MessagesFromHistory.ALL -> adaptPromptFromConversation(prompt, scope, llm)
+      MessagesFromHistory.ALL -> adaptPromptFromConversation(prompt, scope)
       MessagesFromHistory.NONE -> prompt
     }
 
   private suspend fun adaptPromptFromConversation(
     prompt: Prompt,
-    scope: Conversation,
-    llm: LLM
+    scope: Conversation
   ): Prompt {
 
     // calculate tokens for history and context
-    val remainingTokensForContexts = calculateRemainingTokensForContext(llm, prompt)
+    val remainingTokensForContexts = calculateRemainingTokensForContext(prompt)
 
     val maxHistoryTokens = calculateMaxHistoryTokens(prompt, remainingTokensForContexts)
 
@@ -37,12 +36,11 @@ internal object PromptCalculator {
     // calculate messages for history based on tokens
 
     val memories: List<Memory> =
-      scope.memories(
-        llm,
+      scope.memories(prompt,
         maxHistoryTokens + prompt.configuration.messagePolicy.historyPaddingTokens
       )
 
-    val historyAllowed = calculateMessagesFromHistory(llm, memories, maxHistoryTokens)
+    val historyAllowed = calculateMessagesFromHistory(prompt, memories, maxHistoryTokens)
 
     // calculate messages for context based on tokens
     val ctxInfo: List<String> =
@@ -55,9 +53,9 @@ internal object PromptCalculator {
       if (ctxInfo.isNotEmpty()) {
         val ctx: String = ctxInfo.joinToString("\n")
 
-        val ctxTruncated: String = llm.modelType.encoding.truncateText(ctx, maxContextTokens)
+        val ctxTruncated: String = prompt.model.modelType.encodingType.encoding.truncateText(ctx, maxContextTokens)
 
-        Prompt { +assistant(ctxTruncated) }.messages
+        Prompt(prompt.model) { +assistant(ctxTruncated) }.messages
       } else {
         emptyList()
       }
@@ -69,7 +67,7 @@ internal object PromptCalculator {
     memories.map { it.content.asRequestMessage() }
 
   private fun calculateMessagesFromHistory(
-    llm: LLM,
+    prompt: Prompt,
     memories: List<Memory>,
     maxHistoryTokens: Int
   ) =
@@ -78,10 +76,11 @@ internal object PromptCalculator {
 
       // since we have the approximate tokens in memory, we need to fit the messages back to the
       // number of tokens if necessary
-      val historyTokens = llm.tokensFromMessages(history)
+      val modelType = prompt.model.modelType
+      val historyTokens = modelType.tokensFromMessages(history)
       if (historyTokens <= maxHistoryTokens) history
       else {
-        val historyMessagesWithTokens = history.map { Pair(it, llm.tokensFromMessages(listOf(it))) }
+        val historyMessagesWithTokens = history.map { Pair(it, modelType.tokensFromMessages(listOf(it))) }
 
         val totalTokenWithMessages =
           historyMessagesWithTokens.foldRight(Pair(0, emptyList<ChatCompletionRequestMessage>())) {
@@ -109,11 +108,11 @@ internal object PromptCalculator {
     return maxHistoryTokens
   }
 
-  private fun calculateRemainingTokensForContext(llm: LLM, prompt: Prompt): Int {
-    val maxContextLength: Int = llm.modelType.maxContextLength
+  private fun calculateRemainingTokensForContext(prompt: Prompt): Int {
+    val maxContextLength: Int = prompt.model.modelType.maxContextLength
     val remainingTokens: Int = maxContextLength - prompt.configuration.minResponseTokens
 
-    val messagesTokens = llm.tokensFromMessages(prompt.messages)
+    val messagesTokens = prompt.model.modelType.tokensFromMessages(prompt.messages)
 
     if (messagesTokens >= remainingTokens) {
       throw AIError.PromptExceedsMaxRemainingTokenLength(messagesTokens, remainingTokens)
@@ -123,6 +122,6 @@ internal object PromptCalculator {
     return remainingTokensForContexts
   }
 
-  private suspend fun Conversation.memories(llm: LLM, limitTokens: Int): List<Memory> =
-    conversationId?.let { store.memories(llm, it, limitTokens) } ?: emptyList()
+  private suspend fun Conversation.memories(prompt: Prompt, limitTokens: Int): List<Memory> =
+    conversationId?.let { store.memories(prompt.model, it, limitTokens) } ?: emptyList()
 }

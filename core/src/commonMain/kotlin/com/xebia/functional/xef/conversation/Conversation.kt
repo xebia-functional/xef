@@ -1,5 +1,7 @@
 package com.xebia.functional.xef.conversation
 
+import com.xebia.functional.openai.apis.ChatApi
+import com.xebia.functional.openai.apis.ImagesApi
 import com.xebia.functional.openai.models.CreateImageRequest
 import com.xebia.functional.openai.models.FunctionObject
 import com.xebia.functional.openai.models.ImagesResponse
@@ -39,12 +41,12 @@ interface Conversation {
 
   @AiDsl
   @JvmSynthetic
-  suspend fun <A> ChatWithFunctions.prompt(prompt: Prompt, serializer: KSerializer<A>): A =
+  suspend fun <A> ChatApi.prompt(prompt: Prompt, serializer: KSerializer<A>): A =
     prompt(prompt, conversation, serializer)
 
   @AiDsl
   @JvmSynthetic
-  suspend fun <A> ChatWithFunctions.prompt(
+  suspend fun <A> ChatApi.prompt(
     prompt: Prompt,
     function: FunctionObject,
     serializer: (String) -> A
@@ -52,17 +54,17 @@ interface Conversation {
 
   @AiDsl
   @JvmSynthetic
-  suspend fun Chat.promptMessage(
+  suspend fun ChatApi.promptMessage(
     prompt: Prompt,
   ): String = promptMessages(prompt, conversation).firstOrNull() ?: throw AIError.NoResponse()
 
   @AiDsl
   @JvmSynthetic
-  suspend fun Chat.promptMessages(prompt: Prompt): List<String> =
+  suspend fun ChatApi.promptMessages(prompt: Prompt): List<String> =
     promptMessages(prompt, conversation)
 
   @AiDsl
-  fun Chat.promptStreaming(prompt: Prompt): Flow<String> = promptStreaming(prompt, conversation)
+  fun ChatApi.promptStreaming(prompt: Prompt): Flow<String> = promptStreaming(prompt, conversation)
 
   /**
    * Run a [prompt] describes the images you want to generate within the context of [Conversation].
@@ -74,11 +76,11 @@ interface Conversation {
    */
   @AiDsl
   @JvmSynthetic
-  suspend fun Images.images(
+  suspend fun ImagesApi.images(
     prompt: String,
     numberImages: Int = 1,
     quality: CreateImageRequest.Quality = CreateImageRequest.Quality.standard
-  ): ImagesResponse = images(prompt, store, numberImages, quality)
+  ): ImagesResponse = images(prompt, numberImages, quality)
 
   companion object {
 

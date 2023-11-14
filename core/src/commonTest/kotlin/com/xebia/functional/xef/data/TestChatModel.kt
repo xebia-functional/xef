@@ -1,24 +1,27 @@
 package com.xebia.functional.xef.data
 
+import com.xebia.functional.openai.apis.ChatApi
+import com.xebia.functional.openai.infrastructure.BodyProvider
+import com.xebia.functional.openai.infrastructure.HttpResponse
+import com.xebia.functional.openai.infrastructure.TypedBodyProvider
 import com.xebia.functional.openai.models.*
 import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage
 import com.xebia.functional.tokenizer.ModelType
-import com.xebia.functional.xef.llm.Chat
-import com.xebia.functional.xef.llm.Embeddings
+import io.ktor.client.request.*
 import kotlinx.coroutines.flow.Flow
 
-class TestModel(
-  override val modelType: ModelType,
+class TestChatModel(
+  val modelType: ModelType,
   val responses: Map<String, String> = emptyMap(),
-) : Chat, Embeddings, AutoCloseable {
+) : ChatApi(), AutoCloseable {
+
+  val chat = ChatApi()
 
   var requests: MutableList<CreateChatCompletionRequest> = mutableListOf()
 
-  override fun copy(modelType: ModelType) = TestModel(modelType, responses)
-
   override suspend fun createChatCompletion(
     request: CreateChatCompletionRequest
-  ): CreateChatCompletionResponse {
+  ): HttpResponse<CreateChatCompletionResponse> {
     requests.add(request)
     return CreateChatCompletionResponse(
       id = "fake-id",
@@ -38,7 +41,7 @@ class TestModel(
         )
       ),
       usage = CompletionUsage(0, 0, 0)
-    )
+    )))
   }
 
   override suspend fun createChatCompletions(

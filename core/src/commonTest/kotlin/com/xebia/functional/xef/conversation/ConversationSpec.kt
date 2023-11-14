@@ -27,7 +27,7 @@ class ConversationSpec :
     "memories should have the correct size in the vector store" {
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
-      val model = TestModel(modelType = ModelType.ADA)
+      val model = TestChatModel(modelType = ModelType.ADA)
 
       val scope =
         Conversation(
@@ -64,7 +64,7 @@ class ConversationSpec :
         )
       val vectorStore = scope.store
 
-      val modelAda = TestModel(modelType = ModelType.ADA, responses = messages)
+      val modelAda = TestChatModel(modelType = ModelType.ADA, responses = messages)
 
       val totalTokens =
         modelAda.tokensFromMessages(
@@ -107,7 +107,7 @@ class ConversationSpec :
       val vectorStore = scope.store
 
       val modelGPTTurbo16K =
-        TestModel(modelType = ModelType.GPT_3_5_TURBO_16_K, responses = messages)
+        TestChatModel(modelType = ModelType.GPT_3_5_TURBO_16_K, responses = messages)
 
       val totalTokens =
         modelGPTTurbo16K.tokensFromMessages(
@@ -196,7 +196,7 @@ class ConversationSpec :
     "the scope's store should contains all the messages" {
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
-      val model = TestModel(modelType = ModelType.ADA)
+      val model = TestChatModel(modelType = ModelType.ADA)
 
       val scope =
         Conversation(
@@ -246,7 +246,7 @@ class ConversationSpec :
     "when using 2 different scopes with the same conversationId, the index of the memories should be in order" {
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
-      val model = TestModel(modelType = ModelType.ADA)
+      val model = TestChatModel(modelType = ModelType.ADA)
 
       val vectorStore = LocalVectorStore(TestEmbeddings())
 
@@ -276,7 +276,7 @@ class ConversationSpec :
     "when using MessagesToHistory.ALL policy, the scope's store should contains all messages" {
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
-      val model = TestModel(modelType = ModelType.ADA)
+      val model = TestChatModel(modelType = ModelType.ADA)
 
       val vectorStore = LocalVectorStore(TestEmbeddings())
 
@@ -304,7 +304,7 @@ class ConversationSpec :
     "when using MessagesToHistory.ONLY_SYSTEM_MESSAGES policy, the scope's store should contains only system messages" {
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
-      val model = TestModel(modelType = ModelType.ADA)
+      val model = TestChatModel(modelType = ModelType.ADA)
 
       val vectorStore = LocalVectorStore(TestEmbeddings())
 
@@ -332,7 +332,7 @@ class ConversationSpec :
     "when using MessagesToHistory.NOT_SYSTEM_MESSAGES policy, the scope's store shouldn't contains system messages" {
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
-      val model = TestModel(modelType = ModelType.ADA)
+      val model = TestChatModel(modelType = ModelType.ADA)
 
       val vectorStore = LocalVectorStore(TestEmbeddings())
 
@@ -360,7 +360,7 @@ class ConversationSpec :
     "when using MessagesToHistory.NONE policy, the scope's store shouldn't contains messages" {
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
-      val model = TestModel(modelType = ModelType.ADA)
+      val model = TestChatModel(modelType = ModelType.ADA)
 
       val vectorStore = LocalVectorStore(TestEmbeddings())
 
@@ -391,7 +391,7 @@ class ConversationSpec :
     "when using MessagesFromHistory.ALL policy, the request should contains the previous messages in the conversation" {
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
-      val model = TestModel(modelType = ModelType.ADA)
+      val model = TestChatModel(modelType = ModelType.ADA)
 
       val vectorStore = LocalVectorStore(TestEmbeddings())
 
@@ -425,7 +425,7 @@ class ConversationSpec :
     "when using MessagesFromHistory.NONE policy, the request shouldn't contains the previous messages in the conversation" {
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
-      val model = TestModel(modelType = ModelType.ADA)
+      val model = TestChatModel(modelType = ModelType.ADA)
 
       val vectorStore = LocalVectorStore(TestEmbeddings())
 

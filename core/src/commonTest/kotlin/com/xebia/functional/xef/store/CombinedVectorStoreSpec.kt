@@ -2,14 +2,14 @@ package com.xebia.functional.xef.store
 
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.data.TestEmbeddings
-import com.xebia.functional.xef.data.TestModel
+import com.xebia.functional.xef.data.TestChatModel
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
 class CombinedVectorStoreSpec :
   StringSpec({
     "memories function should return all of messages combined in the right order" {
-      val model = TestModel(modelType = ModelType.ADA)
+      val model = TestChatModel(modelType = ModelType.ADA)
 
       val memoryData = MemoryData()
 
@@ -27,7 +27,7 @@ class CombinedVectorStoreSpec :
     }
 
     "memories function should return the last n combined messages in the right order" {
-      val model = TestModel(modelType = ModelType.ADA)
+      val model = TestChatModel(modelType = ModelType.ADA)
 
       val memoryData = MemoryData()
 
@@ -53,7 +53,7 @@ class CombinedVectorStoreSpec :
     }
 
     "memories function should return the messages with common conversation id combined in the right order" {
-      val model = TestModel(modelType = ModelType.ADA)
+      val model = TestChatModel(modelType = ModelType.ADA)
 
       val memoryData = MemoryData()
 
@@ -81,7 +81,7 @@ class CombinedVectorStoreSpec :
     }
 
     "adding messages to a combined vector store" {
-      val model = TestModel(modelType = ModelType.ADA)
+      val model = TestChatModel(modelType = ModelType.ADA)
 
       val memoryData = MemoryData()
 

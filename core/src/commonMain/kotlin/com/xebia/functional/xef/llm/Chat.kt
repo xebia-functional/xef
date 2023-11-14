@@ -2,8 +2,7 @@ package com.xebia.functional.xef.llm
 
 import com.xebia.functional.openai.apis.ChatApi
 import com.xebia.functional.openai.models.CreateChatCompletionRequest
-import com.xebia.functional.openai.models.CreateChatCompletionResponse
-import com.xebia.functional.openai.models.CreateChatCompletionStreamResponse
+import com.xebia.functional.openai.models.ext.chat.stream.createChatCompletionStream
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
@@ -15,20 +14,21 @@ import kotlinx.coroutines.flow.*
 @AiDsl
 fun ChatApi.promptStreaming(prompt: Prompt, scope: Conversation): Flow<String> = flow {
   val messagesForRequestPrompt =
-    PromptCalculator.adaptPromptToConversationAndModel(prompt, scope, this)
+    PromptCalculator.adaptPromptToConversationAndModel(prompt, scope)
 
   val request =
     CreateChatCompletionRequest(
+      stream = true,
       user = prompt.configuration.user,
       messages = messagesForRequestPrompt.messages,
       n = prompt.configuration.numberOfPredictions,
       temperature = prompt.configuration.temperature,
       maxTokens = prompt.configuration.minResponseTokens,
-      model = modelType.toRequestModel()
+      model = prompt.model
     )
 
-  this@promptStreaming.createChatCompletion()createChatCompletions(request)
-    .mapNotNull { it.choices.mapNotNull { it.delta?.content }.reduceOrNull(String::plus) }
+  this@promptStreaming.createChatCompletionStream(request)
+    .mapNotNull { it.choices.mapNotNull { it.delta.content }.reduceOrNull(String::plus) }
     .onEach { emit(it) }
     .fold("", String::plus)
     .also { finalText ->
@@ -39,15 +39,15 @@ fun ChatApi.promptStreaming(prompt: Prompt, scope: Conversation): Flow<String> =
 }
 
 @AiDsl
-suspend fun promptMessage(prompt: Prompt, scope: Conversation): String =
+suspend fun ChatApi.promptMessage(prompt: Prompt, scope: Conversation): String =
   promptMessages(prompt, scope).firstOrNull() ?: throw AIError.NoResponse()
 
 @AiDsl
-suspend fun promptMessages(prompt: Prompt, scope: Conversation): List<String> =
+suspend fun ChatApi.promptMessages(prompt: Prompt, scope: Conversation): List<String> =
   scope.metric.promptSpan(prompt) {
     val promptMemories = prompt.messages.toMemory(scope)
     val adaptedPrompt =
-      PromptCalculator.adaptPromptToConversationAndModel(prompt, scope, this@Chat)
+      PromptCalculator.adaptPromptToConversationAndModel(prompt, scope)
 
     adaptedPrompt.addMetrics(scope)
 
@@ -58,10 +58,11 @@ suspend fun promptMessages(prompt: Prompt, scope: Conversation): List<String> =
         n = adaptedPrompt.configuration.numberOfPredictions,
         temperature = adaptedPrompt.configuration.temperature,
         maxTokens = adaptedPrompt.configuration.minResponseTokens,
-        model = modelType.toRequestModel()
+        model = prompt.model
       )
 
     createChatCompletion(request)
+      .body()
       .addMetrics(scope)
       .choices
       .addChoiceToMemory(
@@ -69,7 +70,7 @@ suspend fun promptMessages(prompt: Prompt, scope: Conversation): List<String> =
         promptMemories,
         prompt.configuration.messagePolicy.addMessagesToConversation
       )
-      .mapNotNull { it.message?.content }
+      .mapNotNull { it.message.content }
   }
 
 

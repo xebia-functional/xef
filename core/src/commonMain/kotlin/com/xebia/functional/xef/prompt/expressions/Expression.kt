@@ -1,8 +1,10 @@
 package com.xebia.functional.xef.prompt.expressions
 
+import com.xebia.functional.openai.apis.ChatApi
 import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage
+import com.xebia.functional.openai.models.ext.chat.create.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.conversation.Conversation
-import com.xebia.functional.xef.llm.ChatWithFunctions
+import com.xebia.functional.xef.llm.prompt
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.assistant
 import com.xebia.functional.xef.prompt.templates.system
@@ -10,8 +12,9 @@ import io.github.oshai.kotlinlogging.KLogger
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 class Expression(
+  private val requestModel: CreateChatCompletionRequestModel,
   private val scope: Conversation,
-  private val model: ChatWithFunctions,
+  private val model: ChatApi,
   val block: suspend Expression.() -> Unit
 ) {
 
@@ -32,15 +35,15 @@ class Expression(
 
   suspend fun run(): ExpressionResult {
     block()
-    val prelude = Prompt { +system("You are an expert in replacing variables in templates") }
+    val prelude = Prompt(requestModel) { +system("You are an expert in replacing variables in templates") }
 
-    val instructionMessages = Prompt {
+    val instructionMessages = Prompt(requestModel) {
       +assistant("I will replace all placeholders in the message")
     }
 
     val values: ReplacedValues =
       model.prompt(
-        prompt = Prompt(prelude.messages + messages + instructionMessages.messages),
+        prompt = Prompt(requestModel, prelude.messages + messages + instructionMessages.messages),
         scope = scope,
         serializer = ReplacedValues.serializer()
       )
@@ -61,9 +64,10 @@ class Expression(
 
   companion object {
     suspend fun run(
+      requestModel: CreateChatCompletionRequestModel,
       scope: Conversation,
-      model: ChatWithFunctions,
+      model: ChatApi,
       block: suspend Expression.() -> Unit
-    ): ExpressionResult = Expression(scope, model, block).run()
+    ): ExpressionResult = Expression(requestModel, scope, model, block).run()
   }
 }
