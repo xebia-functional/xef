@@ -14,21 +14,22 @@ import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.*
 
-fun ChatApi.createChatCompletionStream(request: CreateChatCompletionRequest): Flow<CreateChatCompletionStreamResponse> {
-  val builder = HttpRequestBuilder().apply {
-    method = HttpMethod.Post
-    url(path = "/chat/completions")
-    setBody(streamingRequestAsJson(request))
-    contentType(ContentType.Application.Json)
-    accept(ContentType.Text.EventStream)
-    headers {
-      append(HttpHeaders.CacheControl, "no-cache")
-      append(HttpHeaders.Connection, "keep-alive")
+fun ChatApi.createChatCompletionStream(
+  request: CreateChatCompletionRequest
+): Flow<CreateChatCompletionStreamResponse> {
+  val builder =
+    HttpRequestBuilder().apply {
+      method = HttpMethod.Post
+      url(path = "/chat/completions")
+      setBody(streamingRequestAsJson(request))
+      contentType(ContentType.Application.Json)
+      accept(ContentType.Text.EventStream)
+      headers {
+        append(HttpHeaders.CacheControl, "no-cache")
+        append(HttpHeaders.Connection, "keep-alive")
+      }
     }
-  }
-  return flow {
-    client.execute(builder) { response -> emitDataEvents(response) }
-  }
+  return flow { client.execute(builder) { response -> emitDataEvents(response) } }
 }
 
 private val json = Json {
@@ -43,11 +44,12 @@ private suspend inline fun <reified T> FlowCollector<T>.emitDataEvents(response:
   val channel: ByteReadChannel = response.body()
   while (!channel.isClosedForRead) {
     val line = channel.readUTF8Line() ?: continue
-    val value: T = when {
-      line.startsWith(END) -> break
-      line.startsWith(PREFIX) -> json.decodeFromString(line.removePrefix(PREFIX))
-      else -> continue
-    }
+    val value: T =
+      when {
+        line.startsWith(END) -> break
+        line.startsWith(PREFIX) -> json.decodeFromString(line.removePrefix(PREFIX))
+        else -> continue
+      }
     emit(value)
   }
 }
