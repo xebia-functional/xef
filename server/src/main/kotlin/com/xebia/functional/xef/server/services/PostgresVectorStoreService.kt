@@ -14,13 +14,7 @@ import kotlinx.uuid.generateUUID
 import org.slf4j.Logger
 
 object PostgreSQLXef {
-  data class DBConfig(
-    val host: String,
-    val port: Int,
-    val database: String,
-    val user: String,
-    val password: String
-  )
+  data class DBConfig(val url: String, val user: String, val password: String)
 
   data class PGVectorStoreConfig(
     val dbConfig: DBConfig,
