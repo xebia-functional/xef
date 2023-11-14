@@ -185,11 +185,15 @@ suspend fun mealPlan() {
 
 ```
 
-:::note Better vector stores
+To use the `search` agent you need to define your SERPAPI key in the `SERP_API_KEY` environment variable.
+```shell
+env SERP_API_KEY=<your-api-key>
+```
 
-The underlying mechanism of the context is a _vector store_, a data structure which
-saves a set of strings, and is able to find those similar to another given one.
-By default xef.ai uses an _in-memory_ vector store, since it provides maximum
-compatibility across platforms. However, if you foresee your context growing above
-the hundreds of elements, you may consider switching to another alternative, like
-Lucene or PostgreSQL also supported by xef.
+>**Better vector stores**<br />
+>The underlying mechanism of the context is a _vector store_, a data structure which
+>saves a set of strings, and is able to find those similar to another given one.
+>By default xef.ai uses an _in-memory_ vector store, since it provides maximum
+>compatibility across platforms. However, if you foresee your context growing above
+>the hundreds of elements, you may consider switching to another alternative, like
+>Lucene or PostgreSQL also supported by xef.
