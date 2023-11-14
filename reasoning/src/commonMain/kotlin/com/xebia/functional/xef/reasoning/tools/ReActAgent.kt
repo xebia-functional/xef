@@ -21,8 +21,8 @@ class ReActAgent(
   private val maxIterations: Int = 10,
   private val configuration: PromptConfiguration = PromptConfiguration(temperature = 0.0),
   private val critique: suspend ReActAgent.(String, Finish) -> Critique =
-    { input: String, finish: Finish ->
-      critiqueCall(input, finish)
+    { input: String, reactFinish: Finish ->
+      critiqueCall(input, reactFinish)
     },
   private val decide: suspend ReActAgent.(String, Int, ThoughtObservation) -> Decide =
     { input: String, iterations: Int, thought: ThoughtObservation ->

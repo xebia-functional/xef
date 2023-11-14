@@ -184,15 +184,14 @@ class OpenAI(
   private suspend fun modelExists(
     modelId: String
   ): Boolean { // TODO: impl of abstract provider function
-    val model =
-      try {
-        defaultClient.model(ModelId(modelId))
-      } catch (e: InvalidRequestException) {
-        when (e.error.detail?.code) {
-          "model_not_found" -> return false
-          else -> throw e
-        }
+    try {
+      defaultClient.model(ModelId(modelId))
+    } catch (e: InvalidRequestException) {
+      when (e.error.detail?.code) {
+        "model_not_found" -> return false
+        else -> throw e
       }
+    }
     return true
   }
 

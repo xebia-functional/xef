@@ -48,8 +48,8 @@ class Expression(
     val replacedTemplate =
       messages.fold("") { acc, message ->
         val replacedMessage =
-          generationKeys.fold(message.content) { acc, key ->
-            acc.replace(
+          generationKeys.fold(message.content) { accKey, key ->
+            accKey.replace(
               "{{$key}}",
               values.replacements.firstOrNull { it.key == key }?.value ?: "{{$key}}"
             )

@@ -46,5 +46,5 @@ class LogsMetric : Metric {
     logger.info { "${writeIndent(numberOfBlocks.get())}|-- $key = $value" }
   }
 
-  private fun writeIndent(times: Int = 1) = (1..indentSize * times).fold("") { a, b -> "$a " }
+  private fun writeIndent(times: Int = 1) = (1..indentSize * times).fold("") { a, _ -> "$a " }
 }

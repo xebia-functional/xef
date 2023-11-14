@@ -45,7 +45,7 @@ class ToolSelection(
       }
       else -> {
         stepsAndTools.foldIndexed(ToolsExecutionTrace.Empty as ToolsExecutionTrace) {
-          index,
+          _,
           acc,
           (step, tool) ->
           when (acc) {
