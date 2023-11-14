@@ -36,7 +36,7 @@ data class CreateImageRequest(
   /* A text description of the desired image(s). The maximum length is 1000 characters for `dall-e-2` and 4000 characters for `dall-e-3`. */
   @SerialName(value = "prompt") @Required val prompt: kotlin.String,
   @SerialName(value = "model")
-  val model: com.xebia.functional.openai.models.ext.image.create.CreateImageRequestModel? = null,
+  val model: ai.xef.openai.OpenAIModel<CreateImageRequestModel>? = null,
 
   /* The number of images to generate. Must be between 1 and 10. For `dall-e-3`, only `n=1` is supported. */
   @SerialName(value = "n") val n: kotlin.Int? = 1,

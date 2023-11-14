@@ -25,7 +25,7 @@ data class CreateEmbeddingRequest(
   val input: com.xebia.functional.openai.models.ext.embedding.create.CreateEmbeddingRequestInput,
   @SerialName(value = "model")
   @Required
-  val model: com.xebia.functional.openai.models.ext.embedding.create.CreateEmbeddingRequestModel,
+  val model: ai.xef.openai.OpenAIModel<CreateEmbeddingRequestModel>,
 
   /* The format to return the embeddings in. Can be either `float` or [`base64`](https://pypi.org/project/pybase64/). */
   @SerialName(value = "encoding_format")

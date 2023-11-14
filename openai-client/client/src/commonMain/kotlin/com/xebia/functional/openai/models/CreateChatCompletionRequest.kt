@@ -72,7 +72,7 @@ data class CreateChatCompletionRequest(
     >,
   @SerialName(value = "model")
   @Required
-  val model: com.xebia.functional.openai.models.ext.chat.create.CreateChatCompletionRequestModel,
+  val model: ai.xef.openai.OpenAIModel<CreateChatCompletionRequestModel>,
 
   /* Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim.  [See more information about frequency and presence penalties.](/docs/guides/gpt/parameter-details)  */
   @SerialName(value = "frequency_penalty") val frequencyPenalty: kotlin.Double? = (0).toDouble(),

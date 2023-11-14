@@ -33,7 +33,7 @@ data class CreateThreadAndRunRequest(
   @SerialName(value = "thread") val thread: CreateThreadRequest? = null,
 
   /* The ID of the [Model](/docs/api-reference/models) to be used to execute this run. If a value is provided here, it will override the model associated with the assistant. If not, the model associated with the assistant will be used. */
-  @SerialName(value = "model") val model: kotlin.String? = null,
+  @SerialName(value = "model") val model: ai.xef.openai.OpenAIModel<kotlin.String>? = null,
 
   /* Override the default system message of the assistant. This is useful for modifying the behavior on a per-run basis. */
   @SerialName(value = "instructions") val instructions: kotlin.String? = null,

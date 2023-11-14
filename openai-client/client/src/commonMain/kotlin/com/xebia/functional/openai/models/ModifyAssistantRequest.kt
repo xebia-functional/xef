@@ -28,7 +28,7 @@ import kotlinx.serialization.encoding.*
  */
 @Serializable
 data class ModifyAssistantRequest(
-  @SerialName(value = "model") val model: kotlin.String? = null,
+  @SerialName(value = "model") val model: ai.xef.openai.OpenAIModel<kotlin.String>? = null,
 
   /* The name of the assistant. The maximum length is 256 characters.  */
   @SerialName(value = "name") val name: kotlin.String? = null,

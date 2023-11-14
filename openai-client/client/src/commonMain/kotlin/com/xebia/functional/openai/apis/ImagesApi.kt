@@ -7,6 +7,7 @@
 package com.xebia.functional.openai.apis
 
 import com.xebia.functional.openai.infrastructure.*
+import com.xebia.functional.openai.models.CreateImageEditRequestModel
 import com.xebia.functional.openai.models.CreateImageRequest
 import com.xebia.functional.openai.models.ImagesResponse
 import io.ktor.client.HttpClient
@@ -109,8 +110,7 @@ open class ImagesApi : ApiClient {
     image: io.ktor.client.request.forms.InputProvider,
     prompt: kotlin.String,
     mask: io.ktor.client.request.forms.InputProvider? = null,
-    model: com.xebia.functional.openai.models.ext.image.edit.create.CreateImageEditRequestModel? =
-      null,
+    model: CreateImageEditRequestModel? = null,
     n: kotlin.Int? = 1,
     size: PropertySizeCreateImageEdit? = PropertySizeCreateImageEdit._1024x1024,
     responseFormat: ResponseFormatCreateImageEdit? = ResponseFormatCreateImageEdit.url,
@@ -182,8 +182,7 @@ open class ImagesApi : ApiClient {
   @Suppress("UNCHECKED_CAST")
   open suspend fun createImageVariation(
     image: io.ktor.client.request.forms.InputProvider,
-    model: com.xebia.functional.openai.models.ext.image.edit.create.CreateImageEditRequestModel? =
-      null,
+    model: CreateImageEditRequestModel? = null,
     n: kotlin.Int? = 1,
     responseFormat: ResponseFormatCreateImageVariation? = ResponseFormatCreateImageVariation.url,
     size: PropertySizeCreateImageVariation? = PropertySizeCreateImageVariation._1024x1024,
