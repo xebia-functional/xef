@@ -47,23 +47,23 @@ strategies.
 
 Libraries are published in Maven Central, under the `com.xebia` group.
 
-1. `xef-kotlin` for Kotlin support.
-2. The name of a library we provide integration for, like `xef-lucene`.
+1. `xef-core` is the core library.
+2. `xef-openai` is the integration with OpenAI's API.
+3. The name of a library we provide integration for, like `xef-lucene`.
 
-
-Libraries are published in Maven Central. You may need to  add that repository explicitly
-in your build, if you haven't done it before.
+You may need to  add that repository explicitly in your build, if you haven't done it before.
 
 ```groovy
 repositories { mavenCentral() }
 ```
 
-Then add the library in the usual way.
+Then add the libraries in the usual way.
 
 ```groovy
 // In Gradle Kotlin 
 dependencies {
-    implementation("com.xebia:xef-kotlin:<version>")
+  implementation("com.xebia:xef-core:<version>")
+  implementation("com.xebia:xef-openai:<version>")
 }
 ```
 
