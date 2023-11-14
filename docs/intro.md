@@ -1,6 +1,6 @@
 ## Getting the libraries
 
-Libraries are published in Maven Central. You may need to  add that repository explicitly
+Libraries are published in Maven Central. You may need to add that repository explicitly
 in your build, if you haven't done it before. Then add the library in the usual way.
 
 ```kotlin
