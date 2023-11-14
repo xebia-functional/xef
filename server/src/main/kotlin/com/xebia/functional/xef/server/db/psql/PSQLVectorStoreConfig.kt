@@ -3,7 +3,7 @@ package com.xebia.functional.xef.server.db.psql
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import com.xebia.functional.xef.server.db.VectorStoreConfig
-import com.xebia.functional.xef.server.services.PostgreSQLXef
+import com.xebia.functional.xef.server.services.PostgresVectorStoreConfig
 import com.xebia.functional.xef.server.services.PostgresVectorStoreService
 import com.xebia.functional.xef.server.services.RepositoryService
 import com.xebia.functional.xef.store.migrations.PsqlVectorStoreConfig
@@ -30,11 +30,7 @@ class PSQLVectorStoreConfig(
   }
 
   private fun toPGVectorStoreConfig() =
-    PostgreSQLXef.PGVectorStoreConfig(
-      dbConfig = PostgreSQLXef.DBConfig(url = url, user = user, password = password),
-      collectionName = collectionName,
-      vectorSize = vectorSize
-    )
+    PostgresVectorStoreConfig(collectionName = collectionName, vectorSize = vectorSize)
 
   companion object {
     operator fun invoke(

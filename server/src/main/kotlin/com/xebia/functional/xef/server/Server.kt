@@ -4,8 +4,8 @@ import arrow.continuations.SuspendApp
 import arrow.continuations.ktor.server
 import arrow.fx.coroutines.resourceScope
 import com.typesafe.config.ConfigFactory
-import com.xebia.functional.xef.server.db.psql.Migrate
 import com.xebia.functional.xef.server.db.psql.XefDatabaseConfig
+import com.xebia.functional.xef.server.db.psql.runDatabaseMigration
 import com.xebia.functional.xef.server.exceptions.exceptionsHandler
 import com.xebia.functional.xef.server.http.routes.*
 import com.xebia.functional.xef.server.services.PostgresVectorStoreService
@@ -35,7 +35,7 @@ object Server {
     resourceScope {
       val config = ConfigFactory.load("database.conf").resolve()
       val xefDBConfig = XefDatabaseConfig.load("xef", config)
-      Migrate.migrate(xefDBConfig)
+      runDatabaseMigration(xefDBConfig)
 
       val logger = LoggerFactory.getLogger("xef-server")
 

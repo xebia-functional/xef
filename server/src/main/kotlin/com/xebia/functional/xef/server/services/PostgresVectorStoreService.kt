@@ -8,27 +8,22 @@ import com.xebia.functional.xef.store.VectorStore
 import com.xebia.functional.xef.store.postgresql.PGDistanceStrategy
 import com.xebia.functional.xef.store.postgresql.addNewCollection
 import com.xebia.functional.xef.store.postgresql.connection
-import com.zaxxer.hikari.HikariDataSource
+import javax.sql.DataSource
 import kotlinx.uuid.UUID
 import kotlinx.uuid.generateUUID
 import org.slf4j.Logger
 
-object PostgreSQLXef {
-  data class DBConfig(val url: String, val user: String, val password: String)
-
-  data class PGVectorStoreConfig(
-    val dbConfig: DBConfig,
-    val vectorSize: Int = 1536, // OpenAI default
-    val collectionName: String = "xef_collection",
-    val preDeleteCollection: Boolean = false,
-    val chunkSize: Int? = null,
-  )
-}
+data class PostgresVectorStoreConfig(
+  val vectorSize: Int = 1536, // OpenAI default
+  val collectionName: String = "xef_collection",
+  val preDeleteCollection: Boolean = false,
+  val chunkSize: Int? = null,
+)
 
 class PostgresVectorStoreService(
-  private val config: PostgreSQLXef.PGVectorStoreConfig,
+  private val config: PostgresVectorStoreConfig,
   private val logger: Logger,
-  private val dataSource: HikariDataSource
+  private val dataSource: DataSource
 ) : VectorStoreService() {
 
   fun addCollection() {
