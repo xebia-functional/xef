@@ -3,7 +3,7 @@ package com.xebia.functional.xef.prompt
 import com.xebia.functional.openai.models.ChatCompletionRole
 import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage
 import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestUserMessageContent
-import com.xebia.functional.openai.models.ext.chat.create.CreateChatCompletionRequestModel
+import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.prompt.templates.assistant
 import com.xebia.functional.xef.prompt.templates.system
 import com.xebia.functional.xef.prompt.templates.user

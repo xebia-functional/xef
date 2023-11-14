@@ -2,7 +2,7 @@ package com.xebia.functional.xef.prompt.expressions
 
 import com.xebia.functional.openai.apis.ChatApi
 import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage
-import com.xebia.functional.openai.models.ext.chat.create.CreateChatCompletionRequestModel
+import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.prompt
 import com.xebia.functional.xef.prompt.Prompt

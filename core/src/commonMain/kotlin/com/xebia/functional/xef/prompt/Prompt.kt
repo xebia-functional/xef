@@ -2,7 +2,7 @@ package com.xebia.functional.xef.prompt
 
 import com.xebia.functional.openai.models.FunctionObject
 import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage
-import com.xebia.functional.openai.models.ext.chat.create.CreateChatCompletionRequestModel
+import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
 import com.xebia.functional.xef.prompt.templates.user
 import kotlin.jvm.JvmOverloads

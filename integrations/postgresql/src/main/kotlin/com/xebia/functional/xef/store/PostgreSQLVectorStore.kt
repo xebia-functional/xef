@@ -4,7 +4,7 @@ import arrow.atomic.AtomicInt
 import com.xebia.functional.openai.apis.EmbeddingsApi
 import com.xebia.functional.openai.models.ChatCompletionRole
 import com.xebia.functional.openai.models.Embedding
-import com.xebia.functional.openai.models.ext.chat.create.CreateChatCompletionRequestModel
+import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.llm.embedDocuments
 import com.xebia.functional.xef.llm.embedQuery
 import com.xebia.functional.xef.store.postgresql.*

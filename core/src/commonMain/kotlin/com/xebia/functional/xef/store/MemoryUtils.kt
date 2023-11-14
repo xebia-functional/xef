@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.store
 
-import com.xebia.functional.openai.models.ext.chat.create.CreateChatCompletionRequestModel
+import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.llm.tokensFromMessages
 
 fun List<Memory>.reduceByLimitToken(model: CreateChatCompletionRequestModel, limitTokens: Int): List<Memory> {

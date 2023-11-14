@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.store
 
 import com.xebia.functional.openai.models.Embedding
-import com.xebia.functional.openai.models.ext.chat.create.CreateChatCompletionRequestModel
+import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
 
 /**
  * A way of composing two [VectorStore] instances together, this class will **first search** [top],
