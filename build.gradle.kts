@@ -57,10 +57,6 @@ fun includeOrNotModulesToCommand(modules: List<String>, platform: String, includ
     }.toTypedArray()
 }
 
-fun buildExcludeOptions(modules: List<String>): Array<String> {
-  return modules.flatMap { module -> listOf("-x", ":$module:build") }.toTypedArray()
-}
-
 fun getGradleCommand(platform: String): String {
   return if (platform == "mingwX64") "gradlew.bat" else "./gradlew"
 }
