@@ -5,6 +5,7 @@ import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
 import com.xebia.functional.xef.server.http.routes.Provider
 import com.xebia.functional.xef.store.PGVectorStore
 import com.xebia.functional.xef.store.VectorStore
+import com.xebia.functional.xef.store.config.PostgreSQLVectorStoreConfig
 import com.xebia.functional.xef.store.postgresql.PGDistanceStrategy
 import com.xebia.functional.xef.store.postgresql.addNewCollection
 import com.xebia.functional.xef.store.postgresql.connection
@@ -21,9 +22,11 @@ data class PostgresVectorStoreConfig(
 )
 
 class PostgresVectorStoreService(
-  private val config: PostgresVectorStoreConfig,
+  private val config: PostgreSQLVectorStoreConfig,
   private val logger: Logger,
-  private val dataSource: DataSource
+  private val dataSource: DataSource,
+  private val preDeleteCollection: Boolean = false,
+  private val chunkSize: Int? = null,
 ) : VectorStoreService() {
 
   fun addCollection() {
@@ -53,9 +56,9 @@ class PostgresVectorStoreService(
       embeddings = embeddings,
       collectionName = config.collectionName,
       distanceStrategy = PGDistanceStrategy.Euclidean,
-      preDeleteCollection = config.preDeleteCollection,
+      preDeleteCollection = preDeleteCollection,
       requestConfig = RequestConfig(user = RequestConfig.Companion.User("user")),
-      chunkSize = config.chunkSize
+      chunkSize = chunkSize
     )
   }
 }

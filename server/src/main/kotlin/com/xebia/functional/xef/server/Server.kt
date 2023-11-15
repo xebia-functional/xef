@@ -5,13 +5,12 @@ import arrow.continuations.ktor.server
 import arrow.fx.coroutines.resourceScope
 import com.typesafe.config.ConfigFactory
 import com.xebia.functional.xef.server.db.psql.XefDatabaseConfig
-import com.xebia.functional.xef.server.db.psql.runDatabaseMigration
 import com.xebia.functional.xef.server.exceptions.exceptionsHandler
 import com.xebia.functional.xef.server.http.routes.aiRoutes
 import com.xebia.functional.xef.server.http.routes.xefRoutes
-import com.xebia.functional.xef.server.services.PostgresVectorStoreService
-import com.xebia.functional.xef.server.services.VectorStoreService
 import com.xebia.functional.xef.server.services.hikariDataSource
+import com.xebia.functional.xef.server.services.vectorStoreService
+import com.xebia.functional.xef.store.migrations.runDatabaseMigrations
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.auth.Auth
@@ -37,26 +36,23 @@ object Server {
   @JvmStatic
   fun main(args: Array<String>) = SuspendApp {
     resourceScope {
+      val logger = LoggerFactory.getLogger("xef-server")
+
       val config = ConfigFactory.load("database.conf").resolve()
-      val xefDBConfig = XefDatabaseConfig.load("xef", config)
+      val xefDBConfig = XefDatabaseConfig.load("xef-database", config)
 
-      val xefDatasource =
-        hikariDataSource(xefDBConfig.getUrl(), xefDBConfig.user, xefDBConfig.password)
+      println(xefDBConfig)
+      val xefDatasource = hikariDataSource(xefDBConfig.url, xefDBConfig.user, xefDBConfig.password)
 
-      runDatabaseMigration(
+      runDatabaseMigrations(
         xefDatasource,
         xefDBConfig.migrationsTable,
         xefDBConfig.migrationsLocations
       )
 
-      val logger = LoggerFactory.getLogger("xef-server")
-
       Database.connect(xefDatasource)
 
-      val vectorStoreService =
-        VectorStoreService.load("xef-vector-store", config).getVectorStoreService(logger)
-
-      (vectorStoreService as? PostgresVectorStoreService)?.addCollection()
+      vectorStoreService("xef-vector-store", config, logger)
 
       val ktorClient =
         HttpClient(CIO) {
