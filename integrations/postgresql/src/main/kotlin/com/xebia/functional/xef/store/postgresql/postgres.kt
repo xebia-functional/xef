@@ -15,7 +15,7 @@ val createMemoryTable: String =
        uuid TEXT PRIMARY KEY,
        conversation_id TEXT NOT NULL,
        role TEXT NOT NULL,
-       content TEXT UNIQUE NOT NULL,
+       content TEXT NOT NULL,
        index INT NOT NULL
      );"""
     .trimIndent()
