@@ -71,11 +71,11 @@ data class OpenTelemetryConfig(
   }
 
   companion object {
-    val DEFAULT =
+    fun create(serviceName: String, defaultScopeName: String) =
       OpenTelemetryConfig(
         endpointConfig = "http://localhost:4317",
-        defaultScopeName = "io.xef",
-        serviceName = "xef"
+        defaultScopeName = defaultScopeName,
+        serviceName = serviceName
       )
   }
 }

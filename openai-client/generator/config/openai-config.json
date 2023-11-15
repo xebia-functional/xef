@@ -1,0 +1,42 @@
+{
+  "additionalProperties": {
+    "library": "multiplatform",
+    "groupId": "com.xebia.functional",
+    "artifactId": "openai-client",
+    "packageName": "com.xebia.functional.openai"
+  },
+  "schemaMappings": {
+    "FunctionParameters": "kotlinx.serialization.json.JsonObject",
+    "ChatCompletionRequestMessage": "com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage",
+    "ChatCompletionRequestUserMessage_content": "com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestUserMessageContent",
+    "CreateChatCompletionRequest_model": "com.xebia.functional.openai.models.ext.chat.create.CreateChatCompletionRequestModel",
+    "CreateChatCompletionRequest_stop": "com.xebia.functional.openai.models.ext.chat.create.CreateChatCompletionRequestStop",
+    "CreateCompletionRequest_model": "com.xebia.functional.openai.models.ext.completion.create.CreateCompletionRequestModel",
+    "CreateCompletionRequest_prompt": "com.xebia.functional.openai.models.ext.completion.create.CreateCompletionRequestPrompt",
+    "CreateCompletionRequest_stop": "com.xebia.functional.openai.models.ext.completion.create.CreateCompletionRequestStop",
+    "CreateEditRequest_model": "com.xebia.functional.openai.models.ext.edit.create.CreateEditRequestModel",
+    "CreateEmbeddingRequest_input": "com.xebia.functional.openai.models.ext.embedding.create.CreateEmbeddingRequestInput",
+    "CreateEmbeddingRequest_model": "com.xebia.functional.openai.models.ext.embedding.create.CreateEmbeddingRequestModel",
+    "CreateFineTuneRequest_model": "com.xebia.functional.openai.models.ext.finetune.create.CreateFineTuneRequestModel",
+    "CreateFineTuneRequest_hyperparameters_n_epochs": "com.xebia.functional.openai.models.ext.finetune.create.CreateFineTuneRequestHyperparametersNEpochs",
+    "CreateFineTuningJobRequest_hyperparameters_batch_size": "com.xebia.functional.openai.models.ext.finetune.job.create.CreateFineTuningJobRequestHyperparametersBatchSize",
+    "CreateFineTuningJobRequest_hyperparameters_learning_rate_multiplier": "com.xebia.functional.openai.models.ext.finetune.job.create.CreateFineTuningJobRequestHyperparametersLearningRateMultiplier",
+    "CreateFineTuningJobRequest_hyperparameters_n_epochs": "com.xebia.functional.openai.models.ext.finetune.job.create.CreateFineTuningJobRequestHyperparametersNEpochs",
+    "CreateFineTuningJobRequest_model": "com.xebia.functional.openai.models.ext.finetune.job.create.CreateFineTuningJobRequestModel",
+    "CreateImageEditRequest_model": "com.xebia.functional.openai.models.ext.image.edit.create.CreateImageEditRequestModel",
+    "CreateImageRequest_model": "com.xebia.functional.openai.models.ext.image.create.CreateImageRequestModel",
+    "CreateModerationRequest_input": "com.xebia.functional.openai.models.ext.moderation.create.CreateModerationRequestInput",
+    "CreateModerationRequest_model": "com.xebia.functional.openai.models.ext.moderation.create.CreateModerationRequestModel",
+    "CreateSpeechRequest_model": "com.xebia.functional.openai.models.ext.speech.create.CreateSpeechRequestModel",
+    "CreateTranscriptionRequest_model": "com.xebia.functional.openai.models.ext.transcription.create.CreateTranscriptionRequestModel",
+    "FineTuningJobRequest_hyperparameters_n_epochs": "com.xebia.functional.openai.models.ext.finetune.job.FineTuningJobRequestHyperparametersNEpochs",
+    "FineTuningJob_hyperparameters_n_epochs": "com.xebia.functional.openai.models.ext.finetune.job.FineTuningJobHyperparametersNEpochs"
+  },
+  "templateDir": "config",
+  "files": {
+    "api.mustache": {
+      "templateType": "API",
+      "destinationFilename": ".kt"
+    }
+  }
+}

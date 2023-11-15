@@ -35,7 +35,7 @@ private const val KEY_ENV_VAR = "OPENAI_TOKEN"
 private const val HOST_ENV_VAR = "OPENAI_HOST"
 
 class OpenAI(
-  internal var token: String? = null,
+  internal var token: String,
   internal var host: String? = null,
   internal var timeout: Timeout = Timeout.default()
 ) : AutoCloseable, AutoClose by autoClose() {
@@ -54,31 +54,19 @@ class OpenAI(
     }
   }
 
-  private fun openAITokenFromEnv(): String {
-    return getenv(KEY_ENV_VAR)
-      ?: throw AIError.Env.OpenAI(nonEmptyListOf("missing $KEY_ENV_VAR env var"))
-  }
-
   private fun openAIHostFromEnv(): String? {
     return getenv(HOST_ENV_VAR)
   }
 
   fun getToken(): String {
-    return token ?: openAITokenFromEnv()
+    return token
   }
 
   fun getHost(): String? {
     return host
-      ?: run {
-        host = openAIHostFromEnv()
-        host
-      }
   }
 
   init {
-    if (token == null) {
-      token = openAITokenFromEnv()
-    }
     if (host == null) {
       host = openAIHostFromEnv()
     }
@@ -210,11 +198,18 @@ class OpenAI(
 
   companion object {
 
-    @JvmField val FromEnvironment: OpenAI = OpenAI()
+    @JvmStatic
+    fun fromEnvironment(): OpenAI {
+      val token =
+        getenv(KEY_ENV_VAR)
+          ?: throw AIError.Env.OpenAI(nonEmptyListOf("missing $KEY_ENV_VAR env var"))
+      val host = getenv(HOST_ENV_VAR)
+      return OpenAI(token, host)
+    }
 
     @JvmSynthetic
     suspend inline fun <A> conversation(
-      store: VectorStore = LocalVectorStore(FromEnvironment.DEFAULT_EMBEDDING),
+      store: VectorStore = LocalVectorStore(fromEnvironment().DEFAULT_EMBEDDING),
       metric: Metric = Metric.EMPTY,
       noinline block: suspend Conversation.() -> A
     ): A = block(conversation(store, metric))
@@ -225,7 +220,7 @@ class OpenAI(
     @JvmStatic
     @JvmOverloads
     fun conversation(
-      store: VectorStore = LocalVectorStore(FromEnvironment.DEFAULT_EMBEDDING),
+      store: VectorStore = LocalVectorStore(fromEnvironment().DEFAULT_EMBEDDING),
       metric: Metric = Metric.EMPTY
     ): PlatformConversation = Conversation(store, metric)
   }

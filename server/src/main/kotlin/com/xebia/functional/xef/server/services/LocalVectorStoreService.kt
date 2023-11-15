@@ -7,5 +7,5 @@ import com.xebia.functional.xef.store.VectorStore
 
 class LocalVectorStoreService : VectorStoreService() {
   override fun getVectorStore(provider: Provider, token: String?): VectorStore =
-    LocalVectorStore(OpenAI().DEFAULT_EMBEDDING)
+    LocalVectorStore(OpenAI.fromEnvironment().DEFAULT_EMBEDDING)
 }
