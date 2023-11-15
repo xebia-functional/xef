@@ -5,5 +5,5 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class CreateImageEditRequestModel(val value: String) {
-  @SerialName(value = "dall-e-2") `dall-e-2`("dall-e-2")
+  @SerialName(value = "dall-e-2") `dall_e_2`("dall-e-2")
 }
