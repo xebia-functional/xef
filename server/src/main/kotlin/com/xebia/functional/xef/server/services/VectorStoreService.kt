@@ -49,9 +49,13 @@ suspend fun ResourceScope.vectorStoreService(
           postgresVectorStoreConfig.migrationsTable,
           postgresVectorStoreConfig.migrationsLocations
         )
-        PostgresVectorStoreService(postgresVectorStoreConfig, logger, dataSource).also {
-          it.addCollection()
-        }
+        PostgresVectorStoreService(
+            logger,
+            dataSource,
+            postgresVectorStoreConfig.collectionName,
+            postgresVectorStoreConfig.vectorSize
+          )
+          .also { it.addCollection() }
       }
     }
   }
