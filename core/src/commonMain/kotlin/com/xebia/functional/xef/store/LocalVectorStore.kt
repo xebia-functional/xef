@@ -1,5 +1,6 @@
 package com.xebia.functional.xef.store
 
+import ai.xef.openai.OpenAIModel
 import arrow.atomic.Atomic
 import arrow.atomic.AtomicInt
 import arrow.atomic.getAndUpdate
@@ -53,8 +54,8 @@ private constructor(private val embeddings: EmbeddingsApi, private val state: At
     }
   }
 
-  override suspend fun memories(
-    model: CreateChatCompletionRequestModel,
+  override suspend fun <T> memories(
+    model: OpenAIModel<T>,
     conversationId: ConversationId,
     limitTokens: Int
   ): List<Memory> {

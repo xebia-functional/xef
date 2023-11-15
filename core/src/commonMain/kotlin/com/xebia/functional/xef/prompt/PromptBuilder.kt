@@ -1,5 +1,6 @@
 package com.xebia.functional.xef.prompt
 
+import ai.xef.openai.OpenAIModel
 import com.xebia.functional.openai.models.ChatCompletionRole
 import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage
 import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestUserMessageContent
@@ -11,15 +12,15 @@ import kotlin.jvm.JvmSynthetic
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 
-interface PromptBuilder {
+interface PromptBuilder<T> {
   val items: MutableList<ChatCompletionRequestMessage>
 
   fun preprocess(elements: List<ChatCompletionRequestMessage>): List<ChatCompletionRequestMessage>
 
-  fun build(): Prompt
+  fun build(): Prompt<T>
 
   @JvmSynthetic
-  operator fun Prompt.unaryPlus() {
+  operator fun Prompt<T>.unaryPlus() {
     +messages
   }
 
@@ -33,15 +34,15 @@ interface PromptBuilder {
     addMessages(this)
   }
 
-  fun addPrompt(prompt: Prompt): PromptBuilder = apply { addMessages(prompt.messages) }
+  fun addPrompt(prompt: Prompt<T>): PromptBuilder<T> = apply { addMessages(prompt.messages) }
 
-  fun addSystemMessage(message: String): PromptBuilder = apply { addMessage(system(message)) }
+  fun addSystemMessage(message: String): PromptBuilder<T> = apply { addMessage(system(message)) }
 
-  fun addAssistantMessage(message: String): PromptBuilder = apply { addMessage(assistant(message)) }
+  fun addAssistantMessage(message: String): PromptBuilder<T> = apply { addMessage(assistant(message)) }
 
-  fun addUserMessage(message: String): PromptBuilder = apply { addMessage(user(message)) }
+  fun addUserMessage(message: String): PromptBuilder<T> = apply { addMessage(user(message)) }
 
-  fun addMessage(message: ChatCompletionRequestMessage): PromptBuilder = apply {
+  fun addMessage(message: ChatCompletionRequestMessage): PromptBuilder<T> = apply {
     val lastMessageWithSameRole: ChatCompletionRequestMessage? =
       items.lastMessageWithSameRole(message)
     if (lastMessageWithSameRole != null) {
@@ -53,14 +54,14 @@ interface PromptBuilder {
     }
   }
 
-  fun addMessages(messages: List<ChatCompletionRequestMessage>): PromptBuilder = apply {
+  fun addMessages(messages: List<ChatCompletionRequestMessage>): PromptBuilder<T> = apply {
     val last = items.removeLastOrNull()
     items.addAll(((last?.let { listOf(it) } ?: emptyList()) + messages).flatten())
   }
 
   companion object {
 
-    operator fun invoke(model: CreateChatCompletionRequestModel): PlatformPromptBuilder = PlatformPromptBuilder.create(model)
+    operator fun <T> invoke(model: OpenAIModel<T>): PlatformPromptBuilder<T> = PlatformPromptBuilder.create(model)
   }
 }
 

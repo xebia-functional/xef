@@ -1,10 +1,7 @@
 package com.xebia.functional.xef.llm
 
 import com.xebia.functional.openai.apis.ChatApi
-import com.xebia.functional.openai.models.ChatCompletionMessageToolCallChunk
-import com.xebia.functional.openai.models.ChatCompletionMessageToolCallFunction
-import com.xebia.functional.openai.models.CreateChatCompletionRequest
-import com.xebia.functional.openai.models.FunctionObject
+import com.xebia.functional.openai.models.*
 import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage
 import com.xebia.functional.openai.models.ext.chat.stream.createChatCompletionStream
 import com.xebia.functional.xef.conversation.Conversation
@@ -45,7 +42,7 @@ sealed class StreamedFunction<out A> {
     @JvmSynthetic
     internal suspend fun <A> FlowCollector<StreamedFunction<A>>.streamFunctionCall(
       chat: ChatApi,
-      prompt: Prompt,
+      prompt: Prompt<CreateChatCompletionRequestModel>,
       request: CreateChatCompletionRequest,
       scope: Conversation,
       serializer: (json: String) -> A,

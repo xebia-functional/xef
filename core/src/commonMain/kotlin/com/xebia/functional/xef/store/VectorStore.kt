@@ -1,5 +1,6 @@
 package com.xebia.functional.xef.store
 
+import ai.xef.openai.OpenAIModel
 import arrow.atomic.AtomicInt
 import com.xebia.functional.openai.models.Embedding
 import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
@@ -15,8 +16,8 @@ interface VectorStore {
 
   suspend fun addMemories(memories: List<Memory>)
 
-  suspend fun memories(
-    model: CreateChatCompletionRequestModel,
+  suspend fun <T> memories(
+    model: OpenAIModel<T>,
     conversationId: ConversationId, limitTokens: Int): List<Memory>
 
   /**
@@ -57,8 +58,8 @@ interface VectorStore {
 
         override suspend fun addMemories(memories: List<Memory>) {}
 
-        override suspend fun memories(
-          model: CreateChatCompletionRequestModel,
+        override suspend fun <T> memories(
+          model: OpenAIModel<T>,
           conversationId: ConversationId,
           limitTokens: Int
         ): List<Memory> = emptyList()

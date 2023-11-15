@@ -28,7 +28,7 @@ fun chatFunction(fnName: String, schema: JsonObject): FunctionObject =
 
 @AiDsl
 suspend fun <A> ChatApi.prompt(
-  prompt: Prompt,
+  prompt: Prompt<CreateChatCompletionRequestModel>,
   scope: Conversation,
   serializer: KSerializer<A>,
 ): A =
@@ -38,7 +38,7 @@ suspend fun <A> ChatApi.prompt(
 
 @AiDsl
 fun <A> ChatApi.promptStreaming(
-  prompt: Prompt,
+  prompt: Prompt<CreateChatCompletionRequestModel>,
   scope: Conversation,
   serializer: KSerializer<A>,
 ): Flow<StreamedFunction<A>> =
@@ -48,7 +48,7 @@ fun <A> ChatApi.promptStreaming(
 
 @AiDsl
 suspend fun <A> ChatApi.prompt(
-  prompt: Prompt,
+  prompt: Prompt<CreateChatCompletionRequestModel>,
   scope: Conversation,
   function: FunctionObject,
   serializer: (json: String) -> A,
@@ -102,7 +102,7 @@ suspend fun <A> ChatApi.prompt(
 
 @AiDsl
 fun <A> ChatApi.promptStreaming(
-  prompt: Prompt,
+  prompt: Prompt<CreateChatCompletionRequestModel>,
   scope: Conversation,
   function: FunctionObject,
   serializer: (json: String) -> A,

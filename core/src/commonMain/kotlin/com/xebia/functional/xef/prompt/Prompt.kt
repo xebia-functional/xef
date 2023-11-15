@@ -1,5 +1,6 @@
 package com.xebia.functional.xef.prompt
 
+import ai.xef.openai.OpenAIModel
 import com.xebia.functional.openai.models.FunctionObject
 import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage
 import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
@@ -12,26 +13,26 @@ import kotlin.jvm.JvmSynthetic
  * A Prompt is a serializable list of messages and its configuration. The messages may involve
  * different roles.
  */
-data class Prompt
+data class Prompt<T>
 @JvmOverloads
 constructor(
-  val model : CreateChatCompletionRequestModel,
+  val model : OpenAIModel<T>,
   val messages: List<ChatCompletionRequestMessage>,
   val function: FunctionObject? = null,
   val configuration: PromptConfiguration = PromptConfiguration.DEFAULTS
 ) {
 
-  constructor(model : CreateChatCompletionRequestModel, value: String) : this(model, listOf(user(value)), null)
+  constructor(model : OpenAIModel<T>, value: String) : this(model, listOf(user(value)), null)
 
   constructor(
-    model : CreateChatCompletionRequestModel,
+    model : OpenAIModel<T>,
     value: String,
     configuration: PromptConfiguration
   ) : this(model, listOf(user(value)), null, configuration)
 
   companion object {
     @JvmSynthetic
-    operator fun invoke(model : CreateChatCompletionRequestModel, block: PlatformPromptBuilder.() -> Unit): Prompt =
+    operator fun <T> invoke(model : OpenAIModel<T>, block: PlatformPromptBuilder<T>.() -> Unit): Prompt<T> =
       PlatformPromptBuilder.create(model).apply { block() }.build()
   }
 }

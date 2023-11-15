@@ -1,5 +1,6 @@
 package com.xebia.functional.xef.prompt.evaluator
 
+import ai.xef.openai.StandardModel
 import com.xebia.functional.openai.apis.ChatApi
 import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.conversation.Conversation
@@ -165,7 +166,7 @@ ${scoreConfig.joinToString("\n") { printReturn(it) }}
     val result: List<String> =
       model.promptMessages(
         prompt =
-          Prompt(requestModel) {
+          Prompt(StandardModel(requestModel)) {
             +system(message)
             +user("Set Prompt = $prompt")
             +user("Set Response = $response")
