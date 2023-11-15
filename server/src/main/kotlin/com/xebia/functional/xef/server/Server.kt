@@ -41,7 +41,6 @@ object Server {
       val config = ConfigFactory.load("database.conf").resolve()
       val xefDBConfig = XefDatabaseConfig.load("xef-database", config)
 
-      println(xefDBConfig)
       val xefDatasource = hikariDataSource(xefDBConfig.url, xefDBConfig.user, xefDBConfig.password)
 
       runDatabaseMigrations(
