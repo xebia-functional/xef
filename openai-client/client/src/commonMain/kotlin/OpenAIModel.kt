@@ -13,39 +13,16 @@ import kotlinx.serialization.encoding.Encoder
 @Serializable(with = OpenAIModelSerializer::class)
 sealed interface OpenAIModel<T> {
 
-  fun value(): String = TODO()
+  fun value(): String =
+    when (this) {
+      is CustomModel -> model
+      is StandardModel -> model.toString()
+    }
 
-  fun modelType(): ModelType = TODO()
-  //    get() =
-  //      when (this) {
-  //        is CreateChatCompletionRequestModel.Custom -> TODO()
-  //        is CreateChatCompletionRequestModel.Standard ->
-  //          when (this) {
-  //            CreateChatCompletionRequestModel.Standard.gpt_4_vision_preview ->
-  // ModelType.GPT_4_VISION_PREVIEW
-  //            CreateChatCompletionRequestModel.Standard.gpt_4_1106_preview ->
-  // ModelType.GPT_4_TURBO_1106_PREVIEW
-  //            CreateChatCompletionRequestModel.Standard.gpt_4 -> ModelType.GPT_4
-  //            CreateChatCompletionRequestModel.Standard.gpt_4_0314 -> ModelType.GPT_4_0314
-  //            CreateChatCompletionRequestModel.Standard.gpt_4_0613 -> ModelType.GPT_4_0613
-  //            CreateChatCompletionRequestModel.Standard.gpt_4_32k -> ModelType.GPT_4_32K
-  //            CreateChatCompletionRequestModel.Standard.gpt_4_32k_0314 ->
-  // ModelType.GPT_4_32_K_0314
-  //            CreateChatCompletionRequestModel.Standard.gpt_4_32k_0613 ->
-  // ModelType.GPT_4_32K_0613_FUNCTIONS
-  //            CreateChatCompletionRequestModel.Standard.gpt_3_5_turbo_1106 ->
-  // ModelType.GPT_3_5_TURBO_16_K
-  //            CreateChatCompletionRequestModel.Standard.gpt_3_5_turbo -> ModelType.GPT_3_5_TURBO
-  //            CreateChatCompletionRequestModel.Standard.gpt_3_5_turbo_16k ->
-  // ModelType.GPT_3_5_TURBO_16_K
-  //            CreateChatCompletionRequestModel.Standard.gpt_3_5_turbo_0301 ->
-  // ModelType.GPT_3_5_TURBO_0301
-  //            CreateChatCompletionRequestModel.Standard.gpt_3_5_turbo_0613 ->
-  // ModelType.GPT_3_5_TURBO_0613
-  //            CreateChatCompletionRequestModel.Standard.gpt_3_5_turbo_16k_0613 ->
-  // ModelType.GPT_3_5_TURBO_FUNCTIONS
-  //          }
-  //      }
+  fun modelType(): ModelType {
+    val stringValue = value()
+    return ModelType.all.find { it.name == stringValue } ?: ModelType.TODO(stringValue)
+  }
 }
 
 @Serializable @JvmInline value class CustomModel<T>(val model: String) : OpenAIModel<T>
@@ -60,7 +37,6 @@ class OpenAIModelSerializer<T>(private val dataSerializer: KSerializer<T>) :
     when (value) {
       is CustomModel<T> -> String.serializer().serialize(encoder, value.model)
       is StandardModel<T> -> dataSerializer.serialize(encoder, value.model)
-      else -> {}
     }
 
   override fun deserialize(decoder: Decoder) =
