@@ -1,206 +1,155 @@
 package com.xebia.functional.xef.sql
 
-import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.AiDsl
+import com.xebia.functional.xef.conversation.Conversation
+import com.xebia.functional.xef.conversation.Description
+import com.xebia.functional.xef.llm.ChatWithFunctions
 import com.xebia.functional.xef.prompt.Prompt
+import com.xebia.functional.xef.prompt.templates.system
+import com.xebia.functional.xef.prompt.templates.user
+import com.xebia.functional.xef.sql.ResultSetOps.toQueryResult
 import com.xebia.functional.xef.sql.jdbc.JdbcConfig
-import com.xebia.functional.xef.textsplitters.TokenTextSplitter
 import io.github.oshai.kotlinlogging.KotlinLogging
-import java.sql.Connection
-import java.sql.DriverManager
-import java.sql.ResultSet
-import java.util.Properties
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.serializer
+import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.name
+import org.jetbrains.exposed.sql.transactions.transaction
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 interface SQL {
-
-  companion object {
-    suspend fun <A> fromJdbcConfig(config: JdbcConfig, block: suspend SQL.() -> A) : A = JDBCSQLImpl(config).use {
-      block(it)
+    companion object {
+        suspend fun <A> fromJdbcConfig(config: JdbcConfig, block: suspend SQL.() -> A): A = block(
+            SQLImpl(
+                config.model,
+                Database.connect(url = config.toJDBCUrl(), user = config.username, password = config.password)
+            )
+        )
     }
 
-    fun fromJdbcConfigSync(config: JdbcConfig): SQL {
-      return JDBCSQLImpl(config)
+    /**
+     * Generates a SQL query and obtains the table data from a user's prompt.
+     *
+     * @param prompt The input prompt.
+     * @param tableNames A list of table names that may be needed for query generation.
+     * @param context Additional context information.
+     * @return An AnswerResponse object containing the response, query details, and result tables.
+     */
+    @AiDsl
+    suspend fun Conversation.promptQuery(prompt: String, tableNames: List<String>, context: String?): AnswerResponse
+}
+
+class SQLImpl(private val model: ChatWithFunctions, private val db: Database) : SQL {
+    private val logger = KotlinLogging.logger {}
+
+    override suspend fun Conversation.promptQuery(
+        prompt: String,
+        tableNames: List<String>,
+        context: String?
+    ): AnswerResponse {
+        val queriesAnswer = query(prompt, tableNames, context)
+        val mainTable = queriesAnswer.mainQuery?.takeIf { it.isNotBlank() }?.let { executeSQL(it) }
+        val detailedTable = queriesAnswer.detailedQuery?.takeIf { it.isNotBlank() }?.let { executeSQL(it) }
+        val friendlyResponse = queriesAnswer.replaceFriendlyResponse(mainTable)
+
+        logger.info { "Main query: ${queriesAnswer.mainQuery}" }
+        logger.info { "Detailed query: ${queriesAnswer.detailedQuery}" }
+        logger.info { "Friendly response: $friendlyResponse" }
+
+        return AnswerResponse(
+            input = prompt,
+            answer = friendlyResponse,
+            mainQuery = queriesAnswer.mainQuery,
+            detailedQuery = queriesAnswer.detailedQuery,
+            mainTable = mainTable,
+            detailedTable = detailedTable
+        )
     }
-  }
 
-  /**
-   * Generates SQL from the DDL and input prompt
-   */
-  @AiDsl
-  suspend fun Conversation.sql(ddl: String, input: String): String
+    private fun executeSQL(sql: String): QueryResult = transaction {
+        runCatching { connection.prepareStatement(sql, false).executeQuery().toQueryResult() }.getOrElse {
+            logger.info { "Failing executing SQL query: $sql" }
+            QueryResult.empty()
+        }
+    }
 
-  /**
-   * Chooses a subset of tables from the list of [tableNames] based on the [prompt]
-   */
-  @AiDsl
-  suspend fun Conversation.selectTablesForPrompt(tableNames: String, prompt: String): String
+    private suspend fun Conversation.query(
+        input: String,
+        tableNames: List<String>,
+        context: String?
+    ): QueriesAnswer {
+        val prompt = Prompt {
+            +system(
+                """
+                 As an SQL expert, your main goal is to generate SQL queries, but you must be able to answer any SQL-related question that solves the input.
 
-  /**
-   * Returns a list of documents found in the database for the given [prompt]
-   */
-  @AiDsl
-  suspend fun Conversation.promptQuery(prompt: String): List<String>
+                 Keep into account today's date is ${LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))}
+                 The queries have to be compatible with ${db.vendor} in the version ${db.version}.
+                 You must always use aliases to generate the queries.
+                 
+                 The database name is: ${db.name}
+                 We have the tables named: ${tableNames.joinToString(", ")} whose SQL schema are the next:
+                 ${tableDDL(tableNames)}
+                 
+                 "${context?.let { "Analyse the following context to accurate the answer: $it" }}"
+                 
+                 Please check the fields of the tables to be able to generate consistent and valid SQL results. 
+                 Make sure that the result includes all the mandatory fields, and analyze if the optional ones are needed.
 
-  /**
-   * Returns a recommendation of prompts that are interesting for the database
-   * based on the internal ddl schema
-   */
-  @AiDsl
-  suspend fun Conversation.getInterestingPromptsForDatabase(): String
+                 In case you have to generate a SQL query to solve the input:
+                     - Select from this list of tables the SQL tables that you need to generate the query.
+                     - Generate a main SQL query that has to satisfy the input of the user if it's possible.
+                     - If the SQL query is successfully generated, provide a friendly sentence summary; otherwise, provide a friendly notice of failure.
+                     - If the query generated returns an amount, the friendly sentence can refer the data with XXX and you have to generate a another query to show the disaggregated data.
+                     - If the friendly sentence refers the data with XXX, add the column name to extract the value to replace it when I run the query.
+                """.trimIndent()
+            )
+            +user(
+                """
+                |```input
+                |$input
+                |```
+            """.trimIndent()
+            )
+        }
+
+        return model.prompt(
+            prompt = prompt,
+            scope = this,
+            serializer = serializer<QueriesAnswer>()
+        )
+    }
 
 }
 
-private class JDBCSQLImpl(
-  private val config: JdbcConfig
-) : SQL, Connection by jdbcConnection(config) {
 
-  val logger = KotlinLogging.logger {}
-
-  override suspend fun Conversation.promptQuery(
-    prompt: String,
-  ): List<String> {
-    val tableNames = getTableNames().joinToString("\n")
-    val selection = selectTablesForPrompt(tableNames, prompt)
-    logger.debug { "Selected tables: $selection" }
-    val tables = selection.split(",").map {  it.trim() }
-    val ddl = tables.joinToString("\n") { getTableDDL(it) }
-    val sql = sql(ddl, prompt).trim()
-    logger.debug { "SQL: $sql" }
-    return documentsForQuery(prompt, sql)
-  }
-
-  override suspend fun Conversation.selectTablesForPrompt(
-    tableNames: String, prompt: String
-  ): String = config.model.promptMessage(
-    Prompt("""|You are an AI assistant which selects the best tables from which the `goal` can be accomplished.
-     |Select from this list of SQL `tables` the tables that you may need to solve the following `goal`
-     |```tables
-     |$tableNames
-     |```
-     |```goal
-     |$prompt
-     |```
-     |Instructions:
-     |1. Select the table that you think is the best to solve the `goal`.
-     |2. The tables should be selected from the list of tables above.
-     |3. The tables should be selected by their name.
-     |4. Your response should include a list of tables separated by a comma.
-     |Selection:""".trimMargin())
-  )
-
-  private suspend fun documentsForQuery(
-    prompt: String,
-    sql: String,
-  ): List<String> = prepareStatement(sql).use { statement ->
-    statement.executeQuery().use { resultSet ->
-      val results = resultSet.toDocuments(prompt)
-      logger.debug { "Found: ${results.size} records" }
-      val splitter = TokenTextSplitter(
-        modelType = config.model.modelType, chunkSize = config.model.modelType.maxContextLength / 2, chunkOverlap = 10
-      )
-      val splitDocuments = splitter.splitDocuments(results)
-      logger.debug { "Split into: ${splitDocuments.size} documents" }
-      splitDocuments
-    }
-  }
-
-  override suspend fun Conversation.sql(ddl: String, input: String): String = config.model.promptMessage(
-    Prompt("""|
-       |You are an AI assistant which produces SQL SELECT queries in SQL format.
-       |You only reply in valid SQL SELECT queries.
-       |You don't produce any other type of responses.
-       |Instructions:
-       |
-       |1. Produce a SELECT SQL query exclusively using this DDL:
-       |```ddl
-       |$ddl
-       |```
-       |2. The query should be a valid SELECT SQL query which produces relevant data for the following goal: 
-       |```goal
-       |$input
-       |```
-       |3. If the `goal` does not specify a limit the query must include a LIMIT 50 clause at the end.
-       |4. The query should only select from the fields needed to solve the `goal`.
-       |4. Under no circumstances the query should contain queries that perform updates, inserts, sets or deletes. Exclusively `select` statements should be provided as response.
-       |5. IMPORTANT! No data destructive or mutating queries should be produced or someone may get hurt, it's not up to me, it's up to you.
-       |6. The response should be a single line with no additional lines or characters and start with: SELECT...
-       |7. Consider the user does not provide the `goal` in the same language as the `ddl` is expressed when generating the query.
-       |```
-    """.trimMargin())
-  )
-
-  override suspend fun Conversation.getInterestingPromptsForDatabase(): String = config.model.promptMessage(
-    Prompt("""|You are an AI assistant which replies with a list of the best prompts based on the content of this database:
-       |Instructions:
-       |1. Select from this `ddl` 3 top prompts that the user could ask about this database
-       |   in order to interact with it. 
-       |```ddl
-       |${getTableNames().joinToString("\n\n") { getTableDDL(it) }}
-       |```
-       |2. Do not include prompts about system, user and permissions related tables.
-       |3. Return the list of recommended prompts separated by a comma.
-       |""".trimMargin())
-  )
-
-  private fun getTableNames(): List<String> =
-    metaData.getTables(null, null, "%", arrayOf("TABLE")).use { rs ->
-      val tableNames = mutableListOf<String>()
-      while (rs.next()) {
-        tableNames.add(rs.getString("TABLE_NAME"))
-      }
-      tableNames
-    }
-
-  private fun getTableDDL(tableName: String): String =
-    metaData.getColumns(null, null, tableName, null).use { rs ->
-      buildString {
-        append("CREATE TABLE $tableName (\n")
-        while (rs.next()) {
-          val columnName = rs.getString("COLUMN_NAME")
-          val dataTypeName = rs.getString("TYPE_NAME")
-          val columnSize = rs.getString("COLUMN_SIZE")
-          append("  $columnName $dataTypeName($columnSize),\n")
-        }
-        deleteCharAt(length - 2) // Remove the last comma
-        append(");")
-      }
-    }
-
-  /**
-   * Converts a JDBC ResultSet into a list of documents
-   */
-  private fun ResultSet.toDocuments(prompt: String): List<String> {
-    val metaData = this.metaData
-    val numColumns = metaData.columnCount
-    val rows = mutableListOf<String>()
-    while (this.next()) {
-      val id = this.getString(1) // Get the ID from the first column
-      if (id != null) {
-        for (i in 2..numColumns) { // Start from the second column
-          val value = this.getString(i)
-          if (value != null) {
-            val jsonEscaped = Json.encodeToString(value)
-            val fieldName = metaData.getColumnName(i)
-            val tableName = metaData.getTableName(i)
-            // Each row is represented as a JSON object with ID, field name, and table name
-            val row = "prompt: $prompt, tableName: $tableName, id: $id, $fieldName: $jsonEscaped\n"
-            rows.add(row)
-          }
-        }
-      }
-    }
-    return rows
-  }
-
-  companion object {
-    private fun jdbcConnection(config: JdbcConfig): Connection {
-      val connectionProps = Properties().apply {
-        put("user", config.username)
-        put("password", config.password)
-      }
-      return DriverManager.getConnection(config.toJDBCUrl(), connectionProps)
-    }
-  }
+@Serializable
+@Description("SQL queries")
+data class QueriesAnswer(
+    @Description("The main SQL that satisfies the input of the user.")
+    val mainQuery: String?,
+    @Description("Friendly sentence that summarize the output.")
+    val friendlyResponse: String,
+    @Description("Column name to extract the data to replace the placeholder.")
+    val columnToReplace: String?,
+    @Description("SQL to show the disaggregated data.")
+    val detailedQuery: String?
+) {
+    fun replaceFriendlyResponse(result: QueryResult?): String =
+        if (friendlyResponse.contains("XXX")) {
+            val value = columnToReplace?.let { colName ->
+                result?.let { r -> r.rows.firstOrNull()?.elementAtOrNull(r.index(colName)) }
+            } ?: ""
+            friendlyResponse.replace("XXX", value)
+        } else friendlyResponse
 }
+
+data class AnswerResponse(
+    val input: String,
+    val answer: String,
+    val mainQuery: String?,
+    val detailedQuery: String?,
+    val mainTable: QueryResult?,
+    val detailedTable: QueryResult?
+)
