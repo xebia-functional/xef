@@ -1,0 +1,150 @@
+name: Check OpenAI API
+
+on:
+  workflow_dispatch:
+
+jobs:
+  checkAPIVersion:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Octokit Action
+        run: npm install @octokit/action
+      - name: Get latest API commit
+        id: get-latest-commit
+        uses: actions/github-script@v6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          result-encoding: string
+          script: '
+            const { Octokit } = require("@octokit/action");
+            const octokit = new Octokit();
+            const owner = ''openai'';
+            const repo = ''openai-openapi'';
+            const filePath = ''openapi.yaml'';
+            const branch = ''master'';
+            const commits = await octokit.repos.listCommits({
+              owner,
+              repo,
+              path: filePath,
+              ref: branch
+            });
+            return commits.data[0].sha.trim();
+            '
+      - name: Get result latest API commit
+        run: | 
+          LATEST_API_COMMIT="${{steps.get-latest-commit.outputs.result}}"
+          echo "LATEST_API_COMMIT=$LATEST_API_COMMIT" >> $GITHUB_ENV
+      - name: Get current API commit
+        id: get-current-commit
+        uses: actions/github-script@v6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          result-encoding: string
+          script: '
+            const { Octokit } = require("@octokit/action");
+            const octokit = new Octokit();
+            const owner = ''xebia-functional'';
+            const repo = ''xef'';
+            const filePath = ''openai-client/generator/config/openai-api-commit'';
+            const branch = ''main'';
+            const response = await octokit.repos.getContent({
+              owner,
+              repo,
+              path: filePath,
+              ref: branch,
+            });
+            const content = Buffer.from(response.data.content, ''base64'').toString(''utf-8'');
+            return content.trim();
+            '
+      - name: Get result current API commit
+        run: |
+          CURRENT_API_COMMIT="${{steps.get-current-commit.outputs.result}}"
+          echo "CURRENT_API_COMMIT=$CURRENT_API_COMMIT" >> $GITHUB_ENV
+      - name: Check existing PR
+        if: env.CURRENT_API_COMMIT != env.LATEST_API_COMMIT
+        id: get-pr-commit
+        uses: actions/github-script@v6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          result-encoding: string
+          script: '
+            const { Octokit } = require("@octokit/action");
+            const octokit = new Octokit();
+            const owner = ''xebia-functional'';
+            const repo = ''xef'';
+            const filePath = ''openai-client/generator/config/openai-api-commit'';
+            const existing = await octokit.pulls.list({
+              owner,
+              repo,
+              head: ''xebia-functional:update/openai-client''
+            });
+
+            if (existing.data.length > 0) {
+              const prCommit = existing.data[0].head.sha;
+              const response = await octokit.repos.getContent({
+                owner,
+                repo,
+                path: filePath,
+                ref: prCommit
+              });
+              const prApiCommit = Buffer.from(response.data.content, ''base64'').toString(''utf-8'').trim();
+              
+              if (prApiCommit === ''${{ env.LATEST_API_COMMIT }}'') {
+                return prApiCommit;
+              } else {
+                return '''';
+              }
+              
+            } else {
+              return '''';
+            }
+            '
+      - name: Update current commit with PR
+        if: env.CURRENT_API_COMMIT != env.LATEST_API_COMMIT
+        run: |
+          PR_API_COMMIT="${{steps.get-pr-commit.outputs.result}}"          
+          if [[ ! -z "$PR_API_COMMIT" ]] 
+          then
+              echo "CURRENT_API_COMMIT=$PR_API_COMMIT" >> $GITHUB_ENV
+          else
+              echo "Previous PR outdated or nonexistent"
+          fi
+      - name: Checkout
+        if: env.CURRENT_API_COMMIT != env.LATEST_API_COMMIT
+        uses: actions/checkout@v4
+      - name: Update commit
+        if: env.CURRENT_API_COMMIT != env.LATEST_API_COMMIT
+        run: |
+          echo $LATEST_API_COMMIT > $GITHUB_WORKSPACE/openai-client/generator/config/openai-api-commit
+      - name: Set up Java
+        if: env.CURRENT_API_COMMIT != env.LATEST_API_COMMIT
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: 20
+      - name: Download new API spec
+        if: env.CURRENT_API_COMMIT != env.LATEST_API_COMMIT
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: downloadOpenAIAPI
+      - name: Generate new OpenAI client
+        if: env.CURRENT_API_COMMIT != env.LATEST_API_COMMIT
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: openaiClientGenerate
+      - name: Spotless Apply
+        if: env.CURRENT_API_COMMIT != env.LATEST_API_COMMIT
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: spotlessApply
+      - name: Create PR
+        if: env.CURRENT_API_COMMIT != env.LATEST_API_COMMIT
+        uses: peter-evans/create-pull-request@v5
+        with:
+          commit-message: 'Update OpenAI Client'
+          branch: update/openai-client
+          title: 'Update OpenAI client'
+          body: 'Updates the OpenAI client based on the latest changes.'

@@ -4,27 +4,30 @@ import arrow.continuations.SuspendApp
 import arrow.continuations.ktor.server
 import arrow.fx.coroutines.resourceScope
 import com.typesafe.config.ConfigFactory
-import com.xebia.functional.xef.server.db.psql.Migrate
 import com.xebia.functional.xef.server.db.psql.XefDatabaseConfig
 import com.xebia.functional.xef.server.exceptions.exceptionsHandler
-import com.xebia.functional.xef.server.http.routes.*
-import com.xebia.functional.xef.server.services.PostgresVectorStoreService
-import com.xebia.functional.xef.server.services.RepositoryService
-import com.xebia.functional.xef.server.services.VectorStoreService
-import io.ktor.client.*
-import io.ktor.client.engine.cio.*
-import io.ktor.client.plugins.auth.*
+import com.xebia.functional.xef.server.http.routes.aiRoutes
+import com.xebia.functional.xef.server.http.routes.xefRoutes
+import com.xebia.functional.xef.server.services.hikariDataSource
+import com.xebia.functional.xef.server.services.vectorStoreService
+import com.xebia.functional.xef.store.migrations.runDatabaseMigrations
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.cio.CIO
+import io.ktor.client.plugins.auth.Auth
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation as ClientContentNegotiation
-import io.ktor.client.plugins.logging.*
-import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
-import io.ktor.server.application.*
-import io.ktor.server.auth.*
-import io.ktor.server.netty.*
-import io.ktor.server.plugins.contentnegotiation.*
-import io.ktor.server.plugins.cors.routing.*
-import io.ktor.server.resources.*
-import io.ktor.server.routing.*
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logging
+import io.ktor.http.HttpMethod
+import io.ktor.serialization.kotlinx.json.json
+import io.ktor.server.application.install
+import io.ktor.server.auth.Authentication
+import io.ktor.server.auth.UserIdPrincipal
+import io.ktor.server.auth.bearer
+import io.ktor.server.netty.Netty
+import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.plugins.cors.routing.CORS
+import io.ktor.server.resources.Resources
+import io.ktor.server.routing.routing
 import kotlinx.coroutines.awaitCancellation
 import org.jetbrains.exposed.sql.Database
 import org.slf4j.LoggerFactory
@@ -33,24 +36,22 @@ object Server {
   @JvmStatic
   fun main(args: Array<String>) = SuspendApp {
     resourceScope {
-      val config = ConfigFactory.load("database.conf").resolve()
-      val xefDBConfig = XefDatabaseConfig.load("xef", config)
-      Migrate.migrate(xefDBConfig)
-
       val logger = LoggerFactory.getLogger("xef-server")
 
-      val hikariDataSourceXefDB =
-        RepositoryService.getHikariDataSource(
-          xefDBConfig.getUrl(),
-          xefDBConfig.user,
-          xefDBConfig.password
-        )
-      Database.connect(hikariDataSourceXefDB)
+      val config = ConfigFactory.load("database.conf").resolve()
+      val xefDBConfig = XefDatabaseConfig.load("xef-database", config)
 
-      val vectorStoreService =
-        VectorStoreService.load("xef-vector-store", config).getVectorStoreService(logger)
+      val xefDatasource = hikariDataSource(xefDBConfig.url, xefDBConfig.user, xefDBConfig.password)
 
-      (vectorStoreService as? PostgresVectorStoreService)?.addCollection()
+      runDatabaseMigrations(
+        xefDatasource,
+        xefDBConfig.migrationsTable,
+        xefDBConfig.migrationsLocations
+      )
+
+      Database.connect(xefDatasource)
+
+      vectorStoreService("xef-vector-store", config, logger)
 
       val ktorClient =
         HttpClient(CIO) {
