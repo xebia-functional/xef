@@ -8,27 +8,18 @@ import com.xebia.functional.xef.store.VectorStore
 import com.xebia.functional.xef.store.postgresql.PGDistanceStrategy
 import com.xebia.functional.xef.store.postgresql.addNewCollection
 import com.xebia.functional.xef.store.postgresql.connection
-import com.zaxxer.hikari.HikariDataSource
+import javax.sql.DataSource
 import kotlinx.uuid.UUID
 import kotlinx.uuid.generateUUID
 import org.slf4j.Logger
 
-object PostgreSQLXef {
-  data class DBConfig(val url: String, val user: String, val password: String)
-
-  data class PGVectorStoreConfig(
-    val dbConfig: DBConfig,
-    val vectorSize: Int = 1536, // OpenAI default
-    val collectionName: String = "xef_collection",
-    val preDeleteCollection: Boolean = false,
-    val chunkSize: Int? = null,
-  )
-}
-
 class PostgresVectorStoreService(
-  private val config: PostgreSQLXef.PGVectorStoreConfig,
   private val logger: Logger,
-  private val dataSource: HikariDataSource
+  private val dataSource: DataSource,
+  private val collectionName: String,
+  private val vectorSize: Int,
+  private val preDeleteCollection: Boolean = false,
+  private val chunkSize: Int? = null,
 ) : VectorStoreService() {
 
   fun addCollection() {
@@ -37,9 +28,9 @@ class PostgresVectorStoreService(
       val uuid = UUID.generateUUID()
       update(addNewCollection) {
           bind(uuid.toString())
-          bind(config.collectionName)
+          bind(collectionName)
         }
-        .also { logger.info("Created collection ${config.collectionName}") }
+        .also { logger.info("Created collection $collectionName") }
     }
   }
 
@@ -53,14 +44,14 @@ class PostgresVectorStoreService(
       }
 
     return PGVectorStore(
-      vectorSize = config.vectorSize,
+      vectorSize = vectorSize,
       dataSource = dataSource,
       embeddings = embeddings,
-      collectionName = config.collectionName,
+      collectionName = collectionName,
       distanceStrategy = PGDistanceStrategy.Euclidean,
-      preDeleteCollection = config.preDeleteCollection,
+      preDeleteCollection = preDeleteCollection,
       requestConfig = RequestConfig(user = RequestConfig.Companion.User("user")),
-      chunkSize = config.chunkSize
+      chunkSize = chunkSize
     )
   }
 }
