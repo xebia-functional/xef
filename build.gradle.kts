@@ -28,17 +28,14 @@ fun Project.configureBuildAndTestTask(taskName: String, moduleType: ModulePlatfo
 
     doLast {
       when (moduleType) {
-          ModulePlatformType.SINGLE -> {
-              val excludedModules = includeOrNotModulesToCommand(multiPlatformModules, platform, false)
-              println("modulesToExclude: ${excludedModules.toList()}")
-              project.exec { commandLine(gradleCommand, "build", *excludedModules) }
-          }
-
-          ModulePlatformType.MULTI -> {
-            val includedModules = includeOrNotModulesToCommand(multiPlatformModules, platform, true)
-              println("modulesToInclude: ${includedModules.toList()}")
-            project.exec { commandLine(gradleCommand, *includedModules) }
-          }
+        ModulePlatformType.SINGLE -> {
+          val excludedModules = includeOrNotModulesToCommand(multiPlatformModules, platform, false)
+          project.exec { commandLine(gradleCommand, "build", *excludedModules) }
+        }
+        ModulePlatformType.MULTI -> {
+          val includedModules = includeOrNotModulesToCommand(multiPlatformModules, platform, true)
+          project.exec { commandLine(gradleCommand, *includedModules) }
+        }
       }
     }
   }
