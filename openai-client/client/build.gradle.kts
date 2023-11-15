@@ -27,7 +27,7 @@ java {
 detekt {
     toolVersion = "1.23.1"
     source = files("src/commonMain/kotlin", "src/jvmMain/kotlin")
-    config.setFrom("../config/detekt/detekt.yml")
+    config.setFrom("../../config/detekt/detekt.yml")
     autoCorrect = true
 }
 

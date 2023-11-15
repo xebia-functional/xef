@@ -13,6 +13,12 @@ tasks.test {
     useJUnitPlatform()
 }
 
+task("downloadOpenAIAPI", JavaExec::class) {
+    group = "GenerateTasks"
+    mainClass = "ai.xef.openai.generator.DownloadOpenAIAPI"
+    classpath = sourceSets["main"].runtimeClasspath
+}
+
 task("openaiClientGenerate", JavaExec::class) {
     group = "GenerateTasks"
     mainClass = "org.openapitools.codegen.OpenAPIGenerator"

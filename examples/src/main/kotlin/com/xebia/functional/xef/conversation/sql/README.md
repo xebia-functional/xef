@@ -9,11 +9,14 @@ For this example we are using a docker container with a mysql database with some
 
 # Steps to run
 
-### Build and  up the mysql container
-`./gradlew xef-kotlin-examples:docker-sql-example-up`
+### Build and up the mysql container
+`./gradlew xef-examples:docker-sql-example-up`
 
 ### Create the database and populate it with some data:
-`./gradlew xef-kotlin-examples:docker-sql-example-create`
+`./gradlew xef-examples:docker-sql-example-populate`
  
 ### Set OPENAI_TOKEN and run the example
-`env OPENAI_TOKEN=<your-token> ./gradlew xef-kotlin-examples:run-sql-example`
+`env OPENAI_TOKEN=<your-token> ./gradlew xef-examples:run-sql-example`
+
+### Clean up the mysql container
+`./gradlew xef-examples:docker-sql-example-down`
