@@ -15,59 +15,51 @@ allprojects {
     group = property("project.group").toString()
 }
 
-fun isMultiplatformModule(project: Project): Boolean {
-  val kotlinPluginId = "libs.plugins.kotlin.multiplatform"
-  return project.buildFile.readText().contains(kotlinPluginId)
-}
-
-val multiPlatformModules = project.subprojects.filter { isMultiplatformModule(it) }.map { it.name }
-
-enum class ModuleType { SINGLEPLATFORM, MULTIPLATFORM }
-
-fun Project.configureBuildAndTestTask(
-  taskName: String,
-  moduleType: ModuleType,
-  multiPlatformModules: List<String>
-) {
+fun Project.configureBuildAndTestTask(taskName: String, moduleType: ModulePlatformType) {
   val platform: String by extra
+  val multiPlatformModules = project.subprojects.filter { isMultiPlatformModule(it) }.map { it.name }
+
   tasks.register(taskName) {
+    val gradleCommand = getGradleCommand(platform)
+
+    doFirst {
+        project.exec {commandLine(gradleCommand, "spotlessCheck") }
+    }
+
     doLast {
-      val gradleCommand = getGradleCommand(platform)
-      project.exec {
-        commandLine(gradleCommand, "spotlessCheck")
-      }
-      project.exec {
-        when (moduleType) {
-          ModuleType.SINGLEPLATFORM -> {
-            commandLine(gradleCommand, "build", *buildExcludeOptions(multiPlatformModules))
-          }
-          ModuleType.MULTIPLATFORM -> {
-            multiPlatformModules.forEach { module ->
-              commandLine(gradleCommand, ":$module:${platform}Test")
-            }
-          }
+      when (moduleType) {
+        ModulePlatformType.SINGLE -> {
+          val excludedModules = includeOrNotModulesToCommand(multiPlatformModules, platform, false)
+          project.exec { commandLine(gradleCommand, "build", *excludedModules) }
+        }
+        ModulePlatformType.MULTI -> {
+          val includedModules = includeOrNotModulesToCommand(multiPlatformModules, platform, true)
+          project.exec { commandLine(gradleCommand, *includedModules) }
         }
       }
     }
   }
 }
 
-fun buildExcludeOptions(modules: List<String>): Array<String> {
-  return modules.flatMap { listOf("-x", ":$it:build") }.toTypedArray()
+enum class ModulePlatformType { SINGLE, MULTI }
+
+fun isMultiPlatformModule(project: Project): Boolean {
+    val kotlinPluginId = "libs.plugins.kotlin.multiplatform"
+    return project.buildFile.readText().contains(kotlinPluginId)
+}
+
+fun includeOrNotModulesToCommand(modules: List<String>, platform: String, include: Boolean): Array<String> {
+    return modules.flatMap {
+        when (include) {
+            true -> listOf(":$it:${platform}Test")
+            false -> listOf("-x", ":$it:build")
+        }
+    }.toTypedArray()
 }
 
 fun getGradleCommand(platform: String): String {
   return if (platform == "mingwX64") "gradlew.bat" else "./gradlew"
 }
 
-configureBuildAndTestTask(
-  "buildAndTestMultip",
-  ModuleType.MULTIPLATFORM,
-  multiPlatformModules
-)
-
-configureBuildAndTestTask(
-  "buildAndTestSinglep",
-  ModuleType.SINGLEPLATFORM,
-  multiPlatformModules
-)
+configureBuildAndTestTask("buildAndTestMultip", ModulePlatformType.MULTI)
+configureBuildAndTestTask("buildAndTestSinglep", ModulePlatformType.SINGLE)
