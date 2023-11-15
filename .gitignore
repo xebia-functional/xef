@@ -147,3 +147,5 @@ kotlin-js-store/
 .jekyll-metadata
 
 .env
+
+*.bin

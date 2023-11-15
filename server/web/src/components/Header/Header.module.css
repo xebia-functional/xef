@@ -1,0 +1,11 @@
+.logo {
+  margin: 0 1.5rem 0 0;
+  height: 2rem;
+  width: auto;
+}
+
+.panel-right {
+  display: block;
+  text-align: right;
+  margin-left: auto;
+}

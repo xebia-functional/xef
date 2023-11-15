@@ -1,18 +1,24 @@
 package xef
 
-import com.xebia.functional.xef.embeddings.Embedding
-import com.xebia.functional.xef.embeddings.Embeddings
-import com.xebia.functional.xef.embeddings.mock.mock
-import com.xebia.functional.xef.llm.openai.EmbeddingModel
-import com.xebia.functional.xef.llm.openai.RequestConfig
-import com.xebia.functional.xef.vectorstores.PGVectorStore
-import com.xebia.functional.xef.vectorstores.postgresql.PGDistanceStrategy
+import com.xebia.functional.tokenizer.ModelType
+import com.xebia.functional.xef.llm.Chat
+import com.xebia.functional.xef.llm.Embeddings
+import com.xebia.functional.xef.llm.LLM
+import com.xebia.functional.xef.llm.models.chat.*
+import com.xebia.functional.xef.llm.models.embeddings.Embedding
+import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
+import com.xebia.functional.xef.llm.models.embeddings.EmbeddingResult
+import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
+import com.xebia.functional.xef.llm.models.usage.Usage
+import com.xebia.functional.xef.store.PGVectorStore
+import com.xebia.functional.xef.store.postgresql.PGDistanceStrategy
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.kotest.core.extensions.install
 import io.kotest.core.spec.style.StringSpec
-import io.kotest.extensions.testcontainers.SharedTestContainerExtension
+import io.kotest.extensions.testcontainers.ContainerExtension
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.flow.Flow
 import org.junit.jupiter.api.assertThrows
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.utility.DockerImageName
@@ -24,12 +30,12 @@ val postgres: PostgreSQLContainer<Nothing> =
 
 class PGVectorStoreSpec :
   StringSpec({
-    val container = install(SharedTestContainerExtension(postgres))
+    val container = install(ContainerExtension(postgres))
     val dataSource =
       autoClose(
         HikariDataSource(
           HikariConfig().apply {
-            jdbcUrl = container.jdbcUrl
+            jdbcUrl = container.jdbcUrl.replace("localhost", "0.0.0.0")
             username = container.username
             password = container.password
             driverClassName = "org.postgresql.Driver"
@@ -45,9 +51,8 @@ class PGVectorStoreSpec :
         collectionName = "test_collection",
         distanceStrategy = PGDistanceStrategy.Euclidean,
         preDeleteCollection = false,
-        requestConfig =
-          RequestConfig(EmbeddingModel.TextEmbeddingAda002, RequestConfig.Companion.User("user")),
-        chunckSize = null
+        requestConfig = RequestConfig(RequestConfig.Companion.User("user")),
+        chunkSize = null
       )
 
     "initialDbSetup should configure the DB properly" { pg.initialDbSetup() }
@@ -64,6 +69,10 @@ class PGVectorStoreSpec :
 
     "createCollection should create collection" { pg.createCollection() }
 
+    "addTexts should not fail now that we created the collection" {
+      pg.addTexts(listOf("foo", "bar"))
+    }
+
     "similaritySearchByVector should return both documents" {
       pg.similaritySearchByVector(Embedding(listOf(4.0f, 5.0f, 6.0f)), 2) shouldBe
         listOf("bar", "foo")
@@ -79,4 +88,71 @@ class PGVectorStoreSpec :
     "similaritySearchByVector should return document" {
       pg.similaritySearchByVector(Embedding(listOf(1.0f, 2.0f, 3.0f)), 1) shouldBe listOf("foo")
     }
+
+    "the added memories sorted by index should be obtained in the same order" {
+      val memoryData = MemoryData()
+      val llm = TestLLM()
+      val memories = memoryData.generateRandomMessages(10)
+      pg.addMemories(memories)
+      memories shouldBe pg.memories(llm, memoryData.defaultConversationId, 1000)
+    }
   })
+
+class TestLLM(override val modelType: ModelType = ModelType.ADA) : Chat, AutoCloseable {
+  override fun copy(modelType: ModelType) =
+    TestLLM(modelType)
+
+  override fun tokensFromMessages(messages: List<Message>): Int = messages.map { calculateTokens(it) }.sum()
+
+  private fun calculateTokens(message: Message): Int = message.content.split(" ").size + 2 // 2 is the role and name
+
+  override suspend fun createChatCompletion(request: ChatCompletionRequest): ChatCompletionResponse {
+    throw NotImplementedError()
+  }
+
+  override suspend fun createChatCompletions(request: ChatCompletionRequest): Flow<ChatCompletionChunk> {
+    throw NotImplementedError()
+  }
+
+  override fun close() {
+    throw NotImplementedError()
+  }
+}
+
+private fun Embeddings.Companion.mock(
+  embedDocuments:
+  suspend (texts: List<String>, config: RequestConfig, chunkSize: Int?) -> List<Embedding> =
+    { _, _, _ ->
+      listOf(Embedding(listOf(1.0f, 2.0f, 3.0f)), Embedding(listOf(4.0f, 5.0f, 6.0f)))
+    },
+  embedQuery: suspend (text: String, config: RequestConfig) -> List<Embedding> = { text, _ ->
+    when (text) {
+      "foo" -> listOf(Embedding(listOf(1.0f, 2.0f, 3.0f)))
+      "bar" -> listOf(Embedding(listOf(4.0f, 5.0f, 6.0f)))
+      "baz" -> listOf()
+      else -> listOf()
+    }
+  },
+  createEmbeddings: suspend (request: EmbeddingRequest) -> EmbeddingResult = { _ ->
+    EmbeddingResult(listOf(Embedding(listOf(1.0f, 2.0f, 3.0f)), Embedding(listOf(4.0f, 5.0f, 6.0f))), Usage.ZERO)
+  }
+): Embeddings =
+  object : Embeddings {
+    override fun copy(modelType: ModelType): LLM {
+      throw NotImplementedError()
+    }
+    override suspend fun embedDocuments(
+      texts: List<String>,
+      requestConfig: RequestConfig,
+      chunkSize: Int?
+    ): List<Embedding> = embedDocuments(texts, requestConfig, chunkSize)
+
+    override suspend fun embedQuery(text: String, requestConfig: RequestConfig): List<Embedding> =
+      embedQuery(text, requestConfig)
+
+    override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult =
+      createEmbeddings(request)
+
+
+    override val modelType: ModelType = ModelType.TODO("test-embeddings")
+  }

@@ -4,26 +4,31 @@ import it.skrape.core.htmlDocument
 import it.skrape.fetcher.BrowserFetcher
 import it.skrape.fetcher.response
 import it.skrape.fetcher.skrape
+import java.lang.IllegalStateException
 
 /** Creates a TextLoader based on a Path */
 suspend fun ScrapeURLTextLoader(url: String): BaseLoader =
   object : BaseLoader {
 
     override suspend fun load(): List<String> = buildList {
-      skrape(BrowserFetcher) {
-        request { this.url = url }
-        response {
-          htmlDocument {
-            val cleanedText = cleanUpText(wholeText)
-            add(
-              """|
+      try {
+        skrape(BrowserFetcher) {
+          request { this.url = url }
+          response {
+            htmlDocument {
+              val cleanedText = cleanUpText(wholeText)
+              add(
+                """|
                             |Title: $titleText
                             |Info: $cleanedText
                             """
-                .trimIndent()
-            )
+                  .trimIndent()
+              )
+            }
           }
         }
+      } catch (e: IllegalStateException) {
+        // ignore
       }
     }
 

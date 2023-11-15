@@ -1,19 +1,34 @@
 package com.xebia.functional.xef.prompt
 
-import arrow.core.fold
-import kotlin.jvm.JvmInline
+import com.xebia.functional.xef.llm.models.chat.Message
+import com.xebia.functional.xef.llm.models.functions.CFunction
+import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
+import com.xebia.functional.xef.prompt.templates.user
+import kotlin.jvm.JvmOverloads
+import kotlin.jvm.JvmSynthetic
 
-@JvmInline value class Prompt(val message: String)
+/**
+ * A Prompt is a serializable list of messages and its configuration. The messages may involve
+ * different roles.
+ */
+data class Prompt
+@JvmOverloads
+constructor(
+  val messages: List<Message>,
+  val function: CFunction? = null,
+  val configuration: PromptConfiguration = PromptConfiguration.DEFAULTS
+) {
 
-fun String.prompt(): Prompt = Prompt(this)
+  constructor(value: String) : this(listOf(user(value)), null)
 
-fun Prompt.prepend(text: String) = Prompt(text + message)
+  constructor(
+    value: String,
+    configuration: PromptConfiguration
+  ) : this(listOf(user(value)), null, configuration)
 
-operator fun Prompt.plus(other: Prompt): Prompt = Prompt(message + other.message)
-
-operator fun Prompt.plus(text: String): Prompt = Prompt(message + text)
-
-fun Prompt.append(text: String) = this + text
-
-fun Prompt.format(variables: Map<String, String>): Prompt =
-  Prompt(variables.fold(message) { acc, (key, value) -> acc.replace("{$key}", value) })
+  companion object {
+    @JvmSynthetic
+    operator fun invoke(block: PlatformPromptBuilder.() -> Unit): Prompt =
+      PlatformPromptBuilder.create().apply { block() }.build()
+  }
+}

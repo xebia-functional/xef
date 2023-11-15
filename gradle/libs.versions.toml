@@ -1,52 +1,81 @@
 [versions]
-arrow = "1.2.0-RC"
-arrowGradle = "0.12.0-rc.3"
-kotlin = "1.8.21"
-openai = "0.12.0"
-kotlinx-json = "1.5.1"
-ktor = "2.3.0"
-spotless = "6.18.0"
-okio = "3.3.0"
-kotest = "5.6.2"
-kotest-testcontainers = "1.3.4"
-kotest-arrow = "1.3.3"
-klogging = "4.0.0-beta-29"
-uuid = "0.0.18"
+arrow = "1.2.1"
+arrowGradle = "0.12.0-rc.6"
+exposed = "0.44.1"
+kotlin = "1.9.10"
+kotlinx-json = "1.6.0"
+kotlinx-datetime = "0.4.1"
+ktor = "2.3.5"
+spotless = "6.22.0"
+okio = "3.6.0"
+kotest = "5.7.2"
+kotest-testcontainers = "2.0.2"
+kotest-arrow = "1.4.0"
+klogging = "5.1.0"
+uuid = "0.0.21"
 postgresql = "42.6.0"
-testcontainers = "1.17.6"
+testcontainers = "1.19.1"
 hikari = "5.0.1"
-dokka = "1.8.10"
-logback = "1.4.6"
-kotlinx-coroutines = "1.7.1"
-scalaMultiversion = "2.0.4"
-circe = "0.14.5"
-catsEffect = "3.6-0142603"
-munit = "0.7.28"
-munitCatsEffect = "1.0.5"
+dokka = "1.9.10"
+logback = "1.4.11"
+node-gradle = "7.0.1"
+kotlinx-coroutines = "1.7.3"
 scrapeit = "1.1.5"
-rssreader = "3.4.4"
-lucene = "9.6.0"
-assertj = "3.11.1"
-junit = "5.9.3"
-pdfbox = "2.0.28"
+rssreader = "3.5.0"
+lucene = "9.8.0"
+junit = "5.10.0"
+pdfbox = "3.0.0"
 mysql = "8.0.33"
-semverGradle = "0.5.0-alpha.2"
-scala = "3.3.0"
+semverGradle = "0.5.0-rc.5"
+openai-client-version = "3.5.1"
+jackson = "2.15.3"
+jsonschema = "4.32.0"
+jakarta = "3.0.2"
+suspend-transform = "0.5.1"
+suspendApp = "0.4.0"
+flyway = "9.22.3"
+resources-kmp = "0.4.0"
+detekt = "1.23.3"
+opentelemetry="1.31.0"
+opentelemetry-alpha="1.30.1-alpha"
 
 [libraries]
 arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
+arrow-continuations = { module = "io.arrow-kt:arrow-continuations", version.ref = "arrow" }
 arrow-fx-coroutines = { module = "io.arrow-kt:arrow-fx-coroutines", version.ref = "arrow" }
-arrow-fx-stm = { module = "io.arrow-kt:arrow-fx-stm", version.ref = "arrow" }
-arrow-resilience = { module = "io.arrow-kt:arrow-resilience", version.ref = "arrow" }
-open-ai = { module = "com.theokanning.openai-gpt3-java:service", version.ref = "openai" }
+exposed-core = { module = "org.jetbrains.exposed:exposed-core", version.ref = "exposed" }
+exposed-dao = { module = "org.jetbrains.exposed:exposed-dao", version.ref = "exposed" }
+exposed-jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "exposed" }
+exposed-java-time = { module = "org.jetbrains.exposed:exposed-java-time", version.ref = "exposed" }
+exposed-kotlin-datetime = { module = "org.jetbrains.exposed:exposed-kotlin-datetime", version.ref = "exposed" }
+exposed-json = { module = "org.jetbrains.exposed:exposed-json", version.ref = "exposed" }
+flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
+suspendApp-core = { module = "io.arrow-kt:suspendapp", version.ref = "suspendApp" }
+suspendApp-ktor = { module = "io.arrow-kt:suspendapp-ktor", version.ref = "suspendApp" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-json" }
+kotlinx-serialization-hocon = { module = "org.jetbrains.kotlinx:kotlinx-serialization-hocon", version.ref = "kotlinx-json" }
 kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref="kotlinx-coroutines" }
-ktor-client = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
-ktor-client-js = { module = "io.ktor:ktor-client-js", version.ref = "ktor" }
-ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
-ktor-client-winhttp = { module = "io.ktor:ktor-client-winhttp", version.ref = "ktor" }
-ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+kotlinx-coroutines-reactive = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-reactive", version.ref="kotlinx-coroutines" }
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
+ktor-utils = { module = "io.ktor:ktor-utils", version.ref = "ktor" }
+ktor-http = { module = "io.ktor:ktor-http", version.ref = "ktor" }
+ktor-client ={ module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktor-client-auth = { module = "io.ktor:ktor-client-auth", version.ref = "ktor" }
+ktor-client-content-negotiation ={ module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-client-serialization = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
+ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
+ktor-client-js = { module = "io.ktor:ktor-client-js", version.ref = "ktor" }
+ktor-client-json = { module = "io.ktor:ktor-client-json", version.ref = "ktor" }
+ktor-client-winhttp = { module = "io.ktor:ktor-client-winhttp", version.ref = "ktor" }
+ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor" }
+ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
+ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor" }
+ktor-server-contentNegotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor" }
+ktor-server-resources = { module = "io.ktor:ktor-server-resources", version.ref = "ktor" }
+ktor-server-cors = { module = "io.ktor:ktor-server-cors", version.ref = "ktor" }
+ktor-server-request-validation = { module = "io.ktor:ktor-server-request-validation", version.ref = "ktor" }
+ktor-server-status-pages = { module = "io.ktor:ktor-server-status-pages", version.ref = "ktor" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 okio-fakefilesystem = { module = "com.squareup.okio:okio-fakefilesystem", version.ref = "okio" }
 okio-nodefilesystem = { module = "com.squareup.okio:okio-nodefilesystem", version.ref = "okio" }
@@ -56,39 +85,46 @@ kotest-property = { module = "io.kotest:kotest-property", version.ref = "kotest"
 kotest-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
 kotest-testcontainers = { module = "io.kotest.extensions:kotest-extensions-testcontainers", version.ref = "kotest-testcontainers" }
 kotest-assertions-arrow = { module = "io.kotest.extensions:kotest-assertions-arrow", version.ref = "kotest-arrow" }
+ktor-serialization-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
+junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
 uuid = { module = "app.softwork:kotlinx-uuid-core", version.ref = "uuid" }
 klogging = { module = "io.github.oshai:kotlin-logging", version.ref = "klogging"  }
 hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
 postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
 testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
-circe = { module = "io.circe:circe-generic_3", version.ref = "circe" }
-circe-parser = { module = "io.circe:circe-parser_3", version.ref = "circe" }
-cats-effect = { module = "org.typelevel:cats-effect_3", version.ref = "catsEffect" }
-munit-core = { module = "org.scalameta:munit_3", version.ref = "munit" }
-munit-cats-effect = { module = "org.typelevel:munit-cats-effect-3_3", version.ref = "munitCatsEffect" }
 skrape = { module = "it.skrape:skrapeit", version.ref = "scrapeit" }
 skrape-browser-fetcher = { module = "it.skrape:skrapeit-browser-fetcher", version.ref = "scrapeit" }
 skrape-async-fetcher = { module = "it.skrape:skrapeit-asyn-fetcher", version.ref = "scrapeit" }
 rss-reader = { module = "com.apptasticsoftware:rssreader", version.ref = "rssreader" }
 lucene-core = { module = "org.apache.lucene:lucene-core", version.ref = "lucene" }
 lucene-queries = { module = "org.apache.lucene:lucene-queries", version.ref = "lucene" }
-assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 apache-pdf-box = { module = "org.apache.pdfbox:pdfbox", version.ref = "pdfbox" }
 jdbc-mysql-connector = { module = "mysql:mysql-connector-java", version.ref = "mysql" }
-scala-lang = { module = "org.scala-lang:scala3-library_3", version.ref = "scala" }
+openai-client = { module = "com.aallam.openai:openai-client", version.ref = "openai-client-version" }
+jackson = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
+jackson-schema = { module = "com.github.victools:jsonschema-generator", version.ref = "jsonschema" }
+jackson-schema-jakarta = { module = "com.github.victools:jsonschema-module-jakarta-validation", version.ref = "jsonschema" }
+jakarta-validation = { module = "jakarta.validation:jakarta.validation-api", version.ref = "jakarta" }
+detekt-api = { module = "io.gitlab.arturbosch.detekt:detekt-api", version.ref = "detekt" }
+detekt-test = { module = "io.gitlab.arturbosch.detekt:detekt-test", version.ref = "detekt" }
+opentelemetry-api = { module = "io.opentelemetry:opentelemetry-api", version.ref = "opentelemetry" }
+opentelemetry-exporter-logging = { module = "io.opentelemetry:opentelemetry-exporter-logging", version.ref = "opentelemetry" }
+opentelemetry-exporter-otlp = { module = "io.opentelemetry:opentelemetry-exporter-otlp", version.ref = "opentelemetry" }
+opentelemetry-sdk = { module = "io.opentelemetry:opentelemetry-sdk", version.ref = "opentelemetry" }
+opentelemetry-semconv = { module = "io.opentelemetry:opentelemetry-semconv", version.ref = "opentelemetry-alpha" }
+opentelemetry-extension-kotlin = { module = "io.opentelemetry:opentelemetry-extension-kotlin", version.ref = "opentelemetry" }
 kotlin-multiplatform = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 [bundles]
-arrow = [
-    "arrow-core",
-    "arrow-fx-coroutines",
-    "arrow-resilience"
-]
 ktor-client = [
     "ktor-client",
     "ktor-client-content-negotiation",
     "ktor-client-serialization"
+]
+arrow = [
+    "arrow-core",
+    "arrow-fx-coroutines"
 ]
 
 [plugins]
@@ -100,6 +136,8 @@ spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 arrow-gradle-nexus = { id = "io.arrow-kt.arrow-gradle-config-nexus", version.ref = "arrowGradle" }
 arrow-gradle-publish = { id = "io.arrow-kt.arrow-gradle-config-publish", version.ref = "arrowGradle" }
-scala-multiversion  = { id = "com.adtran.scala-multiversion-plugin", version.ref = "scalaMultiversion" }
 kotest-multiplatform = { id = "io.kotest.multiplatform", version.ref = "kotest" }
 semver-gradle = { id="com.javiersc.semver", version.ref="semverGradle" }
+resources = { id="com.goncalossilva.resources", version.ref="resources-kmp" }
+detekt = { id="io.gitlab.arturbosch.detekt", version.ref="detekt"}
+node-gradle = { id = "com.github.node-gradle.node", version.ref = "node-gradle" }

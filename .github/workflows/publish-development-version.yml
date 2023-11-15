@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           ref: ${{ github.ref_name }}
@@ -29,12 +29,12 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
-          java-version: 11
+          java-version: 20
 
       - name: Assemble
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: assemble -x:kotlin-loom:assemble -x:xef-scala:assemble -x:xef-scala-examples:assemble
+          arguments: assemble
 
       - name: Upload reports
         if: failure()
@@ -46,36 +46,4 @@ jobs:
       - name: Publish development version
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: publishToSonatype -x:kotlin-loom:publishToSonatype -x:xef-scala:publishToSonatype closeAndReleaseSonatypeStagingRepository
-
-  publish-modules-with-loom:
-    timeout-minutes: 30
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          ref: ${{ github.ref_name }}
-
-      - name: Set up Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'zulu'
-          java-version: 19
-
-      - name: assemble
-        uses: gradle/gradle-build-action@v2
-        with:
-          arguments: :kotlin-loom:assemble :xef-scala:assemble
-
-      - name: Upload reports
-        if: failure()
-        uses: actions/upload-artifact@v3
-        with:
-          name: 'reports-${{ matrix.os }}'
-          path: '**/build/reports/**'
-
-      - name: Publish development version
-        uses: gradle/gradle-build-action@v2
-        with:
-          arguments: :kotlin-loom:publishToSonatype :xef-scala:publishToSonatype closeAndReleaseSonatypeStagingRepository
+          arguments: publishToSonatype closeAndReleaseSonatypeStagingRepository
