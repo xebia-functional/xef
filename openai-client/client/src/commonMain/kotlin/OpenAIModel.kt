@@ -19,9 +19,12 @@ sealed interface OpenAIModel<T> {
       is StandardModel -> model.toString()
     }
 
-  fun modelType(): ModelType {
+  fun modelType(forFunctions: Boolean = false): ModelType {
     val stringValue = value()
-    return ModelType.all.find { it.name == stringValue } ?: ModelType.TODO(stringValue)
+    val forFunctionsModel =
+      ModelType.functionSpecific.find { forFunctions && it.name == stringValue }
+    return forFunctionsModel
+      ?: (ModelType.all.find { it.name == stringValue } ?: ModelType.TODO(stringValue))
   }
 }
 
@@ -31,7 +34,7 @@ sealed interface OpenAIModel<T> {
 
 class OpenAIModelSerializer<T>(private val dataSerializer: KSerializer<T>) :
   KSerializer<OpenAIModel<T>> {
-  override val descriptor: SerialDescriptor = OpenAIModel.serializer(dataSerializer).descriptor
+  override val descriptor: SerialDescriptor = dataSerializer.descriptor
 
   override fun serialize(encoder: Encoder, value: OpenAIModel<T>) =
     when (value) {

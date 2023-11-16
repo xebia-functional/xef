@@ -50,6 +50,7 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
                         .stream()
                         .filter(p -> p.name.equalsIgnoreCase("model"))
                         .findFirst()
+                        .filter(p -> !p.dataType.equals("kotlin.String"))
                         .ifPresent(p -> p.dataType = String.format("ai.xef.openai.OpenAIModel<%s>", p.dataType));
             }
         }
