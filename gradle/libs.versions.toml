@@ -20,7 +20,6 @@ dokka = "1.9.10"
 logback = "1.4.11"
 node-gradle = "7.0.1"
 kotlinx-coroutines = "1.7.3"
-scrapeit = "1.1.5"
 rssreader = "3.5.0"
 lucene = "9.8.0"
 junit = "5.10.1"
@@ -94,9 +93,6 @@ hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
 postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
 testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
-skrape = { module = "it.skrape:skrapeit", version.ref = "scrapeit" }
-skrape-browser-fetcher = { module = "it.skrape:skrapeit-browser-fetcher", version.ref = "scrapeit" }
-skrape-async-fetcher = { module = "it.skrape:skrapeit-asyn-fetcher", version.ref = "scrapeit" }
 rss-reader = { module = "com.apptasticsoftware:rssreader", version.ref = "rssreader" }
 lucene-core = { module = "org.apache.lucene:lucene-core", version.ref = "lucene" }
 lucene-queries = { module = "org.apache.lucene:lucene-queries", version.ref = "lucene" }
