@@ -19,7 +19,7 @@ import kotlinx.serialization.json.Json
 
 open class ApiClient(private val baseUrl: String) {
 
-  private lateinit var client: HttpClient
+  lateinit var client: HttpClient
 
   constructor(
     baseUrl: String,

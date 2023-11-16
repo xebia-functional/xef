@@ -20,7 +20,5 @@ data class CreateModerationRequest(
   @Required
   val input: com.xebia.functional.openai.models.ext.moderation.create.CreateModerationRequestInput,
   @SerialName(value = "model")
-  val model:
-    com.xebia.functional.openai.models.ext.moderation.create.CreateModerationRequestModel? =
-    null
+  val model: ai.xef.openai.OpenAIModel<CreateModerationRequestModel>? = null
 )

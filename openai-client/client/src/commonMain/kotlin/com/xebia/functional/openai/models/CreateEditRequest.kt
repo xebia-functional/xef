@@ -30,7 +30,7 @@ data class CreateEditRequest(
   @SerialName(value = "instruction") @Required val instruction: kotlin.String,
   @SerialName(value = "model")
   @Required
-  val model: com.xebia.functional.openai.models.ext.edit.create.CreateEditRequestModel,
+  val model: ai.xef.openai.OpenAIModel<CreateEditRequestModel>,
 
   /* The input text to use as a starting point for the edit. */
   @SerialName(value = "input") val input: kotlin.String? = "",

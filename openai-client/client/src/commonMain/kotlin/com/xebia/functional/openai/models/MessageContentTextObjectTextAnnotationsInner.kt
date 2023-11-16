@@ -39,11 +39,11 @@ data class MessageContentTextObjectTextAnnotationsInner(
   /**
    * Always `file_citation`.
    *
-   * Values: citation,path
+   * Values: fileCitation,filePath
    */
   @Serializable
   enum class Type(val value: kotlin.String) {
-    @SerialName(value = "file_citation") citation("file_citation"),
-    @SerialName(value = "file_path") path("file_path")
+    @SerialName(value = "file_citation") fileCitation("file_citation"),
+    @SerialName(value = "file_path") filePath("file_path")
   }
 }

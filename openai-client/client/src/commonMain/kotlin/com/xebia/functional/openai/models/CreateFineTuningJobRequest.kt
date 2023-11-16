@@ -31,8 +31,7 @@ import kotlinx.serialization.encoding.*
 data class CreateFineTuningJobRequest(
   @SerialName(value = "model")
   @Required
-  val model:
-    com.xebia.functional.openai.models.ext.finetune.job.create.CreateFineTuningJobRequestModel,
+  val model: ai.xef.openai.OpenAIModel<CreateFineTuningJobRequestModel>,
 
   /* The ID of an uploaded file that contains training data.  See [upload file](/docs/api-reference/files/upload) for how to upload a file.  Your dataset must be formatted as a JSONL file. Additionally, you must upload your file with the purpose `fine-tune`.  See the [fine-tuning guide](/docs/guides/fine-tuning) for more details.  */
   @SerialName(value = "training_file") @Required val trainingFile: kotlin.String,
