@@ -29,6 +29,10 @@ class DiffSummary(
   private val client = HttpClient {}
 
   private val summarize =
+
+
+
+
     Summarize(model = chat, scope = scope, summaryLength = SummaryLength.Bound(3000))
 
   private val logger: KLogger = KotlinLogging.logger {}

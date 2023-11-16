@@ -63,6 +63,8 @@ jobs:
   spotless:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: write
 
     steps:
       - uses: actions/checkout@v2
@@ -82,6 +84,8 @@ jobs:
 
       - name: Commit newly formatted files
         uses: stefanzweifel/git-auto-commit-action@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           commit_message: "Apply spotless formatting"
           commit_options: '--no-verify'

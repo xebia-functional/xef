@@ -26,7 +26,7 @@ class ConversationSpec :
     "memories should have the correct size in the vector store" {
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
-      val model = TestModel(modelType = ModelType.ADA)
+            val model = TestModel(modelType = ModelType.ADA)
 
       val scope =
         Conversation(
