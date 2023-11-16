@@ -11,11 +11,12 @@ import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.assistant
 import kotlinx.coroutines.flow.*
 
-
 @AiDsl
-fun ChatApi.promptStreaming(prompt: Prompt<CreateChatCompletionRequestModel>, scope: Conversation): Flow<String> = flow {
-  val messagesForRequestPrompt =
-    PromptCalculator.adaptPromptToConversationAndModel(prompt, scope)
+fun ChatApi.promptStreaming(
+  prompt: Prompt<CreateChatCompletionRequestModel>,
+  scope: Conversation
+): Flow<String> = flow {
+  val messagesForRequestPrompt = PromptCalculator.adaptPromptToConversationAndModel(prompt, scope)
 
   val request =
     CreateChatCompletionRequest(
@@ -40,15 +41,19 @@ fun ChatApi.promptStreaming(prompt: Prompt<CreateChatCompletionRequestModel>, sc
 }
 
 @AiDsl
-suspend fun ChatApi.promptMessage(prompt: Prompt<CreateChatCompletionRequestModel>, scope: Conversation): String =
-  promptMessages(prompt, scope).firstOrNull() ?: throw AIError.NoResponse()
+suspend fun ChatApi.promptMessage(
+  prompt: Prompt<CreateChatCompletionRequestModel>,
+  scope: Conversation
+): String = promptMessages(prompt, scope).firstOrNull() ?: throw AIError.NoResponse()
 
 @AiDsl
-suspend fun ChatApi.promptMessages(prompt: Prompt<CreateChatCompletionRequestModel>, scope: Conversation): List<String> =
+suspend fun ChatApi.promptMessages(
+  prompt: Prompt<CreateChatCompletionRequestModel>,
+  scope: Conversation
+): List<String> =
   scope.metric.promptSpan(prompt) {
     val promptMemories = prompt.messages.toMemory(scope)
-    val adaptedPrompt =
-      PromptCalculator.adaptPromptToConversationAndModel(prompt, scope)
+    val adaptedPrompt = PromptCalculator.adaptPromptToConversationAndModel(prompt, scope)
 
     adaptedPrompt.addMetrics(scope)
 
@@ -73,5 +78,3 @@ suspend fun ChatApi.promptMessages(prompt: Prompt<CreateChatCompletionRequestMod
       )
       .mapNotNull { it.message.content }
   }
-
-

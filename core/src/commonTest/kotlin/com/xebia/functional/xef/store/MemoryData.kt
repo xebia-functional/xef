@@ -15,9 +15,16 @@ class MemoryData {
     conversationId: ConversationId = defaultConversationId
   ): List<Memory> =
     (0 until n).flatMap {
-      val m1 = ChatCompletionRequestMessage.ChatCompletionRequestUserMessage(
-        ChatCompletionRequestUserMessageContent.TextContent("Question $it${append?.let { ": $it" } ?: ""}"))
-      val m2 = ChatCompletionRequestMessage.ChatCompletionRequestAssistantMessage("Response $it${append?.let { ": $it" } ?: ""}")
+      val m1 =
+        ChatCompletionRequestMessage.ChatCompletionRequestUserMessage(
+          ChatCompletionRequestUserMessageContent.TextContent(
+            "Question $it${append?.let { ": $it" } ?: ""}"
+          )
+        )
+      val m2 =
+        ChatCompletionRequestMessage.ChatCompletionRequestAssistantMessage(
+          "Response $it${append?.let { ": $it" } ?: ""}"
+        )
       listOf(
         Memory(conversationId, MemorizedMessage.Request(m1), atomicInt.addAndGet(1)),
         Memory(conversationId, MemorizedMessage.Request(m2), atomicInt.addAndGet(1)),

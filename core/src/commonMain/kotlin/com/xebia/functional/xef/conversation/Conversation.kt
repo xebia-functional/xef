@@ -42,8 +42,10 @@ interface Conversation {
 
   @AiDsl
   @JvmSynthetic
-  suspend fun <A> ChatApi.prompt(prompt: Prompt<CreateChatCompletionRequestModel>, serializer: KSerializer<A>): A =
-    prompt(prompt, conversation, serializer)
+  suspend fun <A> ChatApi.prompt(
+    prompt: Prompt<CreateChatCompletionRequestModel>,
+    serializer: KSerializer<A>
+  ): A = prompt(prompt, conversation, serializer)
 
   @AiDsl
   @JvmSynthetic
@@ -61,11 +63,13 @@ interface Conversation {
 
   @AiDsl
   @JvmSynthetic
-  suspend fun ChatApi.promptMessages(prompt: Prompt<CreateChatCompletionRequestModel>): List<String> =
-    promptMessages(prompt, conversation)
+  suspend fun ChatApi.promptMessages(
+    prompt: Prompt<CreateChatCompletionRequestModel>
+  ): List<String> = promptMessages(prompt, conversation)
 
   @AiDsl
-  fun ChatApi.promptStreaming(prompt: Prompt<CreateChatCompletionRequestModel>): Flow<String> = promptStreaming(prompt, conversation)
+  fun ChatApi.promptStreaming(prompt: Prompt<CreateChatCompletionRequestModel>): Flow<String> =
+    promptStreaming(prompt, conversation)
 
   /**
    * Run a [prompt] describes the images you want to generate within the context of [Conversation].

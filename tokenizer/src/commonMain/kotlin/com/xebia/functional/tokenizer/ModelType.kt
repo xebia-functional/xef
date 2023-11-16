@@ -34,6 +34,10 @@ sealed class ModelType(
   companion object {
     @JvmStatic
     val DEFAULT_SPLITTER_MODEL = GPT_3_5_TURBO
+    val functionSpecific: List<ModelType> = listOf(
+      GPT_3_5_16K_0613_TURBO_FUNCTIONS,
+      GPT_4_32K_0314_FUNCTIONS
+    )
     val all: List<ModelType> = listOf(
       GPT_3_5_TURBO,
       GPT_3_5_TURBO_0301,
@@ -41,12 +45,10 @@ sealed class ModelType(
       GPT_3_5_TURBO_FUNCTIONS,
       GPT_3_5_TURBO_16_K,
       GPT_3_5_TURBO_16_K_1106,
-      GPT_3_5_16K_0613_TURBO_FUNCTIONS,
       GPT_4,
       GPT_4_0314,
       GPT_4_0613,
       GPT_4_32K,
-      GPT_4_32K_0314_FUNCTIONS,
       GPT_4_32_K_0314,
       GPT_4_32K_0613_FUNCTIONS,
       GPT_4_TURBO_1106_PREVIEW,

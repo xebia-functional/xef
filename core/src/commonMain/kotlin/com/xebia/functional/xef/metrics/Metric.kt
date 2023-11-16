@@ -17,8 +17,10 @@ interface Metric {
         override suspend fun <A> customSpan(name: String, block: suspend Metric.() -> A): A =
           block()
 
-        override suspend fun <A, T> promptSpan(prompt: Prompt<T>, block: suspend Metric.() -> A): A =
-          block()
+        override suspend fun <A, T> promptSpan(
+          prompt: Prompt<T>,
+          block: suspend Metric.() -> A
+        ): A = block()
 
         override fun event(message: String) {}
 

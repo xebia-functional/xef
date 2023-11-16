@@ -35,7 +35,8 @@ internal object PromptCalculator {
     // calculate messages for history based on tokens
 
     val memories: List<Memory> =
-      scope.memories(prompt,
+      scope.memories(
+        prompt,
         maxHistoryTokens + prompt.configuration.messagePolicy.historyPaddingTokens
       )
 
@@ -52,7 +53,8 @@ internal object PromptCalculator {
       if (ctxInfo.isNotEmpty()) {
         val ctx: String = ctxInfo.joinToString("\n")
 
-        val ctxTruncated: String = prompt.model.modelType().encodingType.encoding.truncateText(ctx, maxContextTokens)
+        val ctxTruncated: String =
+          prompt.model.modelType().encodingType.encoding.truncateText(ctx, maxContextTokens)
 
         Prompt(prompt.model) { +assistant(ctxTruncated) }.messages
       } else {
@@ -79,7 +81,8 @@ internal object PromptCalculator {
       val historyTokens = modelType.tokensFromMessages(history)
       if (historyTokens <= maxHistoryTokens) history
       else {
-        val historyMessagesWithTokens = history.map { Pair(it, modelType.tokensFromMessages(listOf(it))) }
+        val historyMessagesWithTokens =
+          history.map { Pair(it, modelType.tokensFromMessages(listOf(it))) }
 
         val totalTokenWithMessages =
           historyMessagesWithTokens.foldRight(Pair(0, emptyList<ChatCompletionRequestMessage>())) {
@@ -95,13 +98,19 @@ internal object PromptCalculator {
       }
     } else emptyList()
 
-  private fun <T> calculateMaxContextTokens(prompt: Prompt<T>, remainingTokensForContexts: Int): Int {
+  private fun <T> calculateMaxContextTokens(
+    prompt: Prompt<T>,
+    remainingTokensForContexts: Int
+  ): Int {
     val contextPercent = prompt.configuration.messagePolicy.contextPercent
     val maxContextTokens = (remainingTokensForContexts * contextPercent) / 100
     return maxContextTokens
   }
 
-  private fun <T> calculateMaxHistoryTokens(prompt: Prompt<T>, remainingTokensForContexts: Int): Int {
+  private fun <T> calculateMaxHistoryTokens(
+    prompt: Prompt<T>,
+    remainingTokensForContexts: Int
+  ): Int {
     val historyPercent = prompt.configuration.messagePolicy.historyPercent
     val maxHistoryTokens = (remainingTokensForContexts * historyPercent) / 100
     return maxHistoryTokens

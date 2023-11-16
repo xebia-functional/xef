@@ -14,14 +14,18 @@ suspend fun EmbeddingsApi.embedDocuments(texts: List<String>, chunkSize: Int?): 
       .chunked(chunkSize ?: 400)
       .parMap {
         createEmbedding(
-          CreateEmbeddingRequest(
-            model = ai.xef.openai.StandardModel(CreateEmbeddingRequestModel.textMinusEmbeddingMinusAdaMinus002),
-            input = CreateEmbeddingRequestInput.StringArrayValue(it)
+            CreateEmbeddingRequest(
+              model =
+                ai.xef.openai.StandardModel(
+                  CreateEmbeddingRequestModel.textMinusEmbeddingMinusAdaMinus002
+                ),
+              input = CreateEmbeddingRequestInput.StringArrayValue(it)
+            )
           )
-        ).body().data
+          .body()
+          .data
       }
       .flatten()
 
 suspend fun EmbeddingsApi.embedQuery(text: String): List<Embedding> =
   if (text.isNotEmpty()) embedDocuments(listOf(text), null) else emptyList()
-

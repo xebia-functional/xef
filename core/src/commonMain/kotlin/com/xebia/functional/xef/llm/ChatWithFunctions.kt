@@ -16,7 +16,6 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.json.*
 
-
 @OptIn(ExperimentalSerializationApi::class)
 fun chatFunction(descriptor: SerialDescriptor): FunctionObject {
   val fnName = descriptor.serialName.substringAfterLast(".")
@@ -56,10 +55,7 @@ suspend fun <A> ChatApi.prompt(
   scope.metric.promptSpan(prompt) {
     val promptWithFunctions = prompt.copy(function = function)
     val adaptedPrompt =
-      PromptCalculator.adaptPromptToConversationAndModel(
-        promptWithFunctions,
-        scope
-      )
+      PromptCalculator.adaptPromptToConversationAndModel(promptWithFunctions, scope)
 
     adaptedPrompt.addMetrics(scope)
 
@@ -71,17 +67,17 @@ suspend fun <A> ChatApi.prompt(
         temperature = adaptedPrompt.configuration.temperature,
         maxTokens = adaptedPrompt.configuration.minResponseTokens,
         tools =
-        listOf(
-          ChatCompletionTool(
-            type = ChatCompletionTool.Type.function,
-            function = adaptedPrompt.function!!
-          )
-        ),
+          listOf(
+            ChatCompletionTool(
+              type = ChatCompletionTool.Type.function,
+              function = adaptedPrompt.function!!
+            )
+          ),
         toolChoice =
-        ChatCompletionToolChoiceOption(
-          type = ChatCompletionToolChoiceOption.Type.function,
-          function = ChatCompletionNamedToolChoiceFunction(adaptedPrompt.function.name)
-        ),
+          ChatCompletionToolChoiceOption(
+            type = ChatCompletionToolChoiceOption.Type.function,
+            function = ChatCompletionNamedToolChoiceFunction(adaptedPrompt.function.name)
+          ),
         model = prompt.model,
       )
 
@@ -109,10 +105,7 @@ fun <A> ChatApi.promptStreaming(
 ): Flow<StreamedFunction<A>> = flow {
   val promptWithFunctions = prompt.copy(function = function)
   val messagesForRequestPrompt =
-    PromptCalculator.adaptPromptToConversationAndModel(
-      promptWithFunctions,
-      scope
-    )
+    PromptCalculator.adaptPromptToConversationAndModel(promptWithFunctions, scope)
 
   val request =
     CreateChatCompletionRequest(
@@ -123,17 +116,17 @@ fun <A> ChatApi.promptStreaming(
       temperature = promptWithFunctions.configuration.temperature,
       maxTokens = promptWithFunctions.configuration.minResponseTokens,
       tools =
-      listOf(
-        ChatCompletionTool(
-          type = ChatCompletionTool.Type.function,
-          function = promptWithFunctions.function!!
-        )
-      ),
+        listOf(
+          ChatCompletionTool(
+            type = ChatCompletionTool.Type.function,
+            function = promptWithFunctions.function!!
+          )
+        ),
       toolChoice =
-      ChatCompletionToolChoiceOption(
-        type = ChatCompletionToolChoiceOption.Type.function,
-        function = ChatCompletionNamedToolChoiceFunction(promptWithFunctions.function.name)
-      ),
+        ChatCompletionToolChoiceOption(
+          type = ChatCompletionToolChoiceOption.Type.function,
+          function = ChatCompletionNamedToolChoiceFunction(promptWithFunctions.function.name)
+        ),
       model = prompt.model,
     )
 
@@ -191,4 +184,3 @@ private suspend fun <A> tryDeserialize(
   }
   throw AIError.NoResponse()
 }
-

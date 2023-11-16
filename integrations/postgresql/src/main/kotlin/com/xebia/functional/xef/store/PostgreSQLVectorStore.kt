@@ -1,5 +1,6 @@
 package com.xebia.functional.xef.store
 
+import ai.xef.openai.OpenAIModel
 import arrow.atomic.AtomicInt
 import com.xebia.functional.openai.apis.EmbeddingsApi
 import com.xebia.functional.openai.models.ChatCompletionRole
@@ -42,8 +43,8 @@ class PGVectorStore(
     }
   }
 
-  override suspend fun memories(model: CreateChatCompletionRequestModel, conversationId: ConversationId, limitTokens: Int): List<Memory> =
-    getMemoryByConversationId(conversationId).reduceByLimitToken(model, limitTokens).reversed()
+  override suspend fun <T> memories(model: OpenAIModel<T>, conversationId: ConversationId, limitTokens: Int): List<Memory> =
+    getMemoryByConversationId(conversationId).reduceByLimitToken(model.modelType(), limitTokens).reversed()
 
   private fun JDBCSyntax.getCollection(collectionName: String): PGCollection =
     queryOneOrNull(getCollection, { bind(collectionName) }) {

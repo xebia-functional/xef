@@ -90,7 +90,7 @@ sealed class StreamedFunction<out A> {
               val arguments = fn?.arguments.orEmpty()
               if (functionName != null)
               // update the function name with the latest one
-                functionCall = functionCall.copy(name = functionName)
+              functionCall = functionCall.copy(name = functionName)
               if (arguments.isNotEmpty()) {
                 // update the function arguments with the latest ones
                 functionCall = mergeArgumentsWithDelta(functionCall, toolCall)
@@ -253,7 +253,6 @@ sealed class StreamedFunction<out A> {
         in '0'..'9' -> NUMBER
         't',
         'f' -> BOOLEAN
-
         '[' -> ARRAY
         '{' -> OBJECT
         'n' -> NULL
@@ -290,7 +289,9 @@ sealed class StreamedFunction<out A> {
     ): ChatCompletionMessageToolCallFunction =
       functionCall.copy(arguments = functionCall.arguments + (functionCall0.function?.arguments))
 
-    private fun getLastReferencedPropertyInArguments(functionCall: ChatCompletionMessageToolCallFunction): String? =
+    private fun getLastReferencedPropertyInArguments(
+      functionCall: ChatCompletionMessageToolCallFunction
+    ): String? =
       """"(.*?)":"""
         .toRegex()
         .findAll(functionCall.arguments!!)
@@ -320,12 +321,10 @@ sealed class StreamedFunction<out A> {
             findPropertyPathTailrec(remainingStack + newStack, targetProperty)
           }
         }
-
         is JsonArray -> {
           val newStack = currentElement.map { it to currentPath }
           findPropertyPathTailrec(remainingStack + newStack, targetProperty)
         }
-
         else -> findPropertyPathTailrec(remainingStack, targetProperty)
       }
     }
@@ -343,19 +342,16 @@ sealed class StreamedFunction<out A> {
               }
               JsonObject(resultMap)
             }
-
             "array" -> {
               val items = jsonElement["items"]
               val exampleItems = items?.let { createExampleFromSchema(it) }
               JsonArray(listOfNotNull(exampleItems))
             }
-
             "string" -> JsonPrimitive("default_string")
             "number" -> JsonPrimitive(0)
             else -> JsonPrimitive(null)
           }
         }
-
         else -> JsonPrimitive(null)
       }
     }

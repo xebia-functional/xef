@@ -2,8 +2,8 @@ package com.xebia.functional.xef.prompt.expressions
 
 import ai.xef.openai.StandardModel
 import com.xebia.functional.openai.apis.ChatApi
-import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage
 import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
+import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.prompt
 import com.xebia.functional.xef.prompt.Prompt
@@ -36,15 +36,23 @@ class Expression(
 
   suspend fun run(): ExpressionResult {
     block()
-    val prelude = Prompt(StandardModel(requestModel)) { +system("You are an expert in replacing variables in templates") }
+    val prelude =
+      Prompt(StandardModel(requestModel)) {
+        +system("You are an expert in replacing variables in templates")
+      }
 
-    val instructionMessages = Prompt(StandardModel(requestModel)) {
-      +assistant("I will replace all placeholders in the message")
-    }
+    val instructionMessages =
+      Prompt(StandardModel(requestModel)) {
+        +assistant("I will replace all placeholders in the message")
+      }
 
     val values: ReplacedValues =
       model.prompt(
-        prompt = Prompt(StandardModel(requestModel), prelude.messages + messages + instructionMessages.messages),
+        prompt =
+          Prompt(
+            StandardModel(requestModel),
+            prelude.messages + messages + instructionMessages.messages
+          ),
         scope = scope,
         serializer = ReplacedValues.serializer()
       )

@@ -3,7 +3,6 @@ package com.xebia.functional.xef.store
 import ai.xef.openai.OpenAIModel
 import arrow.atomic.AtomicInt
 import com.xebia.functional.openai.models.Embedding
-import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
 import kotlin.jvm.JvmStatic
 
 interface VectorStore {
@@ -18,7 +17,9 @@ interface VectorStore {
 
   suspend fun <T> memories(
     model: OpenAIModel<T>,
-    conversationId: ConversationId, limitTokens: Int): List<Memory>
+    conversationId: ConversationId,
+    limitTokens: Int
+  ): List<Memory>
 
   /**
    * Add texts to the vector store after running them through the embeddings

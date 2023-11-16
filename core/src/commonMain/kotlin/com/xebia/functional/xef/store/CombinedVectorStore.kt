@@ -2,7 +2,6 @@ package com.xebia.functional.xef.store
 
 import ai.xef.openai.OpenAIModel
 import com.xebia.functional.openai.models.Embedding
-import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
 
 /**
  * A way of composing two [VectorStore] instances together, this class will **first search** [top],
@@ -23,7 +22,7 @@ class CombinedVectorStore(private val top: VectorStore, private val bottom: Vect
 
     return (topResults + bottomResults)
       .sortedByDescending { it.index }
-      .reduceByLimitToken(model, limitTokens)
+      .reduceByLimitToken(model.modelType(), limitTokens)
       .reversed()
   }
 

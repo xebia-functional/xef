@@ -2,7 +2,6 @@ package com.xebia.functional.xef.prompt
 
 import ai.xef.openai.OpenAIModel
 import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage
-import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
 
 class PlatformPromptBuilder<T>(private val model: OpenAIModel<T>) : PromptBuilder<T> {
 

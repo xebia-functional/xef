@@ -19,5 +19,3 @@ fun ModelType.tokensFromMessages(
     tokensPerName = tokensPerName
   ) + tokenPadding
 }
-
-

@@ -7,7 +7,6 @@ import arrow.atomic.getAndUpdate
 import arrow.atomic.update
 import com.xebia.functional.openai.apis.EmbeddingsApi
 import com.xebia.functional.openai.models.Embedding
-import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.llm.embedDocuments
 import com.xebia.functional.xef.llm.embedQuery
 import kotlin.math.sqrt
@@ -63,7 +62,7 @@ private constructor(private val embeddings: EmbeddingsApi, private val state: At
     return memories
       .orEmpty()
       .sortedByDescending { it.index }
-      .reduceByLimitToken(model, limitTokens)
+      .reduceByLimitToken(model.modelType(), limitTokens)
       .reversed()
   }
 

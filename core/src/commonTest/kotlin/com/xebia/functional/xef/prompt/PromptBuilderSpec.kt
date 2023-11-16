@@ -1,6 +1,8 @@
 package com.xebia.functional.xef.prompt
 
+import ai.xef.openai.StandardModel
 import com.xebia.functional.openai.models.ChatCompletionRole.*
+import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.data.Question
 import com.xebia.functional.xef.prompt.templates.assistant
 import com.xebia.functional.xef.prompt.templates.assistantSteps
@@ -11,9 +13,10 @@ import io.kotest.matchers.shouldBe
 
 class PromptBuilderSpec :
   StringSpec({
+    val model = StandardModel(CreateChatCompletionRequestModel.gptMinus4)
     "buildPrompt should return the expected messages" {
       val messages =
-        Prompt {
+        Prompt(model) {
             +system("Test System")
             +user("Test Query")
             +assistant("Test Assistant")
@@ -34,7 +37,7 @@ class PromptBuilderSpec :
       val instructions = listOf("instruction 1", "instruction 2")
 
       val messages =
-        Prompt {
+        Prompt(model) {
             +system("Test System")
             +user("Test Query")
             instructions.forEach { +assistant(it) }
@@ -60,7 +63,7 @@ class PromptBuilderSpec :
       val instructions = listOf("instruction 1", "instruction 2")
 
       val messages =
-        Prompt {
+        Prompt(model) {
             +system("Test System")
             +user("Test Query")
             +assistantSteps { instructions }
@@ -86,7 +89,7 @@ class PromptBuilderSpec :
       val question = Question("Test Question")
 
       val messages =
-        Prompt {
+        Prompt(model) {
             +system("Test System")
             +user(question)
           }
@@ -103,7 +106,7 @@ class PromptBuilderSpec :
 
     "Prompt should flatten the messages with the same role" {
       val messages =
-        Prompt {
+        Prompt(model) {
             +system("Test System")
             +user("User message 1")
             +user("User message 2")

@@ -26,4 +26,3 @@ suspend fun ImagesApi.images(
     )
   return createImage(request).body()
 }
-

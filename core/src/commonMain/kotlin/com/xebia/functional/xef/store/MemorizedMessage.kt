@@ -25,46 +25,37 @@ sealed class MemorizedMessage {
   data class Response(val message: ChatCompletionResponseMessage) : MemorizedMessage()
 }
 
-
-fun memorizedMessage(
-  role: ChatCompletionRole,
-  content: String
-): MemorizedMessage = when (role) {
-  ChatCompletionRole.system ->
-    MemorizedMessage.Request(
-      ChatCompletionRequestMessage.ChatCompletionRequestSystemMessage(
-        content
+fun memorizedMessage(role: ChatCompletionRole, content: String): MemorizedMessage =
+  when (role) {
+    ChatCompletionRole.system ->
+      MemorizedMessage.Request(
+        ChatCompletionRequestMessage.ChatCompletionRequestSystemMessage(content)
       )
-    )
-
-  ChatCompletionRole.user ->
-    MemorizedMessage.Request(
-      ChatCompletionRequestMessage.ChatCompletionRequestUserMessage(
-        ChatCompletionRequestUserMessageContent.TextContent(content)
+    ChatCompletionRole.user ->
+      MemorizedMessage.Request(
+        ChatCompletionRequestMessage.ChatCompletionRequestUserMessage(
+          ChatCompletionRequestUserMessageContent.TextContent(content)
+        )
       )
-    )
-
-  ChatCompletionRole.assistant ->
-    MemorizedMessage.Response(
-      ChatCompletionResponseMessage(
-        content = content,
-        role = ChatCompletionResponseMessage.Role.assistant
+    ChatCompletionRole.assistant ->
+      MemorizedMessage.Response(
+        ChatCompletionResponseMessage(
+          content = content,
+          role = ChatCompletionResponseMessage.Role.assistant
+        )
       )
-    )
-
-  ChatCompletionRole.tool ->
-    MemorizedMessage.Request(
-      ChatCompletionRequestMessage.ChatCompletionRequestToolMessage(
-        content = content,
-        toolCallId = "fake-tool-call-id" //TODO we are not storing the tool id with the content
+    ChatCompletionRole.tool ->
+      MemorizedMessage.Request(
+        ChatCompletionRequestMessage.ChatCompletionRequestToolMessage(
+          content = content,
+          toolCallId = "fake-tool-call-id" // TODO we are not storing the tool id with the content
+        )
       )
-    )
-
-  ChatCompletionRole.function ->
-    MemorizedMessage.Request(
-      ChatCompletionRequestMessage.ChatCompletionRequestToolMessage(
-        content = content,
-        toolCallId = "fake-tool-call-id" //TODO we are not storing the tool id with the content
+    ChatCompletionRole.function ->
+      MemorizedMessage.Request(
+        ChatCompletionRequestMessage.ChatCompletionRequestToolMessage(
+          content = content,
+          toolCallId = "fake-tool-call-id" // TODO we are not storing the tool id with the content
+        )
       )
-    )
-}
+  }

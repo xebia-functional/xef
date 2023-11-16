@@ -4,7 +4,6 @@ import ai.xef.openai.OpenAIModel
 import com.xebia.functional.openai.models.ChatCompletionRole
 import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage
 import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestUserMessageContent
-import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.prompt.templates.assistant
 import com.xebia.functional.xef.prompt.templates.system
 import com.xebia.functional.xef.prompt.templates.user
@@ -38,7 +37,9 @@ interface PromptBuilder<T> {
 
   fun addSystemMessage(message: String): PromptBuilder<T> = apply { addMessage(system(message)) }
 
-  fun addAssistantMessage(message: String): PromptBuilder<T> = apply { addMessage(assistant(message)) }
+  fun addAssistantMessage(message: String): PromptBuilder<T> = apply {
+    addMessage(assistant(message))
+  }
 
   fun addUserMessage(message: String): PromptBuilder<T> = apply { addMessage(user(message)) }
 
@@ -61,7 +62,8 @@ interface PromptBuilder<T> {
 
   companion object {
 
-    operator fun <T> invoke(model: OpenAIModel<T>): PlatformPromptBuilder<T> = PlatformPromptBuilder.create(model)
+    operator fun <T> invoke(model: OpenAIModel<T>): PlatformPromptBuilder<T> =
+      PlatformPromptBuilder.create(model)
   }
 }
 
@@ -105,7 +107,8 @@ private fun List<ChatCompletionRequestMessage>.flatten(): List<ChatCompletionReq
 
 private fun ChatCompletionRequestMessage.addContent(
   message: ChatCompletionRequestMessage
-): ChatCompletionRequestMessage = "${contentAsString()}\n${message.contentAsString()}".message(completionRole())
+): ChatCompletionRequestMessage =
+  "${contentAsString()}\n${message.contentAsString()}".message(completionRole())
 
 private fun List<ChatCompletionRequestMessage>.lastMessageWithSameRole(
   message: ChatCompletionRequestMessage

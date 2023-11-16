@@ -1,16 +1,17 @@
 package com.xebia.functional.xef.store
 
-import com.xebia.functional.tokenizer.ModelType
+import ai.xef.openai.StandardModel
+import com.xebia.functional.openai.models.CreateFineTuneRequestModel
 import com.xebia.functional.xef.data.TestEmbeddings
-import com.xebia.functional.xef.data.TestChatModel
+import com.xebia.functional.xef.llm.tokensFromMessages
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
 class LocalVectorStoreSpec :
   StringSpec({
+    val model = StandardModel(CreateFineTuneRequestModel.ada)
     "memories function should return all of messages in the right order when the limit is greater than the number of stored messages" {
-      val model = TestChatModel(modelType = ModelType.ADA)
-      val localVectorStore = LocalVectorStore(TestEmbeddings())
+      val localVectorStore = LocalVectorStore(TestEmbeddings(coroutineContext))
 
       val memoryData = MemoryData()
 
@@ -29,15 +30,15 @@ class LocalVectorStoreSpec :
     }
 
     "memories function should return the last n messages in the right order" {
-      val model = TestChatModel(modelType = ModelType.ADA)
-      val localVectorStore = LocalVectorStore(TestEmbeddings())
+      val modelType = model.modelType()
+      val localVectorStore = LocalVectorStore(TestEmbeddings(coroutineContext))
 
       val memoryData = MemoryData()
 
       val messages1 = memoryData.generateRandomMessages(4)
       val messages2 = memoryData.generateRandomMessages(3)
 
-      val tokensForMessages2 = model.tokensFromMessages(messages2.map { it.content.asRequestMessage() })
+      val tokensForMessages2 = modelType.tokensFromMessages(messages2.map { it.content.asRequestMessage() })
 
       localVectorStore.addMemories(messages1)
       localVectorStore.addMemories(messages2)
@@ -49,8 +50,8 @@ class LocalVectorStoreSpec :
     }
 
     "memories function should return the last n messages in the right order for a specific conversation id" {
-      val model = TestChatModel(modelType = ModelType.ADA)
-      val localVectorStore = LocalVectorStore(TestEmbeddings())
+      val modelType = model.modelType()
+      val localVectorStore = LocalVectorStore(TestEmbeddings(coroutineContext))
 
       val firstId = ConversationId("first-id")
       val secondId = ConversationId("second-id")
@@ -62,8 +63,10 @@ class LocalVectorStoreSpec :
 
       localVectorStore.addMemories(messages1 + messages2)
 
-      val tokensForMessages1 = model.tokensFromMessages(messages1.map { it.content.asRequestMessage() })
-      val tokensForMessages2 = model.tokensFromMessages(messages2.map { it.content.asRequestMessage() })
+      val tokensForMessages1 =
+        modelType.tokensFromMessages(messages1.map { it.content.asRequestMessage() })
+      val tokensForMessages2 =
+        modelType.tokensFromMessages(messages2.map { it.content.asRequestMessage() })
 
       val messagesFirstId = localVectorStore.memories(model, firstId, tokensForMessages1)
 
