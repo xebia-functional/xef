@@ -1,10 +1,12 @@
 package com.xebia.functional.xef.store
 
+import ai.xef.openai.OpenAIModel
 import arrow.atomic.AtomicInt
+import com.xebia.functional.openai.apis.EmbeddingsApi
 import com.xebia.functional.openai.models.ChatCompletionRole
 import com.xebia.functional.openai.models.Embedding
-import com.xebia.functional.xef.llm.Embeddings
-import com.xebia.functional.xef.llm.LLM
+import com.xebia.functional.xef.llm.embedQuery
+import com.xebia.functional.xef.llm.models.modelType
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.document.*
 import org.apache.lucene.index.DirectoryReader
@@ -20,7 +22,7 @@ import java.nio.file.Path
 
 open class Lucene(
   private val writer: IndexWriter,
-  private val embeddings: Embeddings?,
+  private val embeddings: EmbeddingsApi?,
   private val similarity: VectorSimilarityFunction = VectorSimilarityFunction.EUCLIDEAN,
 ) : VectorStore, AutoCloseable {
 
@@ -44,8 +46,9 @@ open class Lucene(
     writer.commit()
   }
 
-  override suspend fun memories(llm: LLM, conversationId: ConversationId, limitTokens: Int): List<Memory> =
-    getMemoryByConversationId(conversationId).reduceByLimitToken(llm, limitTokens).reversed()
+  override suspend fun <T> memories(
+    model: OpenAIModel<T>, conversationId: ConversationId, limitTokens: Int): List<Memory> =
+    getMemoryByConversationId(conversationId).reduceByLimitToken(model.modelType(), limitTokens).reversed()
 
   override suspend fun addTexts(texts: List<String>) {
     texts.forEach {
@@ -121,7 +124,7 @@ open class Lucene(
 class DirectoryLucene(
   private val directory: Directory,
   writerConfig: IndexWriterConfig = IndexWriterConfig(),
-  embeddings: Embeddings?,
+  embeddings: EmbeddingsApi?,
   similarity: VectorSimilarityFunction = VectorSimilarityFunction.EUCLIDEAN
 ) : Lucene(IndexWriter(directory, writerConfig), embeddings, similarity) {
   override fun close() {
@@ -134,7 +137,7 @@ class DirectoryLucene(
 fun InMemoryLucene(
   path: Path,
   writerConfig: IndexWriterConfig = IndexWriterConfig(),
-  embeddings: Embeddings?,
+  embeddings: EmbeddingsApi?,
   similarity: VectorSimilarityFunction = VectorSimilarityFunction.EUCLIDEAN
 ): DirectoryLucene = DirectoryLucene(MMapDirectory(path), writerConfig, embeddings, similarity)
 
@@ -144,7 +147,7 @@ fun InMemoryLuceneBuilder(
   useAIEmbeddings: Boolean = true,
   writerConfig: IndexWriterConfig = IndexWriterConfig(),
   similarity: VectorSimilarityFunction = VectorSimilarityFunction.EUCLIDEAN
-): (Embeddings) -> DirectoryLucene = { embeddings ->
+): (EmbeddingsApi) -> DirectoryLucene = { embeddings ->
   InMemoryLucene(path, writerConfig, embeddings.takeIf { useAIEmbeddings }, similarity)
 }
 

@@ -15,9 +15,11 @@ class OpenTelemetryMetric(
   override suspend fun <A> customSpan(name: String, block: suspend Metric.() -> A): A =
     state.span(name) { block() }
 
-  override suspend fun <A> promptSpan(prompt: Prompt, block: suspend Metric.() -> A): A =
+  override suspend fun <A, T> promptSpan(prompt: Prompt<T>, block: suspend Metric.() -> A): A =
     state.span("Prompt: ${prompt.messages.lastOrNull()?.contentAsString() ?: "empty"}") {
-      with(it) { setAttribute("last-message", prompt.messages.lastOrNull()?.contentAsString() ?: "empty") }
+      with(it) {
+        setAttribute("last-message", prompt.messages.lastOrNull()?.contentAsString() ?: "empty")
+      }
       block()
     }
 

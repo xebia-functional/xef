@@ -32,7 +32,6 @@ fun String.toProvider(): Provider? =
     else -> Provider.OPENAI
   }
 
-@OptIn(BetaOpenAI::class)
 fun Routing.aiRoutes(client: HttpClient) {
   val openAiUrl = "https://api.openai.com/v1"
 

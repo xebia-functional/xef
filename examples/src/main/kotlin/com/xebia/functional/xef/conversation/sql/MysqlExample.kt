@@ -1,6 +1,9 @@
 package com.xebia.functional.xef.conversation.sql
 
+import ai.xef.openai.StandardModel
 import arrow.continuations.SuspendApp
+import com.xebia.functional.openai.apis.ChatApi
+import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.conversation.llm.openai.OpenAI
 import com.xebia.functional.xef.sql.SQL
 import com.xebia.functional.xef.sql.jdbc.JdbcConfig
@@ -14,7 +17,8 @@ object MysqlExample {
       password = "toor",
       port = 3307,
       database = "example_db",
-      model = OpenAI.fromEnvironment().DEFAULT_SERIALIZATION
+      chatApi = ChatApi(),
+      model = StandardModel(CreateChatCompletionRequestModel.gptMinus3Period5MinusTurboMinus0613)
     )
 
   private val context =

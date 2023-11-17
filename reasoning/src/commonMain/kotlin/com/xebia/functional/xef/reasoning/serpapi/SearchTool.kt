@@ -1,7 +1,10 @@
 package com.xebia.functional.xef.reasoning.serpapi
 
+import ai.xef.openai.OpenAIModel
+import com.xebia.functional.openai.apis.ChatApi
+import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.conversation.Conversation
-import com.xebia.functional.xef.llm.Chat
+import com.xebia.functional.xef.llm.promptMessages
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.assistant
 import com.xebia.functional.xef.prompt.templates.system
@@ -10,8 +13,8 @@ import com.xebia.functional.xef.reasoning.tools.Tool
 import kotlin.jvm.JvmSynthetic
 
 interface SearchTool : Tool {
-
-  val model: Chat
+  val model: OpenAIModel<CreateChatCompletionRequestModel>
+  val chatApi: ChatApi
   val scope: Conversation
   val maxResultsInContext: Int
   val client: SerpApiClient
@@ -26,10 +29,10 @@ interface SearchTool : Tool {
   override suspend fun invoke(input: String): String {
 
     val docs = client.search(SerpApiClient.SearchData(input))
-    return model
+    return chatApi
       .promptMessages(
         prompt =
-          Prompt {
+          Prompt(model) {
             +system("Search results:")
             docs.searchResults.take(maxResultsInContext).forEach {
               +system("Title: ${it.title}")

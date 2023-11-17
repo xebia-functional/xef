@@ -63,7 +63,7 @@ suspend fun main() {
         model = model,
         scope = this
       )
-    val search = Search(model = model, scope = this)
+    val search = Search(chatApi = model, scope = this)
     val plan =
       taskSplitter(
         scope = this,

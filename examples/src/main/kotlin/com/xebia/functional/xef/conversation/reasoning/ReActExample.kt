@@ -8,7 +8,7 @@ suspend fun main() {
   OpenAI.conversation {
     val model = OpenAI.fromEnvironment().DEFAULT_CHAT
     val serialization = OpenAI.fromEnvironment().DEFAULT_SERIALIZATION
-    val search = Search(model = model, scope = this)
+    val search = Search(chatApi = model, scope = this)
 
     val reActAgent =
       ReActAgent(

@@ -1,9 +1,12 @@
 package com.xebia.functional.xef.sql
 
+import ai.xef.openai.OpenAIModel
+import com.xebia.functional.openai.apis.ChatApi
+import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.Description
-import com.xebia.functional.xef.llm.ChatWithFunctions
+import com.xebia.functional.xef.llm.*
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.system
 import com.xebia.functional.xef.prompt.templates.user
@@ -22,6 +25,7 @@ interface SQL {
     companion object {
         suspend fun <A> fromJdbcConfig(config: JdbcConfig, block: suspend SQL.() -> A): A = block(
             SQLImpl(
+                config.chatApi,
                 config.model,
                 Database.connect(url = config.toJDBCUrl(), user = config.username, password = config.password)
             )
@@ -40,7 +44,7 @@ interface SQL {
     suspend fun Conversation.promptQuery(prompt: String, tableNames: List<String>, context: String?): AnswerResponse
 }
 
-class SQLImpl(private val model: ChatWithFunctions, private val db: Database) : SQL {
+class SQLImpl(private val chatApi: ChatApi, private val model: OpenAIModel<CreateChatCompletionRequestModel>, private val db: Database) : SQL {
     private val logger = KotlinLogging.logger {}
 
     override suspend fun Conversation.promptQuery(
@@ -79,7 +83,7 @@ class SQLImpl(private val model: ChatWithFunctions, private val db: Database) : 
         tableNames: List<String>,
         context: String?
     ): QueriesAnswer {
-        val prompt = Prompt {
+        val prompt = Prompt(model) {
             +system(
                 """
                  As an SQL expert, your main goal is to generate SQL queries, but you must be able to answer any SQL-related question that solves the input.
@@ -114,7 +118,7 @@ class SQLImpl(private val model: ChatWithFunctions, private val db: Database) : 
             )
         }
 
-        return model.prompt(
+        return chatApi.prompt(
             prompt = prompt,
             scope = this,
             serializer = serializer<QueriesAnswer>()

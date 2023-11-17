@@ -1,7 +1,10 @@
 package com.xebia.functional.xef.reasoning.wikipedia
 
+import ai.xef.openai.OpenAIModel
+import com.xebia.functional.openai.apis.ChatApi
+import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.conversation.Conversation
-import com.xebia.functional.xef.llm.Chat
+import com.xebia.functional.xef.llm.*
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.assistant
 import com.xebia.functional.xef.prompt.templates.system
@@ -11,7 +14,8 @@ import com.xebia.functional.xef.reasoning.wikipedia.WikipediaClient.SearchDataBy
 
 interface SearchWikipediaByTitleTool : Tool {
 
-  val model: Chat
+  val chatApi: ChatApi
+  val model: OpenAIModel<CreateChatCompletionRequestModel>
   val scope: Conversation
   val client: WikipediaClient
 
@@ -25,10 +29,10 @@ interface SearchWikipediaByTitleTool : Tool {
   override suspend fun invoke(input: String): String {
     val docs = client.searchByTitle(SearchDataByTitle(input))
 
-    return model
+    return chatApi
       .promptMessages(
         prompt =
-          Prompt {
+          Prompt(model) {
             +system("Search results:")
             +system("Title: ${docs.title}")
             +system("PageId: ${docs.pageId}")

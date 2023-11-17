@@ -11,8 +11,7 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 
-class SerpApiClient(private val serpApiKey: String) :
-  AutoCloseable, AutoClose by autoClose() {
+class SerpApiClient(private val serpApiKey: String) : AutoCloseable, AutoClose by autoClose() {
 
   private val SERP_API_KEY_NOT_FOUND = "Missing SERP_API_KEY env var"
 

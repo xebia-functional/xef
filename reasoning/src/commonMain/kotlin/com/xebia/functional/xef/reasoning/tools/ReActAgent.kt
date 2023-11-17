@@ -1,8 +1,11 @@
 package com.xebia.functional.xef.reasoning.tools
 
+import ai.xef.openai.OpenAIModel
+import com.xebia.functional.openai.apis.ChatApi
+import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.Description
-import com.xebia.functional.xef.llm.ChatWithFunctions
+import com.xebia.functional.xef.llm.*
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
 import com.xebia.functional.xef.prompt.templates.assistant
@@ -15,7 +18,8 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.Serializable
 
 class ReActAgent(
-  private val model: ChatWithFunctions,
+  private val chatApi: ChatApi,
+  private val model: OpenAIModel<CreateChatCompletionRequestModel>,
   private val scope: Conversation,
   private val tools: List<Tool>,
   private val maxIterations: Int = 10,
@@ -101,10 +105,10 @@ class ReActAgent(
   )
 
   private suspend fun critiqueCall(prompt: String, finish: Finish): Critique {
-    return model.prompt(
+    return chatApi.prompt(
       serializer = Critique.serializer(),
       prompt =
-        Prompt {
+        Prompt(model) {
             +user(
               "If your answer is valid, reply with `CompleteAnswerForUserRequest`, otherwise `IncompleteAnswerForUserRequest` so we can gather to answer all aspects of the my user request"
             )
@@ -124,10 +128,10 @@ class ReActAgent(
     iterations: Int,
     thought: ThoughtObservation
   ): Decide =
-    model.prompt(
+    chatApi.prompt(
       serializer = Decide.serializer(),
       prompt =
-        Prompt {
+        Prompt(model) {
             if (iterations == 0) {
               +system("Available Tools:")
               tools.forEach { +system("- ${it.name}: ${it.description}") }
@@ -141,10 +145,10 @@ class ReActAgent(
     )
 
   private suspend fun runToolCall(): RunTool =
-    model.prompt(
+    chatApi.prompt(
       serializer = RunTool.serializer(),
       prompt =
-        Prompt {
+        Prompt(model) {
             +assistant(
               "I will run the tool that I think is best suited to get information in order to answer the user request"
             )
@@ -154,10 +158,10 @@ class ReActAgent(
     )
 
   private suspend fun finishCall(prompt: String): Finish =
-    model.prompt(
+    chatApi.prompt(
       serializer = Finish.serializer(),
       prompt =
-        Prompt {
+        Prompt(model) {
             +user(prompt)
             +assistant("I will finish with the `result` and `thought`")
           }

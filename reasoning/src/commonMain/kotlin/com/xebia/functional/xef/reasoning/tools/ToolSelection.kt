@@ -1,7 +1,10 @@
 package com.xebia.functional.xef.reasoning.tools
 
+import ai.xef.openai.OpenAIModel
+import com.xebia.functional.openai.apis.ChatApi
+import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.conversation.Conversation
-import com.xebia.functional.xef.llm.ChatWithFunctions
+import com.xebia.functional.xef.llm.*
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.assistant
 import com.xebia.functional.xef.prompt.templates.system
@@ -9,7 +12,8 @@ import com.xebia.functional.xef.prompt.templates.user
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 class ToolSelection(
-  private val model: ChatWithFunctions,
+  private val chatApi: ChatApi,
+  private val model: OpenAIModel<CreateChatCompletionRequestModel>,
   private val scope: Conversation,
   private val tools: List<Tool>,
   private val instructions: List<String> = emptyList()
@@ -83,23 +87,24 @@ class ToolSelection(
   suspend fun createExecutionPlan(task: String): ToolsExecutionPlan {
     logger.info { "🔍 Creating execution plan for task: $task" }
 
-    val messages: Prompt = Prompt {
-      +system(
-        "You are an expert in tool selection that can choose the best tools for a specific task based on the tools descriptions"
-      )
-      +assistant("Given the following task:")
-      +assistant(task)
-      +assistant("Given the following tools:")
-      tools.forEach { +assistant("${it.name}: ${it.description}") }
-      +user("Follow the next instructions")
-      +user("Select the best execution plan with tools for the `task` based on the `tools`")
-      +user(
-        "Your `RESPONSE` MUST be a `ToolsExecutionPlan` object, where the `steps` determine how the execution plan will run the tools"
-      )
-      instructions.forEach { +user(it) }
-    }
+    val messages: Prompt<CreateChatCompletionRequestModel> =
+      Prompt(model) {
+        +system(
+          "You are an expert in tool selection that can choose the best tools for a specific task based on the tools descriptions"
+        )
+        +assistant("Given the following task:")
+        +assistant(task)
+        +assistant("Given the following tools:")
+        tools.forEach { +assistant("${it.name}: ${it.description}") }
+        +user("Follow the next instructions")
+        +user("Select the best execution plan with tools for the `task` based on the `tools`")
+        +user(
+          "Your `RESPONSE` MUST be a `ToolsExecutionPlan` object, where the `steps` determine how the execution plan will run the tools"
+        )
+        instructions.forEach { +user(it) }
+      }
 
-    return model.prompt(
+    return chatApi.prompt(
       scope = scope,
       serializer = ToolsExecutionPlan.serializer(),
       prompt = messages

@@ -1,7 +1,9 @@
 package com.xebia.functional.xef.reasoning.tools
 
+import ai.xef.openai.OpenAIModel
+import com.xebia.functional.openai.apis.ChatApi
+import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.conversation.Conversation
-import com.xebia.functional.xef.llm.Chat
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.assistant
 import com.xebia.functional.xef.prompt.templates.system
@@ -14,7 +16,8 @@ import kotlin.jvm.JvmStatic
 abstract class LLMTool(
   override val name: String,
   override val description: String,
-  private val model: Chat,
+  private val chatApi: ChatApi,
+  private val model: OpenAIModel<CreateChatCompletionRequestModel>,
   private val scope: Conversation,
   private val instructions: List<String> = emptyList()
 ) : Tool {
@@ -24,10 +27,10 @@ abstract class LLMTool(
     logger.info { "🔧 $name[$input]" }
 
     return callModel(
-      model,
+      chatApi,
       scope,
       prompt =
-        Prompt {
+        Prompt(model) {
           +system("You are an expert in executing the tool:")
           +system("Tool: $name")
           +system("Description: $description")
@@ -44,9 +47,10 @@ abstract class LLMTool(
     fun create(
       name: String,
       description: String,
-      model: Chat,
+      chatApi: ChatApi,
+      model: OpenAIModel<CreateChatCompletionRequestModel>,
       scope: Conversation,
       instructions: List<String> = emptyList()
-    ): LLMTool = object : LLMTool(name, description, model, scope, instructions) {}
+    ): LLMTool = object : LLMTool(name, description, chatApi, model, scope, instructions) {}
   }
 }

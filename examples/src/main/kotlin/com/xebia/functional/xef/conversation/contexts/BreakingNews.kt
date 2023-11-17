@@ -14,7 +14,7 @@ suspend fun main() {
     val sdf = SimpleDateFormat("dd/M/yyyy")
     val currentDate = sdf.format(Date())
     val search =
-      Search(model = OpenAI.fromEnvironment().DEFAULT_CHAT, scope = this, maxResultsInContext = 3)
+      Search(chatApi = OpenAI.fromEnvironment().DEFAULT_CHAT, scope = this, maxResultsInContext = 3)
     val docs = search("$currentDate Covid News")
     addContext(docs)
     val news: BreakingNewsAboutCovid =
