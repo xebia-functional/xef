@@ -8,7 +8,8 @@ import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import kotlin.coroutines.CoroutineContext
 
-class TestHttpResponse(context: CoroutineContext, statusCode: Int) : io.ktor.client.statement.HttpResponse() {
+class TestHttpResponse(context: CoroutineContext, statusCode: Int) :
+  io.ktor.client.statement.HttpResponse() {
   override val call: HttpClientCall = HttpClientCall(HttpClient())
   @InternalAPI override val content: ByteReadChannel = ByteReadChannel.Empty
   override val coroutineContext: CoroutineContext = context

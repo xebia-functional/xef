@@ -29,6 +29,7 @@ sealed class ModelType(
   open val tokensPerMessage: Int = 0,
   open val tokensPerName: Int = 0,
   open val tokenPadding: Int = 20,
+  open val tokenPaddingSum: Int = 3,
 ) {
 
   companion object {

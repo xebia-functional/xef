@@ -38,7 +38,8 @@ class LocalVectorStoreSpec :
       val messages1 = memoryData.generateRandomMessages(4)
       val messages2 = memoryData.generateRandomMessages(3)
 
-      val tokensForMessages2 = modelType.tokensFromMessages(messages2.map { it.content.asRequestMessage() })
+      val tokensForMessages2 =
+        modelType.tokensFromMessages(messages2.map { it.content.asRequestMessage() })
 
       localVectorStore.addMemories(messages1)
       localVectorStore.addMemories(messages2)

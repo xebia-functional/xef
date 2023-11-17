@@ -7,7 +7,10 @@ import com.xebia.functional.xef.utils.TestBodyProvider
 import com.xebia.functional.xef.utils.TestHttpResponse
 import kotlin.coroutines.CoroutineContext
 
-class TestChatApi(private val context: CoroutineContext, val responses: Map<String, String> = emptyMap()) : ChatApi(), AutoCloseable {
+class TestChatApi(
+  private val context: CoroutineContext,
+  private val responses: Map<String, String> = emptyMap()
+) : ChatApi(), AutoCloseable {
 
   var requests: MutableList<CreateChatCompletionRequest> = mutableListOf()
 
@@ -29,6 +32,18 @@ class TestChatApi(private val context: CoroutineContext, val responses: Map<Stri
                   role = ChatCompletionResponseMessage.Role.assistant,
                   content = responses[createChatCompletionRequest.messages.last().contentAsString()]
                       ?: "fake-content",
+                  toolCalls =
+                    listOf(
+                      ChatCompletionMessageToolCall(
+                        id = "fake-tool-id",
+                        type = ChatCompletionMessageToolCall.Type.function,
+                        function =
+                          ChatCompletionMessageToolCallFunction(
+                            "fake-function-name",
+                            """{ "bar": "fake-answer" }"""
+                          )
+                      )
+                    )
                 ),
               finishReason = CreateChatCompletionResponseChoicesInner.FinishReason.stop,
               index = 0

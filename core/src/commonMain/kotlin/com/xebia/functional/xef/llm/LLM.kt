@@ -5,7 +5,8 @@ import com.xebia.functional.tokenizer.Encoding
 import com.xebia.functional.tokenizer.ModelType
 
 fun ModelType.tokensFromMessages(
-  messages: List<ChatCompletionRequestMessage>
+  messages: List<ChatCompletionRequestMessage>,
+  includePadding: Boolean = true
 ): Int { // TODO: naive implementation with magic numbers
   fun Encoding.countTokensFromMessages(tokensPerMessage: Int, tokensPerName: Int): Int =
     messages.sumOf { message ->
@@ -13,9 +14,9 @@ fun ModelType.tokensFromMessages(
         countTokens(message.contentAsString() ?: "") +
         tokensPerMessage +
         tokensPerName
-    } + 3
+    }
   return encoding.countTokensFromMessages(
     tokensPerMessage = tokensPerMessage,
     tokensPerName = tokensPerName
-  ) + tokenPadding
+  ) + if (includePadding) tokenPadding + tokenPaddingSum else 0
 }

@@ -177,7 +177,7 @@ class ConversationSpec :
 
       response shouldBe answer
 
-      lastRequest.functionCall shouldNotBe null
+      lastRequest.toolChoice shouldNotBe null
     }
 
     "the message of the request should be the JSON string of the question when the prompt contains serializable object" {
@@ -352,6 +352,8 @@ class ConversationSpec :
       chatApi.promptMessages(prompt = prompt, scope = scope)
 
       val messagesStored = scope.store.memories(model, conversationId, Int.MAX_VALUE)
+
+      println(messagesStored)
 
       messagesStored.filter { it.content.role == ChatCompletionRole.system } shouldBe messagesStored
     }

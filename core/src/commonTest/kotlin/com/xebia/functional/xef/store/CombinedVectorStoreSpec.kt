@@ -26,7 +26,7 @@ class CombinedVectorStoreSpec :
 
       messages shouldBe messagesExpected
     }
-    
+
     "memories function should return the last n combined messages in the right order" {
       val modelType = model.modelType()
       val memoryData = MemoryData()
@@ -36,19 +36,14 @@ class CombinedVectorStoreSpec :
 
       val combinedVectorStore = topMessages.combine(coroutineContext, bottomMessages)
 
-      val tokensForLast2TopMessages =
+      val lastTwoMessages = topMessages.takeLast(2 * 2).map { it.content.asRequestMessage() }
+      val tokensForMessages =
         modelType.tokensFromMessages(
-          topMessages.takeLast(2 * 2).map { it.content.asRequestMessage() }
+          lastTwoMessages + bottomMessages.map { it.content.asRequestMessage() }
         )
-      val tokensForBottomMessages =
-        modelType.tokensFromMessages(bottomMessages.map { it.content.asRequestMessage() })
 
       val messages =
-        combinedVectorStore.memories(
-          model,
-          memoryData.defaultConversationId,
-          tokensForLast2TopMessages + tokensForBottomMessages
-        )
+        combinedVectorStore.memories(model, memoryData.defaultConversationId, tokensForMessages)
 
       val messagesExpected = topMessages.takeLast(2 * 2) + bottomMessages
 
@@ -72,7 +67,10 @@ class CombinedVectorStoreSpec :
         memoryData.generateRandomMessages(4, append = "common-bottom", conversationId = commonId)
 
       val combinedVectorStore =
-        (topMessages + commonTopMessages).combine(coroutineContext, bottomMessages + commonBottomMessages)
+        (topMessages + commonTopMessages).combine(
+          coroutineContext,
+          bottomMessages + commonBottomMessages
+        )
 
       val messages = combinedVectorStore.memories(model, commonId, Int.MAX_VALUE)
 
@@ -98,7 +96,10 @@ class CombinedVectorStoreSpec :
         memoryData.generateRandomMessages(4, append = "common-bottom", conversationId = commonId)
 
       val combinedVectorStore =
-        (topMessages + commonTopMessages).combine(coroutineContext, bottomMessages + commonBottomMessages)
+        (topMessages + commonTopMessages).combine(
+          coroutineContext,
+          bottomMessages + commonBottomMessages
+        )
 
       val newCommonMessages =
         memoryData.generateRandomMessages(4, append = "new", conversationId = commonId)
@@ -114,7 +115,10 @@ class CombinedVectorStoreSpec :
     }
   })
 
-suspend fun List<Memory>.combine(context: CoroutineContext, bottomMessages: List<Memory>): CombinedVectorStore {
+suspend fun List<Memory>.combine(
+  context: CoroutineContext,
+  bottomMessages: List<Memory>
+): CombinedVectorStore {
   val top = LocalVectorStore(TestEmbeddings(context))
   top.addMemories(this)
 

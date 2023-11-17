@@ -69,7 +69,7 @@ suspend fun VectorStore.addMemoriesByHistory(history: MessagesToHistory, memorie
       addMemories(memories)
     }
     MessagesToHistory.ONLY_SYSTEM_MESSAGES -> {
-      addMemories(memories.filter { it.content.role == ChatCompletionRole.assistant })
+      addMemories(memories.filter { it.content.role == ChatCompletionRole.system })
     }
     MessagesToHistory.NOT_SYSTEM_MESSAGES -> {
       addMemories(memories.filter { it.content.role != ChatCompletionRole.system })
