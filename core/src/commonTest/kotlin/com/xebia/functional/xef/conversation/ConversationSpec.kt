@@ -6,6 +6,7 @@ import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
 import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage.*
 import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestUserMessageContent
 import com.xebia.functional.xef.data.*
+import com.xebia.functional.xef.llm.models.modelType
 import com.xebia.functional.xef.llm.prompt
 import com.xebia.functional.xef.llm.promptMessage
 import com.xebia.functional.xef.llm.promptMessages

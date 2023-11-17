@@ -5,6 +5,7 @@ import com.xebia.functional.tokenizer.truncateText
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.MessagesFromHistory
+import com.xebia.functional.xef.llm.models.modelType
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.assistant
 import com.xebia.functional.xef.store.Memory

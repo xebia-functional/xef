@@ -1,6 +1,5 @@
 package ai.xef.openai
 
-import com.xebia.functional.tokenizer.ModelType
 import kotlin.jvm.JvmInline
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -18,14 +17,6 @@ sealed interface OpenAIModel<T> {
       is CustomModel -> model
       is StandardModel -> model.toString()
     }
-
-  fun modelType(forFunctions: Boolean = false): ModelType {
-    val stringValue = value()
-    val forFunctionsModel =
-      ModelType.functionSpecific.find { forFunctions && it.name == stringValue }
-    return forFunctionsModel
-      ?: (ModelType.all.find { it.name == stringValue } ?: ModelType.TODO(stringValue))
-  }
 }
 
 @Serializable @JvmInline value class CustomModel<T>(val model: String) : OpenAIModel<T>

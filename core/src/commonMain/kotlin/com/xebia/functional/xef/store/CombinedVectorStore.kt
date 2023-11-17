@@ -2,6 +2,7 @@ package com.xebia.functional.xef.store
 
 import ai.xef.openai.OpenAIModel
 import com.xebia.functional.openai.models.Embedding
+import com.xebia.functional.xef.llm.models.modelType
 
 /**
  * A way of composing two [VectorStore] instances together, this class will **first search** [top],

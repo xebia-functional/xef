@@ -3,6 +3,7 @@ package com.xebia.functional.xef.store
 import ai.xef.openai.StandardModel
 import com.xebia.functional.openai.models.CreateFineTuneRequestModel
 import com.xebia.functional.xef.data.TestEmbeddings
+import com.xebia.functional.xef.llm.models.modelType
 import com.xebia.functional.xef.llm.tokensFromMessages
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe

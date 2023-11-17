@@ -8,6 +8,7 @@ import com.xebia.functional.openai.models.Embedding
 import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.llm.embedDocuments
 import com.xebia.functional.xef.llm.embedQuery
+import com.xebia.functional.xef.llm.models.modelType
 import com.xebia.functional.xef.store.postgresql.*
 import kotlinx.uuid.UUID
 import kotlinx.uuid.generateUUID
