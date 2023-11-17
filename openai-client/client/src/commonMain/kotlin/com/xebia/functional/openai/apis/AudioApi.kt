@@ -8,6 +8,7 @@ package com.xebia.functional.openai.apis
 
 import com.xebia.functional.openai.infrastructure.*
 import com.xebia.functional.openai.models.CreateSpeechRequest
+import com.xebia.functional.openai.models.CreateTranscriptionRequestModel
 import com.xebia.functional.openai.models.CreateTranscriptionResponse
 import com.xebia.functional.openai.models.CreateTranslationResponse
 import io.ktor.client.HttpClient
@@ -104,8 +105,7 @@ open class AudioApi : ApiClient {
   @Suppress("UNCHECKED_CAST")
   open suspend fun createTranscription(
     file: io.ktor.client.request.forms.InputProvider,
-    model:
-      com.xebia.functional.openai.models.ext.transcription.create.CreateTranscriptionRequestModel,
+    model: CreateTranscriptionRequestModel,
     language: kotlin.String? = null,
     prompt: kotlin.String? = null,
     responseFormat: ResponseFormatCreateTranscription? = ResponseFormatCreateTranscription.json,
@@ -160,8 +160,7 @@ open class AudioApi : ApiClient {
   @Suppress("UNCHECKED_CAST")
   open suspend fun createTranslation(
     file: io.ktor.client.request.forms.InputProvider,
-    model:
-      com.xebia.functional.openai.models.ext.transcription.create.CreateTranscriptionRequestModel,
+    model: CreateTranscriptionRequestModel,
     prompt: kotlin.String? = null,
     responseFormat: kotlin.String? = "json",
     temperature: kotlin.Double? = 0.toDouble()

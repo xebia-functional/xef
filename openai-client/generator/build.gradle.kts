@@ -35,4 +35,4 @@ task("openaiClientGenerate", JavaExec::class) {
         "config/openai-config.json",
     )
     classpath = sourceSets["main"].runtimeClasspath
-}
+}.finalizedBy(":xef-openai-client:spotlessApply")

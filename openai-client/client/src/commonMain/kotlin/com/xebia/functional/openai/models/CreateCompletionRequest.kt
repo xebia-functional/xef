@@ -72,7 +72,7 @@ import kotlinx.serialization.encoding.*
 data class CreateCompletionRequest(
   @SerialName(value = "model")
   @Required
-  val model: com.xebia.functional.openai.models.ext.completion.create.CreateCompletionRequestModel,
+  val model: ai.xef.openai.OpenAIModel<CreateCompletionRequestModel>,
   @SerialName(value = "prompt")
   @Required
   val prompt:
