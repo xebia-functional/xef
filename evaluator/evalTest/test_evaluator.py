@@ -29,7 +29,17 @@ metricObj = FactualConsistencyMetric(minimum_score=minimumScore)
 if metric == "AnswerRelevancyMetric":
     metricObj = AnswerRelevancyMetric(minimum_score=minimumScore)
 
+jsonResponse = {
+    "description": appDescription,
+}
+
+jsonItemResultResponses = []
+
 for x in range(numberOfOutputs):
+    jsonItemResponse = {
+        "description": outputs[x],
+
+    }
     cases = []
     for item in data['items']:
         context = []
@@ -41,14 +51,30 @@ for x in range(numberOfOutputs):
     results = execute_test(cases, [metricObj])
     print(f"Results: {outputs[x]}:")
     totalScore = 0
+
+    jsonResultResponses = []
+
     for r in results:
-        # print_test_result(r)
+        jsonResultResponse = {
+            "input": r.input,
+            "output": r.actual_output,
+            "score": float(r.metrics[0].score)
+        }
+        jsonResultResponses.append(jsonResultResponse)
         totalScore += r.metrics[0].score
-        print(f"- -> {r.metrics[0].score}")
+        print(f"- {r.input} -> {r.metrics[0].score}")
     avg = totalScore / len(results)
+    jsonItemResponse["tests"] = jsonResultResponses
+    jsonItemResponse["avg"] = avg
+    jsonItemResultResponses.append(jsonItemResponse)
     print()
     print(f"Average: {avg}:")
     print()
+
+jsonResponse["results"] = jsonItemResultResponses
+
+with open("results.json", "w") as outfile:
+    json.dump(jsonResponse, outfile)
 
 print()
 
