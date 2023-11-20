@@ -1,0 +1,17 @@
+version: "3.5"
+
+services:
+  app:
+    container_name: xef-evaluator
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./:/workspace
+    command:
+      - poetry
+      - run
+      - deepeval
+      - test
+      - run
+      - test_evaluator.py
