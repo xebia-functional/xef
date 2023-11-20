@@ -24,7 +24,7 @@ import kotlinx.serialization.encoding.*
 data class CreateSpeechRequest(
   @SerialName(value = "model")
   @Required
-  val model: com.xebia.functional.openai.models.ext.speech.create.CreateSpeechRequestModel,
+  val model: ai.xef.openai.OpenAIModel<CreateSpeechRequestModel>,
 
   /* The text to generate audio for. The maximum length is 4096 characters. */
   @SerialName(value = "input") @Required val input: kotlin.String,

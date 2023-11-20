@@ -25,4 +25,4 @@ fun <T : Any> FormBuilder.appendGen(key: String, value: T, headers: Headers = He
 
 @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
 fun <T : Enum<T>> serialNameOrEnumValue(v: Enum<T>): String =
-  v::class.serializerOrNull()?.descriptor?.getElementName(v.ordinal) ?: v.name
+  v::class.serializerOrNull()?.descriptor?.getElementName(v.ordinal) ?: v.toString()

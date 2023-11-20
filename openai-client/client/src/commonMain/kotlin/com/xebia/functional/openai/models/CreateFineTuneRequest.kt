@@ -89,8 +89,7 @@ data class CreateFineTuneRequest(
   /* The learning rate multiplier to use for training. The fine-tuning learning rate is the original learning rate used for pretraining multiplied by this value.  By default, the learning rate multiplier is the 0.05, 0.1, or 0.2 depending on final `batch_size` (larger learning rates tend to perform better with larger batch sizes). We recommend experimenting with values in the range 0.02 to 0.2 to see what produces the best results.  */
   @SerialName(value = "learning_rate_multiplier") val learningRateMultiplier: kotlin.Double? = null,
   @SerialName(value = "model")
-  val model: com.xebia.functional.openai.models.ext.finetune.create.CreateFineTuneRequestModel? =
-    null,
+  val model: ai.xef.openai.OpenAIModel<CreateFineTuneRequestModel>? = null,
 
   /* The weight to use for loss on the prompt tokens. This controls how much the model tries to learn to generate the prompt (as compared to the completion which always has a weight of 1.0), and can add a stabilizing effect to training when completions are short.  If prompts are extremely long (relative to completions), it may make sense to reduce this weight so as to avoid over-prioritizing learning the prompt.  */
   @SerialName(value = "prompt_loss_weight")

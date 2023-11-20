@@ -87,7 +87,6 @@ kotlin {
           dependencies {
               implementation(libs.ktor.http)
               implementation(libs.logback)
-              implementation(libs.skrape)
               implementation(libs.rss.reader)
               api(libs.jackson)
               api(libs.jackson.schema)
