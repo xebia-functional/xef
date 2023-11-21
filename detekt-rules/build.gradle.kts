@@ -19,7 +19,7 @@ dependencies {
     api(libs.detekt.api)
     testImplementation(libs.detekt.test)
     testImplementation(libs.kotest.assertions)
-    testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.1")
     implementation(libs.klogging)
 }
 
