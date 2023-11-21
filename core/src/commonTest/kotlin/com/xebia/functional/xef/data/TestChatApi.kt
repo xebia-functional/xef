@@ -21,7 +21,7 @@ class TestChatApi(
     val response =
       CreateChatCompletionResponse(
         id = "fake-id",
-        `object` = CreateChatCompletionResponse.Object.chatPeriodCompletion,
+        `object` = CreateChatCompletionResponse.Object.chat_completion,
         created = 0,
         model = "fake-model",
         choices =

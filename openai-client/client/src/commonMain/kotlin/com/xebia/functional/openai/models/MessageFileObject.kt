@@ -38,10 +38,10 @@ data class MessageFileObject(
   /**
    * The object type, which is always `thread.message.file`.
    *
-   * Values: threadPeriodMessagePeriodFile
+   * Values: thread_message_file
    */
   @Serializable
   enum class `Object`(val value: kotlin.String) {
-    @SerialName(value = "thread.message.file") threadPeriodMessagePeriodFile("thread.message.file")
+    @SerialName(value = "thread.message.file") thread_message_file("thread.message.file")
   }
 }

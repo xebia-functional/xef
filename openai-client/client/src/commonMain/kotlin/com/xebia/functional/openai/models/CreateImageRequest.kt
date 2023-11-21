@@ -73,12 +73,12 @@ data class CreateImageRequest(
   /**
    * The format in which the generated images are returned. Must be one of `url` or `b64_json`.
    *
-   * Values: url,b64Json
+   * Values: url,b64_json
    */
   @Serializable
   enum class ResponseFormat(val value: kotlin.String) {
     @SerialName(value = "url") url("url"),
-    @SerialName(value = "b64_json") b64Json("b64_json")
+    @SerialName(value = "b64_json") b64_json("b64_json")
   }
   /**
    * The size of the generated images. Must be one of `256x256`, `512x512`, or `1024x1024` for

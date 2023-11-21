@@ -59,11 +59,12 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
 
     @Override
     public String toEnumVarName(String value, String datatype) {
+        System.out.println("value = " + value + ", datatype = " + datatype);
         String varName;
         if ("length".equals(value)) {
             varName = value + "Type";
         } else {
-            varName = value;
+            varName = value.replace("-", "_").replace(".", "_");
         }
         return super.toEnumVarName(varName, datatype);
     }

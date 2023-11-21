@@ -13,6 +13,6 @@ fun <T : ApiClient> fromEnvironment(builder: (String) -> T): T {
     getenv(KEY_ENV_VAR) ?: throw AIError.Env.OpenAI(nonEmptyListOf("missing $KEY_ENV_VAR env var"))
   val host = getenv(HOST_ENV_VAR)
   val api = builder(host ?: ApiClient.BASE_URL)
-  api.setApiKey(token)
+  api.setBearerToken(token)
   return api
 }

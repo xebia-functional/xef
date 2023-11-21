@@ -82,7 +82,7 @@ open class ImagesApi : ApiClient {
   enum class ResponseFormatCreateImageEdit(val value: kotlin.String) {
 
     @SerialName(value = "url") url("url"),
-    @SerialName(value = "b64_json") b64Json("b64_json")
+    @SerialName(value = "b64_json") b64_json("b64_json")
   }
 
   /**
@@ -151,7 +151,7 @@ open class ImagesApi : ApiClient {
   enum class ResponseFormatCreateImageVariation(val value: kotlin.String) {
 
     @SerialName(value = "url") url("url"),
-    @SerialName(value = "b64_json") b64Json("b64_json")
+    @SerialName(value = "b64_json") b64_json("b64_json")
   }
 
   /** enum for parameter size */

@@ -4,7 +4,8 @@
     "groupId": "com.xebia.functional",
     "artifactId": "openai-client",
     "packageName": "com.xebia.functional.openai",
-    "removeEnumValuePrefix": false
+    "removeEnumValuePrefix": false,
+    "enumPropertyNaming" : "original"
   },
   "schemaMappings": {
     "FunctionParameters": "kotlinx.serialization.json.JsonObject",

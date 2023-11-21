@@ -52,10 +52,10 @@ data class CreateCompletionResponse(
   /**
    * The object type, which is always \"text_completion\"
    *
-   * Values: textCompletion
+   * Values: text_completion
    */
   @Serializable
   enum class `Object`(val value: kotlin.String) {
-    @SerialName(value = "text_completion") textCompletion("text_completion")
+    @SerialName(value = "text_completion") text_completion("text_completion")
   }
 }

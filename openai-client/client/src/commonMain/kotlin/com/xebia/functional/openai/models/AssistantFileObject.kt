@@ -37,10 +37,10 @@ data class AssistantFileObject(
   /**
    * The object type, which is always `assistant.file`.
    *
-   * Values: assistantPeriodFile
+   * Values: assistant_file
    */
   @Serializable
   enum class `Object`(val value: kotlin.String) {
-    @SerialName(value = "assistant.file") assistantPeriodFile("assistant.file")
+    @SerialName(value = "assistant.file") assistant_file("assistant.file")
   }
 }

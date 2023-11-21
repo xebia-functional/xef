@@ -39,14 +39,14 @@ data class CreateChatCompletionResponseChoicesInner(
    * filters, `tool_calls` if the model called a tool, or `function_call` (deprecated) if the model
    * called a function.
    *
-   * Values: stop,lengthType,toolCalls,contentFilter,functionCall
+   * Values: stop,lengthType,tool_calls,content_filter,function_call
    */
   @Serializable
   enum class FinishReason(val value: kotlin.String) {
     @SerialName(value = "stop") stop("stop"),
     @SerialName(value = "length") lengthType("length"),
-    @SerialName(value = "tool_calls") toolCalls("tool_calls"),
-    @SerialName(value = "content_filter") contentFilter("content_filter"),
-    @SerialName(value = "function_call") functionCall("function_call")
+    @SerialName(value = "tool_calls") tool_calls("tool_calls"),
+    @SerialName(value = "content_filter") content_filter("content_filter"),
+    @SerialName(value = "function_call") function_call("function_call")
   }
 }

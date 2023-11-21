@@ -13,7 +13,7 @@ import io.kotest.matchers.shouldBe
 
 class PromptBuilderSpec :
   StringSpec({
-    val model = StandardModel(CreateChatCompletionRequestModel.gptMinus4)
+    val model = StandardModel(CreateChatCompletionRequestModel.gpt_4)
     "buildPrompt should return the expected messages" {
       val messages =
         Prompt(model) {

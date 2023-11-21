@@ -29,10 +29,10 @@ data class RunObjectRequiredAction(
   /**
    * For now, this is always `submit_tool_outputs`.
    *
-   * Values: submitToolOutputs
+   * Values: submit_tool_outputs
    */
   @Serializable
   enum class Type(val value: kotlin.String) {
-    @SerialName(value = "submit_tool_outputs") submitToolOutputs("submit_tool_outputs")
+    @SerialName(value = "submit_tool_outputs") submit_tool_outputs("submit_tool_outputs")
   }
 }

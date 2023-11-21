@@ -1,6 +1,8 @@
 package com.xebia.functional.xef.conversation.reasoning
 
-import com.xebia.functional.xef.conversation.llm.openai.OpenAI
+import ai.xef.openai.StandardModel
+import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
+import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.reasoning.tools.LLMTool
 import com.xebia.functional.xef.reasoning.tools.ReActAgent
 import com.xebia.functional.xef.reasoning.wikipedia.SearchWikipedia
@@ -8,9 +10,9 @@ import com.xebia.functional.xef.reasoning.wikipedia.SearchWikipediaByPageId
 import com.xebia.functional.xef.reasoning.wikipedia.SearchWikipediaByTitle
 
 suspend fun main() {
-  OpenAI.conversation {
-    val model = OpenAI.fromEnvironment().DEFAULT_CHAT
-    val serialization = OpenAI.fromEnvironment().DEFAULT_SERIALIZATION
+  Conversation {
+    val model = StandardModel(CreateChatCompletionRequestModel.gpt_3_5_turbo)
+    val serialization = StandardModel(CreateChatCompletionRequestModel.gpt_3_5_turbo_16k_0613)
     val math =
       LLMTool.create(
         name = "Calculator",

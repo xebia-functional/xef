@@ -1,6 +1,7 @@
 package com.xebia.functional.xef.conversation
 
 import com.xebia.functional.openai.apis.ChatApi
+import com.xebia.functional.openai.apis.EmbeddingsApi
 import com.xebia.functional.openai.apis.ImagesApi
 import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
 import com.xebia.functional.openai.models.CreateImageRequest
@@ -11,22 +12,23 @@ import com.xebia.functional.xef.llm.*
 import com.xebia.functional.xef.metrics.Metric
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.store.ConversationId
+import com.xebia.functional.xef.store.LocalVectorStore
 import com.xebia.functional.xef.store.VectorStore
+import kotlin.jvm.JvmOverloads
 import kotlin.jvm.JvmSynthetic
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.serializer
 import kotlinx.uuid.UUID
 import kotlinx.uuid.generateUUID
 
-interface Conversation {
-
-  val store: VectorStore
-
-  val metric: Metric
-
-  val conversationId: ConversationId?
-
-  val conversation: Conversation
+class Conversation
+@JvmOverloads
+constructor(
+  val store: VectorStore = LocalVectorStore(fromEnvironment { baseUrl -> EmbeddingsApi(baseUrl) }),
+  val metric: Metric = Metric.EMPTY,
+  val conversationId: ConversationId? = ConversationId(UUID.generateUUID().toString())
+) {
 
   @AiDsl
   @JvmSynthetic
@@ -42,10 +44,24 @@ interface Conversation {
 
   @AiDsl
   @JvmSynthetic
+  suspend inline fun <reified A> prompt(
+    prompt: Prompt<CreateChatCompletionRequestModel>,
+    chat: ChatApi = fromEnvironment { baseUrl -> ChatApi(baseUrl) },
+  ): A = chat.prompt(prompt, this@Conversation, serializer())
+
+  @AiDsl
+  @JvmSynthetic
+  suspend inline fun promptMessage(
+    prompt: Prompt<CreateChatCompletionRequestModel>,
+    chat: ChatApi = fromEnvironment { baseUrl -> ChatApi(baseUrl) },
+  ): String = chat.promptMessage(prompt, this@Conversation)
+
+  @AiDsl
+  @JvmSynthetic
   suspend fun <A> ChatApi.prompt(
     prompt: Prompt<CreateChatCompletionRequestModel>,
     serializer: KSerializer<A>
-  ): A = prompt(prompt, conversation, serializer)
+  ): A = prompt(prompt, this@Conversation, serializer)
 
   @AiDsl
   @JvmSynthetic
@@ -53,23 +69,35 @@ interface Conversation {
     prompt: Prompt<CreateChatCompletionRequestModel>,
     function: FunctionObject,
     serializer: (String) -> A
-  ): A = prompt(prompt, conversation, function, serializer)
+  ): A = prompt(prompt, this@Conversation, function, serializer)
 
   @AiDsl
   @JvmSynthetic
   suspend fun ChatApi.promptMessage(
     prompt: Prompt<CreateChatCompletionRequestModel>,
-  ): String = promptMessages(prompt, conversation).firstOrNull() ?: throw AIError.NoResponse()
+  ): String = promptMessages(prompt, this@Conversation).firstOrNull() ?: throw AIError.NoResponse()
 
   @AiDsl
   @JvmSynthetic
   suspend fun ChatApi.promptMessages(
     prompt: Prompt<CreateChatCompletionRequestModel>
-  ): List<String> = promptMessages(prompt, conversation)
+  ): List<String> = promptMessages(prompt, this@Conversation)
+
+  @AiDsl
+  inline fun <reified A> promptStreamingFunctions(
+    prompt: Prompt<CreateChatCompletionRequestModel>,
+    chat: ChatApi = fromEnvironment(::ChatApi)
+  ): Flow<StreamedFunction<A>> = chat.promptStreaming(prompt, this@Conversation, serializer())
+
+  @AiDsl
+  fun promptStreaming(
+    prompt: Prompt<CreateChatCompletionRequestModel>,
+    chat: ChatApi = fromEnvironment(::ChatApi)
+  ): Flow<String> = chat.promptStreaming(prompt, this@Conversation)
 
   @AiDsl
   fun ChatApi.promptStreaming(prompt: Prompt<CreateChatCompletionRequestModel>): Flow<String> =
-    promptStreaming(prompt, conversation)
+    promptStreaming(prompt, this@Conversation)
 
   /**
    * Run a [prompt] describes the images you want to generate within the context of [Conversation].
@@ -89,26 +117,12 @@ interface Conversation {
 
   companion object {
 
-    class Default(
-      override val store: VectorStore,
-      override val metric: Metric,
-      override val conversationId: ConversationId? = ConversationId(UUID.generateUUID().toString()),
-    ) : Conversation {
-      override val conversation: Conversation = this
-    }
-
-    operator fun invoke(
-      store: VectorStore,
-      metric: Metric,
-      conversationId: ConversationId? = ConversationId(UUID.generateUUID().toString())
-    ): Conversation = Default(store, metric, conversationId)
-
     @JvmSynthetic
     suspend operator fun <A> invoke(
-      store: VectorStore,
-      metric: Metric,
+      store: VectorStore = LocalVectorStore(fromEnvironment { baseUrl -> EmbeddingsApi(baseUrl) }),
+      metric: Metric = Metric.EMPTY,
       conversationId: ConversationId? = ConversationId(UUID.generateUUID().toString()),
       block: suspend Conversation.() -> A
-    ): A = block(invoke(store, metric, conversationId))
+    ): A = block(Conversation(store, metric, conversationId))
   }
 }

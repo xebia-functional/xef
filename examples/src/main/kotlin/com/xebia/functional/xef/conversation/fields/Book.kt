@@ -1,8 +1,10 @@
 package com.xebia.functional.xef.conversation.fields
 
+import ai.xef.openai.StandardModel
+import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
+import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.Description
-import com.xebia.functional.xef.conversation.llm.openai.OpenAI
-import com.xebia.functional.xef.conversation.llm.openai.prompt
+import com.xebia.functional.xef.prompt.Prompt
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -13,8 +15,9 @@ data class Book(
 )
 
 suspend fun main() {
-  OpenAI.conversation {
-    val toKillAMockingbird: Book = prompt("To Kill a Mockingbird by Harper Lee")
+  Conversation {
+    val model = StandardModel(CreateChatCompletionRequestModel.gpt_3_5_turbo_16k_0613)
+    val toKillAMockingbird: Book = prompt(Prompt(model, "To Kill a Mockingbird by Harper Lee"))
     println(toKillAMockingbird)
   }
 }

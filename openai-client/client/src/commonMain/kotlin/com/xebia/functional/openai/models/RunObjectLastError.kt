@@ -29,11 +29,11 @@ data class RunObjectLastError(
   /**
    * One of `server_error` or `rate_limit_exceeded`.
    *
-   * Values: serverError,rateLimitExceeded
+   * Values: server_error,rate_limit_exceeded
    */
   @Serializable
   enum class Code(val value: kotlin.String) {
-    @SerialName(value = "server_error") serverError("server_error"),
-    @SerialName(value = "rate_limit_exceeded") rateLimitExceeded("rate_limit_exceeded")
+    @SerialName(value = "server_error") server_error("server_error"),
+    @SerialName(value = "rate_limit_exceeded") rate_limit_exceeded("rate_limit_exceeded")
   }
 }

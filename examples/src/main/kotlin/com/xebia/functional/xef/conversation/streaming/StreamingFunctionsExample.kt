@@ -1,8 +1,9 @@
 package com.xebia.functional.xef.conversation.streaming
 
+import ai.xef.openai.StandardModel
+import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
+import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.Description
-import com.xebia.functional.xef.conversation.llm.openai.OpenAI
-import com.xebia.functional.xef.conversation.llm.openai.promptStreaming
 import com.xebia.functional.xef.llm.StreamedFunction
 import com.xebia.functional.xef.prompt.Prompt
 import kotlinx.serialization.Serializable
@@ -21,9 +22,10 @@ data class MeaningOfLifeArgument(
 )
 
 suspend fun main() {
-  OpenAI.conversation {
-    promptStreaming<MeaningOfLifeArgument>(
-        Prompt("Provide arguments and authors for the meaning of life")
+  Conversation {
+    val model = StandardModel(CreateChatCompletionRequestModel.gpt_3_5_turbo_16k_0613)
+    promptStreamingFunctions<MeaningOfLifeArgument>(
+        Prompt(model, "Provide arguments and authors for the meaning of life")
       )
       .collect { element ->
         when (element) {

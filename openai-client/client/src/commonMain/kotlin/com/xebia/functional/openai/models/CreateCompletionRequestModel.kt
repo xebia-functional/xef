@@ -14,22 +14,21 @@ import kotlinx.serialization.*
  * of them.
  *
  * Values:
- * babbageMinus002,davinciMinus002,gptMinus3Period5MinusTurboMinusInstruct,textMinusDavinciMinus003,textMinusDavinciMinus002,textMinusDavinciMinus001,codeMinusDavinciMinus002,textMinusCurieMinus001,textMinusBabbageMinus001,textMinusAdaMinus001
+ * babbage_002,davinci_002,gpt_3_5_turbo_instruct,text_davinci_003,text_davinci_002,text_davinci_001,code_davinci_002,text_curie_001,text_babbage_001,text_ada_001
  */
 @Serializable
 enum class CreateCompletionRequestModel(val value: kotlin.String) {
 
-  @SerialName(value = "babbage-002") babbageMinus002("babbage-002"),
-  @SerialName(value = "davinci-002") davinciMinus002("davinci-002"),
-  @SerialName(value = "gpt-3.5-turbo-instruct")
-  gptMinus3Period5MinusTurboMinusInstruct("gpt-3.5-turbo-instruct"),
-  @SerialName(value = "text-davinci-003") textMinusDavinciMinus003("text-davinci-003"),
-  @SerialName(value = "text-davinci-002") textMinusDavinciMinus002("text-davinci-002"),
-  @SerialName(value = "text-davinci-001") textMinusDavinciMinus001("text-davinci-001"),
-  @SerialName(value = "code-davinci-002") codeMinusDavinciMinus002("code-davinci-002"),
-  @SerialName(value = "text-curie-001") textMinusCurieMinus001("text-curie-001"),
-  @SerialName(value = "text-babbage-001") textMinusBabbageMinus001("text-babbage-001"),
-  @SerialName(value = "text-ada-001") textMinusAdaMinus001("text-ada-001");
+  @SerialName(value = "babbage-002") babbage_002("babbage-002"),
+  @SerialName(value = "davinci-002") davinci_002("davinci-002"),
+  @SerialName(value = "gpt-3.5-turbo-instruct") gpt_3_5_turbo_instruct("gpt-3.5-turbo-instruct"),
+  @SerialName(value = "text-davinci-003") text_davinci_003("text-davinci-003"),
+  @SerialName(value = "text-davinci-002") text_davinci_002("text-davinci-002"),
+  @SerialName(value = "text-davinci-001") text_davinci_001("text-davinci-001"),
+  @SerialName(value = "code-davinci-002") code_davinci_002("code-davinci-002"),
+  @SerialName(value = "text-curie-001") text_curie_001("text-curie-001"),
+  @SerialName(value = "text-babbage-001") text_babbage_001("text-babbage-001"),
+  @SerialName(value = "text-ada-001") text_ada_001("text-ada-001");
 
   /**
    * Override [toString()] to avoid using the enum variable name as the value, and instead use the

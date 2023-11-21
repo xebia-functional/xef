@@ -11,12 +11,12 @@ import kotlinx.serialization.*
 /**
  * ID of the model to use. Only `whisper-1` is currently available.
  *
- * Values: whisperMinus1
+ * Values: whisper_1
  */
 @Serializable
 enum class CreateTranscriptionRequestModel(val value: kotlin.String) {
 
-  @SerialName(value = "whisper-1") whisperMinus1("whisper-1");
+  @SerialName(value = "whisper-1") whisper_1("whisper-1");
 
   /**
    * Override [toString()] to avoid using the enum variable name as the value, and instead use the

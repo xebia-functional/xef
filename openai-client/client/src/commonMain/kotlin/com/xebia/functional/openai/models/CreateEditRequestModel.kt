@@ -12,15 +12,13 @@ import kotlinx.serialization.*
  * ID of the model to use. You can use the `text-davinci-edit-001` or `code-davinci-edit-001` model
  * with this endpoint.
  *
- * Values: textMinusDavinciMinusEditMinus001,codeMinusDavinciMinusEditMinus001
+ * Values: text_davinci_edit_001,code_davinci_edit_001
  */
 @Serializable
 enum class CreateEditRequestModel(val value: kotlin.String) {
 
-  @SerialName(value = "text-davinci-edit-001")
-  textMinusDavinciMinusEditMinus001("text-davinci-edit-001"),
-  @SerialName(value = "code-davinci-edit-001")
-  codeMinusDavinciMinusEditMinus001("code-davinci-edit-001");
+  @SerialName(value = "text-davinci-edit-001") text_davinci_edit_001("text-davinci-edit-001"),
+  @SerialName(value = "code-davinci-edit-001") code_davinci_edit_001("code-davinci-edit-001");
 
   /**
    * Override [toString()] to avoid using the enum variable name as the value, and instead use the

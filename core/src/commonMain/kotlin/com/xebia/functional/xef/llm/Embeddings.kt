@@ -16,9 +16,7 @@ suspend fun EmbeddingsApi.embedDocuments(texts: List<String>, chunkSize: Int?): 
         createEmbedding(
             CreateEmbeddingRequest(
               model =
-                ai.xef.openai.StandardModel(
-                  CreateEmbeddingRequestModel.textMinusEmbeddingMinusAdaMinus002
-                ),
+                ai.xef.openai.StandardModel(CreateEmbeddingRequestModel.text_embedding_ada_002),
               input = CreateEmbeddingRequestInput.StringArrayValue(it)
             )
           )

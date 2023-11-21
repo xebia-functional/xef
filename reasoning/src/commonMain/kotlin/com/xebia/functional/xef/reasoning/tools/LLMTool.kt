@@ -4,6 +4,7 @@ import ai.xef.openai.OpenAIModel
 import com.xebia.functional.openai.apis.ChatApi
 import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.conversation.Conversation
+import com.xebia.functional.xef.llm.fromEnvironment
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.assistant
 import com.xebia.functional.xef.prompt.templates.system
@@ -47,9 +48,9 @@ abstract class LLMTool(
     fun create(
       name: String,
       description: String,
-      chatApi: ChatApi,
       model: OpenAIModel<CreateChatCompletionRequestModel>,
       scope: Conversation,
+      chatApi: ChatApi = fromEnvironment(::ChatApi),
       instructions: List<String> = emptyList()
     ): LLMTool = object : LLMTool(name, description, chatApi, model, scope, instructions) {}
   }

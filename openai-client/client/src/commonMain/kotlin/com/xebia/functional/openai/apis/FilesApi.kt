@@ -42,7 +42,7 @@ open class FilesApi : ApiClient {
   @Serializable
   enum class PurposeCreateFile(val value: kotlin.String) {
 
-    @SerialName(value = "fine-tune") fineMinusTune("fine-tune"),
+    @SerialName(value = "fine-tune") fine_tune("fine-tune"),
     @SerialName(value = "assistants") assistants("assistants")
   }
 

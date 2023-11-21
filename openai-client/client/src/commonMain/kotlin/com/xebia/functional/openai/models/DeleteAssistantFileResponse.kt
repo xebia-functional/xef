@@ -25,10 +25,9 @@ data class DeleteAssistantFileResponse(
   @SerialName(value = "object") @Required val `object`: DeleteAssistantFileResponse.`Object`
 ) {
 
-  /** Values: assistantPeriodFilePeriodDeleted */
+  /** Values: assistant_file_deleted */
   @Serializable
   enum class `Object`(val value: kotlin.String) {
-    @SerialName(value = "assistant.file.deleted")
-    assistantPeriodFilePeriodDeleted("assistant.file.deleted")
+    @SerialName(value = "assistant.file.deleted") assistant_file_deleted("assistant.file.deleted")
   }
 }

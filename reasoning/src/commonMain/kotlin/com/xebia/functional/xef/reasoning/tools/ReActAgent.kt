@@ -18,11 +18,11 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.Serializable
 
 class ReActAgent(
-  private val chatApi: ChatApi,
   private val model: OpenAIModel<CreateChatCompletionRequestModel>,
   private val scope: Conversation,
   private val tools: List<Tool>,
   private val maxIterations: Int = 10,
+  private val chatApi: ChatApi = fromEnvironment(::ChatApi),
   private val configuration: PromptConfiguration = PromptConfiguration(temperature = 0.0),
   private val critique: suspend ReActAgent.(String, Finish) -> Critique =
     { input: String, finish: Finish ->
@@ -36,7 +36,7 @@ class ReActAgent(
     finishCall(input)
   },
   private val runTool: suspend ReActAgent.() -> RunTool = { runToolCall() },
-) : Conversation by scope {
+) {
 
   sealed class Result {
     data class MaxIterationsReached(val message: String) : Result()
