@@ -22,10 +22,6 @@ fun Project.configureBuildAndTestTask(taskName: String, moduleType: ModulePlatfo
   tasks.register(taskName) {
     val gradleCommand = getGradleCommand(platform)
 
-    doFirst {
-        project.exec {commandLine(gradleCommand, "spotlessCheck") }
-    }
-
     doLast {
       when (moduleType) {
         ModulePlatformType.SINGLE -> {

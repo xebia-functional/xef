@@ -1,7 +1,11 @@
 name: Build
 
 on:
-  pull_request:
+  pull_request: {}
+  workflow_dispatch: {}
+
+env:
+  GRADLE_OPTS: -Dorg.gradle.daemon=false
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -27,11 +31,12 @@ jobs:
             os: windows-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Set up Java
+      - name: Configure JDK
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
@@ -54,3 +59,35 @@ jobs:
         with:
           name: 'reports'
           path: '**/build/reports/**'
+
+  spotless:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Configure JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: 20
+
+      - name: Spotless Apply
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: spotlessApply
+
+      - name: Commit newly formatted files
+        uses: stefanzweifel/git-auto-commit-action@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          commit_message: "Apply spotless formatting"
+          commit_options: '--no-verify'
+          file_pattern: '**/*.kt'
+          commit_user_name: "GitHub Actions"
