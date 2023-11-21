@@ -8,11 +8,16 @@ import com.xebia.funcional.xef.evaluator.models.OutputDescription
 import com.xebia.funcional.xef.evaluator.models.OutputResponse
 import com.xebia.functional.xef.conversation.llm.openai.OpenAI
 import com.xebia.functional.xef.conversation.llm.openai.promptMessage
+import java.io.File
 
 object TestExample {
 
   @JvmStatic
   fun main(args: Array<String>) = SuspendApp {
+    val output: String = args.getOrNull(0) ?: "."
+
+    val file = File("$output/data.json")
+
     val spec =
       TestsSpec(description = "Check GTP3.5 and fake outputs") {
         +OutputDescription("Using GPT3.5")
@@ -35,6 +40,8 @@ object TestExample {
         }
       }
 
-    println(spec.toJSON())
+    file.writeText(spec.toJSON())
+
+    println("JSON created successfully")
   }
 }

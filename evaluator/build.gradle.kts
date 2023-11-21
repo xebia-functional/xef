@@ -13,11 +13,7 @@ java {
 }
 
 dependencies {
-    implementation(projects.xefCore)
-    implementation(projects.xefOpenai)
-    implementation(libs.okio)
-    implementation(libs.suspendApp.core)
-    implementation(libs.bundles.arrow)
+    api(libs.kotlinx.serialization.json)
 }
 
 spotless {
@@ -25,12 +21,4 @@ spotless {
         target("**/*.kt")
         ktfmt().googleStyle().configure { it.setRemoveUnusedImport(true) }
     }
-}
-
-tasks.create<JavaExec>("test-example") {
-    dependsOn("compileKotlin")
-    group = "Execution"
-    description = "Test example"
-    classpath = sourceSets.main.get().runtimeClasspath
-    mainClass = "com.xebia.funcional.xef.evaluator.examples.TestExample"
 }
