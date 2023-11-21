@@ -82,10 +82,14 @@ interface Conversation : AutoClose, AutoCloseable {
   companion object {
 
     operator fun invoke(
-      store: VectorStore,
+                     store: VectorStore,
       metric: Metric,
       conversationId: ConversationId? = ConversationId(UUID.generateUUID().toString())
-    ): PlatformConversation = PlatformConversation.create(store, metric, conversationId)
+    ): PlatformConversation =
+
+
+
+      PlatformConversation.create(store, metric, conversationId)
 
     @JvmSynthetic
     suspend operator fun <A> invoke(
