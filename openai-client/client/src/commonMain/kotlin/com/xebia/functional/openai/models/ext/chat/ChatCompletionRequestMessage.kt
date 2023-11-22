@@ -13,12 +13,12 @@ import kotlinx.serialization.json.JsonElement
 @Serializable(with = ChatCompletionRequestMessage.MyTypeSerializer::class)
 sealed interface ChatCompletionRequestMessage {
 
-  fun contentAsString(): String? =
+  fun contentAsString(): String =
     when (this) {
-      is ChatCompletionRequestAssistantMessage -> content
-      is ChatCompletionRequestFunctionMessage -> content
-      is ChatCompletionRequestSystemMessage -> content
-      is ChatCompletionRequestToolMessage -> content
+      is ChatCompletionRequestAssistantMessage -> content ?: ""
+      is ChatCompletionRequestFunctionMessage -> content ?: ""
+      is ChatCompletionRequestSystemMessage -> content ?: ""
+      is ChatCompletionRequestToolMessage -> content ?: ""
       is ChatCompletionRequestUserMessage ->
         content.joinToString { content ->
           when (content) {

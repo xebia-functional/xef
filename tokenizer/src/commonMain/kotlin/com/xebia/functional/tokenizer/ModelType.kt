@@ -36,8 +36,11 @@ sealed class ModelType(
     @JvmStatic
     val DEFAULT_SPLITTER_MODEL = GPT_3_5_TURBO
     val functionSpecific: List<ModelType> = listOf(
+      GPT_3_5_TURBO_0613,
       GPT_3_5_16K_0613_TURBO_FUNCTIONS,
-      GPT_4_32K_0314_FUNCTIONS
+      GPT_4_32K_0314_FUNCTIONS,
+      GPT_4_0613,
+      GPT_4_32K_0613_FUNCTIONS,
     )
     val all: List<ModelType> = listOf(
       GPT_3_5_TURBO,

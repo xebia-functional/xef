@@ -6,7 +6,6 @@ import com.xebia.functional.openai.infrastructure.RequestConfig
 import com.xebia.functional.openai.infrastructure.RequestMethod
 import com.xebia.functional.openai.models.CreateChatCompletionRequest
 import com.xebia.functional.openai.models.CreateChatCompletionStreamResponse
-import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -15,26 +14,11 @@ import io.ktor.utils.io.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.flow
-import kotlinx.serialization.json.*
 
 fun ChatApi.createChatCompletionStream(
-  baseUrl: String,
   request: CreateChatCompletionRequest
 ): Flow<CreateChatCompletionStreamResponse> {
-//  val builder =
-//    HttpRequestBuilder().apply {
-//      method = HttpMethod.Post
-//      url(path = "chat/completions")
-//      takeFrom(URLBuilder(baseUrl))
-//      setBody(streamingRequestAsJson(request))
-//      contentType(ContentType.Application.Json)
-//      accept(ContentType.Text.EventStream)
-//      headers {
-//        append(HttpHeaders.CacheControl, "no-cache")
-//        append(HttpHeaders.Connection, "keep-alive")
-//      }
-//    }
-  val localVariableAuthNames = listOf<String>("ApiKeyAuth")
+  val localVariableAuthNames = listOf("ApiKeyAuth")
 
   val localVariableBody = request
 
@@ -106,15 +90,3 @@ private suspend inline fun <reified T> FlowCollector<T>.emitDataEvents(response:
     emit(value)
   }
 }
-
-private suspend fun <T : Any> HttpClient.execute(
-  builder: HttpRequestBuilder,
-  block: suspend (response: HttpResponse) -> T
-) {
-  try {
-    HttpStatement(builder = builder, client = this).execute(block)
-  } catch (e: Exception) {
-    throw e // TODO handle exception
-  }
-}
-

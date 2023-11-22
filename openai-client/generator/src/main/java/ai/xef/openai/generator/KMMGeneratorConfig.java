@@ -59,7 +59,6 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
 
     @Override
     public String toEnumVarName(String value, String datatype) {
-        System.out.println("value = " + value + ", datatype = " + datatype);
         String varName;
         if ("length".equals(value)) {
             varName = value + "Type";

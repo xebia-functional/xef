@@ -63,7 +63,7 @@ sealed class StreamedFunction<out A> {
       // as the LLM is sending us chunks with malformed JSON
       val example = createExampleFromSchema(schema)
       chat
-        .createChatCompletionStream(chat.baseUrl, request)
+        .createChatCompletionStream(request)
         .onCompletion {
           val newMessages = prompt.messages + messages
           newMessages.addToMemory(

@@ -3,6 +3,7 @@ package com.xebia.functional.xef.llm
 import arrow.core.nonFatalOrThrow
 import arrow.core.raise.catch
 import com.xebia.functional.openai.apis.ChatApi
+import com.xebia.functional.openai.infrastructure.ApiClient
 import com.xebia.functional.openai.models.*
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.AiDsl
@@ -14,6 +15,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -83,6 +85,7 @@ suspend fun <A> ChatApi.prompt(
 
     tryDeserialize(serializer, promptWithFunctions.configuration.maxDeserializationAttempts) {
       val requestedMemories = prompt.messages.toMemory(scope)
+      //println(ApiClient.JSON_DEFAULT.encodeToString(request))
       createChatCompletion(request)
         .body()
         .addMetrics(scope)

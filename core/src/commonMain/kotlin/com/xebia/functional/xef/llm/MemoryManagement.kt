@@ -43,7 +43,7 @@ internal suspend fun List<CreateChatCompletionResponseChoicesInner>.addChoiceWit
   val cid = scope.conversationId
   if (history != MessagesToHistory.NONE && isNotEmpty() && cid != null) {
     val aiMemory =
-      this.mapNotNull { it.message }.map { it.toMemory(cid, scope.store.incrementIndexAndGet()) }
+      this.filter { it.message.content != null }.map { it.message.toMemory(cid, scope.store.incrementIndexAndGet()) }
     val newMessages = previousMemories + aiMemory
     scope.store.addMemoriesByHistory(history, newMessages)
   }
