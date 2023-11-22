@@ -9,6 +9,7 @@ package com.xebia.functional.openai.models
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
+import kotlinx.serialization.json.JsonObject
 
 /**
  * Represents a thread that contains [messages](/docs/api-reference/messages).
@@ -33,7 +34,7 @@ data class ThreadObject(
   @SerialName(value = "created_at") @Required val createdAt: kotlin.Int,
 
   /* Set of 16 key-value pairs that can be attached to an object. This can be useful for storing additional information about the object in a structured format. Keys can be a maximum of 64 characters long and values can be a maxium of 512 characters long.  */
-  @SerialName(value = "metadata") @Required val metadata: kotlin.String?
+  @SerialName(value = "metadata") @Required val metadata: JsonObject?
 ) {
 
   /**

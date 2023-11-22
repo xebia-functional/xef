@@ -172,6 +172,7 @@ open class ApiClient(val baseUrl: String) {
           query.value.forEach { value -> parameter(query.key, value) }
         }
       }
+      this.header("OpenAI-Beta", "assistants=v1")
       this.method = requestConfig.method.httpMethod
       headers
         .filter { header -> !UNSAFE_HEADERS.contains(header.key) }

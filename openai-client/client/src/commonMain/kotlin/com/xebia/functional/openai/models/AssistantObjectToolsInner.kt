@@ -19,7 +19,7 @@ data class AssistantObjectToolsInner(
 
   /* The type of tool being defined: `code_interpreter` */
   @SerialName(value = "type") @Required val type: AssistantObjectToolsInner.Type,
-  @SerialName(value = "function") @Required val function: FunctionObject
+  @SerialName(value = "function") val function: FunctionObject? = null
 ) {
 
   /**
