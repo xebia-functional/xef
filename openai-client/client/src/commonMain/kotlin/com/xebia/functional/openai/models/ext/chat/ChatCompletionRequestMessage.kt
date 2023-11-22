@@ -3,11 +3,15 @@ package com.xebia.functional.openai.models.ext.chat
 import com.xebia.functional.openai.models.ChatCompletionMessageToolCall
 import com.xebia.functional.openai.models.ChatCompletionRequestAssistantMessageFunctionCall
 import com.xebia.functional.openai.models.ChatCompletionRole
+import com.xebia.functional.openai.models.ext.embedding.create.CreateEmbeddingRequestInput
+import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.Required
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonContentPolymorphicSerializer
+import kotlinx.serialization.json.JsonElement
 
-@Serializable
+@Serializable(with = ChatCompletionRequestMessage.MyTypeSerializer::class)
 sealed interface ChatCompletionRequestMessage {
 
   fun contentAsString(): String? =
@@ -186,5 +190,9 @@ sealed interface ChatCompletionRequestMessage {
 
       val asRole: ChatCompletionRole = ChatCompletionRole.function
     }
+  }
+
+  object MyTypeSerializer : JsonContentPolymorphicSerializer<ChatCompletionRequestMessage>(ChatCompletionRequestMessage::class) {
+    override fun selectDeserializer(element: JsonElement): DeserializationStrategy<ChatCompletionRequestMessage> = ChatCompletionRequestSystemMessage.serializer()
   }
 }

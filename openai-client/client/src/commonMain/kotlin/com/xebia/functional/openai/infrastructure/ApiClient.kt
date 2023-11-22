@@ -22,6 +22,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlin.Unit
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
 
 open class ApiClient(private val baseUrl: String) {
 
@@ -224,4 +225,21 @@ open class ApiClient(private val baseUrl: String) {
         RequestMethod.POST -> HttpMethod.Post
         RequestMethod.OPTIONS -> HttpMethod.Options
       }
+}
+
+fun main() {
+
+  @Serializable
+  data class MyClass(val tools: List<ChatCompletionTool>? = null)
+
+  val r = Json {
+    ignoreUnknownKeys = true
+    prettyPrint = true
+    isLenient = true
+  }.encodeToString(MyClass(listOf(ChatCompletionTool(ChatCompletionTool.Type.function, FunctionObject("name", JsonObject(
+    mapOf()
+  ))))))
+
+  println(r)
+
 }
