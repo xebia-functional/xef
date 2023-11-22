@@ -1,0 +1,6 @@
+__pycache__
+results.json
+data.json
+publish/content.js
+.pytest_cache
+poetry.lock

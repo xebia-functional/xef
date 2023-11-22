@@ -1,0 +1,13 @@
+[tool.poetry]
+name = "py-evaluator"
+version = "0.1.0"
+description = "Python evaluator for DeepEval"
+authors = ["Xef"]
+
+[tool.poetry.dependencies]
+python = "~3.10.0"
+deepeval = "0.20.19"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
