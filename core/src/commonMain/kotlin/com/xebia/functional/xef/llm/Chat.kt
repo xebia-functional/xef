@@ -29,7 +29,7 @@ fun ChatApi.promptStreaming(
       model = prompt.model
     )
 
-  this@promptStreaming.createChatCompletionStream(request)
+  this@promptStreaming.createChatCompletionStream(baseUrl, request)
     .mapNotNull { it.choices.mapNotNull { it.delta.content }.reduceOrNull(String::plus) }
     .onEach { emit(it) }
     .fold("", String::plus)

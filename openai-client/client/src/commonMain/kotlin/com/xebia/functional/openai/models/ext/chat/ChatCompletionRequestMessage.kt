@@ -3,7 +3,6 @@ package com.xebia.functional.openai.models.ext.chat
 import com.xebia.functional.openai.models.ChatCompletionMessageToolCall
 import com.xebia.functional.openai.models.ChatCompletionRequestAssistantMessageFunctionCall
 import com.xebia.functional.openai.models.ChatCompletionRole
-import com.xebia.functional.openai.models.ext.embedding.create.CreateEmbeddingRequestInput
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.Required
 import kotlinx.serialization.SerialName
@@ -71,7 +70,9 @@ sealed interface ChatCompletionRequestMessage {
    */
   @Serializable
   data class ChatCompletionRequestUserMessage(
-    @SerialName(value = "content") @Required val content: List<ChatCompletionRequestUserMessageContent>,
+    @SerialName(value = "content")
+    @Required
+    val content: List<ChatCompletionRequestUserMessageContent>,
 
     /* The role of the messages author, in this case `user`. */
     @SerialName(value = "role") @Required val role: Role = Role.user
@@ -188,7 +189,13 @@ sealed interface ChatCompletionRequestMessage {
     }
   }
 
-  object MyTypeSerializer : JsonContentPolymorphicSerializer<ChatCompletionRequestMessage>(ChatCompletionRequestMessage::class) {
-    override fun selectDeserializer(element: JsonElement): DeserializationStrategy<ChatCompletionRequestMessage> = ChatCompletionRequestSystemMessage.serializer()
+  object MyTypeSerializer :
+    JsonContentPolymorphicSerializer<ChatCompletionRequestMessage>(
+      ChatCompletionRequestMessage::class
+    ) {
+    override fun selectDeserializer(
+      element: JsonElement
+    ): DeserializationStrategy<ChatCompletionRequestMessage> =
+      ChatCompletionRequestSystemMessage.serializer()
   }
 }

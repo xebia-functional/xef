@@ -1,15 +1,10 @@
 package com.xebia.functional.openai.infrastructure
 
 import com.xebia.functional.openai.auth.*
-import com.xebia.functional.openai.models.ChatCompletionTool
-import com.xebia.functional.openai.models.CreateChatCompletionRequest
-import com.xebia.functional.openai.models.FunctionObject
-import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestUserMessageContent
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.FormDataContent
 import io.ktor.client.request.forms.MultiPartFormDataContent
@@ -19,14 +14,10 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.http.*
 import io.ktor.http.content.PartData
 import io.ktor.serialization.kotlinx.json.json
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlin.Unit
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.modules.PolymorphicModuleBuilder
 
-open class ApiClient(private val baseUrl: String) {
+open class ApiClient(val baseUrl: String) {
 
   lateinit var client: HttpClient
 
@@ -39,9 +30,6 @@ open class ApiClient(private val baseUrl: String) {
     val clientConfig: (HttpClientConfig<*>) -> Unit by lazy {
       {
         it.install(ContentNegotiation) { json(jsonBlock) }
-        it.install(Logging) {
-          level = LogLevel.ALL
-        }
         httpClientConfig?.invoke(it)
       }
     }
@@ -63,9 +51,8 @@ open class ApiClient(private val baseUrl: String) {
       ignoreUnknownKeys = true
       prettyPrint = true
       isLenient = true
-      useArrayPolymorphism = true
     }
-    protected val UNSAFE_HEADERS = listOf(HttpHeaders.ContentType)
+    val UNSAFE_HEADERS = listOf(HttpHeaders.ContentType)
   }
 
   /**
@@ -173,14 +160,12 @@ open class ApiClient(private val baseUrl: String) {
     body: Any? = null,
     authNames: kotlin.collections.List<String>
   ): HttpResponse {
-    if (body is CreateChatCompletionRequest)
-      println(JSON_DEFAULT.encodeToString(body))
     requestConfig.updateForAuth<T>(authNames)
     val headers = requestConfig.headers
 
     return client.request {
-      contentType(ContentType.Application.Json)
       this.url {
+        contentType(ContentType.Application.Json)
         this.takeFrom(URLBuilder(baseUrl))
         appendPath(requestConfig.path.trimStart('/').split('/'))
         requestConfig.query.forEach { query ->
@@ -199,9 +184,7 @@ open class ApiClient(private val baseUrl: String) {
     }
   }
 
-  private fun <T : Any?> RequestConfig<T>.updateForAuth(
-    authNames: kotlin.collections.List<String>
-  ) {
+  fun <T : Any?> RequestConfig<T>.updateForAuth(authNames: kotlin.collections.List<String>) {
     for (authName in authNames) {
       val auth =
         authentications?.get(authName) ?: throw Exception("Authentication undefined: $authName")
@@ -209,14 +192,13 @@ open class ApiClient(private val baseUrl: String) {
     }
   }
 
-  private fun URLBuilder.appendPath(components: kotlin.collections.List<String>): URLBuilder =
-    apply {
-      encodedPath =
-        encodedPath.trimEnd('/') +
-          components.joinToString("/", prefix = "/") { it.encodeURLQueryComponent() }
-    }
+  fun URLBuilder.appendPath(components: kotlin.collections.List<String>): URLBuilder = apply {
+    encodedPath =
+      encodedPath.trimEnd('/') +
+        components.joinToString("/", prefix = "/") { it.encodeURLQueryComponent() }
+  }
 
-  private val RequestMethod.httpMethod: HttpMethod
+  val RequestMethod.httpMethod: HttpMethod
     get() =
       when (this) {
         RequestMethod.DELETE -> HttpMethod.Delete
@@ -228,4 +210,3 @@ open class ApiClient(private val baseUrl: String) {
         RequestMethod.OPTIONS -> HttpMethod.Options
       }
 }
-

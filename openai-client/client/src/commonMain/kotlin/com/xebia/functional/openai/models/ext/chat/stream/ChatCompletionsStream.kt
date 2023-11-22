@@ -1,6 +1,9 @@
 package com.xebia.functional.openai.models.ext.chat.stream
 
 import com.xebia.functional.openai.apis.ChatApi
+import com.xebia.functional.openai.infrastructure.ApiClient
+import com.xebia.functional.openai.infrastructure.RequestConfig
+import com.xebia.functional.openai.infrastructure.RequestMethod
 import com.xebia.functional.openai.models.CreateChatCompletionRequest
 import com.xebia.functional.openai.models.CreateChatCompletionStreamResponse
 import io.ktor.client.*
@@ -15,26 +18,75 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.*
 
 fun ChatApi.createChatCompletionStream(
+  baseUrl: String,
   request: CreateChatCompletionRequest
 ): Flow<CreateChatCompletionStreamResponse> {
-  val builder =
-    HttpRequestBuilder().apply {
-      method = HttpMethod.Post
-      url(path = "/chat/completions")
-      setBody(streamingRequestAsJson(request))
-      contentType(ContentType.Application.Json)
-      accept(ContentType.Text.EventStream)
-      headers {
-        append(HttpHeaders.CacheControl, "no-cache")
-        append(HttpHeaders.Connection, "keep-alive")
-      }
-    }
-  return flow { client.execute(builder) { response -> emitDataEvents(response) } }
+//  val builder =
+//    HttpRequestBuilder().apply {
+//      method = HttpMethod.Post
+//      url(path = "chat/completions")
+//      takeFrom(URLBuilder(baseUrl))
+//      setBody(streamingRequestAsJson(request))
+//      contentType(ContentType.Application.Json)
+//      accept(ContentType.Text.EventStream)
+//      headers {
+//        append(HttpHeaders.CacheControl, "no-cache")
+//        append(HttpHeaders.Connection, "keep-alive")
+//      }
+//    }
+  val localVariableAuthNames = listOf<String>("ApiKeyAuth")
+
+  val localVariableBody = request
+
+  val localVariableQuery = mutableMapOf<String, List<String>>()
+  val localVariableHeaders = mutableMapOf<String, String>()
+
+  val localVariableConfig =
+    RequestConfig<Any?>(
+      RequestMethod.POST,
+      "/chat/completions",
+      query = localVariableQuery,
+      headers = localVariableHeaders,
+      requiresAuthentication = true,
+    )
+  return flow {
+    val response = requestStreaming(localVariableConfig, localVariableBody, localVariableAuthNames)
+    emitDataEvents(response)
+  }
 }
 
-private val json = Json {
-  isLenient = true
-  ignoreUnknownKeys = true
+private suspend fun <T : Any?> ChatApi.requestStreaming(
+  requestConfig: RequestConfig<T>,
+  body: Any? = null,
+  authNames: kotlin.collections.List<String>
+): HttpResponse {
+  requestConfig.updateForAuth<T>(authNames)
+  val headers = requestConfig.headers
+
+  return client.request {
+    this.url {
+      contentType(ContentType.Application.Json)
+      accept(ContentType.Text.EventStream)
+      this.takeFrom(URLBuilder(baseUrl))
+      appendPath(requestConfig.path.trimStart('/').split('/'))
+      requestConfig.query.forEach { query ->
+        query.value.forEach { value -> parameter(query.key, value) }
+      }
+    }
+    this.method = requestConfig.method.httpMethod
+    headers
+      .filter { header -> !ApiClient.UNSAFE_HEADERS.contains(header.key) }
+      .forEach { header -> this.header(header.key, header.value) }
+
+    header(HttpHeaders.CacheControl, "no-cache")
+    header(HttpHeaders.Connection, "keep-alive")
+
+    if (
+      requestConfig.method in listOf(RequestMethod.PUT, RequestMethod.POST, RequestMethod.PATCH)
+    ) {
+      this.setBody(body)
+    }
+  }
 }
 
 private const val PREFIX = "data:"
@@ -47,7 +99,8 @@ private suspend inline fun <reified T> FlowCollector<T>.emitDataEvents(response:
     val value: T =
       when {
         line.startsWith(END) -> break
-        line.startsWith(PREFIX) -> json.decodeFromString(line.removePrefix(PREFIX))
+        line.startsWith(PREFIX) ->
+          ApiClient.JSON_DEFAULT.decodeFromString(line.removePrefix(PREFIX))
         else -> continue
       }
     emit(value)
@@ -65,9 +118,3 @@ private suspend fun <T : Any> HttpClient.execute(
   }
 }
 
-private inline fun <reified T> streamingRequestAsJson(serializable: T): JsonElement {
-  val enableStream = "stream" to JsonPrimitive(true)
-  val json = json.encodeToJsonElement(serializable)
-  val map = json.jsonObject.toMutableMap().also { it += enableStream }
-  return JsonObject(map)
-}

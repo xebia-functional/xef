@@ -1,6 +1,5 @@
 package com.xebia.functional.openai.infrastructure
 
-import io.ktor.client.statement.*
 import io.ktor.http.Headers
 import io.ktor.http.isSuccess
 import io.ktor.util.reflect.TypeInfo
@@ -38,10 +37,8 @@ interface BodyProvider<T : Any> {
 
 class TypedBodyProvider<T : Any>(private val type: TypeInfo) : BodyProvider<T> {
   @Suppress("UNCHECKED_CAST")
-  override suspend fun body(response: io.ktor.client.statement.HttpResponse): T {
-    println(response.bodyAsText())
-    return response.call.body(type) as T
-  }
+  override suspend fun body(response: io.ktor.client.statement.HttpResponse): T =
+    response.call.body(type) as T
 
   @Suppress("UNCHECKED_CAST")
   override suspend fun <V : Any> typedBody(
