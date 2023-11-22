@@ -2,7 +2,7 @@ package com.xebia.functional.xef.store
 
 import arrow.atomic.AtomicInt
 import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage
-import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestUserMessageContent
+import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestUserMessageContentText
 
 class MemoryData {
   val defaultConversationId = ConversationId("default-id")
@@ -17,8 +17,11 @@ class MemoryData {
     (0 until n).flatMap {
       val m1 =
         ChatCompletionRequestMessage.ChatCompletionRequestUserMessage(
-          ChatCompletionRequestUserMessageContent.TextContent(
-            "Question $it${append?.let { ": $it" } ?: ""}"
+          listOf(
+            ChatCompletionRequestUserMessageContentText(
+              ChatCompletionRequestUserMessageContentText.Type.text,
+              "Question $it${append?.let { ": $it" } ?: ""}"
+            )
           )
         )
       val m2 =

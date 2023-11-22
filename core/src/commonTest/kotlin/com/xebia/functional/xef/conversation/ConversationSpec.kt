@@ -4,7 +4,7 @@ import ai.xef.openai.StandardModel
 import com.xebia.functional.openai.models.ChatCompletionRole
 import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
 import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage.*
-import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestUserMessageContent
+import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestUserMessageContentText
 import com.xebia.functional.xef.data.*
 import com.xebia.functional.xef.llm.models.modelType
 import com.xebia.functional.xef.llm.prompt
@@ -81,7 +81,13 @@ class ConversationSpec :
             messages.flatMap {
               listOf(
                 ChatCompletionRequestUserMessage(
-                  content = ChatCompletionRequestUserMessageContent.TextContent(it.key)
+                  content =
+                    listOf(
+                      ChatCompletionRequestUserMessageContentText(
+                        ChatCompletionRequestUserMessageContentText.Type.text,
+                        it.key
+                      )
+                    )
                 ),
                 ChatCompletionRequestAssistantMessage(content = it.value),
               )
@@ -128,7 +134,13 @@ class ConversationSpec :
             messages.flatMap {
               listOf(
                 ChatCompletionRequestUserMessage(
-                  content = ChatCompletionRequestUserMessageContent.TextContent(it.key)
+                  content =
+                    listOf(
+                      ChatCompletionRequestUserMessageContentText(
+                        ChatCompletionRequestUserMessageContentText.Type.text,
+                        it.key
+                      )
+                    )
                 ),
                 ChatCompletionRequestAssistantMessage(content = it.value)
               )
