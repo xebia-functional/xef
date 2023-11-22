@@ -3,7 +3,6 @@ package com.xebia.functional.xef.store
 import com.xebia.functional.openai.models.ChatCompletionResponseMessage
 import com.xebia.functional.openai.models.ChatCompletionRole
 import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage
-import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestUserMessageContent
 import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestUserMessageContentText
 
 sealed class MemorizedMessage {
@@ -32,7 +31,6 @@ fun memorizedMessage(role: ChatCompletionRole, content: String): MemorizedMessag
       MemorizedMessage.Request(
         ChatCompletionRequestMessage.ChatCompletionRequestSystemMessage(content)
       )
-
     ChatCompletionRole.user ->
       MemorizedMessage.Request(
         ChatCompletionRequestMessage.ChatCompletionRequestUserMessage(
@@ -44,7 +42,6 @@ fun memorizedMessage(role: ChatCompletionRole, content: String): MemorizedMessag
           )
         )
       )
-
     ChatCompletionRole.assistant ->
       MemorizedMessage.Response(
         ChatCompletionResponseMessage(
@@ -52,7 +49,6 @@ fun memorizedMessage(role: ChatCompletionRole, content: String): MemorizedMessag
           role = ChatCompletionResponseMessage.Role.assistant
         )
       )
-
     ChatCompletionRole.tool ->
       MemorizedMessage.Request(
         ChatCompletionRequestMessage.ChatCompletionRequestToolMessage(
@@ -60,7 +56,6 @@ fun memorizedMessage(role: ChatCompletionRole, content: String): MemorizedMessag
           toolCallId = "fake-tool-call-id" // TODO we are not storing the tool id with the content
         )
       )
-
     ChatCompletionRole.function ->
       MemorizedMessage.Request(
         ChatCompletionRequestMessage.ChatCompletionRequestToolMessage(
