@@ -35,10 +35,9 @@ data class FineTuningJobEvent(
     @SerialName(value = "warn") warn("warn"),
     @SerialName(value = "error") error("error")
   }
-  /** Values: fineTuningPeriodJobPeriodEvent */
+  /** Values: fine_tuning_job_event */
   @Serializable
   enum class `Object`(val value: kotlin.String) {
-    @SerialName(value = "fine_tuning.job.event")
-    fineTuningPeriodJobPeriodEvent("fine_tuning.job.event")
+    @SerialName(value = "fine_tuning.job.event") fine_tuning_job_event("fine_tuning.job.event")
   }
 }

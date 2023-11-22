@@ -51,11 +51,10 @@ data class CreateChatCompletionStreamResponse(
   /**
    * The object type, which is always `chat.completion.chunk`.
    *
-   * Values: chatPeriodCompletionPeriodChunk
+   * Values: chat_completion_chunk
    */
   @Serializable
   enum class `Object`(val value: kotlin.String) {
-    @SerialName(value = "chat.completion.chunk")
-    chatPeriodCompletionPeriodChunk("chat.completion.chunk")
+    @SerialName(value = "chat.completion.chunk") chat_completion_chunk("chat.completion.chunk")
   }
 }

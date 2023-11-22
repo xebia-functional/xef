@@ -11,13 +11,13 @@ import kotlinx.serialization.*
 /**
  * The model to use for image generation.
  *
- * Values: dallMinusEMinus2,dallMinusEMinus3
+ * Values: dall_e_2,dall_e_3
  */
 @Serializable
 enum class CreateImageRequestModel(val value: kotlin.String) {
 
-  @SerialName(value = "dall-e-2") dallMinusEMinus2("dall-e-2"),
-  @SerialName(value = "dall-e-3") dallMinusEMinus3("dall-e-3");
+  @SerialName(value = "dall-e-2") dall_e_2("dall-e-2"),
+  @SerialName(value = "dall-e-3") dall_e_3("dall-e-3");
 
   /**
    * Override [toString()] to avoid using the enum variable name as the value, and instead use the

@@ -39,11 +39,11 @@ data class CreateEditResponseChoicesInner(
    * the request was reached, or `content_filter` if content was omitted due to a flag from our
    * content filters.
    *
-   * Values: stop,lengthType
+   * Values: stop,length_type
    */
   @Serializable
   enum class FinishReason(val value: kotlin.String) {
     @SerialName(value = "stop") stop("stop"),
-    @SerialName(value = "length") lengthType("length")
+    @SerialName(value = "length") length_type("length")
   }
 }

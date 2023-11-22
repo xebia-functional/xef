@@ -84,21 +84,21 @@ data class FineTuningJob(
   /**
    * The object type, which is always \"fine_tuning.job\".
    *
-   * Values: fineTuningPeriodJob
+   * Values: fine_tuning_job
    */
   @Serializable
   enum class `Object`(val value: kotlin.String) {
-    @SerialName(value = "fine_tuning.job") fineTuningPeriodJob("fine_tuning.job")
+    @SerialName(value = "fine_tuning.job") fine_tuning_job("fine_tuning.job")
   }
   /**
    * The current status of the fine-tuning job, which can be either `validating_files`, `queued`,
    * `running`, `succeeded`, `failed`, or `cancelled`.
    *
-   * Values: validatingFiles,queued,running,succeeded,failed,cancelled
+   * Values: validating_files,queued,running,succeeded,failed,cancelled
    */
   @Serializable
   enum class Status(val value: kotlin.String) {
-    @SerialName(value = "validating_files") validatingFiles("validating_files"),
+    @SerialName(value = "validating_files") validating_files("validating_files"),
     @SerialName(value = "queued") queued("queued"),
     @SerialName(value = "running") running("running"),
     @SerialName(value = "succeeded") succeeded("succeeded"),

@@ -11,13 +11,13 @@ import kotlinx.serialization.*
 /**
  * One of the available [TTS models](/docs/models/tts): `tts-1` or `tts-1-hd`
  *
- * Values: ttsMinus1,ttsMinus1MinusHd
+ * Values: tts_1,tts_1_hd
  */
 @Serializable
 enum class CreateSpeechRequestModel(val value: kotlin.String) {
 
-  @SerialName(value = "tts-1") ttsMinus1("tts-1"),
-  @SerialName(value = "tts-1-hd") ttsMinus1MinusHd("tts-1-hd");
+  @SerialName(value = "tts-1") tts_1("tts-1"),
+  @SerialName(value = "tts-1-hd") tts_1_hd("tts-1-hd");
 
   /**
    * Override [toString()] to avoid using the enum variable name as the value, and instead use the

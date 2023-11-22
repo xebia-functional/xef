@@ -51,10 +51,10 @@ data class CreateChatCompletionResponse(
   /**
    * The object type, which is always `chat.completion`.
    *
-   * Values: chatPeriodCompletion
+   * Values: chat_completion
    */
   @Serializable
   enum class `Object`(val value: kotlin.String) {
-    @SerialName(value = "chat.completion") chatPeriodCompletion("chat.completion")
+    @SerialName(value = "chat.completion") chat_completion("chat.completion")
   }
 }

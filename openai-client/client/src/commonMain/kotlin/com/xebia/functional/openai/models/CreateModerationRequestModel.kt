@@ -15,15 +15,13 @@ import kotlinx.serialization.*
  * `text-moderation-stable`, we will provide advanced notice before updating the model. Accuracy of
  * `text-moderation-stable` may be slightly lower than for `text-moderation-latest`.
  *
- * Values: textMinusModerationMinusLatest,textMinusModerationMinusStable
+ * Values: text_moderation_latest,text_moderation_stable
  */
 @Serializable
 enum class CreateModerationRequestModel(val value: kotlin.String) {
 
-  @SerialName(value = "text-moderation-latest")
-  textMinusModerationMinusLatest("text-moderation-latest"),
-  @SerialName(value = "text-moderation-stable")
-  textMinusModerationMinusStable("text-moderation-stable");
+  @SerialName(value = "text-moderation-latest") text_moderation_latest("text-moderation-latest"),
+  @SerialName(value = "text-moderation-stable") text_moderation_stable("text-moderation-stable");
 
   /**
    * Override [toString()] to avoid using the enum variable name as the value, and instead use the

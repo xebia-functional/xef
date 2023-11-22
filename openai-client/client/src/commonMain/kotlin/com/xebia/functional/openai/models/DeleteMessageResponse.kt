@@ -22,10 +22,9 @@ data class DeleteMessageResponse(
   @SerialName(value = "object") @Required val `object`: DeleteMessageResponse.`Object`
 ) {
 
-  /** Values: threadPeriodMessagePeriodDeleted */
+  /** Values: thread_message_deleted */
   @Serializable
   enum class `Object`(val value: kotlin.String) {
-    @SerialName(value = "thread.message.deleted")
-    threadPeriodMessagePeriodDeleted("thread.message.deleted")
+    @SerialName(value = "thread.message.deleted") thread_message_deleted("thread.message.deleted")
   }
 }

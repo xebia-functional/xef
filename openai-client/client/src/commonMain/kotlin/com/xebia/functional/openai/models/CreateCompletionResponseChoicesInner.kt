@@ -39,12 +39,12 @@ data class CreateCompletionResponseChoicesInner(
    * the request was reached, or `content_filter` if content was omitted due to a flag from our
    * content filters.
    *
-   * Values: stop,lengthType,contentFilter
+   * Values: stop,length_type,content_filter
    */
   @Serializable
   enum class FinishReason(val value: kotlin.String) {
     @SerialName(value = "stop") stop("stop"),
-    @SerialName(value = "length") lengthType("length"),
-    @SerialName(value = "content_filter") contentFilter("content_filter")
+    @SerialName(value = "length") length_type("length"),
+    @SerialName(value = "content_filter") content_filter("content_filter")
   }
 }

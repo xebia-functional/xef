@@ -71,11 +71,11 @@ data class MessageObject(
   /**
    * The object type, which is always `thread.message`.
    *
-   * Values: threadPeriodMessage
+   * Values: thread_message
    */
   @Serializable
   enum class `Object`(val value: kotlin.String) {
-    @SerialName(value = "thread.message") threadPeriodMessage("thread.message")
+    @SerialName(value = "thread.message") thread_message("thread.message")
   }
   /**
    * The entity that produced the message. One of `user` or `assistant`.

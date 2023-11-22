@@ -76,7 +76,7 @@ open class AudioApi : ApiClient {
     @SerialName(value = "json") json("json"),
     @SerialName(value = "text") text("text"),
     @SerialName(value = "srt") srt("srt"),
-    @SerialName(value = "verbose_json") verboseJson("verbose_json"),
+    @SerialName(value = "verbose_json") verbose_json("verbose_json"),
     @SerialName(value = "vtt") vtt("vtt")
   }
 

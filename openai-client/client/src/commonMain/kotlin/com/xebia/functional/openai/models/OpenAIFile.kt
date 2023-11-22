@@ -71,14 +71,14 @@ data class OpenAIFile(
    * The intended purpose of the file. Supported values are `fine-tune`, `fine-tune-results`,
    * `assistants`, and `assistants_output`.
    *
-   * Values: fineMinusTune,fineMinusTuneMinusResults,assistants,assistantsOutput
+   * Values: fine_tune,fine_tune_results,assistants,assistants_output
    */
   @Serializable
   enum class Purpose(val value: kotlin.String) {
-    @SerialName(value = "fine-tune") fineMinusTune("fine-tune"),
-    @SerialName(value = "fine-tune-results") fineMinusTuneMinusResults("fine-tune-results"),
+    @SerialName(value = "fine-tune") fine_tune("fine-tune"),
+    @SerialName(value = "fine-tune-results") fine_tune_results("fine-tune-results"),
     @SerialName(value = "assistants") assistants("assistants"),
-    @SerialName(value = "assistants_output") assistantsOutput("assistants_output")
+    @SerialName(value = "assistants_output") assistants_output("assistants_output")
   }
   /**
    * Deprecated. The current status of the file, which can be either `uploaded`, `processed`, or
