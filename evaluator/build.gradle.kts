@@ -1,6 +1,9 @@
 plugins {
     id(libs.plugins.kotlin.jvm.get().pluginId)
     id(libs.plugins.kotlinx.serialization.get().pluginId)
+    alias(libs.plugins.arrow.gradle.publish)
+    alias(libs.plugins.detekt)
+    alias(libs.plugins.semver.gradle)
     alias(libs.plugins.spotless)
 }
 
@@ -14,6 +17,14 @@ java {
 
 dependencies {
     api(libs.kotlinx.serialization.json)
+    detektPlugins(project(":detekt-rules"))
+}
+
+detekt {
+    toolVersion = "1.23.1"
+    source.setFrom(files("src/main/kotlin"))
+    config.setFrom("../config/detekt/detekt.yml")
+    autoCorrect = true
 }
 
 spotless {
