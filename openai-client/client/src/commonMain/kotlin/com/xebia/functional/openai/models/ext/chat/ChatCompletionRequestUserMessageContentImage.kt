@@ -10,7 +10,7 @@ data class ChatCompletionRequestUserMessageContentImage(
   @SerialName(value = "image_url")
   @Required
   val imageUrl: ChatCompletionRequestUserMessageContentImageUrl
-) {
+) : ChatCompletionRequestUserMessageContent() {
   @Serializable
   enum class Type(val value: String) {
     @SerialName(value = "image_url") imageUrl("image_url")

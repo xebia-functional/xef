@@ -4,6 +4,7 @@ import ai.xef.openai.OpenAIModel
 import com.xebia.functional.openai.models.ChatCompletionRole
 import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage
 import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestUserMessageContent
+import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestUserMessageContentText
 import com.xebia.functional.xef.prompt.templates.assistant
 import com.xebia.functional.xef.prompt.templates.system
 import com.xebia.functional.xef.prompt.templates.user
@@ -73,7 +74,12 @@ fun String.message(role: ChatCompletionRole): ChatCompletionRequestMessage =
       ChatCompletionRequestMessage.ChatCompletionRequestSystemMessage(this)
     ChatCompletionRole.user ->
       ChatCompletionRequestMessage.ChatCompletionRequestUserMessage(
-        ChatCompletionRequestUserMessageContent.TextContent(this)
+        listOf(
+          ChatCompletionRequestUserMessageContentText(
+            ChatCompletionRequestUserMessageContentText.Type.text,
+            this
+          )
+        )
       )
     ChatCompletionRole.assistant ->
       ChatCompletionRequestMessage.ChatCompletionRequestAssistantMessage(this)

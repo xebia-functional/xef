@@ -21,15 +21,11 @@ sealed interface ChatCompletionRequestMessage {
       is ChatCompletionRequestSystemMessage -> content
       is ChatCompletionRequestToolMessage -> content
       is ChatCompletionRequestUserMessage ->
-        when (content) {
-          is ChatCompletionRequestUserMessageContent.ChatCompletionRequestUserMessageContentImageArray ->
-            // TODO - Image array to String?
-            null
-          is ChatCompletionRequestUserMessageContent.ChatCompletionRequestUserMessageContentTextArray ->
-            // TODO - String array to String?
-            null
-          is ChatCompletionRequestUserMessageContent.TextContent -> content.s
-          null -> null
+        content.joinToString { content ->
+          when (content) {
+            is ChatCompletionRequestUserMessageContentText -> content.text
+            is ChatCompletionRequestUserMessageContentImage -> content.imageUrl.url ?: ""
+          }
         }
     }
 
@@ -75,7 +71,7 @@ sealed interface ChatCompletionRequestMessage {
    */
   @Serializable
   data class ChatCompletionRequestUserMessage(
-    @SerialName(value = "content") @Required val content: ChatCompletionRequestUserMessageContent?,
+    @SerialName(value = "content") @Required val content: List<ChatCompletionRequestUserMessageContent>,
 
     /* The role of the messages author, in this case `user`. */
     @SerialName(value = "role") @Required val role: Role = Role.user

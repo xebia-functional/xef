@@ -4,6 +4,7 @@ import com.xebia.functional.openai.auth.*
 import com.xebia.functional.openai.models.ChatCompletionTool
 import com.xebia.functional.openai.models.CreateChatCompletionRequest
 import com.xebia.functional.openai.models.FunctionObject
+import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestUserMessageContent
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.HttpClientEngine
@@ -23,6 +24,7 @@ import kotlinx.serialization.encodeToString
 import kotlin.Unit
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.modules.PolymorphicModuleBuilder
 
 open class ApiClient(private val baseUrl: String) {
 
@@ -61,6 +63,7 @@ open class ApiClient(private val baseUrl: String) {
       ignoreUnknownKeys = true
       prettyPrint = true
       isLenient = true
+      useArrayPolymorphism = true
     }
     protected val UNSAFE_HEADERS = listOf(HttpHeaders.ContentType)
   }
@@ -171,8 +174,7 @@ open class ApiClient(private val baseUrl: String) {
     authNames: kotlin.collections.List<String>
   ): HttpResponse {
     if (body is CreateChatCompletionRequest)
-      println(Json.encodeToString(body))
-
+      println(JSON_DEFAULT.encodeToString(body))
     requestConfig.updateForAuth<T>(authNames)
     val headers = requestConfig.headers
 
@@ -227,19 +229,3 @@ open class ApiClient(private val baseUrl: String) {
       }
 }
 
-fun main() {
-
-  @Serializable
-  data class MyClass(val tools: List<ChatCompletionTool>? = null)
-
-  val r = Json {
-    ignoreUnknownKeys = true
-    prettyPrint = true
-    isLenient = true
-  }.encodeToString(MyClass(listOf(ChatCompletionTool(ChatCompletionTool.Type.function, FunctionObject("name", JsonObject(
-    mapOf()
-  ))))))
-
-  println(r)
-
-}

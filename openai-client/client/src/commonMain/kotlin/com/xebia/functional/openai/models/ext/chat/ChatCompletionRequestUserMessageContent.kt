@@ -1,23 +1,15 @@
 package com.xebia.functional.openai.models.ext.chat
 
-import kotlin.jvm.JvmInline
+import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonContentPolymorphicSerializer
+import kotlinx.serialization.json.JsonElement
 
-@Serializable
-sealed interface ChatCompletionRequestUserMessageContent {
-  @Serializable
-  @JvmInline
-  value class TextContent(val s: String) : ChatCompletionRequestUserMessageContent
+@Serializable(with=ChatCompletionRequestUserMessageContent.MyTypeSerializer::class)
+sealed class ChatCompletionRequestUserMessageContent {
 
-  @Serializable
-  @JvmInline
-  value class ChatCompletionRequestUserMessageContentTextArray(
-    val array: List<ChatCompletionRequestUserMessageContentText>
-  ) : ChatCompletionRequestUserMessageContent
+  object MyTypeSerializer : JsonContentPolymorphicSerializer<ChatCompletionRequestUserMessageContent>(ChatCompletionRequestUserMessageContent::class) {
+    override fun selectDeserializer(element: JsonElement): DeserializationStrategy<ChatCompletionRequestUserMessageContent> = ChatCompletionRequestUserMessageContentText.serializer()
+  }
 
-  @Serializable
-  @JvmInline
-  value class ChatCompletionRequestUserMessageContentImageArray(
-    val array: List<ChatCompletionRequestUserMessageContentImage>
-  ) : ChatCompletionRequestUserMessageContent
 }
