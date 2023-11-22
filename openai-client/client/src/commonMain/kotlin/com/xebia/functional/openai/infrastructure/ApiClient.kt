@@ -1,10 +1,14 @@
 package com.xebia.functional.openai.infrastructure
 
 import com.xebia.functional.openai.auth.*
+import com.xebia.functional.openai.models.ChatCompletionTool
+import com.xebia.functional.openai.models.CreateChatCompletionRequest
+import com.xebia.functional.openai.models.FunctionObject
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.FormDataContent
 import io.ktor.client.request.forms.MultiPartFormDataContent
@@ -14,6 +18,8 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.http.*
 import io.ktor.http.content.PartData
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
 import kotlin.Unit
 import kotlinx.serialization.json.Json
 
@@ -30,6 +36,9 @@ open class ApiClient(private val baseUrl: String) {
     val clientConfig: (HttpClientConfig<*>) -> Unit by lazy {
       {
         it.install(ContentNegotiation) { json(jsonBlock) }
+        it.install(Logging) {
+          level = LogLevel.ALL
+        }
         httpClientConfig?.invoke(it)
       }
     }
@@ -160,10 +169,14 @@ open class ApiClient(private val baseUrl: String) {
     body: Any? = null,
     authNames: kotlin.collections.List<String>
   ): HttpResponse {
+    if (body is CreateChatCompletionRequest)
+      println(Json.encodeToString(body))
+
     requestConfig.updateForAuth<T>(authNames)
     val headers = requestConfig.headers
 
     return client.request {
+      contentType(ContentType.Application.Json)
       this.url {
         this.takeFrom(URLBuilder(baseUrl))
         appendPath(requestConfig.path.trimStart('/').split('/'))
