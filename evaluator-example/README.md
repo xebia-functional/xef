@@ -13,7 +13,7 @@ adapt to your needs.
 You need to have the following installed:
 
 - [Install Poetry](https://python-poetry.org/docs/#installing-with-pipx) 
-- **Python 3.10.0:** you can install it with virtualenv
+- **Python 3.10.0:** you can configure it with virtualenv
 ```bash
 virtualenv venv --python=python3.10.0.
 source venv/bin/activate.
