@@ -7,11 +7,11 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-class TestBuilder(val description: String, val metric: String) {
+class SuiteBuilder(private val description: String, private val metric: String) {
 
-  val outputsDescription: MutableList<String> = mutableListOf()
+  private val outputsDescription: MutableList<String> = mutableListOf()
 
-  var minimumScore: Double = 0.7
+  private var minimumScore: Double = 0.7
 
   private val items = mutableListOf<TestSpecItem>()
 
@@ -42,8 +42,8 @@ data class TestsSpec(
     suspend operator fun invoke(
       description: String,
       metric: String = "FactualConsistencyMetric",
-      block: suspend TestBuilder.() -> Unit
-    ): TestsSpec = TestBuilder(description, metric).apply { block() }.build()
+      block: suspend SuiteBuilder.() -> Unit
+    ): TestsSpec = SuiteBuilder(description, metric).apply { block() }.build()
   }
 }
 

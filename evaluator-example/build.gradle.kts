@@ -51,10 +51,10 @@ tasks.create<Exec>("evaluator") {
 
     workingDir("./evalTest")
 
-    commandLine("poetry", "run", "deepeval", "test", "run", "test_evaluator.py")
+    commandLine("poetry", "run", "deepeval", "test", "run", "py-evaluator/test_evaluator.py")
 
     doLast {
-        println(">> Open evalTest/index.html in your browser")
+        println(">> Open evalTest/publish/index.html in your browser")
     }
 }
 

@@ -12,10 +12,11 @@ adapt to your needs.
 
 You need to have the following installed:
 
-- Poetry with Python 3.10.0
-
+- [Install Poetry](https://python-poetry.org/docs/#installing-with-pipx) 
+- **Python 3.10.0:** you can install it with virtualenv
 ```bash
-brew install poetry
+virtualenv venv --python=python3.10.0.
+source venv/bin/activate.
 ```
 
 When you have Poetry installed, you can install the dependencies. You have to
@@ -33,5 +34,5 @@ To try this example, you can run the following command:
 ./gradlew evaluator
 ```
 
-After running the command, you will see the following output on
-`evalTest/index.html`:
+After running the command, you will have the results saved 
+in a web, that you can see opening the file: `evalTest/index.html`

@@ -87,7 +87,7 @@ jsonResponse["results"] = jsonItemResultResponses
 with open("results.json", "w") as outfile:
     json.dump(jsonResponse, outfile)
 
-with open("content.js", "w") as outfile:
+with open("publish/content.js", "w") as outfile:
     jsonStr = json.dumps(jsonResponse)
     outfile.write(f"const testData = {jsonStr};")
 
