@@ -1,56 +1,60 @@
 document.addEventListener('DOMContentLoaded', function() {
-    fetch('results.json')
-        .then(response => response.json())
-        .then(data => displayResults(data));
-});
 
-function displayResults(data) {
-    const container = document.getElementById('results-container');
-    const comparisonDiv = document.createElement('div');
-    comparisonDiv.className = 'comparison-block';
+    const container = document.getElementById('test-container');
+    const summaryDiv = document.createElement('div');
+    summaryDiv.classList.add('test-summary');
 
-    data.results.forEach(block => {
+    testData.results.forEach(block => {
         const blockDiv = document.createElement('div');
-        blockDiv.className = 'test-block';
+        blockDiv.classList.add('test-block');
 
-        const blockTitle = document.createElement('h2');
-        blockTitle.textContent = block.description;
-        blockDiv.appendChild(blockTitle);
+        const title = document.createElement('h2');
+        title.classList.add('test-title');
+        title.textContent = block.description;
+        blockDiv.appendChild(title);
 
         block.tests.forEach(test => {
-            const testDiv = document.createElement('div');
-            testDiv.className = 'test';
+            const inputDiv = document.createElement('div');
+            inputDiv.classList.add(test.assert ? 'input-passed' : 'input-failed');
+            inputDiv.textContent = 'Input: ' + test.input;
+            blockDiv.appendChild(inputDiv);
 
-            const inputP = document.createElement('p');
-            inputP.className = 'input';
-            inputP.textContent = `Input: ${test.input}`;
-            testDiv.appendChild(inputP);
+            const outputDiv = document.createElement('div');
+            outputDiv.classList.add('output');
+            outputDiv.textContent = 'Output: ' + test.output;
+            outputDiv.addEventListener('click', function() {
+                this.classList.toggle('expanded');
+            });
+            blockDiv.appendChild(outputDiv);
 
-            const outputP = document.createElement('p');
-            outputP.className = 'output';
-            outputP.textContent = `Output: ${test.output}`;
-            outputP.addEventListener('click', () => outputP.classList.toggle('expanded'));
-            testDiv.appendChild(outputP);
-
-            const scoreP = document.createElement('p');
-            scoreP.className = 'score';
-            scoreP.textContent = `Score: ${test.score}`;
-            testDiv.appendChild(scoreP);
-
-            blockDiv.appendChild(testDiv);
+            const scoreDiv = document.createElement('div');
+            scoreDiv.classList.add('score', test.assert ? 'score-passed' : 'score-failed');
+            scoreDiv.textContent = 'Score: ' + test.score.toFixed(3);
+            blockDiv.appendChild(scoreDiv);
         });
 
-        const avgScore = document.createElement('p');
-        avgScore.className = 'avg-score';
-        avgScore.textContent = `Average Score: ${block.avg}`;
-        blockDiv.appendChild(avgScore);
+        const avgScoreDiv = document.createElement('div');
+        avgScoreDiv.classList.add('avg-score');
+        avgScoreDiv.textContent = 'Average Score: ' + block.avg.toFixed(3);
+        blockDiv.appendChild(avgScoreDiv);
+
+        const testInfoDiv = document.createElement('div');
+        testInfoDiv.classList.add('test-info');
+        testInfoDiv.innerHTML = `
+            Tests Passed: ${block.tests_successful} <br>
+            Tests Failed: ${block.tests_failures} <br>
+            Success Rate: ${block.success_rate.toFixed(2)}%
+        `;
+        blockDiv.appendChild(testInfoDiv);
 
         container.appendChild(blockDiv);
 
-        const comparisonP = document.createElement('p');
-        comparisonP.textContent = `${block.description} -> ${block.avg}`;
-        comparisonDiv.appendChild(comparisonP);
+        summaryDiv.innerHTML += `
+            <h3>${block.description}</h3>
+            Average Score: ${block.avg.toFixed(3)} <br>
+            Success Rate: ${block.success_rate.toFixed(2)}% <br><br>
+        `;
     });
 
-    container.appendChild(comparisonDiv);
-}
+    container.appendChild(summaryDiv);
+});

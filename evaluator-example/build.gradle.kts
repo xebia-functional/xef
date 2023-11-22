@@ -44,7 +44,7 @@ tasks.create<JavaExec>("test-example") {
     }
 }
 
-tasks.create<Exec>("generate-results") {
+tasks.create<Exec>("evaluator") {
     dependsOn("test-example")
 
     this.standardOutput = OutputStream.nullOutputStream()
@@ -54,20 +54,7 @@ tasks.create<Exec>("generate-results") {
     commandLine("poetry", "run", "deepeval", "test", "run", "test_evaluator.py")
 
     doLast {
-        println(">> result.json created!")
+        println(">> Open evalTest/index.html in your browser")
     }
 }
 
-tasks.create<Exec>("evaluator") {
-    dependsOn("generate-results")
-
-    this.standardOutput = OutputStream.nullOutputStream()
-
-    workingDir("./evalTest")
-
-    commandLine("python3", "-m", "http.server", "8080")
-
-    doFirst {
-        println(">> Open http://localhost:8080/ in your browser")
-    }
-}

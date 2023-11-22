@@ -54,27 +54,42 @@ for x in range(numberOfOutputs):
 
     jsonResultResponses = []
 
+    numberTestSuccessful = 0
     for r in results:
+        score = float(r.metrics[0].score)
+        testsSuccessful = score >= minimumScore
         jsonResultResponse = {
             "input": r.input,
             "output": r.actual_output,
-            "score": float(r.metrics[0].score)
+            "score": score,
+            "assert": testsSuccessful
         }
+        if testsSuccessful:
+            numberTestSuccessful += 1
         jsonResultResponses.append(jsonResultResponse)
         totalScore += r.metrics[0].score
         print(f"- {r.input} -> {r.metrics[0].score}")
     avg = totalScore / len(results)
+    successRate = numberTestSuccessful * 100 / len(results)
     jsonItemResponse["tests"] = jsonResultResponses
     jsonItemResponse["avg"] = avg
+    jsonItemResponse["tests_successful"] = numberTestSuccessful
+    jsonItemResponse["tests_failures"] = len(results) - numberTestSuccessful
+    jsonItemResponse["success_rate"] = successRate
     jsonItemResultResponses.append(jsonItemResponse)
     print()
     print(f"Average: {avg}:")
+    print(f"Success rate: {successRate}:")
     print()
 
 jsonResponse["results"] = jsonItemResultResponses
 
 with open("results.json", "w") as outfile:
     json.dump(jsonResponse, outfile)
+
+with open("content.js", "w") as outfile:
+    jsonStr = json.dumps(jsonResponse)
+    outfile.write(f"const testData = {jsonStr};")
 
 print()
 

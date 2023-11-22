@@ -5,68 +5,83 @@ body {
     background-color: #f4f4f4;
 }
 
-#results-container {
+#test-container {
     width: 80%;
     margin: 20px auto;
-    padding: 20px;
+    padding: 15px;
     background-color: white;
     border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .test-block {
     margin-bottom: 20px;
-    padding: 15px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    background-color: #f9f9f9;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 20px;
 }
 
-.test-block h2 {
-    margin: 0 0 10px 0;
+.test-title {
+    font-size: 1.2em;
     color: #333;
 }
 
-.test {
-    margin-bottom: 10px;
+.input, .output {
+    margin: 5px 0;
 }
 
-.test .input {
-    font-size: 1.1em;
-    color: #406398;
+.input-passed {
+    margin-top: 25px;
+    color: green;
+    font-weight: bold;
 }
 
-.test .output {
-    display: block;
+.input-failed {
+    margin-top: 25px;
+    color: red;
+    font-weight: bold;
+}
+
+.output {
+    color: #666;
+    cursor: pointer;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    cursor: pointer;
-    color: #555;
 }
 
-.test .output.expanded {
+.output.expanded {
     white-space: normal;
 }
 
 .score {
-    color: #2a9d8f;
     font-weight: bold;
 }
 
-.avg-score {
-    font-size: 1.2em;
-    font-weight: bold;
-    color: #e76f51;
-    margin-top: 15px;
-    text-align: center;
+.score-passed {
+    margin-bottom: 25px;
+    color: #008000;
 }
 
-.comparison-block {
+.score-failed {
+    margin-bottom: 25px;
+    color: red;
+}
+
+.avg-score, .test-info {
     font-size: 1.2em;
-    margin-top: 30px;
+    color: #d35400;
+    margin-top: 10px;
+}
+
+.test-summary {
+    background-color: #e7e7e7;
     padding: 15px;
-    background-color: #e9ecef;
-    border-radius: 4px;
-    color: #406398;
+    margin-top: 20px;
+    border-radius: 8px;
+}
+
+.test-summary h3 {
+    font-size: 1.1em;
+    color: #555;
+    margin-top: 0;
 }
