@@ -31,6 +31,8 @@ class Assistant(
   //      api
   //    )
 
+  suspend fun get(): AssistantObject = assistantsApi.getAssistant(assistantId).body()
+
   suspend fun modify(modifyAssistantRequest: ModifyAssistantRequest): Assistant =
     Assistant(api.modifyAssistant(assistantId, modifyAssistantRequest).body(), assistantsApi, api)
 
@@ -67,7 +69,6 @@ class Assistant(
       api: AssistantApi = fromEnvironment(::AssistantApi)
     ): Assistant {
       val response = assistantsApi.createAssistant(request)
-      println(response.response.bodyAsText())
       return Assistant(response.body(), assistantsApi, api)
     }
   }

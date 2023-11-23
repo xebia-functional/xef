@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.assistants
 
-import com.xebia.functional.openai.models.RunStepDetailsToolCallsObjectToolCallsInner
+import com.xebia.functional.openai.models.*
 import com.xebia.functional.xef.llm.assistants.Assistant
 import com.xebia.functional.xef.llm.assistants.AssistantThread
 
@@ -32,59 +32,70 @@ private suspend fun runAssistantAndDisplayResults(
   thread: AssistantThread,
   assistant: Assistant
 ) {
+  val assistantObject = assistant.get()
   thread.run(assistant).collect {
     when (it) {
       is AssistantThread.RunDelta.Run -> displayRunStatus(it)
       is AssistantThread.RunDelta.Step -> displayStepsStatus(it)
-      is AssistantThread.RunDelta.ReceivedMessage -> displayReceivedMessages(it)
+      is AssistantThread.RunDelta.ReceivedMessage -> displayReceivedMessages(assistantObject, it)
     }
   }
 }
 
-private fun displayReceivedMessages(it: AssistantThread.RunDelta.ReceivedMessage) {
-  it.message.content.forEach {
-    it.text?.value?.let(::println)
-    it.imageFile?.let(::println)
+private fun displayReceivedMessages(assistant: AssistantObject, receivedMessage: AssistantThread.RunDelta.ReceivedMessage) {
+  if (receivedMessage.message.role == MessageObject.Role.assistant) {
+    receivedMessage.message.content.forEach {
+      val text = it.text?.value
+      if (text != null) {
+        println("${assistant.name}: $text")
+      }
+      val imageFile = it.imageFile
+      if (imageFile != null) {
+        println("${assistant.name}: https://platform.openai.com/files/${imageFile.fileId}")
+      }
+    }
   }
 }
 
-private fun displayStepsStatus(it: AssistantThread.RunDelta.Step) {
-  val type = it.runStep.stepDetails.type
-  val messageId = it.runStep.stepDetails.messageCreation?.messageId
-  val toolsCalls = it.runStep.stepDetails.toolCalls.map {
+private fun displayStepsStatus(step: AssistantThread.RunDelta.Step) {
+
+  val calls = step.runStep.stepDetails.toolCalls.map {
     when (it.type) {
       RunStepDetailsToolCallsObjectToolCallsInner.Type.code_interpreter ->
-        """|
-                 |Code Interpreter:
-                 | input: ${it.codeInterpreter?.input}
-                 | outputs: ${
-          it.codeInterpreter?.outputs.orEmpty().joinToString {
-            """|
-                 |     |output:
-                 |     |  value: ${it.logs}
-                 |     |  type: ${it.image}
-                 |     |""".trimMargin()
-          }
-        }
-                 |""".trimMargin()
+        "CodeInterpreter"
 
       RunStepDetailsToolCallsObjectToolCallsInner.Type.retrieval ->
-        "Retrieval: ${it.retrieval}"
+        "Retrieval"
 
       RunStepDetailsToolCallsObjectToolCallsInner.Type.function ->
-        "Function: ${it.function}, output: ${it.function?.output}"
+        "${it.function?.name}(${it.function?.arguments ?: ""}): "
     }
   }
-  println(
-    """
-          |Step:
-          |  type: $type
-          |  messageId: $messageId
-          |  toolCalls: ${toolsCalls.joinToString("\n")}
-          |""".trimMargin()
-  )
+  println("${step.runStep.stepDetails.type.value} ${stepStatusEmoji(step.runStep.status)} ${calls.joinToString()} ")
 }
 
-private fun displayRunStatus(it: AssistantThread.RunDelta.Run) {
-  println(it.message.status.value)
+private fun runStatusEmoji(run: AssistantThread.RunDelta.Run) =
+  when (run.message.status) {
+    RunObject.Status.queued -> "🕒"  // Hourglass Not Done
+    RunObject.Status.in_progress -> "🔄"  // Clockwise Vertical Arrows
+    RunObject.Status.requires_action -> "💡"  // Light Bulb
+    RunObject.Status.cancelling -> "🛑"  // Stop Sign
+    RunObject.Status.cancelled -> "❌"  // Cross Mark
+    RunObject.Status.failed -> "🔥"  // Fire
+    RunObject.Status.completed -> "🎉"  // Party Popper
+    RunObject.Status.expired -> "🕰️"  // Mantelpiece Clock
+  }
+
+private fun stepStatusEmoji(status: RunStepObject.Status) =
+  when (status) {
+    RunStepObject.Status.in_progress -> "🔄"  // Clockwise Vertical Arrows
+    RunStepObject.Status.cancelled -> "❌"  // Cross Mark
+    RunStepObject.Status.failed -> "🔥"  // Fire
+    RunStepObject.Status.completed -> "🎉"  // Party Popper
+    RunStepObject.Status.expired -> "🕰️"  // Mantelpiece Clock
+  }
+
+
+private fun displayRunStatus(run: AssistantThread.RunDelta.Run) {
+  println("Assistant: ${runStatusEmoji(run)}")
 }

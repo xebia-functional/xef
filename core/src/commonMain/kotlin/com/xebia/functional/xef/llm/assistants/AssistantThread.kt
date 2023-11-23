@@ -93,51 +93,52 @@ class AssistantThread(
   }
 
   fun awaitRun(runId: String): Flow<RunDelta> = flow {
-    val cache = mutableMapOf<String, RunDelta>()
-    var run = checkRun(thread = this@AssistantThread, runId = runId)
+    val stepCache = mutableSetOf<RunStepObject>()
+    val messagesCache = mutableSetOf<MessageObject>()
+    val runCache = mutableSetOf<RunObject>()
+    var run = checkRun(runId = runId, cache = runCache)
     while (run.status != RunObject.Status.completed) {
-      checkSteps(thread = this@AssistantThread, runId = runId, cache = cache)
-      checkMessages(thread = this@AssistantThread, cache = cache)
-      run = checkRun(thread = this@AssistantThread, runId = runId)
+      checkSteps(runId = runId, cache = stepCache)
+      checkMessages(cache = messagesCache)
+      run = checkRun(runId = runId, cache = runCache)
     }
-    checkMessages(thread = this@AssistantThread, cache = cache)
+    checkMessages(cache = messagesCache)
   }
 
   private suspend fun FlowCollector<RunDelta>.checkRun(
-    thread: AssistantThread,
-    runId: String
+    runId: String,
+    cache: MutableSet<RunObject>
   ): RunObject {
-    val run = thread.getRun(runId)
-    if (run.status == RunObject.Status.completed) {
+    val run = getRun(runId)
+    if (run !in cache) {
+      cache.add(run)
       emit(RunDelta.Run(run))
     }
     return run
   }
 
   private suspend fun FlowCollector<RunDelta>.checkMessages(
-    thread: AssistantThread,
-    cache: MutableMap<String, RunDelta>
+    cache: MutableSet<MessageObject>
   ) {
-    val messages = thread.listMessages()
-    messages.forEach { message ->
+    val messages = listMessages()
+    val updatedAndNewMessages = messages.filterNot { it in cache }
+    updatedAndNewMessages.forEach { message ->
       val content = message.content.filterNot { it.text?.value?.isBlank() ?: true }
-      if (content.isNotEmpty() && message.id !in cache) {
-        val receivedMessage = RunDelta.ReceivedMessage(message)
-        cache[message.id] = receivedMessage
-        emit(receivedMessage)
+      if (content.isNotEmpty() && message !in cache) {
+        cache.add(message)
+        emit(RunDelta.ReceivedMessage(message))
       }
     }
   }
 
   private suspend fun FlowCollector<RunDelta>.checkSteps(
-    thread: AssistantThread,
     runId: String,
-    cache: MutableMap<String, RunDelta>
+    cache: MutableSet<RunStepObject>
   ) {
-    val steps = thread.runSteps(runId)
+    val steps = runSteps(runId)
     steps.forEach { step ->
-      if (step.id !in cache) {
-        cache[step.id] = RunDelta.Step(step)
+      if (step !in cache) {
+        cache.add(step)
         emit(RunDelta.Step(step))
       }
     }

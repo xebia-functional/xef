@@ -29,6 +29,7 @@ dependencies {
     implementation(libs.klogging)
     implementation(libs.bundles.arrow)
     implementation(libs.okio)
+    implementation(libs.progressbar)
     implementation(libs.jdbc.mysql.connector)
     api(libs.ktor.client)
 }
