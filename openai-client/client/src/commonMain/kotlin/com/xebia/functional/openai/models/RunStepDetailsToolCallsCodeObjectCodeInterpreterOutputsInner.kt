@@ -25,8 +25,7 @@ data class RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInner(
 
   /* The text output from the Code Interpreter tool call. */
   @SerialName(value = "logs") val logs: kotlin.String? = null,
-  @SerialName(value = "image")
-  val image: RunStepDetailsToolCallsCodeOutputImageObjectImage? = null
+  @SerialName(value = "image") val image: RunStepDetailsToolCallsCodeOutputImageObjectImage? = null
 ) {
 
   /**

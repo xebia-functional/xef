@@ -117,9 +117,7 @@ class AssistantThread(
     return run
   }
 
-  private suspend fun FlowCollector<RunDelta>.checkMessages(
-    cache: MutableSet<MessageObject>
-  ) {
+  private suspend fun FlowCollector<RunDelta>.checkMessages(cache: MutableSet<MessageObject>) {
     val messages = listMessages()
     val updatedAndNewMessages = messages.filterNot { it in cache }
     updatedAndNewMessages.forEach { message ->

@@ -28,10 +28,7 @@ suspend fun main() {
   }
 }
 
-private suspend fun runAssistantAndDisplayResults(
-  thread: AssistantThread,
-  assistant: Assistant
-) {
+private suspend fun runAssistantAndDisplayResults(thread: AssistantThread, assistant: Assistant) {
   val assistantObject = assistant.get()
   thread.run(assistant).collect {
     when (it) {
@@ -42,7 +39,10 @@ private suspend fun runAssistantAndDisplayResults(
   }
 }
 
-private fun displayReceivedMessages(assistant: AssistantObject, receivedMessage: AssistantThread.RunDelta.ReceivedMessage) {
+private fun displayReceivedMessages(
+  assistant: AssistantObject,
+  receivedMessage: AssistantThread.RunDelta.ReceivedMessage
+) {
   if (receivedMessage.message.role == MessageObject.Role.assistant) {
     receivedMessage.message.content.forEach {
       val text = it.text?.value
@@ -59,42 +59,40 @@ private fun displayReceivedMessages(assistant: AssistantObject, receivedMessage:
 
 private fun displayStepsStatus(step: AssistantThread.RunDelta.Step) {
 
-  val calls = step.runStep.stepDetails.toolCalls.map {
-    when (it.type) {
-      RunStepDetailsToolCallsObjectToolCallsInner.Type.code_interpreter ->
-        "CodeInterpreter"
-
-      RunStepDetailsToolCallsObjectToolCallsInner.Type.retrieval ->
-        "Retrieval"
-
-      RunStepDetailsToolCallsObjectToolCallsInner.Type.function ->
-        "${it.function?.name}(${it.function?.arguments ?: ""}): "
+  val calls =
+    step.runStep.stepDetails.toolCalls.map {
+      when (it.type) {
+        RunStepDetailsToolCallsObjectToolCallsInner.Type.code_interpreter -> "CodeInterpreter"
+        RunStepDetailsToolCallsObjectToolCallsInner.Type.retrieval -> "Retrieval"
+        RunStepDetailsToolCallsObjectToolCallsInner.Type.function ->
+          "${it.function?.name}(${it.function?.arguments ?: ""}): "
+      }
     }
-  }
-  println("${step.runStep.stepDetails.type.value} ${stepStatusEmoji(step.runStep.status)} ${calls.joinToString()} ")
+  println(
+    "${step.runStep.stepDetails.type.value} ${stepStatusEmoji(step.runStep.status)} ${calls.joinToString()} "
+  )
 }
 
 private fun runStatusEmoji(run: AssistantThread.RunDelta.Run) =
   when (run.message.status) {
-    RunObject.Status.queued -> "🕒"  // Hourglass Not Done
-    RunObject.Status.in_progress -> "🔄"  // Clockwise Vertical Arrows
-    RunObject.Status.requires_action -> "💡"  // Light Bulb
-    RunObject.Status.cancelling -> "🛑"  // Stop Sign
-    RunObject.Status.cancelled -> "❌"  // Cross Mark
-    RunObject.Status.failed -> "🔥"  // Fire
-    RunObject.Status.completed -> "🎉"  // Party Popper
-    RunObject.Status.expired -> "🕰️"  // Mantelpiece Clock
+    RunObject.Status.queued -> "🕒" // Hourglass Not Done
+    RunObject.Status.in_progress -> "🔄" // Clockwise Vertical Arrows
+    RunObject.Status.requires_action -> "💡" // Light Bulb
+    RunObject.Status.cancelling -> "🛑" // Stop Sign
+    RunObject.Status.cancelled -> "❌" // Cross Mark
+    RunObject.Status.failed -> "🔥" // Fire
+    RunObject.Status.completed -> "🎉" // Party Popper
+    RunObject.Status.expired -> "🕰️" // Mantelpiece Clock
   }
 
 private fun stepStatusEmoji(status: RunStepObject.Status) =
   when (status) {
-    RunStepObject.Status.in_progress -> "🔄"  // Clockwise Vertical Arrows
-    RunStepObject.Status.cancelled -> "❌"  // Cross Mark
-    RunStepObject.Status.failed -> "🔥"  // Fire
-    RunStepObject.Status.completed -> "🎉"  // Party Popper
-    RunStepObject.Status.expired -> "🕰️"  // Mantelpiece Clock
+    RunStepObject.Status.in_progress -> "🔄" // Clockwise Vertical Arrows
+    RunStepObject.Status.cancelled -> "❌" // Cross Mark
+    RunStepObject.Status.failed -> "🔥" // Fire
+    RunStepObject.Status.completed -> "🎉" // Party Popper
+    RunStepObject.Status.expired -> "🕰️" // Mantelpiece Clock
   }
-
 
 private fun displayRunStatus(run: AssistantThread.RunDelta.Run) {
   println("Assistant: ${runStatusEmoji(run)}")

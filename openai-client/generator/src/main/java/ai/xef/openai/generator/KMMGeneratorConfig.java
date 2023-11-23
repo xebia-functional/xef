@@ -1,5 +1,6 @@
 package ai.xef.openai.generator;
 
+import org.openapitools.codegen.CodegenConstants;
 import org.openapitools.codegen.CodegenModel;
 import org.openapitools.codegen.CodegenProperty;
 import org.openapitools.codegen.languages.KotlinClientCodegen;
@@ -14,6 +15,9 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
 
     public KMMGeneratorConfig() {
         super();
+        specialCharReplacements.put("-", "_");
+        specialCharReplacements.put(".", "_");
+        enumPropertyNaming = CodegenConstants.ENUM_PROPERTY_NAMING_TYPE.snake_case;
     }
 
     private Optional<CodegenProperty> readEnumModel(List<CodegenProperty> all) {
