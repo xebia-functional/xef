@@ -4,22 +4,22 @@ import com.xebia.functional.openai.apis.AssistantsApi
 import com.xebia.functional.openai.infrastructure.ApiClient
 import com.xebia.functional.openai.models.*
 import com.xebia.functional.xef.llm.fromEnvironment
-import io.ktor.client.statement.*
 import kotlin.jvm.JvmName
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.JsonObject
 
-class Thread(
+class AssistantThread(
   private val threadId: String,
   private val api: AssistantsApi = fromEnvironment(::AssistantsApi)
 ) {
 
   suspend fun delete(): Boolean = api.deleteThread(threadId).body().deleted
 
-  suspend fun modify(request: ModifyThreadRequest): Thread =
-    Thread(api.modifyThread(threadId, request).body().id)
+  suspend fun modify(request: ModifyThreadRequest): AssistantThread =
+    AssistantThread(api.modifyThread(threadId, request).body().id)
 
   suspend fun createMessage(message: MessageWithFiles): MessageObject =
     api
@@ -94,26 +94,51 @@ class Thread(
 
   fun awaitRun(runId: String): Flow<RunDelta> = flow {
     val cache = mutableMapOf<String, RunDelta>()
-    var run = getRun(runId)
-    emit(RunDelta.Run(run))
+    var run = checkRun(thread = this@AssistantThread, runId = runId)
     while (run.status != RunObject.Status.completed) {
-      val steps = runSteps(runId)
-      steps.forEach { step ->
-        if (step.id !in cache) {
-          cache[step.id] = RunDelta.Step(step)
-          emit(RunDelta.Step(step))
-        }
+      checkSteps(thread = this@AssistantThread, runId = runId, cache = cache)
+      checkMessages(thread = this@AssistantThread, cache = cache)
+      run = checkRun(thread = this@AssistantThread, runId = runId)
+    }
+    checkMessages(thread = this@AssistantThread, cache = cache)
+  }
+
+  private suspend fun FlowCollector<RunDelta>.checkRun(
+    thread: AssistantThread,
+    runId: String
+  ): RunObject {
+    val run = thread.getRun(runId)
+    if (run.status == RunObject.Status.completed) {
+      emit(RunDelta.Run(run))
+    }
+    return run
+  }
+
+  private suspend fun FlowCollector<RunDelta>.checkMessages(
+    thread: AssistantThread,
+    cache: MutableMap<String, RunDelta>
+  ) {
+    val messages = thread.listMessages()
+    messages.forEach { message ->
+      val content = message.content.filterNot { it.text?.value?.isBlank() ?: true }
+      if (content.isNotEmpty() && message.id !in cache) {
+        val receivedMessage = RunDelta.ReceivedMessage(message)
+        cache[message.id] = receivedMessage
+        emit(receivedMessage)
       }
-      val messages = listMessages()
-      messages.forEach { message ->
-        if (message.id !in cache) {
-          cache[message.id] = RunDelta.ReceivedMessage(message)
-          emit(RunDelta.ReceivedMessage(message))
-        }
-      }
-      run = getRun(runId)
-      if (run.status == RunObject.Status.completed) {
-        emit(RunDelta.Run(run))
+    }
+  }
+
+  private suspend fun FlowCollector<RunDelta>.checkSteps(
+    thread: AssistantThread,
+    runId: String,
+    cache: MutableMap<String, RunDelta>
+  ) {
+    val steps = thread.runSteps(runId)
+    steps.forEach { step ->
+      if (step.id !in cache) {
+        cache[step.id] = RunDelta.Step(step)
+        emit(RunDelta.Step(step))
       }
     }
   }
@@ -125,8 +150,8 @@ class Thread(
       messages: List<MessageWithFiles>,
       metadata: JsonObject? = null,
       api: AssistantsApi = fromEnvironment(::AssistantsApi)
-    ): Thread =
-      Thread(
+    ): AssistantThread =
+      AssistantThread(
         api
           .createThread(
             CreateThreadRequest(
@@ -153,8 +178,8 @@ class Thread(
       messages: List<String>,
       metadata: JsonObject? = null,
       api: AssistantsApi = fromEnvironment(::AssistantsApi)
-    ): Thread =
-      Thread(
+    ): AssistantThread =
+      AssistantThread(
         api
           .createThread(
             CreateThreadRequest(
@@ -174,8 +199,8 @@ class Thread(
       messages: List<CreateMessageRequest> = emptyList(),
       metadata: JsonObject? = null,
       api: AssistantsApi = fromEnvironment(::AssistantsApi)
-    ): Thread =
-      Thread(
+    ): AssistantThread =
+      AssistantThread(
         api.createThread(CreateThreadRequest(messages, metadataAsString(metadata))).body().id,
         api
       )
@@ -183,11 +208,11 @@ class Thread(
     suspend operator fun invoke(
       request: CreateThreadRequest,
       api: AssistantsApi = fromEnvironment(::AssistantsApi)
-    ): Thread = Thread(api.createThread(request).body().id, api)
+    ): AssistantThread = AssistantThread(api.createThread(request).body().id, api)
 
     suspend operator fun invoke(
       request: CreateThreadAndRunRequest,
       api: AssistantsApi = fromEnvironment(::AssistantsApi)
-    ): Thread = Thread(api.createThreadAndRun(request).body().id, api)
+    ): AssistantThread = AssistantThread(api.createThreadAndRun(request).body().id, api)
   }
 }

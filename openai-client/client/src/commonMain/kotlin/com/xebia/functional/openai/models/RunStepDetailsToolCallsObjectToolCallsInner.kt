@@ -27,14 +27,12 @@ data class RunStepDetailsToolCallsObjectToolCallsInner(
   /* The type of tool call. This is always going to be `code_interpreter` for this type of tool call. */
   @SerialName(value = "type") @Required val type: RunStepDetailsToolCallsObjectToolCallsInner.Type,
   @SerialName(value = "code_interpreter")
-  @Required
-  val codeInterpreter: RunStepDetailsToolCallsCodeObjectCodeInterpreter,
+  val codeInterpreter: RunStepDetailsToolCallsCodeObjectCodeInterpreter? = null,
 
   /* For now, this is always going to be an empty object. */
-  @SerialName(value = "retrieval") @Required val retrieval: kotlin.String,
+  @SerialName(value = "retrieval") val retrieval: kotlin.String? = null,
   @SerialName(value = "function")
-  @Required
-  val function: RunStepDetailsToolCallsFunctionObjectFunction
+  val function: RunStepDetailsToolCallsFunctionObjectFunction? = null
 ) {
 
   /**
