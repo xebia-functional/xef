@@ -16,7 +16,6 @@ java {
 
 dependencies {
     implementation(projects.xefCore)
-//    implementation(projects.xefOpenai)
     implementation(projects.xefEvaluator)
     implementation(libs.suspendApp.core)
     implementation(libs.bundles.arrow)
