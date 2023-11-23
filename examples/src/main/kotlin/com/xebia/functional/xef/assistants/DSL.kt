@@ -3,21 +3,40 @@ package com.xebia.functional.xef.assistants
 import com.xebia.functional.openai.models.*
 import com.xebia.functional.xef.llm.assistants.Assistant
 import com.xebia.functional.xef.llm.assistants.AssistantThread
+import com.xebia.functional.xef.llm.assistants.Tool
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class SumTool(
+  val left: Int,
+  val right: Int,
+) : Tool<Int> {
+  override suspend fun invoke(): Int = left + right
+}
 
 suspend fun main() {
 
-  //  val assistant = Assistant(
+  Tool<SumTool, Int>() // register the tool, Int is the output type
+
+  //  val assistant2 = Assistant(
   //    name = "Math Tutor",
-  //    instructions = "You are a personal math tutor. Write and run code to answer math
-  // questions.",
+  //    instructions = "You help the user with all kinds of math problems.",
   //    tools = listOf(
   //      AssistantObjectToolsInner(
   //        type = AssistantObjectToolsInner.Type.code_interpreter
+  //      ),
+  //      AssistantObjectToolsInner(
+  //        type = AssistantObjectToolsInner.Type.retrieval,
+  //      ),
+  //      AssistantObjectToolsInner(
+  //        type = AssistantObjectToolsInner.Type.function,
+  //        function = toolOf<SumTool>()
   //      )
   //    ),
   //    model = "gpt-4-1106-preview"
   //  )
-  val assistant = Assistant(assistantId = "asst_RVNViA1YfTXwv8hTfdyGGNHW")
+  // println("generated assistant: ${assistant2.assistantId}")
+  val assistant = Assistant(assistantId = "asst_UxczzpJkysC0l424ood87DAk")
   val thread = AssistantThread()
   println("Welcome to the Math tutor, ask me anything about math:")
   while (true) {

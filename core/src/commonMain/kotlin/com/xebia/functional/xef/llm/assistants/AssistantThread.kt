@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 
 class AssistantThread(
@@ -138,6 +139,26 @@ class AssistantThread(
       if (step !in cache) {
         cache.add(step)
         emit(RunDelta.Step(step))
+        step.stepDetails.toolCalls.forEach { toolCall ->
+          val function = toolCall.function
+          if (function != null) {
+            val result: JsonElement = Tool(function.name, function.arguments)
+            api.submitToolOuputsToRun(
+              threadId = threadId,
+              runId = runId,
+              submitToolOutputsRunRequest =
+                SubmitToolOutputsRunRequest(
+                  toolOutputs =
+                    listOf(
+                      SubmitToolOutputsRunRequestToolOutputsInner(
+                        toolCallId = toolCall.id,
+                        output = ApiClient.JSON_DEFAULT.encodeToString(result)
+                      )
+                    )
+                )
+            )
+          }
+        }
       }
     }
   }

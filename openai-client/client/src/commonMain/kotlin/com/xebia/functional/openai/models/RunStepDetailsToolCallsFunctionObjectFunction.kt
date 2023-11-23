@@ -28,5 +28,5 @@ data class RunStepDetailsToolCallsFunctionObjectFunction(
   @SerialName(value = "arguments") @Required val arguments: kotlin.String,
 
   /* The output of the function. This will be `null` if the outputs have not been [submitted](/docs/api-reference/runs/submitToolOutputs) yet. */
-  @SerialName(value = "output") @Required val output: kotlin.String?
+  @SerialName(value = "output") val output: kotlin.String? = null
 )
