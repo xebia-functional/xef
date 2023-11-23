@@ -22,9 +22,9 @@ data class DeleteThreadResponse(
   @SerialName(value = "object") @Required val `object`: DeleteThreadResponse.`Object`
 ) {
 
-  /** Values: threadPeriodDeleted */
+  /** Values: thread_deleted */
   @Serializable
   enum class `Object`(val value: kotlin.String) {
-    @SerialName(value = "thread.deleted") threadPeriodDeleted("thread.deleted")
+    @SerialName(value = "thread.deleted") thread_deleted("thread.deleted")
   }
 }

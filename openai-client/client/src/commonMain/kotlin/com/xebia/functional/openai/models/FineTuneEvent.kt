@@ -27,9 +27,9 @@ data class FineTuneEvent(
   @SerialName(value = "object") @Required val `object`: FineTuneEvent.`Object`
 ) {
 
-  /** Values: fineMinusTuneMinusEvent */
+  /** Values: fine_tune_event */
   @Serializable
   enum class `Object`(val value: kotlin.String) {
-    @SerialName(value = "fine-tune-event") fineMinusTuneMinusEvent("fine-tune-event")
+    @SerialName(value = "fine-tune-event") fine_tune_event("fine-tune-event")
   }
 }

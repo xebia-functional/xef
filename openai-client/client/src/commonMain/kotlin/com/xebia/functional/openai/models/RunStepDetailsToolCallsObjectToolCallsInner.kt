@@ -41,11 +41,11 @@ data class RunStepDetailsToolCallsObjectToolCallsInner(
    * The type of tool call. This is always going to be `code_interpreter` for this type of tool
    * call.
    *
-   * Values: codeInterpreter,retrieval,function
+   * Values: code_interpreter,retrieval,function
    */
   @Serializable
   enum class Type(val value: kotlin.String) {
-    @SerialName(value = "code_interpreter") codeInterpreter("code_interpreter"),
+    @SerialName(value = "code_interpreter") code_interpreter("code_interpreter"),
     @SerialName(value = "retrieval") retrieval("retrieval"),
     @SerialName(value = "function") function("function")
   }

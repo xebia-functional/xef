@@ -14,28 +14,24 @@ import kotlinx.serialization.*
  * which models work with the Chat API.
  *
  * Values:
- * gptMinus4Minus1106MinusPreview,gptMinus4MinusVisionMinusPreview,gptMinus4,gptMinus4Minus0314,gptMinus4Minus0613,gptMinus4Minus32k,gptMinus4Minus32kMinus0314,gptMinus4Minus32kMinus0613,gptMinus3Period5MinusTurbo,gptMinus3Period5MinusTurboMinus16k,gptMinus3Period5MinusTurboMinus0301,gptMinus3Period5MinusTurboMinus0613,gptMinus3Period5MinusTurboMinus16kMinus0613
+ * gpt_4_1106_preview,gpt_4_vision_preview,gpt_4,gpt_4_0314,gpt_4_0613,gpt_4_32k,gpt_4_32k_0314,gpt_4_32k_0613,gpt_3_5_turbo,gpt_3_5_turbo_16k,gpt_3_5_turbo_0301,gpt_3_5_turbo_0613,gpt_3_5_turbo_16k_0613
  */
 @Serializable
 enum class CreateChatCompletionRequestModel(val value: kotlin.String) {
 
-  @SerialName(value = "gpt-4-1106-preview") gptMinus4Minus1106MinusPreview("gpt-4-1106-preview"),
-  @SerialName(value = "gpt-4-vision-preview")
-  gptMinus4MinusVisionMinusPreview("gpt-4-vision-preview"),
-  @SerialName(value = "gpt-4") gptMinus4("gpt-4"),
-  @SerialName(value = "gpt-4-0314") gptMinus4Minus0314("gpt-4-0314"),
-  @SerialName(value = "gpt-4-0613") gptMinus4Minus0613("gpt-4-0613"),
-  @SerialName(value = "gpt-4-32k") gptMinus4Minus32k("gpt-4-32k"),
-  @SerialName(value = "gpt-4-32k-0314") gptMinus4Minus32kMinus0314("gpt-4-32k-0314"),
-  @SerialName(value = "gpt-4-32k-0613") gptMinus4Minus32kMinus0613("gpt-4-32k-0613"),
-  @SerialName(value = "gpt-3.5-turbo") gptMinus3Period5MinusTurbo("gpt-3.5-turbo"),
-  @SerialName(value = "gpt-3.5-turbo-16k") gptMinus3Period5MinusTurboMinus16k("gpt-3.5-turbo-16k"),
-  @SerialName(value = "gpt-3.5-turbo-0301")
-  gptMinus3Period5MinusTurboMinus0301("gpt-3.5-turbo-0301"),
-  @SerialName(value = "gpt-3.5-turbo-0613")
-  gptMinus3Period5MinusTurboMinus0613("gpt-3.5-turbo-0613"),
-  @SerialName(value = "gpt-3.5-turbo-16k-0613")
-  gptMinus3Period5MinusTurboMinus16kMinus0613("gpt-3.5-turbo-16k-0613");
+  @SerialName(value = "gpt-4-1106-preview") gpt_4_1106_preview("gpt-4-1106-preview"),
+  @SerialName(value = "gpt-4-vision-preview") gpt_4_vision_preview("gpt-4-vision-preview"),
+  @SerialName(value = "gpt-4") gpt_4("gpt-4"),
+  @SerialName(value = "gpt-4-0314") gpt_4_0314("gpt-4-0314"),
+  @SerialName(value = "gpt-4-0613") gpt_4_0613("gpt-4-0613"),
+  @SerialName(value = "gpt-4-32k") gpt_4_32k("gpt-4-32k"),
+  @SerialName(value = "gpt-4-32k-0314") gpt_4_32k_0314("gpt-4-32k-0314"),
+  @SerialName(value = "gpt-4-32k-0613") gpt_4_32k_0613("gpt-4-32k-0613"),
+  @SerialName(value = "gpt-3.5-turbo") gpt_3_5_turbo("gpt-3.5-turbo"),
+  @SerialName(value = "gpt-3.5-turbo-16k") gpt_3_5_turbo_16k("gpt-3.5-turbo-16k"),
+  @SerialName(value = "gpt-3.5-turbo-0301") gpt_3_5_turbo_0301("gpt-3.5-turbo-0301"),
+  @SerialName(value = "gpt-3.5-turbo-0613") gpt_3_5_turbo_0613("gpt-3.5-turbo-0613"),
+  @SerialName(value = "gpt-3.5-turbo-16k-0613") gpt_3_5_turbo_16k_0613("gpt-3.5-turbo-16k-0613");
 
   /**
    * Override [toString()] to avoid using the enum variable name as the value, and instead use the

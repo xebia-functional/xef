@@ -27,11 +27,11 @@ data class MessageObjectContentInner(
   /**
    * Always `image_file`.
    *
-   * Values: imageFile,text
+   * Values: image_file,text
    */
   @Serializable
   enum class Type(val value: kotlin.String) {
-    @SerialName(value = "image_file") imageFile("image_file"),
+    @SerialName(value = "image_file") image_file("image_file"),
     @SerialName(value = "text") text("text")
   }
 }

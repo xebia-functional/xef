@@ -13,13 +13,12 @@ import kotlinx.serialization.*
  * all of your available models, or see our [Model overview](/docs/models/overview) for descriptions
  * of them.
  *
- * Values: textMinusEmbeddingMinusAdaMinus002
+ * Values: text_embedding_ada_002
  */
 @Serializable
 enum class CreateEmbeddingRequestModel(val value: kotlin.String) {
 
-  @SerialName(value = "text-embedding-ada-002")
-  textMinusEmbeddingMinusAdaMinus002("text-embedding-ada-002");
+  @SerialName(value = "text-embedding-ada-002") text_embedding_ada_002("text-embedding-ada-002");
 
   /**
    * Override [toString()] to avoid using the enum variable name as the value, and instead use the

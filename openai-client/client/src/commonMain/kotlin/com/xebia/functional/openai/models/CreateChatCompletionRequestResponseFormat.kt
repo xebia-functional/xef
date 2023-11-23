@@ -32,11 +32,11 @@ data class CreateChatCompletionRequestResponseFormat(
   /**
    * Must be one of `text` or `json_object`.
    *
-   * Values: text,jsonObject
+   * Values: text,json_object
    */
   @Serializable
   enum class Type(val value: kotlin.String) {
     @SerialName(value = "text") text("text"),
-    @SerialName(value = "json_object") jsonObject("json_object")
+    @SerialName(value = "json_object") json_object("json_object")
   }
 }

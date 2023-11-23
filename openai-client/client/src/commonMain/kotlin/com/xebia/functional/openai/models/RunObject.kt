@@ -101,23 +101,23 @@ data class RunObject(
   /**
    * The object type, which is always `thread.run`.
    *
-   * Values: threadPeriodRun
+   * Values: thread_run
    */
   @Serializable
   enum class `Object`(val value: kotlin.String) {
-    @SerialName(value = "thread.run") threadPeriodRun("thread.run")
+    @SerialName(value = "thread.run") thread_run("thread.run")
   }
   /**
    * The status of the run, which can be either `queued`, `in_progress`, `requires_action`,
    * `cancelling`, `cancelled`, `failed`, `completed`, or `expired`.
    *
-   * Values: queued,inProgress,requiresAction,cancelling,cancelled,failed,completed,expired
+   * Values: queued,in_progress,requires_action,cancelling,cancelled,failed,completed,expired
    */
   @Serializable
   enum class Status(val value: kotlin.String) {
     @SerialName(value = "queued") queued("queued"),
-    @SerialName(value = "in_progress") inProgress("in_progress"),
-    @SerialName(value = "requires_action") requiresAction("requires_action"),
+    @SerialName(value = "in_progress") in_progress("in_progress"),
+    @SerialName(value = "requires_action") requires_action("requires_action"),
     @SerialName(value = "cancelling") cancelling("cancelling"),
     @SerialName(value = "cancelled") cancelled("cancelled"),
     @SerialName(value = "failed") failed("failed"),

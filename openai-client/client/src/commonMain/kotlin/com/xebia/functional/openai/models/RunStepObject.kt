@@ -82,31 +82,31 @@ data class RunStepObject(
   /**
    * The object type, which is always `thread.run.step``.
    *
-   * Values: threadPeriodRunPeriodStep
+   * Values: thread_run_step
    */
   @Serializable
   enum class `Object`(val value: kotlin.String) {
-    @SerialName(value = "thread.run.step") threadPeriodRunPeriodStep("thread.run.step")
+    @SerialName(value = "thread.run.step") thread_run_step("thread.run.step")
   }
   /**
    * The type of run step, which can be either `message_creation` or `tool_calls`.
    *
-   * Values: messageCreation,toolCalls
+   * Values: message_creation,tool_calls
    */
   @Serializable
   enum class Type(val value: kotlin.String) {
-    @SerialName(value = "message_creation") messageCreation("message_creation"),
-    @SerialName(value = "tool_calls") toolCalls("tool_calls")
+    @SerialName(value = "message_creation") message_creation("message_creation"),
+    @SerialName(value = "tool_calls") tool_calls("tool_calls")
   }
   /**
    * The status of the run step, which can be either `in_progress`, `cancelled`, `failed`,
    * `completed`, or `expired`.
    *
-   * Values: inProgress,cancelled,failed,completed,expired
+   * Values: in_progress,cancelled,failed,completed,expired
    */
   @Serializable
   enum class Status(val value: kotlin.String) {
-    @SerialName(value = "in_progress") inProgress("in_progress"),
+    @SerialName(value = "in_progress") in_progress("in_progress"),
     @SerialName(value = "cancelled") cancelled("cancelled"),
     @SerialName(value = "failed") failed("failed"),
     @SerialName(value = "completed") completed("completed"),

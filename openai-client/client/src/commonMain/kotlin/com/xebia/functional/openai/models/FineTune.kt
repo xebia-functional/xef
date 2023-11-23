@@ -79,10 +79,10 @@ data class FineTune(
   /**
    * The object type, which is always \"fine-tune\".
    *
-   * Values: fineMinusTune
+   * Values: fine_tune
    */
   @Serializable
   enum class `Object`(val value: kotlin.String) {
-    @SerialName(value = "fine-tune") fineMinusTune("fine-tune")
+    @SerialName(value = "fine-tune") fine_tune("fine-tune")
   }
 }

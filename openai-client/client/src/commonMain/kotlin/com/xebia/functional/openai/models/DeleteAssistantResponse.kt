@@ -22,9 +22,9 @@ data class DeleteAssistantResponse(
   @SerialName(value = "object") @Required val `object`: DeleteAssistantResponse.`Object`
 ) {
 
-  /** Values: assistantPeriodDeleted */
+  /** Values: assistant_deleted */
   @Serializable
   enum class `Object`(val value: kotlin.String) {
-    @SerialName(value = "assistant.deleted") assistantPeriodDeleted("assistant.deleted")
+    @SerialName(value = "assistant.deleted") assistant_deleted("assistant.deleted")
   }
 }

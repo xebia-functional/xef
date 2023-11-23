@@ -36,11 +36,11 @@ data class RunStepObjectStepDetails(
   /**
    * Always `message_creation``.
    *
-   * Values: messageCreation,toolCalls
+   * Values: message_creation,tool_calls
    */
   @Serializable
   enum class Type(val value: kotlin.String) {
-    @SerialName(value = "message_creation") messageCreation("message_creation"),
-    @SerialName(value = "tool_calls") toolCalls("tool_calls")
+    @SerialName(value = "message_creation") message_creation("message_creation"),
+    @SerialName(value = "tool_calls") tool_calls("tool_calls")
   }
 }

@@ -12,14 +12,14 @@ import kotlinx.serialization.*
  * The name of the model to fine-tune. You can select one of the
  * [supported models](/docs/guides/fine-tuning/what-models-can-be-fine-tuned).
  *
- * Values: babbageMinus002,davinciMinus002,gptMinus3Period5MinusTurbo
+ * Values: babbage_002,davinci_002,gpt_3_5_turbo
  */
 @Serializable
 enum class CreateFineTuningJobRequestModel(val value: kotlin.String) {
 
-  @SerialName(value = "babbage-002") babbageMinus002("babbage-002"),
-  @SerialName(value = "davinci-002") davinciMinus002("davinci-002"),
-  @SerialName(value = "gpt-3.5-turbo") gptMinus3Period5MinusTurbo("gpt-3.5-turbo");
+  @SerialName(value = "babbage-002") babbage_002("babbage-002"),
+  @SerialName(value = "davinci-002") davinci_002("davinci-002"),
+  @SerialName(value = "gpt-3.5-turbo") gpt_3_5_turbo("gpt-3.5-turbo");
 
   /**
    * Override [toString()] to avoid using the enum variable name as the value, and instead use the
