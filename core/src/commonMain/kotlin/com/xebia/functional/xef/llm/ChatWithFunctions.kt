@@ -169,7 +169,7 @@ interface ChatWithFunctions : LLM {
     agent: suspend () -> List<String>
   ): A {
     val logger = KotlinLogging.logger {}
-    (0 until maxDeserializationAttempts).forEach { currentAttempts ->
+    for (currentAttempts in 1..maxDeserializationAttempts) {
       val result = agent().firstOrNull() ?: throw AIError.NoResponse()
       catch({
         return@tryDeserialize serializer(result)
