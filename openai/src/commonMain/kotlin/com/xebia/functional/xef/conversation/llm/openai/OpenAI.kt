@@ -260,7 +260,7 @@ class OpenAI(
     either { // TODO: impl of abstract provider function
       ensure(modelExists(modelId)) { "model $modelId not found" }
       @Suppress("UNCHECKED_CAST")
-      baseModel.copy(ModelType.FineTunedModel(modelId, baseModel = baseModel.modelType)) as? T
+      baseModel.copy(modelID = ModelID(modelId)) as? T
         ?: error("${baseModel::class} does not follow contract to return the most specific type")
     }
 
@@ -276,7 +276,7 @@ class OpenAI(
     ensureNotNull(job) { "job $fineTuningJobId not found" }
     val fineTunedModel = job.fineTunedModel
     ensureNotNull(fineTunedModel) { "fine tuned model not available, status ${job.status}" }
-    ensure(baseModel.modelType.name == job.model.id) {
+    ensure(baseModel.modelID.value == job.model.id) {
       "base model instance does not match the job's base model"
     }
     spawnModel(fineTunedModel.id, baseModel).bind()

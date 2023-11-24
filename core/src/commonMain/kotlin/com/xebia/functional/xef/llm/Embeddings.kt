@@ -19,7 +19,7 @@ interface Embeddings : LLM {
       texts
         .chunked(chunkSize ?: 400)
         .parMap {
-          createEmbeddings(EmbeddingRequest(modelType.name, it, requestConfig.user.id)).data
+          createEmbeddings(EmbeddingRequest(modelID.value, it, requestConfig.user.id)).data
         }
         .flatten()
 
