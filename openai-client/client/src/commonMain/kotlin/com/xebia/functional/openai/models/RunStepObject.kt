@@ -9,7 +9,6 @@ package com.xebia.functional.openai.models
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
-import kotlinx.serialization.json.JsonObject
 
 /**
  * Represents a step in execution of a run.

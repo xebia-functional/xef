@@ -4,8 +4,7 @@
     "groupId": "com.xebia.functional",
     "artifactId": "openai-client",
     "packageName": "com.xebia.functional.openai",
-    "removeEnumValuePrefix": false,
-    "enumPropertyNaming" : "original"
+    "removeEnumValuePrefix": false
   },
   "typeMappings": {
     "object": "JsonObject"
