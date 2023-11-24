@@ -33,6 +33,10 @@ docs/**
 src/*Test/**
 
 # Unused models
+src/commonMain/kotlin/com/xebia/functional/openai/models/AssistantToolsCode.kt
+src/commonMain/kotlin/com/xebia/functional/openai/models/AssistantToolsFunction.kt
+src/commonMain/kotlin/com/xebia/functional/openai/models/AssistantToolsRetrieval.kt
+src/commonMain/kotlin/com/xebia/functional/openai/models/AssistantToolsFunctionFunction.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/ChatCompletionRequestMessage.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/ChatCompletionRequestSystemMessage.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/ChatCompletionRequestUserMessage.kt
@@ -45,3 +49,5 @@ src/commonMain/kotlin/com/xebia/functional/openai/models/ChatCompletionRequestMe
 src/commonMain/kotlin/com/xebia/functional/openai/models/ChatCompletionRequestMessageContentPartText.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/ChatCompletionRequestMessageContentPartImage.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/ChatCompletionRequestMessageContentPartImageImageUrl.kt
+src/commonMain/kotlin/com/xebia/functional/openai/models/RunStepDetailsMessageCreationObject.kt
+src/commonMain/kotlin/com/xebia/functional/openai/models/RunStepDetailsToolCallsObject.kt

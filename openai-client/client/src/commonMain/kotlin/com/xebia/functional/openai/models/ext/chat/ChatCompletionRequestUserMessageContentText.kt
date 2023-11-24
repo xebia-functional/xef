@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 data class ChatCompletionRequestUserMessageContentText(
   @SerialName(value = "type") @Required val type: Type,
   @SerialName(value = "text") @Required val text: String
-) {
+) : ChatCompletionRequestUserMessageContent() {
   @Serializable
   enum class Type(val value: String) {
     @SerialName(value = "text") text("text")

@@ -3,29 +3,28 @@ package com.xebia.functional.openai.models.ext.chat
 import com.xebia.functional.openai.models.ChatCompletionMessageToolCall
 import com.xebia.functional.openai.models.ChatCompletionRequestAssistantMessageFunctionCall
 import com.xebia.functional.openai.models.ChatCompletionRole
+import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.Required
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonContentPolymorphicSerializer
+import kotlinx.serialization.json.JsonElement
 
-@Serializable
+@Serializable(with = ChatCompletionRequestMessage.MyTypeSerializer::class)
 sealed interface ChatCompletionRequestMessage {
 
-  fun contentAsString(): String? =
+  fun contentAsString(): String =
     when (this) {
-      is ChatCompletionRequestAssistantMessage -> content
-      is ChatCompletionRequestFunctionMessage -> content
-      is ChatCompletionRequestSystemMessage -> content
-      is ChatCompletionRequestToolMessage -> content
+      is ChatCompletionRequestAssistantMessage -> content ?: ""
+      is ChatCompletionRequestFunctionMessage -> content ?: ""
+      is ChatCompletionRequestSystemMessage -> content ?: ""
+      is ChatCompletionRequestToolMessage -> content ?: ""
       is ChatCompletionRequestUserMessage ->
-        when (content) {
-          is ChatCompletionRequestUserMessageContent.ChatCompletionRequestUserMessageContentImageArray ->
-            // TODO - Image array to String?
-            null
-          is ChatCompletionRequestUserMessageContent.ChatCompletionRequestUserMessageContentTextArray ->
-            // TODO - String array to String?
-            null
-          is ChatCompletionRequestUserMessageContent.TextContent -> content.s
-          null -> null
+        content.joinToString { content ->
+          when (content) {
+            is ChatCompletionRequestUserMessageContentText -> content.text
+            is ChatCompletionRequestUserMessageContentImage -> content.imageUrl.url ?: ""
+          }
         }
     }
 
@@ -71,7 +70,9 @@ sealed interface ChatCompletionRequestMessage {
    */
   @Serializable
   data class ChatCompletionRequestUserMessage(
-    @SerialName(value = "content") @Required val content: ChatCompletionRequestUserMessageContent?,
+    @SerialName(value = "content")
+    @Required
+    val content: List<ChatCompletionRequestUserMessageContent>,
 
     /* The role of the messages author, in this case `user`. */
     @SerialName(value = "role") @Required val role: Role = Role.user
@@ -186,5 +187,15 @@ sealed interface ChatCompletionRequestMessage {
 
       val asRole: ChatCompletionRole = ChatCompletionRole.function
     }
+  }
+
+  object MyTypeSerializer :
+    JsonContentPolymorphicSerializer<ChatCompletionRequestMessage>(
+      ChatCompletionRequestMessage::class
+    ) {
+    override fun selectDeserializer(
+      element: JsonElement
+    ): DeserializationStrategy<ChatCompletionRequestMessage> =
+      ChatCompletionRequestSystemMessage.serializer()
   }
 }

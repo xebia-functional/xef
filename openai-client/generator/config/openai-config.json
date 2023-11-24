@@ -6,7 +6,14 @@
     "packageName": "com.xebia.functional.openai",
     "removeEnumValuePrefix": false
   },
+  "typeMappings": {
+    "object": "JsonObject"
+  },
+  "importMappings": {
+    "JsonObject": "kotlinx.serialization.json.JsonObject"
+  },
   "schemaMappings": {
+    "AssistantObject_tools_inner": "com.xebia.functional.openai.models.ext.assistant.AssistantTools",
     "FunctionParameters": "kotlinx.serialization.json.JsonObject",
     "ChatCompletionRequestMessage": "com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage",
     "ChatCompletionRequestUserMessage_content": "com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestUserMessageContent",
@@ -20,7 +27,8 @@
     "CreateFineTuningJobRequest_hyperparameters_n_epochs": "com.xebia.functional.openai.models.ext.finetune.job.create.CreateFineTuningJobRequestHyperparametersNEpochs",
     "CreateModerationRequest_input": "com.xebia.functional.openai.models.ext.moderation.create.CreateModerationRequestInput",
     "FineTuningJobRequest_hyperparameters_n_epochs": "com.xebia.functional.openai.models.ext.finetune.job.FineTuningJobRequestHyperparametersNEpochs",
-    "FineTuningJob_hyperparameters_n_epochs": "com.xebia.functional.openai.models.ext.finetune.job.FineTuningJobHyperparametersNEpochs"
+    "FineTuningJob_hyperparameters_n_epochs": "com.xebia.functional.openai.models.ext.finetune.job.FineTuningJobHyperparametersNEpochs",
+    "RunStepObject_step_details": "com.xebia.functional.openai.models.ext.assistant.RunStepObjectStepDetails"
   },
   "templateDir": "config",
   "files": {
@@ -31,6 +39,11 @@
     "infrastructure/ApiClient.kt.mustache": {
       "folder": "src/commonMain/kotlin/com/xebia/functional/openai/infrastructure",
       "destinationFilename": "ApiClient.kt",
+      "templateType": "SupportingFiles"
+    },
+    "infrastructure/HttpResponse.kt.mustache": {
+      "folder": "src/commonMain/kotlin/com/xebia/functional/openai/infrastructure",
+      "destinationFilename": "HttpResponse.kt",
       "templateType": "SupportingFiles"
     }
   }

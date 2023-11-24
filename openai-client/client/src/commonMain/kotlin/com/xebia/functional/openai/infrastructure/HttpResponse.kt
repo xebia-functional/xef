@@ -37,8 +37,11 @@ interface BodyProvider<T : Any> {
 
 class TypedBodyProvider<T : Any>(private val type: TypeInfo) : BodyProvider<T> {
   @Suppress("UNCHECKED_CAST")
-  override suspend fun body(response: io.ktor.client.statement.HttpResponse): T =
-    response.call.body(type) as T
+  override suspend fun body(response: io.ktor.client.statement.HttpResponse): T {
+    if (!response.status.isSuccess())
+      error("${response.status.value}:${response.status.description}")
+    return response.call.body(type) as T
+  }
 
   @Suppress("UNCHECKED_CAST")
   override suspend fun <V : Any> typedBody(

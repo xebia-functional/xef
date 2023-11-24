@@ -20,8 +20,8 @@ data class MessageObjectContentInner(
 
   /* Always `image_file`. */
   @SerialName(value = "type") @Required val type: MessageObjectContentInner.Type,
-  @SerialName(value = "image_file") @Required val imageFile: MessageContentImageFileObjectImageFile,
-  @SerialName(value = "text") @Required val text: MessageContentTextObjectText
+  @SerialName(value = "image_file") val imageFile: MessageContentImageFileObjectImageFile? = null,
+  @SerialName(value = "text") val text: MessageContentTextObjectText? = null
 ) {
 
   /**

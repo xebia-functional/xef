@@ -60,11 +60,11 @@ data class RunObject(
 
   /* The status of the run, which can be either `queued`, `in_progress`, `requires_action`, `cancelling`, `cancelled`, `failed`, `completed`, or `expired`. */
   @SerialName(value = "status") @Required val status: RunObject.Status,
-  @SerialName(value = "required_action") @Required val requiredAction: RunObjectRequiredAction?,
+  @SerialName(value = "required_action") val requiredAction: RunObjectRequiredAction? = null,
   @SerialName(value = "last_error") @Required val lastError: RunObjectLastError?,
 
   /* The Unix timestamp (in seconds) for when the run will expire. */
-  @SerialName(value = "expires_at") @Required val expiresAt: kotlin.Int,
+  @SerialName(value = "expires_at") val expiresAt: kotlin.Int? = null,
 
   /* The Unix timestamp (in seconds) for when the run was started. */
   @SerialName(value = "started_at") @Required val startedAt: kotlin.Int?,
@@ -87,7 +87,9 @@ data class RunObject(
   /* The list of tools that the [assistant](/docs/api-reference/assistants) used for this run. */
   @SerialName(value = "tools")
   @Required
-  val tools: kotlin.collections.List<AssistantObjectToolsInner> = arrayListOf(),
+  val tools:
+    kotlin.collections.List<com.xebia.functional.openai.models.ext.assistant.AssistantTools> =
+    arrayListOf(),
 
   /* The list of [File](/docs/api-reference/files) IDs the [assistant](/docs/api-reference/assistants) used for this run. */
   @SerialName(value = "file_ids")
@@ -95,7 +97,7 @@ data class RunObject(
   val fileIds: kotlin.collections.List<kotlin.String> = arrayListOf(),
 
   /* Set of 16 key-value pairs that can be attached to an object. This can be useful for storing additional information about the object in a structured format. Keys can be a maximum of 64 characters long and values can be a maxium of 512 characters long.  */
-  @SerialName(value = "metadata") @Required val metadata: kotlin.String?
+  @SerialName(value = "metadata") @Required val metadata: kotlinx.serialization.json.JsonObject?
 ) {
 
   /**
