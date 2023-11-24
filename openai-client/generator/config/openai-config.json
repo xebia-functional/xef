@@ -32,6 +32,11 @@
       "folder": "src/commonMain/kotlin/com/xebia/functional/openai/infrastructure",
       "destinationFilename": "ApiClient.kt",
       "templateType": "SupportingFiles"
+    },
+    "infrastructure/HttpResponse.kt.mustache": {
+      "folder": "src/commonMain/kotlin/com/xebia/functional/openai/infrastructure",
+      "destinationFilename": "HttpResponse.kt",
+      "templateType": "SupportingFiles"
     }
   }
 }

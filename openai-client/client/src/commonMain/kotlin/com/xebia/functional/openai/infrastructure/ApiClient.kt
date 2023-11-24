@@ -17,7 +17,7 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlin.Unit
 import kotlinx.serialization.json.Json
 
-open class ApiClient(private val baseUrl: String) {
+open class ApiClient(val baseUrl: String) {
 
   lateinit var client: HttpClient
 
@@ -52,7 +52,7 @@ open class ApiClient(private val baseUrl: String) {
       prettyPrint = true
       isLenient = true
     }
-    protected val UNSAFE_HEADERS = listOf(HttpHeaders.ContentType)
+    val UNSAFE_HEADERS = listOf(HttpHeaders.ContentType)
   }
 
   /**
@@ -165,12 +165,14 @@ open class ApiClient(private val baseUrl: String) {
 
     return client.request {
       this.url {
+        contentType(ContentType.Application.Json)
         this.takeFrom(URLBuilder(baseUrl))
         appendPath(requestConfig.path.trimStart('/').split('/'))
         requestConfig.query.forEach { query ->
           query.value.forEach { value -> parameter(query.key, value) }
         }
       }
+      this.header("OpenAI-Beta", "assistants=v1")
       this.method = requestConfig.method.httpMethod
       headers
         .filter { header -> !UNSAFE_HEADERS.contains(header.key) }
@@ -183,9 +185,7 @@ open class ApiClient(private val baseUrl: String) {
     }
   }
 
-  private fun <T : Any?> RequestConfig<T>.updateForAuth(
-    authNames: kotlin.collections.List<String>
-  ) {
+  fun <T : Any?> RequestConfig<T>.updateForAuth(authNames: kotlin.collections.List<String>) {
     for (authName in authNames) {
       val auth =
         authentications?.get(authName) ?: throw Exception("Authentication undefined: $authName")
@@ -193,14 +193,13 @@ open class ApiClient(private val baseUrl: String) {
     }
   }
 
-  private fun URLBuilder.appendPath(components: kotlin.collections.List<String>): URLBuilder =
-    apply {
-      encodedPath =
-        encodedPath.trimEnd('/') +
-          components.joinToString("/", prefix = "/") { it.encodeURLQueryComponent() }
-    }
+  fun URLBuilder.appendPath(components: kotlin.collections.List<String>): URLBuilder = apply {
+    encodedPath =
+      encodedPath.trimEnd('/') +
+        components.joinToString("/", prefix = "/") { it.encodeURLQueryComponent() }
+  }
 
-  private val RequestMethod.httpMethod: HttpMethod
+  val RequestMethod.httpMethod: HttpMethod
     get() =
       when (this) {
         RequestMethod.DELETE -> HttpMethod.Delete
