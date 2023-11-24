@@ -1,4 +1,4 @@
-package com.xebia.funcional.xef.evaluator.models
+package com.xebia.functional.xef.evaluator.models
 
 import kotlin.jvm.JvmSynthetic
 

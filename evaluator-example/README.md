@@ -12,14 +12,26 @@ adapt to your needs.
 
 You need to have the following installed:
 
-- [Install Poetry](https://python-poetry.org/docs/#installing-with-pipx) 
-- **Python 3.10.0:** you can configure it with virtualenv
-```bash
-virtualenv venv --python=python3.10.0.
-source venv/bin/activate.
+- [Install virtualenv](https://virtualenv.pypa.io/en/latest/installation.html)
+
+```shell
+pipx install virtualenv
 ```
 
-When you have Poetry installed, you can install the dependencies. You have to
+- [Install Poetry](https://python-poetry.org/docs/#installing-with-pipx)
+
+**Note**: Poetry requires **Python 3.10.x**. You can use [pyenv](https://github.com/pyenv/pyenv) to
+easily switch between multiple versions of Python.
+
+Then, you can configure your local environment with virtualenv
+
+```bash
+# Change with your Python patch version 
+virtualenv venv --python=python3.10.0
+source venv/bin/activate
+```
+
+Once you have Poetry installed, you can install the dependencies. You have to
 move to `evalTest` folder and execute the following command:
 
 ```bash
