@@ -20,9 +20,9 @@ import com.xebia.functional.xef.conversation.autoClose
 import com.xebia.functional.xef.conversation.llm.openai.models.*
 import com.xebia.functional.xef.env.getenv
 import com.xebia.functional.xef.llm.LLM
-import com.xebia.functional.xef.metrics.Metric
 import com.xebia.functional.xef.llm.models.MaxIoContextLength
 import com.xebia.functional.xef.llm.models.ModelID
+import com.xebia.functional.xef.metrics.Metric
 import com.xebia.functional.xef.store.LocalVectorStore
 import com.xebia.functional.xef.store.VectorStore
 import kotlin.jvm.JvmField
