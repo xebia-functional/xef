@@ -53,9 +53,12 @@ class TestModel(
     throw NotImplementedError()
   }
 
-  override fun tokensFromMessages(messages: List<Message>): Int {
-    return messages.sumOf { it.content.length }
-  }
+  override fun countTokens(text: String): Int = text.length
+
+  override fun truncateText(text: String, maxTokens: Int): String = text
+
+  override fun tokensFromMessages(messages: List<Message>): Int =
+    messages.sumOf { it.content.length }
 
   override suspend fun createEmbeddings(request: EmbeddingRequest): EmbeddingResult {
     return EmbeddingResult(data = emptyList(), usage = Usage.ZERO)

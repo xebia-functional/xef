@@ -9,7 +9,7 @@ interface Completion : LLM {
 
   suspend fun createCompletion(request: CompletionRequest): CompletionResult
 
-  override fun countTokens(text: String): Int
+  fun countTokens(text: String): Int
 
-  override fun truncateText(text: String, maxTokens: Int): String
+  fun truncateText(text: String, maxTokens: Int): String
 }

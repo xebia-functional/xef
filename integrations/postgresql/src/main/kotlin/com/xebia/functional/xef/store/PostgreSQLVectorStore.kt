@@ -1,6 +1,7 @@
 package com.xebia.functional.xef.store
 
 import arrow.atomic.AtomicInt
+import com.xebia.functional.xef.llm.BaseChat
 import com.xebia.functional.xef.llm.Embeddings
 import com.xebia.functional.xef.llm.LLM
 import com.xebia.functional.xef.llm.models.chat.Message
@@ -43,7 +44,7 @@ class PGVectorStore(
     }
   }
 
-  override suspend fun memories(llm: LLM, conversationId: ConversationId, limitTokens: Int): List<Memory> =
+  override suspend fun memories(llm: BaseChat, conversationId: ConversationId, limitTokens: Int): List<Memory> =
     getMemoryByConversationId(conversationId).reduceByLimitToken(llm, limitTokens).reversed()
 
   private fun JDBCSyntax.getCollection(collectionName: String): PGCollection =

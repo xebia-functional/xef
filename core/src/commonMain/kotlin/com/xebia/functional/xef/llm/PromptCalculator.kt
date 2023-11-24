@@ -107,7 +107,7 @@ internal object PromptCalculator {
     return maxHistoryTokens
   }
 
-  private fun calculateRemainingTokensForContext(llm: LLM, prompt: Prompt): Int {
+  private fun calculateRemainingTokensForContext(llm: BaseChat, prompt: Prompt): Int {
     val maxContextLength: Int = llm.maxContextLength
     val remainingTokens: Int = maxContextLength - prompt.configuration.minResponseTokens
 
@@ -121,6 +121,6 @@ internal object PromptCalculator {
     return remainingTokensForContexts
   }
 
-  private suspend fun Conversation.memories(llm: LLM, limitTokens: Int): List<Memory> =
+  private suspend fun Conversation.memories(llm: BaseChat, limitTokens: Int): List<Memory> =
     conversationId?.let { store.memories(llm, it, limitTokens) } ?: emptyList()
 }

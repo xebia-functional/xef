@@ -10,16 +10,16 @@ interface BaseChat : LLM {
   @Deprecated(
     "will be removed from LLM in favor of abstracting former ModelType, use contextLength instead"
   )
-  override val maxContextLength
+  val maxContextLength
     get() =
       (contextLength as? MaxIoContextLength.Combined)?.total
         ?: error(
-          "accessing maxContextLength requires model's context length to be of type ${MaxIoContextLength.Combined::class.qualifiedName}"
+          "accessing maxContextLength requires model's context length to be of type MaxIoContextLength.Combined"
         )
 
-  @Suppress("OVERRIDE_DEPRECATION") override fun countTokens(text: String): Int
+  @Suppress("OVERRIDE_DEPRECATION") fun countTokens(text: String): Int
 
-  @Suppress("OVERRIDE_DEPRECATION") override fun truncateText(text: String, maxTokens: Int): String
+  @Suppress("OVERRIDE_DEPRECATION") fun truncateText(text: String, maxTokens: Int): String
 
-  @Suppress("OVERRIDE_DEPRECATION") override fun tokensFromMessages(messages: List<Message>): Int
+  @Suppress("OVERRIDE_DEPRECATION") fun tokensFromMessages(messages: List<Message>): Int
 }

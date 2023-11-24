@@ -1,8 +1,8 @@
 package com.xebia.functional.xef.store
 
-import com.xebia.functional.xef.llm.LLM
+import com.xebia.functional.xef.llm.BaseChat
 
-fun List<Memory>.reduceByLimitToken(llm: LLM, limitTokens: Int): List<Memory> {
+fun List<Memory>.reduceByLimitToken(llm: BaseChat, limitTokens: Int): List<Memory> {
   val tokensFromMessages = llm.tokensFromMessages(map { it.content })
   return if (tokensFromMessages <= limitTokens) this
   else

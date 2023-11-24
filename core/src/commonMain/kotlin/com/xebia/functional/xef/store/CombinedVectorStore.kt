@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.store
 
-import com.xebia.functional.xef.llm.LLM
+import com.xebia.functional.xef.llm.BaseChat
 import com.xebia.functional.xef.llm.models.embeddings.Embedding
 
 /**
@@ -13,7 +13,7 @@ class CombinedVectorStore(private val top: VectorStore, private val bottom: Vect
   VectorStore by top {
 
   override suspend fun memories(
-    llm: LLM,
+    llm: BaseChat,
     conversationId: ConversationId,
     limitTokens: Int
   ): List<Memory> {

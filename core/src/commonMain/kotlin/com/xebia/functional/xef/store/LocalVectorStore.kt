@@ -4,8 +4,8 @@ import arrow.atomic.Atomic
 import arrow.atomic.AtomicInt
 import arrow.atomic.getAndUpdate
 import arrow.atomic.update
+import com.xebia.functional.xef.llm.BaseChat
 import com.xebia.functional.xef.llm.Embeddings
-import com.xebia.functional.xef.llm.LLM
 import com.xebia.functional.xef.llm.models.embeddings.Embedding
 import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
 import kotlin.math.sqrt
@@ -55,7 +55,7 @@ private constructor(private val embeddings: Embeddings, private val state: Atomi
   }
 
   override suspend fun memories(
-    llm: LLM,
+    llm: BaseChat,
     conversationId: ConversationId,
     limitTokens: Int
   ): List<Memory> {

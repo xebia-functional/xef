@@ -274,7 +274,7 @@ class ConversationSpec :
     "when using MessagesToHistory.ALL policy, the scope's store should contains all messages" {
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
-      val model = TestModel(modelType = ModelType.ADA)
+      val model = TestModel()
 
       val vectorStore = LocalVectorStore(TestEmbeddings())
 
@@ -302,7 +302,7 @@ class ConversationSpec :
     "when using MessagesToHistory.ONLY_SYSTEM_MESSAGES policy, the scope's store should contains only system messages" {
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
-      val model = TestModel(modelType = ModelType.ADA)
+      val model = TestModel()
 
       val vectorStore = LocalVectorStore(TestEmbeddings())
 
@@ -330,7 +330,7 @@ class ConversationSpec :
     "when using MessagesToHistory.NOT_SYSTEM_MESSAGES policy, the scope's store shouldn't contains system messages" {
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
-      val model = TestModel(modelType = ModelType.ADA)
+      val model = TestModel()
 
       val vectorStore = LocalVectorStore(TestEmbeddings())
 
@@ -358,7 +358,7 @@ class ConversationSpec :
     "when using MessagesToHistory.NONE policy, the scope's store shouldn't contains messages" {
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
-      val model = TestModel(modelType = ModelType.ADA)
+      val model = TestModel()
 
       val vectorStore = LocalVectorStore(TestEmbeddings())
 
@@ -389,7 +389,7 @@ class ConversationSpec :
     "when using MessagesFromHistory.ALL policy, the request should contains the previous messages in the conversation" {
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
-      val model = TestModel(modelType = ModelType.ADA)
+      val model = TestModel()
 
       val vectorStore = LocalVectorStore(TestEmbeddings())
 
@@ -423,7 +423,7 @@ class ConversationSpec :
     "when using MessagesFromHistory.NONE policy, the request shouldn't contains the previous messages in the conversation" {
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
-      val model = TestModel(modelType = ModelType.ADA)
+      val model = TestModel()
 
       val vectorStore = LocalVectorStore(TestEmbeddings())
 

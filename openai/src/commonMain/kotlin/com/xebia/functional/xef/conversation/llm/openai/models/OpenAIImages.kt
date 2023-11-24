@@ -8,7 +8,6 @@ import com.xebia.functional.tokenizer.EncodingType
 import com.xebia.functional.xef.conversation.llm.openai.OpenAI
 import com.xebia.functional.xef.llm.Images
 import com.xebia.functional.xef.llm.models.ModelID
-import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.llm.models.images.ImageGenerationUrl
 import com.xebia.functional.xef.llm.models.images.ImagesGenerationRequest
 import com.xebia.functional.xef.llm.models.images.ImagesGenerationResponse
@@ -33,9 +32,5 @@ class OpenAIImages(
     }
     val response = client.imageURL(clientRequest)
     return ImagesGenerationResponse(data = response.map { ImageGenerationUrl(it.url) })
-  }
-
-  override fun tokensFromMessages(messages: List<Message>): Int {
-    TODO("Not yet implemented")
   }
 }

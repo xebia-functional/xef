@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.store
 
 import arrow.atomic.AtomicInt
-import com.xebia.functional.xef.llm.LLM
+import com.xebia.functional.xef.llm.BaseChat
 import com.xebia.functional.xef.llm.models.embeddings.Embedding
 import kotlin.jvm.JvmStatic
 
@@ -15,7 +15,11 @@ interface VectorStore {
 
   suspend fun addMemories(memories: List<Memory>)
 
-  suspend fun memories(llm: LLM, conversationId: ConversationId, limitTokens: Int): List<Memory>
+  suspend fun memories(
+    llm: BaseChat,
+    conversationId: ConversationId,
+    limitTokens: Int
+  ): List<Memory>
 
   /**
    * Add texts to the vector store after running them through the embeddings
@@ -56,7 +60,7 @@ interface VectorStore {
         override suspend fun addMemories(memories: List<Memory>) {}
 
         override suspend fun memories(
-          llm: LLM,
+          llm: BaseChat,
           conversationId: ConversationId,
           limitTokens: Int
         ): List<Memory> = emptyList()

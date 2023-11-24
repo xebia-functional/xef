@@ -109,6 +109,10 @@ class TestLLM : Chat, AutoCloseable {
 
   override fun tokensFromMessages(messages: List<Message>): Int = messages.map { calculateTokens(it) }.sum()
 
+  override fun countTokens(text: String): Int = text.length
+
+  override fun truncateText(text: String, maxTokens: Int): String = text
+
   private fun calculateTokens(message: Message): Int = message.content.split(" ").size + 2 // 2 is the role and name
 
   override suspend fun createChatCompletion(request: ChatCompletionRequest): ChatCompletionResponse {
