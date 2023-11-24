@@ -6,6 +6,12 @@
     "packageName": "com.xebia.functional.openai",
     "removeEnumValuePrefix": false
   },
+  "typeMappings": {
+    "object": "JsonObject"
+  },
+  "importMappings": {
+    "JsonObject": "kotlinx.serialization.json.JsonObject"
+  },
   "schemaMappings": {
     "FunctionParameters": "kotlinx.serialization.json.JsonObject",
     "ChatCompletionRequestMessage": "com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage",

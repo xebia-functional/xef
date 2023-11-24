@@ -26,7 +26,7 @@ data class RunStepDetailsToolCallsRetrievalObject(
   @SerialName(value = "type") @Required val type: RunStepDetailsToolCallsRetrievalObject.Type,
 
   /* For now, this is always going to be an empty object. */
-  @SerialName(value = "retrieval") @Required val retrieval: kotlin.String
+  @SerialName(value = "retrieval") @Required val retrieval: kotlinx.serialization.json.JsonObject
 ) {
 
   /**

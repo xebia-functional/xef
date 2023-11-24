@@ -33,6 +33,7 @@ docs/**
 src/*Test/**
 
 # Unused models
+src/commonMain/kotlin/com/xebia/functional/openai/models/AssistantToolsFunctionFunction.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/ChatCompletionRequestMessage.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/ChatCompletionRequestSystemMessage.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/ChatCompletionRequestUserMessage.kt
