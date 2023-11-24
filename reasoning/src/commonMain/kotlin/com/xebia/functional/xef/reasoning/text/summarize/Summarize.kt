@@ -40,7 +40,7 @@ class Summarize(
   private suspend fun summarizeChunk(chunk: String, summaryLength: SummaryLength): String {
     val maxContextLength: Int =
       model.maxContextLength - 1000 // magic padding for functions and memory
-    val promptTokens: Int = model.modelType.encoding.countTokens(chunk)
+    val promptTokens: Int = model.countTokens(chunk)
     logger.info {
       "📝 Summarizing chunk with prompt tokens $promptTokens for length $summaryLength"
     }
@@ -54,7 +54,7 @@ class Summarize(
         """|
                   |Given the following text:
                   |```text
-                  |${model.modelType.encoding.truncateText(chunk, remainingTokens)}
+                  |${model.truncateText(chunk, remainingTokens)}
                   |```
               """
           .trimMargin()
@@ -68,14 +68,14 @@ class Summarize(
     }
 
     return model.promptMessage(messages, scope).also {
-      val tokens: Int = model.modelType.encoding.countTokens(it)
+      val tokens: Int = model.countTokens(it)
       logger.info { "📝 Summarized chunk in tokens: $tokens" }
     }
   }
 
   private fun chunkText(text: String): List<String> {
     val maxTokens = model.maxContextLength - 2000 // magic padding for functions and memory
-    val firstPart = model.modelType.encoding.truncateText(text, maxTokens)
+    val firstPart = model.truncateText(text, maxTokens)
     val remainingText = text.removePrefix(firstPart)
 
     return if (remainingText.isNotEmpty()) {
@@ -86,7 +86,7 @@ class Summarize(
   }
 
   tailrec suspend fun summarizeLargeText(text: String, summaryLength: SummaryLength): String {
-    val tokens = model.modelType.encoding.countTokens(text)
+    val tokens = model.countTokens(text)
     logger.info {
       "📚 Summarizing large text of tokens ${tokens} to approximately $summaryLength tokens"
     }
@@ -109,7 +109,7 @@ class Summarize(
     // Join the chunk summaries into one text
     val joinedSummaries = chunkSummaries.joinToString(" ")
 
-    val joinedSummariesTokens = model.modelType.encoding.countTokens(joinedSummaries)
+    val joinedSummariesTokens = model.countTokens(joinedSummaries)
 
     // Resummarize the joined summaries if it is longer than summaryLength
     return if (

@@ -40,4 +40,13 @@ class GcpCompletion(
       Usage.ZERO, // TODO: token usage - no information about usage provided by GCP codechat model
     )
   }
+
+  override fun countTokens(text: String): Int {
+    TODO("Not yet implemented")
+  }
+
+  override fun truncateText(text: String, maxTokens: Int): String {
+    TODO("Not yet implemented")
+  }
+
 }

@@ -10,42 +10,28 @@ import com.xebia.functional.xef.llm.models.chat.Message
 
   val modelID: ModelID
 
-  @Deprecated("intermediary solution, will be removed in future PR")
-  val modelType: ModelType
-    get() =
-      when {
-        modelID.value.lowercase().startsWith("gpt") -> EncodingType.CL100K_BASE
-        modelID.value.lowercase() == "text-embedding-ada-002" -> EncodingType.CL100K_BASE
-        else -> EncodingType.P50K_BASE
-      }.let { ModelType(it) }
-
   @Deprecated("use modelID.value instead", replaceWith = ReplaceWith("modelID.value"))
   val name
     get() = modelID.value
 
   /**
-   * Copies this instance and uses [modelType] for [LLM.modelType]. Has to return the most specific
-   * type of this instance!
+   * Copies this instance and uses [modelID] for the new instances' [LLM.modelID].
+   * Has to return the most specific type of this instance!
    */
   fun copy(modelID: ModelID): LLM
 
-  @Deprecated("will be moved out of LLM in favor of abstracting former ModelType")
+  @Deprecated("will be moved out of LLM in favor of abstracting former ModelType, as this is not inherent to all LLMs")
   fun tokensFromMessages(messages: List<Message>): Int = TODO() // intermediary
 
-  @Deprecated("will be moved out of LLM in favor of abstracting former ModelType")
+  @Deprecated("will be moved out of LLM in favor of abstracting former ModelType, as this is not inherent to all LLMs")
+  fun countTokens(text: String): Int = TODO() // intermediary
+
+  @Deprecated("will be moved out of LLM in favor of abstracting former ModelType, as this is not inherent to all LLMs")
   fun truncateText(text: String, maxTokens: Int): String = TODO() // intermediary
 
-  @Deprecated("will be moved out of LLM in favor of abstracting former ModelType")
+  @Deprecated("will be removed from LLM in favor of abstracting former ModelType, as this is not inherent to all LLMs")
   val maxContextLength: Int
     get() = TODO()
 
   override fun close() = Unit
-}
-
-@Deprecated("intermediary solution; see #405")
-class ModelType(
-  val encodingType: EncodingType,
-) {
-  val encoding
-    get() = encodingType.encoding
 }

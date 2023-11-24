@@ -6,7 +6,6 @@ import arrow.core.raise.catch
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
-import com.xebia.functional.xef.llm.models.MaxIoContextLength
 import com.xebia.functional.xef.llm.models.chat.ChatCompletionChunk
 import com.xebia.functional.xef.llm.models.chat.ChatCompletionResponseWithFunctions
 import com.xebia.functional.xef.llm.models.functions.CFunction
@@ -20,17 +19,7 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.json.*
 
-interface ChatWithFunctions : LLM {
-
-  val contextLength: MaxIoContextLength
-
-  @Deprecated("will be moved out of LLM in favor of abstracting former ModelType")
-  override val maxContextLength
-    get() =
-      (contextLength as? MaxIoContextLength.Combined)?.total
-        ?: error(
-          "accessing maxContextLength requires model's context length to be of type ${MaxIoContextLength.Combined::class.qualifiedName}"
-        )
+interface ChatWithFunctions : BaseChat {
 
   suspend fun createChatCompletionWithFunctions(
     request: FunChatCompletionRequest

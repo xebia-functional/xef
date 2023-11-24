@@ -3,23 +3,12 @@ package com.xebia.functional.xef.llm
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
-import com.xebia.functional.xef.llm.models.MaxIoContextLength
 import com.xebia.functional.xef.llm.models.chat.*
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.assistant
 import kotlinx.coroutines.flow.*
 
-interface Chat : LLM {
-
-  val contextLength: MaxIoContextLength
-
-  @Deprecated("will be moved out of LLM in favor of abstracting former ModelType")
-  override val maxContextLength
-    get() =
-      (contextLength as? MaxIoContextLength.Combined)?.total
-        ?: error(
-          "accessing maxContextLength requires model's context length to be of type ${MaxIoContextLength.Combined::class.qualifiedName}"
-        )
+interface Chat : BaseChat {
 
   suspend fun createChatCompletion(request: ChatCompletionRequest): ChatCompletionResponse
 
@@ -83,4 +72,5 @@ interface Chat : LLM {
         )
         .mapNotNull { it.message?.content }
     }
+
 }

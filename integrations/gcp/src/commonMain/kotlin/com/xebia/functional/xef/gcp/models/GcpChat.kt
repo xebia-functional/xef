@@ -84,4 +84,16 @@ class GcpChat(
       }
     return "$messages\n### Response:"
   }
+
+  override fun countTokens(text: String): Int {
+    TODO("Not yet implemented")
+  }
+
+  override fun truncateText(text: String, maxTokens: Int): String {
+    TODO("Not yet implemented")
+  }
+
+  override fun tokensFromMessages(messages: List<Message>): Int {
+    TODO("Not yet implemented")
+  }
 }

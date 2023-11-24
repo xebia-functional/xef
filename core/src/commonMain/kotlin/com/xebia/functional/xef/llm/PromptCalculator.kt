@@ -14,7 +14,7 @@ internal object PromptCalculator {
   suspend fun adaptPromptToConversationAndModel(
     prompt: Prompt,
     scope: Conversation,
-    llm: LLM
+    llm: BaseChat
   ): Prompt =
     when (prompt.configuration.messagePolicy.addMessagesFromConversation) {
       MessagesFromHistory.ALL -> adaptPromptFromConversation(prompt, scope, llm)
@@ -24,7 +24,7 @@ internal object PromptCalculator {
   private suspend fun adaptPromptFromConversation(
     prompt: Prompt,
     scope: Conversation,
-    llm: LLM
+    llm: BaseChat
   ): Prompt {
 
     // calculate tokens for history and context
@@ -69,7 +69,7 @@ internal object PromptCalculator {
     memories.map { it.content }
 
   private fun calculateMessagesFromHistory(
-    llm: LLM,
+    llm: BaseChat,
     memories: List<Memory>,
     maxHistoryTokens: Int
   ) =
