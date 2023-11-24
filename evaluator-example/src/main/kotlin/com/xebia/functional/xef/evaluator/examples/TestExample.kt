@@ -1,13 +1,13 @@
-package com.xebia.funcional.xef.evaluator.examples
+package com.xebia.functional.xef.evaluator.examples
 
 import arrow.continuations.SuspendApp
-import com.xebia.funcional.xef.evaluator.TestSpecItem
-import com.xebia.funcional.xef.evaluator.TestsSpec
-import com.xebia.funcional.xef.evaluator.models.ContextDescription
-import com.xebia.funcional.xef.evaluator.models.OutputDescription
-import com.xebia.funcional.xef.evaluator.models.OutputResponse
 import com.xebia.functional.xef.conversation.llm.openai.OpenAI
 import com.xebia.functional.xef.conversation.llm.openai.promptMessage
+import com.xebia.functional.xef.evaluator.TestSpecItem
+import com.xebia.functional.xef.evaluator.TestsSpec
+import com.xebia.functional.xef.evaluator.models.ContextDescription
+import com.xebia.functional.xef.evaluator.models.OutputDescription
+import com.xebia.functional.xef.evaluator.models.OutputResponse
 import java.io.File
 
 object TestExample {

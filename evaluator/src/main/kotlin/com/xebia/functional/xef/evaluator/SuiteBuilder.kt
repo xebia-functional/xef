@@ -1,6 +1,6 @@
-package com.xebia.funcional.xef.evaluator
+package com.xebia.functional.xef.evaluator
 
-import com.xebia.funcional.xef.evaluator.models.OutputDescription
+import com.xebia.functional.xef.evaluator.models.OutputDescription
 import kotlin.jvm.JvmSynthetic
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

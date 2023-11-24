@@ -1,7 +1,7 @@
-package com.xebia.funcional.xef.evaluator
+package com.xebia.functional.xef.evaluator
 
-import com.xebia.funcional.xef.evaluator.models.ContextDescription
-import com.xebia.funcional.xef.evaluator.models.OutputResponse
+import com.xebia.functional.xef.evaluator.models.ContextDescription
+import com.xebia.functional.xef.evaluator.models.OutputResponse
 
 class TestItemBuilder(val input: String) {
 
