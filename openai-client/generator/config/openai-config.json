@@ -13,6 +13,7 @@
     "JsonObject": "kotlinx.serialization.json.JsonObject"
   },
   "schemaMappings": {
+    "AssistantObject_tools_inner": "com.xebia.functional.openai.models.ext.assistant.AssistantTools",
     "FunctionParameters": "kotlinx.serialization.json.JsonObject",
     "ChatCompletionRequestMessage": "com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage",
     "ChatCompletionRequestUserMessage_content": "com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestUserMessageContent",

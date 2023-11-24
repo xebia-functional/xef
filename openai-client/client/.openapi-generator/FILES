@@ -27,10 +27,6 @@ src/commonMain/kotlin/com/xebia/functional/openai/infrastructure/RequestConfig.k
 src/commonMain/kotlin/com/xebia/functional/openai/infrastructure/RequestMethod.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/AssistantFileObject.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/AssistantObject.kt
-src/commonMain/kotlin/com/xebia/functional/openai/models/AssistantObjectToolsInner.kt
-src/commonMain/kotlin/com/xebia/functional/openai/models/AssistantToolsCode.kt
-src/commonMain/kotlin/com/xebia/functional/openai/models/AssistantToolsFunction.kt
-src/commonMain/kotlin/com/xebia/functional/openai/models/AssistantToolsRetrieval.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/ChatCompletionFunctionCallOption.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/ChatCompletionFunctions.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/ChatCompletionMessageToolCall.kt

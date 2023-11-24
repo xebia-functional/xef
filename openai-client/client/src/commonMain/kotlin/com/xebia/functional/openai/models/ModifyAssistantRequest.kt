@@ -41,7 +41,9 @@ data class ModifyAssistantRequest(
 
   /* A list of tool enabled on the assistant. There can be a maximum of 128 tools per assistant. Tools can be of types `code_interpreter`, `retrieval`, or `function`.  */
   @SerialName(value = "tools")
-  val tools: kotlin.collections.List<AssistantObjectToolsInner>? = arrayListOf(),
+  val tools:
+    kotlin.collections.List<com.xebia.functional.openai.models.ext.assistant.AssistantTools>? =
+    arrayListOf(),
 
   /* A list of [File](/docs/api-reference/files) IDs attached to this assistant. There can be a maximum of 20 files attached to the assistant. Files are ordered by their creation date in ascending order. If a file was previosuly attached to the list but does not show up in the list, it will be deleted from the assistant.  */
   @SerialName(value = "file_ids")

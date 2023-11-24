@@ -87,7 +87,9 @@ data class RunObject(
   /* The list of tools that the [assistant](/docs/api-reference/assistants) used for this run. */
   @SerialName(value = "tools")
   @Required
-  val tools: kotlin.collections.List<AssistantObjectToolsInner> = arrayListOf(),
+  val tools:
+    kotlin.collections.List<com.xebia.functional.openai.models.ext.assistant.AssistantTools> =
+    arrayListOf(),
 
   /* The list of [File](/docs/api-reference/files) IDs the [assistant](/docs/api-reference/assistants) used for this run. */
   @SerialName(value = "file_ids")
