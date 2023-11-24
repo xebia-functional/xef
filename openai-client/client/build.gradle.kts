@@ -62,8 +62,10 @@ kotlin {
         }
         val commonMain by getting {
             dependencies {
+                api(projects.xefTokenizer)
                 implementation(libs.ktor.client.content.negotiation)
                 implementation(libs.ktor.client.serialization)
+                implementation(libs.ktor.client.logging)
                 implementation(libs.klogging)
             }
         }
