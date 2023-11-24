@@ -27,7 +27,8 @@
     "CreateFineTuningJobRequest_hyperparameters_n_epochs": "com.xebia.functional.openai.models.ext.finetune.job.create.CreateFineTuningJobRequestHyperparametersNEpochs",
     "CreateModerationRequest_input": "com.xebia.functional.openai.models.ext.moderation.create.CreateModerationRequestInput",
     "FineTuningJobRequest_hyperparameters_n_epochs": "com.xebia.functional.openai.models.ext.finetune.job.FineTuningJobRequestHyperparametersNEpochs",
-    "FineTuningJob_hyperparameters_n_epochs": "com.xebia.functional.openai.models.ext.finetune.job.FineTuningJobHyperparametersNEpochs"
+    "FineTuningJob_hyperparameters_n_epochs": "com.xebia.functional.openai.models.ext.finetune.job.FineTuningJobHyperparametersNEpochs",
+    "RunStepObject_step_details": "com.xebia.functional.openai.models.ext.assistant.RunStepObjectStepDetails"
   },
   "templateDir": "config",
   "files": {

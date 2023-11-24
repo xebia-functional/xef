@@ -60,11 +60,11 @@ data class RunObject(
 
   /* The status of the run, which can be either `queued`, `in_progress`, `requires_action`, `cancelling`, `cancelled`, `failed`, `completed`, or `expired`. */
   @SerialName(value = "status") @Required val status: RunObject.Status,
-  @SerialName(value = "required_action") @Required val requiredAction: RunObjectRequiredAction?,
+  @SerialName(value = "required_action") val requiredAction: RunObjectRequiredAction? = null,
   @SerialName(value = "last_error") @Required val lastError: RunObjectLastError?,
 
   /* The Unix timestamp (in seconds) for when the run will expire. */
-  @SerialName(value = "expires_at") @Required val expiresAt: kotlin.Int,
+  @SerialName(value = "expires_at") val expiresAt: kotlin.Int? = null,
 
   /* The Unix timestamp (in seconds) for when the run was started. */
   @SerialName(value = "started_at") @Required val startedAt: kotlin.Int?,

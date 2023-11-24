@@ -21,7 +21,7 @@ import kotlinx.serialization.encoding.*
 data class ListRunStepsResponse(
   @SerialName(value = "object") @Required val `object`: kotlin.String,
   @SerialName(value = "data") @Required val `data`: kotlin.collections.List<RunStepObject>,
-  @SerialName(value = "first_id") @Required val firstId: kotlin.String,
-  @SerialName(value = "last_id") @Required val lastId: kotlin.String,
+  @SerialName(value = "first_id") val firstId: kotlin.String? = null,
+  @SerialName(value = "last_id") val lastId: kotlin.String? = null,
   @SerialName(value = "has_more") @Required val hasMore: kotlin.Boolean
 )

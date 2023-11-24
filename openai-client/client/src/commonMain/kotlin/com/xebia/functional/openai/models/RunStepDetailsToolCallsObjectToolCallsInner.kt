@@ -27,14 +27,12 @@ data class RunStepDetailsToolCallsObjectToolCallsInner(
   /* The type of tool call. This is always going to be `code_interpreter` for this type of tool call. */
   @SerialName(value = "type") @Required val type: RunStepDetailsToolCallsObjectToolCallsInner.Type,
   @SerialName(value = "code_interpreter")
-  @Required
-  val codeInterpreter: RunStepDetailsToolCallsCodeObjectCodeInterpreter,
+  val codeInterpreter: RunStepDetailsToolCallsCodeObjectCodeInterpreter? = null,
 
   /* For now, this is always going to be an empty object. */
-  @SerialName(value = "retrieval") @Required val retrieval: kotlinx.serialization.json.JsonObject,
+  @SerialName(value = "retrieval") val retrieval: kotlinx.serialization.json.JsonObject? = null,
   @SerialName(value = "function")
-  @Required
-  val function: RunStepDetailsToolCallsFunctionObjectFunction
+  val function: RunStepDetailsToolCallsFunctionObjectFunction? = null
 ) {
 
   /**
