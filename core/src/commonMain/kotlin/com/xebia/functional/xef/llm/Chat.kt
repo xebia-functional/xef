@@ -47,7 +47,7 @@ interface Chat : LLM {
       .also { finalText ->
         val aiResponseMessage = assistant(finalText)
         val newMessages = prompt.messages + listOf(aiResponseMessage)
-        newMessages.addToMemory(scope)
+        newMessages.addToMemory(scope, prompt.configuration.messagePolicy.addMessagesToConversation)
       }
   }
 
@@ -56,22 +56,31 @@ interface Chat : LLM {
     promptMessages(prompt, scope).firstOrNull() ?: throw AIError.NoResponse()
 
   @AiDsl
-  suspend fun promptMessages(prompt: Prompt, scope: Conversation): List<String> {
-    val promptMemories = prompt.messages.toMemory(scope)
-    val adaptedPrompt = PromptCalculator.adaptPromptToConversationAndModel(prompt, scope, this@Chat)
+  suspend fun promptMessages(prompt: Prompt, scope: Conversation): List<String> =
+    scope.metric.promptSpan(prompt) {
+      val promptMemories = prompt.messages.toMemory(scope)
+      val adaptedPrompt =
+        PromptCalculator.adaptPromptToConversationAndModel(prompt, scope, this@Chat)
 
-    val request =
-      ChatCompletionRequest(
-        user = adaptedPrompt.configuration.user,
-        messages = adaptedPrompt.messages,
-        n = adaptedPrompt.configuration.numberOfPredictions,
-        temperature = adaptedPrompt.configuration.temperature,
-        maxTokens = adaptedPrompt.configuration.minResponseTokens,
-      )
+      adaptedPrompt.addMetrics(scope)
 
-    return createChatCompletion(request)
-      .choices
-      .addChoiceToMemory(scope, promptMemories)
-      .mapNotNull { it.message?.content }
-  }
+      val request =
+        ChatCompletionRequest(
+          user = adaptedPrompt.configuration.user,
+          messages = adaptedPrompt.messages,
+          n = adaptedPrompt.configuration.numberOfPredictions,
+          temperature = adaptedPrompt.configuration.temperature,
+          maxTokens = adaptedPrompt.configuration.minResponseTokens,
+        )
+
+      createChatCompletion(request)
+        .addMetrics(scope)
+        .choices
+        .addChoiceToMemory(
+          scope,
+          promptMemories,
+          prompt.configuration.messagePolicy.addMessagesToConversation
+        )
+        .mapNotNull { it.message?.content }
+    }
 }

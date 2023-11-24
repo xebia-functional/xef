@@ -11,7 +11,7 @@ dependencies { detektPlugins(project(":detekt-rules")) }
 
 detekt {
     toolVersion = "1.23.1"
-    source = files("src/commonMain/kotlin", "src/jvmMain/kotlin")
+    source.setFrom(files("src/commonMain/kotlin", "src/jvmMain/kotlin"))
     config.setFrom("../config/detekt/detekt.yml")
     autoCorrect = true
 }
@@ -21,11 +21,9 @@ repositories { mavenCentral() }
 kotlin {
     jvm()
     js(IR) { nodejs() }
-
     linuxX64()
     macosX64()
     mingwX64()
-
     sourceSets {
         val commonMain by getting {
             dependencies {
@@ -34,9 +32,7 @@ kotlin {
                 implementation(libs.klogging)
             }
         }
-
         val jsMain by getting { dependencies { implementation(libs.okio.nodefilesystem) } }
-
         commonTest {
             dependencies {
                 implementation(libs.okio.fakefilesystem)
@@ -45,13 +41,10 @@ kotlin {
                 implementation(libs.kotest.assertions)
             }
         }
-
         val jvmTest by getting { dependencies { implementation(libs.kotest.junit5) } }
-
         val linuxX64Main by getting
         val macosX64Main by getting
         val mingwX64Main by getting
-
         create("nativeMain") {
             dependsOn(commonMain)
             linuxX64Main.dependsOn(this)

@@ -11,7 +11,7 @@ import com.xebia.functional.xef.llm.models.chat.ChatCompletionChunk
 import com.xebia.functional.xef.llm.models.chat.ChatCompletionResponseWithFunctions
 import com.xebia.functional.xef.llm.models.functions.CFunction
 import com.xebia.functional.xef.llm.models.functions.FunChatCompletionRequest
-import com.xebia.functional.xef.llm.models.functions.encodeJsonSchema
+import com.xebia.functional.xef.llm.models.functions.buildJsonSchema
 import com.xebia.functional.xef.prompt.Prompt
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.*
@@ -43,10 +43,10 @@ interface ChatWithFunctions : LLM {
   @OptIn(ExperimentalSerializationApi::class)
   fun chatFunction(descriptor: SerialDescriptor): CFunction {
     val fnName = descriptor.serialName.substringAfterLast(".")
-    return chatFunction(fnName, encodeJsonSchema(descriptor))
+    return chatFunction(fnName, buildJsonSchema(descriptor))
   }
 
-  fun chatFunction(fnName: String, schema: String): CFunction =
+  fun chatFunction(fnName: String, schema: JsonObject): CFunction =
     CFunction(fnName, "Generated function for $fnName", schema)
 
   @AiDsl
@@ -75,37 +75,42 @@ interface ChatWithFunctions : LLM {
     scope: Conversation,
     function: CFunction,
     serializer: (json: String) -> A,
-  ): A {
-    val promptWithFunctions = prompt.copy(function = function)
-    val adaptedPrompt =
-      PromptCalculator.adaptPromptToConversationAndModel(
-        promptWithFunctions,
-        scope,
-        this@ChatWithFunctions
-      )
+  ): A =
+    scope.metric.promptSpan(prompt) {
+      val promptWithFunctions = prompt.copy(function = function)
+      val adaptedPrompt =
+        PromptCalculator.adaptPromptToConversationAndModel(
+          promptWithFunctions,
+          scope,
+          this@ChatWithFunctions
+        )
 
-    val request =
-      FunChatCompletionRequest(
-        user = adaptedPrompt.configuration.user,
-        messages = adaptedPrompt.messages,
-        n = adaptedPrompt.configuration.numberOfPredictions,
-        temperature = adaptedPrompt.configuration.temperature,
-        maxTokens = adaptedPrompt.configuration.minResponseTokens,
-        functions = adaptedPrompt.function!!.nel(),
-        functionCall = mapOf("name" to (adaptedPrompt.function.name)),
-      )
+      adaptedPrompt.addMetrics(scope)
 
-    return tryDeserialize(
-      serializer,
-      promptWithFunctions.configuration.maxDeserializationAttempts
-    ) {
-      val requestedMemories = prompt.messages.toMemory(scope)
-      createChatCompletionWithFunctions(request)
-        .choices
-        .addChoiceWithFunctionsToMemory(scope, requestedMemories)
-        .mapNotNull { it.message?.functionCall?.arguments }
+      val request =
+        FunChatCompletionRequest(
+          user = adaptedPrompt.configuration.user,
+          messages = adaptedPrompt.messages,
+          n = adaptedPrompt.configuration.numberOfPredictions,
+          temperature = adaptedPrompt.configuration.temperature,
+          maxTokens = adaptedPrompt.configuration.minResponseTokens,
+          functions = adaptedPrompt.function!!.nel(),
+          functionCall = mapOf("name" to (adaptedPrompt.function.name)),
+        )
+
+      tryDeserialize(serializer, promptWithFunctions.configuration.maxDeserializationAttempts) {
+        val requestedMemories = prompt.messages.toMemory(scope)
+        createChatCompletionWithFunctions(request)
+          .addMetrics(scope)
+          .choices
+          .addChoiceWithFunctionsToMemory(
+            scope,
+            requestedMemories,
+            prompt.configuration.messagePolicy.addMessagesToConversation
+          )
+          .mapNotNull { it.message?.functionCall?.arguments }
+      }
     }
-  }
 
   @AiDsl
   fun <A> promptStreaming(
@@ -140,7 +145,7 @@ interface ChatWithFunctions : LLM {
       ) {
         streamFunctionCall(
           chat = this@ChatWithFunctions,
-          promptMessages = prompt.messages,
+          prompt = prompt,
           request = request,
           scope = scope,
           serializer = serializer,
@@ -175,7 +180,7 @@ interface ChatWithFunctions : LLM {
     agent: suspend () -> List<String>
   ): A {
     val logger = KotlinLogging.logger {}
-    (0 until maxDeserializationAttempts).forEach { currentAttempts ->
+    for (currentAttempts in 1..maxDeserializationAttempts) {
       val result = agent().firstOrNull() ?: throw AIError.NoResponse()
       catch({
         return@tryDeserialize serializer(result)

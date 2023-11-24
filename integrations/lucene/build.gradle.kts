@@ -18,7 +18,7 @@ java {
 
 detekt {
     toolVersion = "1.23.1"
-    source = files("src/main/kotlin")
+    source.setFrom(files("src/main/kotlin"))
     config.setFrom("../../config/detekt/detekt.yml")
     autoCorrect = true
 }
@@ -38,6 +38,5 @@ tasks {
         dependsOn(":detekt-rules:assemble")
         getByName("build").dependsOn(this)
     }
-
     withType<AbstractPublishToMaven> { dependsOn(withType<Sign>()) }
 }

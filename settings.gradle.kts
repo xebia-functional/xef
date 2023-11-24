@@ -27,11 +27,15 @@ project(":xef-filesystem").projectDir = file("filesystem")
 include("xef-tokenizer")
 project(":xef-tokenizer").projectDir = file("tokenizer")
 
+include("xef-openai-client")
+project(":xef-openai-client").projectDir = file("openai-client/client")
+
+include("xef-openai-client-generator")
+project(":xef-openai-client-generator").projectDir = file("openai-client/generator")
+
 include("xef-openai")
 project(":xef-openai").projectDir = file("openai")
-
-include("xef-gpt4all")
-project(":xef-gpt4all").projectDir = file("gpt4all-kotlin")
+//</editor-fold>
 
 //<editor-fold desc="Integrations">
 include("xef-lucene")
@@ -48,42 +52,25 @@ project(":xef-sql").projectDir = file("integrations/sql")
 
 include("xef-gcp")
 project(":xef-gcp").projectDir = file("integrations/gcp")
-//</editor-fold>
-//</editor-fold>
 
-//<editor-fold desc="Kotlin">
-include("xef-kotlin")
-project(":xef-kotlin").projectDir = file("kotlin")
+include("xef-opentelemetry")
+project(":xef-opentelemetry").projectDir = file("integrations/opentelemetry")
 
-include("xef-kotlin-examples")
-project(":xef-kotlin-examples").projectDir = file("examples/kotlin")
-
+include("xef-mlflow")
+project(":xef-mlflow").projectDir = file("integrations/mlflow")
 //</editor-fold>
 
-//<editor-fold desc="Scala">
-include("xef-scala-examples")
-project(":xef-scala-examples").projectDir = file("examples/scala")
+include("xef-examples")
+project(":xef-examples").projectDir = file("examples")
 
-include("xef-scala")
-project(":xef-scala").projectDir = file("scala")
-
-//</editor-fold>
-
-//<editor-fold desc="Java">
-include("xef-java")
-project(":xef-java").projectDir = file("java")
-
-include("xef-java-examples")
-project(":xef-java-examples").projectDir = file("examples/java")
-//</editor-fold>
-
-//<editor-fold desc="Java">
 include("xef-reasoning")
 project(":xef-reasoning").projectDir = file("reasoning")
 
-include("xef-java-examples")
-project(":xef-java-examples").projectDir = file("examples/java")
-//</editor-fold>
+include("xef-evaluator")
+project(":xef-evaluator").projectDir = file("evaluator")
+
+include("xef-evaluator-example")
+project(":xef-evaluator-example").projectDir = file("evaluator-example")
 
 //<editor-fold desc="Kotlin">
 include("xef-server")
@@ -94,4 +81,3 @@ project(":xef-server").projectDir = file("server")
 include("detekt-rules")
 project(":detekt-rules").projectDir = file("detekt-rules")
 //</editor-fold>
-

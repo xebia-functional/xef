@@ -11,59 +11,43 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.json.Json
 
-fun Routing.projectsRoutes(
-    projectRepositoryService: ProjectRepositoryService
-) {
-    authenticate("auth-bearer") {
-        get("/v1/settings/projects") {
-            val token = call.getToken()
-            val response = projectRepositoryService.getProjects(token)
-            call.respond(response)
-        }
-        get("/v1/settings/projects/{id}") {
-
-            val token = call.getToken()
-            val id = call.getId()
-            val response = projectRepositoryService.getProject(token, id)
-            call.respond(response)
-        }
-        get("/v1/settings/projects/org/{id}") {
-
-            val token = call.getToken()
-            val id = call.getId()
-            val response = projectRepositoryService.getProjectsByOrganization(token, id)
-            call.respond(response)
-        }
-        post("/v1/settings/projects") {
-
-            val request = Json.decodeFromString<ProjectRequest>(call.receive<String>())
-            val token = call.getToken()
-            val response = projectRepositoryService.createProject(request, token)
-            call.respond(
-                status = HttpStatusCode.Created,
-                response
-            )
-        }
-        put("/v1/settings/projects/{id}") {
-            val request = Json.decodeFromString<ProjectUpdateRequest>(call.receive<String>())
-            val token = call.getToken()
-            val id = call.getId()
-            val response = projectRepositoryService.updateProject(token, request, id)
-            call.respond(
-                status = HttpStatusCode.NoContent,
-                response
-            )
-        }
-        delete("/v1/settings/projects/{id}") {
-            val token = call.getToken()
-            val id = call.getId()
-            val response = projectRepositoryService.deleteProject(token, id)
-            call.respond(
-                status = HttpStatusCode.NoContent,
-                response
-            )
-        }
+fun Routing.projectsRoutes(projectRepositoryService: ProjectRepositoryService) {
+  authenticate("auth-bearer") {
+    get("/v1/settings/projects") {
+      val token = call.getToken()
+      val response = projectRepositoryService.getProjects(token)
+      call.respond(response)
     }
+    get("/v1/settings/projects/{id}") {
+      val token = call.getToken()
+      val id = call.getId()
+      val response = projectRepositoryService.getProject(token, id)
+      call.respond(response)
+    }
+    get("/v1/settings/projects/org/{id}") {
+      val token = call.getToken()
+      val id = call.getId()
+      val response = projectRepositoryService.getProjectsByOrganization(token, id)
+      call.respond(response)
+    }
+    post("/v1/settings/projects") {
+      val request = Json.decodeFromString<ProjectRequest>(call.receive<String>())
+      val token = call.getToken()
+      val response = projectRepositoryService.createProject(request, token)
+      call.respond(status = HttpStatusCode.Created, response)
+    }
+    put("/v1/settings/projects/{id}") {
+      val request = Json.decodeFromString<ProjectUpdateRequest>(call.receive<String>())
+      val token = call.getToken()
+      val id = call.getId()
+      val response = projectRepositoryService.updateProject(token, request, id)
+      call.respond(status = HttpStatusCode.NoContent, response)
+    }
+    delete("/v1/settings/projects/{id}") {
+      val token = call.getToken()
+      val id = call.getId()
+      val response = projectRepositoryService.deleteProject(token, id)
+      call.respond(status = HttpStatusCode.NoContent, response)
+    }
+  }
 }
-
-

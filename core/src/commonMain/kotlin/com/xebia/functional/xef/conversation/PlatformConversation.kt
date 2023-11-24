@@ -1,5 +1,6 @@
 package com.xebia.functional.xef.conversation
 
+import com.xebia.functional.xef.metrics.Metric
 import com.xebia.functional.xef.store.ConversationId
 import com.xebia.functional.xef.store.VectorStore
 
@@ -11,7 +12,8 @@ expect abstract class PlatformConversation(
   companion object {
     fun create(
       store: VectorStore,
-      conversationId: ConversationId?,
+      metric: Metric,
+      conversationId: ConversationId?
     ): PlatformConversation
   }
 }

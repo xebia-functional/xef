@@ -14,32 +14,24 @@ import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 val format = Json { prettyPrint = true }
 
 object XefTokensTable : IntIdTable("xef_tokens") {
-    val userId = reference(
-        name = "user_id",
-        foreign = UsersTable,
-        onDelete = ReferenceOption.CASCADE
-    )
-    val projectId = reference(
-        name = "project_id",
-        foreign = ProjectsTable,
-        onDelete = ReferenceOption.CASCADE
-    )
-    val name = varchar("name", 20)
-    val createdAt = timestamp("created_at").defaultExpression(CurrentTimestamp())
-    val updatedAt = timestamp("updated_at").defaultExpression(CurrentTimestamp())
-    val token = varchar("token", 128).uniqueIndex()
-    val providersConfig = jsonb<ProvidersConfig>("providers_config", format)
-
+  val userId = reference(name = "user_id", foreign = UsersTable, onDelete = ReferenceOption.CASCADE)
+  val projectId =
+    reference(name = "project_id", foreign = ProjectsTable, onDelete = ReferenceOption.CASCADE)
+  val name = varchar("name", 20)
+  val createdAt = timestamp("created_at").defaultExpression(CurrentTimestamp())
+  val updatedAt = timestamp("updated_at").defaultExpression(CurrentTimestamp())
+  val token = varchar("token", 128).uniqueIndex()
+  val providersConfig = jsonb<ProvidersConfig>("providers_config", format)
 }
 
 class XefTokens(id: EntityID<Int>) : IntEntity(id) {
-    companion object : IntEntityClass<XefTokens>(XefTokensTable)
+  companion object : IntEntityClass<XefTokens>(XefTokensTable)
 
-    var userId by XefTokensTable.userId
-    var projectId by XefTokensTable.projectId
-    var name by XefTokensTable.name
-    var createdAt by XefTokensTable.createdAt
-    var updatedAt by XefTokensTable.updatedAt
-    var token by XefTokensTable.token
-    var providersConfig by XefTokensTable.providersConfig
+  var userId by XefTokensTable.userId
+  var projectId by XefTokensTable.projectId
+  var name by XefTokensTable.name
+  var createdAt by XefTokensTable.createdAt
+  var updatedAt by XefTokensTable.updatedAt
+  var token by XefTokensTable.token
+  var providersConfig by XefTokensTable.providersConfig
 }

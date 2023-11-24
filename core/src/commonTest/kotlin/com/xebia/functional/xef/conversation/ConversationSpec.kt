@@ -4,7 +4,9 @@ import com.xebia.functional.xef.data.*
 import com.xebia.functional.xef.llm.models.MaxIoContextLength
 import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.llm.models.chat.Role
+import com.xebia.functional.xef.metrics.LogsMetric
 import com.xebia.functional.xef.prompt.Prompt
+import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
 import com.xebia.functional.xef.prompt.templates.assistant
 import com.xebia.functional.xef.prompt.templates.system
 import com.xebia.functional.xef.prompt.templates.user
@@ -26,7 +28,12 @@ class ConversationSpec :
 
       val model = TestModel()
 
-      val scope = Conversation(LocalVectorStore(TestEmbeddings()), conversationId = conversationId)
+      val scope =
+        Conversation(
+          LocalVectorStore(TestEmbeddings()),
+          LogsMetric(),
+          conversationId = conversationId
+        )
 
       val vectorStore = scope.store
 
@@ -48,7 +55,12 @@ class ConversationSpec :
       |""" {
       val messages = generateRandomMessages(50, 40, 60)
       val conversationId = ConversationId(UUID.generateUUID().toString())
-      val scope = Conversation(LocalVectorStore(TestEmbeddings()), conversationId = conversationId)
+      val scope =
+        Conversation(
+          LocalVectorStore(TestEmbeddings()),
+          LogsMetric(),
+          conversationId = conversationId
+        )
       val vectorStore = scope.store
 
       val modelAda = TestModel(responses = messages)
@@ -85,7 +97,12 @@ class ConversationSpec :
       |""" {
       val messages = generateRandomMessages(50, 40, 60)
       val conversationId = ConversationId(UUID.generateUUID().toString())
-      val scope = Conversation(LocalVectorStore(TestEmbeddings()), conversationId = conversationId)
+      val scope =
+        Conversation(
+          LocalVectorStore(TestEmbeddings()),
+          LogsMetric(),
+          conversationId = conversationId
+        )
       val vectorStore = scope.store
 
       val modelGPTTurbo16K =
@@ -122,7 +139,12 @@ class ConversationSpec :
       val message = mapOf(question to Json.encodeToString(answer))
 
       val conversationId = ConversationId(UUID.generateUUID().toString())
-      val scope = Conversation(LocalVectorStore(TestEmbeddings()), conversationId = conversationId)
+      val scope =
+        Conversation(
+          LocalVectorStore(TestEmbeddings()),
+          LogsMetric(),
+          conversationId = conversationId
+        )
 
       val model = TestFunctionsModel(responses = message)
 
@@ -145,7 +167,12 @@ class ConversationSpec :
       val message = mapOf(questionJsonString to answerJsonString)
 
       val conversationId = ConversationId(UUID.generateUUID().toString())
-      val scope = Conversation(LocalVectorStore(TestEmbeddings()), conversationId = conversationId)
+      val scope =
+        Conversation(
+          LocalVectorStore(TestEmbeddings()),
+          LogsMetric(),
+          conversationId = conversationId
+        )
 
       val model = TestFunctionsModel(responses = message)
 
@@ -168,7 +195,12 @@ class ConversationSpec :
 
       val model = TestModel()
 
-      val scope = Conversation(LocalVectorStore(TestEmbeddings()), conversationId = conversationId)
+      val scope =
+        Conversation(
+          LocalVectorStore(TestEmbeddings()),
+          LogsMetric(),
+          conversationId = conversationId
+        )
 
       val vectorStore = scope.store
 
@@ -216,7 +248,7 @@ class ConversationSpec :
 
       val vectorStore = LocalVectorStore(TestEmbeddings())
 
-      val scope1 = Conversation(vectorStore, conversationId = conversationId)
+      val scope1 = Conversation(vectorStore, LogsMetric(), conversationId = conversationId)
 
       val firstPrompt = Prompt {
         +user("question in scope 1")
@@ -225,7 +257,7 @@ class ConversationSpec :
 
       model.promptMessages(prompt = firstPrompt, scope = scope1)
 
-      val scope2 = Conversation(vectorStore, conversationId = conversationId)
+      val scope2 = Conversation(vectorStore, LogsMetric(), conversationId = conversationId)
 
       val secondPrompt = Prompt {
         +user("question in scope 2")
@@ -237,5 +269,188 @@ class ConversationSpec :
       val memories = vectorStore.memories(model, conversationId, 10000)
 
       memories.map { it.index } shouldBe listOf(1, 2, 3, 4, 5, 6)
+    }
+
+    "when using MessagesToHistory.ALL policy, the scope's store should contains all messages" {
+      val conversationId = ConversationId(UUID.generateUUID().toString())
+
+      val model = TestModel(modelType = ModelType.ADA)
+
+      val vectorStore = LocalVectorStore(TestEmbeddings())
+
+      val scope = Conversation(vectorStore, LogsMetric(), conversationId = conversationId)
+
+      val prompt =
+        Prompt {
+            +system("system message")
+            +user("question in scope 1")
+          }
+          .copy(
+            configuration =
+              PromptConfiguration {
+                messagePolicy { addMessagesToConversation = MessagesToHistory.ALL }
+              }
+          )
+
+      model.promptMessages(prompt = prompt, scope = scope)
+
+      val messagesStored = scope.store.memories(model, conversationId, Int.MAX_VALUE)
+
+      messagesStored.size shouldBe 3
+    }
+
+    "when using MessagesToHistory.ONLY_SYSTEM_MESSAGES policy, the scope's store should contains only system messages" {
+      val conversationId = ConversationId(UUID.generateUUID().toString())
+
+      val model = TestModel(modelType = ModelType.ADA)
+
+      val vectorStore = LocalVectorStore(TestEmbeddings())
+
+      val scope = Conversation(vectorStore, LogsMetric(), conversationId = conversationId)
+
+      val prompt =
+        Prompt {
+            +system("system message")
+            +user("question in scope 1")
+          }
+          .copy(
+            configuration =
+              PromptConfiguration {
+                messagePolicy { addMessagesToConversation = MessagesToHistory.ONLY_SYSTEM_MESSAGES }
+              }
+          )
+
+      model.promptMessages(prompt = prompt, scope = scope)
+
+      val messagesStored = scope.store.memories(model, conversationId, Int.MAX_VALUE)
+
+      messagesStored.filter { it.content.role == Role.SYSTEM } shouldBe messagesStored
+    }
+
+    "when using MessagesToHistory.NOT_SYSTEM_MESSAGES policy, the scope's store shouldn't contains system messages" {
+      val conversationId = ConversationId(UUID.generateUUID().toString())
+
+      val model = TestModel(modelType = ModelType.ADA)
+
+      val vectorStore = LocalVectorStore(TestEmbeddings())
+
+      val scope = Conversation(vectorStore, LogsMetric(), conversationId = conversationId)
+
+      val prompt =
+        Prompt {
+            +system("system message")
+            +user("question in scope 1")
+          }
+          .copy(
+            configuration =
+              PromptConfiguration {
+                messagePolicy { addMessagesToConversation = MessagesToHistory.NOT_SYSTEM_MESSAGES }
+              }
+          )
+
+      model.promptMessages(prompt = prompt, scope = scope)
+
+      val messagesStored = scope.store.memories(model, conversationId, Int.MAX_VALUE)
+
+      messagesStored.filter { it.content.role != Role.SYSTEM } shouldBe messagesStored
+    }
+
+    "when using MessagesToHistory.NONE policy, the scope's store shouldn't contains messages" {
+      val conversationId = ConversationId(UUID.generateUUID().toString())
+
+      val model = TestModel(modelType = ModelType.ADA)
+
+      val vectorStore = LocalVectorStore(TestEmbeddings())
+
+      val scope = Conversation(vectorStore, LogsMetric(), conversationId = conversationId)
+
+      val prompt =
+        Prompt {
+            +system("system message")
+            +user("question in scope 1")
+          }
+          .copy(
+            configuration =
+              PromptConfiguration {
+                messagePolicy { addMessagesToConversation = MessagesToHistory.NONE }
+              }
+          )
+
+      model.promptMessages(prompt = prompt, scope = scope)
+
+      val messagesStored =
+        scope.store.memories(model, conversationId, Int.MAX_VALUE).filter {
+          it.content.role == Role.SYSTEM
+        }
+
+      messagesStored.size shouldBe 0
+    }
+
+    "when using MessagesFromHistory.ALL policy, the request should contains the previous messages in the conversation" {
+      val conversationId = ConversationId(UUID.generateUUID().toString())
+
+      val model = TestModel(modelType = ModelType.ADA)
+
+      val vectorStore = LocalVectorStore(TestEmbeddings())
+
+      val scope = Conversation(vectorStore, LogsMetric(), conversationId = conversationId)
+
+      val firstPrompt = Prompt {
+        +system("system message")
+        +user("question in scope 1")
+      }
+
+      model.promptMessages(prompt = firstPrompt, scope = scope)
+
+      val secondPrompt =
+        Prompt {
+            +user("question in scope 2")
+            +assistant("answer in scope 2")
+            +user("question in scope 3")
+          }
+          .copy(
+            configuration =
+              PromptConfiguration {
+                messagePolicy { addMessagesFromConversation = MessagesFromHistory.ALL }
+              }
+          )
+
+      model.promptMessages(prompt = secondPrompt, scope = scope)
+
+      model.requests.last().messages.size shouldBe 6
+    }
+
+    "when using MessagesFromHistory.NONE policy, the request shouldn't contains the previous messages in the conversation" {
+      val conversationId = ConversationId(UUID.generateUUID().toString())
+
+      val model = TestModel(modelType = ModelType.ADA)
+
+      val vectorStore = LocalVectorStore(TestEmbeddings())
+
+      val scope = Conversation(vectorStore, LogsMetric(), conversationId = conversationId)
+
+      val firstPrompt = Prompt {
+        +system("system message")
+        +user("question in scope 1")
+      }
+
+      model.promptMessages(prompt = firstPrompt, scope = scope)
+
+      val secondPrompt =
+        Prompt {
+            +user("question in scope 2")
+            +assistant("answer in scope 2")
+            +user("question in scope 3")
+          }
+          .copy(
+            configuration =
+              PromptConfiguration {
+                messagePolicy { addMessagesFromConversation = MessagesFromHistory.NONE }
+              }
+          )
+
+      model.promptMessages(prompt = secondPrompt, scope = scope)
+
+      model.requests.last().messages.size shouldBe 3
     }
   })

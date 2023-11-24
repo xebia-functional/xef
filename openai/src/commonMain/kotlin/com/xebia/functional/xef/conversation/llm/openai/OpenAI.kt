@@ -1,7 +1,11 @@
 package com.xebia.functional.xef.conversation.llm.openai
 
 import arrow.core.nonEmptyListOf
+import arrow.core.raise.either
+import arrow.core.raise.ensure
+import arrow.core.raise.ensureNotNull
 import com.aallam.openai.api.exception.InvalidRequestException
+import com.aallam.openai.api.finetuning.FineTuningId
 import com.aallam.openai.api.logging.LogLevel
 import com.aallam.openai.api.model.ModelId
 import com.aallam.openai.client.LoggingConfig
@@ -16,6 +20,7 @@ import com.xebia.functional.xef.conversation.autoClose
 import com.xebia.functional.xef.conversation.llm.openai.models.*
 import com.xebia.functional.xef.env.getenv
 import com.xebia.functional.xef.llm.LLM
+import com.xebia.functional.xef.metrics.Metric
 import com.xebia.functional.xef.llm.models.MaxIoContextLength
 import com.xebia.functional.xef.llm.models.ModelID
 import com.xebia.functional.xef.store.LocalVectorStore
@@ -24,16 +29,31 @@ import kotlin.jvm.JvmField
 import kotlin.jvm.JvmOverloads
 import kotlin.jvm.JvmStatic
 import kotlin.jvm.JvmSynthetic
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 private const val KEY_ENV_VAR = "OPENAI_TOKEN"
 private const val HOST_ENV_VAR = "OPENAI_HOST"
 
-class OpenAI(internal var token: String? = null, internal var host: String? = null) :
-  AutoCloseable, AutoClose by autoClose() {
+class OpenAI(
+  internal var token: String,
+  internal var host: String? = null,
+  internal var timeout: Timeout = Timeout.default()
+) : AutoCloseable, AutoClose by autoClose() {
 
-  private fun openAITokenFromEnv(): String {
-    return getenv(KEY_ENV_VAR)
-      ?: throw AIError.Env.OpenAI(nonEmptyListOf("missing $KEY_ENV_VAR env var"))
+  class Timeout(
+    val request: Duration,
+    val connect: Duration,
+    val socket: Duration,
+  ) {
+    companion object {
+      private val REQUEST_TIMEOUT = 60.seconds
+      private val CONNECT_TIMEOUT = 10.minutes
+      private val SOCKET_TIMEOUT = 10.minutes
+
+      fun default(): Timeout = Timeout(REQUEST_TIMEOUT, CONNECT_TIMEOUT, SOCKET_TIMEOUT)
+    }
   }
 
   private fun openAIHostFromEnv(): String? {
@@ -41,21 +61,14 @@ class OpenAI(internal var token: String? = null, internal var host: String? = nu
   }
 
   fun getToken(): String {
-    return token ?: openAITokenFromEnv()
+    return token
   }
 
   fun getHost(): String? {
     return host
-      ?: run {
-        host = openAIHostFromEnv()
-        host
-      }
   }
 
   init {
-    if (token == null) {
-      token = openAITokenFromEnv()
-    }
     if (host == null) {
       host = openAIHostFromEnv()
     }
@@ -67,6 +80,7 @@ class OpenAI(internal var token: String? = null, internal var host: String? = nu
         token = getToken(),
         logging = LoggingConfig(LogLevel.None),
         headers = mapOf("Authorization" to " Bearer ${getToken()}"),
+        timeout = this.timeout.toOAITimeout()
       )
       .let { autoClose(it) }
 
@@ -216,6 +230,7 @@ class OpenAI(internal var token: String? = null, internal var host: String? = nu
 
   @JvmField val DEFAULT_IMAGES = DALLE_2
 
+  /** Returns a list of all publicly available, supported models. */
   fun supportedModels(): List<LLM> = // TODO: impl of abstract provider function
   listOf(
       GPT_4,
@@ -234,46 +249,81 @@ class OpenAI(internal var token: String? = null, internal var host: String? = nu
       DALLE_2,
     )
 
-  suspend fun findModel(modelId: String): ModelID? { // TODO: impl of abstract provider function
+  /**
+   * Spawns a model by its [modelId]. It should have the same capabilities as [baseModel]. The model
+   * to spawn can i.e. be a fine-tuned model which is not known to the public.
+   *
+   * Warning: Throws an error at runtime during querying if the model does not provide the same
+   * capabilities as [baseModel].
+   */
+  suspend fun <T : LLM> spawnModel(modelId: String, baseModel: T) =
+    either { // TODO: impl of abstract provider function
+      ensure(modelExists(modelId)) { "model $modelId not found" }
+      @Suppress("UNCHECKED_CAST")
+      baseModel.copy(ModelType.FineTunedModel(modelId, baseModel = baseModel.modelType)) as? T
+        ?: error("${baseModel::class} does not follow contract to return the most specific type")
+    }
+
+  /**
+   * Spawns a model based off a [fineTuningJobId]. It should have the same capabilities as
+   * [baseModel].
+   *
+   * This function is safer than [spawnModel] because it checks if the base model the fine-tuned
+   * model was derived from matches [baseModel].
+   */
+  suspend fun <T : LLM> spawnFineTunedModel(fineTuningJobId: String, baseModel: T) = either {
+    val job = defaultClient.fineTuningJob(FineTuningId(fineTuningJobId))
+    ensureNotNull(job) { "job $fineTuningJobId not found" }
+    val fineTunedModel = job.fineTunedModel
+    ensureNotNull(fineTunedModel) { "fine tuned model not available, status ${job.status}" }
+    ensure(baseModel.modelType.name == job.model.id) {
+      "base model instance does not match the job's base model"
+    }
+    spawnModel(fineTunedModel.id, baseModel).bind()
+  }
+
+  /** Checks if the model exists. */
+  private suspend fun modelExists(
+    modelId: String
+  ): Boolean { // TODO: impl of abstract provider function
     val model =
       try {
         defaultClient.model(ModelId(modelId))
       } catch (e: InvalidRequestException) {
         when (e.error.detail?.code) {
-          "model_not_found" -> return null
+          "model_not_found" -> return false
           else -> throw e
         }
       }
-    return ModelID(model.id.id)
-  }
-
-  suspend fun <T : LLM> spawnModel(
-    modelId: String,
-    baseModel: T
-  ): T { // TODO: impl of abstract provider function
-    if (findModel(modelId) == null) error("model not found")
-    return baseModel.copy(ModelID(modelId)) as? T
-      ?: error("${baseModel::class} does not follow contract to return the most specific type")
+    return true
   }
 
   companion object {
 
-    @JvmField val FromEnvironment: OpenAI = OpenAI()
+    @JvmStatic
+    fun fromEnvironment(): OpenAI {
+      val token =
+        getenv(KEY_ENV_VAR)
+          ?: throw AIError.Env.OpenAI(nonEmptyListOf("missing $KEY_ENV_VAR env var"))
+      val host = getenv(HOST_ENV_VAR)
+      return OpenAI(token, host)
+    }
 
     @JvmSynthetic
     suspend inline fun <A> conversation(
-      store: VectorStore,
+      store: VectorStore = LocalVectorStore(fromEnvironment().DEFAULT_EMBEDDING),
+      metric: Metric = Metric.EMPTY,
       noinline block: suspend Conversation.() -> A
-    ): A = block(conversation(store))
+    ): A = block(conversation(store, metric))
 
     @JvmSynthetic
-    suspend fun <A> conversation(block: suspend Conversation.() -> A): A =
-      block(conversation(LocalVectorStore(FromEnvironment.DEFAULT_EMBEDDING)))
+    suspend fun <A> conversation(block: suspend Conversation.() -> A): A = block(conversation())
 
     @JvmStatic
     @JvmOverloads
     fun conversation(
-      store: VectorStore = LocalVectorStore(FromEnvironment.DEFAULT_EMBEDDING)
-    ): PlatformConversation = Conversation(store)
+      store: VectorStore = LocalVectorStore(fromEnvironment().DEFAULT_EMBEDDING),
+      metric: Metric = Metric.EMPTY
+    ): PlatformConversation = Conversation(store, metric)
   }
 }

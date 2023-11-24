@@ -16,7 +16,6 @@ import com.xebia.functional.xef.llm.models.functions.FunChatCompletionRequest
 import com.xebia.functional.xef.llm.models.functions.FunctionCall
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.serialization.json.Json
 
 class OpenAIFunChat(
   private val provider: OpenAI, // TODO: use context receiver
@@ -107,7 +106,7 @@ private fun CFunction.toOpenAI() =
   ChatCompletionFunction(
     name = name,
     description = description,
-    parameters = Parameters(Json.parseToJsonElement(parameters)),
+    parameters = Parameters(parameters)
   )
 
 private fun Message.toOpenAI() =

@@ -3,6 +3,7 @@ package com.xebia.functional.xef.llm
 import com.xebia.functional.tokenizer.truncateText
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.Conversation
+import com.xebia.functional.xef.conversation.MessagesFromHistory
 import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.assistant
@@ -11,6 +12,16 @@ import com.xebia.functional.xef.store.Memory
 internal object PromptCalculator {
 
   suspend fun adaptPromptToConversationAndModel(
+    prompt: Prompt,
+    scope: Conversation,
+    llm: LLM
+  ): Prompt =
+    when (prompt.configuration.messagePolicy.addMessagesFromConversation) {
+      MessagesFromHistory.ALL -> adaptPromptFromConversation(prompt, scope, llm)
+      MessagesFromHistory.NONE -> prompt
+    }
+
+  private suspend fun adaptPromptFromConversation(
     prompt: Prompt,
     scope: Conversation,
     llm: LLM
@@ -110,12 +121,6 @@ internal object PromptCalculator {
     return remainingTokensForContexts
   }
 
-  private suspend fun Conversation.memories(llm: LLM, limitTokens: Int): List<Memory> {
-    val cid = conversationId
-    return if (cid != null) {
-      store.memories(llm, cid, limitTokens)
-    } else {
-      emptyList()
-    }
-  }
+  private suspend fun Conversation.memories(llm: LLM, limitTokens: Int): List<Memory> =
+    conversationId?.let { store.memories(llm, it, limitTokens) } ?: emptyList()
 }

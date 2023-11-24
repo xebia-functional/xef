@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS xef_memory (
        uuid TEXT PRIMARY KEY,
        conversation_id TEXT NOT NULL,
        role TEXT NOT NULL,
-       content TEXT UNIQUE NOT NULL,
+       content TEXT NOT NULL,
        index INT NOT NULL
      );
 
@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS xef_memory (
 CREATE TABLE IF NOT EXISTS xef_embeddings (
        uuid TEXT PRIMARY KEY,
        collection_id TEXT REFERENCES xef_collections(uuid),
-       embedding vector(3),
+       embedding vector(1536),
        content TEXT
      );
 

@@ -4,23 +4,18 @@ plugins {
     alias(libs.plugins.node.gradle)
     alias(libs.plugins.arrow.gradle.publish)
     alias(libs.plugins.semver.gradle)
+    alias(libs.plugins.spotless)
 }
 
-repositories {
-    mavenCentral()
-}
+repositories { mavenCentral() }
 
 java {
     sourceCompatibility = JavaVersion.VERSION_11
     targetCompatibility = JavaVersion.VERSION_11
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(11)
-    }
+    toolchain { languageVersion = JavaLanguageVersion.of(11) }
 }
 
-node {
-    nodeProjectDir.set(file("${project.projectDir}/web"))
-}
+node { nodeProjectDir.set(file("${project.projectDir}/web")) }
 
 dependencies {
     implementation(libs.exposed.core)
@@ -53,11 +48,10 @@ dependencies {
     implementation(libs.suspendApp.core)
     implementation(libs.suspendApp.ktor)
     implementation(libs.uuid)
-    implementation(projects.xefKotlin)
+    implementation(projects.xefOpenai)
     implementation(projects.xefCore)
     implementation(projects.xefLucene)
     implementation(projects.xefPostgresql)
-
     testImplementation(libs.junit.jupiter.api)
     testImplementation(libs.junit.jupiter.engine)
     testImplementation(libs.kotest.property)
@@ -68,10 +62,11 @@ dependencies {
     testRuntimeOnly(libs.kotest.junit5)
 }
 
-tasks.getByName<Copy>("processResources") {
-    dependsOn(projects.xefGpt4all.dependencyProject.tasks.getByName("jvmProcessResources"))
-    from("${projects.xefGpt4all.dependencyProject.buildDir}/processedResources/jvm/main")
-    into("$buildDir/resources/main")
+spotless {
+    kotlin {
+        target("**/*.kt")
+        ktfmt().googleStyle().configure { it.setRemoveUnusedImport(true) }
+    }
 }
 
 task<JavaExec>("web-app") {
@@ -80,7 +75,7 @@ task<JavaExec>("web-app") {
     description = "xef-server web application"
     classpath = sourceSets.main.get().runtimeClasspath
     mainClass.set("com.xebia.functional.xef.server.WebApp")
-  }
+}
 
 task<JavaExec>("server") {
     dependsOn("compileKotlin")
@@ -90,10 +85,6 @@ task<JavaExec>("server") {
     mainClass.set("com.xebia.functional.xef.server.Server")
 }
 
-tasks.named<Test>("test") {
-    useJUnitPlatform()
-}
+tasks.named<Test>("test") { useJUnitPlatform() }
 
-tasks.withType<AbstractPublishToMaven> {
-    dependsOn(tasks.withType<Sign>())
-}
+tasks.withType<AbstractPublishToMaven> { dependsOn(tasks.withType<Sign>()) }

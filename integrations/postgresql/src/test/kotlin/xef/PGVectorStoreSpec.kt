@@ -10,8 +10,7 @@ import com.xebia.functional.xef.llm.models.embeddings.Embedding
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
 import com.xebia.functional.xef.llm.models.embeddings.EmbeddingResult
 import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
-import com.xebia.functional.xef.store.ConversationId
-import com.xebia.functional.xef.store.Memory
+import com.xebia.functional.xef.llm.models.usage.Usage
 import com.xebia.functional.xef.store.PGVectorStore
 import com.xebia.functional.xef.store.postgresql.PGDistanceStrategy
 import com.zaxxer.hikari.HikariConfig
@@ -21,8 +20,6 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.extensions.testcontainers.ContainerExtension
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.Flow
-import kotlinx.uuid.UUID
-import kotlinx.uuid.generateUUID
 import org.junit.jupiter.api.assertThrows
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.utility.DockerImageName
@@ -94,19 +91,11 @@ class PGVectorStoreSpec :
     }
 
     "the added memories sorted by index should be obtained in the same order" {
-      val messages = 10
+      val memoryData = MemoryData()
       val llm = TestLLM()
-      val conversationId = ConversationId(UUID.generateUUID().toString())
-      val memories = (0 until messages).flatMap {
-        val m1 = Message(Role.USER, "question $it", "user")
-        val m2 = Message(Role.ASSISTANT, "answer $it", "assistant")
-        listOf(
-          Memory(conversationId, m1, 1),
-          Memory(conversationId, m2, 2)
-        )
-      }
+      val memories = memoryData.generateRandomMessages(10)
       pg.addMemories(memories)
-      memories shouldBe pg.memories(llm, conversationId, 1000)
+      memories shouldBe pg.memories(llm, memoryData.defaultConversationId, 1000)
     }
   })
 
@@ -135,11 +124,9 @@ class TestLLM : Chat, AutoCloseable {
   }
 }
 
-
-
 private fun Embeddings.Companion.mock(
   embedDocuments:
-  suspend (texts: List<String>, chunkSize: Int?, config: RequestConfig) -> List<Embedding> =
+  suspend (texts: List<String>, config: RequestConfig, chunkSize: Int?) -> List<Embedding> =
     { _, _, _ ->
       listOf(Embedding(listOf(1.0f, 2.0f, 3.0f)), Embedding(listOf(4.0f, 5.0f, 6.0f)))
     },
@@ -150,6 +137,9 @@ private fun Embeddings.Companion.mock(
       "baz" -> listOf()
       else -> listOf()
     }
+  },
+  createEmbeddings: suspend (request: EmbeddingRequest) -> EmbeddingResult = { _ ->
+    EmbeddingResult(listOf(Embedding(listOf(1.0f, 2.0f, 3.0f)), Embedding(listOf(4.0f, 5.0f, 6.0f))), Usage.ZERO)
   }
 ): Embeddings =
   object : Embeddings {

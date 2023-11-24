@@ -13,7 +13,21 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class MessagePolicy(
-  val historyPercent: Int = 50,
-  val historyPaddingTokens: Int = 100,
-  val contextPercent: Int = 50,
+  var historyPercent: Int = 50,
+  var historyPaddingTokens: Int = 100,
+  var contextPercent: Int = 50,
+  var addMessagesFromConversation: MessagesFromHistory = MessagesFromHistory.ALL,
+  var addMessagesToConversation: MessagesToHistory = MessagesToHistory.ALL,
 )
+
+enum class MessagesFromHistory {
+  ALL,
+  NONE,
+}
+
+enum class MessagesToHistory {
+  ALL,
+  ONLY_SYSTEM_MESSAGES,
+  NOT_SYSTEM_MESSAGES,
+  NONE,
+}

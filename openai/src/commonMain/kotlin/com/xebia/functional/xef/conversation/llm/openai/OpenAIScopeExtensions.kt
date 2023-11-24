@@ -13,34 +13,36 @@ import kotlinx.serialization.serializer
 @AiDsl
 suspend fun Conversation.promptMessage(
   prompt: Prompt,
-  model: Chat = OpenAI().DEFAULT_CHAT
+  model: Chat = OpenAI.fromEnvironment().DEFAULT_CHAT
 ): String = model.promptMessage(prompt, this)
 
 @AiDsl
-suspend fun Conversation.promptMessage(input: String, model: Chat = OpenAI().DEFAULT_CHAT): String =
-  model.promptMessage(Prompt(input), this)
+suspend fun Conversation.promptMessage(
+  input: String,
+  model: Chat = OpenAI.fromEnvironment().DEFAULT_CHAT
+): String = model.promptMessage(Prompt(input), this)
 
 @AiDsl
 suspend fun Conversation.promptStreaming(
   prompt: Prompt,
-  model: Chat = OpenAI().DEFAULT_CHAT
+  model: Chat = OpenAI.fromEnvironment().DEFAULT_CHAT
 ): Flow<String> = model.promptStreaming(prompt, this)
 
 @AiDsl
 inline fun <reified A> Conversation.promptStreaming(
   prompt: Prompt,
-  model: ChatWithFunctions = OpenAI().DEFAULT_SERIALIZATION
+  model: ChatWithFunctions = OpenAI.fromEnvironment().DEFAULT_SERIALIZATION
 ): Flow<StreamedFunction<A>> = model.promptStreaming(prompt, this, serializer())
 
 @AiDsl
 suspend inline fun <reified A> Conversation.prompt(
   input: String,
-  model: ChatWithFunctions = OpenAI().DEFAULT_SERIALIZATION
+  model: ChatWithFunctions = OpenAI.fromEnvironment().DEFAULT_SERIALIZATION
 ): A =
   model.prompt(prompt = Prompt { +user(input) }, scope = conversation, serializer = serializer<A>())
 
 @AiDsl
 suspend inline fun <reified A> Conversation.prompt(
   prompt: Prompt,
-  model: ChatWithFunctions = OpenAI().DEFAULT_SERIALIZATION
+  model: ChatWithFunctions = OpenAI.fromEnvironment().DEFAULT_SERIALIZATION
 ): A = model.prompt(prompt = prompt, scope = conversation, serializer = serializer<A>())
