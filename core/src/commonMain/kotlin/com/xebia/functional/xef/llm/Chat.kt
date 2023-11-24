@@ -72,5 +72,4 @@ interface Chat : BaseChat {
         )
         .mapNotNull { it.message?.content }
     }
-
 }

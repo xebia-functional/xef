@@ -48,5 +48,4 @@ class GcpCompletion(
   override fun truncateText(text: String, maxTokens: Int): String {
     TODO("Not yet implemented")
   }
-
 }

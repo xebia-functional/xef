@@ -4,7 +4,6 @@ import com.aallam.openai.api.LegacyOpenAI
 import com.aallam.openai.api.completion.Choice
 import com.aallam.openai.api.completion.completionRequest
 import com.aallam.openai.api.model.ModelId
-import com.xebia.functional.tokenizer.Encoding
 import com.xebia.functional.tokenizer.EncodingType
 import com.xebia.functional.tokenizer.truncateText
 import com.xebia.functional.xef.conversation.llm.openai.OpenAI
@@ -12,7 +11,6 @@ import com.xebia.functional.xef.conversation.llm.openai.toInternal
 import com.xebia.functional.xef.llm.Completion
 import com.xebia.functional.xef.llm.models.MaxIoContextLength
 import com.xebia.functional.xef.llm.models.ModelID
-import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.llm.models.text.CompletionChoice
 import com.xebia.functional.xef.llm.models.text.CompletionRequest
 import com.xebia.functional.xef.llm.models.text.CompletionResult
@@ -29,8 +27,7 @@ class OpenAICompletion(
   override fun copy(modelID: ModelID) =
     OpenAICompletion(provider, modelID, contextLength, encodingType)
 
-  override fun countTokens(text: String): Int =
-    encoding.countTokens(text)
+  override fun countTokens(text: String): Int = encoding.countTokens(text)
 
   override fun truncateText(text: String, maxTokens: Int): String =
     encoding.truncateText(text, maxTokens)
