@@ -1,14 +1,14 @@
-package com.xebia.funcional.xef.evaluator.examples
+package com.xebia.functional.xef.evaluator.examples
 
 import ai.xef.openai.StandardModel
 import arrow.continuations.SuspendApp
-import com.xebia.funcional.xef.evaluator.TestSpecItem
-import com.xebia.funcional.xef.evaluator.TestsSpec
-import com.xebia.funcional.xef.evaluator.models.ContextDescription
-import com.xebia.funcional.xef.evaluator.models.OutputDescription
-import com.xebia.funcional.xef.evaluator.models.OutputResponse
 import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.conversation.Conversation
+import com.xebia.functional.xef.evaluator.TestSpecItem
+import com.xebia.functional.xef.evaluator.TestsSpec
+import com.xebia.functional.xef.evaluator.models.ContextDescription
+import com.xebia.functional.xef.evaluator.models.OutputDescription
+import com.xebia.functional.xef.evaluator.models.OutputResponse
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.user
 import java.io.File
@@ -31,7 +31,7 @@ object TestExample {
         +TestSpecItem("Please provide a movie title, genre and director") {
           +ContextDescription("Contains information about a movie")
 
-          +OutputResponse { Conversation { promptMessage(Prompt(model) {+user(input) })}}
+          +OutputResponse { Conversation { promptMessage(Prompt(model) { +user(input) }) } }
 
           +OutputResponse("I don't know")
         }
@@ -39,7 +39,7 @@ object TestExample {
         +TestSpecItem("Recipe for a chocolate cake") {
           +ContextDescription("Contains instructions for making a cake")
 
-          +OutputResponse { Conversation { promptMessage(Prompt(model) {+user(input) }) } }
+          +OutputResponse { Conversation { promptMessage(Prompt(model) { +user(input) }) } }
 
           +OutputResponse("The movie is Jurassic Park")
         }

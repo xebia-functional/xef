@@ -3,11 +3,12 @@ package com.xebia.functional.xef.llm.assistants
 import com.xebia.functional.openai.apis.AssistantApi
 import com.xebia.functional.openai.apis.AssistantsApi
 import com.xebia.functional.openai.models.AssistantObject
-import com.xebia.functional.openai.models.AssistantObjectToolsInner
 import com.xebia.functional.openai.models.CreateAssistantRequest
 import com.xebia.functional.openai.models.ModifyAssistantRequest
+import com.xebia.functional.openai.models.ext.assistant.AssistantTools
 import com.xebia.functional.xef.llm.fromEnvironment
 import io.ktor.client.statement.*
+import kotlinx.serialization.json.JsonObject
 
 class Assistant(
   val assistantId: String,
@@ -43,9 +44,9 @@ class Assistant(
       name: String? = null,
       description: String? = null,
       instructions: String? = null,
-      tools: List<AssistantObjectToolsInner> = arrayListOf(),
+      tools: List<AssistantTools> = arrayListOf(),
       fileIds: List<String> = arrayListOf(),
-      metadata: String? = null,
+      metadata: JsonObject? = null,
       assistantsApi: AssistantsApi = fromEnvironment(::AssistantsApi),
       api: AssistantApi = fromEnvironment(::AssistantApi)
     ): Assistant =

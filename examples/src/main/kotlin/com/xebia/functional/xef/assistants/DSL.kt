@@ -1,6 +1,8 @@
 package com.xebia.functional.xef.assistants
 
 import com.xebia.functional.openai.models.*
+import com.xebia.functional.openai.models.ext.assistant.RunStepDetailsMessageCreationObject
+import com.xebia.functional.openai.models.ext.assistant.RunStepDetailsToolCallsObject
 import com.xebia.functional.xef.llm.assistants.Assistant
 import com.xebia.functional.xef.llm.assistants.AssistantThread
 import com.xebia.functional.xef.llm.assistants.Tool
@@ -78,18 +80,26 @@ private fun displayReceivedMessages(
 
 private fun displayStepsStatus(step: AssistantThread.RunDelta.Step) {
 
-  val calls =
-    step.runStep.stepDetails.toolCalls.map {
-      when (it.type) {
-        RunStepDetailsToolCallsObjectToolCallsInner.Type.code_interpreter -> "CodeInterpreter"
-        RunStepDetailsToolCallsObjectToolCallsInner.Type.retrieval -> "Retrieval"
-        RunStepDetailsToolCallsObjectToolCallsInner.Type.function ->
-          "${it.function?.name}(${it.function?.arguments ?: ""}): "
-      }
+  val details = step.runStep.stepDetails
+  val type =
+    when (details) {
+      is RunStepDetailsMessageCreationObject -> details.type.value
+      is RunStepDetailsToolCallsObject -> details.type.value
     }
-  println(
-    "${step.runStep.stepDetails.type.value} ${stepStatusEmoji(step.runStep.status)} ${calls.joinToString()} "
-  )
+  val calls =
+    when (details) {
+      is RunStepDetailsMessageCreationObject -> listOf()
+      is RunStepDetailsToolCallsObject ->
+        details.toolCalls.map {
+          when (it.type) {
+            RunStepDetailsToolCallsObjectToolCallsInner.Type.code_interpreter -> "CodeInterpreter"
+            RunStepDetailsToolCallsObjectToolCallsInner.Type.retrieval -> "Retrieval"
+            RunStepDetailsToolCallsObjectToolCallsInner.Type.function ->
+              "${it.function?.name}(${it.function?.arguments ?: ""}): "
+          }
+        }
+    }
+  println("$type ${stepStatusEmoji(step.runStep.status)} ${calls.joinToString()} ")
 }
 
 private fun runStatusEmoji(run: AssistantThread.RunDelta.Run) =

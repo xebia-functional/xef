@@ -30,7 +30,7 @@ data class RunStepDetailsToolCallsObjectToolCallsInner(
   val codeInterpreter: RunStepDetailsToolCallsCodeObjectCodeInterpreter? = null,
 
   /* For now, this is always going to be an empty object. */
-  @SerialName(value = "retrieval") val retrieval: kotlin.String? = null,
+  @SerialName(value = "retrieval") val retrieval: kotlinx.serialization.json.JsonObject? = null,
   @SerialName(value = "function")
   val function: RunStepDetailsToolCallsFunctionObjectFunction? = null
 ) {

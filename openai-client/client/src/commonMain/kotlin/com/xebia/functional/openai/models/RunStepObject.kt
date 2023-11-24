@@ -61,7 +61,9 @@ data class RunStepObject(
 
   /* The status of the run step, which can be either `in_progress`, `cancelled`, `failed`, `completed`, or `expired`. */
   @SerialName(value = "status") @Required val status: RunStepObject.Status,
-  @SerialName(value = "step_details") @Required val stepDetails: RunStepObjectStepDetails,
+  @SerialName(value = "step_details")
+  @Required
+  val stepDetails: com.xebia.functional.openai.models.ext.assistant.RunStepObjectStepDetails,
   @SerialName(value = "last_error") @Required val lastError: RunStepObjectLastError?,
 
   /* The Unix timestamp (in seconds) for when the run step expired. A step is considered expired if the parent run is expired. */
@@ -77,7 +79,7 @@ data class RunStepObject(
   @SerialName(value = "completed_at") @Required val completedAt: kotlin.Int?,
 
   /* Set of 16 key-value pairs that can be attached to an object. This can be useful for storing additional information about the object in a structured format. Keys can be a maximum of 64 characters long and values can be a maxium of 512 characters long.  */
-  @SerialName(value = "metadata") val metadata: JsonObject? = null
+  @SerialName(value = "metadata") val metadata: kotlinx.serialization.json.JsonObject? = null
 ) {
 
   /**

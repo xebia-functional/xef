@@ -9,7 +9,6 @@ package com.xebia.functional.openai.models
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
-import kotlinx.serialization.json.JsonObject
 
 /**
  * Represents an `assistant` that can call the model and use tools.
@@ -60,7 +59,9 @@ data class AssistantObject(
   /* A list of tool enabled on the assistant. There can be a maximum of 128 tools per assistant. Tools can be of types `code_interpreter`, `retrieval`, or `function`.  */
   @SerialName(value = "tools")
   @Required
-  val tools: kotlin.collections.List<AssistantObjectToolsInner> = arrayListOf(),
+  val tools:
+    kotlin.collections.List<com.xebia.functional.openai.models.ext.assistant.AssistantTools> =
+    arrayListOf(),
 
   /* A list of [file](/docs/api-reference/files) IDs attached to this assistant. There can be a maximum of 20 files attached to the assistant. Files are ordered by their creation date in ascending order.  */
   @SerialName(value = "file_ids")
@@ -68,7 +69,7 @@ data class AssistantObject(
   val fileIds: kotlin.collections.List<kotlin.String> = arrayListOf(),
 
   /* Set of 16 key-value pairs that can be attached to an object. This can be useful for storing additional information about the object in a structured format. Keys can be a maximum of 64 characters long and values can be a maxium of 512 characters long.  */
-  @SerialName(value = "metadata") @Required val metadata: JsonObject?
+  @SerialName(value = "metadata") @Required val metadata: kotlinx.serialization.json.JsonObject?
 ) {
 
   /**

@@ -27,10 +27,6 @@ src/commonMain/kotlin/com/xebia/functional/openai/infrastructure/RequestConfig.k
 src/commonMain/kotlin/com/xebia/functional/openai/infrastructure/RequestMethod.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/AssistantFileObject.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/AssistantObject.kt
-src/commonMain/kotlin/com/xebia/functional/openai/models/AssistantObjectToolsInner.kt
-src/commonMain/kotlin/com/xebia/functional/openai/models/AssistantToolsCode.kt
-src/commonMain/kotlin/com/xebia/functional/openai/models/AssistantToolsFunction.kt
-src/commonMain/kotlin/com/xebia/functional/openai/models/AssistantToolsRetrieval.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/ChatCompletionFunctionCallOption.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/ChatCompletionFunctions.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/ChatCompletionMessageToolCall.kt
@@ -149,7 +145,6 @@ src/commonMain/kotlin/com/xebia/functional/openai/models/RunObject.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/RunObjectLastError.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/RunObjectRequiredAction.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/RunObjectRequiredActionSubmitToolOutputs.kt
-src/commonMain/kotlin/com/xebia/functional/openai/models/RunStepDetailsMessageCreationObject.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/RunStepDetailsMessageCreationObjectMessageCreation.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/RunStepDetailsToolCallsCodeObject.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/RunStepDetailsToolCallsCodeObjectCodeInterpreter.kt
@@ -159,12 +154,10 @@ src/commonMain/kotlin/com/xebia/functional/openai/models/RunStepDetailsToolCalls
 src/commonMain/kotlin/com/xebia/functional/openai/models/RunStepDetailsToolCallsCodeOutputLogsObject.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/RunStepDetailsToolCallsFunctionObject.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/RunStepDetailsToolCallsFunctionObjectFunction.kt
-src/commonMain/kotlin/com/xebia/functional/openai/models/RunStepDetailsToolCallsObject.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/RunStepDetailsToolCallsObjectToolCallsInner.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/RunStepDetailsToolCallsRetrievalObject.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/RunStepObject.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/RunStepObjectLastError.kt
-src/commonMain/kotlin/com/xebia/functional/openai/models/RunStepObjectStepDetails.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/RunToolCallObject.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/RunToolCallObjectFunction.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/SubmitToolOutputsRunRequest.kt

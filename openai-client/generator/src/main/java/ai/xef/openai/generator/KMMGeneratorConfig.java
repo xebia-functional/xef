@@ -7,17 +7,38 @@ import org.openapitools.codegen.languages.KotlinClientCodegen;
 import org.openapitools.codegen.model.ModelMap;
 import org.openapitools.codegen.model.ModelsMap;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import static java.util.Map.entry;
 
 public class KMMGeneratorConfig extends KotlinClientCodegen {
+
+    private final Map<String, List<String>> nonRequiredFields = new LinkedHashMap<>();
 
     public KMMGeneratorConfig() {
         super();
         specialCharReplacements.put("-", "_");
         specialCharReplacements.put(".", "_");
         enumPropertyNaming = CodegenConstants.ENUM_PROPERTY_NAMING_TYPE.snake_case;
+        nonRequiredFields.putAll(
+            Map.ofEntries(
+                entry("ListAssistantFilesResponse", List.of("firstId", "lastId")),
+                entry("ListAssistantsResponse", List.of("firstId", "lastId")),
+                entry("ListMessageFilesResponse", List.of("firstId", "lastId")),
+                entry("ListMessagesResponse", List.of("firstId", "lastId")),
+                entry("ListRunsResponse", List.of("firstId", "lastId")),
+                entry("ListRunStepsResponse", List.of("firstId", "lastId")),
+                entry("ListThreadsResponse", List.of("firstId", "lastId")),
+                entry("MessageObject", List.of("metadata")),
+                entry("MessageObjectContentInner", List.of("imageFile", "text")),
+                entry("RunObject", List.of("expiresAt", "requiredAction")),
+                entry("RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInner", List.of("logs", "image")),
+                entry("RunStepDetailsToolCallsFunctionObjectFunction", List.of("output")),
+                entry("RunStepDetailsToolCallsObjectToolCallsInner", List.of("codeInterpreter", "retrieval", "function")),
+                entry("RunStepDetailsToolCallsRetrievalObject", List.of("retrieval")),
+                entry("RunStepObject", List.of("expiredAt", "metadata")),
+                entry("RunStepObjectStepDetails", List.of("messageCreation", "toolCalls"))
+            )
+        );
     }
 
     private Optional<CodegenProperty> readEnumModel(List<CodegenProperty> all) {
@@ -56,6 +77,13 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
                         .findFirst()
                         .filter(p -> !p.dataType.equals("kotlin.String"))
                         .ifPresent(p -> p.dataType = String.format("ai.xef.openai.OpenAIModel<%s>", p.dataType));
+            } else if (nonRequiredFields.containsKey(cm.classname)) {
+                List<String> fields = nonRequiredFields.getOrDefault(cm.classname, Collections.emptyList());
+                cm
+                        .allVars
+                        .stream()
+                        .filter(p -> fields.contains(p.name))
+                        .forEach(p -> p.setRequired(false));
             }
         }
         return super.postProcessModels(objs);

@@ -3,6 +3,9 @@ package com.xebia.functional.xef.llm.assistants
 import com.xebia.functional.openai.apis.AssistantsApi
 import com.xebia.functional.openai.infrastructure.ApiClient
 import com.xebia.functional.openai.models.*
+import com.xebia.functional.openai.models.ext.assistant.RunStepDetailsMessageCreationObject
+import com.xebia.functional.openai.models.ext.assistant.RunStepDetailsToolCallsObject
+import com.xebia.functional.openai.models.ext.assistant.RunStepObjectStepDetails
 import com.xebia.functional.xef.llm.fromEnvironment
 import kotlin.jvm.JvmName
 import kotlinx.coroutines.flow.Flow
@@ -130,6 +133,13 @@ class AssistantThread(
     }
   }
 
+  private fun RunStepObjectStepDetails.toolCalls():
+    List<RunStepDetailsToolCallsObjectToolCallsInner> =
+    when (this) {
+      is RunStepDetailsMessageCreationObject -> listOf()
+      is RunStepDetailsToolCallsObject -> toolCalls
+    }
+
   private suspend fun FlowCollector<RunDelta>.checkSteps(
     runId: String,
     cache: MutableSet<RunStepObject>
@@ -139,7 +149,7 @@ class AssistantThread(
       if (step !in cache) {
         cache.add(step)
         emit(RunDelta.Step(step))
-        step.stepDetails.toolCalls.forEach { toolCall ->
+        step.stepDetails.toolCalls().forEach { toolCall ->
           val function = toolCall.function
           if (function != null) {
             val result: JsonElement = Tool(function.name, function.arguments)
@@ -182,16 +192,13 @@ class AssistantThread(
                   fileIds = it.fileIds
                 )
               },
-              metadataAsString(metadata)
+              metadata
             )
           )
           .body()
           .id,
         api
       )
-
-    private fun metadataAsString(metadata: JsonObject?): String? =
-      metadata?.let { ApiClient.JSON_DEFAULT.encodeToString(it) }
 
     @JvmName("createWithMessages")
     suspend operator fun invoke(
@@ -206,7 +213,7 @@ class AssistantThread(
               messages.map {
                 CreateMessageRequest(role = CreateMessageRequest.Role.user, content = it)
               },
-              metadataAsString(metadata)
+              metadata
             )
           )
           .body()
@@ -220,10 +227,7 @@ class AssistantThread(
       metadata: JsonObject? = null,
       api: AssistantsApi = fromEnvironment(::AssistantsApi)
     ): AssistantThread =
-      AssistantThread(
-        api.createThread(CreateThreadRequest(messages, metadataAsString(metadata))).body().id,
-        api
-      )
+      AssistantThread(api.createThread(CreateThreadRequest(messages, metadata)).body().id, api)
 
     suspend operator fun invoke(
       request: CreateThreadRequest,

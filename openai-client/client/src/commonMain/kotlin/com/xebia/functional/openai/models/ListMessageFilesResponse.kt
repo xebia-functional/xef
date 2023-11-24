@@ -21,7 +21,7 @@ import kotlinx.serialization.encoding.*
 data class ListMessageFilesResponse(
   @SerialName(value = "object") @Required val `object`: kotlin.String,
   @SerialName(value = "data") @Required val `data`: kotlin.collections.List<MessageFileObject>,
-  @SerialName(value = "first_id") @Required val firstId: kotlin.String? = null,
-  @SerialName(value = "last_id") @Required val lastId: kotlin.String? = null,
+  @SerialName(value = "first_id") val firstId: kotlin.String? = null,
+  @SerialName(value = "last_id") val lastId: kotlin.String? = null,
   @SerialName(value = "has_more") @Required val hasMore: kotlin.Boolean
 )
