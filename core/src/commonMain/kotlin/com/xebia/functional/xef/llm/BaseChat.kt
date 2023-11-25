@@ -17,9 +17,9 @@ interface BaseChat : LLM {
           "accessing maxContextLength requires model's context length to be of type MaxIoContextLength.Combined"
         )
 
-  @Suppress("OVERRIDE_DEPRECATION") fun countTokens(text: String): Int
+  fun countTokens(text: String): Int
 
-  @Suppress("OVERRIDE_DEPRECATION") fun truncateText(text: String, maxTokens: Int): String
+  fun truncateText(text: String, maxTokens: Int): String
 
-  @Suppress("OVERRIDE_DEPRECATION") fun tokensFromMessages(messages: List<Message>): Int
+  fun tokensFromMessages(messages: List<Message>): Int
 }

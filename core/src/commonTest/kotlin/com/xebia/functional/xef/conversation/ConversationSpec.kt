@@ -63,7 +63,7 @@ class ConversationSpec :
         )
       val vectorStore = scope.store
 
-      val modelAda = TestModel(responses = messages)
+      val modelAda = TestModel(responses = messages, contextLength = MaxIoContextLength.Combined(2049))
 
       val totalTokens =
         modelAda.tokensFromMessages(
