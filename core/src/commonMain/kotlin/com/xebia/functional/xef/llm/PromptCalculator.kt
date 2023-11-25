@@ -8,6 +8,8 @@ import com.xebia.functional.xef.llm.models.chat.Message
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.assistant
 import com.xebia.functional.xef.store.Memory
+import kotlin.math.floor
+import kotlin.math.roundToInt
 
 internal object PromptCalculator {
 
@@ -97,13 +99,13 @@ internal object PromptCalculator {
 
   private fun calculateMaxContextTokens(prompt: Prompt, remainingTokensForContexts: Int): Int {
     val contextPercent = prompt.configuration.messagePolicy.contextPercent
-    val maxContextTokens = (remainingTokensForContexts * contextPercent) / 100
+    val maxContextTokens = floor(remainingTokensForContexts * (contextPercent / 100f)).roundToInt()
     return maxContextTokens
   }
 
   private fun calculateMaxHistoryTokens(prompt: Prompt, remainingTokensForContexts: Int): Int {
     val historyPercent = prompt.configuration.messagePolicy.historyPercent
-    val maxHistoryTokens = (remainingTokensForContexts * historyPercent) / 100
+    val maxHistoryTokens = floor(remainingTokensForContexts * (historyPercent / 100f)).roundToInt()
     return maxHistoryTokens
   }
 
