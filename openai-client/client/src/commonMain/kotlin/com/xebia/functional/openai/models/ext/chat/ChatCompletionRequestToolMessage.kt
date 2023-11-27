@@ -20,8 +20,10 @@ data class ChatCompletionRequestToolMessage(
   @SerialName(value = "tool_call_id") @Required val toolCallId: String,
 
   /* The role of the messages author, in this case `tool`. */
-  @SerialName(value = "role") @Required val role: Role = Role.tool
+  @SerialName(value = "role") @Required val role: Role
 ) : ChatCompletionRequestMessage {
+
+  constructor(content: String? = null, toolCallId: String) : this(content, toolCallId, Role.tool)
 
   /**
    * The role of the messages author, in this case `tool`.

@@ -16,8 +16,10 @@ data class ChatCompletionRequestSystemMessage(
   @SerialName(value = "content") @Required val content: String?,
 
   /* The role of the messages author, in this case `system`. */
-  @SerialName(value = "role") @Required val role: Role = Role.system
+  @SerialName(value = "role") @Required val role: Role
 ) : ChatCompletionRequestMessage {
+
+  constructor(content: String?) : this(content, Role.system)
 
   /**
    * The role of the messages author, in this case `system`.

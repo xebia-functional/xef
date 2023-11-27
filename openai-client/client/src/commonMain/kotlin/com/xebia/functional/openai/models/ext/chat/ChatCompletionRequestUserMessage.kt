@@ -16,8 +16,10 @@ data class ChatCompletionRequestUserMessage(
   val content: List<ChatCompletionRequestUserMessageContent>,
 
   /* The role of the messages author, in this case `user`. */
-  @SerialName(value = "role") @Required val role: Role = Role.user
+  @SerialName(value = "role") @Required val role: Role
 ) : ChatCompletionRequestMessage {
+
+  constructor(content: List<ChatCompletionRequestUserMessageContent>) : this(content, Role.user)
 
   /**
    * The role of the messages author, in this case `user`.
