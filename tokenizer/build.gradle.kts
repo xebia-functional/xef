@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
-    alias(libs.plugins.kotest.multiplatform)
     alias(libs.plugins.spotless)
     alias(libs.plugins.arrow.gradle.publish)
     alias(libs.plugins.semver.gradle)
@@ -41,12 +40,10 @@ kotlin {
             dependencies {
                 implementation(kotlin("test"))
                 implementation(libs.kotest.property)
-                implementation(libs.kotest.framework)
                 implementation(libs.kotest.assertions)
                 implementation("com.goncalossilva:resources:0.3.2")
             }
         }
-        val jvmTest by getting { dependencies { implementation(libs.kotest.junit5) } }
         js {
             nodejs { testTask { useMocha { timeout = "10000" } } }
             browser { testTask { useMocha { timeout = "10000" } } }
