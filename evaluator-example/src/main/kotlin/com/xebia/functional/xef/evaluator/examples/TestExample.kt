@@ -1,14 +1,13 @@
-package com.xebia.functional.xef.evaluator.examples
+package com.xebia.funcional.xef.evaluator.examples
 
 import arrow.continuations.SuspendApp
+import arrow.core.Either
+import arrow.core.NonEmptyList
+import com.xebia.funcional.xef.evaluator.models.SuiteSpec
+import com.xebia.funcional.xef.evaluator.models.errors.ValidationError
+import com.xebia.funcional.xef.evaluator.models.toJsonFile
 import com.xebia.functional.xef.conversation.llm.openai.OpenAI
 import com.xebia.functional.xef.conversation.llm.openai.promptMessage
-import com.xebia.functional.xef.evaluator.TestSpecItem
-import com.xebia.functional.xef.evaluator.TestsSpec
-import com.xebia.functional.xef.evaluator.models.ContextDescription
-import com.xebia.functional.xef.evaluator.models.OutputDescription
-import com.xebia.functional.xef.evaluator.models.OutputResponse
-import java.io.File
 
 object TestExample {
 
@@ -16,31 +15,22 @@ object TestExample {
   fun main(args: Array<String>) = SuspendApp {
     val output: String = args.getOrNull(0) ?: "."
 
-    val file = File("$output/data.json")
+    SuiteSpec(description = "Check GTP3.5 and fake outputs") {
+      outputDescription { "Using GPT3.5" }
+      outputDescription { "Fake outputs with errors" }
 
-    val spec =
-      TestsSpec(description = "Check GTP3.5 and fake outputs") {
-        +OutputDescription("Using GPT3.5")
-        +OutputDescription("Fake outputs with errors")
-
-        +TestSpecItem("Please provide a movie title, genre and director") {
-          +ContextDescription("Contains information about a movie")
-
-          +OutputResponse { OpenAI.conversation { promptMessage(input) } }
-
-          +OutputResponse("I don't know")
-        }
-
-        +TestSpecItem("Recipe for a chocolate cake") {
-          +ContextDescription("Contains instructions for making a cake")
-
-          +OutputResponse { OpenAI.conversation { promptMessage(input) } }
-
-          +OutputResponse("The movie is Jurassic Park")
-        }
+      itemSpec("Please provide a movie title, genre and director") {
+        contextDescription { "Contains information about a movie" }
+        outputResponse { OpenAI.conversation { promptMessage(input) } }
+        outputResponse { "I don't know" }
       }
 
-    file.writeText(spec.toJSON())
+      itemSpec("Recipe for a chocolate cake") {
+        contextDescription { "Contains instructions for making a cake" }
+        outputResponse { OpenAI.conversation { promptMessage(input) } }
+        outputResponse { "The movie is Jurassic Park" }
+      }
+    }.toJsonFile(output, "data.json")
 
     println("JSON created successfully")
   }
