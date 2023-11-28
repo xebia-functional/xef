@@ -18,13 +18,21 @@ java {
 dependencies {
     api(libs.kotlinx.serialization.json)
     detektPlugins(project(":detekt-rules"))
+
+    implementation(libs.arrow.core)
+
+    testImplementation(libs.kotest.junit5)
+    testImplementation(libs.kotest.property)
+    testImplementation(libs.kotest.framework)
+    testImplementation(libs.kotest.assertions)
+    testImplementation(libs.kotest.assertions.arrow)
 }
 
 detekt {
-    toolVersion = "1.23.1"
-    source.setFrom(files("src/main/kotlin"))
-    config.setFrom("../config/detekt/detekt.yml")
-    autoCorrect = true
+  toolVersion = "1.23.1"
+  source.setFrom(files("src/main/kotlin"))
+  config.setFrom("../config/detekt/detekt.yml")
+  autoCorrect = true
 }
 
 spotless {
@@ -32,4 +40,8 @@ spotless {
         target("**/*.kt")
         ktfmt().googleStyle().configure { it.setRemoveUnusedImport(true) }
     }
+}
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
 }
