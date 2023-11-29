@@ -10,176 +10,186 @@ import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.arbitrary.next
 
-class SuiteBuilderSpec : ShouldSpec({
-  should("build a valid SuiteSpec") {
-    SuiteSpec(simpleString.next()) {
-      outputDescription { simpleString.next() }
-      outputDescription { simpleString.next() }
+class SuiteBuilderSpec :
+  ShouldSpec({
+    should("build a valid SuiteSpec") {
+      SuiteSpec(simpleString.next()) {
+          outputDescription { simpleString.next() }
+          outputDescription { simpleString.next() }
 
-      itemSpec(simpleString.next()) {
-        contextDescription { simpleString.next() }
-        outputResponse { simpleString.next() }
-        outputResponse { simpleString.next() }
+          itemSpec(simpleString.next()) {
+            contextDescription { simpleString.next() }
+            outputResponse { simpleString.next() }
+            outputResponse { simpleString.next() }
+          }
+
+          itemSpec(simpleString.next()) {
+            contextDescription { simpleString.next() }
+            outputResponse { simpleString.next() }
+            outputResponse { simpleString.next() }
+          }
+        }
+        .shouldBeRight()
+    }
+
+    context("descriptionValidator") {
+      should("Invalid: with empty description") {
+        val emptyDescription = emptyString.next()
+
+        SuiteSpec(emptyDescription) {
+            outputDescription { simpleString.next() }
+
+            itemSpec(simpleString.next()) {
+              contextDescription { simpleString.next() }
+              outputResponse { simpleString.next() }
+            }
+          }
+          .shouldBeLeft() shouldBe listOf<ValidationError>(EmptySuiteSpecDescription)
+      }
+    }
+
+    context("outputsDescriptionValidator") {
+      should("Invalid: without output description provided") {
+        SuiteSpec(simpleString.next()) {
+            // no output description provided ...
+            itemSpec(simpleString.next()) {
+              contextDescription { simpleString.next() }
+              outputResponse { simpleString.next() }
+              outputResponse { simpleString.next() }
+            }
+          }
+          .shouldBeLeft() shouldBe listOf(OutputsDescriptionNotProvided)
       }
 
-      itemSpec(simpleString.next()) {
-        contextDescription { simpleString.next() }
-        outputResponse { simpleString.next() }
-        outputResponse { simpleString.next() }
+      should("Invalid: with more outputs descriptions that items specs") {
+        SuiteSpec(simpleString.next()) {
+            outputDescription { simpleString.next() }
+            outputDescription { simpleString.next() }
+
+            itemSpec("Please provide a movie title") {
+              contextDescription { simpleString.next() }
+              outputResponse { simpleString.next() }
+              outputResponse { simpleString.next() }
+            }
+          }
+          .shouldBeLeft() shouldBe listOf(MoreOutputsDescriptionThanItemsSpec)
       }
-    }.shouldBeRight()
-  }
 
-  context("descriptionValidator") {
-    should("Invalid: with empty description") {
-      val emptyDescription = emptyString.next()
+      should("Invalid: with less outputs description than items spec") {
+        SuiteSpec(simpleString.next()) {
+            outputDescription { simpleString.next() }
 
-      SuiteSpec(emptyDescription) {
-        outputDescription { simpleString.next() }
+            itemSpec(simpleString.next()) {
+              contextDescription { simpleString.next() }
+              outputResponse { simpleString.next() }
+              outputResponse { simpleString.next() }
+            }
 
-        itemSpec(simpleString.next()) {
-          contextDescription { simpleString.next() }
-          outputResponse { simpleString.next() }
-        }
-      }.shouldBeLeft() shouldBe listOf<ValidationError>(EmptySuiteSpecDescription)
-    }
-  }
+            itemSpec(simpleString.next()) {
+              contextDescription { simpleString.next() }
+              outputResponse { simpleString.next() }
+              outputResponse { simpleString.next() }
+            }
+          }
+          .shouldBeLeft() shouldBe listOf(LessOutputsDescriptionThanItemsSpec)
+      }
 
+      should("Invalid: with empty output description at index 0 and 1") {
+        val emptyOutputDescription = emptyString.next()
 
-  context("outputsDescriptionValidator") {
-    should("Invalid: without output description provided") {
-      SuiteSpec(simpleString.next()) {
-        // no output description provided ...
-        itemSpec(simpleString.next()) {
-          contextDescription { simpleString.next() }
-          outputResponse { simpleString.next() }
-          outputResponse { simpleString.next() }
-        }
-      }.shouldBeLeft() shouldBe listOf(OutputsDescriptionNotProvided)
-    }
+        SuiteSpec(simpleString.next()) {
+            outputDescription { emptyOutputDescription }
+            outputDescription { emptyOutputDescription }
+            outputDescription { simpleString.next() }
 
-    should("Invalid: with more outputs descriptions that items specs") {
-      SuiteSpec(simpleString.next()) {
-        outputDescription { simpleString.next() }
-        outputDescription { simpleString.next() }
+            itemSpec(simpleString.next()) {
+              contextDescription { simpleString.next() }
+              outputResponse { simpleString.next() }
+            }
 
-        itemSpec("Please provide a movie title") {
-          contextDescription { simpleString.next() }
-          outputResponse { simpleString.next() }
-          outputResponse { simpleString.next() }
-        }
-      }.shouldBeLeft() shouldBe listOf(MoreOutputsDescriptionThanItemsSpec)
-    }
+            itemSpec(simpleString.next()) {
+              contextDescription { simpleString.next() }
+              outputResponse { simpleString.next() }
+            }
 
-    should("Invalid: with less outputs description than items spec") {
-      SuiteSpec(simpleString.next()) {
-        outputDescription { simpleString.next() }
-
-        itemSpec(simpleString.next()) {
-          contextDescription { simpleString.next() }
-          outputResponse { simpleString.next() }
-          outputResponse { simpleString.next() }
-        }
-
-        itemSpec(simpleString.next()) {
-          contextDescription { simpleString.next() }
-          outputResponse { simpleString.next() }
-          outputResponse { simpleString.next() }
-        }
-      }.shouldBeLeft() shouldBe listOf(LessOutputsDescriptionThanItemsSpec)
+            itemSpec(simpleString.next()) {
+              contextDescription { simpleString.next() }
+              outputResponse { simpleString.next() }
+            }
+          }
+          .shouldBeLeft() shouldBe
+          listOf(
+            EmptySuiteSpecOutputDescription(0),
+            EmptySuiteSpecOutputDescription(1),
+            InvalidNumberOfItemSpecOutputResponse(0),
+            InvalidNumberOfItemSpecOutputResponse(1),
+            InvalidNumberOfItemSpecOutputResponse(2)
+          )
+      }
     }
 
-    should("Invalid: with empty output description at index 0 and 1") {
-      val emptyOutputDescription = emptyString.next()
+    context("itemsValidator") {
+      should("Invalid: One ItemSpec without one outputResponse") {
+        SuiteSpec(simpleString.next()) {
+            outputDescription { simpleString.next() }
+            outputDescription { simpleString.next() }
 
-      SuiteSpec(simpleString.next()) {
-        outputDescription { emptyOutputDescription }
-        outputDescription { emptyOutputDescription }
-        outputDescription { simpleString.next() }
+            itemSpec(simpleString.next()) {
+              contextDescription { simpleString.next() }
+              outputResponse { simpleString.next() }
+            }
 
-        itemSpec(simpleString.next()) {
-          contextDescription { simpleString.next() }
-          outputResponse { simpleString.next() }
-        }
+            itemSpec(simpleString.next()) {
+              contextDescription { simpleString.next() }
+              outputResponse { simpleString.next() }
+              outputResponse { simpleString.next() }
+            }
+          }
+          .shouldBeLeft() shouldBe listOf<ValidationError>(InvalidNumberOfItemSpecOutputResponse(0))
+      }
 
-        itemSpec(simpleString.next()) {
-          contextDescription { simpleString.next() }
-          outputResponse { simpleString.next() }
-        }
+      should("Invalid: SuiteSpec with two ItemsSpec without one outputResponse") {
+        SuiteSpec(simpleString.next()) {
+            outputDescription { simpleString.next() }
+            outputDescription { simpleString.next() }
 
-        itemSpec(simpleString.next()) {
-          contextDescription { simpleString.next() }
-          outputResponse { simpleString.next() }
-        }
-      }.shouldBeLeft() shouldBe listOf(
-        EmptySuiteSpecOutputDescription(0),
-        EmptySuiteSpecOutputDescription(1),
-        InvalidNumberOfItemSpecOutputResponse(0),
-        InvalidNumberOfItemSpecOutputResponse(1),
-        InvalidNumberOfItemSpecOutputResponse(2)
-      )
+            itemSpec(simpleString.next()) {
+              contextDescription { simpleString.next() }
+              outputResponse { simpleString.next() }
+            }
+
+            itemSpec(simpleString.next()) {
+              contextDescription { simpleString.next() }
+              outputResponse { simpleString.next() }
+            }
+          }
+          .shouldBeLeft() shouldBe
+          listOf<ValidationError>(
+            InvalidNumberOfItemSpecOutputResponse(0),
+            InvalidNumberOfItemSpecOutputResponse(1),
+          )
+      }
+
+      should("Invalid: SuiteSpec with one itemSpec with an empty outputResponse") {
+        val emptyOutputResponse = emptyString.next()
+
+        SuiteSpec(simpleString.next()) {
+            outputDescription { simpleString.next() }
+            outputDescription { simpleString.next() }
+
+            itemSpec(simpleString.next()) {
+              contextDescription { simpleString.next() }
+              outputResponse { simpleString.next() }
+              outputResponse { simpleString.next() }
+            }
+
+            itemSpec(simpleString.next()) {
+              contextDescription { simpleString.next() }
+              outputResponse { simpleString.next() }
+              outputResponse { emptyOutputResponse }
+            }
+          }
+          .shouldBeLeft() shouldBe listOf<ValidationError>(EmptyItemSpecOutputResponse(1))
+      }
     }
-  }
-
-
-  context("itemsValidator") {
-    should("Invalid: One ItemSpec without one outputResponse") {
-      SuiteSpec(simpleString.next()) {
-        outputDescription { simpleString.next() }
-        outputDescription { simpleString.next() }
-
-        itemSpec(simpleString.next()) {
-          contextDescription { simpleString.next() }
-          outputResponse { simpleString.next() }
-        }
-
-        itemSpec(simpleString.next()) {
-          contextDescription { simpleString.next() }
-          outputResponse { simpleString.next() }
-          outputResponse { simpleString.next() }
-        }
-      }.shouldBeLeft() shouldBe listOf<ValidationError>(InvalidNumberOfItemSpecOutputResponse(0))
-    }
-
-    should("Invalid: SuiteSpec with two ItemsSpec without one outputResponse") {
-      SuiteSpec(simpleString.next()) {
-        outputDescription { simpleString.next() }
-        outputDescription { simpleString.next() }
-
-        itemSpec(simpleString.next()) {
-          contextDescription { simpleString.next() }
-          outputResponse { simpleString.next() }
-        }
-
-        itemSpec(simpleString.next()) {
-          contextDescription { simpleString.next() }
-          outputResponse { simpleString.next() }
-        }
-      }.shouldBeLeft() shouldBe listOf<ValidationError>(
-        InvalidNumberOfItemSpecOutputResponse(0),
-        InvalidNumberOfItemSpecOutputResponse(1),
-      )
-    }
-
-    should("Invalid: SuiteSpec with one itemSpec with an empty outputResponse") {
-      val emptyOutputResponse = emptyString.next()
-
-      SuiteSpec(simpleString.next()) {
-        outputDescription { simpleString.next() }
-        outputDescription { simpleString.next() }
-
-        itemSpec(simpleString.next()) {
-          contextDescription { simpleString.next() }
-          outputResponse { simpleString.next() }
-          outputResponse { simpleString.next() }
-        }
-
-        itemSpec(simpleString.next()) {
-          contextDescription { simpleString.next() }
-          outputResponse { simpleString.next() }
-          outputResponse { emptyOutputResponse }
-        }
-      }.shouldBeLeft() shouldBe listOf<ValidationError>(EmptyItemSpecOutputResponse(1))
-    }
-  }
-})
+  })

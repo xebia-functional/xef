@@ -16,10 +16,11 @@ value class OutputDescription(val value: String) {
 
   companion object {
     @JvmSynthetic
-    suspend operator fun invoke(block: suspend () -> String): Either<EmptyOutputDescription, OutputDescription> =
-      either {
-        ensure(block().isNotBlank()) { EmptyOutputDescription }
-        OutputDescription(block())
-      }
+    suspend operator fun invoke(
+      block: suspend () -> String
+    ): Either<EmptyOutputDescription, OutputDescription> = either {
+      ensure(block().isNotBlank()) { EmptyOutputDescription }
+      OutputDescription(block())
+    }
   }
 }

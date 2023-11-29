@@ -9,11 +9,11 @@ import com.xebia.functional.xef.evaluator.models.errors.EmptyOutputResponse
 value class OutputResponse(val value: String) {
   companion object {
     @JvmSynthetic
-    suspend operator fun invoke(block: suspend () -> String)
-    : Either<EmptyOutputResponse, OutputResponse> =
-      either {
-        ensure(block().isNotBlank()) { EmptyOutputResponse }
-        OutputResponse(block())
-      }
+    suspend operator fun invoke(
+      block: suspend () -> String
+    ): Either<EmptyOutputResponse, OutputResponse> = either {
+      ensure(block().isNotBlank()) { EmptyOutputResponse }
+      OutputResponse(block())
+    }
   }
 }

@@ -9,10 +9,11 @@ import com.xebia.functional.xef.evaluator.models.errors.EmptyContextDescription
 value class ContextDescription(val value: String) {
   companion object {
     @JvmSynthetic
-    suspend operator fun invoke(block: suspend () -> String): Either<EmptyContextDescription, ContextDescription> =
-      either {
-        ensure(block().isNotBlank()) { EmptyContextDescription }
-        ContextDescription(block())
-      }
+    suspend operator fun invoke(
+      block: suspend () -> String
+    ): Either<EmptyContextDescription, ContextDescription> = either {
+      ensure(block().isNotBlank()) { EmptyContextDescription }
+      ContextDescription(block())
+    }
   }
 }
