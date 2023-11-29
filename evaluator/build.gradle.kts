@@ -26,6 +26,7 @@ dependencies {
     testImplementation(libs.kotest.framework)
     testImplementation(libs.kotest.assertions)
     testImplementation(libs.kotest.assertions.arrow)
+    testImplementation(libs.kotest.assertions.json)
 }
 
 detekt {

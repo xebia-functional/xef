@@ -1,4 +1,4 @@
-package com.xebia.funcional.xef.evaluator
+package com.xebia.functional.xef.evaluator
 
 import arrow.core.Either
 import arrow.core.EitherNel
@@ -6,11 +6,11 @@ import arrow.core.recover
 import arrow.core.raise.either
 import arrow.core.raise.ensure
 import arrow.core.raise.zipOrAccumulate
-import com.xebia.funcional.xef.evaluator.models.ContextDescription
-import com.xebia.funcional.xef.evaluator.models.OutputResponse
-import com.xebia.funcional.xef.evaluator.models.ItemSpec
-import com.xebia.funcional.xef.evaluator.models.errors.EmptyItemSpecInput
-import com.xebia.funcional.xef.evaluator.models.errors.ValidationError
+import com.xebia.functional.xef.evaluator.models.ContextDescription
+import com.xebia.functional.xef.evaluator.models.OutputResponse
+import com.xebia.functional.xef.evaluator.models.ItemSpec
+import com.xebia.functional.xef.evaluator.models.errors.EmptyItemSpecInput
+import com.xebia.functional.xef.evaluator.models.errors.ValidationError
 
 class ItemSpecBuilder(val input: String) {
   private val contexts = mutableListOf<Either<ValidationError, ContextDescription>>()

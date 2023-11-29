@@ -1,11 +1,11 @@
 package com.xebia.functional.xef.evaluator
 
 import arrow.core.raise.either
-import com.xebia.funcional.xef.evaluator.models.ItemSpec
-import com.xebia.funcional.xef.evaluator.models.errors.EmptyContextDescription
-import com.xebia.funcional.xef.evaluator.models.errors.EmptyOutputResponse
-import com.xebia.funcional.xef.evaluator.models.errors.EmptyItemSpecInput
-import com.xebia.funcional.xef.evaluator.models.errors.ValidationError
+import com.xebia.functional.xef.evaluator.models.ItemSpec
+import com.xebia.functional.xef.evaluator.models.errors.EmptyContextDescription
+import com.xebia.functional.xef.evaluator.models.errors.EmptyOutputResponse
+import com.xebia.functional.xef.evaluator.models.errors.EmptyItemSpecInput
+import com.xebia.functional.xef.evaluator.models.errors.ValidationError
 import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.collections.shouldContainAll

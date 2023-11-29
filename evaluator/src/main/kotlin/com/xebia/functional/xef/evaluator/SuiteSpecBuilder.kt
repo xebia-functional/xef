@@ -1,4 +1,4 @@
-package com.xebia.funcional.xef.evaluator
+package com.xebia.functional.xef.evaluator
 
 import arrow.core.Either
 import arrow.core.EitherNel
@@ -7,11 +7,11 @@ import arrow.core.raise.either
 import arrow.core.raise.zipOrAccumulate
 import arrow.core.raise.RaiseAccumulate
 import arrow.core.raise.ensure
-import com.xebia.funcional.xef.evaluator.models.Metric
-import com.xebia.funcional.xef.evaluator.models.OutputDescription
-import com.xebia.funcional.xef.evaluator.models.ItemSpec
-import com.xebia.funcional.xef.evaluator.models.SuiteSpec
-import com.xebia.funcional.xef.evaluator.models.errors.*
+import com.xebia.functional.xef.evaluator.models.Metric
+import com.xebia.functional.xef.evaluator.models.OutputDescription
+import com.xebia.functional.xef.evaluator.models.ItemSpec
+import com.xebia.functional.xef.evaluator.models.SuiteSpec
+import com.xebia.functional.xef.evaluator.models.errors.*
 
 class SuiteSpecBuilder(private val description: String, private val metric: Metric) {
   private var minimumScore: Double = 0.7

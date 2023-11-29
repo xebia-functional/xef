@@ -1,8 +1,8 @@
-package com.xebia.funcional.xef.evaluator.models
+package com.xebia.functional.xef.evaluator.models
 
 import arrow.core.EitherNel
-import com.xebia.funcional.xef.evaluator.ItemSpecBuilder
-import com.xebia.funcional.xef.evaluator.models.errors.ValidationError
+import com.xebia.functional.xef.evaluator.ItemSpecBuilder
+import com.xebia.functional.xef.evaluator.models.errors.ValidationError
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 

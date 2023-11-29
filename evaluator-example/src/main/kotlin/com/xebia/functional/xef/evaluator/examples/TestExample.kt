@@ -3,10 +3,8 @@ package com.xebia.functional.xef.evaluator.examples
 import ai.xef.openai.StandardModel
 import arrow.continuations.SuspendApp
 import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
-import arrow.core.Either
-import arrow.core.NonEmptyList
-import com.xebia.funcional.xef.evaluator.models.SuiteSpec
-import com.xebia.funcional.xef.evaluator.models.toJsonFile
+import com.xebia.functional.xef.evaluator.models.SuiteSpec
+import com.xebia.functional.xef.evaluator.EitherOps.toJsonFile
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.user

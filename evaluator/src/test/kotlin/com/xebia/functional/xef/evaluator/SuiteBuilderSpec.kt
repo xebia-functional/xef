@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.evaluator
 
-import com.xebia.funcional.xef.evaluator.models.SuiteSpec
-import com.xebia.funcional.xef.evaluator.models.errors.*
+import com.xebia.functional.xef.evaluator.models.SuiteSpec
+import com.xebia.functional.xef.evaluator.models.errors.*
 import com.xebia.functional.xef.evaluator.utils.Generators.emptyString
 import com.xebia.functional.xef.evaluator.utils.Generators.simpleString
 import io.kotest.assertions.arrow.core.shouldBeLeft
@@ -66,7 +66,7 @@ class SuiteBuilderSpec : ShouldSpec({
         itemSpec("Please provide a movie title") {
           contextDescription { simpleString.next() }
           outputResponse { simpleString.next() }
-          outputResponse {simpleString.next() }
+          outputResponse { simpleString.next() }
         }
       }.shouldBeLeft() shouldBe listOf(MoreOutputsDescriptionThanItemsSpec)
     }

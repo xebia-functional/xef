@@ -1,4 +1,4 @@
-package com.xebia.funcional.xef.evaluator.models
+package com.xebia.functional.xef.evaluator.models
 
 enum class Metric(val value: String) {
   AnswerRelevancy("AnswerRelevancyMetric"),
