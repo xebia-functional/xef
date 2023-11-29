@@ -1,11 +1,11 @@
 package com.xebia.functional.xef.evaluator
 
-import com.xebia.funcional.xef.evaluator.models.ContextDescription
-import com.xebia.funcional.xef.evaluator.models.OutputDescription
-import com.xebia.funcional.xef.evaluator.models.OutputResponse
-import com.xebia.funcional.xef.evaluator.models.errors.EmptyContextDescription
-import com.xebia.funcional.xef.evaluator.models.errors.EmptyOutputDescription
-import com.xebia.funcional.xef.evaluator.models.errors.EmptyOutputResponse
+import com.xebia.functional.xef.evaluator.models.ContextDescription
+import com.xebia.functional.xef.evaluator.models.OutputDescription
+import com.xebia.functional.xef.evaluator.models.OutputResponse
+import com.xebia.functional.xef.evaluator.models.errors.EmptyContextDescription
+import com.xebia.functional.xef.evaluator.models.errors.EmptyOutputDescription
+import com.xebia.functional.xef.evaluator.models.errors.EmptyOutputResponse
 import com.xebia.functional.xef.evaluator.utils.Generators.simpleString
 import com.xebia.functional.xef.evaluator.utils.Generators.emptyString
 import io.kotest.assertions.arrow.core.shouldBeLeft

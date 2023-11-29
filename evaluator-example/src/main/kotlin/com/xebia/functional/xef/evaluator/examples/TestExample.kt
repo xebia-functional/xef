@@ -1,13 +1,10 @@
-package com.xebia.funcional.xef.evaluator.examples
+package com.xebia.functional.xef.evaluator.examples
 
 import arrow.continuations.SuspendApp
-import arrow.core.Either
-import arrow.core.NonEmptyList
-import com.xebia.funcional.xef.evaluator.models.SuiteSpec
-import com.xebia.funcional.xef.evaluator.models.errors.ValidationError
-import com.xebia.funcional.xef.evaluator.models.toJsonFile
+import com.xebia.functional.xef.evaluator.models.SuiteSpec
 import com.xebia.functional.xef.conversation.llm.openai.OpenAI
 import com.xebia.functional.xef.conversation.llm.openai.promptMessage
+import com.xebia.functional.xef.evaluator.EitherOps.toJsonFile
 
 object TestExample {
 

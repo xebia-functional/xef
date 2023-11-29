@@ -1,8 +1,12 @@
-package com.xebia.funcional.xef.evaluator.models.errors
+package com.xebia.functional.xef.evaluator.models.errors
 
-sealed interface ValidationError
+import kotlinx.serialization.Serializable
 
-sealed class SuiteSpecError(open val message: String) : ValidationError
+sealed interface ValidationError {
+  val message: String
+}
+
+sealed class SuiteSpecError(override val message: String) : ValidationError
 
 data object EmptyOutputDescription : SuiteSpecError(
   "Output description is empty, please provide a description"
