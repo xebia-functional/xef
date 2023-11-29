@@ -1,28 +1,31 @@
 package com.xebia.functional.openai.models.ext.assistant
 
 import com.xebia.functional.openai.models.RunStepDetailsMessageCreationObjectMessageCreation
-import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.map
 import io.kotest.property.arbitrary.uuid
 import io.kotest.property.checkAll
+import kotlin.test.Test
+import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.*
 
-class RunStepObjectStepDetailsSpec :
-  StringSpec({
-    "should serialize properly ToolCalls" {
-      val v: RunStepObjectStepDetails = RunStepDetailsToolCallsObject(listOf())
-      Json.encodeToJsonElement<RunStepObjectStepDetails>(v) shouldBe
-        JsonObject(
-          mapOf(
-            "type" to JsonPrimitive(RunStepDetailsToolCallsObject.Type.tool_calls.value),
-            "tool_calls" to JsonArray(listOf())
-          )
+class RunStepObjectStepDetailsSpec {
+  @Test
+  fun shouldSerializeProperlyToolCalls() {
+    val v: RunStepObjectStepDetails = RunStepDetailsToolCallsObject(listOf())
+    Json.encodeToJsonElement<RunStepObjectStepDetails>(v) shouldBe
+      JsonObject(
+        mapOf(
+          "type" to JsonPrimitive(RunStepDetailsToolCallsObject.Type.tool_calls.value),
+          "tool_calls" to JsonArray(listOf())
         )
-    }
+      )
+  }
 
-    "should serialize properly MessageCreation" {
+  @Test
+  fun shouldSerializeProperlyMessageCreation() {
+    runTest {
       checkAll(Arb.uuid().map { it.toString() }) { id ->
         val v: RunStepObjectStepDetails =
           RunStepDetailsMessageCreationObject(
@@ -38,20 +41,24 @@ class RunStepObjectStepDetailsSpec :
           )
       }
     }
+  }
 
-    "should deserialize properly ToolCalls" {
-      val rawJson =
-        """
+  @Test
+  fun shouldDeserializeProperlyToolCalls() {
+    val rawJson =
+      """
         |{ 
         |  "type": "${RunStepDetailsToolCallsObject.Type.tool_calls.value}", 
         |  "tool_calls": []
         |}"""
-          .trimMargin()
-      Json.decodeFromString<RunStepObjectStepDetails>(rawJson) shouldBe
-        RunStepDetailsToolCallsObject(listOf())
-    }
+        .trimMargin()
+    Json.decodeFromString<RunStepObjectStepDetails>(rawJson) shouldBe
+      RunStepDetailsToolCallsObject(listOf())
+  }
 
-    "should deserialize properly MessageCreation" {
+  @Test
+  fun shouldDeserializeProperlyMessageCreation() {
+    runTest {
       checkAll(Arb.uuid().map { it.toString() }) { id ->
         val rawJson =
           """
@@ -66,4 +73,5 @@ class RunStepObjectStepDetailsSpec :
           )
       }
     }
-  })
+  }
+}

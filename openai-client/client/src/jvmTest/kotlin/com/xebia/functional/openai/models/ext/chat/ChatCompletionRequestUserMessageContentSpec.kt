@@ -2,19 +2,22 @@ package com.xebia.functional.openai.models.ext.chat
 
 import com.xebia.functional.contentImageUrlArb
 import com.xebia.functional.simpleStringArb
-import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.checkAll
+import kotlin.test.Test
+import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.*
 
 @OptIn(ExperimentalSerializationApi::class)
-class ChatCompletionRequestUserMessageContentSpec :
-  StringSpec({
-    val json = Json { explicitNulls = false }
-    val imageType = ChatCompletionRequestUserMessageContentImage.Type.imageUrl.value
-    val textType = ChatCompletionRequestUserMessageContentText.Type.text.value
-    "should serialize properly image" {
+class ChatCompletionRequestUserMessageContentSpec {
+  val json = Json { explicitNulls = false }
+  val imageType = ChatCompletionRequestUserMessageContentImage.Type.imageUrl.value
+  val textType = ChatCompletionRequestUserMessageContentText.Type.text.value
+
+  @Test
+  fun shouldSerializeProperlyImage() {
+    runTest {
       checkAll(contentImageUrlArb) { imageUrl ->
         val v: ChatCompletionRequestUserMessageContent =
           ChatCompletionRequestUserMessageContentImage(imageUrl)
@@ -34,8 +37,11 @@ class ChatCompletionRequestUserMessageContentSpec :
           )
       }
     }
+  }
 
-    "should serialize properly text" {
+  @Test
+  fun shouldSerializeProperlyText() {
+    runTest {
       checkAll(simpleStringArb) { text ->
         val v: ChatCompletionRequestUserMessageContent =
           ChatCompletionRequestUserMessageContentText(text)
@@ -43,8 +49,11 @@ class ChatCompletionRequestUserMessageContentSpec :
           JsonObject(mapOf("type" to JsonPrimitive(textType), "text" to JsonPrimitive(text)))
       }
     }
+  }
 
-    "should deserialize properly image" {
+  @Test
+  fun shouldDeserializeProperlyImage() {
+    runTest {
       checkAll(contentImageUrlArb) { imageUrl ->
         val imageUrlObject =
           listOfNotNull(
@@ -63,8 +72,11 @@ class ChatCompletionRequestUserMessageContentSpec :
           ChatCompletionRequestUserMessageContentImage(imageUrl)
       }
     }
+  }
 
-    "should deserialize properly text" {
+  @Test
+  fun shouldDeserializeProperlyText() {
+    runTest {
       checkAll(simpleStringArb) { text ->
         val rawJson =
           """
@@ -77,4 +89,5 @@ class ChatCompletionRequestUserMessageContentSpec :
           ChatCompletionRequestUserMessageContentText(text)
       }
     }
-  })
+  }
+}

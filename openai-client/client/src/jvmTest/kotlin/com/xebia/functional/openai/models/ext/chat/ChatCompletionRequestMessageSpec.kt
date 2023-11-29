@@ -9,33 +9,36 @@ import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestSystemMe
 import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestToolMessage
 import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestUserMessage
 import com.xebia.functional.simpleStringArb
-import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.arbitrary.orNull
 import io.kotest.property.checkAll
+import kotlin.test.Test
+import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.*
 
 @OptIn(ExperimentalSerializationApi::class)
-class ChatCompletionRequestMessageSpec :
-  StringSpec({
-    val json = Json { explicitNulls = false }
-    fun toJsonObject(call: ChatCompletionMessageToolCall): JsonObject =
-      JsonObject(
-        mapOf(
-          "id" to JsonPrimitive(call.id),
-          "type" to JsonPrimitive(call.type.value),
-          "function" to
-            JsonObject(
-              mapOf(
-                "name" to JsonPrimitive(call.function.name),
-                "arguments" to JsonPrimitive(call.function.arguments)
-              )
-            )
-        )
-      )
+class ChatCompletionRequestMessageSpec {
+  private val json = Json { explicitNulls = false }
 
-    "should serialize properly assistant" {
+  private fun toJsonObject(call: ChatCompletionMessageToolCall): JsonObject =
+    JsonObject(
+      mapOf(
+        "id" to JsonPrimitive(call.id),
+        "type" to JsonPrimitive(call.type.value),
+        "function" to
+          JsonObject(
+            mapOf(
+              "name" to JsonPrimitive(call.function.name),
+              "arguments" to JsonPrimitive(call.function.arguments)
+            )
+          )
+      )
+    )
+
+  @Test
+  fun shouldSerializeProperlyAssistant() {
+    runTest {
       checkAll(chatCompletionRequestAssistantMessage) { assistant ->
         val v: ChatCompletionRequestMessage = assistant
         json.encodeToJsonElement<ChatCompletionRequestMessage>(v) shouldBe
@@ -51,8 +54,11 @@ class ChatCompletionRequestMessageSpec :
           )
       }
     }
+  }
 
-    "should serialize properly system" {
+  @Test
+  fun shouldSerializeProperlySystem() {
+    runTest {
       checkAll(simpleStringArb.orNull(0.2)) { content ->
         val v: ChatCompletionRequestMessage = ChatCompletionRequestSystemMessage(content)
         json.encodeToJsonElement<ChatCompletionRequestMessage>(v) shouldBe
@@ -65,8 +71,11 @@ class ChatCompletionRequestMessageSpec :
           )
       }
     }
+  }
 
-    "should serialize properly tool" {
+  @Test
+  fun shouldSerializeProperlyTool() {
+    runTest {
       checkAll(chatCompletionRequestToolMessage) { tool ->
         val v: ChatCompletionRequestMessage = tool
         json.encodeToJsonElement<ChatCompletionRequestMessage>(v) shouldBe
@@ -80,22 +89,26 @@ class ChatCompletionRequestMessageSpec :
           )
       }
     }
+  }
 
-    "should serialize properly user" {
-      // content serialization is covered at ChatCompletionRequestUserMessageContentSpec
-      val v: ChatCompletionRequestMessage =
-        ChatCompletionRequestUserMessage(listOf(), ChatCompletionRequestUserMessage.Role.user)
-      json.encodeToJsonElement<ChatCompletionRequestMessage>(v) shouldBe
-        JsonObject(
-          mapOf(
-              "content" to JsonArray(listOf()),
-              "role" to JsonPrimitive(ChatCompletionRequestUserMessage.Role.user.value)
-            )
-            .toMap()
-        )
-    }
+  @Test
+  fun shouldSerializeProperlyUser() {
+    // content serialization is covered at ChatCompletionRequestUserMessageContentSpec
+    val v: ChatCompletionRequestMessage =
+      ChatCompletionRequestUserMessage(listOf(), ChatCompletionRequestUserMessage.Role.user)
+    json.encodeToJsonElement<ChatCompletionRequestMessage>(v) shouldBe
+      JsonObject(
+        mapOf(
+            "content" to JsonArray(listOf()),
+            "role" to JsonPrimitive(ChatCompletionRequestUserMessage.Role.user.value)
+          )
+          .toMap()
+      )
+  }
 
-    "should deserialize properly assistant" {
+  @Test
+  fun shouldDeserializeProperlyAssistant() {
+    runTest {
       checkAll(chatCompletionRequestAssistantMessage) { assistant ->
         val contentOrEmpty = assistant.content?.let { """ "content" : "$it", """ } ?: ""
         fun functionObject(function: ChatCompletionMessageToolCallFunction): String =
@@ -107,18 +120,16 @@ class ChatCompletionRequestMessageSpec :
           """
             .trimMargin()
         val toolCallsObject =
-          assistant.toolCalls
-            ?.map { tool ->
-              """
+          assistant.toolCalls?.joinToString(",", "[", "]") { tool ->
+            """
               | {
               |   "id": "${tool.id}",
               |   "type": "${tool.type.value}",
               |   "function": ${functionObject(tool.function)}
               | }
             """
-                .trimMargin()
-            }
-            ?.joinToString(",", "[", "]")
+              .trimMargin()
+          }
             ?: "[]"
         val rawJson =
           """
@@ -131,8 +142,11 @@ class ChatCompletionRequestMessageSpec :
         json.decodeFromString<ChatCompletionRequestMessage>(rawJson) shouldBe assistant
       }
     }
+  }
 
-    "should deserialize properly system" {
+  @Test
+  fun shouldDeserializeProperlySystem() {
+    runTest {
       checkAll(simpleStringArb.orNull(0.2)) { content ->
         val contentOrEmpty = content?.let { """ "content" : "$it", """ } ?: ""
         val rawJson =
@@ -146,8 +160,11 @@ class ChatCompletionRequestMessageSpec :
           ChatCompletionRequestSystemMessage(content)
       }
     }
+  }
 
-    "should deserialize properly tool" {
+  @Test
+  fun shouldDeserializeProperlyTool() {
+    runTest {
       checkAll(chatCompletionRequestToolMessage) { tool ->
         val contentOrEmpty = tool.content?.let { """ "content" : "$it", """ } ?: ""
         val rawJson =
@@ -161,17 +178,19 @@ class ChatCompletionRequestMessageSpec :
         json.decodeFromString<ChatCompletionRequestMessage>(rawJson) shouldBe tool
       }
     }
+  }
 
-    "should deserialize properly user" {
-      // content serialization is covered at ChatCompletionRequestUserMessageContentSpec
-      val rawJson =
-        """
+  @Test
+  fun shouldDeserializeProperlyUser() {
+    // content serialization is covered at ChatCompletionRequestUserMessageContentSpec
+    val rawJson =
+      """
       |{
       |  "content": [],
       |  "role": ${ChatCompletionRequestUserMessage.Role.user.value}
       |}"""
-          .trimMargin()
-      json.decodeFromString<ChatCompletionRequestMessage>(rawJson) shouldBe
-        ChatCompletionRequestUserMessage(listOf())
-    }
-  })
+        .trimMargin()
+    json.decodeFromString<ChatCompletionRequestMessage>(rawJson) shouldBe
+      ChatCompletionRequestUserMessage(listOf())
+  }
+}

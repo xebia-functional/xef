@@ -71,8 +71,8 @@ kotlin {
         }
         val commonTest by getting {
             dependencies {
+                implementation(kotlin("test"))
                 implementation(libs.kotest.property)
-                implementation(libs.kotest.framework)
                 implementation(libs.kotest.assertions)
             }
         }

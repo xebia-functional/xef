@@ -1,21 +1,24 @@
 package com.xebia.functional.openai.models.ext.assistant
 
 import com.xebia.functional.functionObjectArb
-import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.checkAll
+import kotlin.test.Test
+import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
 
-class AssistantToolsSpec :
-  StringSpec({
-    "should serialize properly code" {
-      val v: AssistantTools = AssistantToolsCode()
-      Json.encodeToJsonElement<AssistantTools>(v) shouldBe
-        JsonObject(mapOf("type" to JsonPrimitive(AssistantToolsCode.Type.code_interpreter.value)))
-    }
+class AssistantToolsSpec {
+  @Test
+  fun shouldSerializeProperlyCode() {
+    val v: AssistantTools = AssistantToolsCode()
+    Json.encodeToJsonElement<AssistantTools>(v) shouldBe
+      JsonObject(mapOf("type" to JsonPrimitive(AssistantToolsCode.Type.code_interpreter.value)))
+  }
 
-    "should serialize properly function" {
+  @Test
+  fun shouldSerializeProperlyFunction() {
+    runTest {
       checkAll(functionObjectArb) { fo ->
         val v: AssistantTools = AssistantToolsFunction(fo)
         val encodedValue = Json.encodeToJsonElement<AssistantTools>(v)
@@ -36,19 +39,24 @@ class AssistantToolsSpec :
           )
       }
     }
+  }
 
-    "should serialize properly retrieval" {
-      val v: AssistantTools = AssistantToolsRetrieval()
-      Json.encodeToJsonElement<AssistantTools>(v) shouldBe
-        JsonObject(mapOf("type" to JsonPrimitive(AssistantToolsRetrieval.Type.retrieval.value)))
-    }
+  @Test
+  fun shouldSerializeProperlyRetrieval() {
+    val v: AssistantTools = AssistantToolsRetrieval()
+    Json.encodeToJsonElement<AssistantTools>(v) shouldBe
+      JsonObject(mapOf("type" to JsonPrimitive(AssistantToolsRetrieval.Type.retrieval.value)))
+  }
 
-    "should deserialize properly code" {
-      val rawJson = """{"type":"${AssistantToolsCode.Type.code_interpreter.value}"}"""
-      Json.decodeFromString<AssistantTools>(rawJson) shouldBe AssistantToolsCode()
-    }
+  @Test
+  fun shouldDeserializeProperlyCode() {
+    val rawJson = """{"type":"${AssistantToolsCode.Type.code_interpreter.value}"}"""
+    Json.decodeFromString<AssistantTools>(rawJson) shouldBe AssistantToolsCode()
+  }
 
-    "should deserialize properly function" {
+  @Test
+  fun shouldDeserializeProperlyFunction() {
+    runTest {
       checkAll(functionObjectArb) { fo ->
         val rawJson =
           """
@@ -61,9 +69,11 @@ class AssistantToolsSpec :
         Json.decodeFromString<AssistantTools>(rawJson) shouldBe AssistantToolsFunction(fo)
       }
     }
+  }
 
-    "should deserialize properly retrieval" {
-      val rawJson = """{"type":"${AssistantToolsRetrieval.Type.retrieval.value}"}"""
-      Json.decodeFromString<AssistantTools>(rawJson) shouldBe AssistantToolsRetrieval()
-    }
-  })
+  @Test
+  fun shouldDeserializeProperlyRetrieval() {
+    val rawJson = """{"type":"${AssistantToolsRetrieval.Type.retrieval.value}"}"""
+    Json.decodeFromString<AssistantTools>(rawJson) shouldBe AssistantToolsRetrieval()
+  }
+}
