@@ -2,8 +2,8 @@
 arrow = "1.2.1"
 arrowGradle = "0.12.0-rc.6"
 exposed = "0.44.1"
-kotlin = "1.9.10"
-kotlinx-json = "1.6.0"
+kotlin = "1.9.20"
+kotlinx-json = "1.6.1"
 kotlinx-datetime = "0.4.1"
 ktor = "2.3.6"
 spotless = "6.22.0"
@@ -12,8 +12,8 @@ kotest = "5.8.0"
 kotest-testcontainers = "2.0.2"
 kotest-arrow = "1.4.0"
 klogging = "5.1.0"
-uuid = "0.0.21"
-postgresql = "42.6.0"
+uuid = "0.0.22"
+postgresql = "42.7.0"
 testcontainers = "1.19.1"
 hikari = "5.0.1"
 dokka = "1.9.10"
@@ -27,7 +27,7 @@ pdfbox = "3.0.0"
 mysql = "8.0.33"
 semverGradle = "0.5.0-rc.5"
 openai-client-version = "3.5.1"
-jackson = "2.15.3"
+jackson = "2.16.0"
 jsonschema = "4.32.0"
 jakarta = "3.0.2"
 suspend-transform = "0.5.1"
@@ -83,7 +83,6 @@ kotest-framework = { module = "io.kotest:kotest-framework-engine", version.ref =
 kotest-property = { module = "io.kotest:kotest-property", version.ref = "kotest" }
 kotest-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
 kotest-testcontainers = { module = "io.kotest.extensions:kotest-extensions-testcontainers", version.ref = "kotest-testcontainers" }
-kotest-assertions-arrow = { module = "io.kotest.extensions:kotest-assertions-arrow", version.ref = "kotest-arrow" }
 ktor-serialization-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
 junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
