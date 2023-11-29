@@ -2,13 +2,13 @@ package com.xebia.functional.xef.evaluator
 
 import arrow.core.Either
 import arrow.core.EitherNel
-import arrow.core.recover
 import arrow.core.raise.either
 import arrow.core.raise.ensure
 import arrow.core.raise.zipOrAccumulate
+import arrow.core.recover
 import com.xebia.functional.xef.evaluator.models.ContextDescription
-import com.xebia.functional.xef.evaluator.models.OutputResponse
 import com.xebia.functional.xef.evaluator.models.ItemSpec
+import com.xebia.functional.xef.evaluator.models.OutputResponse
 import com.xebia.functional.xef.evaluator.models.errors.EmptyItemSpecInput
 import com.xebia.functional.xef.evaluator.models.errors.ValidationError
 
@@ -23,18 +23,22 @@ class ItemSpecBuilder(val input: String) {
     outputs.add(OutputResponse.invoke { block() })
 
   fun build(): EitherNel<ValidationError, ItemSpec> = either {
-      zipOrAccumulate(
-        { ensure(input.isNotBlank()) { EmptyItemSpecInput } },
-        {
-          mapOrAccumulate(contexts.withIndex()) { nameAndIndex ->
+    zipOrAccumulate(
+      { ensure(input.isNotBlank()) { EmptyItemSpecInput } },
+      {
+        mapOrAccumulate(contexts.withIndex()) { nameAndIndex ->
             nameAndIndex.value.recover { error -> raise(error) }.bind()
-          }.map { it.value }
-        },
-        {
-          mapOrAccumulate(outputs.withIndex()) { nameAndIndex ->
+          }
+          .map { it.value }
+      },
+      {
+        mapOrAccumulate(outputs.withIndex()) { nameAndIndex ->
             nameAndIndex.value.recover { error -> raise(error) }.bind()
-          }.map { it.value }
-        }
-      ) { _, contexts, outputs -> ItemSpec(input, contexts, outputs) }
+          }
+          .map { it.value }
+      }
+    ) { _, contexts, outputs ->
+      ItemSpec(input, contexts, outputs)
     }
+  }
 }
