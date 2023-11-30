@@ -1,10 +1,10 @@
 package com.xebia.functional.xef.conversation.conversations
 
+import ai.xef.openai.StandardModel
+import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
+import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.MessagesFromHistory
 import com.xebia.functional.xef.conversation.MessagesToHistory
-import com.xebia.functional.xef.conversation.llm.openai.OpenAI
-import com.xebia.functional.xef.conversation.llm.openai.prompt
-import com.xebia.functional.xef.conversation.llm.openai.promptMessage
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
 import com.xebia.functional.xef.prompt.templates.system
@@ -21,7 +21,7 @@ suspend fun main() {
   // To run the example with OpenTelemetry, you can execute the following commands:
   //  - # docker compose-up server/docker/opentelemetry
 
-  OpenAI.conversation(
+  Conversation(
     // metric = com.xebia.functional.xef.opentelemetry.OpenTelemetryMetric()
     metric = com.xebia.functional.xef.metrics.LogsMetric()
   ) {
@@ -29,16 +29,16 @@ suspend fun main() {
       val configNoneFromConversation = PromptConfiguration {
         messagePolicy { addMessagesFromConversation = MessagesFromHistory.NONE }
       }
-
+      val model = StandardModel(CreateChatCompletionRequestModel.gpt_3_5_turbo_16k_0613)
       val animal: Animal =
         prompt<Animal>(
-          Prompt { +user("A unique animal species.") }
+          Prompt(model) { +user("A unique animal species.") }
             .copy(configuration = configNoneFromConversation)
         )
 
       val invention: Invention =
         prompt(
-          Prompt { +user("A groundbreaking invention from the 20th century.") }
+          Prompt(model) { +user("A groundbreaking invention from the 20th century.") }
             .copy(configuration = configNoneFromConversation)
         )
 
@@ -46,7 +46,7 @@ suspend fun main() {
       println("Invention: $invention")
 
       val storyPrompt =
-        Prompt {
+        Prompt(model) {
             +system("You are a writer for a science fiction magazine.")
             +user("Write a short story of 200 words that involves the animal and the invention")
           }
@@ -61,9 +61,10 @@ suspend fun main() {
 
       println("\nStory 1:\n$story\n")
 
-      val storyPrompt2 = Prompt {
-        +user("Write a short story of 100 words that involves the animal in a city called Cadiz")
-      }
+      val storyPrompt2 =
+        Prompt(model) {
+          +user("Write a short story of 100 words that involves the animal in a city called Cadiz")
+        }
 
       val story2: String = promptMessage(storyPrompt2)
 

@@ -26,5 +26,8 @@ sealed class AIError @JvmOverloads constructor(message: String, cause: Throwable
 
     data class HuggingFace(val errors: NonEmptyList<String>) :
       Env("HuggingFace Environment not found: ${errors.all.joinToString("\n")}")
+
+    data class SerpApi(val errors: NonEmptyList<String>) :
+      Env("SerpApi Environment not found: ${errors.all.joinToString("\n")}")
   }
 }

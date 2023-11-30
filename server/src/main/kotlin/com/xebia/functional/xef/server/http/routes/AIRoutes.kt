@@ -1,10 +1,8 @@
 package com.xebia.functional.xef.server.http.routes
 
-import com.aallam.openai.api.BetaOpenAI
 import com.xebia.functional.xef.server.models.Token
 import com.xebia.functional.xef.server.models.exceptions.XefExceptions
 import io.ktor.client.*
-import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -34,7 +32,6 @@ fun String.toProvider(): Provider? =
     else -> Provider.OPENAI
   }
 
-@OptIn(BetaOpenAI::class)
 fun Routing.aiRoutes(client: HttpClient) {
   val openAiUrl = "https://api.openai.com/v1"
 
@@ -114,9 +111,6 @@ internal fun HeadersBuilder.copyFrom(headers: Headers) =
   headers
     .filter { key, _ -> !conflictingRequestHeaders.any { it.equals(key, true) } }
     .forEach { key, values -> appendMissing(key, values) }
-
-private fun ApplicationCall.getProvider(): Provider =
-  request.headers["xef-provider"]?.toProvider() ?: Provider.OPENAI
 
 fun ApplicationCall.getToken(): Token =
   principal<UserIdPrincipal>()?.name?.let { Token(it) }

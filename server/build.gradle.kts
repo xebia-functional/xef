@@ -48,7 +48,6 @@ dependencies {
     implementation(libs.suspendApp.core)
     implementation(libs.suspendApp.ktor)
     implementation(libs.uuid)
-    implementation(projects.xefOpenai)
     implementation(projects.xefCore)
     implementation(projects.xefLucene)
     implementation(projects.xefPostgresql)

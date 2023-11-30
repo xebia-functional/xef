@@ -1,7 +1,8 @@
 package com.xebia.functional.xef.prompt
 
-import com.xebia.functional.xef.llm.models.chat.Message
-import com.xebia.functional.xef.llm.models.functions.CFunction
+import ai.xef.openai.OpenAIModel
+import com.xebia.functional.openai.models.FunctionObject
+import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage
 import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
 import com.xebia.functional.xef.prompt.templates.user
 import kotlin.jvm.JvmOverloads
@@ -11,24 +12,28 @@ import kotlin.jvm.JvmSynthetic
  * A Prompt is a serializable list of messages and its configuration. The messages may involve
  * different roles.
  */
-data class Prompt
+data class Prompt<T>
 @JvmOverloads
 constructor(
-  val messages: List<Message>,
-  val function: CFunction? = null,
+  val model: OpenAIModel<T>,
+  val messages: List<ChatCompletionRequestMessage>,
+  val function: FunctionObject? = null,
   val configuration: PromptConfiguration = PromptConfiguration.DEFAULTS
 ) {
 
-  constructor(value: String) : this(listOf(user(value)), null)
+  constructor(model: OpenAIModel<T>, value: String) : this(model, listOf(user(value)), null)
 
   constructor(
+    model: OpenAIModel<T>,
     value: String,
     configuration: PromptConfiguration
-  ) : this(listOf(user(value)), null, configuration)
+  ) : this(model, listOf(user(value)), null, configuration)
 
   companion object {
     @JvmSynthetic
-    operator fun invoke(block: PlatformPromptBuilder.() -> Unit): Prompt =
-      PlatformPromptBuilder.create().apply { block() }.build()
+    operator fun <T> invoke(
+      model: OpenAIModel<T>,
+      block: PlatformPromptBuilder<T>.() -> Unit
+    ): Prompt<T> = PlatformPromptBuilder.create(model).apply { block() }.build()
   }
 }

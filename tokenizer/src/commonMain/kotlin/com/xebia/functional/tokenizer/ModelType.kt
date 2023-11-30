@@ -29,22 +29,118 @@ sealed class ModelType(
   open val tokensPerMessage: Int = 0,
   open val tokensPerName: Int = 0,
   open val tokenPadding: Int = 20,
+  open val tokenPaddingSum: Int = 3,
 ) {
 
   companion object {
     @JvmStatic
     val DEFAULT_SPLITTER_MODEL = GPT_3_5_TURBO
+    val functionSpecific: List<ModelType> = listOf(
+      GPT_3_5_TURBO_0613,
+      GPT_3_5_16K_0613_TURBO_FUNCTIONS,
+      GPT_4_32K_0314_FUNCTIONS,
+      GPT_4_0613,
+      GPT_4_32K_0613_FUNCTIONS,
+    )
+    val all: List<ModelType> = listOf(
+      GPT_3_5_TURBO,
+      GPT_3_5_TURBO_0301,
+      GPT_3_5_TURBO_0613,
+      GPT_3_5_TURBO_FUNCTIONS,
+      GPT_3_5_TURBO_16_K,
+      GPT_3_5_TURBO_16_K_1106,
+      GPT_4,
+      GPT_4_0314,
+      GPT_4_0613,
+      GPT_4_32K,
+      GPT_4_32_K_0314,
+      GPT_4_32K_0613_FUNCTIONS,
+      GPT_4_TURBO_1106_PREVIEW,
+      GPT_4_VISION_PREVIEW,
+      TEXT_DAVINCI_003,
+      TEXT_DAVINCI_002,
+      TEXT_DAVINCI_001,
+      TEXT_CURIE_001,
+      TEXT_BABBAGE_001,
+      TEXT_ADA_001,
+      DAVINCI,
+      CURIE,
+      BABBAGE,
+      ADA,
+      CODE_DAVINCI_002,
+      CODE_DAVINCI_001,
+      CODE_CUSHMAN_002,
+      CODE_CUSHMAN_001,
+      DAVINCI_CODEX,
+      CUSHMAN_CODEX,
+      TEXT_DAVINCI_EDIT_001,
+      CODE_DAVINCI_EDIT_001,
+      TEXT_EMBEDDING_ADA_002,
+      TEXT_SIMILARITY_DAVINCI_001,
+      TEXT_SIMILARITY_CURIE_001,
+      TEXT_SIMILARITY_BABBAGE_001,
+      TEXT_SIMILARITY_ADA_001,
+      TEXT_SEARCH_DAVINCI_DOC_001,
+      TEXT_SEARCH_CURIE_DOC_001,
+      TEXT_SEARCH_BABBAGE_DOC_001,
+      TEXT_SEARCH_ADA_DOC_001,
+      CODE_SEARCH_BABBAGE_CODE_001,
+      CODE_SEARCH_ADA_CODE_001,
+    )
   }
 
-  data class LocalModel(override val name: String, override val encodingType: EncodingType, override val maxContextLength: Int) : ModelType(name, encodingType, maxContextLength)
-  // chat
-  object GPT_4 : ModelType("gpt-4", CL100K_BASE, 8192, tokensPerMessage = 3, tokensPerName = 2, tokenPadding = 5)
+  data class LocalModel(
+    override val name: String,
+    override val encodingType: EncodingType,
+    override val maxContextLength: Int
+  ) : ModelType(name, encodingType, maxContextLength)
 
-  object GPT_4_0314 : ModelType("gpt-4-0314", CL100K_BASE, 8192, tokensPerMessage = 3, tokensPerName = 2, tokenPadding = 5)
-  object GPT_4_32K : ModelType("gpt-4-32k", CL100K_BASE, 32768, tokensPerMessage = 3, tokensPerName = 2, tokenPadding = 5)
-  object GPT_3_5_TURBO : ModelType("gpt-3.5-turbo", CL100K_BASE, 4097, tokensPerMessage = 4, tokensPerName = 0, tokenPadding = 5)
-  object GPT_3_5_TURBO_16_K : ModelType("gpt-3.5-turbo-16k", CL100K_BASE, 4097 * 4)
-  object GPT_3_5_TURBO_FUNCTIONS : ModelType("gpt-3.5-turbo-0613", CL100K_BASE, 4097, tokensPerMessage = 4, tokensPerName = 0, tokenPadding = 200)
+  object GPT_3_5_TURBO :
+    ModelType("gpt-3.5-turbo", CL100K_BASE, 4097, tokensPerMessage = 4, tokensPerName = 0, tokenPadding = 5)
+
+  object GPT_3_5_TURBO_0301 :
+    ModelType("gpt-3.5-turbo-0301", CL100K_BASE, 4097, tokensPerMessage = 4, tokensPerName = 0, tokenPadding = 5)
+
+  object GPT_3_5_TURBO_0613 :
+    ModelType("gpt-3.5-turbo-0613", CL100K_BASE, 4097, tokensPerMessage = 3, tokensPerName = 2, tokenPadding = 5)
+
+  object GPT_3_5_TURBO_FUNCTIONS :
+    ModelType("gpt-3.5-turbo-0613", CL100K_BASE, 4097, tokensPerMessage = 4, tokensPerName = 2, tokenPadding = 5)
+
+  object GPT_3_5_TURBO_16_K :
+    ModelType("gpt-3.5-turbo-16k", CL100K_BASE, 16385, tokensPerMessage = 4, tokensPerName = 0, tokenPadding = 5)
+
+  object GPT_3_5_TURBO_16_K_1106 :
+    ModelType("gpt-3.5-turbo-1106", CL100K_BASE, 16385, tokensPerMessage = 4, tokensPerName = 0, tokenPadding = 5)
+
+  object GPT_3_5_16K_0613_TURBO_FUNCTIONS :
+    ModelType("gpt-3.5-turbo-1106", CL100K_BASE, 16385, tokensPerMessage = 4, tokensPerName = 2, tokenPadding = 5)
+
+  object GPT_4 : ModelType("gpt-4", CL100K_BASE, 8192, tokensPerMessage = 3, tokensPerName = 2, tokenPadding = 5)
+  object GPT_4_0314 :
+    ModelType("gpt-4-0314", CL100K_BASE, 8192, tokensPerMessage = 3, tokensPerName = 2, tokenPadding = 5)
+
+  object GPT_4_0613 :
+    ModelType("gpt-4-0613", CL100K_BASE, 8192, tokensPerMessage = 3, tokensPerName = 2, tokenPadding = 5)
+
+  object GPT_4_32K :
+    ModelType("gpt-4-32k", CL100K_BASE, 32768, tokensPerMessage = 3, tokensPerName = 2, tokenPadding = 5)
+
+  object GPT_4_32K_0314_FUNCTIONS :
+    ModelType("gpt-4-32k-0314", CL100K_BASE, 32768, tokensPerMessage = 3, tokensPerName = 2, tokenPadding = 5)
+
+  object GPT_4_32_K_0314 :
+    ModelType("gpt-4-32k-0314", CL100K_BASE, 32768, tokensPerMessage = 3, tokensPerName = 2, tokenPadding = 5)
+
+  object GPT_4_32K_0613_FUNCTIONS :
+    ModelType("gpt-4-32k-0613", CL100K_BASE, 32768, tokensPerMessage = 3, tokensPerName = 2, tokenPadding = 5)
+
+  object GPT_4_TURBO_1106_PREVIEW :
+    ModelType("gpt-4-1106-preview", CL100K_BASE, 128000, tokensPerMessage = 3, tokensPerName = 2, tokenPadding = 5)
+
+  object GPT_4_VISION_PREVIEW :
+    ModelType("gpt-4-vision-preview", CL100K_BASE, 128000, tokensPerMessage = 3, tokensPerName = 2, tokenPadding = 5)
+
   // text
   object TEXT_DAVINCI_003 : ModelType("text-davinci-003", P50K_BASE, 4097)
   object TEXT_DAVINCI_002 : ModelType("text-davinci-002", P50K_BASE, 4097)
@@ -83,6 +179,7 @@ sealed class ModelType(
   object TEXT_SEARCH_ADA_DOC_001 : ModelType("text-search-ada-doc-001", R50K_BASE, 2046)
   object CODE_SEARCH_BABBAGE_CODE_001 : ModelType("code-search-babbage-code-001", R50K_BASE, 2046)
   object CODE_SEARCH_ADA_CODE_001 : ModelType("code-search-ada-code-001", R50K_BASE, 2046)
+
 
   class FineTunedModel(
     name: String,

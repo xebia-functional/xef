@@ -1,11 +1,11 @@
 package com.xebia.functional.xef.llm
 
+import com.xebia.functional.openai.apis.ChatApi
+import com.xebia.functional.openai.models.*
+import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage
+import com.xebia.functional.openai.models.ext.chat.stream.createChatCompletionStream
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.StreamedFunction.Companion.PropertyType.*
-import com.xebia.functional.xef.llm.models.chat.Message
-import com.xebia.functional.xef.llm.models.functions.CFunction
-import com.xebia.functional.xef.llm.models.functions.FunChatCompletionRequest
-import com.xebia.functional.xef.llm.models.functions.FunctionCall
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.templates.assistant
 import kotlin.jvm.JvmSynthetic
@@ -41,16 +41,16 @@ sealed class StreamedFunction<out A> {
      */
     @JvmSynthetic
     internal suspend fun <A> FlowCollector<StreamedFunction<A>>.streamFunctionCall(
-      chat: ChatWithFunctions,
-      prompt: Prompt,
-      request: FunChatCompletionRequest,
+      chat: ChatApi,
+      prompt: Prompt<CreateChatCompletionRequestModel>,
+      request: CreateChatCompletionRequest,
       scope: Conversation,
       serializer: (json: String) -> A,
-      function: CFunction
+      function: FunctionObject
     ) {
-      val messages = mutableListOf<Message>()
+      val messages = mutableListOf<ChatCompletionRequestMessage>()
       // this function call is mutable and will be updated as the stream progresses
-      var functionCall = FunctionCall(null, null)
+      var functionCall = ChatCompletionMessageToolCallFunction("", "")
       // the current property is mutable and will be updated as the stream progresses
       var currentProperty: String? = null
       // we keep track to not emit the same property multiple times
@@ -63,7 +63,7 @@ sealed class StreamedFunction<out A> {
       // as the LLM is sending us chunks with malformed JSON
       val example = createExampleFromSchema(schema)
       chat
-        .createChatCompletionsWithFunctions(request)
+        .createChatCompletionStream(request)
         .onCompletion {
           val newMessages = prompt.messages + messages
           newMessages.addToMemory(
@@ -83,13 +83,17 @@ sealed class StreamedFunction<out A> {
             val delta = responseChunk.choices.first().delta
             // at any point the delta may be the last one
             val finishReason = responseChunk.choices.first().finishReason
-            if (delta?.functionCall != null) {
-              if (delta.functionCall.name != null)
+            val toolCalls = delta.toolCalls.orEmpty()
+            toolCalls.forEach { toolCall ->
+              val fn = toolCall.function
+              val functionName = fn?.name
+              val arguments = fn?.arguments.orEmpty()
+              if (functionName != null)
               // update the function name with the latest one
-              functionCall = functionCall.copy(name = delta.functionCall.name)
-              if (delta.functionCall.arguments != null) {
+              functionCall = functionCall.copy(name = functionName)
+              if (arguments.isNotEmpty()) {
                 // update the function arguments with the latest ones
-                functionCall = mergeArgumentsWithDelta(functionCall, delta.functionCall)
+                functionCall = mergeArgumentsWithDelta(functionCall, toolCall)
                 // once we have info about the args we detect the last property referenced
                 // while streaming the arguments for the function call
                 val currentArg = getLastReferencedPropertyInArguments(functionCall)
@@ -103,23 +107,23 @@ sealed class StreamedFunction<out A> {
                 // update the current property being evaluated
                 currentProperty = currentArg
               }
-            }
-            if (finishReason != null) {
-              // the stream is finished and we try to stream the last property
-              // because the previous chunk may had a partial property whose body
-              // may had not been fully streamed
-              streamProperty(path, currentProperty, functionCall.arguments, streamedProperties)
+              if (finishReason != null) {
+                // the stream is finished and we try to stream the last property
+                // because the previous chunk may had a partial property whose body
+                // may had not been fully streamed
+                streamProperty(path, currentProperty, functionCall.arguments, streamedProperties)
 
-              // we stream the result
-              streamResult(functionCall, messages, serializer)
+                // we stream the result
+                streamResult(functionCall, messages, serializer)
+              }
             }
           }
         }
     }
 
     private suspend fun <A> FlowCollector<StreamedFunction<A>>.streamResult(
-      functionCall: FunctionCall,
-      messages: MutableList<Message>,
+      functionCall: ChatCompletionMessageToolCallFunction,
+      messages: MutableList<ChatCompletionRequestMessage>,
       serializer: (json: String) -> A
     ) {
       val arguments = functionCall.arguments ?: error("No arguments provided for function call")
@@ -280,12 +284,14 @@ sealed class StreamedFunction<out A> {
     }
 
     private fun mergeArgumentsWithDelta(
-      functionCall: FunctionCall,
-      functionCall0: FunctionCall
-    ): FunctionCall =
-      functionCall.copy(arguments = (functionCall.arguments ?: "") + (functionCall0.arguments))
+      functionCall: ChatCompletionMessageToolCallFunction,
+      functionCall0: ChatCompletionMessageToolCallChunk
+    ): ChatCompletionMessageToolCallFunction =
+      functionCall.copy(arguments = functionCall.arguments + (functionCall0.function?.arguments))
 
-    private fun getLastReferencedPropertyInArguments(functionCall: FunctionCall): String? =
+    private fun getLastReferencedPropertyInArguments(
+      functionCall: ChatCompletionMessageToolCallFunction
+    ): String? =
       """"(.*?)":"""
         .toRegex()
         .findAll(functionCall.arguments!!)

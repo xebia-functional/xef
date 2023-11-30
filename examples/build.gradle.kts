@@ -16,12 +16,10 @@ java {
 
 dependencies {
     implementation(projects.xefCore)
-    implementation(projects.xefOpenai)
     implementation(projects.xefFilesystem)
     implementation(projects.xefPdf)
     implementation(projects.xefSql)
     implementation(projects.xefTokenizer)
-    implementation(projects.xefGcp)
     implementation(projects.xefReasoning)
     implementation(projects.xefOpentelemetry)
     implementation(projects.xefMlflow)
@@ -31,6 +29,7 @@ dependencies {
     implementation(libs.klogging)
     implementation(libs.bundles.arrow)
     implementation(libs.okio)
+    implementation(libs.progressbar)
     implementation(libs.jdbc.mysql.connector)
     api(libs.ktor.client)
 }

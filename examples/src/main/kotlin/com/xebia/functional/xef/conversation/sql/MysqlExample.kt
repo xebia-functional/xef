@@ -1,7 +1,11 @@
 package com.xebia.functional.xef.conversation.sql
 
+import ai.xef.openai.StandardModel
 import arrow.continuations.SuspendApp
-import com.xebia.functional.xef.conversation.llm.openai.OpenAI
+import com.xebia.functional.openai.apis.ChatApi
+import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
+import com.xebia.functional.xef.conversation.Conversation
+import com.xebia.functional.xef.llm.fromEnvironment
 import com.xebia.functional.xef.sql.SQL
 import com.xebia.functional.xef.sql.jdbc.JdbcConfig
 
@@ -14,7 +18,8 @@ object MysqlExample {
       password = "toor",
       port = 3307,
       database = "example_db",
-      model = OpenAI.fromEnvironment().DEFAULT_SERIALIZATION
+      chatApi = fromEnvironment(::ChatApi),
+      model = StandardModel(CreateChatCompletionRequestModel.gpt_3_5_turbo_16k_0613)
     )
 
   private val context =
@@ -78,7 +83,7 @@ object MysqlExample {
 
   @JvmStatic
   fun main(args: Array<String>) = SuspendApp {
-    OpenAI.conversation {
+    Conversation {
       SQL.fromJdbcConfig(mysqlConfig) {
         println(promptQuery("How many tables I have?", listOf(), context))
         println(promptQuery("What kind of questions I can ask you?", listOf(), context))

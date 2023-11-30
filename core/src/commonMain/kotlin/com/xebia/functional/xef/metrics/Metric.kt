@@ -5,7 +5,7 @@ import com.xebia.functional.xef.prompt.Prompt
 interface Metric {
   suspend fun <A> customSpan(name: String, block: suspend Metric.() -> A): A
 
-  suspend fun <A> promptSpan(prompt: Prompt, block: suspend Metric.() -> A): A
+  suspend fun <A, T> promptSpan(prompt: Prompt<T>, block: suspend Metric.() -> A): A
 
   fun event(message: String)
 
@@ -17,8 +17,10 @@ interface Metric {
         override suspend fun <A> customSpan(name: String, block: suspend Metric.() -> A): A =
           block()
 
-        override suspend fun <A> promptSpan(prompt: Prompt, block: suspend Metric.() -> A): A =
-          block()
+        override suspend fun <A, T> promptSpan(
+          prompt: Prompt<T>,
+          block: suspend Metric.() -> A
+        ): A = block()
 
         override fun event(message: String) {}
 
