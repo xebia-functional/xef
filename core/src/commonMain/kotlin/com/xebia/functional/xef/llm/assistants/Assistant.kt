@@ -22,16 +22,6 @@ class Assistant(
     api: AssistantApi = fromEnvironment(::AssistantApi)
   ) : this(assistantObject.id, assistantsApi, api)
 
-  //  suspend fun createFile(
-  //    fileId: String
-  //  ): File =
-  //    File(
-  //      assistantsApi.createAssistantFile(assistantId,
-  // CreateAssistantFileRequest(fileId)).body().id,
-  //      assistantsApi,
-  //      api
-  //    )
-
   suspend fun get(): AssistantObject = assistantsApi.getAssistant(assistantId).body()
 
   suspend fun modify(modifyAssistantRequest: ModifyAssistantRequest): Assistant =

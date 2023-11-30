@@ -45,8 +45,7 @@ class PGVectorStoreSpec :
         embeddings = TestEmbeddings(coroutineContext),
         collectionName = "test_collection",
         distanceStrategy = PGDistanceStrategy.Euclidean,
-        preDeleteCollection = false,
-        chunkSize = null
+        preDeleteCollection = false
       )
 
     beforeContainer {
@@ -57,8 +56,7 @@ class PGVectorStoreSpec :
         embeddings = TestEmbeddings(coroutineContext),
         collectionName = "test_collection",
         distanceStrategy = PGDistanceStrategy.Euclidean,
-        preDeleteCollection = false,
-        chunkSize = null
+        preDeleteCollection = false
       )
       postgresVector.initialDbSetup()
       postgresVector.createCollection()

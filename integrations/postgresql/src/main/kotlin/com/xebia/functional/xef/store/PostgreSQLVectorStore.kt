@@ -21,7 +21,7 @@ class PGVectorStore(
   private val collectionName: String,
   private val distanceStrategy: PGDistanceStrategy,
   private val preDeleteCollection: Boolean,
-  private val chunkSize: Int?
+  private val chunkSize: Int = 400
 ) : VectorStore {
 
   override val indexValue: AtomicInt = AtomicInt(0)

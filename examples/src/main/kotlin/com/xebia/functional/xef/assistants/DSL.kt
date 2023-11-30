@@ -38,7 +38,7 @@ suspend fun main() {
   //    model = "gpt-4-1106-preview"
   //  )
   // println("generated assistant: ${assistant2.assistantId}")
-  val assistant = Assistant(assistantId = "asst_UxczzpJkysC0l424ood87DAk")
+  val assistant = Assistant(assistantId = "asst_mYw6e4wddJvRcjdQQ2qcWFsn")
   val thread = AssistantThread()
   println("Welcome to the Math tutor, ask me anything about math:")
   while (true) {

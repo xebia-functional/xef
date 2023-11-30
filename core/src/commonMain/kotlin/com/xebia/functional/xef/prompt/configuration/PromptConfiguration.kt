@@ -15,7 +15,7 @@ constructor(
   var temperature: Double = 0.4,
   var numberOfPredictions: Int = 1,
   var docsInContext: Int = 5,
-  var minResponseTokens: Int = 500,
+  var maxTokens: Int = 500,
   var messagePolicy: MessagePolicy = MessagePolicy(),
 ) {
 

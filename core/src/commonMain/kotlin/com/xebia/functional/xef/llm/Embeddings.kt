@@ -7,11 +7,14 @@ import com.xebia.functional.openai.models.CreateEmbeddingRequestModel
 import com.xebia.functional.openai.models.Embedding
 import com.xebia.functional.openai.models.ext.embedding.create.CreateEmbeddingRequestInput
 
-suspend fun EmbeddingsApi.embedDocuments(texts: List<String>, chunkSize: Int?): List<Embedding> =
+suspend fun EmbeddingsApi.embedDocuments(
+  texts: List<String>,
+  chunkSize: Int = 400
+): List<Embedding> =
   if (texts.isEmpty()) emptyList()
   else
     texts
-      .chunked(chunkSize ?: 400)
+      .chunked(chunkSize)
       .parMap {
         createEmbedding(
             CreateEmbeddingRequest(
@@ -26,4 +29,4 @@ suspend fun EmbeddingsApi.embedDocuments(texts: List<String>, chunkSize: Int?): 
       .flatten()
 
 suspend fun EmbeddingsApi.embedQuery(text: String): List<Embedding> =
-  if (text.isNotEmpty()) embedDocuments(listOf(text), null) else emptyList()
+  if (text.isNotEmpty()) embedDocuments(listOf(text)) else emptyList()

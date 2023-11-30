@@ -19,7 +19,7 @@ class PostgresVectorStoreService(
   private val collectionName: String,
   private val vectorSize: Int,
   private val preDeleteCollection: Boolean = false,
-  private val chunkSize: Int? = null,
+  private val chunkSize: Int = 400,
 ) : VectorStoreService() {
 
   fun addCollection() {

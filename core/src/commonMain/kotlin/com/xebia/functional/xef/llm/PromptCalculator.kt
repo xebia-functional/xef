@@ -119,7 +119,7 @@ internal object PromptCalculator {
 
   private fun <T> calculateRemainingTokensForContext(prompt: Prompt<T>): Int {
     val maxContextLength: Int = prompt.model.modelType().maxContextLength
-    val remainingTokens: Int = maxContextLength - prompt.configuration.minResponseTokens
+    val remainingTokens: Int = maxContextLength - prompt.configuration.maxTokens
 
     val messagesTokens = prompt.model.modelType().tokensFromMessages(prompt.messages)
 

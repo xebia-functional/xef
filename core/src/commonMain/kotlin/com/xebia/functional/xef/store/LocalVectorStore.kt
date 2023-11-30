@@ -68,7 +68,7 @@ private constructor(private val embeddings: EmbeddingsApi, private val state: At
   }
 
   override suspend fun addTexts(texts: List<String>) {
-    val embeddingsList = embeddings.embedDocuments(texts, null)
+    val embeddingsList = embeddings.embedDocuments(texts)
     state.getAndUpdate { prevState ->
       val newEmbeddings = prevState.precomputedEmbeddings + texts.zip(embeddingsList)
       State(prevState.orderedMemories, prevState.documents + texts, newEmbeddings)

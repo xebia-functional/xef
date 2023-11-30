@@ -56,21 +56,10 @@ class AssistantThread(
   suspend fun createRun(request: CreateRunRequest): RunObject =
     api.createRun(threadId, request).body()
 
-  suspend fun getRun(runId: String): RunObject =
-    api
-      .getRun(threadId, runId)
-      .also {
-        //  it.response.bodyAsText().let(::println)
-      }
-      .body()
+  suspend fun getRun(runId: String): RunObject = api.getRun(threadId, runId).body()
 
   suspend fun createRun(assistant: Assistant): RunObject =
-    api
-      .createRun(threadId, CreateRunRequest(assistantId = assistant.assistantId))
-      .also {
-        // it.response.bodyAsText().let(::println)
-      }
-      .body()
+    api.createRun(threadId, CreateRunRequest(assistantId = assistant.assistantId)).body()
 
   suspend fun run(assistant: Assistant): Flow<RunDelta> {
     val run = createRun(assistant)
@@ -80,13 +69,7 @@ class AssistantThread(
   suspend fun cancelRun(runId: String): RunObject = api.cancelRun(threadId, runId).body()
 
   suspend fun runSteps(runId: String): List<RunStepObject> =
-    api
-      .listRunSteps(threadId, runId)
-      .also {
-        // it.response.bodyAsText().let(::println)
-      }
-      .body()
-      .data
+    api.listRunSteps(threadId, runId).body().data
 
   sealed class RunDelta {
     data class ReceivedMessage(val message: MessageObject) : RunDelta()

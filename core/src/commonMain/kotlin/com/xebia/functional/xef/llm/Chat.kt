@@ -25,7 +25,7 @@ fun ChatApi.promptStreaming(
       messages = messagesForRequestPrompt.messages,
       n = prompt.configuration.numberOfPredictions,
       temperature = prompt.configuration.temperature,
-      maxTokens = prompt.configuration.minResponseTokens,
+      maxTokens = prompt.configuration.maxTokens,
       model = prompt.model
     )
 
@@ -63,7 +63,7 @@ suspend fun ChatApi.promptMessages(
         messages = adaptedPrompt.messages,
         n = adaptedPrompt.configuration.numberOfPredictions,
         temperature = adaptedPrompt.configuration.temperature,
-        maxTokens = adaptedPrompt.configuration.minResponseTokens,
+        maxTokens = adaptedPrompt.configuration.maxTokens,
         model = prompt.model
       )
 

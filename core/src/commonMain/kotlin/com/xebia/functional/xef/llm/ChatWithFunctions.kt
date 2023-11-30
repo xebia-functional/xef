@@ -65,7 +65,7 @@ suspend fun <A> ChatApi.prompt(
         messages = adaptedPrompt.messages,
         n = adaptedPrompt.configuration.numberOfPredictions,
         temperature = adaptedPrompt.configuration.temperature,
-        maxTokens = adaptedPrompt.configuration.minResponseTokens,
+        maxTokens = adaptedPrompt.configuration.maxTokens,
         tools =
           listOf(
             ChatCompletionTool(
@@ -83,7 +83,6 @@ suspend fun <A> ChatApi.prompt(
 
     tryDeserialize(serializer, promptWithFunctions.configuration.maxDeserializationAttempts) {
       val requestedMemories = prompt.messages.toMemory(scope)
-      // println(ApiClient.JSON_DEFAULT.encodeToString(request))
       createChatCompletion(request)
         .body()
         .addMetrics(scope)
@@ -115,7 +114,7 @@ fun <A> ChatApi.promptStreaming(
       messages = messagesForRequestPrompt.messages,
       n = promptWithFunctions.configuration.numberOfPredictions,
       temperature = promptWithFunctions.configuration.temperature,
-      maxTokens = promptWithFunctions.configuration.minResponseTokens,
+      maxTokens = promptWithFunctions.configuration.maxTokens,
       tools =
         listOf(
           ChatCompletionTool(
