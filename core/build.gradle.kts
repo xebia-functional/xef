@@ -71,6 +71,7 @@ kotlin {
               api(libs.kotlinx.serialization.json)
               api(libs.ktor.utils)
               api(projects.xefTokenizer)
+              api(projects.xefOpenaiClient)
               implementation(libs.bundles.ktor.client)
               implementation(libs.klogging)
               implementation(libs.uuid)

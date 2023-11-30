@@ -30,13 +30,13 @@ openai-client-version = "3.5.1"
 jackson = "2.16.0"
 jsonschema = "4.32.0"
 jakarta = "3.0.2"
-suspend-transform = "0.5.1"
 suspendApp = "0.4.0"
 flyway = "9.22.3"
 resources-kmp = "0.4.0"
 detekt = "1.23.3"
 opentelemetry="1.32.0"
 opentelemetry-alpha="1.30.1-alpha"
+progressbar = "0.10.0"
 
 [libraries]
 arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
@@ -110,6 +110,7 @@ opentelemetry-exporter-otlp = { module = "io.opentelemetry:opentelemetry-exporte
 opentelemetry-sdk = { module = "io.opentelemetry:opentelemetry-sdk", version.ref = "opentelemetry" }
 opentelemetry-semconv = { module = "io.opentelemetry:opentelemetry-semconv", version.ref = "opentelemetry-alpha" }
 opentelemetry-extension-kotlin = { module = "io.opentelemetry:opentelemetry-extension-kotlin", version.ref = "opentelemetry" }
+progressbar = { module = "me.tongfei:progressbar", version.ref = "progressbar" }
 
 [bundles]
 ktor-client = [

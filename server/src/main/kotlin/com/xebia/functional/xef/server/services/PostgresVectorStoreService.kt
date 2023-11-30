@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.server.services
 
-import com.xebia.functional.xef.conversation.llm.openai.OpenAI
-import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
+import com.xebia.functional.openai.apis.EmbeddingsApi
+import com.xebia.functional.xef.llm.fromEnvironment
 import com.xebia.functional.xef.server.http.routes.Provider
 import com.xebia.functional.xef.store.PGVectorStore
 import com.xebia.functional.xef.store.VectorStore
@@ -19,7 +19,7 @@ class PostgresVectorStoreService(
   private val collectionName: String,
   private val vectorSize: Int,
   private val preDeleteCollection: Boolean = false,
-  private val chunkSize: Int? = null,
+  private val chunkSize: Int = 400,
 ) : VectorStoreService() {
 
   fun addCollection() {
@@ -35,22 +35,25 @@ class PostgresVectorStoreService(
   }
 
   override fun getVectorStore(provider: Provider, token: String?): VectorStore {
-    val openAI = if (token == null) OpenAI.fromEnvironment() else OpenAI(token)
+    val embeddingsApi = fromEnvironment { baseUrl -> EmbeddingsApi(baseUrl) }
+    if (token != null) {
+      embeddingsApi.setApiKey(token)
+    }
 
-    val embeddings =
-      when (provider) {
-        Provider.OPENAI -> openAI.DEFAULT_EMBEDDING
-        else -> openAI.DEFAULT_EMBEDDING
-      }
+    // TODO - Provider?
+    //    val embeddings =
+    //      when (provider) {
+    //        Provider.OPENAI -> openAI.DEFAULT_EMBEDDING
+    //        else -> openAI.DEFAULT_EMBEDDING
+    //      }
 
     return PGVectorStore(
       vectorSize = vectorSize,
       dataSource = dataSource,
-      embeddings = embeddings,
+      embeddings = embeddingsApi,
       collectionName = collectionName,
       distanceStrategy = PGDistanceStrategy.Euclidean,
       preDeleteCollection = preDeleteCollection,
-      requestConfig = RequestConfig(user = RequestConfig.Companion.User("user")),
       chunkSize = chunkSize
     )
   }

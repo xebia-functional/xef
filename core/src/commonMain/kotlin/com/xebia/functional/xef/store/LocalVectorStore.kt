@@ -1,13 +1,15 @@
 package com.xebia.functional.xef.store
 
+import ai.xef.openai.OpenAIModel
 import arrow.atomic.Atomic
 import arrow.atomic.AtomicInt
 import arrow.atomic.getAndUpdate
 import arrow.atomic.update
-import com.xebia.functional.xef.llm.Embeddings
-import com.xebia.functional.xef.llm.LLM
-import com.xebia.functional.xef.llm.models.embeddings.Embedding
-import com.xebia.functional.xef.llm.models.embeddings.RequestConfig
+import com.xebia.functional.openai.apis.EmbeddingsApi
+import com.xebia.functional.openai.models.Embedding
+import com.xebia.functional.xef.llm.embedDocuments
+import com.xebia.functional.xef.llm.embedQuery
+import com.xebia.functional.xef.llm.models.modelType
 import kotlin.math.sqrt
 
 private data class State(
@@ -23,11 +25,9 @@ private data class State(
 private typealias AtomicState = Atomic<State>
 
 class LocalVectorStore
-private constructor(private val embeddings: Embeddings, private val state: AtomicState) :
+private constructor(private val embeddings: EmbeddingsApi, private val state: AtomicState) :
   VectorStore {
-  constructor(embeddings: Embeddings) : this(embeddings, Atomic(State.empty()))
-
-  private val requestConfig = RequestConfig(RequestConfig.Companion.User("user"))
+  constructor(embeddings: EmbeddingsApi) : this(embeddings, Atomic(State.empty()))
 
   override val indexValue: AtomicInt = AtomicInt(0)
 
@@ -54,8 +54,8 @@ private constructor(private val embeddings: Embeddings, private val state: Atomi
     }
   }
 
-  override suspend fun memories(
-    llm: LLM,
+  override suspend fun <T> memories(
+    model: OpenAIModel<T>,
     conversationId: ConversationId,
     limitTokens: Int
   ): List<Memory> {
@@ -63,12 +63,12 @@ private constructor(private val embeddings: Embeddings, private val state: Atomi
     return memories
       .orEmpty()
       .sortedByDescending { it.index }
-      .reduceByLimitToken(llm, limitTokens)
+      .reduceByLimitToken(model.modelType(), limitTokens)
       .reversed()
   }
 
   override suspend fun addTexts(texts: List<String>) {
-    val embeddingsList = embeddings.embedDocuments(texts, requestConfig = requestConfig, null)
+    val embeddingsList = embeddings.embedDocuments(texts)
     state.getAndUpdate { prevState ->
       val newEmbeddings = prevState.precomputedEmbeddings + texts.zip(embeddingsList)
       State(prevState.orderedMemories, prevState.documents + texts, newEmbeddings)
@@ -76,7 +76,7 @@ private constructor(private val embeddings: Embeddings, private val state: Atomi
   }
 
   override suspend fun similaritySearch(query: String, limit: Int): List<String> {
-    val queryEmbedding = embeddings.embedQuery(query, requestConfig = requestConfig).firstOrNull()
+    val queryEmbedding = embeddings.embedQuery(query).firstOrNull()
     return queryEmbedding?.let { similaritySearchByVector(it, limit) }.orEmpty()
   }
 

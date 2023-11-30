@@ -27,13 +27,11 @@ data class MessageContentTextObjectTextAnnotationsInner(
   /* The text in the message content that needs to be replaced. */
   @SerialName(value = "text") @Required val text: kotlin.String,
   @SerialName(value = "file_citation")
-  @Required
-  val fileCitation: MessageContentTextAnnotationsFileCitationObjectFileCitation,
+  val fileCitation: MessageContentTextAnnotationsFileCitationObjectFileCitation? = null,
   @SerialName(value = "start_index") @Required val startIndex: kotlin.Int,
   @SerialName(value = "end_index") @Required val endIndex: kotlin.Int,
   @SerialName(value = "file_path")
-  @Required
-  val filePath: MessageContentTextAnnotationsFilePathObjectFilePath
+  val filePath: MessageContentTextAnnotationsFilePathObjectFilePath? = null
 ) {
 
   /**

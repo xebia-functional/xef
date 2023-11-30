@@ -25,9 +25,9 @@ class LogsMetric : Metric {
     return output
   }
 
-  override suspend fun <A> promptSpan(prompt: Prompt, block: suspend Metric.() -> A): A {
+  override suspend fun <A, T> promptSpan(prompt: Prompt<T>, block: suspend Metric.() -> A): A {
     val millis = getTimeMillis()
-    val name = prompt.messages.lastOrNull()?.content ?: "empty"
+    val name = prompt.messages.lastOrNull()?.contentAsString() ?: "empty"
     logger.info { "${writeIndent(numberOfBlocks.get())}> Prompt-Span: $name" }
     numberOfBlocks.incrementAndGet()
     val output = block()

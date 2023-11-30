@@ -1,10 +1,12 @@
 package com.xebia.functional.xef.conversation.streaming
 
+import ai.xef.openai.StandardModel
+import com.xebia.functional.openai.apis.EmbeddingsApi
+import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.Description
-import com.xebia.functional.xef.conversation.llm.openai.OpenAI
-import com.xebia.functional.xef.conversation.llm.openai.promptStreaming
 import com.xebia.functional.xef.llm.StreamedFunction
+import com.xebia.functional.xef.llm.fromEnvironment
 import com.xebia.functional.xef.metrics.LogsMetric
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.store.LocalVectorStore
@@ -41,17 +43,14 @@ suspend fun main() {
   // To run the example with the Xef Server, you can execute the following commands:
   //  - # docker compose-up server/docker/postgresql
   //  - # ./gradlew server
-  val openAI = OpenAI.fromEnvironment()
   //  val openAI = OpenAI(host = "http://localhost:8081/")
-  val model = openAI.DEFAULT_SERIALIZATION
+  val model = StandardModel(CreateChatCompletionRequestModel.gpt_3_5_turbo_16k_0613)
 
-  val scope = Conversation(LocalVectorStore(openAI.DEFAULT_EMBEDDING), LogsMetric())
+  val scope = Conversation(LocalVectorStore(fromEnvironment(::EmbeddingsApi)), LogsMetric())
 
-  model
-    .promptStreaming(
-      Prompt("Make a spacecraft with a mission to Mars"),
-      scope = scope,
-      serializer = InterstellarCraft.serializer()
+  scope
+    .promptStreamingFunctions<InterstellarCraft>(
+      Prompt(model, "Make a spacecraft with a mission to Mars"),
     )
     .collect { element ->
       when (element) {

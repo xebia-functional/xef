@@ -1,7 +1,9 @@
 package com.xebia.functional.xef.prompt
 
-import com.xebia.functional.xef.llm.models.chat.Message
-import com.xebia.functional.xef.llm.models.chat.Role
+import ai.xef.openai.OpenAIModel
+import com.xebia.functional.openai.models.ChatCompletionRole
+import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage
+import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestUserMessageContentText
 import com.xebia.functional.xef.prompt.templates.assistant
 import com.xebia.functional.xef.prompt.templates.system
 import com.xebia.functional.xef.prompt.templates.user
@@ -9,38 +11,41 @@ import kotlin.jvm.JvmSynthetic
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 
-interface PromptBuilder {
-  val items: MutableList<Message>
+interface PromptBuilder<T> {
+  val items: MutableList<ChatCompletionRequestMessage>
 
-  fun preprocess(elements: List<Message>): List<Message>
+  fun preprocess(elements: List<ChatCompletionRequestMessage>): List<ChatCompletionRequestMessage>
 
-  fun build(): Prompt
+  fun build(): Prompt<T>
 
   @JvmSynthetic
-  operator fun Prompt.unaryPlus() {
+  operator fun Prompt<T>.unaryPlus() {
     +messages
   }
 
   @JvmSynthetic
-  operator fun Message.unaryPlus() {
+  operator fun ChatCompletionRequestMessage.unaryPlus() {
     addMessage(this)
   }
 
   @JvmSynthetic
-  operator fun List<Message>.unaryPlus() {
+  operator fun List<ChatCompletionRequestMessage>.unaryPlus() {
     addMessages(this)
   }
 
-  fun addPrompt(prompt: Prompt): PromptBuilder = apply { addMessages(prompt.messages) }
+  fun addPrompt(prompt: Prompt<T>): PromptBuilder<T> = apply { addMessages(prompt.messages) }
 
-  fun addSystemMessage(message: String): PromptBuilder = apply { addMessage(system(message)) }
+  fun addSystemMessage(message: String): PromptBuilder<T> = apply { addMessage(system(message)) }
 
-  fun addAssistantMessage(message: String): PromptBuilder = apply { addMessage(assistant(message)) }
+  fun addAssistantMessage(message: String): PromptBuilder<T> = apply {
+    addMessage(assistant(message))
+  }
 
-  fun addUserMessage(message: String): PromptBuilder = apply { addMessage(user(message)) }
+  fun addUserMessage(message: String): PromptBuilder<T> = apply { addMessage(user(message)) }
 
-  fun addMessage(message: Message): PromptBuilder = apply {
-    val lastMessageWithSameRole: Message? = items.lastMessageWithSameRole(message)
+  fun addMessage(message: ChatCompletionRequestMessage): PromptBuilder<T> = apply {
+    val lastMessageWithSameRole: ChatCompletionRequestMessage? =
+      items.lastMessageWithSameRole(message)
     if (lastMessageWithSameRole != null) {
       val messageUpdated = lastMessageWithSameRole.addContent(message)
       items.remove(lastMessageWithSameRole)
@@ -50,25 +55,51 @@ interface PromptBuilder {
     }
   }
 
-  fun addMessages(messages: List<Message>): PromptBuilder = apply {
+  fun addMessages(messages: List<ChatCompletionRequestMessage>): PromptBuilder<T> = apply {
     val last = items.removeLastOrNull()
     items.addAll(((last?.let { listOf(it) } ?: emptyList()) + messages).flatten())
   }
 
   companion object {
 
-    operator fun invoke(): PlatformPromptBuilder = PlatformPromptBuilder.create()
+    operator fun <T> invoke(model: OpenAIModel<T>): PlatformPromptBuilder<T> =
+      PlatformPromptBuilder.create(model)
   }
 }
 
-fun String.message(role: Role): Message = Message(role, this, role.name)
+fun String.message(role: ChatCompletionRole): ChatCompletionRequestMessage =
+  when (role) {
+    ChatCompletionRole.system ->
+      ChatCompletionRequestMessage.ChatCompletionRequestSystemMessage(this)
+    ChatCompletionRole.user ->
+      ChatCompletionRequestMessage.ChatCompletionRequestUserMessage(
+        listOf(
+          ChatCompletionRequestUserMessageContentText(
+            ChatCompletionRequestUserMessageContentText.Type.text,
+            this
+          )
+        )
+      )
+    ChatCompletionRole.assistant ->
+      ChatCompletionRequestMessage.ChatCompletionRequestAssistantMessage(this)
+    ChatCompletionRole.tool ->
+      // TODO - Tool Id?
+      ChatCompletionRequestMessage.ChatCompletionRequestToolMessage(this, "toolId")
+    ChatCompletionRole.function ->
+      // TODO - Function name?
+      ChatCompletionRequestMessage.ChatCompletionRequestFunctionMessage(this, "functionName")
+  }
 
-inline fun <reified A> A.message(role: Role): Message =
-  Message(role, Json.encodeToString(serializer(), this), role.name)
+// TODO this fails because of the ChatCompletionRequestMessage role fixed to function in the
+// generator
+// check with Fede
+inline fun <reified A> A.message(role: ChatCompletionRole): ChatCompletionRequestMessage =
+  Json.encodeToString(serializer(), this).message(role)
 
-private fun List<Message>.flatten(): List<Message> =
+private fun List<ChatCompletionRequestMessage>.flatten(): List<ChatCompletionRequestMessage> =
   fold(mutableListOf()) { acc, message ->
-    val lastMessageWithSameRole: Message? = acc.lastMessageWithSameRole(message)
+    val lastMessageWithSameRole: ChatCompletionRequestMessage? =
+      acc.lastMessageWithSameRole(message)
     if (lastMessageWithSameRole != null) {
       val messageUpdated = lastMessageWithSameRole.addContent(message)
       acc.remove(lastMessageWithSameRole)
@@ -79,8 +110,12 @@ private fun List<Message>.flatten(): List<Message> =
     acc
   }
 
-private fun Message.addContent(message: Message): Message =
-  copy(content = "${content}\n${message.content}")
+private fun ChatCompletionRequestMessage.addContent(
+  message: ChatCompletionRequestMessage
+): ChatCompletionRequestMessage =
+  "${contentAsString()}\n${message.contentAsString()}".message(completionRole())
 
-private fun List<Message>.lastMessageWithSameRole(message: Message): Message? =
-  lastOrNull()?.let { if (it.role == message.role) it else null }
+private fun List<ChatCompletionRequestMessage>.lastMessageWithSameRole(
+  message: ChatCompletionRequestMessage
+): ChatCompletionRequestMessage? =
+  lastOrNull()?.let { if (it.completionRole() == message.completionRole()) it else null }

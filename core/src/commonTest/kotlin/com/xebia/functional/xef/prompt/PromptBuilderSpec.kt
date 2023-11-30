@@ -1,16 +1,22 @@
 package com.xebia.functional.xef.prompt
 
+import ai.xef.openai.StandardModel
+import com.xebia.functional.openai.models.ChatCompletionRole.*
+import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.data.Question
-import com.xebia.functional.xef.llm.models.chat.Role
-import com.xebia.functional.xef.prompt.templates.*
+import com.xebia.functional.xef.prompt.templates.assistant
+import com.xebia.functional.xef.prompt.templates.assistantSteps
+import com.xebia.functional.xef.prompt.templates.system
+import com.xebia.functional.xef.prompt.templates.user
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
 class PromptBuilderSpec :
   StringSpec({
+    val model = StandardModel(CreateChatCompletionRequestModel.gpt_4)
     "buildPrompt should return the expected messages" {
       val messages =
-        Prompt {
+        Prompt(model) {
             +system("Test System")
             +user("Test Query")
             +assistant("Test Assistant")
@@ -19,9 +25,9 @@ class PromptBuilderSpec :
 
       val messagesExpected =
         listOf(
-          "Test System".message(Role.SYSTEM),
-          "Test Query".message(Role.USER),
-          "Test Assistant".message(Role.ASSISTANT)
+          "Test System".message(system),
+          "Test Query".message(user),
+          "Test Assistant".message(assistant)
         )
 
       messages shouldBe messagesExpected
@@ -31,7 +37,7 @@ class PromptBuilderSpec :
       val instructions = listOf("instruction 1", "instruction 2")
 
       val messages =
-        Prompt {
+        Prompt(model) {
             +system("Test System")
             +user("Test Query")
             instructions.forEach { +assistant(it) }
@@ -40,14 +46,14 @@ class PromptBuilderSpec :
 
       val messagesExpected =
         listOf(
-          "Test System".message(Role.SYSTEM),
-          "Test Query".message(Role.USER),
+          "Test System".message(system),
+          "Test Query".message(user),
           """
             |instruction 1
             |instruction 2
         """
             .trimMargin()
-            .message(Role.ASSISTANT),
+            .message(assistant),
         )
 
       messages shouldBe messagesExpected
@@ -57,7 +63,7 @@ class PromptBuilderSpec :
       val instructions = listOf("instruction 1", "instruction 2")
 
       val messages =
-        Prompt {
+        Prompt(model) {
             +system("Test System")
             +user("Test Query")
             +assistantSteps { instructions }
@@ -66,14 +72,14 @@ class PromptBuilderSpec :
 
       val messagesExpected =
         listOf(
-          "Test System".message(Role.SYSTEM),
-          "Test Query".message(Role.USER),
+          "Test System".message(system),
+          "Test Query".message(user),
           """
             |1 - instruction 1
             |2 - instruction 2
         """
             .trimMargin()
-            .message(Role.ASSISTANT),
+            .message(assistant),
         )
 
       messages shouldBe messagesExpected
@@ -83,7 +89,7 @@ class PromptBuilderSpec :
       val question = Question("Test Question")
 
       val messages =
-        Prompt {
+        Prompt(model) {
             +system("Test System")
             +user(question)
           }
@@ -91,8 +97,8 @@ class PromptBuilderSpec :
 
       val messagesExpected =
         listOf(
-          "Test System".message(Role.SYSTEM),
-          question.message(Role.USER),
+          "Test System".message(system),
+          question.message(user),
         )
 
       messages shouldBe messagesExpected
@@ -100,7 +106,7 @@ class PromptBuilderSpec :
 
     "Prompt should flatten the messages with the same role" {
       val messages =
-        Prompt {
+        Prompt(model) {
             +system("Test System")
             +user("User message 1")
             +user("User message 2")
@@ -114,22 +120,22 @@ class PromptBuilderSpec :
 
       val messagesExpected =
         listOf(
-          "Test System".message(Role.SYSTEM),
+          "Test System".message(system),
           """
             |User message 1
             |User message 2
           """
             .trimMargin()
-            .message(Role.USER),
-          "Assistant message 1".message(Role.ASSISTANT),
-          "User message 3".message(Role.USER),
+            .message(user),
+          "Assistant message 1".message(assistant),
+          "User message 3".message(user),
           """
                 |Assistant message 2
                 |Assistant message 3
             """
             .trimMargin()
-            .message(Role.ASSISTANT),
-          "User message 4".message(Role.USER),
+            .message(assistant),
+          "User message 4".message(user),
         )
 
       messages shouldBe messagesExpected

@@ -36,7 +36,7 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
                 entry("RunStepDetailsToolCallsObjectToolCallsInner", List.of("codeInterpreter", "retrieval", "function")),
                 entry("RunStepDetailsToolCallsRetrievalObject", List.of("retrieval")),
                 entry("RunStepObject", List.of("expiredAt", "metadata")),
-                entry("RunStepObjectStepDetails", List.of("messageCreation", "toolCalls"))
+                entry("MessageContentTextObjectTextAnnotationsInner", List.of("filePath", "fileCitation"))
             )
         );
     }

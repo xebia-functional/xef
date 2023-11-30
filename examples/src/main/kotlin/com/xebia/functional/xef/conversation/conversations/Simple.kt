@@ -1,19 +1,24 @@
 package com.xebia.functional.xef.conversation.conversations
 
-import com.xebia.functional.xef.conversation.llm.openai.OpenAI
-import com.xebia.functional.xef.conversation.llm.openai.promptMessage
+import ai.xef.openai.StandardModel
+import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
+import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.prompt.Prompt
+import com.xebia.functional.xef.prompt.templates.user
 
 suspend fun main() {
-  OpenAI.conversation {
+  Conversation {
+    val model = StandardModel(CreateChatCompletionRequestModel.gpt_3_5_turbo_16k_0613)
     val emailMessage =
-      Prompt(
-        """
+      Prompt(model) {
+        +user(
+          """
                 |You are a Marketing Responsible and have the information about different products. You have to prepare 
                 |an email template with the personal information
             """
-          .trimMargin()
-      )
+            .trimMargin()
+        )
+      }
 
     val email: String = promptMessage(emailMessage)
 
@@ -21,8 +26,9 @@ suspend fun main() {
     println("Response:\n $email")
 
     val summarizePrompt =
-      Prompt(
-        """
+      Prompt(model) {
+        +user(
+          """
                 |You are a Marketing Responsible and have the information about the best rated products. 
                 |Summarize the next information: 
                 |Love this product and so does my husband! He tried it because his face gets chapped and red from 
@@ -37,8 +43,9 @@ suspend fun main() {
                 |skin and never broke out using this. This is my daily skincare product with or without makeup. And it 
                 |has SPF but I also apply Kravebeauty SPF on top as well for extra protection
             """
-          .trimMargin()
-      )
+            .trimMargin()
+        )
+      }
 
     val summarize: String = promptMessage(summarizePrompt)
 
@@ -46,12 +53,14 @@ suspend fun main() {
     println("Response:\n $summarize")
 
     val meaningPrompt =
-      Prompt(
-        """
+      Prompt(model) {
+        +user(
+          """
                 |What is the meaning of life?
             """
-          .trimMargin()
-      )
+            .trimMargin()
+        )
+      }
 
     val meaning: String = promptMessage(meaningPrompt)
 

@@ -1,9 +1,11 @@
 package com.xebia.functional.xef.gcp
 
+import com.xebia.functional.openai.apis.EmbeddingsApi
+import com.xebia.functional.openai.models.CreateEmbeddingRequest
+import com.xebia.functional.openai.models.ext.embedding.create.CreateEmbeddingRequestInput
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.AutoClose
 import com.xebia.functional.xef.conversation.autoClose
-import com.xebia.functional.xef.llm.models.embeddings.EmbeddingRequest
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.header
@@ -124,10 +126,15 @@ class GcpClient(
     @SerialName("token_count") val tokenCount: Int,
   )
 
-  suspend fun embeddings(request: EmbeddingRequest): EmbeddingResponse {
+  suspend fun embeddings(request: CreateEmbeddingRequest): EmbeddingResponse {
     val body =
       GcpEmbeddingRequest(
-        instances = request.input.map(::GcpEmbeddingInstance),
+        instances = when (val input = request.input) {
+          is CreateEmbeddingRequestInput.IntArrayArrayValue -> TODO("Does this need to be converted to String?")
+          is CreateEmbeddingRequestInput.IntArrayValue -> TODO("Does this need to be converted to String?")
+          is CreateEmbeddingRequestInput.StringArrayValue -> input.v.map { GcpEmbeddingInstance(it) }
+          is CreateEmbeddingRequestInput.StringValue -> listOf(GcpEmbeddingInstance(input.v))
+        },
       )
     val response =
       http.post(
