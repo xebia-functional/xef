@@ -2,8 +2,7 @@ package com.xebia.functional.xef.prompt
 
 import ai.xef.openai.OpenAIModel
 import com.xebia.functional.openai.models.ChatCompletionRole
-import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage
-import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestUserMessageContentText
+import com.xebia.functional.openai.models.ext.chat.*
 import com.xebia.functional.xef.prompt.templates.assistant
 import com.xebia.functional.xef.prompt.templates.system
 import com.xebia.functional.xef.prompt.templates.user
@@ -69,25 +68,16 @@ interface PromptBuilder<T> {
 
 fun String.message(role: ChatCompletionRole): ChatCompletionRequestMessage =
   when (role) {
-    ChatCompletionRole.system ->
-      ChatCompletionRequestMessage.ChatCompletionRequestSystemMessage(this)
+    ChatCompletionRole.system -> ChatCompletionRequestSystemMessage(this)
     ChatCompletionRole.user ->
-      ChatCompletionRequestMessage.ChatCompletionRequestUserMessage(
-        listOf(
-          ChatCompletionRequestUserMessageContentText(
-            ChatCompletionRequestUserMessageContentText.Type.text,
-            this
-          )
-        )
-      )
-    ChatCompletionRole.assistant ->
-      ChatCompletionRequestMessage.ChatCompletionRequestAssistantMessage(this)
+      ChatCompletionRequestUserMessage(listOf(ChatCompletionRequestUserMessageContentText(this)))
+    ChatCompletionRole.assistant -> ChatCompletionRequestAssistantMessage(this)
     ChatCompletionRole.tool ->
       // TODO - Tool Id?
-      ChatCompletionRequestMessage.ChatCompletionRequestToolMessage(this, "toolId")
+      ChatCompletionRequestToolMessage(this, "toolId")
     ChatCompletionRole.function ->
       // TODO - Function name?
-      ChatCompletionRequestMessage.ChatCompletionRequestFunctionMessage(this, "functionName")
+      ChatCompletionRequestFunctionMessage(this, "functionName")
   }
 
 // TODO this fails because of the ChatCompletionRequestMessage role fixed to function in the

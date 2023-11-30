@@ -29,6 +29,8 @@ data class ChatCompletionRequestAssistantMessage(
   val functionCall: ChatCompletionRequestAssistantMessageFunctionCall?
 ) : ChatCompletionRequestMessage {
 
+  constructor(content: String?) : this(content, Role.assistant, null, null)
+
   constructor(
     content: String?,
     toolCalls: List<ChatCompletionMessageToolCall>?

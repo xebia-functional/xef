@@ -3,7 +3,9 @@ package com.xebia.functional.xef.conversation
 import ai.xef.openai.StandardModel
 import com.xebia.functional.openai.models.ChatCompletionRole
 import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
+import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestAssistantMessage
 import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage.*
+import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestUserMessage
 import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestUserMessageContentText
 import com.xebia.functional.xef.data.*
 import com.xebia.functional.xef.llm.models.modelType
@@ -81,15 +83,9 @@ class ConversationSpec :
             messages.flatMap {
               listOf(
                 ChatCompletionRequestUserMessage(
-                  content =
-                    listOf(
-                      ChatCompletionRequestUserMessageContentText(
-                        ChatCompletionRequestUserMessageContentText.Type.text,
-                        it.key
-                      )
-                    )
+                  listOf(ChatCompletionRequestUserMessageContentText(it.key))
                 ),
-                ChatCompletionRequestAssistantMessage(content = it.value),
+                ChatCompletionRequestAssistantMessage(it.value),
               )
             }
           )
@@ -134,15 +130,9 @@ class ConversationSpec :
             messages.flatMap {
               listOf(
                 ChatCompletionRequestUserMessage(
-                  content =
-                    listOf(
-                      ChatCompletionRequestUserMessageContentText(
-                        ChatCompletionRequestUserMessageContentText.Type.text,
-                        it.key
-                      )
-                    )
+                  listOf(ChatCompletionRequestUserMessageContentText(it.key))
                 ),
-                ChatCompletionRequestAssistantMessage(content = it.value)
+                ChatCompletionRequestAssistantMessage(it.value)
               )
             }
           )
