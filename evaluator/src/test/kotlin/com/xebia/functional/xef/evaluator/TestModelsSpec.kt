@@ -10,32 +10,39 @@ import com.xebia.functional.xef.evaluator.utils.Generators.emptyString
 import com.xebia.functional.xef.evaluator.utils.Generators.simpleString
 import io.kotest.assertions.arrow.core.shouldBeLeft
 import io.kotest.assertions.arrow.core.shouldBeRight
-import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.property.arbitrary.next
+import kotlin.test.Test
+import kotlinx.coroutines.test.runTest
 
-class TestModelsSpec :
-  ShouldSpec({
-    context("build OutputDescription") {
-      should("Valid") { OutputDescription { simpleString.next() }.shouldBeRight() }
+class TestModelsSpec {
 
-      should("Invalid: when input is blank/empty") {
-        OutputDescription { emptyString.next() } shouldBeLeft EmptyOutputDescription
-      }
-    }
+  @Test
+  fun shouldBuildOutputDescription() = runTest {
+    OutputDescription { simpleString.next() }.shouldBeRight()
+  }
 
-    context("build OutputResponse") {
-      should("Valid") { OutputResponse { simpleString.next() }.shouldBeRight() }
+  @Test
+  fun shouldBeInvalidWhenOutputDescriptionIsEmpty() = runTest {
+    OutputDescription { emptyString.next() } shouldBeLeft EmptyOutputDescription
+  }
 
-      should("Invalid: when input is blank/empty") {
-        OutputResponse { emptyString.next() } shouldBeLeft EmptyOutputResponse
-      }
-    }
+  @Test
+  fun shouldBuildOutputResponse() = runTest {
+    OutputResponse { simpleString.next() }.shouldBeRight()
+  }
 
-    context("build ContextDescription") {
-      should("Valid") { ContextDescription { simpleString.next() }.shouldBeRight() }
+  @Test
+  fun shouldBeInvalidWhenOutputResponseIsEmpty() = runTest {
+    OutputResponse { emptyString.next() } shouldBeLeft EmptyOutputResponse
+  }
 
-      should("Invalid: when input is blank/empty") {
-        ContextDescription { emptyString.next() } shouldBeLeft EmptyContextDescription
-      }
-    }
-  })
+  @Test
+  fun shouldBuildContextDescription() = runTest {
+    ContextDescription { simpleString.next() }.shouldBeRight()
+  }
+
+  @Test
+  fun shouldBeInvalidWhenItemASContextDescriptionIsEmpty() = runTest {
+    ContextDescription { emptyString.next() } shouldBeLeft EmptyContextDescription
+  }
+}

@@ -21,9 +21,9 @@ dependencies {
 
     implementation(libs.arrow.core)
 
-    testImplementation(libs.kotest.junit5)
+    testImplementation(kotlin("test"))
+    testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.kotest.property)
-    testImplementation(libs.kotest.framework)
     testImplementation(libs.kotest.assertions)
     testImplementation(libs.kotest.assertions.arrow)
     testImplementation(libs.kotest.assertions.json)

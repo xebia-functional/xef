@@ -7,156 +7,159 @@ import com.xebia.functional.xef.evaluator.models.errors.EmptyItemSpecInput
 import com.xebia.functional.xef.evaluator.models.errors.EmptyOutputResponse
 import com.xebia.functional.xef.evaluator.models.errors.ValidationError
 import io.kotest.assertions.arrow.core.shouldBeLeft
-import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.shouldBe
+import kotlin.test.Test
+import kotlinx.coroutines.test.runTest
 
-class ItemSpecBuilderSpec :
-  ShouldSpec({
-    should("build a valid ItemSpec") {
-      val inputItem = "Please provide a movie title, genre and director"
-      val myContextDescription = "Contains information about a movie"
-      val firstOutputResponse =
-        """
+class ItemSpecBuilderSpec {
+
+  @Test
+  fun shouldBuildAnItemSpec() = runTest {
+    val inputItem = "Please provide a movie title, genre and director"
+    val myContextDescription = "Contains information about a movie"
+    val firstOutputResponse =
+      """
         | Movie Title: The Pursuit of Dreams
         | Genre: Drama
         | Director: Christopher Nolan
         """
-          .trimIndent()
-      val secondOutputResponse = "I don't know"
+        .trimIndent()
+    val secondOutputResponse = "I don't know"
 
-      val itemSpec =
-        ItemSpec(inputItem) {
-          contextDescription { myContextDescription }
-          outputResponse { firstOutputResponse }
-          outputResponse { secondOutputResponse }
-        }
-
-      either {
-        val specItem = itemSpec.bind()
-        specItem.input shouldBe inputItem
-        specItem.context shouldBe listOf(myContextDescription)
-        specItem.outputs shouldContainAll listOf(firstOutputResponse, secondOutputResponse)
+    val itemSpec =
+      ItemSpec(inputItem) {
+        contextDescription { myContextDescription }
+        outputResponse { firstOutputResponse }
+        outputResponse { secondOutputResponse }
       }
-    }
 
-    should("Invalid: when input is empty") {
-      val inputItem = ""
-      val myContextDescription = "Contains information about a movie"
-      val firstOutputResponse =
-        """
+    either {
+      val specItem = itemSpec.bind()
+      specItem.input shouldBe inputItem
+      specItem.context shouldBe listOf(myContextDescription)
+      specItem.outputs shouldContainAll listOf(firstOutputResponse, secondOutputResponse)
+    }
+  }
+
+  @Test
+  fun shouldInvalidWhenInputIsEmpty() = runTest {
+    val inputItem = ""
+    val myContextDescription = "Contains information about a movie"
+    val firstOutputResponse =
+      """
         | Movie Title: The Pursuit of Dreams
         | Genre: Drama
         | Director: Christopher Nolan
         """
-          .trimIndent()
-      val secondOutputResponse = "I don't know"
+        .trimIndent()
+    val secondOutputResponse = "I don't know"
 
-      val invalidItemSpec =
-        ItemSpec(inputItem) {
-          contextDescription { myContextDescription }
-          outputResponse { firstOutputResponse }
-          outputResponse { secondOutputResponse }
-        }
+    val invalidItemSpec =
+      ItemSpec(inputItem) {
+        contextDescription { myContextDescription }
+        outputResponse { firstOutputResponse }
+        outputResponse { secondOutputResponse }
+      }
 
-      invalidItemSpec shouldBeLeft listOf<ValidationError>(EmptyItemSpecInput)
-    }
+    invalidItemSpec shouldBeLeft listOf<ValidationError>(EmptyItemSpecInput)
+  }
 
-    should("Invalid: when context description is empty") {
-      val inputItem = "Please provide a movie title, genre and director"
-      val myContextDescription = "      "
-      val firstOutputResponse =
-        """
+  @Test
+  fun shouldInvalidWhenContextDescriptionIsEmpty() = runTest {
+    val inputItem = "Please provide a movie title, genre and director"
+    val myContextDescription = "      "
+    val firstOutputResponse =
+      """
         | Movie Title: The Pursuit of Dreams
         | Genre: Drama
         | Director: Christopher Nolan
         """
-          .trimIndent()
-      val secondOutputResponse = "I don't know"
+        .trimIndent()
+    val secondOutputResponse = "I don't know"
 
-      val invalidItemSpec =
-        ItemSpec(inputItem) {
-          contextDescription { myContextDescription }
-          outputResponse { firstOutputResponse }
-          outputResponse { secondOutputResponse }
-        }
+    val invalidItemSpec =
+      ItemSpec(inputItem) {
+        contextDescription { myContextDescription }
+        outputResponse { firstOutputResponse }
+        outputResponse { secondOutputResponse }
+      }
 
-      invalidItemSpec shouldBeLeft listOf<ValidationError>(EmptyContextDescription)
-    }
+    invalidItemSpec shouldBeLeft listOf<ValidationError>(EmptyContextDescription)
+  }
 
-    should("Invalid: when first output response is empty") {
-      val inputItem = "Please provide a movie title, genre and director"
-      val myContextDescription = "Contains information about a movie"
-      val firstOutputResponse = "   "
-      val secondOutputResponse = "I don't know"
+  @Test
+  fun shouldInvalidWhenFirstOutputResponseIsEmpty() = runTest {
+    val inputItem = "Please provide a movie title, genre and director"
+    val myContextDescription = "Contains information about a movie"
+    val firstOutputResponse = "   "
+    val secondOutputResponse = "I don't know"
 
-      val invalidItemSpec =
-        ItemSpec(inputItem) {
-          contextDescription { myContextDescription }
-          outputResponse { firstOutputResponse }
-          outputResponse { secondOutputResponse }
-        }
+    val invalidItemSpec =
+      ItemSpec(inputItem) {
+        contextDescription { myContextDescription }
+        outputResponse { firstOutputResponse }
+        outputResponse { secondOutputResponse }
+      }
 
-      invalidItemSpec shouldBeLeft listOf<ValidationError>(EmptyOutputResponse)
-    }
+    invalidItemSpec shouldBeLeft listOf<ValidationError>(EmptyOutputResponse)
+  }
 
-    should("Invalid: when second output response is empty") {
-      val inputItem = "Please provide a movie title, genre and director"
-      val myContextDescription = "Contains information about a movie"
-      val firstOutputResponse =
-        """
+  @Test
+  fun shouldInvalidWhenSecondOutputResponseIsEmpty() = runTest {
+    val inputItem = "Please provide a movie title, genre and director"
+    val myContextDescription = "Contains information about a movie"
+    val firstOutputResponse =
+      """
         | Movie Title: The Pursuit of Dreams
         | Genre: Drama
         | Director: Christopher Nolan
         """
-          .trimIndent()
-      val secondOutputResponse = " "
+        .trimIndent()
+    val secondOutputResponse = " "
 
-      val invalidItemSpec =
-        ItemSpec(inputItem) {
-          contextDescription { myContextDescription }
-          outputResponse { firstOutputResponse }
-          outputResponse { secondOutputResponse }
-        }
+    val invalidItemSpec =
+      ItemSpec(inputItem) {
+        contextDescription { myContextDescription }
+        outputResponse { firstOutputResponse }
+        outputResponse { secondOutputResponse }
+      }
 
-      invalidItemSpec shouldBeLeft listOf<ValidationError>(EmptyOutputResponse)
-    }
+    invalidItemSpec shouldBeLeft listOf<ValidationError>(EmptyOutputResponse)
+  }
 
-    should("Invalid: when all outputs response are empty") {
-      val inputItem = "Please provide a movie title, genre and director"
-      val myContextDescription = "Contains information about a movie"
-      val firstOutputResponse = " "
-      val secondOutputResponse = " "
+  @Test
+  fun shouldInvalidWhenAllOutputsResponseAreEmpty() = runTest {
+    val inputItem = "Please provide a movie title, genre and director"
+    val myContextDescription = "Contains information about a movie"
+    val firstOutputResponse = " "
+    val secondOutputResponse = " "
 
-      val invalidItemSpec =
-        ItemSpec(inputItem) {
-          contextDescription { myContextDescription }
-          outputResponse { firstOutputResponse }
-          outputResponse { secondOutputResponse }
-        }
+    val invalidItemSpec =
+      ItemSpec(inputItem) {
+        contextDescription { myContextDescription }
+        outputResponse { firstOutputResponse }
+        outputResponse { secondOutputResponse }
+      }
 
-      invalidItemSpec shouldBeLeft listOf<ValidationError>(EmptyOutputResponse, EmptyOutputResponse)
-    }
+    invalidItemSpec shouldBeLeft listOf<ValidationError>(EmptyOutputResponse, EmptyOutputResponse)
+  }
 
-    should("Invalid: when any combination of input, context, or outputs response are empty") {
-      val inputItem = " "
-      val myContextDescription = ""
-      val firstOutputResponse = " "
-      val secondOutputResponse = "  "
+  @Test
+  fun shouldInvalidWhenAnyCombinationOfInputAreEmpty() = runTest {
+    val inputItem = " "
+    val myContextDescription = ""
+    val firstOutputResponse = " "
+    val secondOutputResponse = "  "
 
-      val invalidItemSpec =
-        ItemSpec(inputItem) {
-          contextDescription { myContextDescription }
-          outputResponse { firstOutputResponse }
-          outputResponse { secondOutputResponse }
-        }
+    val invalidItemSpec =
+      ItemSpec(inputItem) {
+        contextDescription { myContextDescription }
+        outputResponse { firstOutputResponse }
+        outputResponse { secondOutputResponse }
+      }
 
-      invalidItemSpec shouldBeLeft
-        listOf(
-          EmptyItemSpecInput,
-          EmptyContextDescription,
-          EmptyOutputResponse,
-          EmptyOutputResponse
-        )
-    }
-  })
+    invalidItemSpec shouldBeLeft
+      listOf(EmptyItemSpecInput, EmptyContextDescription, EmptyOutputResponse, EmptyOutputResponse)
+  }
+}
