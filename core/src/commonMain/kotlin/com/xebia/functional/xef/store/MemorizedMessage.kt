@@ -2,8 +2,7 @@ package com.xebia.functional.xef.store
 
 import com.xebia.functional.openai.models.ChatCompletionResponseMessage
 import com.xebia.functional.openai.models.ChatCompletionRole
-import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage
-import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestUserMessageContentText
+import com.xebia.functional.openai.models.ext.chat.*
 
 sealed class MemorizedMessage {
   val role: ChatCompletionRole
@@ -16,8 +15,7 @@ sealed class MemorizedMessage {
   fun asRequestMessage(): ChatCompletionRequestMessage =
     when (this) {
       is Request -> message
-      is Response ->
-        ChatCompletionRequestMessage.ChatCompletionRequestAssistantMessage(message.content)
+      is Response -> ChatCompletionRequestAssistantMessage(message.content)
     }
 
   data class Request(val message: ChatCompletionRequestMessage) : MemorizedMessage()
@@ -28,18 +26,11 @@ sealed class MemorizedMessage {
 fun memorizedMessage(role: ChatCompletionRole, content: String): MemorizedMessage =
   when (role) {
     ChatCompletionRole.system ->
-      MemorizedMessage.Request(
-        ChatCompletionRequestMessage.ChatCompletionRequestSystemMessage(content)
-      )
+      MemorizedMessage.Request(ChatCompletionRequestSystemMessage(content))
     ChatCompletionRole.user ->
       MemorizedMessage.Request(
-        ChatCompletionRequestMessage.ChatCompletionRequestUserMessage(
-          listOf(
-            ChatCompletionRequestUserMessageContentText(
-              ChatCompletionRequestUserMessageContentText.Type.text,
-              content
-            )
-          )
+        ChatCompletionRequestUserMessage(
+          listOf(ChatCompletionRequestUserMessageContentText(content))
         )
       )
     ChatCompletionRole.assistant ->
@@ -51,14 +42,14 @@ fun memorizedMessage(role: ChatCompletionRole, content: String): MemorizedMessag
       )
     ChatCompletionRole.tool ->
       MemorizedMessage.Request(
-        ChatCompletionRequestMessage.ChatCompletionRequestToolMessage(
+        ChatCompletionRequestToolMessage(
           content = content,
           toolCallId = "fake-tool-call-id" // TODO we are not storing the tool id with the content
         )
       )
     ChatCompletionRole.function ->
       MemorizedMessage.Request(
-        ChatCompletionRequestMessage.ChatCompletionRequestToolMessage(
+        ChatCompletionRequestToolMessage(
           content = content,
           toolCallId = "fake-tool-call-id" // TODO we are not storing the tool id with the content
         )

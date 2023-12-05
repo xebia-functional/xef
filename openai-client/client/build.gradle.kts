@@ -71,8 +71,8 @@ kotlin {
         }
         val commonTest by getting {
             dependencies {
+                implementation(kotlin("test"))
                 implementation(libs.kotest.property)
-                implementation(libs.kotest.framework)
                 implementation(libs.kotest.assertions)
             }
         }
@@ -82,8 +82,8 @@ kotlin {
                 api(libs.ktor.client.cio)
             }
         }
-        val jvmTest by getting { dependencies { implementation(libs.kotest.junit5) } }
         val jsMain by getting { dependencies { api(libs.ktor.client.js) } }
+        val jvmTest by getting { dependencies { implementation(libs.kotest.junit5) } }
         val linuxX64Main by getting { dependencies { api(libs.ktor.client.cio) } }
         val macosX64Main by getting { dependencies { api(libs.ktor.client.cio) } }
         val macosArm64Main by getting { dependencies { api(libs.ktor.client.cio) } }
@@ -112,7 +112,7 @@ kotlin {
 spotless {
     kotlin {
         target("**/*.kt")
-        ktfmt().googleStyle()
+        ktfmt().googleStyle().configure { it.setRemoveUnusedImport(true) }
     }
 }
 
