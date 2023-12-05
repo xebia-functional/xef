@@ -1,4 +1,4 @@
-package com.xebia.functional.xef.server.http.client
+package com.xebia.functional.xef.client
 
 enum class OpenAIPathType(val value: String) {
   CHAT("/v1/chat/completions"),
@@ -10,6 +10,6 @@ enum class OpenAIPathType(val value: String) {
   MODERATION("/v1/moderations");
 
   companion object {
-    fun from(v: String): OpenAIPathType? = entries.find { it.value == v }
+    fun from(v: String): OpenAIPathType? = values().find { it.value == v }
   }
 }

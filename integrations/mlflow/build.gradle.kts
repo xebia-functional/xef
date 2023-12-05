@@ -38,6 +38,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 api(projects.xefCore)
+                api(projects.xefOpenaiClient)
                 implementation(libs.bundles.ktor.client)
                 implementation(libs.uuid)
                 implementation(libs.kotlinx.datetime)

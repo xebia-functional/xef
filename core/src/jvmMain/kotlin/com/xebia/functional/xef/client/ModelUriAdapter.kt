@@ -1,6 +1,5 @@
-package com.xebia.functional.xef.server.http.client
+package com.xebia.functional.xef.client
 
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
@@ -10,11 +9,12 @@ import io.ktor.util.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import org.slf4j.LoggerFactory
 
 class ModelUriAdapter
 internal constructor(private val urlMap: Map<OpenAIPathType, Map<String, String>>) {
 
-  val logger = KotlinLogging.logger {}
+  val logger = LoggerFactory.getLogger("model-uri-adapter")
 
   fun isDefined(path: OpenAIPathType): Boolean = urlMap.containsKey(path)
 
@@ -49,11 +49,11 @@ internal constructor(private val urlMap: Map<OpenAIPathType, Map<String, String>
           }
         val newURL = model?.let { plugin.findPath(originalPath, it) }
         if (newURL == null)
-          plugin.logger.info { "New url for path $originalPath and model $model not found" }
+          plugin.logger.info("New url for path $originalPath and model $model not found")
         else {
-          plugin.logger.info {
+          plugin.logger.info(
             "Intercepting request for path $originalPath and model $model to $newURL"
-          }
+          )
           val baseBuilder = URLBuilder(newURL).build()
           context.url.set(
             scheme = baseBuilder.protocol.name,

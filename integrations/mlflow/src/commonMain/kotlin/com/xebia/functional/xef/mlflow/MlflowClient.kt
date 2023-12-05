@@ -14,7 +14,10 @@ import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 
-class MlflowClient(private val gatewayUrl: String, client: HttpClient) : AutoClose by autoClose() {
+class MlflowClient(
+  private val gatewayUrl: String = "http://127.0.0.1:5000",
+  private val client: HttpClient = HttpClient()
+) : AutoClose by autoClose() {
 
   private val internal =
     client.config {
@@ -54,7 +57,7 @@ class MlflowClient(private val gatewayUrl: String, client: HttpClient) : AutoClo
     temperature: Double? = null,
     maxTokens: Int? = null,
     stop: List<String>? = null
-  ): PromptResponse {
+  ): MLflowPromptResponse {
     val body = Prompt(prompt, temperature, candidateCount, stop, maxTokens)
     val response =
       internal.post("$gatewayUrl/gateway/$route/invocations") {
@@ -63,7 +66,7 @@ class MlflowClient(private val gatewayUrl: String, client: HttpClient) : AutoClo
         setBody(body)
       }
 
-    return if (response.status.isSuccess()) response.body<PromptResponse>()
+    return if (response.status.isSuccess()) response.body<MLflowPromptResponse>()
     else if (response.status.value == 422)
       throw MLflowValidationError(
         response.status,
@@ -74,13 +77,13 @@ class MlflowClient(private val gatewayUrl: String, client: HttpClient) : AutoClo
 
   suspend fun chat(
     route: String,
-    messages: List<ChatMessage>,
+    messages: List<MLflowChatMessage>,
     candidateCount: Int? = null,
     temperature: Double? = null,
     maxTokens: Int? = null,
     stop: List<String>? = null
-  ): ChatResponse {
-    val body = Chat(messages, temperature, candidateCount, stop, maxTokens)
+  ): MLflowChatResponse {
+    val body = MLflowChatRequest(messages, temperature, candidateCount, stop, maxTokens)
     val response =
       internal.post("$gatewayUrl/gateway/$route/invocations") {
         accept(ContentType.Application.Json)
@@ -88,7 +91,7 @@ class MlflowClient(private val gatewayUrl: String, client: HttpClient) : AutoClo
         setBody(body)
       }
 
-    return if (response.status.isSuccess()) response.body<ChatResponse>()
+    return if (response.status.isSuccess()) response.body<MLflowChatResponse>()
     else if (response.status.value == 422)
       throw MLflowValidationError(
         response.status,
@@ -97,8 +100,8 @@ class MlflowClient(private val gatewayUrl: String, client: HttpClient) : AutoClo
     else throw MLflowClientUnexpectedError(response.status, response.bodyAsText())
   }
 
-  suspend fun embeddings(route: String, text: List<String>): EmbeddingsResponse {
-    val body = Embeddings(text)
+  suspend fun embeddings(route: String, text: List<String>): MLflowEmbeddingsResponse {
+    val body = MLflowEmbeddingsRequest(text)
     val response =
       internal.post("$gatewayUrl/gateway/$route/invocations") {
         accept(ContentType.Application.Json)
@@ -106,7 +109,7 @@ class MlflowClient(private val gatewayUrl: String, client: HttpClient) : AutoClo
         setBody(body)
       }
 
-    return if (response.status.isSuccess()) response.body<EmbeddingsResponse>()
+    return if (response.status.isSuccess()) response.body<MLflowEmbeddingsResponse>()
     else if (response.status.value == 422)
       throw MLflowValidationError(
         response.status,
@@ -120,4 +123,10 @@ class MlflowClient(private val gatewayUrl: String, client: HttpClient) : AutoClo
 
   class MLflowClientUnexpectedError(httpStatusCode: HttpStatusCode, error: String) :
     IllegalStateException("$httpStatusCode: $error")
+
+  override fun close() {
+    try {
+      client.close()
+    } finally {}
+  }
 }

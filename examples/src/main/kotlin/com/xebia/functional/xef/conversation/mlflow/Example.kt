@@ -44,8 +44,8 @@ suspend fun main() {
         client.chat(
           it,
           listOf(
-            ChatMessage(ChatRole.SYSTEM, "You are a helpful assistant. Be concise"),
-            ChatMessage(ChatRole.USER, question),
+            MLflowChatMessage(MLflowChatRole.SYSTEM, "You are a helpful assistant. Be concise"),
+            MLflowChatMessage(MLflowChatRole.USER, question),
           ),
           temperature = 0.7,
           maxTokens = 200

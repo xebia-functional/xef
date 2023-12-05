@@ -31,6 +31,7 @@ dependencies {
     implementation(libs.okio)
     implementation(libs.progressbar)
     implementation(libs.jdbc.mysql.connector)
+    implementation(libs.ktor.client.logging)
     api(libs.ktor.client)
 }
 

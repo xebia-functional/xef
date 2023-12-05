@@ -1,7 +1,12 @@
-package com.xebia.functional.xef.server.http.client.mlflow
+package com.xebia.functional.xef.mlflow.client
 
-import com.xebia.functional.xef.server.http.client.OpenAIPathType
-import io.github.oshai.kotlinlogging.KotlinLogging
+import com.xebia.functional.openai.models.CreateChatCompletionRequest
+import com.xebia.functional.openai.models.CreateEmbeddingRequest
+import com.xebia.functional.xef.client.OpenAIPathType
+import com.xebia.functional.xef.mlflow.MLflowChatResponse
+import com.xebia.functional.xef.mlflow.MLflowEmbeddingsResponse
+import com.xebia.functional.xef.mlflow.toMLflow
+import com.xebia.functional.xef.mlflow.toXef
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.*
@@ -12,15 +17,17 @@ import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import io.ktor.util.reflect.*
+import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.slf4j.LoggerFactory
 
 class MLflowModelAdapter
 internal constructor(private val mappedRequests: Map<String, OpenAIPathType>) {
 
-  val logger = KotlinLogging.logger {}
+  val logger = LoggerFactory.getLogger("mlflow-model-adapter")
 
   fun mappedType(path: String): OpenAIPathType? = mappedRequests[path]
 
@@ -51,15 +58,12 @@ internal constructor(private val mappedRequests: Map<String, OpenAIPathType>) {
       proceedWith(newRequest)
     }
 
-    private suspend inline fun <reified R1, reified R2> PipelineContext<
+    private suspend inline fun <reified R1, reified R2 : Any> PipelineContext<
       HttpResponseContainer, HttpClientCall
     >
-      .update(typeInfo: TypeInfo, contentResponse: ByteReadPacket, toXef: R1.() -> R2) {
-      val stringResponseBody = contentResponse.readText()
-      val responseData = json.decodeFromString<R1>(stringResponseBody)
-      val newResponse =
-        ByteReadPacket(json.encodeToString(responseData.toXef()).toByteArray(Charsets.UTF_8))
-      val response = HttpResponseContainer(typeInfo, newResponse)
+      .update(typeInfo: TypeInfo, contentResponse: String, toXef: R1.() -> R2) {
+      val responseData = json.decodeFromString<R1>(contentResponse)
+      val response = HttpResponseContainer(typeInfo, responseData.toXef())
       proceedWith(response)
     }
 
@@ -74,15 +78,15 @@ internal constructor(private val mappedRequests: Map<String, OpenAIPathType>) {
           }
         when (originalPath) {
           OpenAIPathType.CHAT -> {
-            plugin.logger.info { "Intercepting chat request for path $originalPath" }
-            update(originalRequest, XefChatRequest::toMLflow)
+            plugin.logger.info("Intercepting chat request for path $originalPath")
+            update(originalRequest, CreateChatCompletionRequest::toMLflow)
           }
           OpenAIPathType.EMBEDDINGS -> {
-            plugin.logger.info { "Intercepting embeddings request for path $originalPath" }
-            update(originalRequest, XefEmbeddingsRequest::toMLflow)
+            plugin.logger.info("Intercepting embeddings request for path $originalPath")
+            update(originalRequest, CreateEmbeddingRequest::toMLflow)
           }
           else -> {
-            plugin.logger.warn { "$originalPath not supported" }
+            plugin.logger.warn("$originalPath not supported")
             return@intercept
           }
         }
@@ -90,20 +94,25 @@ internal constructor(private val mappedRequests: Map<String, OpenAIPathType>) {
     }
 
     private fun installMLflowResponseAdapter(plugin: MLflowModelAdapter, scope: HttpClient) {
-      scope.responsePipeline.intercept(HttpResponsePipeline.Transform) { content ->
+      scope.responsePipeline.intercept(HttpResponsePipeline.Parse) { content ->
         val originalPath = plugin.mappedType(context.request.url.toString()) ?: return@intercept
-        val contentResponse = content.response as? ByteReadPacket ?: return@intercept
+        val stringResponse =
+          when (val response = content.response) {
+            is ByteReadPacket -> response.readText()
+            is ByteReadChannel -> response.toByteArray().toString(Charsets.UTF_8)
+            else -> return@intercept
+          }
         when (originalPath) {
           OpenAIPathType.CHAT -> {
-            plugin.logger.info { "Intercepting chat response for path $originalPath" }
-            update(content.expectedType, contentResponse, MLflowChatResponse::toXef)
+            plugin.logger.info("Intercepting chat response for path $originalPath")
+            update(content.expectedType, stringResponse, MLflowChatResponse::toXef)
           }
           OpenAIPathType.EMBEDDINGS -> {
-            plugin.logger.info { "Intercepting embeddings response for path $originalPath" }
-            update(content.expectedType, contentResponse, MLflowEmbeddingsResponse::toXef)
+            plugin.logger.info("Intercepting embeddings response for path $originalPath")
+            update(content.expectedType, stringResponse, MLflowEmbeddingsResponse::toXef)
           }
           else -> {
-            plugin.logger.warn { "$originalPath not supported" }
+            plugin.logger.warn("$originalPath not supported")
             return@intercept
           }
         }

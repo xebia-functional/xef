@@ -1,4 +1,4 @@
-package com.xebia.functional.xef.server.http.client
+package com.xebia.functional.xef.client
 
 class ModelUriAdapterBuilder {
 
