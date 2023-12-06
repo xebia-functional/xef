@@ -6,6 +6,9 @@ on:
 jobs:
   checkAPIVersion:
     runs-on: ubuntu-latest
+    permissions:
+      - contents: write
+      - pull-requests: write
     steps:
       - name: Install Octokit Action
         run: npm install @octokit/action
@@ -135,14 +138,11 @@ jobs:
         uses: gradle/gradle-build-action@v2
         with:
           arguments: openaiClientGenerate
-      - name: Spotless Apply
-        if: env.CURRENT_API_COMMIT != env.LATEST_API_COMMIT
-        uses: gradle/gradle-build-action@v2
-        with:
-          arguments: spotlessApply
       - name: Create PR
         if: env.CURRENT_API_COMMIT != env.LATEST_API_COMMIT
         uses: peter-evans/create-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           commit-message: 'Update OpenAI Client'
           branch: update/openai-client
