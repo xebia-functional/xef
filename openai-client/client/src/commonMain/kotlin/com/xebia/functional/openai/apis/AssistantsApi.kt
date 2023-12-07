@@ -26,6 +26,7 @@ import com.xebia.functional.openai.models.ListRunStepsResponse
 import com.xebia.functional.openai.models.ListRunsResponse
 import com.xebia.functional.openai.models.MessageFileObject
 import com.xebia.functional.openai.models.MessageObject
+import com.xebia.functional.openai.models.ModifyAssistantRequest
 import com.xebia.functional.openai.models.ModifyMessageRequest
 import com.xebia.functional.openai.models.ModifyRunRequest
 import com.xebia.functional.openai.models.ModifyThreadRequest
@@ -955,6 +956,38 @@ open class AssistantsApi : ApiClient {
       )
 
     return request(localVariableConfig, localVariableBody, localVariableAuthNames).wrap()
+  }
+
+  /**
+   * Modifies an assistant.
+   *
+   * @param assistantId The ID of the assistant to modify.
+   * @param modifyAssistantRequest
+   * @return AssistantObject
+   */
+  @Suppress("UNCHECKED_CAST")
+  open suspend fun modifyAssistant(
+    assistantId: kotlin.String,
+    modifyAssistantRequest: ModifyAssistantRequest
+  ): HttpResponse<AssistantObject> {
+
+    val localVariableAuthNames = listOf<String>("ApiKeyAuth")
+
+    val localVariableBody = modifyAssistantRequest
+
+    val localVariableQuery = mutableMapOf<String, List<String>>()
+    val localVariableHeaders = mutableMapOf<String, String>()
+
+    val localVariableConfig =
+      RequestConfig<kotlin.Any?>(
+        RequestMethod.POST,
+        "/assistants/{assistant_id}".replace("{" + "assistant_id" + "}", "$assistantId"),
+        query = localVariableQuery,
+        headers = localVariableHeaders,
+        requiresAuthentication = true,
+      )
+
+    return jsonRequest(localVariableConfig, localVariableBody, localVariableAuthNames).wrap()
   }
 
   /**

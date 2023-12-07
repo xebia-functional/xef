@@ -1,4 +1,3 @@
-src/commonMain/kotlin/com/xebia/functional/openai/apis/AssistantApi.kt
 src/commonMain/kotlin/com/xebia/functional/openai/apis/AssistantsApi.kt
 src/commonMain/kotlin/com/xebia/functional/openai/apis/AudioApi.kt
 src/commonMain/kotlin/com/xebia/functional/openai/apis/ChatApi.kt
