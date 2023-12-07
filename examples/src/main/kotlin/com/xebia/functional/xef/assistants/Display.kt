@@ -5,51 +5,8 @@ import com.xebia.functional.openai.models.ext.assistant.RunStepDetailsMessageCre
 import com.xebia.functional.openai.models.ext.assistant.RunStepDetailsToolCallsObject
 import com.xebia.functional.xef.llm.assistants.Assistant
 import com.xebia.functional.xef.llm.assistants.AssistantThread
-import com.xebia.functional.xef.llm.assistants.Tool
-import kotlinx.serialization.Serializable
 
-@Serializable
-data class SumTool(
-  val left: Int,
-  val right: Int,
-) : Tool<Int> {
-  override suspend fun invoke(): Int = left + right
-}
-
-suspend fun main() {
-
-  Tool<SumTool, Int>() // register the tool, Int is the output type
-
-  //  val assistant2 = Assistant(
-  //    name = "Math Tutor",
-  //    instructions = "You help the user with all kinds of math problems.",
-  //    tools = listOf(
-  //      AssistantObjectToolsInner(
-  //        type = AssistantObjectToolsInner.Type.code_interpreter
-  //      ),
-  //      AssistantObjectToolsInner(
-  //        type = AssistantObjectToolsInner.Type.retrieval,
-  //      ),
-  //      AssistantObjectToolsInner(
-  //        type = AssistantObjectToolsInner.Type.function,
-  //        function = toolOf<SumTool>()
-  //      )
-  //    ),
-  //    model = "gpt-4-1106-preview"
-  //  )
-  // println("generated assistant: ${assistant2.assistantId}")
-  val assistant = Assistant(assistantId = "asst_mYw6e4wddJvRcjdQQ2qcWFsn")
-  val thread = AssistantThread()
-  println("Welcome to the Math tutor, ask me anything about math:")
-  while (true) {
-    println()
-    val userInput = readln()
-    thread.createMessage(userInput)
-    runAssistantAndDisplayResults(thread, assistant)
-  }
-}
-
-private suspend fun runAssistantAndDisplayResults(thread: AssistantThread, assistant: Assistant) {
+internal suspend fun runAssistantAndDisplayResults(thread: AssistantThread, assistant: Assistant) {
   val assistantObject = assistant.get()
   thread.run(assistant).collect {
     when (it) {

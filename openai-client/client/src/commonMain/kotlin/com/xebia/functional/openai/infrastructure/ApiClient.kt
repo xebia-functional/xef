@@ -4,6 +4,7 @@ import com.xebia.functional.openai.auth.*
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.HttpClientEngine
+import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.FormDataContent
@@ -16,6 +17,8 @@ import io.ktor.http.content.PartData
 import io.ktor.serialization.kotlinx.json.json
 import kotlin.Unit
 import kotlinx.serialization.json.Json
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.ExperimentalTime
 
 open class ApiClient(val baseUrl: String) {
 
@@ -30,6 +33,7 @@ open class ApiClient(val baseUrl: String) {
     val clientConfig: (HttpClientConfig<*>) -> Unit by lazy {
       {
         it.install(ContentNegotiation) { json(jsonBlock) }
+        it.install(HttpTimeout)
         httpClientConfig?.invoke(it)
       }
     }
@@ -167,6 +171,10 @@ open class ApiClient(val baseUrl: String) {
       this.url {
         contentType(ContentType.Application.Json)
         this.takeFrom(URLBuilder(baseUrl))
+        timeout {
+          connectTimeoutMillis = 1.minutes.inWholeMilliseconds
+          socketTimeoutMillis = 1.minutes.inWholeMilliseconds
+        }
         appendPath(requestConfig.path.trimStart('/').split('/'))
         requestConfig.query.forEach { query ->
           query.value.forEach { value -> parameter(query.key, value) }

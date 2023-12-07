@@ -7,6 +7,7 @@ import com.xebia.functional.openai.models.ext.assistant.RunStepDetailsMessageCre
 import com.xebia.functional.openai.models.ext.assistant.RunStepDetailsToolCallsObject
 import com.xebia.functional.openai.models.ext.assistant.RunStepObjectStepDetails
 import com.xebia.functional.xef.llm.fromEnvironment
+import io.ktor.client.statement.*
 import kotlin.jvm.JvmName
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
@@ -17,7 +18,7 @@ import kotlinx.serialization.json.JsonObject
 
 class AssistantThread(
   private val threadId: String,
-  private val api: AssistantsApi = fromEnvironment(::AssistantsApi)
+  val api: AssistantsApi = fromEnvironment(::AssistantsApi)
 ) {
 
   suspend fun delete(): Boolean = api.deleteThread(threadId).body().deleted
@@ -25,6 +26,7 @@ class AssistantThread(
   suspend fun modify(request: ModifyThreadRequest): AssistantThread =
     AssistantThread(api.modifyThread(threadId, request).body().id)
 
+  //TODO throws a 400 bad request
   suspend fun createMessage(message: MessageWithFiles): MessageObject =
     api
       .createMessage(
@@ -34,7 +36,9 @@ class AssistantThread(
           content = message.content,
           fileIds = message.fileIds
         )
-      )
+      ).also {
+        println(it.response.bodyAsText())
+      }
       .body()
 
   suspend fun createMessage(content: String): MessageObject =
@@ -135,7 +139,7 @@ class AssistantThread(
         step.stepDetails.toolCalls().forEach { toolCall ->
           val function = toolCall.function
           if (function != null) {
-            val result: JsonElement = Tool(function.name, function.arguments)
+            val result: JsonElement = Tool(this@AssistantThread, function.name, function.arguments)
             api.submitToolOuputsToRun(
               threadId = threadId,
               runId = runId,

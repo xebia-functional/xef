@@ -5,10 +5,12 @@ import com.xebia.functional.openai.models.FunctionObject
 import com.xebia.functional.xef.llm.chatFunction
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.serializer
 
 fun interface Tool<out Output> {
-  suspend operator fun invoke(): Output
+  suspend operator fun invoke(thread: AssistantThread): Output
 
   companion object {
 
@@ -17,7 +19,8 @@ fun interface Tool<out Output> {
       val outputSerializer: KSerializer<*>
     )
 
-    @PublishedApi internal val toolRegistry = mutableMapOf<String, ToolSerializer>()
+    @PublishedApi
+    internal val toolRegistry = mutableMapOf<String, ToolSerializer>()
 
     inline operator fun <reified T : Tool<O>, reified O> invoke(): FunctionObject {
       val serializer = serializer<T>()
@@ -31,15 +34,23 @@ fun interface Tool<out Output> {
       return fn
     }
 
-    suspend inline operator fun invoke(name: String, args: String): JsonElement {
-      val toolSerializer = toolRegistry[name] ?: error("Function $name not registered")
-      val input =
-        ApiClient.JSON_DEFAULT.decodeFromString(toolSerializer.inputSerializer, args) as Tool<Any?>
-      val output: Any? = input.invoke()
-      return ApiClient.JSON_DEFAULT.encodeToJsonElement(
-        toolSerializer.outputSerializer as KSerializer<Any?>,
-        output
-      )
+    suspend inline operator fun invoke(thread: AssistantThread, name: String, args: String): JsonElement {
+      return try {
+        if (args.trim().isNotEmpty()) {
+          val toolSerializer = toolRegistry[name] ?: error("Function $name not registered")
+          val input =
+            ApiClient.JSON_DEFAULT.decodeFromString(toolSerializer.inputSerializer, args) as Tool<Any?>
+          val output: Any? = input.invoke(thread)
+          ApiClient.JSON_DEFAULT.encodeToJsonElement(
+            toolSerializer.outputSerializer as KSerializer<Any?>,
+            output
+          )
+        } else {
+          JsonObject(mapOf("error" to JsonPrimitive("No arguments provided")))
+        }
+      } catch (e: Exception) {
+        JsonObject(mapOf("error" to JsonPrimitive(e.message)))
+      }
     }
   }
 }
