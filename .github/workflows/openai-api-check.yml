@@ -7,8 +7,8 @@ jobs:
   checkAPIVersion:
     runs-on: ubuntu-latest
     permissions:
-      - contents: write
-      - pull-requests: write
+      contents: write
+      pull-requests: write
     steps:
       - name: Install Octokit Action
         run: npm install @octokit/action
