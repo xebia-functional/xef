@@ -30,7 +30,8 @@ class TestChatApi(
               message =
                 ChatCompletionResponseMessage(
                   role = ChatCompletionResponseMessage.Role.assistant,
-                  content = responses[createChatCompletionRequest.messages.last().contentAsString()]
+                  content =
+                    responses[createChatCompletionRequest.messages.last().contentAsString()]
                       ?: "fake-content",
                   toolCalls =
                     listOf(
