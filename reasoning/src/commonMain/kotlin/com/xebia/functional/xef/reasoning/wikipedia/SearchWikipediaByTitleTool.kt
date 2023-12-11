@@ -44,8 +44,7 @@ interface SearchWikipediaByTitleTool : Tool {
           },
         scope = scope,
       )
-      .firstOrNull()
-      ?: "No results found"
+      .firstOrNull() ?: "No results found"
   }
 
   fun close() {
