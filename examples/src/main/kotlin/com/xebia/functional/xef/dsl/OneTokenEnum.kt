@@ -5,7 +5,9 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class Sentiment {
-  positive, negative, neutral;
+  positive,
+  negative,
+  neutral;
 
   companion object : AI<Sentiment> by AI.enum()
 }

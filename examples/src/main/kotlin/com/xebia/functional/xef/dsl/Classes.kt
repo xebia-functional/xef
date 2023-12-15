@@ -10,5 +10,5 @@ data class Book(val title: String, val author: String) {
 
 suspend fun main() {
   val book = Book("A book about hobbits and rings")
-  println(book) //Book(title=The Hobbit, author=J.R.R. Tolkien)
+  println(book) // Book(title=The Hobbit, author=J.R.R. Tolkien)
 }
