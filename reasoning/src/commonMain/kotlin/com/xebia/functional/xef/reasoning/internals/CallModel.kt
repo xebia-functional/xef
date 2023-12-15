@@ -16,6 +16,5 @@ internal suspend fun callModel(
       prompt = prompt,
       scope = scope,
     )
-    .firstOrNull()
-    ?: error("No results found")
+    .firstOrNull() ?: error("No results found")
 }

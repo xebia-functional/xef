@@ -129,8 +129,7 @@ class ChatCompletionRequestMessageSpec {
               | }
             """
               .trimMargin()
-          }
-            ?: "[]"
+          } ?: "[]"
         val rawJson =
           """
         |{
