@@ -1,4 +1,4 @@
-package com.xebia.functional.xef.dsl
+package com.xebia.functional.xef
 
 import ai.xef.openai.StandardModel
 import com.xebia.functional.openai.apis.ChatApi
@@ -20,6 +20,7 @@ import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.SerialKind
 import kotlinx.serialization.descriptors.elementDescriptors
 import kotlinx.serialization.serializer
+import kotlin.jvm.JvmInline
 
 interface AI<A> {
   val model: CreateChatCompletionRequestModel
@@ -28,9 +29,8 @@ interface AI<A> {
   val conversation: Conversation
   val enumSerializer: ((case: String) -> A)?
 
-  @JvmInline
   @Serializable
-  value class Value<A>(val value: A)
+  data class Value<A>(val value: A)
 
   private suspend fun <B> runWithSerializer(prompt: String, serializer: KSerializer<B>): B =
     api.prompt(Prompt(StandardModel(model), prompt), conversation, serializer)
