@@ -89,8 +89,7 @@ open class ApiClient(val baseUrl: String) {
     val auth =
       authentications?.values?.firstOrNull {
         it is ApiKeyAuth && (paramName == null || paramName == it.paramName)
-      } as ApiKeyAuth?
-        ?: throw Exception("No API key authentication configured")
+      } as ApiKeyAuth? ?: throw Exception("No API key authentication configured")
     auth.apiKey = apiKey
   }
 
@@ -104,8 +103,7 @@ open class ApiClient(val baseUrl: String) {
     val auth =
       authentications?.values?.firstOrNull {
         it is ApiKeyAuth && (paramName == null || paramName == it.paramName)
-      } as ApiKeyAuth?
-        ?: throw Exception("No API key authentication configured")
+      } as ApiKeyAuth? ?: throw Exception("No API key authentication configured")
     auth.apiKeyPrefix = apiKeyPrefix
   }
 
