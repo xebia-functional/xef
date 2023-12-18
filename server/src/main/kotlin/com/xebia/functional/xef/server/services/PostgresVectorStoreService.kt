@@ -37,9 +37,8 @@ class PostgresVectorStoreService(
 
   override fun getVectorStore(provider: Provider, token: String?): VectorStore {
     val embeddingsApi =
-      token?.let {
-        fromToken(token) { baseUrl -> EmbeddingsApi(baseUrl) }
-      } ?: fromEnvironment { baseUrl -> EmbeddingsApi(baseUrl) }
+      token?.let { fromToken(token) { baseUrl -> EmbeddingsApi(baseUrl) } }
+        ?: fromEnvironment { baseUrl -> EmbeddingsApi(baseUrl) }
 
     return PGVectorStore(
       vectorSize = vectorSize,
