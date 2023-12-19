@@ -12,10 +12,10 @@ import com.xebia.functional.xef.prompt.templates.assistant
 import kotlinx.coroutines.flow.*
 
 @AiDsl
-fun ChatApi.promptStreaming(
+suspend fun ChatApi.promptStreaming(
   prompt: Prompt<CreateChatCompletionRequestModel>,
   scope: Conversation
-): Flow<String> = flow {
+): Flow<String> {
   val messagesForRequestPrompt = PromptCalculator.adaptPromptToConversationAndModel(prompt, scope)
 
   val request =
@@ -29,14 +29,21 @@ fun ChatApi.promptStreaming(
       model = prompt.model
     )
 
-  this@promptStreaming.createChatCompletionStream(request)
-    .mapNotNull { it.choices.mapNotNull { it.delta.content }.reduceOrNull(String::plus) }
-    .onEach { emit(it) }
-    .fold("", String::plus)
-    .also { finalText ->
-      val aiResponseMessage = assistant(finalText)
+  val buffer = StringBuilder()
+
+  return this@promptStreaming.createChatCompletionStream(request)
+    .mapNotNull {
+      val content = it.choices.firstOrNull()?.delta?.content
+      if (content != null) {
+        buffer.append(content)
+      }
+      content
+    }
+    .onCompletion {
+      val aiResponseMessage = assistant(buffer.toString())
       val newMessages = prompt.messages + listOf(aiResponseMessage)
       newMessages.addToMemory(scope, prompt.configuration.messagePolicy.addMessagesToConversation)
+      buffer.clear()
     }
 }
 

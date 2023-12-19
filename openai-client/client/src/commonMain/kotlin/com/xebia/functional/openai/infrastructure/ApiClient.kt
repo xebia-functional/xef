@@ -4,6 +4,7 @@ import com.xebia.functional.openai.auth.*
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.HttpClientEngine
+import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.FormDataContent
@@ -30,6 +31,7 @@ open class ApiClient(val baseUrl: String) {
     val clientConfig: (HttpClientConfig<*>) -> Unit by lazy {
       {
         it.install(ContentNegotiation) { json(jsonBlock) }
+        it.install(HttpTimeout)
         httpClientConfig?.invoke(it)
       }
     }

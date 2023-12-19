@@ -6,11 +6,13 @@ import com.xebia.functional.openai.infrastructure.RequestConfig
 import com.xebia.functional.openai.infrastructure.RequestMethod
 import com.xebia.functional.openai.models.CreateChatCompletionRequest
 import com.xebia.functional.openai.models.CreateChatCompletionStreamResponse
-import io.ktor.client.call.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.utils.io.*
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.DurationUnit
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.flow
@@ -34,53 +36,54 @@ fun ChatApi.createChatCompletionStream(
       requiresAuthentication = true,
     )
   return flow {
-    val response = requestStreaming(localVariableConfig, localVariableBody, localVariableAuthNames)
-    emitDataEvents(response)
+    val statement = requestStreaming(localVariableConfig, localVariableBody, localVariableAuthNames)
+    statement.execute { emitDataEvents(it) }
   }
 }
 
 private suspend fun <T : Any?> ChatApi.requestStreaming(
   requestConfig: RequestConfig<T>,
-  body: Any? = null,
-  authNames: kotlin.collections.List<String>
-): HttpResponse {
+  body: CreateChatCompletionRequest? = null,
+  authNames: List<String>
+): HttpStatement {
   requestConfig.updateForAuth<T>(authNames)
   val headers = requestConfig.headers
 
-  return client.request {
-    this.url {
+  val builder =
+    HttpRequestBuilder().apply {
+      method = HttpMethod.Post
+      url(baseUrl + requestConfig.path)
+      timeout {
+        requestTimeoutMillis = 60.seconds.toLong(DurationUnit.MILLISECONDS)
+        socketTimeoutMillis = 60.seconds.toLong(DurationUnit.MILLISECONDS)
+      }
+      setBody(body?.copy(stream = true))
       contentType(ContentType.Application.Json)
       accept(ContentType.Text.EventStream)
-      this.takeFrom(URLBuilder(baseUrl))
-      appendPath(requestConfig.path.trimStart('/').split('/'))
-      requestConfig.query.forEach { query ->
-        query.value.forEach { value -> parameter(query.key, value) }
+      headers {
+        append(HttpHeaders.CacheControl, "no-cache")
+        append(HttpHeaders.Connection, "keep-alive")
+        headers.forEach {
+          if (it.key !in ApiClient.UNSAFE_HEADERS) {
+            append(it.key, it.value)
+          }
+        }
       }
     }
-    this.method = requestConfig.method.httpMethod
-    headers
-      .filter { header -> !ApiClient.UNSAFE_HEADERS.contains(header.key) }
-      .forEach { header -> this.header(header.key, header.value) }
 
-    header(HttpHeaders.CacheControl, "no-cache")
-    header(HttpHeaders.Connection, "keep-alive")
-
-    if (
-      requestConfig.method in listOf(RequestMethod.PUT, RequestMethod.POST, RequestMethod.PATCH)
-    ) {
-      this.setBody(body)
-    }
-  }
+  return client.preparePost(builder)
 }
 
 private const val PREFIX = "data:"
 private const val END = "$PREFIX [DONE]"
 
-private suspend inline fun <reified T> FlowCollector<T>.emitDataEvents(response: HttpResponse) {
-  val channel: ByteReadChannel = response.body()
+private suspend inline fun FlowCollector<CreateChatCompletionStreamResponse>.emitDataEvents(
+  response: HttpResponse
+) {
+  val channel: ByteReadChannel = response.bodyAsChannel()
   while (!channel.isClosedForRead) {
     val line = channel.readUTF8Line() ?: continue
-    val value: T =
+    val value: CreateChatCompletionStreamResponse =
       when {
         line.startsWith(END) -> break
         line.startsWith(PREFIX) ->
