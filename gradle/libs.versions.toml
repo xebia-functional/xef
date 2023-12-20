@@ -6,6 +6,7 @@ kotlin = "1.9.21"
 kotlinx-json = "1.6.2"
 kotlinx-datetime = "0.4.1"
 ktor = "2.3.7"
+ktor-logging = "0.4.0"
 spotless = "6.23.3"
 okio = "3.7.0"
 kotest = "5.8.0"
@@ -75,6 +76,7 @@ ktor-server-resources = { module = "io.ktor:ktor-server-resources", version.ref 
 ktor-server-cors = { module = "io.ktor:ktor-server-cors", version.ref = "ktor" }
 ktor-server-request-validation = { module = "io.ktor:ktor-server-request-validation", version.ref = "ktor" }
 ktor-server-status-pages = { module = "io.ktor:ktor-server-status-pages", version.ref = "ktor" }
+ktor-logging = { module = "com.koriit.kotlin:ktor-logging", version.ref = "ktor-logging" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 okio-fakefilesystem = { module = "com.squareup.okio:okio-fakefilesystem", version.ref = "okio" }
 okio-nodefilesystem = { module = "com.squareup.okio:okio-nodefilesystem", version.ref = "okio" }
