@@ -96,9 +96,8 @@ constructor(
   ): Flow<String> = chat.promptStreaming(prompt, this@Conversation)
 
   @AiDsl
-  fun ChatApi.promptStreaming(
-    prompt: Prompt<CreateChatCompletionRequestModel>
-  ): Flow<String> = promptStreaming(prompt, this@Conversation)
+  fun ChatApi.promptStreaming(prompt: Prompt<CreateChatCompletionRequestModel>): Flow<String> =
+    promptStreaming(prompt, this@Conversation)
 
   /**
    * Run a [prompt] describes the images you want to generate within the context of [Conversation].
