@@ -6,6 +6,7 @@ import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.FormDataContent
 import io.ktor.client.request.forms.MultiPartFormDataContent
@@ -16,6 +17,8 @@ import io.ktor.http.*
 import io.ktor.http.content.PartData
 import io.ktor.serialization.kotlinx.json.json
 import kotlin.Unit
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.DurationUnit
 import kotlinx.serialization.json.Json
 
 open class ApiClient(val baseUrl: String) {
@@ -167,6 +170,10 @@ open class ApiClient(val baseUrl: String) {
       this.url {
         contentType(ContentType.Application.Json)
         this.takeFrom(URLBuilder(baseUrl))
+        timeout {
+          requestTimeoutMillis = 60.seconds.toLong(DurationUnit.MILLISECONDS)
+          socketTimeoutMillis = 60.seconds.toLong(DurationUnit.MILLISECONDS)
+        }
         appendPath(requestConfig.path.trimStart('/').split('/'))
         requestConfig.query.forEach { query ->
           query.value.forEach { value -> parameter(query.key, value) }

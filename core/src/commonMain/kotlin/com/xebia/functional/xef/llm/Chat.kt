@@ -38,15 +38,15 @@ fun ChatApi.promptStreaming(
         buffer.append(content)
       }
       content
-    }.onEach {
-      emit(it)
     }
+    .onEach { emit(it) }
     .onCompletion {
       val aiResponseMessage = assistant(buffer.toString())
       val newMessages = prompt.messages + listOf(aiResponseMessage)
       newMessages.addToMemory(scope, prompt.configuration.messagePolicy.addMessagesToConversation)
       buffer.clear()
-    }.collect()
+    }
+    .collect()
 }
 
 @AiDsl
