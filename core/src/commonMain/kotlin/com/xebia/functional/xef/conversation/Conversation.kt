@@ -90,13 +90,13 @@ constructor(
   ): Flow<StreamedFunction<A>> = chat.promptStreaming(prompt, this@Conversation, serializer())
 
   @AiDsl
-  suspend fun promptStreaming(
+  fun promptStreaming(
     prompt: Prompt<CreateChatCompletionRequestModel>,
     chat: ChatApi = fromEnvironment(::ChatApi)
   ): Flow<String> = chat.promptStreaming(prompt, this@Conversation)
 
   @AiDsl
-  suspend fun ChatApi.promptStreaming(
+  fun ChatApi.promptStreaming(
     prompt: Prompt<CreateChatCompletionRequestModel>
   ): Flow<String> = promptStreaming(prompt, this@Conversation)
 
