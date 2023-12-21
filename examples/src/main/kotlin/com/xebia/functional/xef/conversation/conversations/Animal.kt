@@ -19,10 +19,11 @@ data class Invention(val name: String, val inventor: String, val year: Int, val 
 suspend fun main() {
   // This example contemplate the case of using OpenTelemetry for metrics
   // To run the example with OpenTelemetry, you can execute the following commands:
-  //  - # docker compose-up server/docker/opentelemetry
+  //  - # cd server/docker/opentelemetry
+  //  - # docker-compose up
 
   Conversation(
-    // metric = com.xebia.functional.xef.opentelemetry.OpenTelemetryMetric()
+    //    metric = com.xebia.functional.xef.opentelemetry.OpenTelemetryMetric(),
     metric = com.xebia.functional.xef.metrics.LogsMetric()
   ) {
     metric.customSpan("Animal Example") {
