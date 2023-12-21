@@ -79,6 +79,12 @@ val getCollectionById: String =
      WHERE uuid = ?;"""
     .trimIndent()
 
+val hasOneEmbeddings: String =
+    """SELECT content FROM xef_embeddings
+     WHERE collection_id = ?
+     LIMIT 1;"""
+        .trimIndent()
+
 val getMemoriesByConversationId: String =
     """
     SELECT
