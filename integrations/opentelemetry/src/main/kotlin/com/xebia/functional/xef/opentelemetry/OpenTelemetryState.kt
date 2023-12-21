@@ -10,7 +10,7 @@ import kotlinx.coroutines.withContext
 
 class OpenTelemetryState(val tracer: Tracer) {
 
-  suspend fun <A> span(name: String, block: suspend OpenTelemetryState.(Span) -> A): A {
+  suspend fun <A> span(name: String, block: suspend (Span) -> A): A {
     val parentOrRoot = currentCoroutineContext().getOpenTelemetryContext()
 
     val currentSpan = tracer.spanBuilder(name).setParent(parentOrRoot).startSpan()
