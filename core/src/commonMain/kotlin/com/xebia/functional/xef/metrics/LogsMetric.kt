@@ -38,11 +38,11 @@ class LogsMetric : Metric {
     return output
   }
 
-  override fun event(message: String) {
+  override suspend fun event(message: String) {
     logger.info { "${writeIndent(numberOfBlocks.get())}|-- $message" }
   }
 
-  override fun parameter(key: String, value: String) {
+  override suspend fun parameter(key: String, value: String) {
     logger.info { "${writeIndent(numberOfBlocks.get())}|-- $key = $value" }
   }
 
