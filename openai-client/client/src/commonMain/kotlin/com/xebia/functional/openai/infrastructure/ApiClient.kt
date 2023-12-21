@@ -35,6 +35,7 @@ open class ApiClient(val baseUrl: String) {
       {
         it.install(ContentNegotiation) { json(jsonBlock) }
         it.install(HttpTimeout)
+        it.install(Logging) { level = LogLevel.NONE }
         httpClientConfig?.invoke(it)
       }
     }
