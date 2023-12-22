@@ -8,10 +8,11 @@ suspend fun CreateChatCompletionResponse.addMetrics(
   conversation: Conversation
 ): CreateChatCompletionResponse {
   conversation.metric.parameter("model", model)
-  conversation.metric.parameter(
-    "tokens",
-    "${usage?.promptTokens} (prompt) + ${usage?.completionTokens} (completion) = ${usage?.totalTokens}"
-  )
+  usage?.let {
+    conversation.metric.parameter("tokens.prompt", "${it.promptTokens}")
+    conversation.metric.parameter("tokens.completion", "${it.completionTokens}")
+    conversation.metric.parameter("tokens.total", "${it.totalTokens}")
+  }
   return this
 }
 
