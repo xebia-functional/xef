@@ -126,7 +126,7 @@ sealed class StreamedFunction<out A> {
       messages: MutableList<ChatCompletionRequestMessage>,
       serializer: (json: String) -> A
     ) {
-      val arguments = functionCall.arguments ?: error("No arguments provided for function call")
+      val arguments = functionCall.arguments
       messages.add(assistant("Function call: $functionCall"))
       val result = serializer(arguments)
       // stream the result

@@ -109,7 +109,9 @@ data class CreateChatCompletionRequest(
 
   /* A list of tools the model may call. Currently, only functions are supported as a tool. Use this to provide a list of functions the model may generate JSON inputs for.  */
   @SerialName(value = "tools") val tools: kotlin.collections.List<ChatCompletionTool>? = null,
-  @SerialName(value = "tool_choice") val toolChoice: ChatCompletionToolChoiceOption? = null,
+  @SerialName(value = "tool_choice")
+  val toolChoice: com.xebia.functional.openai.models.ext.chat.ChatCompletionToolChoiceOption? =
+    null,
 
   /* A unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse. [Learn more](/docs/guides/safety-best-practices/end-user-ids).  */
   @SerialName(value = "user") val user: kotlin.String? = null,
