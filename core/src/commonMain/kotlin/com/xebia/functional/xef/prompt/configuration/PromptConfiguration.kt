@@ -17,6 +17,7 @@ constructor(
   var docsInContext: Int = 5,
   var maxTokens: Int = 500,
   var messagePolicy: MessagePolicy = MessagePolicy(),
+  var seed: Int? = null,
 ) {
 
   fun messagePolicy(block: MessagePolicy.() -> Unit) = messagePolicy.apply { block() }
