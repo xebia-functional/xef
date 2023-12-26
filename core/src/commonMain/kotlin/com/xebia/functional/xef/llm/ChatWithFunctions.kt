@@ -117,6 +117,7 @@ private fun createChatCompletionRequest(
     tools = chatCompletionTools(adaptedPrompt),
     toolChoice = chatCompletionToolChoiceOption(adaptedPrompt),
     model = adaptedPrompt.model,
+    seed = adaptedPrompt.configuration.seed,
   )
 
 private fun chatCompletionToolChoiceOption(

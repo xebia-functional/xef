@@ -26,7 +26,8 @@ fun ChatApi.promptStreaming(
       n = prompt.configuration.numberOfPredictions,
       temperature = prompt.configuration.temperature,
       maxTokens = prompt.configuration.maxTokens,
-      model = prompt.model
+      model = prompt.model,
+      seed = prompt.configuration.seed,
     )
 
   val buffer = StringBuilder()
@@ -73,7 +74,8 @@ suspend fun ChatApi.promptMessages(
         n = adaptedPrompt.configuration.numberOfPredictions,
         temperature = adaptedPrompt.configuration.temperature,
         maxTokens = adaptedPrompt.configuration.maxTokens,
-        model = prompt.model
+        model = prompt.model,
+        seed = adaptedPrompt.configuration.seed,
       )
 
     createChatCompletion(request)
