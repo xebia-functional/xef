@@ -79,7 +79,6 @@ interface AI<A : Any> {
       PolymorphicKind.SEALED -> {
         val s = serializer as SealedClassSerializer<A>
         val cases = s.descriptor.elementDescriptors.toList()[1].elementDescriptors.toList()
-        println(caseSerializers)
         runWithDescriptors(prompt, s, cases)
       }
       SerialKind.CONTEXTUAL -> runWithSerializer(prompt, serializer)
