@@ -1,11 +1,11 @@
 package com.xebia.functional.xef
 
+import ai.xef.openai.CustomModel
+import ai.xef.openai.OpenAIModel
 import ai.xef.openai.StandardModel
 import com.xebia.functional.openai.apis.ChatApi
 import com.xebia.functional.openai.models.CreateChatCompletionRequest
 import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
-import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestUserMessage
-import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestUserMessageContentText
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.StreamedFunction
@@ -23,7 +23,7 @@ import kotlinx.serialization.descriptors.*
 
 interface AI<A : Any> {
   val target: KType
-  val model: CreateChatCompletionRequestModel
+  val model: OpenAIModel<CreateChatCompletionRequestModel>
   val api: ChatApi
   val serializer: () -> KSerializer<A>
   val conversation: Conversation
@@ -32,26 +32,28 @@ interface AI<A : Any> {
 
   @Serializable data class Value<A>(val value: A)
 
-  private suspend fun <B> runWithSerializer(prompt: String, serializer: KSerializer<B>): B =
-    api.prompt(Prompt(StandardModel(model), prompt), conversation, serializer)
+  private suspend fun <B> runWithSerializer(
+    prompt: Prompt<CreateChatCompletionRequestModel>,
+    serializer: KSerializer<B>
+  ): B = api.prompt(prompt, conversation, serializer)
 
-  private fun runStreamingWithStringSerializer(prompt: String): Flow<String> =
-    api.promptStreaming(Prompt(StandardModel(model), prompt), conversation)
+  private fun runStreamingWithStringSerializer(
+    prompt: Prompt<CreateChatCompletionRequestModel>
+  ): Flow<String> = api.promptStreaming(prompt, conversation)
 
   private fun <B> runStreamingWithFunctionSerializer(
-    prompt: String,
+    prompt: Prompt<CreateChatCompletionRequestModel>,
     serializer: KSerializer<B>
-  ): Flow<StreamedFunction<B>> =
-    api.promptStreaming(Prompt(StandardModel(model), prompt), conversation, serializer)
+  ): Flow<StreamedFunction<B>> = api.promptStreaming(prompt, conversation, serializer)
 
   private suspend fun <B> runWithDescriptors(
-    prompt: String,
+    prompt: Prompt<CreateChatCompletionRequestModel>,
     serializer: KSerializer<B>,
     descriptors: List<SerialDescriptor>
-  ): B = api.prompt(Prompt(StandardModel(model), prompt), conversation, serializer, descriptors)
+  ): B = api.prompt(prompt, conversation, serializer, descriptors)
 
   @OptIn(ExperimentalSerializationApi::class, InternalSerializationApi::class)
-  suspend operator fun invoke(prompt: String): A {
+  suspend operator fun invoke(prompt: Prompt<CreateChatCompletionRequestModel>): A {
     val serializer = serializer()
     return when (serializer.descriptor.kind) {
       SerialKind.ENUM -> {
@@ -88,7 +90,10 @@ interface AI<A : Any> {
   }
 
   @OptIn(ExperimentalSerializationApi::class)
-  suspend fun runWithEnumSingleTokenSerializer(serializer: KSerializer<A>, prompt: String): A {
+  suspend fun runWithEnumSingleTokenSerializer(
+    serializer: KSerializer<A>,
+    prompt: Prompt<CreateChatCompletionRequestModel>
+  ): A {
     val encoding = StandardModel(model).modelType(forFunctions = false).encoding
     val cases =
       serializer.descriptor.elementDescriptors.map { it.serialName.substringAfterLast(".") }
@@ -105,13 +110,8 @@ interface AI<A : Any> {
     val result =
       api.createChatCompletion(
         CreateChatCompletionRequest(
-          messages =
-            listOf(
-              ChatCompletionRequestUserMessage(
-                content = listOf(ChatCompletionRequestUserMessageContentText(prompt)),
-              )
-            ),
-          model = StandardModel(model),
+          messages = prompt.messages,
+          model = model,
           logitBias = logitBias,
           maxTokens = 1,
           temperature = 0.0
@@ -129,7 +129,7 @@ interface AI<A : Any> {
   companion object {
     operator fun <A : Any> invoke(
       target: KType,
-      model: CreateChatCompletionRequestModel,
+      model: OpenAIModel<CreateChatCompletionRequestModel>,
       api: ChatApi,
       conversation: Conversation,
       enumSerializer: ((case: String) -> A)?,
@@ -138,7 +138,7 @@ interface AI<A : Any> {
     ): AI<A> =
       object : AI<A> {
         override val target: KType = target
-        override val model: CreateChatCompletionRequestModel = model
+        override val model: OpenAIModel<CreateChatCompletionRequestModel> = model
         override val api: ChatApi = api
         override val serializer: () -> KSerializer<A> = serializer
         override val conversation: Conversation = conversation
@@ -146,18 +146,16 @@ interface AI<A : Any> {
         override val caseSerializers: List<KSerializer<A>> = caseSerializers
       }
 
-    @OptIn(InternalSerializationApi::class)
     @PublishedApi
     internal suspend inline fun <reified A : Any> invokeEnum(
-      prompt: String,
+      prompt: Prompt<CreateChatCompletionRequestModel>,
       target: KType = typeOf<A>(),
-      model: CreateChatCompletionRequestModel = CreateChatCompletionRequestModel.gpt_4_1106_preview,
       api: ChatApi = fromEnvironment(::ChatApi),
       conversation: Conversation = Conversation()
     ): A =
       invoke(
           target = target,
-          model = model,
+          model = prompt.model,
           api = api,
           conversation = conversation,
           enumSerializer = { @Suppress("UPPER_BOUND_VIOLATED") enumValueOf<A>(it) },
@@ -167,7 +165,6 @@ interface AI<A : Any> {
         }
         .invoke(prompt)
 
-    @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
     @AiDsl
     suspend inline operator fun <reified A : Any> invoke(
       prompt: String,
@@ -175,16 +172,25 @@ interface AI<A : Any> {
       model: CreateChatCompletionRequestModel = CreateChatCompletionRequestModel.gpt_4_1106_preview,
       api: ChatApi = fromEnvironment(::ChatApi),
       conversation: Conversation = Conversation()
+    ): A = invoke(Prompt(CustomModel(model.value), prompt), target, api, conversation)
+
+    @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
+    @AiDsl
+    suspend inline operator fun <reified A : Any> invoke(
+      prompt: Prompt<CreateChatCompletionRequestModel>,
+      target: KType = typeOf<A>(),
+      api: ChatApi = fromEnvironment(::ChatApi),
+      conversation: Conversation = Conversation()
     ): A {
       val kind =
         (target.classifier as? KClass<*>)?.serializer()?.descriptor?.kind
           ?: error("Cannot find SerialKind for $target")
       return when (kind) {
-        SerialKind.ENUM -> invokeEnum<A>(prompt, target, model, api, conversation)
+        SerialKind.ENUM -> invokeEnum<A>(prompt, target, api, conversation)
         else -> {
           invoke(
               target = target,
-              model = model,
+              model = prompt.model,
               api = api,
               conversation = conversation,
               enumSerializer = null,
