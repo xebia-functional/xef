@@ -29,15 +29,24 @@ fun ChatApi.promptStreaming(
       model = prompt.model
     )
 
+  val buffer = StringBuilder()
+
   this@promptStreaming.createChatCompletionStream(request)
-    .mapNotNull { it.choices.mapNotNull { it.delta.content }.reduceOrNull(String::plus) }
+    .mapNotNull {
+      val content = it.choices.firstOrNull()?.delta?.content
+      if (content != null) {
+        buffer.append(content)
+      }
+      content
+    }
     .onEach { emit(it) }
-    .fold("", String::plus)
-    .also { finalText ->
-      val aiResponseMessage = assistant(finalText)
+    .onCompletion {
+      val aiResponseMessage = assistant(buffer.toString())
       val newMessages = prompt.messages + listOf(aiResponseMessage)
       newMessages.addToMemory(scope, prompt.configuration.messagePolicy.addMessagesToConversation)
+      buffer.clear()
     }
+    .collect()
 }
 
 @AiDsl

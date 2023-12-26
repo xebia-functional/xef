@@ -1,7 +1,6 @@
 package com.xebia.functional.xef.conversation
 
 import com.xebia.functional.openai.apis.ChatApi
-import com.xebia.functional.openai.apis.EmbeddingsApi
 import com.xebia.functional.openai.apis.ImagesApi
 import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
 import com.xebia.functional.openai.models.CreateImageRequest
@@ -12,7 +11,6 @@ import com.xebia.functional.xef.llm.*
 import com.xebia.functional.xef.metrics.Metric
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.store.ConversationId
-import com.xebia.functional.xef.store.LocalVectorStore
 import com.xebia.functional.xef.store.VectorStore
 import kotlin.jvm.JvmOverloads
 import kotlin.jvm.JvmSynthetic
@@ -25,7 +23,7 @@ import kotlinx.uuid.generateUUID
 class Conversation
 @JvmOverloads
 constructor(
-  val store: VectorStore = LocalVectorStore(fromEnvironment { baseUrl -> EmbeddingsApi(baseUrl) }),
+  val store: VectorStore = VectorStore.EMPTY,
   val metric: Metric = Metric.EMPTY,
   val conversationId: ConversationId? = ConversationId(UUID.generateUUID().toString())
 ) {
@@ -119,7 +117,7 @@ constructor(
 
     @JvmSynthetic
     suspend operator fun <A> invoke(
-      store: VectorStore = LocalVectorStore(fromEnvironment { baseUrl -> EmbeddingsApi(baseUrl) }),
+      store: VectorStore = VectorStore.EMPTY,
       metric: Metric = Metric.EMPTY,
       conversationId: ConversationId? = ConversationId(UUID.generateUUID().toString()),
       block: suspend Conversation.() -> A

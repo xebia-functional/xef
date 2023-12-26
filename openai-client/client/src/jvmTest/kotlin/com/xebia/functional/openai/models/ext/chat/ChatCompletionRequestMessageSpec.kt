@@ -40,18 +40,24 @@ class ChatCompletionRequestMessageSpec {
   fun shouldSerializeProperlyAssistant() {
     runTest {
       checkAll(chatCompletionRequestAssistantMessage) { assistant ->
-        val v: ChatCompletionRequestMessage = assistant
-        json.encodeToJsonElement<ChatCompletionRequestMessage>(v) shouldBe
+        val expected =
           JsonObject(
-            listOfNotNull(
-                assistant.content?.let { "content" to JsonPrimitive(it) },
-                "role" to JsonPrimitive(assistant.role.value),
-                assistant.toolCalls?.let { calls ->
-                  "tool_calls" to JsonArray(calls.map { toJsonObject(it) })
+              listOfNotNull(
+                  assistant.content?.let { "content" to JsonPrimitive(it) },
+                  "role" to JsonPrimitive(assistant.role.value)
+                )
+                .toMap()
+            )
+            .let { jsonElement ->
+              jsonElement.jsonObject.toMutableMap().apply {
+                if (assistant.toolCalls.isNotEmpty()) {
+                  put("tool_calls", JsonArray(assistant.toolCalls.map { toJsonObject(it) }))
                 }
-              )
-              .toMap()
-          )
+              }
+            }
+
+        val actual = json.encodeToJsonElement<ChatCompletionRequestMessage>(assistant)
+        actual shouldBe expected
       }
     }
   }
@@ -119,6 +125,7 @@ class ChatCompletionRequestMessageSpec {
             |}
           """
             .trimMargin()
+
         val toolCallsObject =
           assistant.toolCalls?.joinToString(",", "[", "]") { tool ->
             """
@@ -129,8 +136,7 @@ class ChatCompletionRequestMessageSpec {
               | }
             """
               .trimMargin()
-          }
-            ?: "[]"
+          } ?: "[]"
         val rawJson =
           """
         |{
