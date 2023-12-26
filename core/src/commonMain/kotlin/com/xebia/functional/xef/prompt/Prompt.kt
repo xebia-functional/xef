@@ -33,7 +33,10 @@ constructor(
     @JvmSynthetic
     operator fun <T> invoke(
       model: OpenAIModel<T>,
+      functions: List<FunctionObject> = emptyList(),
+      configuration: PromptConfiguration = PromptConfiguration.DEFAULTS,
       block: PlatformPromptBuilder<T>.() -> Unit
-    ): Prompt<T> = PlatformPromptBuilder.create(model).apply { block() }.build()
+    ): Prompt<T> =
+      PlatformPromptBuilder.create(model, functions, configuration).apply { block() }.build()
   }
 }
