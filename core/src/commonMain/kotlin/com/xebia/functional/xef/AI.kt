@@ -8,19 +8,21 @@ import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestUserMess
 import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestUserMessageContentText
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
+import com.xebia.functional.xef.llm.StreamedFunction
 import com.xebia.functional.xef.llm.fromEnvironment
 import com.xebia.functional.xef.llm.models.modelType
 import com.xebia.functional.xef.llm.prompt
+import com.xebia.functional.xef.llm.promptStreaming
 import com.xebia.functional.xef.prompt.Prompt
-import io.ktor.util.*
 import kotlin.reflect.KClass
+import kotlin.reflect.KType
+import kotlin.reflect.typeOf
+import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.*
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.*
-import kotlinx.serialization.modules.serializersModuleOf
 
 interface AI<A : Any> {
-  val target: KClass<A>
+  val target: KType
   val model: CreateChatCompletionRequestModel
   val api: ChatApi
   val serializer: () -> KSerializer<A>
@@ -32,6 +34,15 @@ interface AI<A : Any> {
 
   private suspend fun <B> runWithSerializer(prompt: String, serializer: KSerializer<B>): B =
     api.prompt(Prompt(StandardModel(model), prompt), conversation, serializer)
+
+  private fun runStreamingWithStringSerializer(prompt: String): Flow<String> =
+    api.promptStreaming(Prompt(StandardModel(model), prompt), conversation)
+
+  private fun <B> runStreamingWithFunctionSerializer(
+    prompt: String,
+    serializer: KSerializer<B>
+  ): Flow<StreamedFunction<B>> =
+    api.promptStreaming(Prompt(StandardModel(model), prompt), conversation, serializer)
 
   private suspend fun <B> runWithDescriptors(
     prompt: String,
@@ -47,12 +58,26 @@ interface AI<A : Any> {
         runWithEnumSingleTokenSerializer(serializer, prompt)
       }
       // else -> runWithSerializer(prompt, serializer)
-      PolymorphicKind.OPEN -> error("Cannot decode open type")
+      PolymorphicKind.OPEN ->
+        when {
+          target == typeOf<Flow<String>>() -> {
+            runStreamingWithStringSerializer(prompt) as A
+          }
+          (target.classifier == Flow::class &&
+            target.arguments.firstOrNull()?.type?.classifier == StreamedFunction::class) -> {
+            val functionClass =
+              target.arguments.first().type?.arguments?.firstOrNull()?.type?.classifier
+                as? KClass<*>
+            val functionSerializer =
+              functionClass?.serializer() ?: error("Cannot find serializer for $functionClass")
+            runStreamingWithFunctionSerializer(prompt, functionSerializer) as A
+          }
+          else -> {
+            runWithSerializer(prompt, Value.serializer(serializer)) as A
+          }
+        }
       PolymorphicKind.SEALED -> {
         val s = serializer as SealedClassSerializer<A>
-        val module = serializersModuleOf(target, s)
-        val descriptors = module.getPolymorphicDescriptors(s.descriptor)
-        println(descriptors)
         val cases = s.descriptor.elementDescriptors.toList()[1].elementDescriptors.toList()
         println(caseSerializers)
         runWithDescriptors(prompt, s, cases)
@@ -104,7 +129,7 @@ interface AI<A : Any> {
 
   companion object {
     operator fun <A : Any> invoke(
-      target: KClass<A>,
+      target: KType,
       model: CreateChatCompletionRequestModel,
       api: ChatApi,
       conversation: Conversation,
@@ -113,7 +138,7 @@ interface AI<A : Any> {
       serializer: () -> KSerializer<A>,
     ): AI<A> =
       object : AI<A> {
-        override val target: KClass<A> = target
+        override val target: KType = target
         override val model: CreateChatCompletionRequestModel = model
         override val api: ChatApi = api
         override val serializer: () -> KSerializer<A> = serializer
@@ -122,26 +147,11 @@ interface AI<A : Any> {
         override val caseSerializers: List<KSerializer<A>> = caseSerializers
       }
 
-    @AiDsl
-    inline fun <reified A : Enum<A>> enum(
-      model: CreateChatCompletionRequestModel = CreateChatCompletionRequestModel.gpt_4_1106_preview,
-      api: ChatApi = fromEnvironment(::ChatApi)
-    ): AI<A> =
-      invoke(
-        target = A::class,
-        model = model,
-        api = api,
-        conversation = Conversation(),
-        enumSerializer = { name -> enumValueOf<A>(name) },
-        caseSerializers = emptyList()
-      ) {
-        serializer()
-      }
-
-    @AiDsl
-    suspend inline operator fun <reified A : Any> invoke(
+    @OptIn(InternalSerializationApi::class)
+    @PublishedApi
+    internal suspend inline fun <reified A : Any> invokeEnum(
       prompt: String,
-      target: KClass<A> = A::class,
+      target: KType = typeOf<A>(),
       model: CreateChatCompletionRequestModel = CreateChatCompletionRequestModel.gpt_4_1106_preview,
       api: ChatApi = fromEnvironment(::ChatApi),
       conversation: Conversation = Conversation()
@@ -151,11 +161,41 @@ interface AI<A : Any> {
           model = model,
           api = api,
           conversation = conversation,
-          enumSerializer = null,
+          enumSerializer = { @Suppress("UPPER_BOUND_VIOLATED") enumValueOf<A>(it) },
           caseSerializers = emptyList()
         ) {
           serializer<A>()
         }
         .invoke(prompt)
+
+    @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
+    @AiDsl
+    suspend inline operator fun <reified A : Any> invoke(
+      prompt: String,
+      target: KType = typeOf<A>(),
+      model: CreateChatCompletionRequestModel = CreateChatCompletionRequestModel.gpt_4_1106_preview,
+      api: ChatApi = fromEnvironment(::ChatApi),
+      conversation: Conversation = Conversation()
+    ): A {
+      val kind =
+        (target.classifier as? KClass<*>)?.serializer()?.descriptor?.kind
+          ?: error("Cannot find SerialKind for $target")
+      return when (kind) {
+        SerialKind.ENUM -> invokeEnum<A>(prompt, target, model, api, conversation)
+        else -> {
+          invoke(
+              target = target,
+              model = model,
+              api = api,
+              conversation = conversation,
+              enumSerializer = null,
+              caseSerializers = emptyList()
+            ) {
+              serializer<A>()
+            }
+            .invoke(prompt)
+        }
+      }
+    }
   }
 }
