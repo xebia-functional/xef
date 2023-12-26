@@ -66,8 +66,8 @@ constructor(
   suspend fun <A> ChatApi.prompt(
     prompt: Prompt<CreateChatCompletionRequestModel>,
     function: FunctionObject,
-    serializer: (String) -> A
-  ): A = prompt(prompt, this@Conversation, function, serializer)
+    serializer: (FunctionCall) -> A
+  ): A = prompt(prompt, this@Conversation, listOf(function), serializer)
 
   @AiDsl
   @JvmSynthetic

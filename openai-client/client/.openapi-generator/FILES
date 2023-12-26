@@ -41,7 +41,6 @@ src/commonMain/kotlin/com/xebia/functional/openai/models/ChatCompletionRole.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/ChatCompletionStreamResponseDelta.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/ChatCompletionStreamResponseDeltaFunctionCall.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/ChatCompletionTool.kt
-src/commonMain/kotlin/com/xebia/functional/openai/models/ChatCompletionToolChoiceOption.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/CompletionUsage.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/CreateAssistantFileRequest.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/CreateAssistantRequest.kt

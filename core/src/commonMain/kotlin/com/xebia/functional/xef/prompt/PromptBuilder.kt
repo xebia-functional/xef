@@ -2,7 +2,9 @@ package com.xebia.functional.xef.prompt
 
 import ai.xef.openai.OpenAIModel
 import com.xebia.functional.openai.models.ChatCompletionRole
+import com.xebia.functional.openai.models.FunctionObject
 import com.xebia.functional.openai.models.ext.chat.*
+import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
 import com.xebia.functional.xef.prompt.templates.assistant
 import com.xebia.functional.xef.prompt.templates.system
 import com.xebia.functional.xef.prompt.templates.user
@@ -61,8 +63,11 @@ interface PromptBuilder<T> {
 
   companion object {
 
-    operator fun <T> invoke(model: OpenAIModel<T>): PlatformPromptBuilder<T> =
-      PlatformPromptBuilder.create(model)
+    operator fun <T> invoke(
+      model: OpenAIModel<T>,
+      functions: List<FunctionObject>,
+      configuration: PromptConfiguration
+    ): PlatformPromptBuilder<T> = PlatformPromptBuilder.create(model, functions, configuration)
   }
 }
 

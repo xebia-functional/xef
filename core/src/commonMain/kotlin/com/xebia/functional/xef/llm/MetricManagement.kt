@@ -21,6 +21,9 @@ suspend fun <T> Prompt<T>.addMetrics(conversation: Conversation) {
     "${messages.size} (${messages.map { it.completionRole().value.firstOrNull() ?: "" }.joinToString("-")})"
   )
   conversation.metric.parameter("conversation-id", conversation.conversationId?.value ?: "none")
-  conversation.metric.parameter("functions", function?.let { "yes" } ?: "no")
+  conversation.metric.parameter(
+    "functions",
+    if (functions.isEmpty()) "no" else functions.joinToString(",") { it.name }
+  )
   conversation.metric.parameter("temperature", "${configuration.temperature}")
 }
