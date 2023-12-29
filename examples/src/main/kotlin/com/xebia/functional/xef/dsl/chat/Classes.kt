@@ -1,4 +1,4 @@
-package com.xebia.functional.xef.dsl
+package com.xebia.functional.xef.dsl.chat
 
 import ai.xef.openai.StandardModel
 import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
@@ -55,7 +55,7 @@ suspend fun books(topic: String): Books {
       +user("Give me a selection of books about $topic")
     }
 
-  return AI(myCustomPrompt)
+  return AI.chat(myCustomPrompt)
 }
 
 suspend fun main() {
