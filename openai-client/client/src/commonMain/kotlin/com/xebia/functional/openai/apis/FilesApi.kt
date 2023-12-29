@@ -62,7 +62,7 @@ open class FilesApi : ApiClient {
    */
   @Suppress("UNCHECKED_CAST")
   open suspend fun createFile(
-    file: io.ktor.client.request.forms.InputProvider,
+    file: com.xebia.functional.openai.apis.UploadFile,
     purpose: PurposeCreateFile
   ): HttpResponse<OpenAIFile> {
 

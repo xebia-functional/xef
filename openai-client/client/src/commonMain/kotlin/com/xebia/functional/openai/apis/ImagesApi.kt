@@ -107,9 +107,9 @@ open class ImagesApi : ApiClient {
    */
   @Suppress("UNCHECKED_CAST")
   open suspend fun createImageEdit(
-    image: io.ktor.client.request.forms.InputProvider,
+    image: com.xebia.functional.openai.apis.UploadFile,
     prompt: kotlin.String,
-    mask: io.ktor.client.request.forms.InputProvider? = null,
+    mask: com.xebia.functional.openai.apis.UploadFile? = null,
     model: CreateImageEditRequestModel? = null,
     n: kotlin.Int? = 1,
     size: PropertySizeCreateImageEdit? = PropertySizeCreateImageEdit._1024x1024,
@@ -181,7 +181,7 @@ open class ImagesApi : ApiClient {
    */
   @Suppress("UNCHECKED_CAST")
   open suspend fun createImageVariation(
-    image: io.ktor.client.request.forms.InputProvider,
+    image: com.xebia.functional.openai.apis.UploadFile,
     model: CreateImageEditRequestModel? = null,
     n: kotlin.Int? = 1,
     responseFormat: ResponseFormatCreateImageVariation? = ResponseFormatCreateImageVariation.url,

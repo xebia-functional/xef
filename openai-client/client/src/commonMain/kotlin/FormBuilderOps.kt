@@ -18,9 +18,20 @@ fun <T : Any> FormBuilder.appendGen(key: String, value: T, headers: Headers = He
     is ByteReadPacket -> append(key, value, headers)
     is InputProvider -> append(key, value, headers)
     is ChannelProvider -> append(key, value, headers)
+    is UploadFile -> appendUploadedFile(key, value)
     is Enum<*> -> append(key, serialNameOrEnumValue(value), headers)
     else -> append(key, value, headers)
   }
+}
+
+internal fun FormBuilder.appendUploadedFile(key: String, file: UploadFile) {
+  append(
+    key = key,
+    filename = file.filename,
+    contentType = file.contentType ?: ContentType.Application.OctetStream,
+    size = file.size,
+    bodyBuilder = file.bodyBuilder
+  )
 }
 
 @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)

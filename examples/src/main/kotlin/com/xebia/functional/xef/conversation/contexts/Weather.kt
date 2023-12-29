@@ -30,6 +30,6 @@ suspend fun main() {
   val conversation = Conversation(LocalVectorStore(fromEnvironment(::EmbeddingsApi)))
   val search = Search(model = model, scope = conversation)
   conversation.addContext(search("Weather in Cádiz, Spain"))
-  val recommendation = AI<Recommendation>(question, conversation = conversation)
+  val recommendation: Recommendation = AI.chat(question, conversation = conversation)
   println(recommendation)
 }
