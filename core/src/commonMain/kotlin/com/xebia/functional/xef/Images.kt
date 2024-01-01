@@ -2,13 +2,16 @@ package com.xebia.functional.xef
 
 import ai.xef.openai.OpenAIModel
 import ai.xef.openai.StandardModel
+import com.xebia.functional.openai.apis.ChatApi
 import com.xebia.functional.openai.apis.ImagesApi
 import com.xebia.functional.openai.apis.UploadFile
 import com.xebia.functional.openai.infrastructure.HttpResponse
-import com.xebia.functional.openai.models.CreateImageEditRequestModel
-import com.xebia.functional.openai.models.CreateImageRequest
-import com.xebia.functional.openai.models.CreateImageRequestModel
-import com.xebia.functional.openai.models.ImagesResponse
+import com.xebia.functional.openai.models.*
+import com.xebia.functional.xef.conversation.Conversation
+import com.xebia.functional.xef.llm.prompt
+import com.xebia.functional.xef.llm.promptStreaming
+import com.xebia.functional.xef.prompt.Prompt
+import com.xebia.functional.xef.prompt.templates.user
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
@@ -16,8 +19,10 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.toList
+import kotlinx.serialization.serializer
 
-data class Images(val api: ImagesApi) {
+data class Images(val api: ImagesApi, val chatApi: ChatApi) {
 
   sealed class Image {
     data class Url(
@@ -27,6 +32,30 @@ data class Images(val api: ImagesApi) {
 
     data class B64Json(val content: String, val revisedPrompt: String) : Image()
   }
+
+  suspend inline fun <reified A> visionStructured(
+    prompt: String,
+    url: String,
+    conversation: Conversation = Conversation(),
+    model: OpenAIModel<CreateChatCompletionRequestModel> =
+      StandardModel(CreateChatCompletionRequestModel.gpt_4_0613)
+  ): A {
+    val response = vision(prompt, url, conversation).toList().joinToString("") { it }
+    return chatApi.prompt(Prompt(model) { +user(response) }, conversation, serializer())
+  }
+
+  fun vision(
+    prompt: String,
+    url: String,
+    conversation: Conversation = Conversation()
+  ): Flow<String> =
+    chatApi.promptStreaming(
+      prompt =
+        Prompt(StandardModel(CreateChatCompletionRequestModel.gpt_4_vision_preview)) {
+          +com.xebia.functional.xef.prompt.templates.image(prompt, url)
+        },
+      scope = conversation
+    )
 
   suspend fun image(
     prompt: String,
