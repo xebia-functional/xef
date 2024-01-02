@@ -32,7 +32,11 @@ open class ApiClient(val baseUrl: String) {
     val clientConfig: (HttpClientConfig<*>) -> Unit by lazy {
       {
         it.install(ContentNegotiation) { json(jsonBlock) }
-        it.install(HttpTimeout)
+        it.install(HttpTimeout) {
+          requestTimeoutMillis = 60 * 1000
+          connectTimeoutMillis = 60 * 1000
+          socketTimeoutMillis = 60 * 1000
+        }
         it.install(Logging) { level = LogLevel.NONE }
         httpClientConfig?.invoke(it)
       }
