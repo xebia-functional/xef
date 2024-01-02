@@ -17,14 +17,16 @@ suspend fun CreateChatCompletionResponse.addMetrics(
 }
 
 suspend fun <T> Prompt<T>.addMetrics(conversation: Conversation) {
+  conversation.metric.parameter("openai.chat_completion.prompt.message.count", "${messages.size}")
+
   conversation.metric.parameter(
-    "openai.chat_completion.prompt.message.count",
-    "${messages.size} (${messages.map { it.completionRole().value.firstOrNull() ?: "" }.joinToString("-")})"
+    "openai.chat_completion.prompt.messages",
+    messages.map { it.completionRole().value }
   )
-  conversation.metric.parameter("openai.chat_completion.conversation.id", conversation.conversationId?.value ?: "none")
+  conversation.metric.parameter("openai.chat_completion.conversation_id", conversation.conversationId?.value ?: "none")
   conversation.metric.parameter(
     "functions",
-    if (functions.isEmpty()) "no" else functions.joinToString(",") { it.name }
+    if (functions.isEmpty()) listOf("no") else functions.map { it.name }
   )
   conversation.metric.parameter("openai.chat_completion.prompt.temperature", "${configuration.temperature}")
 }

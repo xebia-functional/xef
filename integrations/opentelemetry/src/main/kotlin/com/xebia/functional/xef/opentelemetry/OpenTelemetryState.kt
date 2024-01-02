@@ -1,5 +1,6 @@
 package com.xebia.functional.xef.opentelemetry
 
+import io.opentelemetry.api.common.AttributeKey
 import io.opentelemetry.api.trace.Span
 import io.opentelemetry.api.trace.SpanKind
 import io.opentelemetry.api.trace.Tracer
@@ -35,5 +36,12 @@ class OpenTelemetryState(private val tracer: Tracer) {
 
     Context.current().with(span)
     span.setAttribute(key, value)
+  }
+
+  suspend fun setAttribute(key: String, values: List<String>) {
+    val span = currentCoroutineContext().getOpenTelemetryContext().let(Span::fromContext)
+
+    Context.current().with(span)
+    span.setAttribute(AttributeKey.stringArrayKey(key), values)
   }
 }

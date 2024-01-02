@@ -29,6 +29,10 @@ class OpenTelemetryMetric(
     state.setAttribute(key, value)
   }
 
+  override suspend fun parameter(key: String, values: List<String>) {
+    state.setAttribute(key, values)
+  }
+
   private fun getTracer(scopeName: String? = null): Tracer =
     openTelemetry.getTracer(scopeName ?: config.defaultScopeName)
 }
