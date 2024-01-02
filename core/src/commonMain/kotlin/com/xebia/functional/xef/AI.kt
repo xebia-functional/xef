@@ -43,7 +43,8 @@ sealed interface AI {
 
     fun images(
       api: ImagesApi = fromEnvironment(::ImagesApi),
-    ): Images = Images(api)
+      chatApi: ChatApi = fromEnvironment(::ChatApi)
+    ): Images = Images(api, chatApi)
 
     @PublishedApi
     internal suspend inline fun <reified A : Any> invokeEnum(
@@ -72,6 +73,14 @@ sealed interface AI {
       api: ChatApi = fromEnvironment(::ChatApi),
       conversation: Conversation = Conversation()
     ): A = chat(Prompt(CustomModel(model.value), prompt), target, api, conversation)
+
+    @AiDsl
+    suspend inline operator fun <reified A : Any> invoke(
+      prompt: Prompt<CreateChatCompletionRequestModel>,
+      target: KType = typeOf<A>(),
+      api: ChatApi = fromEnvironment(::ChatApi),
+      conversation: Conversation = Conversation()
+    ): A = chat(prompt, target, api, conversation)
 
     @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
     @AiDsl
