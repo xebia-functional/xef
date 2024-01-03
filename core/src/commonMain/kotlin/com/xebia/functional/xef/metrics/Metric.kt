@@ -10,6 +10,7 @@ interface Metric {
   suspend fun event(message: String)
 
   suspend fun parameter(key: String, value: String)
+
   suspend fun parameter(key: String, values: List<String>)
 
   companion object {
