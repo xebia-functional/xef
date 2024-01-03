@@ -35,11 +35,9 @@ suspend fun <T> Prompt<T>.addMetrics(conversation: Conversation) {
     conversation.conversationId?.value ?: "none"
   )
   conversation.metric.parameter(
-    "openai.chat_completion.functions",
-    if (functions.isEmpty()) listOf("no") else functions.map { it.name }
-  )
-  conversation.metric.parameter(
     "openai.chat_completion.prompt.temperature",
     "${configuration.temperature}"
   )
+  if (functions.isNotEmpty())
+    conversation.metric.parameter("openai.chat_completion.functions", functions.map { it.name })
 }
