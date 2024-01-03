@@ -4,7 +4,6 @@ import io.opentelemetry.api.common.AttributeKey
 import io.opentelemetry.api.trace.Span
 import io.opentelemetry.api.trace.SpanKind
 import io.opentelemetry.api.trace.Tracer
-import io.opentelemetry.context.Context
 import io.opentelemetry.extension.kotlin.asContextElement
 import io.opentelemetry.extension.kotlin.getOpenTelemetryContext
 import kotlinx.coroutines.currentCoroutineContext
@@ -32,16 +31,16 @@ class OpenTelemetryState(private val tracer: Tracer) {
   }
 
   suspend fun setAttribute(key: String, value: String) {
-    val span = currentCoroutineContext().getOpenTelemetryContext().let(Span::fromContext)
-
-    Context.current().with(span)
-    span.setAttribute(key, value)
+    currentCoroutineContext()
+      .getOpenTelemetryContext()
+      .let(Span::fromContext)
+      .setAttribute(key, value)
   }
 
   suspend fun setAttribute(key: String, values: List<String>) {
-    val span = currentCoroutineContext().getOpenTelemetryContext().let(Span::fromContext)
-
-    Context.current().with(span)
-    span.setAttribute(AttributeKey.stringArrayKey(key), values)
+    currentCoroutineContext()
+      .getOpenTelemetryContext()
+      .let(Span::fromContext)
+      .setAttribute(AttributeKey.stringArrayKey(key), values)
   }
 }
