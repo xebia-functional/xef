@@ -11,6 +11,10 @@ private const val HOST_ENV_VAR = "OPENAI_HOST"
 fun <T : ApiClient> fromEnvironment(builder: (String) -> T): T {
   val token =
     getenv(KEY_ENV_VAR) ?: throw AIError.Env.OpenAI(nonEmptyListOf("missing $KEY_ENV_VAR env var"))
+  return fromToken(token, builder)
+}
+
+fun <T : ApiClient> fromToken(token: String, builder: (String) -> T): T {
   val host = getenv(HOST_ENV_VAR)
   val api = builder(host ?: ApiClient.BASE_URL)
   api.setBearerToken(token)

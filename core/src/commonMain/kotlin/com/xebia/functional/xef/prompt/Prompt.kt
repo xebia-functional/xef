@@ -17,23 +17,26 @@ data class Prompt<T>
 constructor(
   val model: OpenAIModel<T>,
   val messages: List<ChatCompletionRequestMessage>,
-  val function: FunctionObject? = null,
+  val functions: List<FunctionObject> = emptyList(),
   val configuration: PromptConfiguration = PromptConfiguration.DEFAULTS
 ) {
 
-  constructor(model: OpenAIModel<T>, value: String) : this(model, listOf(user(value)), null)
+  constructor(model: OpenAIModel<T>, value: String) : this(model, listOf(user(value)), emptyList())
 
   constructor(
     model: OpenAIModel<T>,
     value: String,
     configuration: PromptConfiguration
-  ) : this(model, listOf(user(value)), null, configuration)
+  ) : this(model, listOf(user(value)), emptyList(), configuration)
 
   companion object {
     @JvmSynthetic
     operator fun <T> invoke(
       model: OpenAIModel<T>,
+      functions: List<FunctionObject> = emptyList(),
+      configuration: PromptConfiguration = PromptConfiguration.DEFAULTS,
       block: PlatformPromptBuilder<T>.() -> Unit
-    ): Prompt<T> = PlatformPromptBuilder.create(model).apply { block() }.build()
+    ): Prompt<T> =
+      PlatformPromptBuilder.create(model, functions, configuration).apply { block() }.build()
   }
 }

@@ -104,7 +104,7 @@ open class AudioApi : ApiClient {
    */
   @Suppress("UNCHECKED_CAST")
   open suspend fun createTranscription(
-    file: io.ktor.client.request.forms.InputProvider,
+    file: com.xebia.functional.openai.apis.UploadFile,
     model: CreateTranscriptionRequestModel,
     language: kotlin.String? = null,
     prompt: kotlin.String? = null,
@@ -159,7 +159,7 @@ open class AudioApi : ApiClient {
    */
   @Suppress("UNCHECKED_CAST")
   open suspend fun createTranslation(
-    file: io.ktor.client.request.forms.InputProvider,
+    file: com.xebia.functional.openai.apis.UploadFile,
     model: CreateTranscriptionRequestModel,
     prompt: kotlin.String? = null,
     responseFormat: kotlin.String? = "json",

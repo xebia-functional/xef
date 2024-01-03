@@ -2,6 +2,7 @@ package com.xebia.functional.xef.server.services
 
 import com.xebia.functional.openai.apis.EmbeddingsApi
 import com.xebia.functional.xef.llm.fromEnvironment
+import com.xebia.functional.xef.llm.fromToken
 import com.xebia.functional.xef.server.http.routes.Provider
 import com.xebia.functional.xef.store.PGVectorStore
 import com.xebia.functional.xef.store.VectorStore
@@ -35,17 +36,9 @@ class PostgresVectorStoreService(
   }
 
   override fun getVectorStore(provider: Provider, token: String?): VectorStore {
-    val embeddingsApi = fromEnvironment { baseUrl -> EmbeddingsApi(baseUrl) }
-    if (token != null) {
-      embeddingsApi.setApiKey(token)
-    }
-
-    // TODO - Provider?
-    //    val embeddings =
-    //      when (provider) {
-    //        Provider.OPENAI -> openAI.DEFAULT_EMBEDDING
-    //        else -> openAI.DEFAULT_EMBEDDING
-    //      }
+    val embeddingsApi =
+      token?.let { fromToken(token) { baseUrl -> EmbeddingsApi(baseUrl) } }
+        ?: fromEnvironment { baseUrl -> EmbeddingsApi(baseUrl) }
 
     return PGVectorStore(
       vectorSize = vectorSize,

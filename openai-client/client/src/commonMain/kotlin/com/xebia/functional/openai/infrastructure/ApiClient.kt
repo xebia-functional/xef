@@ -4,7 +4,9 @@ import com.xebia.functional.openai.auth.*
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.HttpClientEngine
+import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.FormDataContent
 import io.ktor.client.request.forms.MultiPartFormDataContent
@@ -30,6 +32,12 @@ open class ApiClient(val baseUrl: String) {
     val clientConfig: (HttpClientConfig<*>) -> Unit by lazy {
       {
         it.install(ContentNegotiation) { json(jsonBlock) }
+        it.install(HttpTimeout) {
+          requestTimeoutMillis = 60 * 1000
+          connectTimeoutMillis = 60 * 1000
+          socketTimeoutMillis = 60 * 1000
+        }
+        it.install(Logging) { level = LogLevel.NONE }
         httpClientConfig?.invoke(it)
       }
     }
@@ -89,8 +97,7 @@ open class ApiClient(val baseUrl: String) {
     val auth =
       authentications?.values?.firstOrNull {
         it is ApiKeyAuth && (paramName == null || paramName == it.paramName)
-      } as ApiKeyAuth?
-        ?: throw Exception("No API key authentication configured")
+      } as ApiKeyAuth? ?: throw Exception("No API key authentication configured")
     auth.apiKey = apiKey
   }
 
@@ -104,8 +111,7 @@ open class ApiClient(val baseUrl: String) {
     val auth =
       authentications?.values?.firstOrNull {
         it is ApiKeyAuth && (paramName == null || paramName == it.paramName)
-      } as ApiKeyAuth?
-        ?: throw Exception("No API key authentication configured")
+      } as ApiKeyAuth? ?: throw Exception("No API key authentication configured")
     auth.apiKeyPrefix = apiKeyPrefix
   }
 
