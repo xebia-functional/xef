@@ -3,8 +3,7 @@ package com.xebia.functional.openai.models.ext.embedding.create
 import kotlin.jvm.JvmInline
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.JsonContentPolymorphicSerializer
-import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.*
 
 @Serializable(with = CreateEmbeddingRequestInput.MyTypeSerializer::class)
 sealed interface CreateEmbeddingRequestInput {
@@ -29,6 +28,18 @@ sealed interface CreateEmbeddingRequestInput {
     ) {
     override fun selectDeserializer(
       element: JsonElement
-    ): DeserializationStrategy<CreateEmbeddingRequestInput> = StringValue.serializer()
+    ): DeserializationStrategy<CreateEmbeddingRequestInput> =
+      if (element is JsonArray) {
+        val firstElement = element.firstOrNull()
+        if (firstElement == null) {
+          StringArrayValue.serializer()
+        } else if (firstElement is JsonArray) {
+          IntArrayArrayValue.serializer()
+        } else if (firstElement.jsonPrimitive.isString) {
+          StringArrayValue.serializer()
+        } else {
+          IntArrayValue.serializer()
+        }
+      } else StringValue.serializer()
   }
 }

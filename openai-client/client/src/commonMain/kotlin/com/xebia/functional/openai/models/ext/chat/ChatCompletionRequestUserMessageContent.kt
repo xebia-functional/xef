@@ -4,6 +4,7 @@ import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonContentPolymorphicSerializer
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.jsonObject
 
 @Serializable(with = ChatCompletionRequestUserMessageContent.MyTypeSerializer::class)
 sealed class ChatCompletionRequestUserMessageContent {
@@ -15,6 +16,9 @@ sealed class ChatCompletionRequestUserMessageContent {
     override fun selectDeserializer(
       element: JsonElement
     ): DeserializationStrategy<ChatCompletionRequestUserMessageContent> =
-      ChatCompletionRequestUserMessageContentText.serializer()
+      when {
+        "text" in element.jsonObject -> ChatCompletionRequestUserMessageContentText.serializer()
+        else -> ChatCompletionRequestUserMessageContentImage.serializer()
+      }
   }
 }

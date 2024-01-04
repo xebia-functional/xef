@@ -7,9 +7,11 @@ interface Metric {
 
   suspend fun <A, T> promptSpan(prompt: Prompt<T>, block: suspend Metric.() -> A): A
 
-  fun event(message: String)
+  suspend fun event(message: String)
 
-  fun parameter(key: String, value: String)
+  suspend fun parameter(key: String, value: String)
+
+  suspend fun parameter(key: String, values: List<String>)
 
   companion object {
     val EMPTY: Metric =
@@ -22,9 +24,11 @@ interface Metric {
           block: suspend Metric.() -> A
         ): A = block()
 
-        override fun event(message: String) {}
+        override suspend fun event(message: String) {}
 
-        override fun parameter(key: String, value: String) {}
+        override suspend fun parameter(key: String, value: String) {}
+
+        override suspend fun parameter(key: String, values: List<String>) {}
       }
   }
 }

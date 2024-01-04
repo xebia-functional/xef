@@ -26,18 +26,28 @@ fun ChatApi.promptStreaming(
       n = prompt.configuration.numberOfPredictions,
       temperature = prompt.configuration.temperature,
       maxTokens = prompt.configuration.maxTokens,
-      model = prompt.model
+      model = prompt.model,
+      seed = prompt.configuration.seed,
     )
 
+  val buffer = StringBuilder()
+
   this@promptStreaming.createChatCompletionStream(request)
-    .mapNotNull { it.choices.mapNotNull { it.delta.content }.reduceOrNull(String::plus) }
+    .mapNotNull {
+      val content = it.choices.firstOrNull()?.delta?.content
+      if (content != null) {
+        buffer.append(content)
+      }
+      content
+    }
     .onEach { emit(it) }
-    .fold("", String::plus)
-    .also { finalText ->
-      val aiResponseMessage = assistant(finalText)
+    .onCompletion {
+      val aiResponseMessage = assistant(buffer.toString())
       val newMessages = prompt.messages + listOf(aiResponseMessage)
       newMessages.addToMemory(scope, prompt.configuration.messagePolicy.addMessagesToConversation)
+      buffer.clear()
     }
+    .collect()
 }
 
 @AiDsl
@@ -64,7 +74,8 @@ suspend fun ChatApi.promptMessages(
         n = adaptedPrompt.configuration.numberOfPredictions,
         temperature = adaptedPrompt.configuration.temperature,
         maxTokens = adaptedPrompt.configuration.maxTokens,
-        model = prompt.model
+        model = prompt.model,
+        seed = adaptedPrompt.configuration.seed,
       )
 
     createChatCompletion(request)

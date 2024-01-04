@@ -38,12 +38,6 @@ data class InterstellarCraft(
 )
 
 suspend fun main() {
-  // This example contemplate the case of calling OpenAI directly or
-  // calling through a local Xef Server instance.
-  // To run the example with the Xef Server, you can execute the following commands:
-  //  - # docker compose-up server/docker/postgresql
-  //  - # ./gradlew server
-  //  val openAI = OpenAI(host = "http://localhost:8081/")
   val model = StandardModel(CreateChatCompletionRequestModel.gpt_3_5_turbo_16k_0613)
 
   val scope = Conversation(LocalVectorStore(fromEnvironment(::EmbeddingsApi)), LogsMetric())

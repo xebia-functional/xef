@@ -2,8 +2,9 @@ package com.xebia.functional.xef.prompt
 
 import ai.xef.openai.OpenAIModel
 import com.xebia.functional.openai.models.ChatCompletionRole
-import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage
-import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestUserMessageContentText
+import com.xebia.functional.openai.models.FunctionObject
+import com.xebia.functional.openai.models.ext.chat.*
+import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
 import com.xebia.functional.xef.prompt.templates.assistant
 import com.xebia.functional.xef.prompt.templates.system
 import com.xebia.functional.xef.prompt.templates.user
@@ -62,32 +63,26 @@ interface PromptBuilder<T> {
 
   companion object {
 
-    operator fun <T> invoke(model: OpenAIModel<T>): PlatformPromptBuilder<T> =
-      PlatformPromptBuilder.create(model)
+    operator fun <T> invoke(
+      model: OpenAIModel<T>,
+      functions: List<FunctionObject>,
+      configuration: PromptConfiguration
+    ): PlatformPromptBuilder<T> = PlatformPromptBuilder.create(model, functions, configuration)
   }
 }
 
 fun String.message(role: ChatCompletionRole): ChatCompletionRequestMessage =
   when (role) {
-    ChatCompletionRole.system ->
-      ChatCompletionRequestMessage.ChatCompletionRequestSystemMessage(this)
+    ChatCompletionRole.system -> ChatCompletionRequestSystemMessage(this)
     ChatCompletionRole.user ->
-      ChatCompletionRequestMessage.ChatCompletionRequestUserMessage(
-        listOf(
-          ChatCompletionRequestUserMessageContentText(
-            ChatCompletionRequestUserMessageContentText.Type.text,
-            this
-          )
-        )
-      )
-    ChatCompletionRole.assistant ->
-      ChatCompletionRequestMessage.ChatCompletionRequestAssistantMessage(this)
+      ChatCompletionRequestUserMessage(listOf(ChatCompletionRequestUserMessageContentText(this)))
+    ChatCompletionRole.assistant -> ChatCompletionRequestAssistantMessage(this)
     ChatCompletionRole.tool ->
       // TODO - Tool Id?
-      ChatCompletionRequestMessage.ChatCompletionRequestToolMessage(this, "toolId")
+      ChatCompletionRequestToolMessage(this, "toolId")
     ChatCompletionRole.function ->
       // TODO - Function name?
-      ChatCompletionRequestMessage.ChatCompletionRequestFunctionMessage(this, "functionName")
+      ChatCompletionRequestFunctionMessage(this, "functionName")
   }
 
 // TODO this fails because of the ChatCompletionRequestMessage role fixed to function in the

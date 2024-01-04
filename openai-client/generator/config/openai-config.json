@@ -20,6 +20,8 @@
     "CreateChatCompletionRequest_stop": "com.xebia.functional.openai.models.ext.chat.create.CreateChatCompletionRequestStop",
     "CreateCompletionRequest_prompt": "com.xebia.functional.openai.models.ext.completion.create.CreateCompletionRequestPrompt",
     "CreateCompletionRequest_stop": "com.xebia.functional.openai.models.ext.completion.create.CreateCompletionRequestStop",
+    "ChatCompletionToolChoiceOption": "com.xebia.functional.openai.models.ext.chat.ChatCompletionToolChoiceOption",
+    "CreateChatCompletionRequest_tool_choice": "com.xebia.functional.openai.models.ext.chat.ChatCompletionToolChoiceOption",
     "CreateEmbeddingRequest_input": "com.xebia.functional.openai.models.ext.embedding.create.CreateEmbeddingRequestInput",
     "CreateFineTuneRequest_hyperparameters_n_epochs": "com.xebia.functional.openai.models.ext.finetune.create.CreateFineTuneRequestHyperparametersNEpochs",
     "CreateFineTuningJobRequest_hyperparameters_batch_size": "com.xebia.functional.openai.models.ext.finetune.job.create.CreateFineTuningJobRequestHyperparametersBatchSize",

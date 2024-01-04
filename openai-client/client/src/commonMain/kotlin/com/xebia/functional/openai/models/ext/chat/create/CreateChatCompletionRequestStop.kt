@@ -3,6 +3,7 @@ package com.xebia.functional.openai.models.ext.chat.create
 import kotlin.jvm.JvmInline
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonContentPolymorphicSerializer
 import kotlinx.serialization.json.JsonElement
 
@@ -21,6 +22,6 @@ sealed interface CreateChatCompletionRequestStop {
     override fun selectDeserializer(
       element: JsonElement
     ): DeserializationStrategy<CreateChatCompletionRequestStop> =
-      CreateChatCompletionRequestStop.StringValue.serializer()
+      if (element is JsonArray) ArrayValue.serializer() else StringValue.serializer()
   }
 }

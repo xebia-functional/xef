@@ -112,10 +112,11 @@ sealed class StreamedFunction<out A> {
                 // because the previous chunk may had a partial property whose body
                 // may had not been fully streamed
                 streamProperty(path, currentProperty, functionCall.arguments, streamedProperties)
-
-                // we stream the result
-                streamResult(functionCall, messages, serializer)
               }
+            }
+            if (finishReason != null) {
+              // we stream the result
+              streamResult(functionCall, messages, serializer)
             }
           }
         }
@@ -126,7 +127,7 @@ sealed class StreamedFunction<out A> {
       messages: MutableList<ChatCompletionRequestMessage>,
       serializer: (json: String) -> A
     ) {
-      val arguments = functionCall.arguments ?: error("No arguments provided for function call")
+      val arguments = functionCall.arguments
       messages.add(assistant("Function call: $functionCall"))
       val result = serializer(arguments)
       // stream the result

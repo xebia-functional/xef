@@ -5,7 +5,6 @@ import arrow.atomic.AtomicInt
 import com.xebia.functional.openai.apis.EmbeddingsApi
 import com.xebia.functional.openai.models.ChatCompletionRole
 import com.xebia.functional.openai.models.Embedding
-import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.llm.embedDocuments
 import com.xebia.functional.xef.llm.embedQuery
 import com.xebia.functional.xef.llm.models.modelType
@@ -53,6 +52,9 @@ class PGVectorStore(
     }
       ?: throw IllegalStateException("Collection '$collectionName' not found")
 
+  private fun JDBCSyntax.collectionHasContent(collectionId: String): Boolean =
+    queryOneOrNull(hasOneEmbeddings, { bind(collectionId) }) { true } ?: false
+
   private fun JDBCSyntax.deleteCollection() {
     if (preDeleteCollection) {
       val collection = getCollection(collectionName)
@@ -96,13 +98,19 @@ class PGVectorStore(
 
   override suspend fun similaritySearch(query: String, limit: Int): List<String> =
     dataSource.connection {
+      val collection = getCollection(collectionName)
+
+      val hasEmbeddings = collectionHasContent(collection.uuid.toString())
+
+      if (!hasEmbeddings) return emptyList()
+
       val embeddings =
         embeddings.embedQuery(query).ifEmpty {
           throw IllegalStateException(
             "Embedding for text: '$query', has not been properly generated"
           )
         }
-      val collection = getCollection(collectionName)
+
       queryAsList(
         searchSimilarDocument(distanceStrategy),
         {
