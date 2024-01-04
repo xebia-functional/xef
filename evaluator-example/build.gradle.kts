@@ -36,7 +36,7 @@ tasks.create<JavaExec>("test-example") {
     group = "Execution"
     description = "Test example"
     classpath = sourceSets.main.get().runtimeClasspath
-    mainClass = "com.xebia.funcional.xef.evaluator.examples.TestExample"
+    mainClass = "com.xebia.functional.xef.evaluator.examples.TestExample"
 
     doLast {
         println(">> data.json created!")
