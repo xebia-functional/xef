@@ -48,10 +48,9 @@ strategies.
 Libraries are published in Maven Central, under the `com.xebia` group.
 
 1. `xef-core` is the core library.
-2. `xef-openai` is the integration with OpenAI's API.
-3. The name of a library we provide integration for, like `xef-lucene`.
+2. The name of a library we provide integration for, like `xef-lucene`.
 
-You may need to  add that repository explicitly in your build, if you haven't done it before.
+You may need to add that repository explicitly in your build, if you haven't done it before.
 
 ```groovy
 repositories { mavenCentral() }
@@ -63,7 +62,6 @@ Then add the libraries in the usual way.
 // In Gradle Kotlin 
 dependencies {
   implementation("com.xebia:xef-core:<version>")
-  implementation("com.xebia:xef-openai:<version>")
 }
 ```
 
@@ -73,7 +71,7 @@ could be useful.
 
 ## 📖 Quick Introduction
 
-In [this](https://github.com/xebia-functional/xef/blob/main/docs/intro.md) small introduction we look at the main features of xef, including the `conversation` function.
+In [this](https://xef.ai/learn/quickstart/) small introduction we look at the main features of xef.
 
 ## 🚀 Examples
 
