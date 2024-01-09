@@ -34,7 +34,7 @@ interface SearchTool : Tool {
         prompt =
           Prompt(model) {
             +system("Search results:")
-            docs.searchResults.take(maxResultsInContext).forEach {
+            docs.searchResults?.take(maxResultsInContext)?.forEach {
               +system("Title: ${it.title}")
               +system("Source: ${it.source}")
               +system("Content: ${it.document}")
