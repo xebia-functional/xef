@@ -12,12 +12,12 @@ suspend fun main() {
 
   val answer = client.search(searchData)
 
-  answer.searchResults.forEach {
+  answer.searchResults?.forEach {
     println(
       "\n\uD83E\uDD16 Search Information:\n\n" +
         "Title: ${it.title}\n" +
         "Document: ${it.document}\n" +
         "Source: ${it.source}\n"
     )
-  }
+  } ?: println("No results found")
 }
