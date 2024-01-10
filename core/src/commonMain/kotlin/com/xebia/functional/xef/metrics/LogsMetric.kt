@@ -3,9 +3,10 @@ package com.xebia.functional.xef.metrics
 import arrow.atomic.AtomicInt
 import com.xebia.functional.xef.prompt.Prompt
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.github.oshai.kotlinlogging.Level
 import io.ktor.util.date.*
 
-class LogsMetric : Metric {
+class LogsMetric(private val level: Level = Level.INFO) : Metric {
 
   private val numberOfBlocks = AtomicInt(0)
 
@@ -15,11 +16,11 @@ class LogsMetric : Metric {
 
   override suspend fun <A> customSpan(name: String, block: suspend Metric.() -> A): A {
     val millis = getTimeMillis()
-    logger.info { "${writeIndent(numberOfBlocks.get())}> Custom-Span: $name" }
+    logger.at(level) { message = "${writeIndent(numberOfBlocks.get())}> Custom-Span: $name" }
     numberOfBlocks.incrementAndGet()
     val output = block()
-    logger.info {
-      "${writeIndent(numberOfBlocks.get())}|-- Finished in ${getTimeMillis() - millis} ms"
+    logger.at(level) {
+      message = "${writeIndent(numberOfBlocks.get())}|-- Finished in ${getTimeMillis() - millis} ms"
     }
     numberOfBlocks.decrementAndGet()
     return output
@@ -28,26 +29,26 @@ class LogsMetric : Metric {
   override suspend fun <A, T> promptSpan(prompt: Prompt<T>, block: suspend Metric.() -> A): A {
     val millis = getTimeMillis()
     val name = prompt.messages.lastOrNull()?.contentAsString() ?: "empty"
-    logger.info { "${writeIndent(numberOfBlocks.get())}> Prompt-Span: $name" }
+    logger.at(level) { message = "${writeIndent(numberOfBlocks.get())}> Prompt-Span: $name" }
     numberOfBlocks.incrementAndGet()
     val output = block()
-    logger.info {
-      "${writeIndent(numberOfBlocks.get())}|-- Finished in ${getTimeMillis() - millis} ms"
+    logger.at(level) {
+      message = "${writeIndent(numberOfBlocks.get())}|-- Finished in ${getTimeMillis() - millis} ms"
     }
     numberOfBlocks.decrementAndGet()
     return output
   }
 
   override suspend fun event(message: String) {
-    logger.info { "${writeIndent(numberOfBlocks.get())}|-- $message" }
+    logger.at(level) { this.message = "${writeIndent(numberOfBlocks.get())}|-- $message" }
   }
 
   override suspend fun parameter(key: String, value: String) {
-    logger.info { "${writeIndent(numberOfBlocks.get())}|-- $key = $value" }
+    logger.at(level) { message = "${writeIndent(numberOfBlocks.get())}|-- $key = $value" }
   }
 
   override suspend fun parameter(key: String, values: List<String>) {
-    logger.info { "${writeIndent(numberOfBlocks.get())}|-- $key = $values" }
+    logger.at(level) { message = "${writeIndent(numberOfBlocks.get())}|-- $key = $values" }
   }
 
   private fun writeIndent(times: Int = 1) = (1..indentSize * times).fold("") { a, b -> "$a " }
