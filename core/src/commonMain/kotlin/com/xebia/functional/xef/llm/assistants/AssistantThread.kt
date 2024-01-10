@@ -134,7 +134,7 @@ class AssistantThread(
         emit(RunDelta.Step(step))
         step.stepDetails.toolCalls().forEach { toolCall ->
           val function = toolCall.function
-          if (function != null) {
+          if (function != null && function.arguments.isNotBlank()) {
             val result: JsonElement = Tool(function.name, function.arguments)
             api.submitToolOuputsToRun(
               threadId = threadId,
