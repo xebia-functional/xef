@@ -13,5 +13,5 @@ updates:
       interval: "weekly"
     open-pull-requests-limit: 5
     ignore:
-      - dependency-name: "flyway"
-        versions: ["10.x"]
+      - dependency-name: "@flyway"
+        update-types: ["version-update:semver-major"]
