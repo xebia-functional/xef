@@ -37,6 +37,8 @@ detekt = "1.23.4"
 opentelemetry="1.34.0"
 opentelemetry-alpha="1.30.1-alpha"
 progressbar = "0.10.0"
+jmf = "2.1.1e"
+mp3-wav-converter = "1.0.4"
 
 [libraries]
 arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
@@ -111,6 +113,10 @@ opentelemetry-sdk = { module = "io.opentelemetry:opentelemetry-sdk", version.ref
 opentelemetry-semconv = { module = "io.opentelemetry:opentelemetry-semconv", version.ref = "opentelemetry-alpha" }
 opentelemetry-extension-kotlin = { module = "io.opentelemetry:opentelemetry-extension-kotlin", version.ref = "opentelemetry" }
 progressbar = { module = "me.tongfei:progressbar", version.ref = "progressbar" }
+jmf = { module = "javax.media:jmf", version.ref = "jmf" }
+mp3-wav-converter = { module = "com.sipgate:mp3-wav", version.ref = "mp3-wav-converter" }
+
+
 
 [bundles]
 ktor-client = [
