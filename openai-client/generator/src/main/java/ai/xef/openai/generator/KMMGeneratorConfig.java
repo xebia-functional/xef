@@ -21,6 +21,14 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
 
         importMapping.remove("InputProvider");
         importMapping.put("UploadFile", "com.xebia.functional.openai.apis.UploadFile");
+
+        // Fixes for DateTime
+        dateLibrary = DateLibrary.KOTLINX_DATETIME.value;
+        typeMapping.put("date", "kotlinx.datetime.LocalDate");
+        typeMapping.put("date-time", "kotlinx.datetime.Instant");
+        typeMapping.put("DateTime", "Instant");
+        importMapping.put("Instant", "kotlinx.datetime.Instant");
+
         specialCharReplacements.put("-", "_");
         specialCharReplacements.put(".", "_");
         enumPropertyNaming = CodegenConstants.ENUM_PROPERTY_NAMING_TYPE.snake_case;
