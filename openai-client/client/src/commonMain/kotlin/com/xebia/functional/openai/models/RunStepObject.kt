@@ -14,7 +14,7 @@ import kotlinx.serialization.encoding.*
  * Represents a step in execution of a run.
  *
  * @param id The identifier of the run step, which can be referenced in API endpoints.
- * @param `object` The object type, which is always `thread.run.step``.
+ * @param `object` The object type, which is always `thread.run.step`.
  * @param createdAt The Unix timestamp (in seconds) for when the run step was created.
  * @param assistantId The ID of the [assistant](/docs/api-reference/assistants) associated with the
  *   run step.
@@ -40,7 +40,7 @@ data class RunStepObject(
   /* The identifier of the run step, which can be referenced in API endpoints. */
   @SerialName(value = "id") @Required val id: kotlin.String,
 
-  /* The object type, which is always `thread.run.step``. */
+  /* The object type, which is always `thread.run.step`. */
   @SerialName(value = "object") @Required val `object`: RunStepObject.`Object`,
 
   /* The Unix timestamp (in seconds) for when the run step was created. */
@@ -82,7 +82,7 @@ data class RunStepObject(
 ) {
 
   /**
-   * The object type, which is always `thread.run.step``.
+   * The object type, which is always `thread.run.step`.
    *
    * Values: thread_run_step
    */
