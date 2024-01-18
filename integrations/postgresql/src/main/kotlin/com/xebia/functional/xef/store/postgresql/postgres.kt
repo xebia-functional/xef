@@ -122,3 +122,10 @@ fun searchSimilarDocument(distance: PGDistanceStrategy): String =
      ${distance.strategy} ?::vector
      LIMIT ?;"""
     .trimIndent()
+
+fun distanceDocument(distance: PGDistanceStrategy, embeddings: List<Double>): String =
+    """SELECT embedding ${distance.strategy} '$embeddings' AS distance, uuid, content
+        FROM xef_embeddings
+        WHERE collection_id = ?
+        ORDER BY distance asc;"""
+        .trimIndent()

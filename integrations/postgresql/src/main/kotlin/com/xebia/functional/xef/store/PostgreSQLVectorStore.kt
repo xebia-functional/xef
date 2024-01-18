@@ -9,6 +9,7 @@ import com.xebia.functional.xef.llm.embedDocuments
 import com.xebia.functional.xef.llm.embedQuery
 import com.xebia.functional.xef.llm.models.modelType
 import com.xebia.functional.xef.store.postgresql.*
+import com.xebia.functional.xef.store.postgresql.models.Distance
 import kotlinx.uuid.UUID
 import kotlinx.uuid.generateUUID
 import javax.sql.DataSource
@@ -135,6 +136,22 @@ class PGVectorStore(
         }
       ) {
         string()
+      }
+    }
+
+  fun distanceVector(embedding: Embedding): List<Distance> =
+    dataSource.connection {
+      val collection = getCollection(collectionName)
+      queryAsList(
+        distanceDocument(distanceStrategy, embedding.embedding),
+        {
+          bind(collection.uuid.toString())
+        }
+      ) {
+        val distance = double()
+        val uuid = string()
+        val content = string()
+        Distance(distance, uuid, content)
       }
     }
 
