@@ -2,7 +2,7 @@ package com.xebia.functional.xef.prompt.templates
 
 import com.xebia.functional.openai.models.ChatCompletionRole
 import com.xebia.functional.openai.models.ChatCompletionRole.*
-import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage
+import com.xebia.functional.openai.models.ext.chat.*
 import com.xebia.functional.xef.prompt.message
 
 fun system(context: String): ChatCompletionRequestMessage = context.message(system)
@@ -10,6 +10,16 @@ fun system(context: String): ChatCompletionRequestMessage = context.message(syst
 fun assistant(context: String): ChatCompletionRequestMessage = context.message(assistant)
 
 fun user(context: String): ChatCompletionRequestMessage = context.message(user)
+
+fun image(prompt: String, url: String): ChatCompletionRequestMessage =
+  ChatCompletionRequestUserMessage(
+    listOf(
+      ChatCompletionRequestUserMessageContentText(prompt),
+      ChatCompletionRequestUserMessageContentImage(
+        imageUrl = ChatCompletionRequestUserMessageContentImageUrl(url)
+      )
+    )
+  )
 
 inline fun <reified A> system(data: A): ChatCompletionRequestMessage = data.message(system)
 

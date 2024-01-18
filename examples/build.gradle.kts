@@ -32,6 +32,8 @@ dependencies {
     implementation(libs.progressbar)
     implementation(libs.jdbc.mysql.connector)
     implementation(libs.ktor.client.logging)
+    implementation(libs.jmf)
+    implementation(libs.mp3.wav.converter)
     api(libs.ktor.client)
 }
 

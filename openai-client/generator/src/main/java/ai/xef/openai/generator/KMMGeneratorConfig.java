@@ -1,11 +1,11 @@
 package ai.xef.openai.generator;
 
-import org.openapitools.codegen.CodegenConstants;
-import org.openapitools.codegen.CodegenModel;
-import org.openapitools.codegen.CodegenProperty;
+import org.openapitools.codegen.*;
 import org.openapitools.codegen.languages.KotlinClientCodegen;
 import org.openapitools.codegen.model.ModelMap;
 import org.openapitools.codegen.model.ModelsMap;
+import org.openapitools.codegen.model.OperationMap;
+import org.openapitools.codegen.model.OperationsMap;
 
 import java.util.*;
 import static java.util.Map.entry;
@@ -16,6 +16,19 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
 
     public KMMGeneratorConfig() {
         super();
+        defaultIncludes.remove("io.ktor.client.request.forms.InputProvider");
+        defaultIncludes.add("com.xebia.functional.openai.apis.UploadFile");
+
+        importMapping.remove("InputProvider");
+        importMapping.put("UploadFile", "com.xebia.functional.openai.apis.UploadFile");
+
+        // Fixes for DateTime
+        dateLibrary = DateLibrary.KOTLINX_DATETIME.value;
+        typeMapping.put("date", "kotlinx.datetime.LocalDate");
+        typeMapping.put("date-time", "kotlinx.datetime.Instant");
+        typeMapping.put("DateTime", "Instant");
+        importMapping.put("Instant", "kotlinx.datetime.Instant");
+
         specialCharReplacements.put("-", "_");
         specialCharReplacements.put(".", "_");
         enumPropertyNaming = CodegenConstants.ENUM_PROPERTY_NAMING_TYPE.snake_case;
@@ -98,5 +111,25 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
             varName = value;
         }
         return super.toEnumVarName(varName, datatype);
+    }
+
+    @Override
+    public OperationsMap postProcessOperationsWithModels(OperationsMap objs, List<ModelMap> allModels) {
+        super.postProcessOperationsWithModels(objs, allModels);
+        OperationMap operations = objs.getOperations();
+        if (operations != null) {
+            List<CodegenOperation> ops = operations.getOperation();
+            for (CodegenOperation operation : ops) {
+                // modify the data type of binary form parameters to a more friendly type for ktor builds
+                if ((JVM_KTOR.equals(getLibrary()) || MULTIPLATFORM.equals(getLibrary())) && operation.allParams != null) {
+                    for (CodegenParameter param : operation.allParams) {
+                        if (param.dataFormat != null && param.dataFormat.equals("binary")) {
+                            param.baseType = param.dataType = "com.xebia.functional.openai.apis.UploadFile";
+                        }
+                    }
+                }
+            }
+        }
+        return objs;
     }
 }

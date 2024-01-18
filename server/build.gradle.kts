@@ -44,7 +44,6 @@ dependencies {
     implementation(libs.ktor.server.request.validation)
     implementation(libs.ktor.server.status.pages)
     implementation(libs.logback)
-    implementation(libs.openai.client)
     implementation(libs.suspendApp.core)
     implementation(libs.suspendApp.ktor)
     implementation(libs.uuid)

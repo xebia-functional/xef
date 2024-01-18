@@ -16,7 +16,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 
 class AssistantThread(
-  private val threadId: String,
+  val threadId: String,
   private val api: AssistantsApi = fromEnvironment(::AssistantsApi)
 ) {
 
@@ -134,7 +134,7 @@ class AssistantThread(
         emit(RunDelta.Step(step))
         step.stepDetails.toolCalls().forEach { toolCall ->
           val function = toolCall.function
-          if (function != null) {
+          if (function != null && function.arguments.isNotBlank()) {
             val result: JsonElement = Tool(function.name, function.arguments)
             api.submitToolOuputsToRun(
               threadId = threadId,
