@@ -16,7 +16,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 
 class AssistantThread(
-  private val threadId: String,
+  val threadId: String,
   private val api: AssistantsApi = fromEnvironment(::AssistantsApi)
 ) {
 
