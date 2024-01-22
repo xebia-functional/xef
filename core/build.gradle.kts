@@ -69,6 +69,7 @@ kotlin {
           dependencies {
               api(libs.bundles.arrow)
               api(libs.kotlinx.serialization.json)
+              api(libs.kotlinx.serialization.yaml)
               api(libs.ktor.utils)
               api(projects.xefTokenizer)
               api(projects.xefOpenaiClient)
