@@ -25,9 +25,9 @@ suspend fun main() {
       description: "A versatile AI assistant capable of conversational and informational tasks."
       instructions: "This assistant is designed to provide informative and engaging conversations, answer queries, and execute code when necessary."
       tools:
-        - !<code_interpreter>
-        - !<retrieval>
-        - !<function>
+        - type: "code_interpreter"
+        - type: "retrieval"
+        - type: "function"
           name: "get_stock_price"
           description: "Get the current stock price for a given stock symbol."
           parameters: '{

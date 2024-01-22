@@ -1,6 +1,5 @@
 package com.xebia.functional.xef.llm.assistants
 
-import com.charleskorn.kaml.Yaml
 import com.xebia.functional.openai.apis.AssistantApi
 import com.xebia.functional.openai.apis.AssistantsApi
 import com.xebia.functional.openai.infrastructure.ApiClient
@@ -14,6 +13,9 @@ import com.xebia.functional.openai.models.ext.assistant.AssistantToolsFunction
 import com.xebia.functional.openai.models.ext.assistant.AssistantToolsRetrieval
 import com.xebia.functional.xef.llm.fromEnvironment
 import kotlinx.serialization.json.JsonObject
+import net.mamoe.yamlkt.Yaml
+import net.mamoe.yamlkt.literalContentOrNull
+import net.mamoe.yamlkt.toYamlElement
 
 class Assistant(
   val assistantId: String,
@@ -73,7 +75,46 @@ class Assistant(
       assistantsApi: AssistantsApi = fromEnvironment(::AssistantsApi),
       api: AssistantApi = fromEnvironment(::AssistantApi)
     ): Assistant {
-      val assistantRequest = Yaml.default.decodeFromString(AssistantRequest.serializer(), request)
+      val parsed = Yaml.Default.decodeYamlMapFromString(request)
+      println(parsed)
+      val assistantRequest =
+        AssistantRequest(
+          assistantId = parsed["assistant_id"]?.literalContentOrNull,
+          model = parsed["model"]?.literalContentOrNull ?: error("model is required"),
+          name = parsed["name"]?.literalContentOrNull,
+          description = parsed["description"]?.literalContentOrNull,
+          instructions = parsed["instructions"]?.literalContentOrNull,
+          tools =
+            parsed["tools"]?.let { list ->
+              (list as List<*>).map { element ->
+                when (element) {
+                  is Map<*, *> -> {
+                    val tool =
+                      element["type".toYamlElement()]?.toString() ?: error("type is required")
+                    when (tool) {
+                      "code_interpreter" -> AssistantTool.CodeInterpreter
+                      "retrieval" -> AssistantTool.Retrieval
+                      "function" -> {
+                        val name =
+                          element["name".toYamlElement()]?.toString() ?: error("name is required")
+                        val description =
+                          element["description".toYamlElement()]?.toString()
+                            ?: error("description is required")
+                        val parameters =
+                          element["parameters".toYamlElement()]?.toString()
+                            ?: error("parameters is required")
+                        AssistantTool.Function(name, description, parameters)
+                      }
+                      else -> error("unknown tool $tool")
+                    }
+                  }
+                  else -> error("unknown tool $element")
+                }
+              }
+            },
+          fileIds =
+            parsed["file_ids"]?.let { (it as List<*>).map { it.toString() } } ?: emptyList(),
+        )
       return if (assistantRequest.assistantId != null) {
         val assistant = Assistant(assistantRequest.assistantId, assistantsApi, api)
         assistant.modify(
