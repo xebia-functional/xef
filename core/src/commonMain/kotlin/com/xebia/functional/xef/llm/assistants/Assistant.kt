@@ -76,7 +76,6 @@ class Assistant(
       api: AssistantApi = fromEnvironment(::AssistantApi)
     ): Assistant {
       val parsed = Yaml.Default.decodeYamlMapFromString(request)
-      println(parsed)
       val assistantRequest =
         AssistantRequest(
           assistantId = parsed["assistant_id"]?.literalContentOrNull,
