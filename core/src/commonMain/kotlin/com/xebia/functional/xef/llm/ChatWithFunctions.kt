@@ -51,7 +51,8 @@ suspend fun <A> ChatApi.prompt(
 ): A =
   prompt(prompt, scope, chatFunctions(descriptors)) { call ->
     // adds a `type` field with the call.functionName serial name equivalent to the call arguments
-    val jsonWithDiscriminator = ApiClient.JSON_DEFAULT.decodeFromString(JsonElement.serializer(), call.arguments)
+    val jsonWithDiscriminator =
+      ApiClient.JSON_DEFAULT.decodeFromString(JsonElement.serializer(), call.arguments)
     val descriptor =
       descriptors.firstOrNull { it.serialName.endsWith(call.functionName) }
         ?: error("No descriptor found for ${call.functionName}")
@@ -59,7 +60,10 @@ suspend fun <A> ChatApi.prompt(
       JsonObject(
         jsonWithDiscriminator.jsonObject + ("type" to JsonPrimitive(descriptor.serialName))
       )
-    ApiClient.JSON_DEFAULT.decodeFromString(serializer, ApiClient.JSON_DEFAULT.encodeToString(newJson))
+    ApiClient.JSON_DEFAULT.decodeFromString(
+      serializer,
+      ApiClient.JSON_DEFAULT.encodeToString(newJson)
+    )
   }
 
 @AiDsl
