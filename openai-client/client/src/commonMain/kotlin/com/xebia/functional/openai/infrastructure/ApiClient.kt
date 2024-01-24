@@ -58,6 +58,7 @@ open class ApiClient(val baseUrl: String) : AutoCloseable {
       ignoreUnknownKeys = true
       prettyPrint = true
       isLenient = true
+      explicitNulls = false
     }
     val UNSAFE_HEADERS = listOf(HttpHeaders.ContentType)
   }
