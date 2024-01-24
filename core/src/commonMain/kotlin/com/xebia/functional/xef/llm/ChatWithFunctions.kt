@@ -3,6 +3,7 @@ package com.xebia.functional.xef.llm
 import arrow.core.nonFatalOrThrow
 import arrow.core.raise.catch
 import com.xebia.functional.openai.apis.ChatApi
+import com.xebia.functional.openai.infrastructure.ApiClient
 import com.xebia.functional.openai.models.*
 import com.xebia.functional.openai.models.ext.chat.ChatCompletionToolChoiceOption
 import com.xebia.functional.xef.AIError
@@ -17,12 +18,6 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
-
-private val ChatJson = Json {
-  ignoreUnknownKeys = true
-  isLenient = true
-  explicitNulls = false
-}
 
 @OptIn(ExperimentalSerializationApi::class)
 fun chatFunction(descriptor: SerialDescriptor): FunctionObject {
@@ -43,7 +38,7 @@ suspend fun <A> ChatApi.prompt(
   serializer: KSerializer<A>,
 ): A =
   prompt(prompt, scope, chatFunctions(listOf(serializer.descriptor))) { call ->
-    ChatJson.decodeFromString(serializer, call.arguments)
+    ApiClient.JSON_DEFAULT.decodeFromString(serializer, call.arguments)
   }
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -56,7 +51,7 @@ suspend fun <A> ChatApi.prompt(
 ): A =
   prompt(prompt, scope, chatFunctions(descriptors)) { call ->
     // adds a `type` field with the call.functionName serial name equivalent to the call arguments
-    val jsonWithDiscriminator = ChatJson.decodeFromString(JsonElement.serializer(), call.arguments)
+    val jsonWithDiscriminator = ApiClient.JSON_DEFAULT.decodeFromString(JsonElement.serializer(), call.arguments)
     val descriptor =
       descriptors.firstOrNull { it.serialName.endsWith(call.functionName) }
         ?: error("No descriptor found for ${call.functionName}")
@@ -64,7 +59,7 @@ suspend fun <A> ChatApi.prompt(
       JsonObject(
         jsonWithDiscriminator.jsonObject + ("type" to JsonPrimitive(descriptor.serialName))
       )
-    ChatJson.decodeFromString(serializer, ChatJson.encodeToString(newJson))
+    ApiClient.JSON_DEFAULT.decodeFromString(serializer, ApiClient.JSON_DEFAULT.encodeToString(newJson))
   }
 
 @AiDsl
@@ -74,7 +69,7 @@ fun <A> ChatApi.promptStreaming(
   serializer: KSerializer<A>,
 ): Flow<StreamedFunction<A>> =
   promptStreaming(prompt, scope, chatFunction(serializer.descriptor)) { json ->
-    ChatJson.decodeFromString(serializer, json)
+    ApiClient.JSON_DEFAULT.decodeFromString(serializer, json)
   }
 
 @AiDsl
