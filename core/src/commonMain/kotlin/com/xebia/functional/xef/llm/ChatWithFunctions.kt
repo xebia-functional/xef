@@ -18,6 +18,12 @@ import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
 
+private val ChatJson = Json {
+  ignoreUnknownKeys = true
+  isLenient = true
+  explicitNulls = false
+}
+
 @OptIn(ExperimentalSerializationApi::class)
 fun chatFunction(descriptor: SerialDescriptor): FunctionObject {
   val fnName = descriptor.serialName.substringAfterLast(".")
@@ -37,7 +43,7 @@ suspend fun <A> ChatApi.prompt(
   serializer: KSerializer<A>,
 ): A =
   prompt(prompt, scope, chatFunctions(listOf(serializer.descriptor))) { call ->
-    Json.decodeFromString(serializer, call.arguments)
+    ChatJson.decodeFromString(serializer, call.arguments)
   }
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -50,7 +56,7 @@ suspend fun <A> ChatApi.prompt(
 ): A =
   prompt(prompt, scope, chatFunctions(descriptors)) { call ->
     // adds a `type` field with the call.functionName serial name equivalent to the call arguments
-    val jsonWithDiscriminator = Json.decodeFromString(JsonElement.serializer(), call.arguments)
+    val jsonWithDiscriminator = ChatJson.decodeFromString(JsonElement.serializer(), call.arguments)
     val descriptor =
       descriptors.firstOrNull { it.serialName.endsWith(call.functionName) }
         ?: error("No descriptor found for ${call.functionName}")
@@ -58,7 +64,7 @@ suspend fun <A> ChatApi.prompt(
       JsonObject(
         jsonWithDiscriminator.jsonObject + ("type" to JsonPrimitive(descriptor.serialName))
       )
-    Json.decodeFromString(serializer, Json.encodeToString(newJson))
+    ChatJson.decodeFromString(serializer, ChatJson.encodeToString(newJson))
   }
 
 @AiDsl
@@ -68,7 +74,7 @@ fun <A> ChatApi.promptStreaming(
   serializer: KSerializer<A>,
 ): Flow<StreamedFunction<A>> =
   promptStreaming(prompt, scope, chatFunction(serializer.descriptor)) { json ->
-    Json.decodeFromString(serializer, json)
+    ChatJson.decodeFromString(serializer, json)
   }
 
 @AiDsl
