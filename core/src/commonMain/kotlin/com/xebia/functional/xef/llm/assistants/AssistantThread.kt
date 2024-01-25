@@ -7,6 +7,7 @@ import com.xebia.functional.openai.models.ext.assistant.RunStepDetailsMessageCre
 import com.xebia.functional.openai.models.ext.assistant.RunStepDetailsToolCallsObject
 import com.xebia.functional.openai.models.ext.assistant.RunStepObjectStepDetails
 import com.xebia.functional.xef.llm.fromEnvironment
+import com.xebia.functional.xef.prompt.templates.assistant
 import kotlin.jvm.JvmName
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
@@ -63,7 +64,7 @@ class AssistantThread(
 
   suspend fun run(assistant: Assistant): Flow<RunDelta> {
     val run = createRun(assistant)
-    return awaitRun(run.id)
+    return awaitRun(assistant, run.id)
   }
 
   suspend fun cancelRun(runId: String): RunObject = api.cancelRun(threadId, runId).body()
@@ -79,13 +80,13 @@ class AssistantThread(
     data class Step(val runStep: RunStepObject) : RunDelta()
   }
 
-  fun awaitRun(runId: String): Flow<RunDelta> = flow {
+  fun awaitRun(assistant: Assistant, runId: String): Flow<RunDelta> = flow {
     val stepCache = mutableSetOf<RunStepObject>()
     val messagesCache = mutableSetOf<MessageObject>()
     val runCache = mutableSetOf<RunObject>()
     var run = checkRun(runId = runId, cache = runCache)
     while (run.status != RunObject.Status.completed) {
-      checkSteps(runId = runId, cache = stepCache)
+      checkSteps(assistant = assistant, runId = runId, cache = stepCache)
       checkMessages(cache = messagesCache)
       run = checkRun(runId = runId, cache = runCache)
     }
@@ -124,6 +125,7 @@ class AssistantThread(
     }
 
   private suspend fun FlowCollector<RunDelta>.checkSteps(
+    assistant: Assistant,
     runId: String,
     cache: MutableSet<RunStepObject>
   ) {
@@ -135,7 +137,7 @@ class AssistantThread(
         step.stepDetails.toolCalls().forEach { toolCall ->
           val function = toolCall.function
           if (function != null && function.arguments.isNotBlank()) {
-            val result: JsonElement = Tool(function.name, function.arguments)
+            val result: JsonElement = assistant.getToolRegistered(function.name, function.arguments)
             api.submitToolOuputsToRun(
               threadId = threadId,
               runId = runId,
