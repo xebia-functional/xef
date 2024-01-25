@@ -9,9 +9,11 @@ import com.xebia.functional.openai.models.ModifyAssistantRequest
 import com.xebia.functional.openai.models.ext.assistant.AssistantTools
 import com.xebia.functional.xef.llm.fromEnvironment
 import io.ktor.client.statement.*
+import io.ktor.util.logging.*
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 
 class Assistant(
   val assistantId: String,
@@ -37,21 +39,26 @@ class Assistant(
       api
     )
 
-  suspend inline fun getToolRegistered(name: String, args: String): JsonElement {
+  suspend inline fun getToolRegistered(name: String, args: String): JsonElement =
+    try {
+      val toolConfig = toolsConfig.firstOrNull { it.functionObject.name == name }
 
-    val toolConfig = toolsConfig.firstOrNull { it.functionObject.name == name }
+      val toolSerializer = toolConfig?.serializers ?: error("Function $name not registered")
+      val input = ApiClient.JSON_DEFAULT.decodeFromString(toolSerializer.inputSerializer, args)
 
-    val toolSerializer = toolConfig?.serializers ?: error("Function $name not registered")
-    val input = ApiClient.JSON_DEFAULT.decodeFromString(toolSerializer.inputSerializer, args)
+      val tool: Tool<Any?, Any?> = toolConfig.tool as Tool<Any?, Any?>
 
-    val tool: Tool<Any?, Any?> = toolConfig.tool as Tool<Any?, Any?>
-
-    val output: Any? = tool(input) // session token
-    return ApiClient.JSON_DEFAULT.encodeToJsonElement(
-      toolSerializer.outputSerializer as KSerializer<Any?>,
-      output
-    )
-  }
+      val output: Any? = tool(input)
+      ApiClient.JSON_DEFAULT.encodeToJsonElement(
+        toolSerializer.outputSerializer as KSerializer<Any?>,
+        output
+      )
+    } catch (e: Exception) {
+      val message = "Error calling to tool registered $name: ${e.message}"
+      val logger = KtorSimpleLogger("Functions")
+      logger.error(message)
+      JsonObject(mapOf("error" to JsonPrimitive(message)))
+    }
 
   companion object {
 
