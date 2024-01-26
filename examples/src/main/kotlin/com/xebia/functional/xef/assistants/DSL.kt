@@ -98,7 +98,7 @@ private fun displayStepsStatus(step: AssistantThread.RunDelta.Step) {
             RunStepDetailsToolCallsObjectToolCallsInner.Type.code_interpreter -> "CodeInterpreter"
             RunStepDetailsToolCallsObjectToolCallsInner.Type.retrieval -> "Retrieval"
             RunStepDetailsToolCallsObjectToolCallsInner.Type.function ->
-              "${it.function?.name}(${it.function?.arguments ?: ""}): "
+              "${it.function?.name}(${it.function?.arguments ?: ""}) = ${it.function?.output ?: "empty"}: "
           }
         }
     }
