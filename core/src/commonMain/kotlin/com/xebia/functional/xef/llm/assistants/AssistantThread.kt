@@ -7,7 +7,6 @@ import com.xebia.functional.openai.models.ext.assistant.RunStepDetailsMessageCre
 import com.xebia.functional.openai.models.ext.assistant.RunStepDetailsToolCallsObject
 import com.xebia.functional.openai.models.ext.assistant.RunStepObjectStepDetails
 import com.xebia.functional.xef.llm.fromEnvironment
-import com.xebia.functional.xef.prompt.templates.assistant
 import kotlin.jvm.JvmName
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
@@ -81,7 +80,7 @@ class AssistantThread(
   }
 
   fun awaitRun(assistant: Assistant, runId: String): Flow<RunDelta> = flow {
-    val stepCache = mutableSetOf<RunStepObject>()
+    val stepCache = mutableSetOf<RunStepObject>() // CacheTool
     val messagesCache = mutableSetOf<MessageObject>()
     val runCache = mutableSetOf<RunObject>()
     var run = checkRun(runId = runId, cache = runCache)
@@ -131,27 +130,48 @@ class AssistantThread(
   ) {
     val steps = runSteps(runId)
     steps.forEach { step ->
-      if (step !in cache) {
+      val callsWithArguments =
+        step.stepDetails.toolCalls().filter {
+          it.function != null && it.function!!.arguments.isNotBlank()
+        }
+
+      // We have detected that tool call in in_progress state sometimes don't have any arguments
+      // and this is not valid. We need to skip this step in this case.
+      val canEmitToolCalls =
+        if (
+          step.type == RunStepObject.Type.tool_calls &&
+            step.status == RunStepObject.Status.in_progress
+        )
+          callsWithArguments.isNotEmpty()
+        else true
+
+      val emitEvent = canEmitToolCalls && step !in cache
+
+      if (emitEvent) {
         cache.add(step)
         emit(RunDelta.Step(step))
-        step.stepDetails.toolCalls().forEach { toolCall ->
-          val function = toolCall.function
-          if (function != null && function.arguments.isNotBlank()) {
-            val result: JsonElement = assistant.getToolRegistered(function.name, function.arguments)
-            api.submitToolOuputsToRun(
-              threadId = threadId,
-              runId = runId,
-              submitToolOutputsRunRequest =
-                SubmitToolOutputsRunRequest(
-                  toolOutputs =
-                    listOf(
-                      SubmitToolOutputsRunRequestToolOutputsInner(
-                        toolCallId = toolCall.id,
-                        output = ApiClient.JSON_DEFAULT.encodeToString(result)
+
+        if (step.status == RunStepObject.Status.in_progress) {
+          callsWithArguments.forEach { toolCall ->
+            val function = toolCall.function
+            if (function != null && function.arguments.isNotBlank()) {
+              val result: JsonElement =
+                assistant.getToolRegistered(function.name, function.arguments)
+              api.submitToolOuputsToRun(
+                threadId = threadId,
+                runId = runId,
+                submitToolOutputsRunRequest =
+                  SubmitToolOutputsRunRequest(
+                    toolOutputs =
+                      listOf(
+                        SubmitToolOutputsRunRequestToolOutputsInner(
+                          toolCallId = toolCall.id,
+                          output = ApiClient.JSON_DEFAULT.encodeToString(result)
+                        )
                       )
-                    )
-                )
-            )
+                  )
+              )
+            }
           }
         }
       }
