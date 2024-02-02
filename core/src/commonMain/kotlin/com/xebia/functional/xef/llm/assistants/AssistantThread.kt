@@ -90,7 +90,7 @@ class AssistantThread(
         checkSteps(assistant = assistant, runId = runId, cache = stepCache)
         delay(500) // To avoid excessive calls to OpenAI
         checkMessages(cache = messagesCache)
-        delay(500)
+        delay(500) // To avoid excessive calls to OpenAI
         run = checkRun(runId = runId, cache = runCache)
       }
     } catch (e: Exception) {
