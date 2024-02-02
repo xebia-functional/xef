@@ -7,8 +7,8 @@ import com.xebia.functional.openai.models.ext.assistant.RunStepDetailsMessageCre
 import com.xebia.functional.openai.models.ext.assistant.RunStepDetailsToolCallsObject
 import com.xebia.functional.openai.models.ext.assistant.RunStepObjectStepDetails
 import com.xebia.functional.xef.llm.fromEnvironment
-import kotlinx.coroutines.delay
 import kotlin.jvm.JvmName
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.flow
@@ -121,7 +121,7 @@ class AssistantThread(
         )
       )
     } finally {
-        checkMessages(cache = messagesCache)
+      checkMessages(cache = messagesCache)
     }
   }
 
