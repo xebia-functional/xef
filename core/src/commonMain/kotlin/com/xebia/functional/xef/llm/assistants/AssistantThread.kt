@@ -88,7 +88,7 @@ class AssistantThread(
       var run = checkRun(runId = runId, cache = runCache)
       while (run.status != RunObject.Status.completed) {
         checkSteps(assistant = assistant, runId = runId, cache = stepCache)
-        delay(500)
+        delay(500) // To avoid excessive calls to OpenAI
         checkMessages(cache = messagesCache)
         delay(500)
         run = checkRun(runId = runId, cache = runCache)
