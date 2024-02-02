@@ -8,6 +8,7 @@ import com.xebia.functional.openai.models.ext.assistant.RunStepDetailsToolCallsO
 import com.xebia.functional.openai.models.ext.assistant.RunStepObjectStepDetails
 import com.xebia.functional.xef.llm.fromEnvironment
 import kotlin.jvm.JvmName
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.flow
@@ -83,13 +84,45 @@ class AssistantThread(
     val stepCache = mutableSetOf<RunStepObject>() // CacheTool
     val messagesCache = mutableSetOf<MessageObject>()
     val runCache = mutableSetOf<RunObject>()
-    var run = checkRun(runId = runId, cache = runCache)
-    while (run.status != RunObject.Status.completed) {
-      checkSteps(assistant = assistant, runId = runId, cache = stepCache)
+    try {
+      var run = checkRun(runId = runId, cache = runCache)
+      while (run.status != RunObject.Status.completed) {
+        checkSteps(assistant = assistant, runId = runId, cache = stepCache)
+        delay(500) // To avoid excessive calls to OpenAI
+        checkMessages(cache = messagesCache)
+        delay(500) // To avoid excessive calls to OpenAI
+        run = checkRun(runId = runId, cache = runCache)
+      }
+    } catch (e: Exception) {
+      emit(
+        RunDelta.Run(
+          RunObject(
+            id = runId,
+            `object` = RunObject.Object.thread_run,
+            createdAt = 0,
+            threadId = threadId,
+            assistantId = assistant.assistantId,
+            status = RunObject.Status.failed,
+            lastError =
+              RunObjectLastError(
+                code = RunObjectLastError.Code.server_error,
+                message = e.message ?: "Unknown error"
+              ),
+            startedAt = null,
+            cancelledAt = null,
+            failedAt = null,
+            completedAt = null,
+            model = "",
+            instructions = "",
+            tools = emptyList(),
+            fileIds = emptyList(),
+            metadata = null
+          )
+        )
+      )
+    } finally {
       checkMessages(cache = messagesCache)
-      run = checkRun(runId = runId, cache = runCache)
     }
-    checkMessages(cache = messagesCache)
   }
 
   private suspend fun FlowCollector<RunDelta>.checkRun(
