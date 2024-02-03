@@ -88,7 +88,7 @@ class AssistantThread(
     try {
       var run = checkRun(runId = runId, cache = runCache)
       while (run.status != RunObject.Status.completed) {
-        checkSteps(run = run, assistant = assistant, runId = runId, cache = stepCache)
+        checkSteps(assistant = assistant, runId = runId, cache = stepCache)
         delay(500) // To avoid excessive calls to OpenAI
         checkMessages(cache = messagesCache)
         delay(500) // To avoid excessive calls to OpenAI
@@ -160,8 +160,7 @@ class AssistantThread(
   private suspend fun FlowCollector<RunDelta>.checkSteps(
     assistant: Assistant,
     runId: String,
-    cache: MutableSet<RunStepObject>,
-    run: RunObject
+    cache: MutableSet<RunStepObject>
   ) {
     val steps = runSteps(runId)
     steps.forEach { step ->
@@ -187,7 +186,7 @@ class AssistantThread(
         cache.add(step)
         emit(RunDelta.Step(step))
       }
-
+      val run = getRun(runId)
       if (run.status == RunObject.Status.requires_action && run.requiredAction?.type == RunObjectRequiredAction.Type.submit_tool_outputs) {
         val results: Map<String, JsonElement> =
           calls
