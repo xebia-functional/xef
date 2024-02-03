@@ -190,7 +190,7 @@ class AssistantThread(
             if (function != null && function.arguments.isNotBlank()) {
               val result: JsonElement =
                 assistant.getToolRegistered(function.name, function.arguments)
-              api.submitToolOuputsToRun(
+              val run = api.submitToolOuputsToRun(
                 threadId = threadId,
                 runId = runId,
                 submitToolOutputsRunRequest =
@@ -204,6 +204,7 @@ class AssistantThread(
                       )
                   )
               )
+              emit(RunDelta.Run(run.body()))
             }
           }
         }
