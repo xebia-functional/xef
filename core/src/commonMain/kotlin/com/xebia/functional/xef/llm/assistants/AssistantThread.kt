@@ -105,10 +105,10 @@ class AssistantThread(
             assistantId = assistant.assistantId,
             status = RunObject.Status.failed,
             lastError =
-            RunObjectLastError(
-              code = RunObjectLastError.Code.server_error,
-              message = e.message ?: "Unknown error"
-            ),
+              RunObjectLastError(
+                code = RunObjectLastError.Code.server_error,
+                message = e.message ?: "Unknown error"
+              ),
             startedAt = null,
             cancelledAt = null,
             failedAt = null,
@@ -164,18 +164,17 @@ class AssistantThread(
   ) {
     val steps = runSteps(runId)
     steps.forEach { step ->
-      val calls =
-        step.stepDetails.toolCalls()
-//          .filter {
-//            it.function != null && it.function!!.arguments.isNotBlank()
-//          }
+      val calls = step.stepDetails.toolCalls()
+      //          .filter {
+      //            it.function != null && it.function!!.arguments.isNotBlank()
+      //          }
 
       // We have detected that tool call in in_progress state sometimes don't have any arguments
       // and this is not valid. We need to skip this step in this case.
       val canEmitToolCalls =
         if (
           step.type == RunStepObject.Type.tool_calls &&
-          step.status == RunStepObject.Status.in_progress
+            step.status == RunStepObject.Status.in_progress
         )
           calls.isNotEmpty()
         else true
@@ -187,29 +186,33 @@ class AssistantThread(
         emit(RunDelta.Step(step))
       }
       val run = getRun(runId)
-      if (run.status == RunObject.Status.requires_action && run.requiredAction?.type == RunObjectRequiredAction.Type.submit_tool_outputs) {
+      if (
+        run.status == RunObject.Status.requires_action &&
+          run.requiredAction?.type == RunObjectRequiredAction.Type.submit_tool_outputs
+      ) {
         val results: Map<String, JsonElement> =
           calls
-            .filter { it.function != null }.
-            parMap { toolCall ->
+            .filter { it.function != null }
+            .parMap { toolCall ->
               val function = toolCall.function!!
               val result: JsonElement =
                 assistant.getToolRegistered(function.name, function.arguments)
               toolCall.id to result
-            }.toMap()
+            }
+            .toMap()
         api.submitToolOuputsToRun(
           threadId = threadId,
           runId = runId,
           submitToolOutputsRunRequest =
-          SubmitToolOutputsRunRequest(
-            toolOutputs =
-            results.map { (toolCallId, result) ->
-              SubmitToolOutputsRunRequestToolOutputsInner(
-                toolCallId = toolCallId,
-                output = ApiClient.JSON_DEFAULT.encodeToString(result)
-              )
-            }
-          )
+            SubmitToolOutputsRunRequest(
+              toolOutputs =
+                results.map { (toolCallId, result) ->
+                  SubmitToolOutputsRunRequestToolOutputsInner(
+                    toolCallId = toolCallId,
+                    output = ApiClient.JSON_DEFAULT.encodeToString(result)
+                  )
+                }
+            )
         )
       }
     }
