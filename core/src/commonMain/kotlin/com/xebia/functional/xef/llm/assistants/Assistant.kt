@@ -12,15 +12,15 @@ import com.xebia.functional.openai.models.ext.assistant.AssistantToolsCode
 import com.xebia.functional.openai.models.ext.assistant.AssistantToolsFunction
 import com.xebia.functional.openai.models.ext.assistant.AssistantToolsRetrieval
 import com.xebia.functional.xef.llm.fromEnvironment
-import kotlinx.serialization.json.JsonObject
-import net.mamoe.yamlkt.Yaml
-import net.mamoe.yamlkt.literalContentOrNull
-import net.mamoe.yamlkt.toYamlElement
 import io.ktor.client.statement.*
 import io.ktor.util.logging.*
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import net.mamoe.yamlkt.Yaml
+import net.mamoe.yamlkt.literalContentOrNull
+import net.mamoe.yamlkt.toYamlElement
 
 class Assistant(
   val assistantId: String,
