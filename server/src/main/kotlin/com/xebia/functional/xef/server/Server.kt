@@ -7,6 +7,7 @@ import com.typesafe.config.ConfigFactory
 import com.xebia.functional.xef.server.db.psql.XefDatabaseConfig
 import com.xebia.functional.xef.server.exceptions.exceptionsHandler
 import com.xebia.functional.xef.server.http.routes.aiRoutes
+import com.xebia.functional.xef.server.http.routes.knowledgeGraphRoutes
 import com.xebia.functional.xef.server.http.routes.xefRoutes
 import com.xebia.functional.xef.server.services.hikariDataSource
 import com.xebia.functional.xef.server.services.vectorStoreService
@@ -81,6 +82,7 @@ object Server {
         routing {
           xefRoutes(logger)
           aiRoutes(ktorClient)
+          knowledgeGraphRoutes()
         }
       }
       awaitCancellation()
