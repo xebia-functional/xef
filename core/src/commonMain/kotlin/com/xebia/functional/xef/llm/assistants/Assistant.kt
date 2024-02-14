@@ -16,23 +16,56 @@ import kotlinx.serialization.json.JsonObject
 import net.mamoe.yamlkt.Yaml
 import net.mamoe.yamlkt.literalContentOrNull
 import net.mamoe.yamlkt.toYamlElement
+import io.ktor.client.statement.*
+import io.ktor.util.logging.*
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonPrimitive
 
 class Assistant(
   val assistantId: String,
+  val toolsConfig: List<Tool.Companion.ToolConfig<*, *>> = emptyList(),
   private val assistantsApi: AssistantsApi = fromEnvironment(::AssistantsApi),
   private val api: AssistantApi = fromEnvironment(::AssistantApi)
 ) {
 
   constructor(
     assistantObject: AssistantObject,
+    toolsConfig: List<Tool.Companion.ToolConfig<*, *>> = emptyList(),
     assistantsApi: AssistantsApi = fromEnvironment(::AssistantsApi),
     api: AssistantApi = fromEnvironment(::AssistantApi)
-  ) : this(assistantObject.id, assistantsApi, api)
+  ) : this(assistantObject.id, toolsConfig, assistantsApi, api)
 
   suspend fun get(): AssistantObject = assistantsApi.getAssistant(assistantId).body()
 
   suspend fun modify(modifyAssistantRequest: ModifyAssistantRequest): Assistant =
-    Assistant(api.modifyAssistant(assistantId, modifyAssistantRequest).body(), assistantsApi, api)
+    Assistant(
+      api.modifyAssistant(assistantId, modifyAssistantRequest).body(),
+      toolsConfig,
+      assistantsApi,
+      api
+    )
+
+  suspend inline fun getToolRegistered(name: String, args: String): JsonElement =
+    try {
+      val toolConfig = toolsConfig.firstOrNull { it.functionObject.name == name }
+
+      val toolSerializer = toolConfig?.serializers ?: error("Function $name not registered")
+      val input = ApiClient.JSON_DEFAULT.decodeFromString(toolSerializer.inputSerializer, args)
+
+      val tool: Tool<Any?, Any?> = toolConfig.tool as Tool<Any?, Any?>
+
+      val output: Any? = tool(input)
+      ApiClient.JSON_DEFAULT.encodeToJsonElement(
+        toolSerializer.outputSerializer as KSerializer<Any?>,
+        output
+      )
+    } catch (e: Exception) {
+      val message = "Error calling to tool registered $name: ${e.message}"
+      val logger = KtorSimpleLogger("Functions")
+      logger.error(message, e)
+      JsonObject(mapOf("error" to JsonPrimitive(message)))
+    }
 
   companion object {
 
@@ -44,6 +77,7 @@ class Assistant(
       tools: List<AssistantTools> = arrayListOf(),
       fileIds: List<String> = arrayListOf(),
       metadata: JsonObject? = null,
+      toolsConfig: List<Tool.Companion.ToolConfig<*, *>> = emptyList(),
       assistantsApi: AssistantsApi = fromEnvironment(::AssistantsApi),
       api: AssistantApi = fromEnvironment(::AssistantApi)
     ): Assistant =
@@ -57,17 +91,19 @@ class Assistant(
           fileIds = fileIds,
           metadata = metadata
         ),
+        toolsConfig,
         assistantsApi,
         api
       )
 
     suspend operator fun invoke(
       request: CreateAssistantRequest,
+      toolsConfig: List<Tool.Companion.ToolConfig<*, *>> = emptyList(),
       assistantsApi: AssistantsApi = fromEnvironment(::AssistantsApi),
       api: AssistantApi = fromEnvironment(::AssistantApi)
     ): Assistant {
       val response = assistantsApi.createAssistant(request)
-      return Assistant(response.body(), assistantsApi, api)
+      return Assistant(response.body(), toolsConfig, assistantsApi, api)
     }
 
     suspend fun fromConfig(

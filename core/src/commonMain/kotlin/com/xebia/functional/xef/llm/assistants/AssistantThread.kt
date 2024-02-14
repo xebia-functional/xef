@@ -1,5 +1,6 @@
 package com.xebia.functional.xef.llm.assistants
 
+import arrow.fx.coroutines.parMap
 import com.xebia.functional.openai.apis.AssistantsApi
 import com.xebia.functional.openai.infrastructure.ApiClient
 import com.xebia.functional.openai.models.*
@@ -8,6 +9,7 @@ import com.xebia.functional.openai.models.ext.assistant.RunStepDetailsToolCallsO
 import com.xebia.functional.openai.models.ext.assistant.RunStepObjectStepDetails
 import com.xebia.functional.xef.llm.fromEnvironment
 import kotlin.jvm.JvmName
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.flow
@@ -63,7 +65,7 @@ class AssistantThread(
 
   suspend fun run(assistant: Assistant): Flow<RunDelta> {
     val run = createRun(assistant)
-    return awaitRun(run.id)
+    return awaitRun(assistant, run.id)
   }
 
   suspend fun cancelRun(runId: String): RunObject = api.cancelRun(threadId, runId).body()
@@ -79,17 +81,49 @@ class AssistantThread(
     data class Step(val runStep: RunStepObject) : RunDelta()
   }
 
-  fun awaitRun(runId: String): Flow<RunDelta> = flow {
-    val stepCache = mutableSetOf<RunStepObject>()
+  fun awaitRun(assistant: Assistant, runId: String): Flow<RunDelta> = flow {
+    val stepCache = mutableSetOf<RunStepObject>() // CacheTool
     val messagesCache = mutableSetOf<MessageObject>()
     val runCache = mutableSetOf<RunObject>()
-    var run = checkRun(runId = runId, cache = runCache)
-    while (run.status != RunObject.Status.completed) {
-      checkSteps(runId = runId, cache = stepCache)
+    try {
+      var run = checkRun(runId = runId, cache = runCache)
+      while (run.status != RunObject.Status.completed) {
+        checkSteps(assistant = assistant, runId = runId, cache = stepCache)
+        delay(500) // To avoid excessive calls to OpenAI
+        checkMessages(cache = messagesCache)
+        delay(500) // To avoid excessive calls to OpenAI
+        run = checkRun(runId = runId, cache = runCache)
+      }
+    } catch (e: Exception) {
+      emit(
+        RunDelta.Run(
+          RunObject(
+            id = runId,
+            `object` = RunObject.Object.thread_run,
+            createdAt = 0,
+            threadId = threadId,
+            assistantId = assistant.assistantId,
+            status = RunObject.Status.failed,
+            lastError =
+              RunObjectLastError(
+                code = RunObjectLastError.Code.server_error,
+                message = e.message ?: "Unknown error"
+              ),
+            startedAt = null,
+            cancelledAt = null,
+            failedAt = null,
+            completedAt = null,
+            model = "",
+            instructions = "",
+            tools = emptyList(),
+            fileIds = emptyList(),
+            metadata = null
+          )
+        )
+      )
+    } finally {
       checkMessages(cache = messagesCache)
-      run = checkRun(runId = runId, cache = runCache)
     }
-    checkMessages(cache = messagesCache)
   }
 
   private suspend fun FlowCollector<RunDelta>.checkRun(
@@ -124,34 +158,62 @@ class AssistantThread(
     }
 
   private suspend fun FlowCollector<RunDelta>.checkSteps(
+    assistant: Assistant,
     runId: String,
     cache: MutableSet<RunStepObject>
   ) {
     val steps = runSteps(runId)
     steps.forEach { step ->
-      if (step !in cache) {
+      val calls = step.stepDetails.toolCalls()
+      //          .filter {
+      //            it.function != null && it.function!!.arguments.isNotBlank()
+      //          }
+
+      // We have detected that tool call in in_progress state sometimes don't have any arguments
+      // and this is not valid. We need to skip this step in this case.
+      val canEmitToolCalls =
+        if (
+          step.type == RunStepObject.Type.tool_calls &&
+            step.status == RunStepObject.Status.in_progress
+        )
+          calls.isNotEmpty()
+        else true
+
+      val emitEvent = canEmitToolCalls && step !in cache
+
+      if (emitEvent) {
         cache.add(step)
         emit(RunDelta.Step(step))
-        step.stepDetails.toolCalls().forEach { toolCall ->
-          val function = toolCall.function
-          if (function != null && function.arguments.isNotBlank()) {
-            val result: JsonElement = Tool(function.name, function.arguments)
-            api.submitToolOuputsToRun(
-              threadId = threadId,
-              runId = runId,
-              submitToolOutputsRunRequest =
-                SubmitToolOutputsRunRequest(
-                  toolOutputs =
-                    listOf(
-                      SubmitToolOutputsRunRequestToolOutputsInner(
-                        toolCallId = toolCall.id,
-                        output = ApiClient.JSON_DEFAULT.encodeToString(result)
-                      )
-                    )
-                )
+      }
+      val run = getRun(runId)
+      if (
+        run.status == RunObject.Status.requires_action &&
+          run.requiredAction?.type == RunObjectRequiredAction.Type.submit_tool_outputs
+      ) {
+        val results: Map<String, JsonElement> =
+          calls
+            .filter { it.function != null }
+            .parMap { toolCall ->
+              val function = toolCall.function!!
+              val result: JsonElement =
+                assistant.getToolRegistered(function.name, function.arguments)
+              toolCall.id to result
+            }
+            .toMap()
+        api.submitToolOuputsToRun(
+          threadId = threadId,
+          runId = runId,
+          submitToolOutputsRunRequest =
+            SubmitToolOutputsRunRequest(
+              toolOutputs =
+                results.map { (toolCallId, result) ->
+                  SubmitToolOutputsRunRequestToolOutputsInner(
+                    toolCallId = toolCallId,
+                    output = ApiClient.JSON_DEFAULT.encodeToString(result)
+                  )
+                }
             )
-          }
-        }
+        )
       }
     }
   }

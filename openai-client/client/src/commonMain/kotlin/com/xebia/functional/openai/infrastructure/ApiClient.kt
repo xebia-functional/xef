@@ -32,9 +32,15 @@ open class ApiClient(val baseUrl: String) : AutoCloseable {
       {
         it.install(ContentNegotiation) { json(jsonBlock) }
         it.install(HttpTimeout) {
-          requestTimeoutMillis = 60 * 1000
-          connectTimeoutMillis = 60 * 1000
-          socketTimeoutMillis = 60 * 1000
+          requestTimeoutMillis = 45 * 1000
+          connectTimeoutMillis = 45 * 1000
+          socketTimeoutMillis = 45 * 1000
+        }
+        it.install(HttpRequestRetry) {
+          maxRetries = 5
+          retryIf { _, response -> !response.status.isSuccess() }
+          retryOnExceptionIf { _, _ -> true }
+          delayMillis { retry -> retry * 1000L }
         }
         it.install(Logging) { level = LogLevel.NONE }
         httpClientConfig?.invoke(it)
@@ -58,6 +64,7 @@ open class ApiClient(val baseUrl: String) : AutoCloseable {
       ignoreUnknownKeys = true
       prettyPrint = true
       isLenient = true
+      explicitNulls = false
     }
     val UNSAFE_HEADERS = listOf(HttpHeaders.ContentType)
   }

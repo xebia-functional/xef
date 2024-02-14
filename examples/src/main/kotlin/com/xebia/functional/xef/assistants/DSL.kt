@@ -6,19 +6,18 @@ import com.xebia.functional.openai.models.ext.assistant.RunStepDetailsToolCallsO
 import com.xebia.functional.xef.llm.assistants.Assistant
 import com.xebia.functional.xef.llm.assistants.AssistantThread
 import com.xebia.functional.xef.llm.assistants.Tool
+import io.ktor.client.*
 import kotlinx.serialization.Serializable
 
-@Serializable
-data class SumTool(
-  val left: Int,
-  val right: Int,
-) : Tool<Int> {
-  override suspend fun invoke(): Int = left + right
+@Serializable data class SumInput(val left: Int, val right: Int)
+
+class SumTool : Tool<SumInput, Int> {
+  override suspend fun invoke(input: SumInput): Int {
+    return input.left + input.right
+  }
 }
 
 suspend fun main() {
-
-  Tool<SumTool, Int>() // register the tool, Int is the output type
 
   //  val assistant2 = Assistant(
   //    name = "Math Tutor",
@@ -38,7 +37,11 @@ suspend fun main() {
   //    model = "gpt-4-1106-preview"
   //  )
   // println("generated assistant: ${assistant2.assistantId}")
-  val assistant = Assistant(assistantId = "asst_mYw6e4wddJvRcjdQQ2qcWFsn")
+  val assistant =
+    Assistant(
+      assistantId = "asst_UxczzpJkysC0l424ood87DAk",
+      toolsConfig = listOf(Tool.toolOf(SumTool())),
+    )
   val thread = AssistantThread()
   println("Welcome to the Math tutor, ask me anything about math:")
   while (true) {
@@ -95,7 +98,7 @@ private fun displayStepsStatus(step: AssistantThread.RunDelta.Step) {
             RunStepDetailsToolCallsObjectToolCallsInner.Type.code_interpreter -> "CodeInterpreter"
             RunStepDetailsToolCallsObjectToolCallsInner.Type.retrieval -> "Retrieval"
             RunStepDetailsToolCallsObjectToolCallsInner.Type.function ->
-              "${it.function?.name}(${it.function?.arguments ?: ""}): "
+              "${it.function?.name}(${it.function?.arguments ?: ""}) = ${it.function?.output ?: "empty"}: "
           }
         }
     }
