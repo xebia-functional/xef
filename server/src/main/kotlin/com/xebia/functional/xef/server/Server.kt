@@ -9,6 +9,7 @@ import com.xebia.functional.xef.server.exceptions.exceptionsHandler
 import com.xebia.functional.xef.server.http.routes.aiRoutes
 import com.xebia.functional.xef.server.http.routes.knowledgeGraphRoutes
 import com.xebia.functional.xef.server.http.routes.xefRoutes
+import com.xebia.functional.xef.server.services.graphStoreService
 import com.xebia.functional.xef.server.services.hikariDataSource
 import com.xebia.functional.xef.server.services.vectorStoreService
 import com.xebia.functional.xef.store.migrations.runDatabaseMigrations
@@ -54,6 +55,8 @@ object Server {
 
       vectorStoreService("xef-vector-store", config, logger)
 
+      val graphStoreService = graphStoreService("xef-graph-database", config, logger)
+
       val ktorClient =
         HttpClient(CIO) {
           engine {
@@ -82,7 +85,7 @@ object Server {
         routing {
           xefRoutes(logger)
           aiRoutes(ktorClient)
-          knowledgeGraphRoutes()
+          knowledgeGraphRoutes(graphStoreService)
         }
       }
       awaitCancellation()

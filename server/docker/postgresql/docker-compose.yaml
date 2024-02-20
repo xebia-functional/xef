@@ -32,3 +32,19 @@ services:
       POSTGRES_DB: xef_database
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+
+  xef-graph-postgres:
+    container_name: xef-graph-postgres
+    image: "apache/age"
+    ports:
+      - "5434:5432"
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgres" ]
+      interval: 2s
+      timeout: 2s
+      retries: 5
+    restart: always
+    environment:
+      POSTGRES_DB: xef_graph_database
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
