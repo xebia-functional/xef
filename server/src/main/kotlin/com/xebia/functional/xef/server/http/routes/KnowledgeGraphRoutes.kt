@@ -5,7 +5,6 @@ import ai.xef.openai.StandardModel
 import com.xebia.functional.openai.models.CreateChatCompletionRequestModel.gpt_4_32k
 import com.xebia.functional.xef.llm.models.modelType
 import com.xebia.functional.xef.server.services.GraphStoreService
-import com.xebia.functional.xef.store.GraphResponse
 import io.ktor.http.*
 import io.ktor.http.HttpStatusCode.Companion.Accepted
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
@@ -14,6 +13,13 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+
+@Serializable
+data class CypherQuery(val query: String)
 
 fun Routing.knowledgeGraphRoutes(
   service: GraphStoreService
@@ -30,18 +36,18 @@ fun Routing.knowledgeGraphRoutes(
   }
 
   // Query graph with Cypher queries
-  post("/graph/{id}/query/{query}") {
+  post("/graph/{id}/query") {
     val id = call.parameters["id"]
-    val query = call.parameters["query"]
-    if (id != null && query != null) {
+    // query is parsed from the body
+    val query = call.receive<CypherQuery>()
+    if (id != null && query.query.isNotBlank()) {
       // Logic to execute the Cypher query on the graph with the given id
-      val graphStore = service.getGraphStore()
+      val graphStore = service.getGraphStore(id)
       // TODO do something with graph id
-      val response: GraphResponse<Any?> = graphStore.executeQuery(query)
-      call.respondText("Query result for graph $id: ${response.value}", status = HttpStatusCode.OK)
+      val response = graphStore.executeQuery(query.query)
+      call.respondText(Json.encodeToString(response), status = HttpStatusCode.OK)
     } else {
-      if (id == null) call.respondText("Missing or incorrect id", status = BadRequest)
-      if (query == null) call.respondText("Missing or incorrect query", status = BadRequest)
+      call.respondText("Missing or incorrect id or query", status = BadRequest)
     }
   }
 

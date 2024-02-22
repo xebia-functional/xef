@@ -50,7 +50,8 @@ suspend fun ResourceScope.graphStoreService(
         )
         PostgresGraphStoreService(
           logger,
-          dataSource
+          dataSource,
+          postgresGraphStoreConfig
           )
          // .also { it.addCollection() }
       }
@@ -58,5 +59,5 @@ suspend fun ResourceScope.graphStoreService(
   }
 
 abstract class GraphStoreService {
-  abstract fun getGraphStore(): GraphStore
+  abstract suspend fun getGraphStore(graphId: String): GraphStore
 }

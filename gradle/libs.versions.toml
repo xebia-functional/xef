@@ -39,6 +39,7 @@ opentelemetry-alpha="1.30.1-alpha"
 progressbar = "0.10.0"
 jmf = "2.1.1e"
 mp3-wav-converter = "1.0.4"
+cypher-parser = "3.4.18"
 
 [libraries]
 arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
@@ -115,6 +116,7 @@ opentelemetry-extension-kotlin = { module = "io.opentelemetry:opentelemetry-exte
 progressbar = { module = "me.tongfei:progressbar", version.ref = "progressbar" }
 jmf = { module = "javax.media:jmf", version.ref = "jmf" }
 mp3-wav-converter = { module = "com.sipgate:mp3-wav", version.ref = "mp3-wav-converter" }
+cypher-parser = { module = "org.neo4j:openCypher-frontend-1", version.ref = "cypher-parser" }
 
 
 

@@ -29,6 +29,7 @@ dependencies {
     implementation(libs.uuid)
     implementation(libs.hikari)
     implementation(libs.postgresql)
+    implementation(libs.cypher.parser)
     testImplementation(libs.junit.jupiter.api)
     testImplementation(libs.kotest.property)
     testImplementation(libs.kotest.framework)
