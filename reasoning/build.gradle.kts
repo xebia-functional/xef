@@ -88,12 +88,6 @@ kotlin {
         val macosX64Main by getting { dependencies { api(libs.ktor.client.cio) } }
         val macosArm64Main by getting { dependencies { api(libs.ktor.client.cio) } }
         val mingwX64Main by getting { dependencies { api(libs.ktor.client.winhttp) } }
-        create("nativeMain") {
-            dependsOn(commonMain)
-            linuxX64Main.dependsOn(this)
-            macosX64Main.dependsOn(this)
-            mingwX64Main.dependsOn(this)
-        }
     }
 }
 
