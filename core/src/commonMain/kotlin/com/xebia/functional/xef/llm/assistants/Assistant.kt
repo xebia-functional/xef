@@ -56,7 +56,7 @@ class Assistant(
     } catch (e: Exception) {
       val message = "Error calling to tool registered $name: ${e.message}"
       val logger = KtorSimpleLogger("Functions")
-      logger.error(message)
+      logger.error(message, e)
       JsonObject(mapOf("error" to JsonPrimitive(message)))
     }
 

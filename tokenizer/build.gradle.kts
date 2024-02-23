@@ -48,17 +48,6 @@ kotlin {
             nodejs { testTask { useMocha { timeout = "10000" } } }
             browser { testTask { useMocha { timeout = "10000" } } }
         }
-        val linuxX64Main by getting
-        val macosX64Main by getting
-        val macosArm64Main by getting
-        val mingwX64Main by getting
-        create("nativeMain") {
-            dependsOn(commonMain)
-            linuxX64Main.dependsOn(this)
-            macosX64Main.dependsOn(this)
-            macosArm64Main.dependsOn(this)
-            mingwX64Main.dependsOn(this)
-        }
     }
 }
 
