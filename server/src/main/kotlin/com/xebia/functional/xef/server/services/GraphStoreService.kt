@@ -48,12 +48,8 @@ suspend fun ResourceScope.graphStoreService(
           postgresGraphStoreConfig.migrationsTable,
           postgresGraphStoreConfig.migrationsLocations
         )
-        PostgresGraphStoreService(
-          logger,
-          dataSource,
-          postgresGraphStoreConfig
-          )
-         // .also { it.addCollection() }
+        PostgresGraphStoreService(logger, dataSource, postgresGraphStoreConfig)
+        // .also { it.addCollection() }
       }
     }
   }

@@ -55,7 +55,7 @@ object Server {
 
       vectorStoreService("xef-vector-store", config, logger)
 
-      val graphStoreService = graphStoreService("xef-graph-database", config, logger)
+      val graphStoreService = graphStoreService("xef-vector-store", config, logger)
 
       val ktorClient =
         HttpClient(CIO) {

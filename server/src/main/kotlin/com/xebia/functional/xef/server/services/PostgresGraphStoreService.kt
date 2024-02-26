@@ -10,10 +10,10 @@ import org.slf4j.Logger
 class PostgresGraphStoreService(
   private val logger: Logger,
   private val dataSource: DataSource,
-  private val config : PostgreSQLGraphStoreConfig
+  private val config: PostgreSQLGraphStoreConfig
 ) : GraphStoreService() {
 
-  private val graphStores : Atomic<MutableMap<String, GraphStore>> = Atomic.unsafe(mutableMapOf())
+  private val graphStores: Atomic<MutableMap<String, GraphStore>> = Atomic.unsafe(mutableMapOf())
 
   override suspend fun getGraphStore(graphId: String): GraphStore {
     return graphStores.get().getOrPut(graphId) {

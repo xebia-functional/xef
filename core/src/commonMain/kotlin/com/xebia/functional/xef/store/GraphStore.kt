@@ -3,12 +3,7 @@ package com.xebia.functional.xef.store
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 
-@Serializable
-data class GraphResponse(
-  val columns: List<String>,
-  val result: JsonElement
-)
-
+@Serializable data class GraphResponse(val columns: List<String>, val result: JsonElement)
 
 // Models access to a graph via Cypher queries
 interface GraphStore {
@@ -20,5 +15,4 @@ interface GraphStore {
    * @return The result of the query execution.
    */
   fun executeQuery(query: String): GraphResponse
-
 }

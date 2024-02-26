@@ -16,14 +16,10 @@ import io.ktor.server.routing.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonElement
 
-@Serializable
-data class CypherQuery(val query: String)
+@Serializable data class CypherQuery(val query: String)
 
-fun Routing.knowledgeGraphRoutes(
-  service: GraphStoreService
-) {
+fun Routing.knowledgeGraphRoutes(service: GraphStoreService) {
 
   val configuredModel = StandardModel(gpt_4_32k)
 
@@ -53,9 +49,8 @@ fun Routing.knowledgeGraphRoutes(
 
   // Ingest large binary data via streaming
   post("/graph/{id}/ingest") {
-    call.parameters["id"]?.let { id ->
-      call.processIngestion(id, configuredModel)
-    } ?: call.respondText("Missing or incorrect id", status = BadRequest)
+    call.parameters["id"]?.let { id -> call.processIngestion(id, configuredModel) }
+      ?: call.respondText("Missing or incorrect id", status = BadRequest)
   }
 }
 
@@ -72,10 +67,7 @@ suspend fun ApplicationCall.processIngestion(id: String, configuredModel: OpenAI
   respondText("Data ingested successfully into graph $id", status = Accepted)
 }
 
-private fun processFile(
-  configuredModel: OpenAIModel<*>,
-  part: PartData.FileItem
-) {
+private fun processFile(configuredModel: OpenAIModel<*>, part: PartData.FileItem) {
   part.streamProvider().use { inputStream ->
     val modelType = configuredModel.modelType(forFunctions = true)
     val modelContextLength = modelType.maxContextLength

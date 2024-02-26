@@ -3,7 +3,9 @@ version: "3.5"
 services:
   xef-vector-store-postgres:
     container_name: xef-vector-store-postgres
-    image: "ankane/pgvector:v0.4.4"
+    build:
+        context: .
+        dockerfile: Dockerfile
     ports:
       - "5432:5432"
     healthcheck:
@@ -33,18 +35,3 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
 
-  xef-graph-postgres:
-    container_name: xef-graph-postgres
-    image: "apache/age"
-    ports:
-      - "5434:5432"
-    healthcheck:
-      test: [ "CMD", "pg_isready", "-U", "postgres" ]
-      interval: 2s
-      timeout: 2s
-      retries: 5
-    restart: always
-    environment:
-      POSTGRES_DB: xef_graph_database
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
