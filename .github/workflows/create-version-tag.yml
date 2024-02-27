@@ -21,7 +21,7 @@ jobs:
           java-version: 20
 
       - name: Build
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
         with:
           arguments: build
 
@@ -34,7 +34,7 @@ jobs:
           contains(steps.read-version.outputs.version, 'alpha') ||
           contains(steps.read-version.outputs.version, 'beta') ||
           contains(steps.read-version.outputs.version, 'rc')
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
         with:
           arguments: createSemverTag -Psemver.stage=auto
 
