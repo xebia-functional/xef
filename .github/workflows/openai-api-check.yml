@@ -130,12 +130,12 @@ jobs:
           java-version: 20
       - name: Download new API spec
         if: env.CURRENT_API_COMMIT != env.LATEST_API_COMMIT
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
         with:
           arguments: downloadOpenAIAPI
       - name: Generate new OpenAI client
         if: env.CURRENT_API_COMMIT != env.LATEST_API_COMMIT
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
         with:
           arguments: openaiClientGenerate
       - name: Create PR

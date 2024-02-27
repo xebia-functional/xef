@@ -43,12 +43,12 @@ jobs:
           java-version: 20
 
       - name: Build and Test (multip)
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
         with:
           arguments: buildAndTestMultip -Pplatform=${{ matrix.platform }}
 
       - name: Build and Test (singlep)
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
         with:
           arguments: buildAndTestSinglep -Pplatform=${{ matrix.platform }}
         if: ${{ matrix.platform == 'jvm' }}
@@ -78,7 +78,7 @@ jobs:
           java-version: 20
 
       - name: Spotless Apply
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
         with:
           arguments: spotlessApply
 
