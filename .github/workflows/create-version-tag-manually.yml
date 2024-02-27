@@ -39,7 +39,7 @@ jobs:
         shell: bash
 
       - name: Generate Tag
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
         with:
           arguments: createSemverTag "-Psemver.scope=${{ steps.extract-parameters.outputs.scope }}" "-Psemver.stage=${{ steps.extract-parameters.outputs.stage }}"
 

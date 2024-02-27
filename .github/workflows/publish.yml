@@ -30,7 +30,7 @@ jobs:
           java-version: 20
 
       - name: Assemble
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
         with:
           arguments: assemble
 
@@ -42,6 +42,6 @@ jobs:
           path: '**/build/reports/**'
 
       - name: Publish final version
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
         with:
           arguments: publishToSonatype closeSonatypeStagingRepository
