@@ -140,7 +140,7 @@ jobs:
           arguments: openaiClientGenerate
       - name: Create PR
         if: env.CURRENT_API_COMMIT != env.LATEST_API_COMMIT
-        uses: peter-evans/create-pull-request@v5
+        uses: peter-evans/create-pull-request@v6
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
