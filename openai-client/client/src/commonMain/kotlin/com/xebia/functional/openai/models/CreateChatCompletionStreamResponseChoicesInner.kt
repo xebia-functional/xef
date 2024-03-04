@@ -18,6 +18,7 @@ import kotlinx.serialization.encoding.*
  *   flag from our content filters, `tool_calls` if the model called a tool, or `function_call`
  *   (deprecated) if the model called a function.
  * @param index The index of the choice in the list of choices.
+ * @param logprobs
  */
 @Serializable
 data class CreateChatCompletionStreamResponseChoicesInner(
@@ -29,7 +30,9 @@ data class CreateChatCompletionStreamResponseChoicesInner(
   val finishReason: CreateChatCompletionStreamResponseChoicesInner.FinishReason?,
 
   /* The index of the choice in the list of choices. */
-  @SerialName(value = "index") @Required val index: kotlin.Int
+  @SerialName(value = "index") @Required val index: kotlin.Int,
+  @SerialName(value = "logprobs")
+  val logprobs: CreateChatCompletionResponseChoicesInnerLogprobs? = null
 ) {
 
   /**

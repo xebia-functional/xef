@@ -15,7 +15,7 @@ import kotlinx.serialization.encoding.*
  *
  * @param hate Content that expresses, incites, or promotes hate based on race, gender, ethnicity,
  *   religion, nationality, sexual orientation, disability status, or caste. Hateful content aimed
- *   at non-protected groups (e.g., chess players) is harrassment.
+ *   at non-protected groups (e.g., chess players) is harassment.
  * @param hateThreatening Hateful content that also includes violence or serious harm towards the
  *   targeted group based on race, gender, ethnicity, religion, nationality, sexual orientation,
  *   disability status, or caste.
@@ -40,7 +40,7 @@ import kotlinx.serialization.encoding.*
 @Serializable
 data class CreateModerationResponseResultsInnerCategories(
 
-  /* Content that expresses, incites, or promotes hate based on race, gender, ethnicity, religion, nationality, sexual orientation, disability status, or caste. Hateful content aimed at non-protected groups (e.g., chess players) is harrassment. */
+  /* Content that expresses, incites, or promotes hate based on race, gender, ethnicity, religion, nationality, sexual orientation, disability status, or caste. Hateful content aimed at non-protected groups (e.g., chess players) is harassment. */
   @SerialName(value = "hate") @Required val hate: kotlin.Boolean,
 
   /* Hateful content that also includes violence or serious harm towards the targeted group based on race, gender, ethnicity, religion, nationality, sexual orientation, disability status, or caste. */

@@ -30,7 +30,7 @@ class AssistantToolsSpec {
                 JsonObject(
                   listOfNotNull(
                       "name" to JsonPrimitive(fo.name),
-                      "parameters" to fo.parameters,
+                      "parameters" to (fo.parameters ?: JsonObject(emptyMap())),
                       fo.description?.let { "description" to JsonPrimitive(it) }
                     )
                     .toMap()
