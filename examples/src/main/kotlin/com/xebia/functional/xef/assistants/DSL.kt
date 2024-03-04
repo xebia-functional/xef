@@ -6,6 +6,7 @@ import com.xebia.functional.openai.models.ext.assistant.RunStepDetailsToolCallsO
 import com.xebia.functional.xef.llm.assistants.Assistant
 import com.xebia.functional.xef.llm.assistants.AssistantThread
 import com.xebia.functional.xef.llm.assistants.Tool
+import com.xebia.functional.xef.opentelemetry.OpenTelemetryMetric
 import io.ktor.client.*
 import kotlinx.serialization.Serializable
 
@@ -37,12 +38,16 @@ suspend fun main() {
   //    model = "gpt-4-1106-preview"
   //  )
   // println("generated assistant: ${assistant2.assistantId}")
+
+  val metric = OpenTelemetryMetric()
+
   val assistant =
     Assistant(
       assistantId = "asst_UxczzpJkysC0l424ood87DAk",
       toolsConfig = listOf(Tool.toolOf(SumTool())),
+      metric = metric
     )
-  val thread = AssistantThread()
+  val thread = AssistantThread(metric = metric)
   println("Welcome to the Math tutor, ask me anything about math:")
   while (true) {
     println()
@@ -127,5 +132,5 @@ private fun stepStatusEmoji(status: RunStepObject.Status) =
   }
 
 private fun displayRunStatus(run: AssistantThread.RunDelta.Run) {
-  println("Assistant: ${runStatusEmoji(run)}")
+  println("Assistant: ${runStatusEmoji(run)} - ${run.message.status} - ${run.message}")
 }
