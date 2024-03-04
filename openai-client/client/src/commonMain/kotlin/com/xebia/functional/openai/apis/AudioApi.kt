@@ -123,7 +123,7 @@ open class AudioApi : ApiClient {
     responseFormat: ResponseFormatCreateTranscription? = ResponseFormatCreateTranscription.json,
     temperature: kotlin.Double? = 0.toDouble(),
     timestampGranularities: kotlin.collections.List<TimestampGranularitiesCreateTranscription>? =
-      TimestampGranularitiesCreateTranscription.arrayListOf(segment)
+      TimestampGranularitiesCreateTranscription.segment.asListOfOne()
   ): HttpResponse<CreateTranscriptionResponse> {
 
     val localVariableAuthNames = listOf<String>("ApiKeyAuth")
