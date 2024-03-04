@@ -1,6 +1,7 @@
 package com.xebia.functional.xef.metrics
 
 import arrow.atomic.AtomicInt
+import com.xebia.functional.openai.models.MessageObject
 import com.xebia.functional.openai.models.RunObject
 import com.xebia.functional.openai.models.RunStepObject
 import com.xebia.functional.xef.prompt.Prompt
@@ -56,13 +57,30 @@ class LogsMetric(private val level: Level = Level.INFO) : Metric {
     }
   }
 
-  override suspend fun assistantCreateRun(runId: String, block: Metric.() -> RunObject): RunObject {
+  override suspend fun assistantCreateRun(
+    runId: String,
+    block: suspend Metric.() -> RunObject
+  ): RunObject {
     val output = block()
     assistantCreateRun(output)
     return output
   }
 
-  override suspend fun assistantCreateRunStep(runId: String, block: Metric.() -> RunStepObject): RunStepObject {
+  override suspend fun assistantCreatedMessage(
+    runId: String,
+    block: suspend Metric.() -> List<MessageObject>
+  ): List<MessageObject> {
+    val output = block()
+    logger.at(level) {
+      this.message = "${writeIndent(numberOfBlocks.get())}|-- Size: ${output.size}"
+    }
+    return output
+  }
+
+  override suspend fun assistantCreateRunStep(
+    runId: String,
+    block: suspend Metric.() -> RunStepObject
+  ): RunStepObject {
     val output = block()
     logger.at(level) {
       this.message = "${writeIndent(numberOfBlocks.get())}|-- AssistantId: ${output.assistantId}"
@@ -79,7 +97,10 @@ class LogsMetric(private val level: Level = Level.INFO) : Metric {
     return output
   }
 
-  override suspend fun assistantToolOutputsRun(runId: String, block: suspend Metric.() -> RunObject): RunObject {
+  override suspend fun assistantToolOutputsRun(
+    runId: String,
+    block: suspend Metric.() -> RunObject
+  ): RunObject {
     val output = block()
     assistantCreateRun(output)
     return output

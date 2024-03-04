@@ -3,7 +3,6 @@ package com.xebia.functional.xef.llm.assistants
 import arrow.fx.coroutines.parMap
 import com.xebia.functional.openai.apis.AssistantsApi
 import com.xebia.functional.openai.infrastructure.ApiClient
-import com.xebia.functional.openai.infrastructure.HttpResponse
 import com.xebia.functional.openai.models.*
 import com.xebia.functional.openai.models.ext.assistant.RunStepDetailsMessageCreationObject
 import com.xebia.functional.openai.models.ext.assistant.RunStepDetailsToolCallsObject
@@ -16,7 +15,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -87,7 +85,7 @@ class AssistantThread(
       while (run.status != RunObject.Status.completed) {
         checkSteps(assistant = assistant, runId = runId, cache = stepCache)
         delay(500) // To avoid excessive calls to OpenAI
-        checkMessages(cache = messagesCache)
+        checkMessages(runId, cache = messagesCache)
         delay(500) // To avoid excessive calls to OpenAI
         run = checkRun(runId = runId, cache = runCache)
       }
@@ -120,7 +118,7 @@ class AssistantThread(
         )
       )
     } finally {
-      checkMessages(cache = messagesCache)
+      checkMessages(runId, cache = messagesCache)
     }
   }
 
@@ -128,7 +126,7 @@ class AssistantThread(
     runId: String,
     cache: MutableSet<RunObject>
   ): RunObject {
-    val run = metric.assistantCreateRun(runId) { runBlocking { getRun(runId) } }
+    val run = metric.assistantCreateRun(runId) { getRun(runId) }
     if (run !in cache) {
       cache.add(run)
       emit(RunDelta.Run(run))
@@ -136,15 +134,22 @@ class AssistantThread(
     return run
   }
 
-  private suspend fun FlowCollector<RunDelta>.checkMessages(cache: MutableSet<MessageObject>) {
-    val messages = listMessages()
-    val updatedAndNewMessages = messages.filterNot { it in cache }
-    updatedAndNewMessages.forEach { message ->
-      val content = message.content.filterNot { it.text?.value?.isBlank() ?: true }
-      if (content.isNotEmpty() && message !in cache) {
-        cache.add(message)
-        emit(RunDelta.ReceivedMessage(message))
+  private suspend fun FlowCollector<RunDelta>.checkMessages(
+    runId: String,
+    cache: MutableSet<MessageObject>
+  ) {
+    metric.assistantCreatedMessage(runId) {
+      val messages = mutableListOf<MessageObject>()
+      val updatedAndNewMessages = listMessages().filterNot { it in cache }
+      updatedAndNewMessages.forEach { message ->
+        val content = message.content.filterNot { it.text?.value?.isBlank() ?: true }
+        if (content.isNotEmpty() && message !in cache) {
+          cache.add(message)
+          messages.add(message)
+          emit(RunDelta.ReceivedMessage(message))
+        }
       }
+      messages
     }
   }
 
@@ -161,9 +166,7 @@ class AssistantThread(
     cache: MutableSet<RunStepObject>
   ) {
 
-    val steps = runSteps(runId).map {
-      metric.assistantCreateRunStep(runId) { it }
-    }
+    val steps = runSteps(runId).map { metric.assistantCreateRunStep(runId) { it } }
 
     steps.forEach { step ->
       val calls = step.stepDetails.toolCalls()
@@ -204,20 +207,22 @@ class AssistantThread(
             .toMap()
 
         metric.assistantToolOutputsRun(runId) {
-          api.submitToolOuputsToRun(
-            threadId = threadId,
-            runId = runId,
-            submitToolOutputsRunRequest =
-            SubmitToolOutputsRunRequest(
-              toolOutputs =
-              results.map { (toolCallId, result) ->
-                SubmitToolOutputsRunRequestToolOutputsInner(
-                  toolCallId = toolCallId,
-                  output = ApiClient.JSON_DEFAULT.encodeToString(result)
+          api
+            .submitToolOuputsToRun(
+              threadId = threadId,
+              runId = runId,
+              submitToolOutputsRunRequest =
+                SubmitToolOutputsRunRequest(
+                  toolOutputs =
+                    results.map { (toolCallId, result) ->
+                      SubmitToolOutputsRunRequestToolOutputsInner(
+                        toolCallId = toolCallId,
+                        output = ApiClient.JSON_DEFAULT.encodeToString(result)
+                      )
+                    }
                 )
-              }
             )
-          ).body()
+            .body()
         }
       }
     }

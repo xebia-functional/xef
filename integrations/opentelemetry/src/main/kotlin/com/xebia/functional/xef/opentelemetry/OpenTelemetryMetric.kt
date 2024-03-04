@@ -1,5 +1,6 @@
 package com.xebia.functional.xef.opentelemetry
 
+import com.xebia.functional.openai.models.MessageObject
 import com.xebia.functional.openai.models.RunObject
 import com.xebia.functional.openai.models.RunStepObject
 import com.xebia.functional.xef.metrics.Metric
@@ -34,18 +35,28 @@ class OpenTelemetryMetric(
     state.setAttribute(key, values)
   }
 
-  private fun getTracer(scopeName: String? = null): Tracer =
-    openTelemetry.getTracer(scopeName ?: config.defaultScopeName)
-
   override suspend fun assistantCreateRun(runObject: RunObject) = assistantState.runSpan(runObject)
 
-  override suspend fun assistantCreateRun(runId: String, block: Metric.() -> RunObject): RunObject =
-    assistantState.runSpan(runId) { block() }
+  override suspend fun assistantCreateRun(
+    runId: String,
+    block: suspend Metric.() -> RunObject
+  ): RunObject = assistantState.runSpan(runId) { block() }
 
-  override suspend fun assistantCreateRunStep(runId: String, block: Metric.() -> RunStepObject): RunStepObject =
-    assistantState.runStepSpan(runId) { block() }
+  override suspend fun assistantCreatedMessage(
+    runId: String,
+    block: suspend Metric.() -> List<MessageObject>
+  ): List<MessageObject> = assistantState.createdMessagesSpan(runId) { block() }
 
-  override suspend fun assistantToolOutputsRun(runId: String, block: suspend Metric.() -> RunObject): RunObject =
-    assistantState.toolOutputRunSpan(runId) { block() }
+  override suspend fun assistantCreateRunStep(
+    runId: String,
+    block: suspend Metric.() -> RunStepObject
+  ): RunStepObject = assistantState.runStepSpan(runId) { block() }
 
+  override suspend fun assistantToolOutputsRun(
+    runId: String,
+    block: suspend Metric.() -> RunObject
+  ): RunObject = assistantState.toolOutputRunSpan(runId) { block() }
+
+  private fun getTracer(scopeName: String? = null): Tracer =
+    openTelemetry.getTracer(scopeName ?: config.defaultScopeName)
 }
