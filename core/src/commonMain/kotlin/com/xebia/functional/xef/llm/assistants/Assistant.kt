@@ -151,7 +151,12 @@ class Assistant(
             parsed["file_ids"]?.let { (it as List<*>).map { it.toString() } } ?: emptyList(),
         )
       return if (assistantRequest.assistantId != null) {
-        val assistant = Assistant(assistantId = assistantRequest.assistantId, assistantsApi = assistantsApi, api = api)
+        val assistant =
+          Assistant(
+            assistantId = assistantRequest.assistantId,
+            assistantsApi = assistantsApi,
+            api = api
+          )
         assistant.modify(
           ModifyAssistantRequest(
             name = assistantRequest.name,
@@ -164,15 +169,16 @@ class Assistant(
         )
       } else
         Assistant(
-          request = CreateAssistantRequest(
-            model = assistantRequest.model,
-            name = assistantRequest.name,
-            description = assistantRequest.description,
-            instructions = assistantRequest.instructions,
-            tools = assistantTools(assistantRequest),
-            fileIds = assistantRequest.fileIds,
-            metadata = null // assistantRequest.metadata
-          ),
+          request =
+            CreateAssistantRequest(
+              model = assistantRequest.model,
+              name = assistantRequest.name,
+              description = assistantRequest.description,
+              instructions = assistantRequest.instructions,
+              tools = assistantTools(assistantRequest),
+              fileIds = assistantRequest.fileIds,
+              metadata = null // assistantRequest.metadata
+            ),
           assistantsApi = assistantsApi,
           api = api
         )
