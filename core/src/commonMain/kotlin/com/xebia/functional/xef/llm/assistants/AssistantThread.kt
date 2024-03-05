@@ -117,7 +117,8 @@ class AssistantThread(
             instructions = "",
             tools = emptyList(),
             fileIds = emptyList(),
-            metadata = null
+            metadata = null,
+            usage = null
           )
         )
       )

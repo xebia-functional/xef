@@ -16,8 +16,11 @@ import kotlinx.serialization.encoding.*
  * @param model The ID of the [Model](/docs/api-reference/models) to be used to execute this run. If
  *   a value is provided here, it will override the model associated with the assistant. If not, the
  *   model associated with the assistant will be used.
- * @param instructions Override the default system message of the assistant. This is useful for
- *   modifying the behavior on a per-run basis.
+ * @param instructions Overrides the [instructions](/docs/api-reference/assistants/createAssistant)
+ *   of the assistant. This is useful for modifying the behavior on a per-run basis.
+ * @param additionalInstructions Appends additional instructions at the end of the instructions for
+ *   the run. This is useful for modifying the behavior on a per-run basis without overriding other
+ *   instructions.
  * @param tools Override the tools the assistant can use for this run. This is useful for modifying
  *   the behavior on a per-run basis.
  * @param metadata Set of 16 key-value pairs that can be attached to an object. This can be useful
@@ -33,8 +36,11 @@ data class CreateRunRequest(
   /* The ID of the [Model](/docs/api-reference/models) to be used to execute this run. If a value is provided here, it will override the model associated with the assistant. If not, the model associated with the assistant will be used. */
   @SerialName(value = "model") val model: kotlin.String? = null,
 
-  /* Override the default system message of the assistant. This is useful for modifying the behavior on a per-run basis. */
+  /* Overrides the [instructions](/docs/api-reference/assistants/createAssistant) of the assistant. This is useful for modifying the behavior on a per-run basis. */
   @SerialName(value = "instructions") val instructions: kotlin.String? = null,
+
+  /* Appends additional instructions at the end of the instructions for the run. This is useful for modifying the behavior on a per-run basis without overriding other instructions. */
+  @SerialName(value = "additional_instructions") val additionalInstructions: kotlin.String? = null,
 
   /* Override the tools the assistant can use for this run. This is useful for modifying the behavior on a per-run basis. */
   @SerialName(value = "tools")

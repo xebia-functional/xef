@@ -14,11 +14,13 @@ import kotlinx.serialization.*
  * which models work with the Chat API.
  *
  * Values:
- * gpt_4_1106_preview,gpt_4_vision_preview,gpt_4,gpt_4_0314,gpt_4_0613,gpt_4_32k,gpt_4_32k_0314,gpt_4_32k_0613,gpt_3_5_turbo_1106,gpt_3_5_turbo,gpt_3_5_turbo_16k,gpt_3_5_turbo_0301,gpt_3_5_turbo_0613,gpt_3_5_turbo_16k_0613
+ * gpt_4_0125_preview,gpt_4_turbo_preview,gpt_4_1106_preview,gpt_4_vision_preview,gpt_4,gpt_4_0314,gpt_4_0613,gpt_4_32k,gpt_4_32k_0314,gpt_4_32k_0613,gpt_3_5_turbo,gpt_3_5_turbo_16k,gpt_3_5_turbo_0301,gpt_3_5_turbo_0613,gpt_3_5_turbo_1106,gpt_3_5_turbo_0125,gpt_3_5_turbo_16k_0613
  */
 @Serializable
 enum class CreateChatCompletionRequestModel(val value: kotlin.String) {
 
+  @SerialName(value = "gpt-4-0125-preview") gpt_4_0125_preview("gpt-4-0125-preview"),
+  @SerialName(value = "gpt-4-turbo-preview") gpt_4_turbo_preview("gpt-4-turbo-preview"),
   @SerialName(value = "gpt-4-1106-preview") gpt_4_1106_preview("gpt-4-1106-preview"),
   @SerialName(value = "gpt-4-vision-preview") gpt_4_vision_preview("gpt-4-vision-preview"),
   @SerialName(value = "gpt-4") gpt_4("gpt-4"),
@@ -27,11 +29,12 @@ enum class CreateChatCompletionRequestModel(val value: kotlin.String) {
   @SerialName(value = "gpt-4-32k") gpt_4_32k("gpt-4-32k"),
   @SerialName(value = "gpt-4-32k-0314") gpt_4_32k_0314("gpt-4-32k-0314"),
   @SerialName(value = "gpt-4-32k-0613") gpt_4_32k_0613("gpt-4-32k-0613"),
-  @SerialName(value = "gpt-3.5-turbo-1106") gpt_3_5_turbo_1106("gpt-3.5-turbo-1106"),
   @SerialName(value = "gpt-3.5-turbo") gpt_3_5_turbo("gpt-3.5-turbo"),
   @SerialName(value = "gpt-3.5-turbo-16k") gpt_3_5_turbo_16k("gpt-3.5-turbo-16k"),
   @SerialName(value = "gpt-3.5-turbo-0301") gpt_3_5_turbo_0301("gpt-3.5-turbo-0301"),
   @SerialName(value = "gpt-3.5-turbo-0613") gpt_3_5_turbo_0613("gpt-3.5-turbo-0613"),
+  @SerialName(value = "gpt-3.5-turbo-1106") gpt_3_5_turbo_1106("gpt-3.5-turbo-1106"),
+  @SerialName(value = "gpt-3.5-turbo-0125") gpt_3_5_turbo_0125("gpt-3.5-turbo-0125"),
   @SerialName(value = "gpt-3.5-turbo-16k-0613") gpt_3_5_turbo_16k_0613("gpt-3.5-turbo-16k-0613");
 
   /**

@@ -18,6 +18,7 @@ import kotlinx.serialization.encoding.*
  *   (deprecated) if the model called a function.
  * @param index The index of the choice in the list of choices.
  * @param message
+ * @param logprobs
  */
 @Serializable
 data class CreateChatCompletionResponseChoicesInner(
@@ -29,7 +30,10 @@ data class CreateChatCompletionResponseChoicesInner(
 
   /* The index of the choice in the list of choices. */
   @SerialName(value = "index") @Required val index: kotlin.Int,
-  @SerialName(value = "message") @Required val message: ChatCompletionResponseMessage
+  @SerialName(value = "message") @Required val message: ChatCompletionResponseMessage,
+  @SerialName(value = "logprobs")
+  @Required
+  val logprobs: CreateChatCompletionResponseChoicesInnerLogprobs?
 ) {
 
   /**

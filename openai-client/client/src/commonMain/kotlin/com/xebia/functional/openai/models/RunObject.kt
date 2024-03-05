@@ -39,6 +39,7 @@ import kotlinx.serialization.encoding.*
  * @param metadata Set of 16 key-value pairs that can be attached to an object. This can be useful
  *   for storing additional information about the object in a structured format. Keys can be a
  *   maximum of 64 characters long and values can be a maxium of 512 characters long.
+ * @param usage
  */
 @Serializable
 data class RunObject(
@@ -97,7 +98,8 @@ data class RunObject(
   val fileIds: kotlin.collections.List<kotlin.String> = arrayListOf(),
 
   /* Set of 16 key-value pairs that can be attached to an object. This can be useful for storing additional information about the object in a structured format. Keys can be a maximum of 64 characters long and values can be a maxium of 512 characters long.  */
-  @SerialName(value = "metadata") @Required val metadata: kotlinx.serialization.json.JsonObject?
+  @SerialName(value = "metadata") @Required val metadata: kotlinx.serialization.json.JsonObject?,
+  @SerialName(value = "usage") @Required val usage: RunCompletionUsage?
 ) {
 
   /**
