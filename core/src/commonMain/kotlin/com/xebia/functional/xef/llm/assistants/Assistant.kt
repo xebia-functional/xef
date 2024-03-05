@@ -166,6 +166,10 @@ class Assistant(
             assistantsApi = assistantsApi,
             api = api
           )
+        // list all assistants and get their files
+        // list all the org files
+        assistantsApi.listAssistants()
+
         assistant.modify(
           ModifyAssistantRequest(
             name = assistantRequest.name,

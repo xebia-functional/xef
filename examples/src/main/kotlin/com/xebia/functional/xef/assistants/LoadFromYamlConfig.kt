@@ -1,22 +1,22 @@
 package com.xebia.functional.xef.assistants
 
-import com.xebia.functional.openai.apis.FilesApi
-import com.xebia.functional.openai.apis.UploadFile
 import com.xebia.functional.xef.llm.assistants.Assistant
 import com.xebia.functional.xef.llm.assistants.AssistantThread
 import com.xebia.functional.xef.llm.assistants.MessageWithFiles
 import com.xebia.functional.xef.llm.assistants.Tool
-import com.xebia.functional.xef.llm.fromEnvironment
 
 suspend fun main() {
-  val filesApi = fromEnvironment(::FilesApi)
-  val file =
-    filesApi
-      .createFile(
-        UploadFile("test.txt") { append("Hello World!") },
-        FilesApi.PurposeCreateFile.assistants
-      )
-      .body()
+  //  val filesApi = fromEnvironment(::FilesApi)
+  //  // should only be created once and then referenced by id
+  //  val file =
+  //    filesApi
+  //      .createFile(
+  //        UploadFile("test.txt") { append("Hello World!") },
+  //        FilesApi.PurposeCreateFile.assistants
+  //      )
+  //      .body()
+  val fileId = "file-q77cZu6e6sC2TsYbUs8UX5Dj"
+  // remove assistant id to create a new one
   // language=yaml
   val yamlConfig =
     """
@@ -31,7 +31,7 @@ suspend fun main() {
         - type: "function"
           name: "SumTool"
       file_ids:
-        - "${file.id}"
+        - "$fileId"
       metadata:
         version: "1.0"
         created_by: "OpenAI"
@@ -45,7 +45,7 @@ suspend fun main() {
   val assistantInfo = assistant.get()
   println("assistant: $assistantInfo")
   val thread = AssistantThread()
-  thread.createMessage(MessageWithFiles("What does this file say?", listOf(file.id)))
+  thread.createMessage(MessageWithFiles("What does this file say?", listOf(fileId)))
   val stream = thread.run(assistant)
   stream.collect {
     when (it) {
