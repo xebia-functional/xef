@@ -5,6 +5,7 @@ import com.xebia.functional.openai.apis.UploadFile
 import com.xebia.functional.xef.llm.assistants.Assistant
 import com.xebia.functional.xef.llm.assistants.AssistantThread
 import com.xebia.functional.xef.llm.assistants.MessageWithFiles
+import com.xebia.functional.xef.llm.assistants.Tool
 import com.xebia.functional.xef.llm.fromEnvironment
 
 suspend fun main() {
@@ -28,20 +29,7 @@ suspend fun main() {
         - type: "code_interpreter"
         - type: "retrieval"
         - type: "function"
-          name: "get_stock_price"
-          description: "Get the current stock price for a given stock symbol."
-          parameters: '{
-              "type": "object",
-              "properties": {
-                "symbol": {
-                  "type": "string",
-                  "description": "The stock symbol"
-                }
-              },
-              "required": [
-                "symbol"
-              ]
-            }'
+          class: "com.xebia.functional.xef.assistants.SumTool"
       file_ids:
         - "${file.id}"
       metadata:
@@ -52,7 +40,8 @@ suspend fun main() {
         additional_info: "This assistant is continuously updated with the latest information."
     """
       .trimIndent()
-  val assistant = Assistant.fromConfig(yamlConfig)
+  val tools = listOf(Tool.toolOf(SumTool()))
+  val assistant = Assistant.fromConfig(request = yamlConfig, toolsConfig = tools)
   val assistantInfo = assistant.get()
   println("assistant: $assistantInfo")
   val thread = AssistantThread()

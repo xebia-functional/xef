@@ -12,7 +12,6 @@ import com.xebia.functional.openai.models.ext.assistant.AssistantToolsCode
 import com.xebia.functional.openai.models.ext.assistant.AssistantToolsFunction
 import com.xebia.functional.openai.models.ext.assistant.AssistantToolsRetrieval
 import com.xebia.functional.xef.llm.fromEnvironment
-import io.ktor.client.statement.*
 import io.ktor.util.logging.*
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.JsonElement
@@ -108,6 +107,7 @@ class Assistant(
 
     suspend fun fromConfig(
       request: String,
+      toolsConfig: List<Tool.Companion.ToolConfig<*, *>> = emptyList(),
       assistantsApi: AssistantsApi = fromEnvironment(::AssistantsApi),
       api: AssistantApi = fromEnvironment(::AssistantApi)
     ): Assistant {
@@ -130,15 +130,23 @@ class Assistant(
                       "code_interpreter" -> AssistantTool.CodeInterpreter
                       "retrieval" -> AssistantTool.Retrieval
                       "function" -> {
-                        val name =
-                          element["name".toYamlElement()]?.toString() ?: error("name is required")
-                        val description =
-                          element["description".toYamlElement()]?.toString()
-                            ?: error("description is required")
-                        val parameters =
-                          element["parameters".toYamlElement()]?.toString()
-                            ?: error("parameters is required")
-                        AssistantTool.Function(name, description, parameters)
+                        val className =
+                          element["class".toYamlElement()]?.toString()
+                            ?: error("class for `function` is required")
+                        val foundConfig =
+                          toolsConfig.firstOrNull { it.tool::class.qualifiedName == className }
+                        if (foundConfig != null) {
+                          val functionObject = foundConfig.functionObject
+                          AssistantTool.Function(
+                            functionObject.name,
+                            functionObject.description ?: "",
+                            functionObject.parameters?.let {
+                              ApiClient.JSON_DEFAULT.encodeToString(JsonObject.serializer(), it)
+                            } ?: ""
+                          )
+                        } else {
+                          error("Tool $className not found in toolsConfig")
+                        }
                       }
                       else -> error("unknown tool $tool")
                     }
@@ -154,6 +162,7 @@ class Assistant(
         val assistant =
           Assistant(
             assistantId = assistantRequest.assistantId,
+            toolsConfig = toolsConfig,
             assistantsApi = assistantsApi,
             api = api
           )
@@ -179,6 +188,7 @@ class Assistant(
               fileIds = assistantRequest.fileIds,
               metadata = null // assistantRequest.metadata
             ),
+          toolsConfig = toolsConfig,
           assistantsApi = assistantsApi,
           api = api
         )
