@@ -38,6 +38,11 @@ suspend fun main() {
   //  )
   // println("generated assistant: ${assistant2.assistantId}")
 
+  // This example contemplate the case of using OpenTelemetry for metrics
+  // To run the example with OpenTelemetry, you can execute the following commands:
+  //  - # cd server/docker/opentelemetry
+  //  - # docker-compose up
+
   val metric = Metric.EMPTY
   // val metric = com.xebia.functional.xef.opentelemetry.OpenTelemetryMetric()
 
