@@ -2,6 +2,7 @@ package com.xebia.functional.xef.server.http.routes
 
 import ai.xef.openai.OpenAIModel
 import ai.xef.openai.StandardModel
+import arrow.core.fold
 import com.xebia.functional.openai.models.CreateChatCompletionRequestModel.gpt_4_32k
 import com.xebia.functional.xef.llm.models.modelType
 import com.xebia.functional.xef.server.services.GraphStoreService
@@ -17,9 +18,19 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
+import org.neo4j.cypherdsl.core.renderer.Dialect
+import org.neo4j.graphql.QueryContext
+import org.neo4j.graphql.SchemaBuilder
+import org.neo4j.graphql.Translator
 
 @Serializable
 data class CypherQuery(val query: String)
+
+@Serializable
+data class GraphQLQuery(
+  val schema: String,
+  val query: String
+)
 
 fun Routing.knowledgeGraphRoutes(
   service: GraphStoreService
@@ -33,6 +44,31 @@ fun Routing.knowledgeGraphRoutes(
       // Logic to create a graph with the given id
       call.respondText("Graph with id $id created successfully", status = HttpStatusCode.Created)
     } ?: call.respondText("Missing or incorrect id", status = BadRequest)
+  }
+
+  // Query graph with CQL queries and a schema
+  post("/graph/{id}/graphql/query") {
+    val id = call.parameters["id"]
+    val query = call.receive<GraphQLQuery>()
+    if (id != null && query.query.isNotBlank() && query.schema.isNotBlank()) {
+      // Logic to execute the GraphQL query on the graph with the given id
+      val graphStore = service.getGraphStore(id)
+      // TODO do something with graph id
+      val schema = SchemaBuilder.buildSchema(query.schema)
+      val context = QueryContext(neo4jDialect = Dialect.DEFAULT)
+      val queries = Translator(schema).translate(query.query, ctx = context)
+      val responses = queries.map {
+        val replacedQuery = it.params.fold(it.query) { acc, (k, v) -> acc.replace("\$$k", "\"$v\"") }
+        graphStore.executeQuery(replacedQuery)
+      }
+      if (responses.size == 1) {
+        call.respondText(Json.encodeToString(responses.first()), status = HttpStatusCode.OK)
+      } else {
+        call.respondText(Json.encodeToString(responses), status = HttpStatusCode.OK)
+      }
+    } else {
+      call.respondText("Missing or incorrect id or query", status = BadRequest)
+    }
   }
 
   // Query graph with Cypher queries

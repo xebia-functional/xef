@@ -47,6 +47,7 @@ dependencies {
     implementation(libs.suspendApp.core)
     implementation(libs.suspendApp.ktor)
     implementation(libs.uuid)
+    implementation(libs.graphql.java)
     implementation(projects.xefCore)
     implementation(projects.xefLucene)
     implementation(projects.xefPostgresql)

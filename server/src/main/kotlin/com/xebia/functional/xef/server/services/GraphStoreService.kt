@@ -58,6 +58,7 @@ suspend fun ResourceScope.graphStoreService(
     }
   }
 
-abstract class GraphStoreService {
-  abstract suspend fun getGraphStore(graphId: String): GraphStore
+interface GraphStoreService {
+  suspend fun getSchema()
+  suspend fun getGraphStore(graphId: String): GraphStore
 }

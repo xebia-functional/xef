@@ -7,6 +7,7 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import org.neo4j.cypher.internal.frontend.v3_4.parser.`CypherParser$`
+import org.neo4j.cypher.internal.frontend.v3_4.semantics.SemanticState
 import scala.Option
 import scala.collection.JavaConversions
 import java.sql.Connection

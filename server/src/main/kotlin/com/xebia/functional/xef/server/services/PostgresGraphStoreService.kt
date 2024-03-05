@@ -11,7 +11,7 @@ class PostgresGraphStoreService(
   private val logger: Logger,
   private val dataSource: DataSource,
   private val config : PostgreSQLGraphStoreConfig
-) : GraphStoreService() {
+) : GraphStoreService {
 
   private val graphStores : Atomic<MutableMap<String, GraphStore>> = Atomic.unsafe(mutableMapOf())
 
