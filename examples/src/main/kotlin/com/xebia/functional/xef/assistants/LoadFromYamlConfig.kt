@@ -29,7 +29,7 @@ suspend fun main() {
         - type: "code_interpreter"
         - type: "retrieval"
         - type: "function"
-          class: "com.xebia.functional.xef.assistants.SumTool"
+          name: "SumTool"
       file_ids:
         - "${file.id}"
       metadata:

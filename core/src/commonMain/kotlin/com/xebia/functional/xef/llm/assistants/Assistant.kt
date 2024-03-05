@@ -131,10 +131,10 @@ class Assistant(
                       "retrieval" -> AssistantTool.Retrieval
                       "function" -> {
                         val className =
-                          element["class".toYamlElement()]?.toString()
-                            ?: error("class for `function` is required")
+                          element["name".toYamlElement()]?.toString()
+                            ?: error("simple `name` for `function` is required")
                         val foundConfig =
-                          toolsConfig.firstOrNull { it.tool::class.qualifiedName == className }
+                          toolsConfig.firstOrNull { it.tool::class.simpleName == className }
                         if (foundConfig != null) {
                           val functionObject = foundConfig.functionObject
                           AssistantTool.Function(
