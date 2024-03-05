@@ -156,12 +156,17 @@ class OpenTelemetryAssistantState(private val tracer: Tracer) {
 
   private fun RunObject.setParameters(span: Span) {
     span.setAttribute("openai.assistant.model", model)
-    span.setAttribute("openai.assistant.fileIds", fileIds.joinToString())
+    if (fileIds.isNotEmpty()) span.setAttribute("openai.assistant.fileIds", fileIds.joinToString())
     span.setAttribute("openai.assistant.tools.count", tools.count().toString())
     span.setAttribute("openai.assistant.thread.id", threadId)
     span.setAttribute("openai.assistant.assistant.id", assistantId)
     span.setAttribute("openai.assistant.run.id", id)
     span.setAttribute("openai.assistant.status", status.value)
+    usage?.let {
+      span.setAttribute("openai.assistant.usage.totalTokens", it.totalTokens.toString())
+      span.setAttribute("openai.assistant.usage.completionTokens", it.completionTokens.toString())
+      span.setAttribute("openai.assistant.usage.promptTokens", it.promptTokens.toString())
+    }
   }
 
   private fun RunStepObject.setParameters(span: Span) {

@@ -8,7 +8,6 @@ import com.xebia.functional.openai.models.CreateAssistantRequest
 import com.xebia.functional.openai.models.ModifyAssistantRequest
 import com.xebia.functional.openai.models.ext.assistant.AssistantTools
 import com.xebia.functional.xef.llm.fromEnvironment
-import com.xebia.functional.xef.metrics.Metric
 import io.ktor.util.logging.*
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.JsonElement
@@ -18,7 +17,6 @@ import kotlinx.serialization.json.JsonPrimitive
 class Assistant(
   val assistantId: String,
   val toolsConfig: List<Tool.Companion.ToolConfig<*, *>> = emptyList(),
-  val metric: Metric = Metric.EMPTY,
   private val assistantsApi: AssistantsApi = fromEnvironment(::AssistantsApi),
   private val api: AssistantApi = fromEnvironment(::AssistantApi)
 ) {
@@ -26,10 +24,9 @@ class Assistant(
   constructor(
     assistantObject: AssistantObject,
     toolsConfig: List<Tool.Companion.ToolConfig<*, *>> = emptyList(),
-    metric: Metric = Metric.EMPTY,
     assistantsApi: AssistantsApi = fromEnvironment(::AssistantsApi),
     api: AssistantApi = fromEnvironment(::AssistantApi)
-  ) : this(assistantObject.id, toolsConfig, metric, assistantsApi, api)
+  ) : this(assistantObject.id, toolsConfig, assistantsApi, api)
 
   suspend fun get(): AssistantObject = assistantsApi.getAssistant(assistantId).body()
 
@@ -37,7 +34,6 @@ class Assistant(
     Assistant(
       api.modifyAssistant(assistantId, modifyAssistantRequest).body(),
       toolsConfig,
-      metric,
       assistantsApi,
       api
     )
@@ -74,7 +70,6 @@ class Assistant(
       fileIds: List<String> = arrayListOf(),
       metadata: JsonObject? = null,
       toolsConfig: List<Tool.Companion.ToolConfig<*, *>> = emptyList(),
-      metric: Metric = Metric.EMPTY,
       assistantsApi: AssistantsApi = fromEnvironment(::AssistantsApi),
       api: AssistantApi = fromEnvironment(::AssistantApi)
     ): Assistant =
@@ -89,7 +84,6 @@ class Assistant(
           metadata = metadata
         ),
         toolsConfig,
-        metric,
         assistantsApi,
         api
       )
@@ -97,12 +91,11 @@ class Assistant(
     suspend operator fun invoke(
       request: CreateAssistantRequest,
       toolsConfig: List<Tool.Companion.ToolConfig<*, *>> = emptyList(),
-      metric: Metric,
       assistantsApi: AssistantsApi = fromEnvironment(::AssistantsApi),
       api: AssistantApi = fromEnvironment(::AssistantApi)
     ): Assistant {
       val response = assistantsApi.createAssistant(request)
-      return Assistant(response.body(), toolsConfig, metric, assistantsApi, api)
+      return Assistant(response.body(), toolsConfig, assistantsApi, api)
     }
   }
 }

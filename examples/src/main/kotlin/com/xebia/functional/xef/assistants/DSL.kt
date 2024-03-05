@@ -6,8 +6,7 @@ import com.xebia.functional.openai.models.ext.assistant.RunStepDetailsToolCallsO
 import com.xebia.functional.xef.llm.assistants.Assistant
 import com.xebia.functional.xef.llm.assistants.AssistantThread
 import com.xebia.functional.xef.llm.assistants.Tool
-import com.xebia.functional.xef.opentelemetry.OpenTelemetryMetric
-import io.ktor.client.*
+import com.xebia.functional.xef.metrics.Metric
 import kotlinx.serialization.Serializable
 
 @Serializable data class SumInput(val left: Int, val right: Int)
@@ -39,13 +38,13 @@ suspend fun main() {
   //  )
   // println("generated assistant: ${assistant2.assistantId}")
 
-  val metric = OpenTelemetryMetric()
+  val metric = Metric.EMPTY
+  // val metric = com.xebia.functional.xef.opentelemetry.OpenTelemetryMetric()
 
   val assistant =
     Assistant(
       assistantId = "asst_UxczzpJkysC0l424ood87DAk",
-      toolsConfig = listOf(Tool.toolOf(SumTool())),
-      metric = metric
+      toolsConfig = listOf(Tool.toolOf(SumTool()))
     )
   val thread = AssistantThread(metric = metric)
   println("Welcome to the Math tutor, ask me anything about math:")
@@ -132,5 +131,5 @@ private fun stepStatusEmoji(status: RunStepObject.Status) =
   }
 
 private fun displayRunStatus(run: AssistantThread.RunDelta.Run) {
-  println("Assistant: ${runStatusEmoji(run)} - ${run.message.status} - ${run.message}")
+  println("Assistant: ${runStatusEmoji(run)} - ${run.message.status}")
 }
