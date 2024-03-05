@@ -19,7 +19,7 @@ data class AssistantRequest(
   @SerialName(value = "instructions") val instructions: String? = null,
 
   /* A list of tool enabled on the assistant. There can be a maximum of 128 tools per assistant. Tools can be of types `code_interpreter`, `retrieval`, or `function`.  */
-  @SerialName(value = "tools") val tools: kotlin.collections.List<AssistantTool>? = arrayListOf(),
+  @SerialName(value = "tools") val tools: List<AssistantTool>? = arrayListOf(),
 
   /* A list of [file](/docs/api-reference/files) IDs attached to this assistant. There can be a maximum of 20 files attached to the assistant. Files are ordered by their creation date in ascending order.  */
   @SerialName(value = "file_ids") val fileIds: List<String>? = arrayListOf(),
