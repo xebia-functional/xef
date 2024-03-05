@@ -1,33 +1,32 @@
 [versions]
-arrow = "1.2.1"
-arrowGradle = "0.12.0-rc.6"
-exposed = "0.45.0"
+arrow = "1.2.3"
+arrowGradle = "0.12.0-rc.24"
+exposed = "0.47.0"
 kotlin = "1.9.22"
 kotlinx-json = "1.6.2"
 kotlinx-datetime = "0.5.0"
-ktor = "2.3.7"
+ktor = "2.3.9"
 ktor-logging = "0.4.0"
-spotless = "6.23.3"
-okio = "3.7.0"
+spotless = "6.25.0"
+okio = "3.8.0"
 kotest = "5.8.0"
 kotest-testcontainers = "2.0.2"
 kotest-arrow = "1.4.0"
-klogging = "6.0.1"
+klogging = "6.0.3"
 uuid = "0.0.22"
-postgresql = "42.7.1"
-testcontainers = "1.19.3"
+postgresql = "42.7.2"
+testcontainers = "1.19.5"
 hikari = "5.1.0"
 dokka = "1.9.10"
 logback = "1.4.14"
-node-gradle = "7.0.1"
-kotlinx-coroutines = "1.7.3"
+node-gradle = "7.0.2"
+kotlinx-coroutines = "1.8.0"
 rssreader = "3.5.0"
-lucene = "9.9.1"
-junit = "5.10.1"
+lucene = "9.9.2"
+junit = "5.10.2"
 pdfbox = "3.0.1"
 mysql = "8.0.33"
 semverGradle = "0.5.0-rc.6"
-openai-client-version = "3.6.2"
 jackson = "2.16.1"
 jsonschema = "4.33.1"
 jakarta = "3.0.2"
@@ -35,9 +34,11 @@ suspendApp = "0.4.0"
 flyway = "9.22.3"
 resources-kmp = "0.4.0"
 detekt = "1.23.4"
-opentelemetry="1.33.0"
+opentelemetry="1.35.0"
 opentelemetry-alpha="1.30.1-alpha"
 progressbar = "0.10.0"
+jmf = "2.1.1e"
+mp3-wav-converter = "1.0.4"
 
 [libraries]
 arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
@@ -102,7 +103,6 @@ lucene-core = { module = "org.apache.lucene:lucene-core", version.ref = "lucene"
 lucene-queries = { module = "org.apache.lucene:lucene-queries", version.ref = "lucene" }
 apache-pdf-box = { module = "org.apache.pdfbox:pdfbox", version.ref = "pdfbox" }
 jdbc-mysql-connector = { module = "mysql:mysql-connector-java", version.ref = "mysql" }
-openai-client = { module = "com.aallam.openai:openai-client", version.ref = "openai-client-version" }
 jackson = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
 jackson-schema = { module = "com.github.victools:jsonschema-generator", version.ref = "jsonschema" }
 jackson-schema-jakarta = { module = "com.github.victools:jsonschema-module-jakarta-validation", version.ref = "jsonschema" }
@@ -116,6 +116,10 @@ opentelemetry-sdk = { module = "io.opentelemetry:opentelemetry-sdk", version.ref
 opentelemetry-semconv = { module = "io.opentelemetry:opentelemetry-semconv", version.ref = "opentelemetry-alpha" }
 opentelemetry-extension-kotlin = { module = "io.opentelemetry:opentelemetry-extension-kotlin", version.ref = "opentelemetry" }
 progressbar = { module = "me.tongfei:progressbar", version.ref = "progressbar" }
+jmf = { module = "javax.media:jmf", version.ref = "jmf" }
+mp3-wav-converter = { module = "com.sipgate:mp3-wav", version.ref = "mp3-wav-converter" }
+
+
 
 [bundles]
 ktor-client = [

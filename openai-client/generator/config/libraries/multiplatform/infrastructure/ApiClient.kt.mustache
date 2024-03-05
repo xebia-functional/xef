@@ -16,7 +16,6 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.http.*
 import io.ktor.http.content.PartData
 import io.ktor.serialization.kotlinx.json.json
-import kotlin.Unit
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 import kotlinx.serialization.json.Json
@@ -25,7 +24,7 @@ import {{packageName}}.auth.*
 
 {{#nonPublicApi}}internal {{/nonPublicApi}}open class ApiClient(
         val baseUrl: String
-) {
+) : AutoCloseable {
 
     lateinit var client: HttpClient
 
@@ -39,9 +38,15 @@ import {{packageName}}.auth.*
             {
                 it.install(ContentNegotiation) { json(jsonBlock) }
                 it.install(HttpTimeout) {
-                  requestTimeoutMillis = 60 * 1000
-                  connectTimeoutMillis = 60 * 1000
-                  socketTimeoutMillis = 60 * 1000
+                  requestTimeoutMillis = 45 * 1000
+                  connectTimeoutMillis = 45 * 1000
+                  socketTimeoutMillis = 45 * 1000
+                }
+                it.install(HttpRequestRetry) {
+                  maxRetries = 5
+                  retryIf { _, response -> !response.status.isSuccess() }
+                  retryOnExceptionIf { _, _ -> true }
+                  delayMillis { retry -> retry * 1000L }
                 }
                 it.install(Logging) { level = LogLevel.NONE }
                 httpClientConfig?.invoke(it)
@@ -59,7 +64,7 @@ import {{packageName}}.auth.*
     }
 
     {{#hasAuthMethods}}
-    private val authentications: kotlin.collections.Map<String, Authentication> by lazy {
+    private val authentications: Map<String, Authentication> by lazy {
         mapOf({{#authMethods}}{{#isBasic}}{{#isBasicBasic}}
                 "{{name}}" to HttpBasicAuth(){{/isBasicBasic}}{{#isBasicBearer}}
                 "{{name}}" to HttpBearerAuth("{{scheme}}"){{/isBasicBearer}}{{/isBasic}}{{#isApiKey}}
@@ -68,7 +73,7 @@ import {{packageName}}.auth.*
     }
     {{/hasAuthMethods}}
     {{^hasAuthMethods}}
-    private val authentications: kotlin.collections.Map<String, Authentication>? = null
+    private val authentications: Map<String, Authentication>? = null
     {{/hasAuthMethods}}
 
     {{#nonPublicApi}}internal {{/nonPublicApi}}companion object {
@@ -77,6 +82,7 @@ import {{packageName}}.auth.*
           ignoreUnknownKeys = true
           prettyPrint = true
           isLenient = true
+          explicitNulls = false
         }
         val UNSAFE_HEADERS = listOf(HttpHeaders.ContentType)
     }
@@ -87,8 +93,9 @@ import {{packageName}}.auth.*
      * @param username Username
      */
     fun setUsername(username: String) {
-        val auth = authentications?.values?.firstOrNull { it is HttpBasicAuth } as HttpBasicAuth?
-                ?: throw Exception("No HTTP basic authentication configured")
+        val auth =
+            authentications.values.firstOrNull { it is HttpBasicAuth } as HttpBasicAuth?
+        requireNotNull(auth) { "No HTTP basic authentication configured" }
         auth.username = username
     }
 
@@ -98,8 +105,9 @@ import {{packageName}}.auth.*
      * @param password Password
      */
     fun setPassword(password: String) {
-        val auth = authentications?.values?.firstOrNull { it is HttpBasicAuth } as HttpBasicAuth?
-                ?: throw Exception("No HTTP basic authentication configured")
+        val auth =
+            authentications.values.firstOrNull { it is HttpBasicAuth } as HttpBasicAuth?
+        requireNotNull(auth) { "No HTTP basic authentication configured" }
         auth.password = password
     }
 
@@ -110,8 +118,9 @@ import {{packageName}}.auth.*
      * @param paramName The name of the API key parameter, or null or set the first key.
      */
     fun setApiKey(apiKey: String, paramName: String? = null) {
-        val auth = authentications?.values?.firstOrNull { it is ApiKeyAuth && (paramName == null || paramName == it.paramName)} as ApiKeyAuth?
-                ?: throw Exception("No API key authentication configured")
+        val auth =
+            authentications.values.firstOrNull { it is ApiKeyAuth && (paramName == null || paramName == it.paramName) } as ApiKeyAuth?
+        requireNotNull(auth) { "No API key authentication configured" }
         auth.apiKey = apiKey
     }
 
@@ -122,8 +131,9 @@ import {{packageName}}.auth.*
      * @param paramName The name of the API key parameter, or null or set the first key.
      */
     fun setApiKeyPrefix(apiKeyPrefix: String, paramName: String? = null) {
-        val auth = authentications?.values?.firstOrNull { it is ApiKeyAuth && (paramName == null || paramName == it.paramName) } as ApiKeyAuth?
-                ?: throw Exception("No API key authentication configured")
+        val auth =
+            authentications.values.firstOrNull { it is ApiKeyAuth && (paramName == null || paramName == it.paramName) } as ApiKeyAuth?
+        requireNotNull(auth) { "No API key authentication configured" }
         auth.apiKeyPrefix = apiKeyPrefix
     }
 
@@ -133,8 +143,8 @@ import {{packageName}}.auth.*
      * @param accessToken Access token
      */
     fun setAccessToken(accessToken: String) {
-        val auth = authentications?.values?.firstOrNull { it is OAuth } as OAuth?
-                ?: throw Exception("No OAuth2 authentication configured")
+        val auth = authentications.values.firstNotNullOfOrNull { it as? OAuth }
+        requireNotNull(auth) { "No OAuth2 authentication configured" }
         auth.accessToken = accessToken
     }
 
@@ -144,23 +154,24 @@ import {{packageName}}.auth.*
      * @param bearerToken The bearer token.
      */
     fun setBearerToken(bearerToken: String) {
-        val auth = authentications?.values?.firstOrNull { it is HttpBearerAuth } as HttpBearerAuth?
-                ?: throw Exception("No Bearer authentication configured")
+        val auth = authentications.values.firstNotNullOfOrNull { it as? HttpBearerAuth }
+        requireNotNull(auth) { "No Bearer authentication configured" }
         auth.bearerToken = bearerToken
     }
 
-    protected suspend fun <T: Any?> multipartFormRequest(requestConfig: RequestConfig<T>, body: kotlin.collections.List<PartData>?, authNames: kotlin.collections.List<String>): HttpResponse {
+    protected suspend fun <T> multipartFormRequest(requestConfig: RequestConfig<T>, body: List<PartData>?, authNames: List<String>): HttpResponse {
         return request(requestConfig, MultiPartFormDataContent(body ?: listOf()), authNames)
     }
 
-    protected suspend fun <T: Any?> urlEncodedFormRequest(requestConfig: RequestConfig<T>, body: Parameters?, authNames: kotlin.collections.List<String>): HttpResponse {
+    protected suspend fun <T> urlEncodedFormRequest(requestConfig: RequestConfig<T>, body: Parameters?, authNames: List<String>): HttpResponse {
         return request(requestConfig, FormDataContent(body ?: Parameters.Empty), authNames)
     }
 
-    protected suspend fun <T: Any?> jsonRequest(requestConfig: RequestConfig<T>, body: Any? = null, authNames: kotlin.collections.List<String>): HttpResponse = request(requestConfig, body, authNames)
+    protected suspend fun <T> jsonRequest(requestConfig: RequestConfig<T>, body: Any? = null, authNames: List<String>): HttpResponse =
+        request(requestConfig, body, authNames)
 
-    protected suspend fun <T: Any?> request(requestConfig: RequestConfig<T>, body: Any? = null, authNames: kotlin.collections.List<String>): HttpResponse {
-        requestConfig.updateForAuth<T>(authNames)
+    protected suspend fun <T> request(requestConfig: RequestConfig<T>, body: Any? = null, authNames: List<String>): HttpResponse {
+        requestConfig.updateForAuth(authNames)
         val headers = requestConfig.headers
 
         return client.request {
@@ -183,18 +194,18 @@ import {{packageName}}.auth.*
         }
     }
 
-    fun <T: Any?> RequestConfig<T>.updateForAuth(authNames: kotlin.collections.List<String>) {
+    fun <T> RequestConfig<T>.updateForAuth(authNames: List<String>) {
         for (authName in authNames) {
-            val auth = authentications?.get(authName) ?: throw Exception("Authentication undefined: $authName")
+            val auth = requireNotNull(authentications[authName]) { "Authentication undefined: $authName" }
             auth.apply(query, headers)
         }
     }
 
-    fun URLBuilder.appendPath(components: kotlin.collections.List<String>): URLBuilder = apply {
+    private fun URLBuilder.appendPath(components: List<String>): URLBuilder = apply {
         encodedPath = encodedPath.trimEnd('/') + components.joinToString("/", prefix = "/") { it.encodeURLQueryComponent() }
     }
 
-    val RequestMethod.httpMethod: HttpMethod
+    private val RequestMethod.httpMethod: HttpMethod
         get() = when (this) {
             RequestMethod.DELETE -> HttpMethod.Delete
             RequestMethod.GET -> HttpMethod.Get
@@ -204,4 +215,8 @@ import {{packageName}}.auth.*
             RequestMethod.POST -> HttpMethod.Post
             RequestMethod.OPTIONS -> HttpMethod.Options
         }
+
+    override fun close() {
+        client.close()
+    }
 }

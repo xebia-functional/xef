@@ -31,6 +31,8 @@ dependencies {
     implementation(libs.okio)
     implementation(libs.progressbar)
     implementation(libs.jdbc.mysql.connector)
+    implementation(libs.jmf)
+    implementation(libs.mp3.wav.converter)
     api(libs.ktor.client)
 }
 

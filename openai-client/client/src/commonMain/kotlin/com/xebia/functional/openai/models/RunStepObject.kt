@@ -14,7 +14,7 @@ import kotlinx.serialization.encoding.*
  * Represents a step in execution of a run.
  *
  * @param id The identifier of the run step, which can be referenced in API endpoints.
- * @param `object` The object type, which is always `thread.run.step``.
+ * @param `object` The object type, which is always `thread.run.step`.
  * @param createdAt The Unix timestamp (in seconds) for when the run step was created.
  * @param assistantId The ID of the [assistant](/docs/api-reference/assistants) associated with the
  *   run step.
@@ -33,6 +33,7 @@ import kotlinx.serialization.encoding.*
  * @param metadata Set of 16 key-value pairs that can be attached to an object. This can be useful
  *   for storing additional information about the object in a structured format. Keys can be a
  *   maximum of 64 characters long and values can be a maxium of 512 characters long.
+ * @param usage
  */
 @Serializable
 data class RunStepObject(
@@ -40,7 +41,7 @@ data class RunStepObject(
   /* The identifier of the run step, which can be referenced in API endpoints. */
   @SerialName(value = "id") @Required val id: kotlin.String,
 
-  /* The object type, which is always `thread.run.step``. */
+  /* The object type, which is always `thread.run.step`. */
   @SerialName(value = "object") @Required val `object`: RunStepObject.`Object`,
 
   /* The Unix timestamp (in seconds) for when the run step was created. */
@@ -78,11 +79,12 @@ data class RunStepObject(
   @SerialName(value = "completed_at") @Required val completedAt: kotlin.Int?,
 
   /* Set of 16 key-value pairs that can be attached to an object. This can be useful for storing additional information about the object in a structured format. Keys can be a maximum of 64 characters long and values can be a maxium of 512 characters long.  */
-  @SerialName(value = "metadata") val metadata: kotlinx.serialization.json.JsonObject? = null
+  @SerialName(value = "metadata") val metadata: kotlinx.serialization.json.JsonObject? = null,
+  @SerialName(value = "usage") @Required val usage: RunStepCompletionUsage?
 ) {
 
   /**
-   * The object type, which is always `thread.run.step``.
+   * The object type, which is always `thread.run.step`.
    *
    * Values: thread_run_step
    */
