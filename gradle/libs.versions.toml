@@ -1,5 +1,5 @@
 [versions]
-arrow = "1.2.1"
+arrow = "1.2.3"
 arrowGradle = "0.12.0-rc.6"
 exposed = "0.47.0"
 kotlin = "1.9.22"
