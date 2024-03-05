@@ -164,7 +164,7 @@ class Assistant(
         )
       } else
         Assistant(
-          CreateAssistantRequest(
+          request = CreateAssistantRequest(
             model = assistantRequest.model,
             name = assistantRequest.name,
             description = assistantRequest.description,
@@ -173,8 +173,8 @@ class Assistant(
             fileIds = assistantRequest.fileIds,
             metadata = null // assistantRequest.metadata
           ),
-          assistantsApi,
-          api
+          assistantsApi = assistantsApi,
+          api = api
         )
     }
 
