@@ -1,6 +1,9 @@
 package com.xebia.functional.xef.metrics
 
 import arrow.atomic.AtomicInt
+import com.xebia.functional.openai.models.MessageObject
+import com.xebia.functional.openai.models.RunObject
+import com.xebia.functional.openai.models.RunStepObject
 import com.xebia.functional.xef.prompt.Prompt
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.oshai.kotlinlogging.Level
@@ -36,6 +39,70 @@ class LogsMetric(private val level: Level = Level.INFO) : Metric {
       message = "${writeIndent(numberOfBlocks.get())}|-- Finished in ${getTimeMillis() - millis} ms"
     }
     numberOfBlocks.decrementAndGet()
+    return output
+  }
+
+  override suspend fun assistantCreateRun(runObject: RunObject) {
+    logger.at(level) {
+      this.message = "${writeIndent(numberOfBlocks.get())}|-- AssistantId: ${runObject.assistantId}"
+    }
+    logger.at(level) {
+      this.message = "${writeIndent(numberOfBlocks.get())}|-- ThreadId: ${runObject.threadId}"
+    }
+    logger.at(level) {
+      this.message = "${writeIndent(numberOfBlocks.get())}|-- RunId: ${runObject.id}"
+    }
+    logger.at(level) {
+      this.message = "${writeIndent(numberOfBlocks.get())}|-- Status: ${runObject.status.value}"
+    }
+  }
+
+  override suspend fun assistantCreateRun(
+    runId: String,
+    block: suspend Metric.() -> RunObject
+  ): RunObject {
+    val output = block()
+    assistantCreateRun(output)
+    return output
+  }
+
+  override suspend fun assistantCreatedMessage(
+    runId: String,
+    block: suspend Metric.() -> List<MessageObject>
+  ): List<MessageObject> {
+    val output = block()
+    logger.at(level) {
+      this.message = "${writeIndent(numberOfBlocks.get())}|-- Size: ${output.size}"
+    }
+    return output
+  }
+
+  override suspend fun assistantCreateRunStep(
+    runId: String,
+    block: suspend Metric.() -> RunStepObject
+  ): RunStepObject {
+    val output = block()
+    logger.at(level) {
+      this.message = "${writeIndent(numberOfBlocks.get())}|-- AssistantId: ${output.assistantId}"
+    }
+    logger.at(level) {
+      this.message = "${writeIndent(numberOfBlocks.get())}|-- ThreadId: ${output.threadId}"
+    }
+    logger.at(level) {
+      this.message = "${writeIndent(numberOfBlocks.get())}|-- RunId: ${output.runId}"
+    }
+    logger.at(level) {
+      this.message = "${writeIndent(numberOfBlocks.get())}|-- Status: ${output.status.value}"
+    }
+    return output
+  }
+
+  override suspend fun assistantToolOutputsRun(
+    runId: String,
+    block: suspend Metric.() -> RunObject
+  ): RunObject {
+    val output = block()
+    assistantCreateRun(output)
     return output
   }
 

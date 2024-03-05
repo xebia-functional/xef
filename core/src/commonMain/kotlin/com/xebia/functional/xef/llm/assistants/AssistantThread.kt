@@ -7,7 +7,9 @@ import com.xebia.functional.openai.models.*
 import com.xebia.functional.openai.models.ext.assistant.RunStepDetailsMessageCreationObject
 import com.xebia.functional.openai.models.ext.assistant.RunStepDetailsToolCallsObject
 import com.xebia.functional.openai.models.ext.assistant.RunStepObjectStepDetails
+import com.xebia.functional.xef.llm.addMetrics
 import com.xebia.functional.xef.llm.fromEnvironment
+import com.xebia.functional.xef.metrics.Metric
 import kotlin.jvm.JvmName
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -19,6 +21,7 @@ import kotlinx.serialization.json.JsonObject
 
 class AssistantThread(
   val threadId: String,
+  val metric: Metric = Metric.EMPTY,
   private val api: AssistantsApi = fromEnvironment(::AssistantsApi)
 ) {
 
@@ -28,24 +31,16 @@ class AssistantThread(
     AssistantThread(api.modifyThread(threadId, request).body().id)
 
   suspend fun createMessage(message: MessageWithFiles): MessageObject =
-    api
-      .createMessage(
-        threadId,
-        CreateMessageRequest(
-          role = CreateMessageRequest.Role.user,
-          content = message.content,
-          fileIds = message.fileIds
-        )
+    createMessage(
+      CreateMessageRequest(
+        role = CreateMessageRequest.Role.user,
+        content = message.content,
+        fileIds = message.fileIds
       )
-      .body()
+    )
 
   suspend fun createMessage(content: String): MessageObject =
-    api
-      .createMessage(
-        threadId,
-        CreateMessageRequest(role = CreateMessageRequest.Role.user, content = content)
-      )
-      .body()
+    createMessage(CreateMessageRequest(role = CreateMessageRequest.Role.user, content = content))
 
   suspend fun createMessage(request: CreateMessageRequest): MessageObject =
     api.createMessage(threadId, request).body()
@@ -56,12 +51,12 @@ class AssistantThread(
   suspend fun listMessages(): List<MessageObject> = api.listMessages(threadId).body().data
 
   suspend fun createRun(request: CreateRunRequest): RunObject =
-    api.createRun(threadId, request).body()
+    api.createRun(threadId, request).body().addMetrics(metric)
 
   suspend fun getRun(runId: String): RunObject = api.getRun(threadId, runId).body()
 
   suspend fun createRun(assistant: Assistant): RunObject =
-    api.createRun(threadId, CreateRunRequest(assistantId = assistant.assistantId)).body()
+    createRun(CreateRunRequest(assistantId = assistant.assistantId))
 
   suspend fun run(assistant: Assistant): Flow<RunDelta> {
     val run = createRun(assistant)
@@ -90,7 +85,7 @@ class AssistantThread(
       while (run.status != RunObject.Status.completed) {
         checkSteps(assistant = assistant, runId = runId, cache = stepCache)
         delay(500) // To avoid excessive calls to OpenAI
-        checkMessages(cache = messagesCache)
+        checkMessages(runId, cache = messagesCache)
         delay(500) // To avoid excessive calls to OpenAI
         run = checkRun(runId = runId, cache = runCache)
       }
@@ -123,7 +118,7 @@ class AssistantThread(
         )
       )
     } finally {
-      checkMessages(cache = messagesCache)
+      checkMessages(runId, cache = messagesCache)
     }
   }
 
@@ -131,7 +126,7 @@ class AssistantThread(
     runId: String,
     cache: MutableSet<RunObject>
   ): RunObject {
-    val run = getRun(runId)
+    val run = metric.assistantCreateRun(runId) { getRun(runId) }
     if (run !in cache) {
       cache.add(run)
       emit(RunDelta.Run(run))
@@ -139,15 +134,22 @@ class AssistantThread(
     return run
   }
 
-  private suspend fun FlowCollector<RunDelta>.checkMessages(cache: MutableSet<MessageObject>) {
-    val messages = listMessages()
-    val updatedAndNewMessages = messages.filterNot { it in cache }
-    updatedAndNewMessages.forEach { message ->
-      val content = message.content.filterNot { it.text?.value?.isBlank() ?: true }
-      if (content.isNotEmpty() && message !in cache) {
-        cache.add(message)
-        emit(RunDelta.ReceivedMessage(message))
+  private suspend fun FlowCollector<RunDelta>.checkMessages(
+    runId: String,
+    cache: MutableSet<MessageObject>
+  ) {
+    metric.assistantCreatedMessage(runId) {
+      val messages = mutableListOf<MessageObject>()
+      val updatedAndNewMessages = listMessages().filterNot { it in cache }
+      updatedAndNewMessages.forEach { message ->
+        val content = message.content.filterNot { it.text?.value?.isBlank() ?: true }
+        if (content.isNotEmpty() && message !in cache) {
+          cache.add(message)
+          messages.add(message)
+          emit(RunDelta.ReceivedMessage(message))
+        }
       }
+      messages
     }
   }
 
@@ -163,7 +165,9 @@ class AssistantThread(
     runId: String,
     cache: MutableSet<RunStepObject>
   ) {
-    val steps = runSteps(runId)
+
+    val steps = runSteps(runId).map { metric.assistantCreateRunStep(runId) { it } }
+
     steps.forEach { step ->
       val calls = step.stepDetails.toolCalls()
       //          .filter {
@@ -201,20 +205,25 @@ class AssistantThread(
               toolCall.id to result
             }
             .toMap()
-        api.submitToolOuputsToRun(
-          threadId = threadId,
-          runId = runId,
-          submitToolOutputsRunRequest =
-            SubmitToolOutputsRunRequest(
-              toolOutputs =
-                results.map { (toolCallId, result) ->
-                  SubmitToolOutputsRunRequestToolOutputsInner(
-                    toolCallId = toolCallId,
-                    output = ApiClient.JSON_DEFAULT.encodeToString(result)
-                  )
-                }
+
+        metric.assistantToolOutputsRun(runId) {
+          api
+            .submitToolOuputsToRun(
+              threadId = threadId,
+              runId = runId,
+              submitToolOutputsRunRequest =
+                SubmitToolOutputsRunRequest(
+                  toolOutputs =
+                    results.map { (toolCallId, result) ->
+                      SubmitToolOutputsRunRequestToolOutputsInner(
+                        toolCallId = toolCallId,
+                        output = ApiClient.JSON_DEFAULT.encodeToString(result)
+                      )
+                    }
+                )
             )
-        )
+            .body()
+        }
       }
     }
   }
@@ -225,6 +234,7 @@ class AssistantThread(
     suspend operator fun invoke(
       messages: List<MessageWithFiles>,
       metadata: JsonObject? = null,
+      metric: Metric = Metric.EMPTY,
       api: AssistantsApi = fromEnvironment(::AssistantsApi)
     ): AssistantThread =
       AssistantThread(
@@ -243,6 +253,7 @@ class AssistantThread(
           )
           .body()
           .id,
+        metric,
         api
       )
 
@@ -250,6 +261,7 @@ class AssistantThread(
     suspend operator fun invoke(
       messages: List<String>,
       metadata: JsonObject? = null,
+      metric: Metric = Metric.EMPTY,
       api: AssistantsApi = fromEnvironment(::AssistantsApi)
     ): AssistantThread =
       AssistantThread(
@@ -264,6 +276,7 @@ class AssistantThread(
           )
           .body()
           .id,
+        metric,
         api
       )
 
@@ -271,18 +284,25 @@ class AssistantThread(
     suspend operator fun invoke(
       messages: List<CreateMessageRequest> = emptyList(),
       metadata: JsonObject? = null,
+      metric: Metric = Metric.EMPTY,
       api: AssistantsApi = fromEnvironment(::AssistantsApi)
     ): AssistantThread =
-      AssistantThread(api.createThread(CreateThreadRequest(messages, metadata)).body().id, api)
+      AssistantThread(
+        api.createThread(CreateThreadRequest(messages, metadata)).body().id,
+        metric,
+        api
+      )
 
     suspend operator fun invoke(
       request: CreateThreadRequest,
+      metric: Metric = Metric.EMPTY,
       api: AssistantsApi = fromEnvironment(::AssistantsApi)
-    ): AssistantThread = AssistantThread(api.createThread(request).body().id, api)
+    ): AssistantThread = AssistantThread(api.createThread(request).body().id, metric, api)
 
     suspend operator fun invoke(
       request: CreateThreadAndRunRequest,
+      metric: Metric = Metric.EMPTY,
       api: AssistantsApi = fromEnvironment(::AssistantsApi)
-    ): AssistantThread = AssistantThread(api.createThreadAndRun(request).body().id, api)
+    ): AssistantThread = AssistantThread(api.createThreadAndRun(request).body().id, metric, api)
   }
 }
