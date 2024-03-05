@@ -80,6 +80,14 @@ open class AudioApi : ApiClient {
     @SerialName(value = "vtt") vtt("vtt")
   }
 
+  /** enum for parameter timestampGranularities */
+  @Serializable
+  enum class TimestampGranularitiesCreateTranscription(val value: kotlin.String) {
+
+    @SerialName(value = "word") word("word"),
+    @SerialName(value = "segment") segment("segment")
+  }
+
   /**
    * Transcribes audio into the input language.
    *
@@ -100,6 +108,10 @@ open class AudioApi : ApiClient {
    *   deterministic. If set to 0, the model will use
    *   [log probability](https://en.wikipedia.org/wiki/Log_probability) to automatically increase
    *   the temperature until certain thresholds are hit. (optional, default to 0)
+   * @param timestampGranularities The timestamp granularities to populate for this transcription.
+   *   Any of these options: &#x60;word&#x60;, or &#x60;segment&#x60;. Note: There is no additional
+   *   latency for segment timestamps, but generating word timestamps incurs additional latency.
+   *   (optional, default to segment)
    * @return CreateTranscriptionResponse
    */
   @Suppress("UNCHECKED_CAST")
@@ -109,7 +121,9 @@ open class AudioApi : ApiClient {
     language: kotlin.String? = null,
     prompt: kotlin.String? = null,
     responseFormat: ResponseFormatCreateTranscription? = ResponseFormatCreateTranscription.json,
-    temperature: kotlin.Double? = 0.toDouble()
+    temperature: kotlin.Double? = 0.toDouble(),
+    timestampGranularities: kotlin.collections.List<TimestampGranularitiesCreateTranscription>? =
+      TimestampGranularitiesCreateTranscription.segment.asListOfOne()
   ): HttpResponse<CreateTranscriptionResponse> {
 
     val localVariableAuthNames = listOf<String>("ApiKeyAuth")
@@ -121,6 +135,7 @@ open class AudioApi : ApiClient {
       prompt?.apply { appendGen("prompt", prompt) }
       responseFormat?.apply { appendGen("response_format", responseFormat) }
       temperature?.apply { appendGen("temperature", temperature) }
+      timestampGranularities?.onEach { appendGen("timestamp_granularities[][]", it) }
     }
 
     val localVariableQuery = mutableMapOf<String, List<String>>()

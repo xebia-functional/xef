@@ -61,65 +61,72 @@ sealed class StreamedFunction<out A> {
       val schema = function.parameters
       // we create an example from the schema from which we can expect and infer the paths
       // as the LLM is sending us chunks with malformed JSON
-      val example = createExampleFromSchema(schema)
-      chat
-        .createChatCompletionStream(request)
-        .onCompletion {
-          val newMessages = prompt.messages + messages
-          newMessages.addToMemory(
-            scope,
-            prompt.configuration.messagePolicy.addMessagesToConversation
-          )
-        }
-        .collect { responseChunk ->
-          // Each chunk is emitted from the LLM and it will include a delta.parameters with
-          // the function is streaming, the JSON received will be partial and usually malformed
-          // and needs to be inspected and clean up to stream properties before
-          // the final result is ready
+      if (schema != null) {
+        val example = createExampleFromSchema(schema)
+        chat
+          .createChatCompletionStream(request)
+          .onCompletion {
+            val newMessages = prompt.messages + messages
+            newMessages.addToMemory(
+              scope,
+              prompt.configuration.messagePolicy.addMessagesToConversation
+            )
+          }
+          .collect { responseChunk ->
+            // Each chunk is emitted from the LLM and it will include a delta.parameters with
+            // the function is streaming, the JSON received will be partial and usually malformed
+            // and needs to be inspected and clean up to stream properties before
+            // the final result is ready
 
-          // every response chunk contains a list of choices
-          if (responseChunk.choices.isNotEmpty()) {
-            // the delta contains the last emission while emitting the json character by character
-            val delta = responseChunk.choices.first().delta
-            // at any point the delta may be the last one
-            val finishReason = responseChunk.choices.first().finishReason
-            val toolCalls = delta.toolCalls.orEmpty()
-            toolCalls.forEach { toolCall ->
-              val fn = toolCall.function
-              val functionName = fn?.name
-              val arguments = fn?.arguments.orEmpty()
-              if (functionName != null)
-              // update the function name with the latest one
-              functionCall = functionCall.copy(name = functionName)
-              if (arguments.isNotEmpty()) {
-                // update the function arguments with the latest ones
-                functionCall = mergeArgumentsWithDelta(functionCall, toolCall)
-                // once we have info about the args we detect the last property referenced
-                // while streaming the arguments for the function call
-                val currentArg = getLastReferencedPropertyInArguments(functionCall)
-                if (currentProperty != currentArg && currentArg != null) {
-                  // if the current property is different than the last one
-                  // we update the path
-                  // a change of property happens and we try to stream it
-                  streamProperty(path, currentProperty, functionCall.arguments, streamedProperties)
-                  path = findPropertyPath(example, currentArg) ?: listOf(currentArg)
+            // every response chunk contains a list of choices
+            if (responseChunk.choices.isNotEmpty()) {
+              // the delta contains the last emission while emitting the json character by character
+              val delta = responseChunk.choices.first().delta
+              // at any point the delta may be the last one
+              val finishReason = responseChunk.choices.first().finishReason
+              val toolCalls = delta.toolCalls.orEmpty()
+              toolCalls.forEach { toolCall ->
+                val fn = toolCall.function
+                val functionName = fn?.name
+                val arguments = fn?.arguments.orEmpty()
+                if (functionName != null)
+                // update the function name with the latest one
+                functionCall = functionCall.copy(name = functionName)
+                if (arguments.isNotEmpty()) {
+                  // update the function arguments with the latest ones
+                  functionCall = mergeArgumentsWithDelta(functionCall, toolCall)
+                  // once we have info about the args we detect the last property referenced
+                  // while streaming the arguments for the function call
+                  val currentArg = getLastReferencedPropertyInArguments(functionCall)
+                  if (currentProperty != currentArg && currentArg != null) {
+                    // if the current property is different than the last one
+                    // we update the path
+                    // a change of property happens and we try to stream it
+                    streamProperty(
+                      path,
+                      currentProperty,
+                      functionCall.arguments,
+                      streamedProperties
+                    )
+                    path = findPropertyPath(example, currentArg) ?: listOf(currentArg)
+                  }
+                  // update the current property being evaluated
+                  currentProperty = currentArg
                 }
-                // update the current property being evaluated
-                currentProperty = currentArg
+                if (finishReason != null) {
+                  // the stream is finished and we try to stream the last property
+                  // because the previous chunk may had a partial property whose body
+                  // may had not been fully streamed
+                  streamProperty(path, currentProperty, functionCall.arguments, streamedProperties)
+                }
               }
               if (finishReason != null) {
-                // the stream is finished and we try to stream the last property
-                // because the previous chunk may had a partial property whose body
-                // may had not been fully streamed
-                streamProperty(path, currentProperty, functionCall.arguments, streamedProperties)
+                // we stream the result
+                streamResult(functionCall, messages, serializer)
               }
             }
-            if (finishReason != null) {
-              // we stream the result
-              streamResult(functionCall, messages, serializer)
-            }
           }
-        }
+      }
     }
 
     private suspend fun <A> FlowCollector<StreamedFunction<A>>.streamResult(

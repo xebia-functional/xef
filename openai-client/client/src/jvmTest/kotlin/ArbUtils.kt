@@ -27,7 +27,7 @@ val functionObjectArb = arbitrary {
   val name = idArb.bind()
   val fields = Arb.list(jsonObjectFieldArb).map { JsonObject(it.toMap()) }.bind()
   val description = Arb.string().orNull(0.5).bind()
-  FunctionObject(name, fields, description)
+  FunctionObject(name, description, fields)
 }
 
 val contentImageUrlDetailArb =
