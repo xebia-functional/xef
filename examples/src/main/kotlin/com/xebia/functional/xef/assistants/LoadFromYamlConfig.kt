@@ -19,7 +19,7 @@ suspend fun main() {
   // language=yaml
   val yamlConfig =
     """
-      assistant_id: asst_S3UbzpWIYuhsFu5cRG7b4dha
+      assistant_id: "asst_ImCKap37lLHBqV1awa0kzjZ3"
       model: "gpt-4-1106-preview"
       name: "My Custom Test Assistant"
       description: "A versatile AI assistant capable of conversational and informational tasks."
