@@ -47,7 +47,8 @@ class TestChatApi(
                     )
                 ),
               finishReason = CreateChatCompletionResponseChoicesInner.FinishReason.stop,
-              index = 0
+              index = 0,
+              logprobs = null
             )
           ),
         usage = CompletionUsage(0, 0, 0)

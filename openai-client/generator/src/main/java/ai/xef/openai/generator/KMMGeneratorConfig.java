@@ -1,5 +1,6 @@
 package ai.xef.openai.generator;
 
+import io.swagger.v3.oas.models.media.Schema;
 import org.openapitools.codegen.*;
 import org.openapitools.codegen.languages.KotlinClientCodegen;
 import org.openapitools.codegen.model.ModelMap;
@@ -8,6 +9,9 @@ import org.openapitools.codegen.model.OperationMap;
 import org.openapitools.codegen.model.OperationsMap;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import static java.util.Map.entry;
 
 public class KMMGeneratorConfig extends KotlinClientCodegen {
@@ -131,5 +135,26 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
             }
         }
         return objs;
+    }
+
+    private final Pattern enumArrayPattern = Pattern.compile("arrayListOf\\((.+)\\)");
+
+    public String toDefaultValue(CodegenProperty codegenProperty, Schema schema) {
+        String defaultValue = super.toDefaultValue(codegenProperty, schema);
+        if (defaultValue != null && codegenProperty.isEnum) {
+            Matcher matcher = enumArrayPattern.matcher(defaultValue);
+            if (matcher.find()) {
+                /*
+                 * Replace the default value of an enum property from `arrayListOf(defaultEnumValue)` to `defaultEnumValue.asListOfOne()`
+                 * This is because the `api.mustache` template prefixes the default value with the Enum type:
+                 *   - `EnumType.arrayListOf(defaultEnumValue)` -> `EnumType.defaultEnumValue.asListOfOne()`
+                 */
+                return matcher.replaceFirst("$1.asListOfOne()");
+            } else {
+                return defaultValue;
+            }
+        } else {
+            return defaultValue;
+        }
     }
 }

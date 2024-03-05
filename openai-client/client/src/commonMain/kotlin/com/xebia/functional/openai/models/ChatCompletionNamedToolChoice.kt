@@ -20,8 +20,8 @@ import kotlinx.serialization.encoding.*
 data class ChatCompletionNamedToolChoice(
 
   /* The type of the tool. Currently, only `function` is supported. */
-  @SerialName(value = "type") val type: ChatCompletionNamedToolChoice.Type? = null,
-  @SerialName(value = "function") val function: ChatCompletionNamedToolChoiceFunction? = null
+  @SerialName(value = "type") @Required val type: ChatCompletionNamedToolChoice.Type,
+  @SerialName(value = "function") @Required val function: ChatCompletionNamedToolChoiceFunction
 ) {
 
   /**

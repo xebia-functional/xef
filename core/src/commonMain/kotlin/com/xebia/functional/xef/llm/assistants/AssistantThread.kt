@@ -93,28 +93,28 @@ class AssistantThread(
       emit(
         RunDelta.Run(
           RunObject(
-              id = runId,
-              `object` = RunObject.Object.thread_run,
-              createdAt = 0,
-              threadId = threadId,
-              assistantId = assistant.assistantId,
-              status = RunObject.Status.failed,
-              lastError =
-                RunObjectLastError(
-                  code = RunObjectLastError.Code.server_error,
-                  message = e.message ?: "Unknown error"
-                ),
-              startedAt = null,
-              cancelledAt = null,
-              failedAt = null,
-              completedAt = null,
-              model = "",
-              instructions = "",
-              tools = emptyList(),
-              fileIds = emptyList(),
-              metadata = null
-            )
-            .addMetrics(metric)
+            id = runId,
+            `object` = RunObject.Object.thread_run,
+            createdAt = 0,
+            threadId = threadId,
+            assistantId = assistant.assistantId,
+            status = RunObject.Status.failed,
+            lastError =
+              RunObjectLastError(
+                code = RunObjectLastError.Code.server_error,
+                message = e.message ?: "Unknown error"
+              ),
+            startedAt = null,
+            cancelledAt = null,
+            failedAt = null,
+            completedAt = null,
+            model = "",
+            instructions = "",
+            tools = emptyList(),
+            fileIds = emptyList(),
+            metadata = null,
+            usage = null
+          )
         )
       )
     } finally {
