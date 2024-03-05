@@ -8,7 +8,6 @@ import com.xebia.functional.openai.models.CreateAssistantRequest
 import com.xebia.functional.openai.models.ModifyAssistantRequest
 import com.xebia.functional.openai.models.ext.assistant.AssistantTools
 import com.xebia.functional.xef.llm.fromEnvironment
-import io.ktor.client.statement.*
 import io.ktor.util.logging.*
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.JsonElement

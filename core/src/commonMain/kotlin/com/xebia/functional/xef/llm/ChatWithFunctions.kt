@@ -29,7 +29,7 @@ fun chatFunctions(descriptors: List<SerialDescriptor>): List<FunctionObject> =
   descriptors.map(::chatFunction)
 
 fun chatFunction(fnName: String, schema: JsonObject): FunctionObject =
-  FunctionObject(fnName, schema, "Generated function for $fnName")
+  FunctionObject(fnName, "Generated function for $fnName", schema)
 
 @AiDsl
 suspend fun <A> ChatApi.prompt(
