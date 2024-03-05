@@ -151,7 +151,7 @@ class Assistant(
             parsed["file_ids"]?.let { (it as List<*>).map { it.toString() } } ?: emptyList(),
         )
       return if (assistantRequest.assistantId != null) {
-        val assistant = Assistant(assistantRequest.assistantId, assistantsApi, api)
+        val assistant = Assistant(assistantId = assistantRequest.assistantId, assistantsApi = assistantsApi, api = api)
         assistant.modify(
           ModifyAssistantRequest(
             name = assistantRequest.name,
