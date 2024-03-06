@@ -24,11 +24,13 @@ open class AudioApi : ApiClient {
 
   constructor(
     baseUrl: String = ApiClient.BASE_URL,
+    org: String? = null,
     httpClientEngine: HttpClientEngine? = null,
     httpClientConfig: ((HttpClientConfig<*>) -> Unit)? = null,
     jsonSerializer: Json = ApiClient.JSON_DEFAULT
   ) : super(
     baseUrl = baseUrl,
+    org = org,
     httpClientEngine = httpClientEngine,
     httpClientConfig = httpClientConfig,
     jsonBlock = jsonSerializer
@@ -36,8 +38,9 @@ open class AudioApi : ApiClient {
 
   constructor(
     baseUrl: String,
+    org: String?,
     httpClient: HttpClient
-  ) : super(baseUrl = baseUrl, httpClient = httpClient)
+  ) : super(baseUrl = baseUrl, org = org, httpClient = httpClient)
 
   /**
    * Generates audio from the input text.

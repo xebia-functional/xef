@@ -16,7 +16,7 @@ constructor(
   private val serpApiKey: String =
     getenv("SERP_API_KEY") ?: throw AIError.Env.SerpApi(nonEmptyListOf("SERP_API_KEY not found")),
   override val model: OpenAIModel<CreateChatCompletionRequestModel>,
-  override val chatApi: ChatApi = fromEnvironment { baseUrl -> ChatApi(baseUrl) },
+  override val chatApi: ChatApi = fromEnvironment(::ChatApi),
   override val scope: Conversation,
   override val maxResultsInContext: Int = 3
 ) : SearchTool {

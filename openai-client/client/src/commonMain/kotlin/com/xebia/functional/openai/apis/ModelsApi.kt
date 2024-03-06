@@ -22,11 +22,13 @@ open class ModelsApi : ApiClient {
 
   constructor(
     baseUrl: String = ApiClient.BASE_URL,
+    org: String? = null,
     httpClientEngine: HttpClientEngine? = null,
     httpClientConfig: ((HttpClientConfig<*>) -> Unit)? = null,
     jsonSerializer: Json = ApiClient.JSON_DEFAULT
   ) : super(
     baseUrl = baseUrl,
+    org = org,
     httpClientEngine = httpClientEngine,
     httpClientConfig = httpClientConfig,
     jsonBlock = jsonSerializer
@@ -34,8 +36,9 @@ open class ModelsApi : ApiClient {
 
   constructor(
     baseUrl: String,
+    org: String?,
     httpClient: HttpClient
-  ) : super(baseUrl = baseUrl, httpClient = httpClient)
+  ) : super(baseUrl = baseUrl, org = org, httpClient = httpClient)
 
   /**
    * Delete a fine-tuned model. You must have the Owner role in your organization to delete a model.

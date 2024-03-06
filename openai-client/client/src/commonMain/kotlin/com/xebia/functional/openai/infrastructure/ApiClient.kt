@@ -18,16 +18,17 @@ import io.ktor.http.content.PartData
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
-open class ApiClient(val baseUrl: String) : AutoCloseable {
+open class ApiClient(val baseUrl: String, val org: String?) : AutoCloseable {
 
   lateinit var client: HttpClient
 
   constructor(
     baseUrl: String,
+    org: String?,
     httpClientEngine: HttpClientEngine?,
     httpClientConfig: ((HttpClientConfig<*>) -> Unit)? = null,
     jsonBlock: Json,
-  ) : this(baseUrl = baseUrl) {
+  ) : this(baseUrl = baseUrl, org = org) {
     val clientConfig: (HttpClientConfig<*>) -> Unit by lazy {
       {
         it.install(ContentNegotiation) { json(jsonBlock) }
@@ -50,7 +51,11 @@ open class ApiClient(val baseUrl: String) : AutoCloseable {
     client = httpClientEngine?.let { HttpClient(it, clientConfig) } ?: HttpClient(clientConfig)
   }
 
-  constructor(baseUrl: String, httpClient: HttpClient) : this(baseUrl = baseUrl) {
+  constructor(
+    baseUrl: String,
+    org: String?,
+    httpClient: HttpClient
+  ) : this(baseUrl = baseUrl, org = org) {
     this.client = httpClient
   }
 
@@ -181,6 +186,9 @@ open class ApiClient(val baseUrl: String) : AutoCloseable {
         requestConfig.query.forEach { query ->
           query.value.forEach { value -> parameter(query.key, value) }
         }
+      }
+      if (org != null) {
+        this.header("OpenAI-Organization", org)
       }
       this.header("OpenAI-Beta", "assistants=v1")
       this.method = requestConfig.method.httpMethod
