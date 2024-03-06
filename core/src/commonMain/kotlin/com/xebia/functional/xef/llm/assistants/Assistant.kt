@@ -1,6 +1,5 @@
 package com.xebia.functional.xef.llm.assistants
 
-import com.xebia.functional.openai.apis.AssistantApi
 import com.xebia.functional.openai.apis.AssistantsApi
 import com.xebia.functional.openai.infrastructure.ApiClient
 import com.xebia.functional.openai.models.AssistantObject
@@ -18,6 +17,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import net.mamoe.yamlkt.Yaml
+import net.mamoe.yamlkt.YamlMap
 import net.mamoe.yamlkt.literalContentOrNull
 import net.mamoe.yamlkt.toYamlElement
 
@@ -25,24 +25,21 @@ class Assistant(
   val assistantId: String,
   val toolsConfig: List<Tool.Companion.ToolConfig<*, *>> = emptyList(),
   private val assistantsApi: AssistantsApi = fromEnvironment(::AssistantsApi),
-  private val api: AssistantApi = fromEnvironment(::AssistantApi)
 ) {
 
   constructor(
     assistantObject: AssistantObject,
     toolsConfig: List<Tool.Companion.ToolConfig<*, *>> = emptyList(),
     assistantsApi: AssistantsApi = fromEnvironment(::AssistantsApi),
-    api: AssistantApi = fromEnvironment(::AssistantApi)
-  ) : this(assistantObject.id, toolsConfig, assistantsApi, api)
+  ) : this(assistantObject.id, toolsConfig, assistantsApi)
 
   suspend fun get(): AssistantObject = assistantsApi.getAssistant(assistantId).body()
 
   suspend fun modify(modifyAssistantRequest: ModifyAssistantRequest): Assistant =
     Assistant(
-      api.modifyAssistant(assistantId, modifyAssistantRequest).body(),
+      assistantsApi.modifyAssistant(assistantId, modifyAssistantRequest).body(),
       toolsConfig,
-      assistantsApi,
-      api
+      assistantsApi
     )
 
   suspend inline fun getToolRegistered(name: String, args: String): JsonElement =
@@ -78,7 +75,6 @@ class Assistant(
       metadata: JsonObject? = null,
       toolsConfig: List<Tool.Companion.ToolConfig<*, *>> = emptyList(),
       assistantsApi: AssistantsApi = fromEnvironment(::AssistantsApi),
-      api: AssistantApi = fromEnvironment(::AssistantApi)
     ): Assistant =
       Assistant(
         CreateAssistantRequest(
@@ -91,25 +87,22 @@ class Assistant(
           metadata = metadata
         ),
         toolsConfig,
-        assistantsApi,
-        api
+        assistantsApi
       )
 
     suspend operator fun invoke(
       request: CreateAssistantRequest,
       toolsConfig: List<Tool.Companion.ToolConfig<*, *>> = emptyList(),
       assistantsApi: AssistantsApi = fromEnvironment(::AssistantsApi),
-      api: AssistantApi = fromEnvironment(::AssistantApi)
     ): Assistant {
       val response = assistantsApi.createAssistant(request)
-      return Assistant(response.body(), toolsConfig, assistantsApi, api)
+      return Assistant(response.body(), toolsConfig, assistantsApi)
     }
 
     suspend fun fromConfig(
       request: String,
       toolsConfig: List<Tool.Companion.ToolConfig<*, *>> = emptyList(),
-      assistantsApi: AssistantsApi = fromEnvironment(::AssistantsApi),
-      api: AssistantApi = fromEnvironment(::AssistantApi)
+      assistantsApi: AssistantsApi = fromEnvironment(::AssistantsApi)
     ): Assistant {
       val parsed = Yaml.Default.decodeYamlMapFromString(request)
       val assistantRequest =
@@ -118,7 +111,11 @@ class Assistant(
           model = parsed["model"]?.literalContentOrNull ?: error("model is required"),
           name = parsed["name"]?.literalContentOrNull,
           description = parsed["description"]?.literalContentOrNull,
-          instructions = parsed["instructions"]?.literalContentOrNull,
+          instructions =
+            parsed["instructions"]?.literalContentOrNull
+              ?: (parsed["instructions"] as? YamlMap)?.let {
+                Yaml.encodeToString(YamlMap.serializer(), it)
+              },
           tools =
             parsed["tools"]?.let { list ->
               (list as List<*>).map { element ->
@@ -164,7 +161,6 @@ class Assistant(
             assistantId = assistantRequest.assistantId,
             toolsConfig = toolsConfig,
             assistantsApi = assistantsApi,
-            api = api
           )
         // list all assistants and get their files
         // list all the org files
@@ -194,7 +190,6 @@ class Assistant(
             ),
           toolsConfig = toolsConfig,
           assistantsApi = assistantsApi,
-          api = api
         )
     }
 

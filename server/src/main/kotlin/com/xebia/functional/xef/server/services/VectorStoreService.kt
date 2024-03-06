@@ -63,6 +63,7 @@ suspend fun ResourceScope.vectorStoreService(
 abstract class VectorStoreService {
   abstract fun getVectorStore(
     provider: Provider = Provider.OPENAI,
-    token: String? = null
+    token: String? = null,
+    org: String? = null
   ): VectorStore
 }

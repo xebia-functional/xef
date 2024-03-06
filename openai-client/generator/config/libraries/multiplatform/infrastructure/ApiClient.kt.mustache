@@ -23,17 +23,19 @@ import kotlinx.serialization.json.Json
 import {{packageName}}.auth.*
 
 {{#nonPublicApi}}internal {{/nonPublicApi}}open class ApiClient(
-        val baseUrl: String
+        val baseUrl: String,
+        val org: String?
 ) : AutoCloseable {
 
     lateinit var client: HttpClient
 
     constructor(
         baseUrl: String,
+        org: String?,
         httpClientEngine: HttpClientEngine?,
         httpClientConfig: ((HttpClientConfig<*>) -> Unit)? = null,
         jsonBlock: Json,
-    ) : this(baseUrl = baseUrl) {
+    ) : this(baseUrl = baseUrl, org = org) {
         val clientConfig: (HttpClientConfig<*>) -> Unit by lazy {
             {
                 it.install(ContentNegotiation) { json(jsonBlock) }
@@ -58,8 +60,9 @@ import {{packageName}}.auth.*
 
     constructor(
         baseUrl: String,
+        org: String?,
         httpClient: HttpClient
-    ): this(baseUrl = baseUrl) {
+    ): this(baseUrl = baseUrl, org = org) {
         this.client = httpClient
     }
 
@@ -184,6 +187,9 @@ import {{packageName}}.auth.*
                         parameter(query.key, value)
                     }
                 }
+            }
+            if (org != null) {
+                this.header("OpenAI-Organization", org)
             }
             this.header("OpenAI-Beta", "assistants=v1")
             this.method = requestConfig.method.httpMethod
