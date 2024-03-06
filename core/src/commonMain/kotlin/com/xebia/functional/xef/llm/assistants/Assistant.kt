@@ -17,6 +17,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import net.mamoe.yamlkt.Yaml
+import net.mamoe.yamlkt.YamlMap
 import net.mamoe.yamlkt.literalContentOrNull
 import net.mamoe.yamlkt.toYamlElement
 
@@ -110,7 +111,11 @@ class Assistant(
           model = parsed["model"]?.literalContentOrNull ?: error("model is required"),
           name = parsed["name"]?.literalContentOrNull,
           description = parsed["description"]?.literalContentOrNull,
-          instructions = parsed["instructions"]?.literalContentOrNull,
+          instructions =
+            parsed["instructions"]?.literalContentOrNull
+              ?: (parsed["instructions"] as? YamlMap)?.let {
+                Yaml.encodeToString(YamlMap.serializer(), it)
+              },
           tools =
             parsed["tools"]?.let { list ->
               (list as List<*>).map { element ->
