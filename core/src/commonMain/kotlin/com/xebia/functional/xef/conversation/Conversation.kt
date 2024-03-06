@@ -44,14 +44,14 @@ constructor(
   @JvmSynthetic
   suspend inline fun <reified A> prompt(
     prompt: Prompt<CreateChatCompletionRequestModel>,
-    chat: ChatApi = fromEnvironment { baseUrl -> ChatApi(baseUrl) },
+    chat: ChatApi = fromEnvironment(::ChatApi),
   ): A = chat.prompt(prompt, this@Conversation, serializer())
 
   @AiDsl
   @JvmSynthetic
   suspend inline fun promptMessage(
     prompt: Prompt<CreateChatCompletionRequestModel>,
-    chat: ChatApi = fromEnvironment { baseUrl -> ChatApi(baseUrl) },
+    chat: ChatApi = fromEnvironment(::ChatApi),
   ): String = chat.promptMessage(prompt, this@Conversation)
 
   @AiDsl

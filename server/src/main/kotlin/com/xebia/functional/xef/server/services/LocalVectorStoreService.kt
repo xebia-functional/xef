@@ -8,9 +8,10 @@ import com.xebia.functional.xef.store.LocalVectorStore
 import com.xebia.functional.xef.store.VectorStore
 
 class LocalVectorStoreService : VectorStoreService() {
-  override fun getVectorStore(provider: Provider, token: String?): VectorStore =
+  override fun getVectorStore(provider: Provider, token: String?, org: String?): VectorStore =
     LocalVectorStore(
-      token?.let { fromToken(token) { baseUrl -> EmbeddingsApi(baseUrl) } }
-        ?: fromEnvironment { baseUrl -> EmbeddingsApi(baseUrl) }
+      token?.let {
+        fromToken(token, org) { baseUrl, organization -> EmbeddingsApi(baseUrl, organization) }
+      } ?: fromEnvironment { baseUrl, organization -> EmbeddingsApi(baseUrl, organization) }
     )
 }
