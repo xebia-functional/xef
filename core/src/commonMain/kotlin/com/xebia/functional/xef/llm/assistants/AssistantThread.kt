@@ -63,6 +63,11 @@ class AssistantThread(
     return awaitRun(assistant, run.id)
   }
 
+  suspend fun run(assistant: Assistant, request: CreateRunRequest): Flow<RunDelta> {
+    val run = createRun(request)
+    return awaitRun(assistant, run.id)
+  }
+
   suspend fun cancelRun(runId: String): RunObject = api.cancelRun(threadId, runId).body()
 
   suspend fun runSteps(runId: String): List<RunStepObject> =
