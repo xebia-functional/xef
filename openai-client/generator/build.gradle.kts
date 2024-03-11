@@ -6,7 +6,7 @@ plugins {
 }
 
 dependencies {
-    implementation("org.openapitools:openapi-generator-cli:7.3.0")
+    implementation("org.openapitools:openapi-generator-cli:7.4.0")
 }
 
 tasks.test {
