@@ -16,7 +16,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 
 class AssistantThread(
@@ -205,8 +204,7 @@ class AssistantThread(
             .filter { it.function != null }
             .parMap { toolCall ->
               val function = toolCall.function!!
-              val result =
-                assistant.getToolRegistered(function.name, function.arguments)
+              val result = assistant.getToolRegistered(function.name, function.arguments)
               toolCall.id to result
             }
             .toMap()
@@ -222,7 +220,11 @@ class AssistantThread(
                     results.map { (toolCallId, result) ->
                       SubmitToolOutputsRunRequestToolOutputsInner(
                         toolCallId = toolCallId,
-                        output = ApiClient.JSON_DEFAULT.encodeToString(Assistant.Companion.ToolOutput.serializer(), result)
+                        output =
+                          ApiClient.JSON_DEFAULT.encodeToString(
+                            Assistant.Companion.ToolOutput.serializer(),
+                            result
+                          )
                       )
                     }
                 )

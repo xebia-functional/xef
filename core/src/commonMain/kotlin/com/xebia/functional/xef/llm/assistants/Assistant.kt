@@ -11,7 +11,6 @@ import com.xebia.functional.openai.models.ext.assistant.AssistantToolsCode
 import com.xebia.functional.openai.models.ext.assistant.AssistantToolsFunction
 import com.xebia.functional.openai.models.ext.assistant.AssistantToolsRetrieval
 import com.xebia.functional.xef.llm.fromEnvironment
-import com.xebia.functional.xef.llm.models.functions.JsonSchema
 import com.xebia.functional.xef.llm.models.functions.buildJsonSchema
 import io.ktor.util.logging.*
 import kotlinx.serialization.KSerializer
@@ -56,10 +55,11 @@ class Assistant(
 
       val schema = buildJsonSchema(toolSerializer.outputSerializer.descriptor)
       val output: Any? = tool(input)
-      val result = ApiClient.JSON_DEFAULT.encodeToJsonElement(
-        toolSerializer.outputSerializer as KSerializer<Any?>,
-        output
-      )
+      val result =
+        ApiClient.JSON_DEFAULT.encodeToJsonElement(
+          toolSerializer.outputSerializer as KSerializer<Any?>,
+          output
+        )
       ToolOutput(schema, result)
     } catch (e: Exception) {
       val message = "Error calling to tool registered $name: ${e.message}"
@@ -71,11 +71,7 @@ class Assistant(
 
   companion object {
 
-    @Serializable
-    data class ToolOutput(
-      val schema: JsonObject,
-      val result: JsonElement
-    )
+    @Serializable data class ToolOutput(val schema: JsonObject, val result: JsonElement)
 
     suspend operator fun invoke(
       model: String,
