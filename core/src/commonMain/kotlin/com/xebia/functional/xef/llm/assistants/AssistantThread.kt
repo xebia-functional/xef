@@ -200,12 +200,12 @@ class AssistantThread(
         run.status == RunObject.Status.requires_action &&
           run.requiredAction?.type == RunObjectRequiredAction.Type.submit_tool_outputs
       ) {
-        val results: Map<String, JsonElement> =
+        val results: Map<String, Assistant.Companion.ToolOutput> =
           calls
             .filter { it.function != null }
             .parMap { toolCall ->
               val function = toolCall.function!!
-              val result: JsonElement =
+              val result =
                 assistant.getToolRegistered(function.name, function.arguments)
               toolCall.id to result
             }
@@ -222,7 +222,7 @@ class AssistantThread(
                     results.map { (toolCallId, result) ->
                       SubmitToolOutputsRunRequestToolOutputsInner(
                         toolCallId = toolCallId,
-                        output = ApiClient.JSON_DEFAULT.encodeToString(result)
+                        output = ApiClient.JSON_DEFAULT.encodeToString(Assistant.Companion.ToolOutput.serializer(), result)
                       )
                     }
                 )

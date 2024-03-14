@@ -11,8 +11,11 @@ import com.xebia.functional.openai.models.ext.assistant.AssistantToolsCode
 import com.xebia.functional.openai.models.ext.assistant.AssistantToolsFunction
 import com.xebia.functional.openai.models.ext.assistant.AssistantToolsRetrieval
 import com.xebia.functional.xef.llm.fromEnvironment
+import com.xebia.functional.xef.llm.models.functions.JsonSchema
+import com.xebia.functional.xef.llm.models.functions.buildJsonSchema
 import io.ktor.util.logging.*
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -42,7 +45,7 @@ class Assistant(
       assistantsApi
     )
 
-  suspend inline fun getToolRegistered(name: String, args: String): JsonElement =
+  suspend inline fun getToolRegistered(name: String, args: String): ToolOutput =
     try {
       val toolConfig = toolsConfig.firstOrNull { it.functionObject.name == name }
 
@@ -51,19 +54,28 @@ class Assistant(
 
       val tool: Tool<Any?, Any?> = toolConfig.tool as Tool<Any?, Any?>
 
+      val schema = buildJsonSchema(toolSerializer.outputSerializer.descriptor)
       val output: Any? = tool(input)
-      ApiClient.JSON_DEFAULT.encodeToJsonElement(
+      val result = ApiClient.JSON_DEFAULT.encodeToJsonElement(
         toolSerializer.outputSerializer as KSerializer<Any?>,
         output
       )
+      ToolOutput(schema, result)
     } catch (e: Exception) {
       val message = "Error calling to tool registered $name: ${e.message}"
       val logger = KtorSimpleLogger("Functions")
       logger.error(message, e)
-      JsonObject(mapOf("error" to JsonPrimitive(message)))
+      val result = JsonObject(mapOf("error" to JsonPrimitive(message)))
+      ToolOutput(JsonObject(emptyMap()), result)
     }
 
   companion object {
+
+    @Serializable
+    data class ToolOutput(
+      val schema: JsonObject,
+      val result: JsonElement
+    )
 
     suspend operator fun invoke(
       model: String,
