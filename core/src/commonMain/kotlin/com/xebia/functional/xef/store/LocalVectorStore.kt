@@ -34,7 +34,8 @@ private constructor(
 ) : VectorStore {
   constructor(
     embeddings: EmbeddingsApi,
-    embeddingRequestModel: OpenAIModel<CreateEmbeddingRequestModel> = StandardModel(CreateEmbeddingRequestModel.text_embedding_ada_002)
+    embeddingRequestModel: OpenAIModel<CreateEmbeddingRequestModel> =
+      StandardModel(CreateEmbeddingRequestModel.text_embedding_ada_002)
   ) : this(embeddings, Atomic(State.empty()), embeddingRequestModel)
 
   override val indexValue: AtomicInt = AtomicInt(0)
@@ -49,15 +50,15 @@ private constructor(
     state.update { prevState ->
       prevState.copy(
         orderedMemories =
-        memories
-          .groupBy { it.conversationId }
-          .let { memories ->
-            (prevState.orderedMemories.keys + memories.keys).associateWith { key ->
-              val l1 = prevState.orderedMemories[key] ?: emptyList()
-              val l2 = memories[key] ?: emptyList()
-              l1 + l2
+          memories
+            .groupBy { it.conversationId }
+            .let { memories ->
+              (prevState.orderedMemories.keys + memories.keys).associateWith { key ->
+                val l1 = prevState.orderedMemories[key] ?: emptyList()
+                val l2 = memories[key] ?: emptyList()
+                l1 + l2
+              }
             }
-          }
       )
     }
   }
@@ -85,7 +86,8 @@ private constructor(
   }
 
   override suspend fun similaritySearch(query: String, limit: Int): List<String> {
-    val queryEmbedding = embeddings.embedQuery(query, embeddingRequestModel = embeddingRequestModel).firstOrNull()
+    val queryEmbedding =
+      embeddings.embedQuery(query, embeddingRequestModel = embeddingRequestModel).firstOrNull()
     return queryEmbedding?.let { similaritySearchByVector(it, limit) }.orEmpty()
   }
 
