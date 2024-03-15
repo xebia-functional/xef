@@ -38,6 +38,8 @@ class PGVectorStoreSpec :
         )
       )
 
+    val embeddingsRequestModel = StandardModel(CreateEmbeddingRequestModel.text_embedding_ada_002)
+
     fun StringSpecScope.pg() =
       PGVectorStore(
         vectorSize = 3,
@@ -45,7 +47,8 @@ class PGVectorStoreSpec :
         embeddings = TestEmbeddings(coroutineContext),
         collectionName = "test_collection",
         distanceStrategy = PGDistanceStrategy.Euclidean,
-        preDeleteCollection = false
+        preDeleteCollection = false,
+        embeddingRequestModel = embeddingsRequestModel
       )
 
     beforeContainer {
@@ -56,7 +59,8 @@ class PGVectorStoreSpec :
         embeddings = TestEmbeddings(coroutineContext),
         collectionName = "test_collection",
         distanceStrategy = PGDistanceStrategy.Euclidean,
-        preDeleteCollection = false
+        preDeleteCollection = false,
+        embeddingRequestModel = embeddingsRequestModel
       )
       postgresVector.initialDbSetup()
       postgresVector.createCollection()
