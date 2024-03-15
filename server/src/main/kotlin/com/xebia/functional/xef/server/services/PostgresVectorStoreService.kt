@@ -1,6 +1,9 @@
 package com.xebia.functional.xef.server.services
 
+import ai.xef.openai.OpenAIModel
+import ai.xef.openai.StandardModel
 import com.xebia.functional.openai.apis.EmbeddingsApi
+import com.xebia.functional.openai.models.CreateEmbeddingRequestModel
 import com.xebia.functional.xef.llm.fromEnvironment
 import com.xebia.functional.xef.llm.fromToken
 import com.xebia.functional.xef.server.http.routes.Provider
@@ -21,6 +24,9 @@ class PostgresVectorStoreService(
   private val vectorSize: Int,
   private val preDeleteCollection: Boolean = false,
   private val chunkSize: Int = 400,
+  private val distanceStrategy: PGDistanceStrategy = PGDistanceStrategy.Euclidean,
+  private val embeddingRequestModel: OpenAIModel<CreateEmbeddingRequestModel> =
+    StandardModel(CreateEmbeddingRequestModel.text_embedding_ada_002)
 ) : VectorStoreService() {
 
   fun addCollection() {
@@ -45,8 +51,9 @@ class PostgresVectorStoreService(
       dataSource = dataSource,
       embeddings = embeddingsApi,
       collectionName = collectionName,
-      distanceStrategy = PGDistanceStrategy.Euclidean,
+      distanceStrategy = distanceStrategy,
       preDeleteCollection = preDeleteCollection,
+      embeddingRequestModel = embeddingRequestModel,
       chunkSize = chunkSize
     )
   }

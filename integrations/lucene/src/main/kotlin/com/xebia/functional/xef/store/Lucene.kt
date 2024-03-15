@@ -4,6 +4,7 @@ import ai.xef.openai.OpenAIModel
 import arrow.atomic.AtomicInt
 import com.xebia.functional.openai.apis.EmbeddingsApi
 import com.xebia.functional.openai.models.ChatCompletionRole
+import com.xebia.functional.openai.models.CreateEmbeddingRequestModel
 import com.xebia.functional.openai.models.Embedding
 import com.xebia.functional.xef.llm.embedQuery
 import com.xebia.functional.xef.llm.models.modelType
@@ -24,6 +25,7 @@ open class Lucene(
   private val writer: IndexWriter,
   private val embeddings: EmbeddingsApi?,
   private val similarity: VectorSimilarityFunction = VectorSimilarityFunction.EUCLIDEAN,
+  private val embeddingAIModel: OpenAIModel<CreateEmbeddingRequestModel>
 ) : VectorStore, AutoCloseable {
 
   override val indexValue: AtomicInt = AtomicInt(0)
@@ -47,12 +49,13 @@ open class Lucene(
   }
 
   override suspend fun <T> memories(
-    model: OpenAIModel<T>, conversationId: ConversationId, limitTokens: Int): List<Memory> =
+    model: OpenAIModel<T>, conversationId: ConversationId, limitTokens: Int
+  ): List<Memory> =
     getMemoryByConversationId(conversationId).reduceByLimitToken(model.modelType(), limitTokens).reversed()
 
   override suspend fun addTexts(texts: List<String>) {
     texts.forEach {
-      val embedding = embeddings?.embedQuery(it)
+      val embedding = embeddings?.embedQuery(text = it, embeddingRequestModel = embeddingAIModel)
       val doc =
         Document().apply {
           add(TextField("contents", it, Field.Store.YES))
@@ -125,8 +128,9 @@ class DirectoryLucene(
   private val directory: Directory,
   writerConfig: IndexWriterConfig = IndexWriterConfig(),
   embeddings: EmbeddingsApi?,
+  embeddingAIModel: OpenAIModel<CreateEmbeddingRequestModel>,
   similarity: VectorSimilarityFunction = VectorSimilarityFunction.EUCLIDEAN
-) : Lucene(IndexWriter(directory, writerConfig), embeddings, similarity) {
+) : Lucene(IndexWriter(directory, writerConfig), embeddings, similarity, embeddingAIModel) {
   override fun close() {
     super.close()
     directory.close()
@@ -138,17 +142,19 @@ fun InMemoryLucene(
   path: Path,
   writerConfig: IndexWriterConfig = IndexWriterConfig(),
   embeddings: EmbeddingsApi?,
+  embeddingAIModel: OpenAIModel<CreateEmbeddingRequestModel>,
   similarity: VectorSimilarityFunction = VectorSimilarityFunction.EUCLIDEAN
-): DirectoryLucene = DirectoryLucene(MMapDirectory(path), writerConfig, embeddings, similarity)
+): DirectoryLucene = DirectoryLucene(MMapDirectory(path), writerConfig, embeddings, embeddingAIModel, similarity)
 
 @JvmOverloads
 fun InMemoryLuceneBuilder(
   path: Path,
   useAIEmbeddings: Boolean = true,
   writerConfig: IndexWriterConfig = IndexWriterConfig(),
+  embeddingAIModel: OpenAIModel<CreateEmbeddingRequestModel>,
   similarity: VectorSimilarityFunction = VectorSimilarityFunction.EUCLIDEAN
 ): (EmbeddingsApi) -> DirectoryLucene = { embeddings ->
-  InMemoryLucene(path, writerConfig, embeddings.takeIf { useAIEmbeddings }, similarity)
+  InMemoryLucene(path, writerConfig, embeddings.takeIf { useAIEmbeddings }, embeddingAIModel, similarity)
 }
 
 fun List<Embedding>.toFloatArray(): FloatArray = flatMap { it.embedding.map { it.toFloat() } }.toFloatArray()
