@@ -1,11 +1,13 @@
 package com.xebia.functional.xef.store
 
 import ai.xef.openai.OpenAIModel
+import ai.xef.openai.StandardModel
 import arrow.atomic.Atomic
 import arrow.atomic.AtomicInt
 import arrow.atomic.getAndUpdate
 import arrow.atomic.update
 import com.xebia.functional.openai.apis.EmbeddingsApi
+import com.xebia.functional.openai.models.CreateEmbeddingRequestModel
 import com.xebia.functional.openai.models.Embedding
 import com.xebia.functional.xef.llm.embedDocuments
 import com.xebia.functional.xef.llm.embedQuery
@@ -25,9 +27,15 @@ private data class State(
 private typealias AtomicState = Atomic<State>
 
 class LocalVectorStore
-private constructor(private val embeddings: EmbeddingsApi, private val state: AtomicState) :
-  VectorStore {
-  constructor(embeddings: EmbeddingsApi) : this(embeddings, Atomic(State.empty()))
+private constructor(
+  private val embeddings: EmbeddingsApi,
+  private val state: AtomicState,
+  private val embeddingRequestModel: OpenAIModel<CreateEmbeddingRequestModel>
+) : VectorStore {
+  constructor(
+    embeddings: EmbeddingsApi,
+    embeddingRequestModel: OpenAIModel<CreateEmbeddingRequestModel> = StandardModel(CreateEmbeddingRequestModel.text_embedding_ada_002)
+  ) : this(embeddings, Atomic(State.empty()), embeddingRequestModel)
 
   override val indexValue: AtomicInt = AtomicInt(0)
 
@@ -41,15 +49,15 @@ private constructor(private val embeddings: EmbeddingsApi, private val state: At
     state.update { prevState ->
       prevState.copy(
         orderedMemories =
-          memories
-            .groupBy { it.conversationId }
-            .let { memories ->
-              (prevState.orderedMemories.keys + memories.keys).associateWith { key ->
-                val l1 = prevState.orderedMemories[key] ?: emptyList()
-                val l2 = memories[key] ?: emptyList()
-                l1 + l2
-              }
+        memories
+          .groupBy { it.conversationId }
+          .let { memories ->
+            (prevState.orderedMemories.keys + memories.keys).associateWith { key ->
+              val l1 = prevState.orderedMemories[key] ?: emptyList()
+              val l2 = memories[key] ?: emptyList()
+              l1 + l2
             }
+          }
       )
     }
   }
@@ -68,7 +76,8 @@ private constructor(private val embeddings: EmbeddingsApi, private val state: At
   }
 
   override suspend fun addTexts(texts: List<String>) {
-    val embeddingsList = embeddings.embedDocuments(texts)
+    val embeddingsList =
+      embeddings.embedDocuments(texts, embeddingRequestModel = embeddingRequestModel)
     state.getAndUpdate { prevState ->
       val newEmbeddings = prevState.precomputedEmbeddings + texts.zip(embeddingsList)
       State(prevState.orderedMemories, prevState.documents + texts, newEmbeddings)
@@ -76,7 +85,7 @@ private constructor(private val embeddings: EmbeddingsApi, private val state: At
   }
 
   override suspend fun similaritySearch(query: String, limit: Int): List<String> {
-    val queryEmbedding = embeddings.embedQuery(query).firstOrNull()
+    val queryEmbedding = embeddings.embedQuery(query, embeddingRequestModel = embeddingRequestModel).firstOrNull()
     return queryEmbedding?.let { similaritySearchByVector(it, limit) }.orEmpty()
   }
 

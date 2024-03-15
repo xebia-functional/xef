@@ -4,6 +4,7 @@ import ai.xef.openai.OpenAIModel
 import arrow.atomic.AtomicInt
 import com.xebia.functional.openai.apis.EmbeddingsApi
 import com.xebia.functional.openai.models.ChatCompletionRole
+import com.xebia.functional.openai.models.CreateEmbeddingRequestModel
 import com.xebia.functional.openai.models.Embedding
 import com.xebia.functional.xef.llm.embedDocuments
 import com.xebia.functional.xef.llm.embedQuery
@@ -20,6 +21,7 @@ class PGVectorStore(
   private val collectionName: String,
   private val distanceStrategy: PGDistanceStrategy,
   private val preDeleteCollection: Boolean,
+  private val embeddingRequestModel: OpenAIModel<CreateEmbeddingRequestModel>,
   private val chunkSize: Int = 400
 ) : VectorStore {
 
@@ -83,7 +85,7 @@ class PGVectorStore(
 
   override suspend fun addTexts(texts: List<String>): Unit =
     dataSource.connection {
-      val embeddings = embeddings.embedDocuments(texts, chunkSize)
+      val embeddings = embeddings.embedDocuments(texts, chunkSize, embeddingRequestModel)
       val collection = getCollection(collectionName)
       texts.zip(embeddings) { text, embedding ->
         val uuid = UUID.generateUUID()
@@ -105,7 +107,7 @@ class PGVectorStore(
       if (!hasEmbeddings) return emptyList()
 
       val embeddings =
-        embeddings.embedQuery(query).ifEmpty {
+        embeddings.embedQuery(query, embeddingRequestModel).ifEmpty {
           throw IllegalStateException(
             "Embedding for text: '$query', has not been properly generated"
           )
