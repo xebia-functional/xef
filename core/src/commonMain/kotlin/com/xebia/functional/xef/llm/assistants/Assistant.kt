@@ -176,6 +176,7 @@ class Assistant(
 
         assistant.modify(
           ModifyAssistantRequest(
+            model = assistantRequest.model,
             name = assistantRequest.name,
             description = assistantRequest.description,
             instructions = assistantRequest.instructions,
