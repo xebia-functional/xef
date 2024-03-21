@@ -47,7 +47,7 @@ data class SuiteSpec(
     return items.map { item ->
       val res =
         item.outputs.mapIndexed { index, output ->
-          val description = outputsDescription[index]
+          val description = outputsDescription[index] // TODO Validate if index is valid
           val classification = AI.classify<E>(item.input, item.context, output, model = model)
           OutputResult(item.input, description, output, classification)
         }
