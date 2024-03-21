@@ -1,6 +1,7 @@
 package org.example.detekt
 
 import io.gitlab.arturbosch.detekt.api.*
+import org.jetbrains.kotlin.descriptors.runtime.structure.desc
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtNamedFunction
@@ -14,7 +15,7 @@ class PublicDataClassConstructorWithValueParameters(config: Config) : Rule(confi
 
   override val issue: Issue =
     Issue(
-      javaClass.simpleName,
+      javaClass.sim,
       Severity.Defect,
       "This rule reports public data classes that are incompatible with other jvm languages.",
       Debt.FIVE_MINS

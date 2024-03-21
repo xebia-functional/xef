@@ -51,3 +51,5 @@ src/commonMain/kotlin/com/xebia/functional/openai/models/ChatCompletionRequestMe
 src/commonMain/kotlin/com/xebia/functional/openai/models/ChatCompletionRequestMessageContentPartImageImageUrl.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/RunStepDetailsMessageCreationObject.kt
 src/commonMain/kotlin/com/xebia/functional/openai/models/RunStepDetailsToolCallsObject.kt
+build.gradle
+settings.gradle

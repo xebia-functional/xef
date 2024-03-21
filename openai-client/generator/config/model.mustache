@@ -1,0 +1,33 @@
+{{>licenseInfo}}
+package {{modelPackage}}
+
+{{#imports}}import {{import}}
+{{/imports}}
+
+{{#models}}
+{{#model}}
+{{#oneOf}}
+{{#-first}}
+import kotlin.jvm.JvmInline
+
+sealed interface {{classname}} {
+
+{{/-first}}
+@JvmInline
+value class {{#lambda.uniqueName}}{{-index}}{{/lambda.uniqueName}}(val {{#lambda.type-to-name}}{{{.}}}{{/lambda.type-to-name}}value: {{{.}}}): {{classname}}
+
+{{#-last}}
+}
+{{/-last}}
+{{/oneOf}}
+{{^oneOf}}
+{{#isEnum}}{{>enum_class}}{{/isEnum}}
+{{^isEnum}}
+{{#isAlias}}typealias {{classname}} = {{{dataType}}}{{/isAlias}}
+{{^isAlias}}
+{{>data_class}}
+{{/isAlias}}
+{{/isEnum}}
+{{/oneOf}}
+{{/model}}
+{{/models}}
