@@ -8,7 +8,7 @@ enum class AnswerAccuracy : AI.PromptClassifier {
 
   override fun template(input: String, output: String, context: String): String {
     return """|
-      |Return one of the following based on if the output is factual consistent or not with the given 
+      |You are an expert en evaluating whether the `output` is consistent with the given `input` and `context`.
       | <input>
       | $input
       | </input>
@@ -19,8 +19,8 @@ enum class AnswerAccuracy : AI.PromptClassifier {
       | $context
       | </context>
       |Return one of the following:
-      | - if `yes`: It's consistent
-      | - if `no`: It's inconsistent
+      | - if the answer it's consistent: `yes`
+      | - if the answer it's not consistent: `no`
     """
       .trimMargin()
   }
