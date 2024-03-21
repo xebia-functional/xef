@@ -6,7 +6,7 @@ authors = ["Xef"]
 
 [tool.poetry.dependencies]
 python = "~3.10.0"
-deepeval = "0.20.19"
+deepeval = "0.20.24"
 
 [build-system]
 requires = ["poetry-core"]
