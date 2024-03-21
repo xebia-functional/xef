@@ -1,6 +1,7 @@
 package com.xebia.functional.xef.evaluator.models
 
 import kotlin.jvm.JvmSynthetic
+import kotlinx.serialization.Serializable
 
 data class OutputDescription(val value: String)
 
@@ -12,4 +13,4 @@ data class OutputResponse(val value: String) {
   }
 }
 
-data class ContextDescription(val value: String)
+@Serializable data class ContextDescription(val value: String)

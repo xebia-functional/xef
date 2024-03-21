@@ -5,17 +5,17 @@ import com.xebia.functional.xef.evaluator.models.OutputResponse
 
 class TestItemBuilder(val input: String) {
 
-  private val context = mutableListOf<String>()
+  private lateinit var context: String
 
   private val outputs = mutableListOf<String>()
 
   operator fun ContextDescription.unaryPlus() {
-    context.add(value)
+    context = value
   }
 
   operator fun OutputResponse.unaryPlus() {
     outputs.add(value)
   }
 
-  fun build() = TestSpecItem(input, context, outputs)
+  fun build() = ItemSpec(input, context, outputs)
 }

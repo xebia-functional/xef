@@ -1,21 +1,26 @@
 package com.xebia.functional.xef.evaluator
 
+import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
+import com.xebia.functional.xef.AI
+import com.xebia.functional.xef.evaluator.models.EvaluateResults
 import com.xebia.functional.xef.evaluator.models.OutputDescription
+import com.xebia.functional.xef.evaluator.models.OutputResult
 import kotlin.jvm.JvmSynthetic
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-class SuiteBuilder(private val description: String, private val metric: String) {
+class SuiteBuilder(
+  private val description: String,
+  private val model: CreateChatCompletionRequestModel
+) {
 
   private val outputsDescription: MutableList<String> = mutableListOf()
 
-  private var minimumScore: Double = 0.7
+  private val items = mutableListOf<ItemSpec>()
 
-  private val items = mutableListOf<TestSpecItem>()
-
-  operator fun TestSpecItem.unaryPlus() {
+  operator fun ItemSpec.unaryPlus() {
     items.add(this)
   }
 
@@ -23,34 +28,47 @@ class SuiteBuilder(private val description: String, private val metric: String) 
     outputsDescription.add(this.value)
   }
 
-  fun build() = TestsSpec(description, metric, outputsDescription, minimumScore, items)
+  fun build() = SuiteSpec(description, outputsDescription, items, model = model)
 }
 
 @Serializable
-data class TestsSpec(
+data class SuiteSpec(
   val description: String,
-  val metric: String,
   @SerialName("outputs_description") val outputsDescription: List<String>,
-  @SerialName("minimum_score") val minimumScore: Double,
-  val items: List<TestSpecItem>
+  val items: List<ItemSpec>,
+  val model: CreateChatCompletionRequestModel
 ) {
 
   fun toJSON(): String = Json.encodeToString(this)
+
+  suspend inline fun <reified E> evaluate(): List<EvaluateResults<E>> where
+  E : AI.PromptClassifier,
+  E : Enum<E> {
+    return items.map { item ->
+      val res =
+        item.outputs.mapIndexed { index, output ->
+          val description = outputsDescription[index]
+          val classification = AI.classify<E>(item.input, item.context, output, model = model)
+          OutputResult(item.input, description, output, classification)
+        }
+      EvaluateResults(description, res)
+    }
+  }
 
   companion object {
     @JvmSynthetic
     suspend operator fun invoke(
       description: String,
-      metric: String = "FactualConsistencyMetric",
+      model: CreateChatCompletionRequestModel,
       block: suspend SuiteBuilder.() -> Unit
-    ): TestsSpec = SuiteBuilder(description, metric).apply { block() }.build()
+    ): SuiteSpec = SuiteBuilder(description, model).apply { block() }.build()
   }
 }
 
 @Serializable
-data class TestSpecItem(
+data class ItemSpec(
   val input: String,
-  val context: List<String>,
+  val context: String,
   @SerialName("actual_outputs") val outputs: List<String>
 ) {
   companion object {
@@ -58,6 +76,6 @@ data class TestSpecItem(
     suspend operator fun invoke(
       input: String,
       block: suspend TestItemBuilder.() -> Unit
-    ): TestSpecItem = TestItemBuilder(input).apply { block() }.build()
+    ): ItemSpec = TestItemBuilder(input).apply { block() }.build()
   }
 }
