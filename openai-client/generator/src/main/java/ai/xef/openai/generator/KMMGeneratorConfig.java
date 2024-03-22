@@ -11,6 +11,7 @@ import org.openapitools.codegen.model.ModelsMap;
 import org.openapitools.codegen.model.OperationMap;
 import org.openapitools.codegen.model.OperationsMap;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.*;
@@ -25,15 +26,15 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
 
     public KMMGeneratorConfig() {
         super();
-        setModelPackage("com.xebia.functional.openai.generated.model");
-        setApiPackage("com.xebia.functional.openai.generated.api");
-        setApiNameSuffix("");
 
         // Generate in src/commonMain/kotlin, not /src/main/kotlin
         additionalProperties.put("sourceFolder", "src/commonMain/kotlin");
         additionalProperties.put("generateModelTests", false);
         additionalProperties.put("generateApiTests", false);
         additionalProperties.put("generateInfrastructure", false);
+        setModelPackage("com.xebia.functional.openai.generated.model");
+        setApiPackage("com.xebia.functional.openai.generated.api");
+        additionalProperties.put("apiSuffix", "");
 
         // Configure OpenAI `object` to be mapped to `JsonObject`
         typeMapping.put("object", "JsonObject");
@@ -52,6 +53,7 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
 
         // Configure the template directory
         templateDir = "config";
+        supportingFiles.add(new SupportingFile("openai.mustache", "src/commonMain/kotlin/" + apiPackage.replace(".", "/"), "OpenAI.kt"));
 
         omitGradleWrapper = true;
         serializationLibrary = SERIALIZATION_LIBRARY_TYPE.kotlinx_serialization;

@@ -6,8 +6,7 @@
 
 package com.xebia.functional.openai.generated.model
 
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
+import kotlinx.serialization.*
 
 /**
  * Two content moderations models are available: `text-moderation-stable` and
@@ -32,17 +31,4 @@ enum class CreateModerationRequestModel(val value: kotlin.String) {
    * client sends the correct enum values to the server always.
    */
   override fun toString(): kotlin.String = value
-
-  companion object {
-    /** Converts the provided [data] to a [String] on success, null otherwise. */
-    fun encode(data: kotlin.Any?): kotlin.String? =
-      if (data is CreateModerationRequestModel) "$data" else null
-
-    /** Returns a valid [CreateModerationRequestModel] for [data], null otherwise. */
-    fun decode(data: kotlin.Any?): CreateModerationRequestModel? =
-      data?.let {
-        val normalizedData = "$it".lowercase()
-        values().firstOrNull { value -> it == value || normalizedData == "$value".lowercase() }
-      }
-  }
 }

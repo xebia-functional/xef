@@ -1,0 +1,23 @@
+{{#apiInfo}}
+{{>licenseInfo}}
+package {{apiPackage}}
+
+import io.ktor.client.HttpClient
+{{#imports}}import {{import}}
+{{/imports}}
+{{#apis}}import com.xebia.functional.openai.generated.api.{{classFilename}}
+{{/apis}}
+
+interface OpenAI {
+{{#apis}}
+  val {{#lambda.camelcase}}{{classFilename}}{{/lambda.camelcase}}: {{classFilename}}
+{{/apis}}
+}
+
+fun OpenAI(client: HttpClient): OpenAI = object : OpenAI {
+{{#apis}}
+  override val {{#lambda.camelcase}}{{classFilename}}{{/lambda.camelcase}} = {{classFilename}}(client)
+{{/apis}}
+}
+
+{{/apiInfo}}

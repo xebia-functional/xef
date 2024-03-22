@@ -6,8 +6,7 @@
 
 package com.xebia.functional.openai.generated.model
 
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
+import kotlinx.serialization.*
 
 /**
  * One of the available [TTS models](/docs/models/tts): `tts-1` or `tts-1-hd`
@@ -28,17 +27,4 @@ enum class CreateSpeechRequestModel(val value: kotlin.String) {
    * client sends the correct enum values to the server always.
    */
   override fun toString(): kotlin.String = value
-
-  companion object {
-    /** Converts the provided [data] to a [String] on success, null otherwise. */
-    fun encode(data: kotlin.Any?): kotlin.String? =
-      if (data is CreateSpeechRequestModel) "$data" else null
-
-    /** Returns a valid [CreateSpeechRequestModel] for [data], null otherwise. */
-    fun decode(data: kotlin.Any?): CreateSpeechRequestModel? =
-      data?.let {
-        val normalizedData = "$it".lowercase()
-        values().firstOrNull { value -> it == value || normalizedData == "$value".lowercase() }
-      }
-  }
 }
