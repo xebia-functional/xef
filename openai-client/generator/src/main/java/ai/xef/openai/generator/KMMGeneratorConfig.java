@@ -3,23 +3,20 @@ package ai.xef.openai.generator;
 import com.google.common.collect.ImmutableMap;
 import com.samskivert.mustache.Mustache;
 import com.samskivert.mustache.Template;
-import io.swagger.v3.oas.models.media.Schema;
+import org.apache.commons.lang3.tuple.Pair;
 import org.openapitools.codegen.*;
 import org.openapitools.codegen.languages.KotlinClientCodegen;
 import org.openapitools.codegen.model.ModelMap;
 import org.openapitools.codegen.model.ModelsMap;
-import org.openapitools.codegen.model.OperationMap;
 import org.openapitools.codegen.model.OperationsMap;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static java.util.Map.entry;
 
+@SuppressWarnings("unused")
 public class KMMGeneratorConfig extends KotlinClientCodegen {
 
     private final Map<String, List<String>> nonRequiredFields = new LinkedHashMap<>();
@@ -108,6 +105,43 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
         return Optional.empty();
     }
 
+    /**
+     * Map<OperationId, StreamedReturnType>
+     *     Used to generate additional code for operations that support streaming.
+     * <p>
+     * Extra streaming operation will be generated for OperationId, and the return type will be Flow<StreamedReturnType>.
+     */
+    private final static Map<String, Pair<String, String>> streamingOps = Map.of(
+            "createThreadAndRun", Pair.of("com.xebia.functional.openai", "AssistantEvent"),
+            "createRun", Pair.of("com.xebia.functional.openai", "AssistantEvent"),
+            "createChatCompletion", Pair.of("com.xebia.functional.openai.generated.model", "CreateChatCompletionStreamResponse")
+    );
+
+    /**
+     * Add the `x-streaming` vendor extension to the operations that are streaming,
+     * and add `x-streaming-return` of the return type of the operation.
+     * <p>
+     * This is used in the mustache template to generate additional code for operations that support streaming.
+     */
+    @Override
+    public OperationsMap postProcessOperationsWithModels(OperationsMap objs, List<ModelMap> allModels) {
+        objs.getOperations()
+                .getOperation()
+                .forEach((op) -> {
+                            if (streamingOps.containsKey(op.operationId)) {
+                                op.vendorExtensions.put("x-streaming", true);
+                                Pair<String, String> returnType = streamingOps.get(op.operationId);
+                                objs.getImports().add(Map.of(
+                                        "import", returnType.getKey() + "." + returnType.getValue(),
+                                        "classname", returnType.getValue()
+                                ));
+                                op.vendorExtensions.put("x-streaming-return", returnType.getValue());
+                            }
+                        }
+                );
+        return super.postProcessOperationsWithModels(objs, allModels);
+    }
+
     @Override
     public ModelsMap postProcessModels(ModelsMap objs) {
         for (ModelMap mo : objs.getModels()) {
@@ -137,6 +171,7 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
         return super.postProcessModels(objs);
     }
 
+    // TODO replace by vendor-extension `x-jsname`
     @Override
     public String toEnumVarName(String value, String datatype) {
         String varName;
@@ -162,7 +197,7 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
      * and a `data class OneOfName.names(...)` for each of the `oneOf` cases.
      */
     public static class OneOfName implements Mustache.Lambda {
-        private List<String> names = List.of(
+        private final List<String> names = List.of(
                 "First",
                 "Second",
                 "Third",
@@ -181,7 +216,9 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
         }
     }
 
-    /** Lambda to capitalise the first letter of a string, and lowercase the rest. */
+    /**
+     * Lambda to capitalise the first letter of a string, and lowercase the rest.
+     */
     public static class Capitalised implements Mustache.Lambda {
         public void execute(Template.Fragment fragment, Writer writer) throws IOException {
             String text = fragment.execute();

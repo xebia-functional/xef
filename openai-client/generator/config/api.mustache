@@ -3,25 +3,35 @@ package {{apiPackage}}
 
 {{#imports}}import {{import}}
 {{/imports}}
-import com.xebia.functional.openai.generated.api.{{classname}}.*
 import com.xebia.functional.openai.UploadFile
-import com.xebia.functional.openai.appendUploadedFile
 import com.xebia.functional.openai.appendGen
+import com.xebia.functional.openai.generated.api.{{classname}}.*
+import com.xebia.functional.openai.streamEvents
 import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.plugins.timeout
+import io.ktor.client.request.accept
+import io.ktor.client.request.header
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.parameter
-import io.ktor.client.call.body
+import io.ktor.client.request.prepareRequest
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.HttpStatement
 import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.contentType
 import io.ktor.http.path
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
 import kotlinx.serialization.json.Json
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.DurationUnit
 
 {{#operations}}
 /**
@@ -61,6 +71,10 @@ interface {{classname}} {
     {{/allParams}} * @return {{{returnType}}}{{^returnType}}void{{/returnType}}
     */
     suspend fun {{operationId}}({{#allParams}}{{{paramName}}}: {{#isEnum}}{{# isContainer}}kotlin.collections.List<{{enumName}}{{operationIdCamelCase}}>{{/isContainer}}{{^isContainer}}{{enumName}}{{operationIdCamelCase}}{{/isContainer}}{{/isEnum}}{{^isEnum}}{{{dataType}}}{{/isEnum}}{{#required}}{{#defaultValue}} = {{^isNumber}}{{#isEnum}}{{enumName}}{{operationIdCamelCase}}.{{enumDefaultValue}}{{/isEnum}}{{^isEnum}}{{{defaultValue}}}{{/isEnum}}{{/isNumber}}{{#isNumber}}{{{defaultValue}}}.toDouble(){{/isNumber}}{{/defaultValue}}{{/required}}{{^required}}?{{#defaultValue}} = {{^isNumber}}{{#isEnum}}{{enumName}}{{operationIdCamelCase}}.{{enumDefaultValue}}{{/isEnum}}{{^isEnum}}{{{defaultValue}}}{{/isEnum}}{{/isNumber}}{{#isNumber}}{{{defaultValue}}}.toDouble(){{/isNumber}}{{/defaultValue}}{{^defaultValue}} = null{{/defaultValue}}{{/required}}{{^-last}}, {{/-last}}{{/allParams}}): {{#returnProperty}}{{#isFile}}HttpResponse{{/isFile}}{{^isFile}}{{{returnType}}}{{^returnType}}Unit{{/returnType}}{{/isFile}}{{/returnProperty}}
+
+    {{#vendorExtensions.x-streaming}}
+    fun {{operationId}}Stream({{#allParams}}{{{paramName}}}: {{#isEnum}}{{# isContainer}}kotlin.collections.List<{{enumName}}{{operationIdCamelCase}}>{{/isContainer}}{{^isContainer}}{{enumName}}{{operationIdCamelCase}}{{/isContainer}}{{/isEnum}}{{^isEnum}}{{{dataType}}}{{/isEnum}}{{#required}}{{#defaultValue}} = {{^isNumber}}{{#isEnum}}{{enumName}}{{operationIdCamelCase}}.{{enumDefaultValue}}{{/isEnum}}{{^isEnum}}{{{defaultValue}}}{{/isEnum}}{{/isNumber}}{{#isNumber}}{{{defaultValue}}}.toDouble(){{/isNumber}}{{/defaultValue}}{{/required}}{{^required}}?{{#defaultValue}} = {{^isNumber}}{{#isEnum}}{{enumName}}{{operationIdCamelCase}}.{{enumDefaultValue}}{{/isEnum}}{{^isEnum}}{{{defaultValue}}}{{/isEnum}}{{/isNumber}}{{#isNumber}}{{{defaultValue}}}.toDouble(){{/isNumber}}{{/defaultValue}}{{^defaultValue}} = null{{/defaultValue}}{{/required}}{{^-last}}, {{/-last}}{{/allParams}}): Flow<{{{vendorExtensions.x-streaming-return}}}>
+    {{/vendorExtensions.x-streaming}}
     {{/operation}}
 }
 {{/operations}}
@@ -107,6 +121,56 @@ fun {{classname}}(client: HttpClient): {{classname}} = object : {{classname}} {
             {{/hasFormParams}}
         {{/hasBodyParam}})
       }{{#returnProperty}}{{^isFile}}.body(){{/isFile}}{{/returnProperty}}
+
+    {{#vendorExtensions.x-streaming}}
+    override fun {{operationId}}Stream({{#allParams}}{{{paramName}}}: {{#isEnum}}{{# isContainer}}kotlin.collections.List<{{enumName}}{{operationIdCamelCase}}>{{/isContainer}}{{^isContainer}}{{enumName}}{{operationIdCamelCase}}{{/isContainer}}{{/isEnum}}{{^isEnum}}{{{dataType}}}{{/isEnum}}{{#required}}{{#defaultValue}} = {{^isNumber}}{{#isEnum}}{{enumName}}{{operationIdCamelCase}}.{{enumDefaultValue}}{{/isEnum}}{{^isEnum}}{{{defaultValue}}}{{/isEnum}}{{/isNumber}}{{#isNumber}}{{{defaultValue}}}.toDouble(){{/isNumber}}{{/defaultValue}}{{/required}}{{^required}}?{{#defaultValue}} = {{^isNumber}}{{#isEnum}}{{enumName}}{{operationIdCamelCase}}.{{enumDefaultValue}}{{/isEnum}}{{^isEnum}}{{{defaultValue}}}{{/isEnum}}{{/isNumber}}{{#isNumber}}{{{defaultValue}}}.toDouble(){{/isNumber}}{{/defaultValue}}{{^defaultValue}} = null{{/defaultValue}}{{/required}}{{^-last}}, {{/-last}}{{/allParams}}): Flow<{{{vendorExtensions.x-streaming-return}}}> = flow {
+      client.prepareRequest {
+        method = HttpMethod.{{#lambda.capitalised}}{{httpMethod}}{{/lambda.capitalised}}
+        timeout {
+          requestTimeoutMillis = 60.seconds.toLong(DurationUnit.MILLISECONDS)
+          socketTimeoutMillis = 60.seconds.toLong(DurationUnit.MILLISECONDS)
+        }
+        accept(ContentType.Text.EventStream)
+        header(HttpHeaders.CacheControl, "no-cache")
+        header(HttpHeaders.Connection, "keep-alive")
+        {{#headerParams}}
+        header("{{baseName}}", {{#isContainer}}this.joinToString(separator = collectionDelimiter("{{collectionFormat}}")){{/isContainer}}{{^isContainer}}this.toString(){{/isContainer}})
+        {{/headerParams}}
+        contentType(ContentType.Application.Json)
+        {{#queryParams}}
+            parameter("{{baseName}}", {{#isContainer}}toMultiValue(this, "{{collectionFormat}}"){{/isContainer}}{{^isContainer}}listOf("${{{paramName}}}"){{/isContainer}})
+        {{/queryParams}}
+        url { path("{{path}}"{{#pathParams}}.replace("{" + "{{baseName}}" + "}", {{#isContainer}}{{paramName}}.joinToString(","){{/isContainer}}{{^isContainer}}"${{{paramName}}}"{{/isContainer}}){{/pathParams}}) }
+        setBody({{#hasBodyParam}}{{#bodyParam}}{{#isArray}}{{operationIdCamelCase}}Request({{{paramName}}}{{^isList}}.asList(){{/isList}}){{/isArray}}{{^isArray}}{{#isMap}}{{operationIdCamelCase}}Request({{{paramName}}}){{/isMap}}{{^isMap}}{{{paramName}}}{{/isMap}}{{/isArray}}{{/bodyParam}}{{/hasBodyParam}}
+        {{^hasBodyParam}}
+            {{#hasFormParams}}
+                {{#isMultipart}}
+                    formData {
+                    {{#formParams}}
+                        {{#isArray}}
+                            {{{paramName}}}?.onEach { appendGen("{{{baseName}}}[]", it) }
+                        {{/isArray}}
+                        {{^isArray}}
+                            {{{paramName}}}?.apply { appendGen("{{{baseName}}}", {{{paramName}}}) }
+                        {{/isArray}}
+                    {{/formParams}}
+                    }
+                {{/isMultipart}}
+                {{^isMultipart}}
+                    ParametersBuilder().also {
+                    {{#formParams}}
+                        {{{paramName}}}?.apply { it.append("{{{baseName}}}", {{{paramName}}}.toString()) }
+                    {{/formParams}}
+                    }.build()
+                {{/isMultipart}}
+            {{/hasFormParams}}
+            {{^hasFormParams}}
+                io.ktor.client.utils.EmptyContent
+            {{/hasFormParams}}
+        {{/hasBodyParam}})
+      }.execute(::streamEvents)
+    }
+    {{/vendorExtensions.x-streaming}}
 {{/operation}}
 }
 {{/operations}}

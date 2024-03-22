@@ -6,6 +6,7 @@
 
 package com.xebia.functional.openai.generated.api
 
+import com.xebia.functional.openai.AssistantEvent
 import com.xebia.functional.openai.generated.api.Assistants.*
 import com.xebia.functional.openai.generated.model.AssistantFileObject
 import com.xebia.functional.openai.generated.model.AssistantObject
@@ -34,15 +35,25 @@ import com.xebia.functional.openai.generated.model.RunObject
 import com.xebia.functional.openai.generated.model.RunStepObject
 import com.xebia.functional.openai.generated.model.SubmitToolOutputsRunRequest
 import com.xebia.functional.openai.generated.model.ThreadObject
+import com.xebia.functional.openai.streamEvents
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.plugins.timeout
+import io.ktor.client.request.accept
+import io.ktor.client.request.header
 import io.ktor.client.request.parameter
+import io.ktor.client.request.prepareRequest
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.contentType
 import io.ktor.http.path
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.DurationUnit
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
@@ -102,6 +113,11 @@ interface Assistants {
    */
   suspend fun createRun(threadId: kotlin.String, createRunRequest: CreateRunRequest): RunObject
 
+  fun createRunStream(
+    threadId: kotlin.String,
+    createRunRequest: CreateRunRequest
+  ): Flow<AssistantEvent>
+
   /**
    * Create a thread.
    *
@@ -117,6 +133,10 @@ interface Assistants {
    * @return RunObject
    */
   suspend fun createThreadAndRun(createThreadAndRunRequest: CreateThreadAndRunRequest): RunObject
+
+  fun createThreadAndRunStream(
+    createThreadAndRunRequest: CreateThreadAndRunRequest
+  ): Flow<AssistantEvent>
 
   /**
    * Delete an assistant.
@@ -575,6 +595,27 @@ fun Assistants(client: HttpClient): Assistants =
         }
         .body()
 
+    override fun createRunStream(
+      threadId: kotlin.String,
+      createRunRequest: CreateRunRequest
+    ): Flow<AssistantEvent> = flow {
+      client
+        .prepareRequest {
+          method = HttpMethod.Post
+          timeout {
+            requestTimeoutMillis = 60.seconds.toLong(DurationUnit.MILLISECONDS)
+            socketTimeoutMillis = 60.seconds.toLong(DurationUnit.MILLISECONDS)
+          }
+          accept(ContentType.Text.EventStream)
+          header(HttpHeaders.CacheControl, "no-cache")
+          header(HttpHeaders.Connection, "keep-alive")
+          contentType(ContentType.Application.Json)
+          url { path("/threads/{thread_id}/runs".replace("{" + "thread_id" + "}", "$threadId")) }
+          setBody(createRunRequest)
+        }
+        .execute(::streamEvents)
+    }
+
     override suspend fun createThread(
       createThreadRequest: CreateThreadRequest?,
     ): ThreadObject =
@@ -598,6 +639,26 @@ fun Assistants(client: HttpClient): Assistants =
           setBody(createThreadAndRunRequest)
         }
         .body()
+
+    override fun createThreadAndRunStream(
+      createThreadAndRunRequest: CreateThreadAndRunRequest
+    ): Flow<AssistantEvent> = flow {
+      client
+        .prepareRequest {
+          method = HttpMethod.Post
+          timeout {
+            requestTimeoutMillis = 60.seconds.toLong(DurationUnit.MILLISECONDS)
+            socketTimeoutMillis = 60.seconds.toLong(DurationUnit.MILLISECONDS)
+          }
+          accept(ContentType.Text.EventStream)
+          header(HttpHeaders.CacheControl, "no-cache")
+          header(HttpHeaders.Connection, "keep-alive")
+          contentType(ContentType.Application.Json)
+          url { path("/threads/runs") }
+          setBody(createThreadAndRunRequest)
+        }
+        .execute(::streamEvents)
+    }
 
     override suspend fun deleteAssistant(
       assistantId: kotlin.String,
