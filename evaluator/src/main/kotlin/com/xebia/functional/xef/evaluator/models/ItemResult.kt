@@ -17,6 +17,6 @@ E : AI.PromptClassifier,
 E : Enum<E>
 
 @Serializable
-data class OutputResult<E>(val contextDescription: String, val output: String, val result: E) where
+data class OutputResult<E>(val description: String, val contextDescription: String, val output: String, val result: E) where
 E : AI.PromptClassifier,
 E : Enum<E>

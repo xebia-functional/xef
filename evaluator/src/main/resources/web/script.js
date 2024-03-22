@@ -36,6 +36,10 @@ document.addEventListener('DOMContentLoaded', function() {
         blockDiv.appendChild(title);
 
         block.items.forEach(test => {
+            const itemDescription = document.createElement('div');
+            itemDescription.textContent = 'Description: ' + test.description;
+            blockDiv.appendChild(itemDescription);
+
             const context = document.createElement('div');
             context.textContent = 'Context: ' + test.contextDescription;
             blockDiv.appendChild(context);

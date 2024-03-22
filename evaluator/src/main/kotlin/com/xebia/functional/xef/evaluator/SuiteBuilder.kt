@@ -44,7 +44,7 @@ data class SuiteSpec(
           item.outputs.map { output ->
             val classification =
               AI.classify<E>(item.input, item.context, output.value, model = model)
-            OutputResult(output.description.value, output.value, classification)
+            OutputResult(output.description.value, item.context, output.value, classification)
           }
         ItemResult(item.input, outputResults)
       }
