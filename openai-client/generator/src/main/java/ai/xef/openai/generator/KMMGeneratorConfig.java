@@ -149,47 +149,6 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
     }
 
     @Override
-    public OperationsMap postProcessOperationsWithModels(OperationsMap objs, List<ModelMap> allModels) {
-        super.postProcessOperationsWithModels(objs, allModels);
-        OperationMap operations = objs.getOperations();
-        if (operations != null) {
-            List<CodegenOperation> ops = operations.getOperation();
-            for (CodegenOperation operation : ops) {
-                // modify the data type of binary form parameters to a more friendly type for ktor builds
-                if ((JVM_KTOR.equals(getLibrary()) || MULTIPLATFORM.equals(getLibrary())) && operation.allParams != null) {
-                    for (CodegenParameter param : operation.allParams) {
-                        if (param.dataFormat != null && param.dataFormat.equals("binary")) {
-                            param.baseType = param.dataType = "com.xebia.functional.openai.apis.UploadFile";
-                        }
-                    }
-                }
-            }
-        }
-        return objs;
-    }
-
-    private final Pattern enumArrayPattern = Pattern.compile("arrayListOf\\((.+)\\)");
-
-    public String toDefaultValue(CodegenProperty codegenProperty, Schema schema) {
-        String defaultValue = super.toDefaultValue(codegenProperty, schema);
-        if (defaultValue != null && codegenProperty.isEnum) {
-            Matcher matcher = enumArrayPattern.matcher(defaultValue);
-            if (matcher.find()) {
-                /*
-                 * Replace the default value of an enum property from `arrayListOf(defaultEnumValue)` to `defaultEnumValue.asListOfOne()`
-                 * This is because the `api.mustache` template prefixes the default value with the Enum type:
-                 *   - `EnumType.arrayListOf(defaultEnumValue)` -> `EnumType.defaultEnumValue.asListOfOne()`
-                 */
-                return matcher.replaceFirst("$1.asListOfOne()");
-            } else {
-                return defaultValue;
-            }
-        } else {
-            return defaultValue;
-        }
-    }
-
-    @Override
     protected ImmutableMap.Builder<String, Mustache.Lambda> addMustacheLambdas() {
         return super.addMustacheLambdas()
                 .put("oneOfName", new OneOfName())
