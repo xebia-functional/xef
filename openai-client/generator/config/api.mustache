@@ -1,0 +1,98 @@
+{{>licenseInfo}}
+package {{apiPackage}}
+
+{{#imports}}import {{import}}
+{{/imports}}
+import com.xebia.functional.openai.UploadFile
+import com.xebia.functional.openai.appendUploadedFile
+import com.xebia.functional.openai.appendGen
+import io.ktor.client.HttpClient
+import io.ktor.client.request.forms.formData
+import io.ktor.client.request.parameter
+import io.ktor.client.call.body
+import io.ktor.client.request.request
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
+import io.ktor.http.ContentType
+import io.ktor.http.HttpMethod
+import io.ktor.http.contentType
+import io.ktor.http.path
+import kotlinx.serialization.*
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.encoding.*
+import kotlinx.serialization.json.Json
+
+{{#operations}}
+    {{#operation}}
+        {{#allParams}}
+            {{#isEnum}}
+
+                /**
+                * enum for parameter {{paramName}}
+                */
+                @Serializable
+                {{#nonPublicApi}}internal {{/nonPublicApi}}enum class {{enumName}}{{operationIdCamelCase}}(val value: {{^isContainer}}{{dataType}}{{/isContainer}}{{#isContainer}}kotlin.String{{/isContainer}}) {
+                {{^enumUnknownDefaultCase}}
+                    {{#allowableValues}}{{#enumVars}}
+                        @SerialName(value = {{^isString}}"{{/isString}}{{{value}}}{{^isString}}"{{/isString}})
+                        {{&name}}({{{value}}}){{^-last}},{{/-last}}
+                    {{/enumVars}}{{/allowableValues}}
+                {{/enumUnknownDefaultCase}}
+                {{#enumUnknownDefaultCase}}
+                    {{#allowableValues}}{{#enumVars}}{{^-last}}
+                        @SerialName(value = {{^isString}}"{{/isString}}{{{value}}}{{^isString}}"{{/isString}})
+                        {{&name}}({{{value}}}),
+                    {{/-last}}{{/enumVars}}{{/allowableValues}}
+                {{/enumUnknownDefaultCase}}
+                }
+
+            {{/isEnum}}
+        {{/allParams}}
+
+    /**
+    * {{summary}}
+    * {{notes}}
+    {{#allParams}} * @param {{{paramName}}} {{description}}{{^required}} (optional{{#defaultValue}}, default to {{{.}}}{{/defaultValue}}){{/required}}{{#required}}{{#defaultValue}} (default to {{{.}}}){{/defaultValue}}{{/required}}
+    {{/allParams}} * @return {{{returnType}}}{{^returnType}}void{{/returnType}}
+    */
+    suspend fun HttpClient.{{operationId}}({{#allParams}}{{{paramName}}}: {{#isEnum}}{{# isContainer}}kotlin.collections.List<{{enumName}}{{operationIdCamelCase}}>{{/isContainer}}{{^isContainer}}{{enumName}}{{operationIdCamelCase}}{{/isContainer}}{{/isEnum}}{{^isEnum}}{{{dataType}}}{{/isEnum}}{{#required}}{{#defaultValue}} = {{^isNumber}}{{#isEnum}}{{enumName}}{{operationIdCamelCase}}.{{enumDefaultValue}}{{/isEnum}}{{^isEnum}}{{{defaultValue}}}{{/isEnum}}{{/isNumber}}{{#isNumber}}{{{defaultValue}}}.toDouble(){{/isNumber}}{{/defaultValue}}{{/required}}{{^required}}?{{#defaultValue}} = {{^isNumber}}{{#isEnum}}{{enumName}}{{operationIdCamelCase}}.{{enumDefaultValue}}{{/isEnum}}{{^isEnum}}{{{defaultValue}}}{{/isEnum}}{{/isNumber}}{{#isNumber}}{{{defaultValue}}}.toDouble(){{/isNumber}}{{/defaultValue}}{{^defaultValue}} = null{{/defaultValue}}{{/required}}{{^-last}}, {{/-last}}{{/allParams}}): {{#returnProperty}}{{#isFile}}HttpResponse{{/isFile}}{{^isFile}}{{{returnType}}}{{^returnType}}Unit{{/returnType}}{{/isFile}}{{/returnProperty}} =
+      request {
+            method = HttpMethod.{{#lambda.capitalised}}{{httpMethod}}{{/lambda.capitalised}}
+            {{#headerParams}}
+            header("{{baseName}}", {{#isContainer}}this.joinToString(separator = collectionDelimiter("{{collectionFormat}}")){{/isContainer}}{{^isContainer}}this.toString(){{/isContainer}})
+            {{/headerParams}}
+            contentType(ContentType.Application.Json)
+            {{#queryParams}}
+            parameter("{{baseName}}", {{#isContainer}}toMultiValue(this, "{{collectionFormat}}"){{/isContainer}}{{^isContainer}}listOf("${{{paramName}}}"){{/isContainer}})
+            {{/queryParams}}
+            url { path("{{path}}"{{#pathParams}}.replace("{" + "{{baseName}}" + "}", {{#isContainer}}{{paramName}}.joinToString(","){{/isContainer}}{{^isContainer}}"${{{paramName}}}"{{/isContainer}}){{/pathParams}}) }
+            setBody({{#hasBodyParam}}{{#bodyParam}}{{#isArray}}{{operationIdCamelCase}}Request({{{paramName}}}{{^isList}}.asList(){{/isList}}){{/isArray}}{{^isArray}}{{#isMap}}{{operationIdCamelCase}}Request({{{paramName}}}){{/isMap}}{{^isMap}}{{{paramName}}}{{/isMap}}{{/isArray}}{{/bodyParam}}{{/hasBodyParam}}
+            {{^hasBodyParam}}
+                {{#hasFormParams}}
+                    {{#isMultipart}}
+                        formData {
+                        {{#formParams}}
+                            {{#isArray}}
+                                {{{paramName}}}?.onEach { appendGen("{{{baseName}}}[]", it) }
+                            {{/isArray}}
+                            {{^isArray}}
+                                {{{paramName}}}?.apply { appendGen("{{{baseName}}}", {{{paramName}}}) }
+                            {{/isArray}}
+                        {{/formParams}}
+                        }
+                    {{/isMultipart}}
+                    {{^isMultipart}}
+                        ParametersBuilder().also {
+                        {{#formParams}}
+                            {{{paramName}}}?.apply { it.append("{{{baseName}}}", {{{paramName}}}.toString()) }
+                        {{/formParams}}
+                        }.build()
+                    {{/isMultipart}}
+                {{/hasFormParams}}
+                {{^hasFormParams}}
+                    io.ktor.client.utils.EmptyContent
+                {{/hasFormParams}}
+            {{/hasBodyParam}})
+      }{{#returnProperty}}{{^isFile}}.body(){{/isFile}}{{/returnProperty}}
+    {{/operation}}
+{{/operations}}

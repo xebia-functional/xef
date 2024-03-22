@@ -1,0 +1,75 @@
+package {{apiPackage}}
+
+import kotlinx.serialization.*
+import de.jensklingenberg.ktorfit.http.Body
+import de.jensklingenberg.ktorfit.http.DELETE
+import de.jensklingenberg.ktorfit.http.GET
+import de.jensklingenberg.ktorfit.http.POST
+import de.jensklingenberg.ktorfit.http.Path
+import de.jensklingenberg.ktorfit.http.Query
+import de.jensklingenberg.ktorfit.http.Multipart
+import de.jensklingenberg.ktorfit.http.Part
+import io.ktor.client.statement.HttpResponse
+import io.ktor.http.content.MultiPartData
+
+{{#imports}}import {{import}}
+{{/imports}}
+
+{{#operations}}
+    interface {{classname}} {
+    {{#operation}}
+        {{#allParams}}
+            {{#isEnum}}
+
+                /**
+                * enum for parameter {{paramName}}
+                */
+                {{#nonPublicApi}}internal {{/nonPublicApi}}enum class {{enumName}}{{operationIdCamelCase}}(val value: {{^isContainer}}{{dataType}}{{/isContainer}}{{#isContainer}}kotlin.String{{/isContainer}}) {
+                {{^enumUnknownDefaultCase}}
+                    {{#allowableValues}}
+                        {{#enumVars}}
+                                @SerialName(value = {{^isString}}"{{/isString}}{{{value}}}{{^isString}}"{{/isString}}) {{&name}}({{{value}}}){{^-last}},{{/-last}}
+                        {{/enumVars}}
+                    {{/allowableValues}}
+                {{/enumUnknownDefaultCase}}
+                {{#enumUnknownDefaultCase}}
+                    {{#allowableValues}}
+                        {{#enumVars}}
+                            {{^-last}}
+                                    @SerialName(value = {{^isString}}"{{/isString}}{{{value}}}{{^isString}}"{{/isString}}) {{&name}}({{{value}}}),
+                            {{/-last}}
+                        {{/enumVars}}
+                    {{/allowableValues}}
+                {{/enumUnknownDefaultCase}}
+                }
+
+            {{/isEnum}}
+        {{/allParams}}
+        /**
+        * {{summary}}
+        * {{notes}}
+        * Responses:{{#responses}}
+            *  - {{code}}: {{{message}}}{{/responses}}
+        * @return {{#isResponseFile}}HttpResponse{{/isResponseFile}}{{^isResponseFile}}{{{returnType}}}{{^returnType}}Unit{{/returnType}}{{/isResponseFile}}
+        */
+        {{#isDeprecated}}
+            @Deprecated("This api was deprecated")
+        {{/isDeprecated}}
+        {{#formParams}}
+            {{#-first}}
+                {{#isMultipart}}@Multipart{{/isMultipart}}{{^isMultipart}}@FormUrlEncoded{{/isMultipart}}
+            {{/-first}}
+        {{/formParams}}
+        {{^formParams}}
+            {{#prioritizedContentTypes}}
+                {{#-first}}
+                    @Headers("Content-Type:{{{mediaType}}}")
+                {{/-first}}
+            {{/prioritizedContentTypes}}
+        {{/formParams}}
+        @{{httpMethod}}("{{{path}}}")
+        suspend fun {{operationId}}({{^allParams}}){{/allParams}}{{#allParams}}{{>queryParams}}{{>pathParams}}{{>headerParams}}{{>bodyParams}}{{>formParams}}{{^-last}}, {{/-last}}{{#-last}}){{/-last}}{{/allParams}}: {{#isResponseFile}}HttpResponse{{/isResponseFile}}{{^isResponseFile}}{{{returnType}}}{{^returnType}}Unit{{/returnType}}{{/isResponseFile}}
+
+    {{/operation}}
+        }
+{{/operations}}

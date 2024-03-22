@@ -6,6 +6,6 @@
 -keepclasseswithmembers class kotlinx.serialization.json.** { kotlinx.serialization.KSerializer serializer(...); }
 
 # project specific.
--keep,includedescriptorclasses class com.xebia.functional.openai.model.**$$serializer { *; }
--keepclassmembers class com.xebia.functional.openai.model.** { *** Companion; }
--keepclasseswithmembers class com.xebia.functional.openai.model.** { kotlinx.serialization.KSerializer serializer(...); }
+-keep,includedescriptorclasses class com.xebia.functional.openai.generated.model.**$$serializer { *; }
+-keepclassmembers class com.xebia.functional.openai.generated.model.** { *** Companion; }
+-keepclasseswithmembers class com.xebia.functional.openai.generated.model.** { kotlinx.serialization.KSerializer serializer(...); }

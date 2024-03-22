@@ -33,8 +33,9 @@ task("openaiClientGenerate", JavaExec::class) {
         "--skip-validate-spec",
 //        "-c",
 //        "config/openai-config.json",
-        "--global-property",
-        "debugModels=true"
+//        "--global-property",
+//        "debugModels=true"
+//        "debugOperations=true",
     )
     classpath = sourceSets["main"].runtimeClasspath
 }.finalizedBy(":xef-openai-client:spotlessApply")

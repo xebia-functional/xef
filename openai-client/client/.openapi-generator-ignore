@@ -53,3 +53,5 @@ src/commonMain/kotlin/com/xebia/functional/openai/models/RunStepDetailsMessageCr
 src/commonMain/kotlin/com/xebia/functional/openai/models/RunStepDetailsToolCallsObject.kt
 build.gradle
 settings.gradle
+/test/**
+/org/**

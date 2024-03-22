@@ -6,14 +6,11 @@ import com.samskivert.mustache.Template;
 import io.swagger.v3.oas.models.media.Schema;
 import org.openapitools.codegen.*;
 import org.openapitools.codegen.languages.KotlinClientCodegen;
-import org.openapitools.codegen.languages.KotlinSpringServerCodegen;
 import org.openapitools.codegen.model.ModelMap;
 import org.openapitools.codegen.model.ModelsMap;
 import org.openapitools.codegen.model.OperationMap;
 import org.openapitools.codegen.model.OperationsMap;
-import org.openapitools.codegen.templating.mustache.EscapeChar;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.*;
@@ -26,50 +23,29 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
 
     private final Map<String, List<String>> nonRequiredFields = new LinkedHashMap<>();
 
-    {
-        // Common setup
-//        groupId = "com.xebia.functional";
-//        artifactId = "openai-client";
-//        removeEnumValuePrefix = false;
-    }
-
     public KMMGeneratorConfig() {
         super();
-
-        modelPackage = "com.xebia.functional.openai.model";
-//        library = "multiplatform";
+        modelPackage = "com.xebia.functional.openai.generated.model";
+        apiPackage = "com.xebia.functional.openai.generated.api";
 
         // Generate in src/commonMain/kotlin, not /src/main/kotlin
         additionalProperties.put("sourceFolder", "src/commonMain/kotlin");
+        additionalProperties.put("generateModelTests", false);
+        additionalProperties.put("generateApiTests", false);
+        additionalProperties.put("generateInfrastructure", false);
 
         // Configure OpenAI `object` to be mapped to `JsonObject`
-        typeMapping.put("object",  "JsonObject");
+        typeMapping.put("object", "JsonObject");
         importMapping.put("JsonObject", "kotlinx.serialization.json.JsonObject");
 
         typeMapping.put("java.math.BigDecimal", "kotlin.Double");
         importMapping.put("BigDecimal", "kotlin.Double");
 
+        typeMapping.put("java.io.File", "UploadFile");
+        importMapping.put("java.io.File", "com.xebia.functional.openai.UploadFile");
+
         // Maps `Map<String, Any>` to `JsonObject`
         schemaMapping.put("FunctionParameters", "kotlinx.serialization.json.JsonObject");
-
-//        Map some schema names to custom classes
-//        schemaMapping.put("AssistantObject_tools_inner", "com.xebia.functional.openai.models.ext.assistant.AssistantTools");
-//        schemaMapping.put("ChatCompletionRequestMessage", "com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage");
-//        schemaMapping.put("ChatCompletionRequestUserMessage_content", "com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestUserMessageContent");
-//        schemaMapping.put("CreateChatCompletionRequest_stop", "com.xebia.functional.openai.models.ext.chat.create.CreateChatCompletionRequestStop");
-//        schemaMapping.put("CreateCompletionRequest_prompt", "com.xebia.functional.openai.models.ext.completion.create.CreateCompletionRequestPrompt");
-//        schemaMapping.put("CreateCompletionRequest_stop", "com.xebia.functional.openai.models.ext.completion.create.CreateCompletionRequestStop");
-//        schemaMapping.put("ChatCompletionToolChoiceOption", "com.xebia.functional.openai.models.ext.chat.ChatCompletionToolChoiceOption");
-//        schemaMapping.put("CreateChatCompletionRequest_tool_choice", "com.xebia.functional.openai.models.ext.chat.ChatCompletionToolChoiceOption");
-//        schemaMapping.put("CreateEmbeddingRequest_input", "com.xebia.functional.openai.models.ext.embedding.create.CreateEmbeddingRequestInput");
-//        schemaMapping.put("CreateFineTuneRequest_hyperparameters_n_epochs", "com.xebia.functional.openai.models.ext.finetune.create.CreateFineTuneRequestHyperparametersNEpochs");
-//        schemaMapping.put("CreateFineTuningJobRequest_hyperparameters_batch_size", "com.xebia.functional.openai.models.ext.finetune.job.create.CreateFineTuningJobRequestHyperparametersBatchSize");
-//        schemaMapping.put("CreateFineTuningJobRequest_hyperparameters_learning_rate_multiplier", "com.xebia.functional.openai.models.ext.finetune.job.create.CreateFineTuningJobRequestHyperparametersLearningRateMultiplier");
-//        schemaMapping.put("CreateFineTuningJobRequest_hyperparameters_n_epochs", "com.xebia.functional.openai.models.ext.finetune.job.create.CreateFineTuningJobRequestHyperparametersNEpochs");
-//        schemaMapping.put("CreateModerationRequest_input", "com.xebia.functional.openai.models.ext.moderation.create.CreateModerationRequestInput");
-//        schemaMapping.put("FineTuningJobRequest_hyperparameters_n_epochs", "com.xebia.functional.openai.models.ext.finetune.job.FineTuningJobRequestHyperparametersNEpochs");
-//        schemaMapping.put("FineTuningJob_hyperparameters_n_epochs", "com.xebia.functional.openai.models.ext.finetune.job.FineTuningJobHyperparametersNEpochs");
-//        schemaMapping.put("RunStepObject_step_details", "com.xebia.functional.openai.models.ext.assistant.RunStepObjectStepDetails");
 
         // Configure the template directory
         templateDir = "config";
@@ -94,24 +70,24 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
         specialCharReplacements.put(".", "_");
         enumPropertyNaming = CodegenConstants.ENUM_PROPERTY_NAMING_TYPE.snake_case;
         nonRequiredFields.putAll(
-            Map.ofEntries(
-                entry("ListAssistantFilesResponse", List.of("firstId", "lastId")),
-                entry("ListAssistantsResponse", List.of("firstId", "lastId")),
-                entry("ListMessageFilesResponse", List.of("firstId", "lastId")),
-                entry("ListMessagesResponse", List.of("firstId", "lastId")),
-                entry("ListRunsResponse", List.of("firstId", "lastId")),
-                entry("ListRunStepsResponse", List.of("firstId", "lastId")),
-                entry("ListThreadsResponse", List.of("firstId", "lastId")),
-                entry("MessageObject", List.of("metadata")),
-                entry("MessageObjectContentInner", List.of("imageFile", "text")),
-                entry("RunObject", List.of("expiresAt", "requiredAction")),
-                entry("RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInner", List.of("logs", "image")),
-                entry("RunStepDetailsToolCallsFunctionObjectFunction", List.of("output")),
-                entry("RunStepDetailsToolCallsObjectToolCallsInner", List.of("codeInterpreter", "retrieval", "function")),
-                entry("RunStepDetailsToolCallsRetrievalObject", List.of("retrieval")),
-                entry("RunStepObject", List.of("expiredAt", "metadata")),
-                entry("MessageContentTextObjectTextAnnotationsInner", List.of("filePath", "fileCitation"))
-            )
+                Map.ofEntries(
+                        entry("ListAssistantFilesResponse", List.of("firstId", "lastId")),
+                        entry("ListAssistantsResponse", List.of("firstId", "lastId")),
+                        entry("ListMessageFilesResponse", List.of("firstId", "lastId")),
+                        entry("ListMessagesResponse", List.of("firstId", "lastId")),
+                        entry("ListRunsResponse", List.of("firstId", "lastId")),
+                        entry("ListRunStepsResponse", List.of("firstId", "lastId")),
+                        entry("ListThreadsResponse", List.of("firstId", "lastId")),
+                        entry("MessageObject", List.of("metadata")),
+                        entry("MessageObjectContentInner", List.of("imageFile", "text")),
+                        entry("RunObject", List.of("expiresAt", "requiredAction")),
+                        entry("RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInner", List.of("logs", "image")),
+                        entry("RunStepDetailsToolCallsFunctionObjectFunction", List.of("output")),
+                        entry("RunStepDetailsToolCallsObjectToolCallsInner", List.of("codeInterpreter", "retrieval", "function")),
+                        entry("RunStepDetailsToolCallsRetrievalObject", List.of("retrieval")),
+                        entry("RunStepObject", List.of("expiredAt", "metadata")),
+                        entry("MessageContentTextObjectTextAnnotationsInner", List.of("filePath", "fileCitation"))
+                )
         );
     }
 
@@ -217,10 +193,14 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
 
     @Override
     protected ImmutableMap.Builder<String, Mustache.Lambda> addMustacheLambdas() {
-        return super.addMustacheLambdas().put("uniqueName", new MyLambda());
+        // TODO rename lambda {{#lamda.oneOfName}}
+        return super.addMustacheLambdas()
+                .put("uniqueName", new OneOfName())
+                .put("test2", new Test2())
+                .put("capitalised", new Capitalised());
     }
 
-    public static class MyLambda implements Mustache.Lambda {
+    public static class OneOfName implements Mustache.Lambda {
         private List<String> names = List.of(
                 "First",
                 "Second",
@@ -232,10 +212,35 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
                 "Eighth",
                 "Ninth"
         );
+
         public void execute(Template.Fragment fragment, Writer writer) throws IOException {
             String text = fragment.execute();
             int index = Integer.parseInt(text);
             writer.write(names.get(index - 1));
         }
     }
+
+    // TODO rename to something someting inject " to the start -or end of a edgecase string
+    // Should actually use enum for these cases??
+    public static class Test2 implements Mustache.Lambda {
+
+        public void execute(Template.Fragment fragment, Writer writer) throws IOException {
+            String text = fragment.execute();
+            try {
+                Double.parseDouble(text);
+            } catch (NumberFormatException e) {
+                if (text.equals("url") || text.equals("json") || text.equals("1024x1024")) {
+                    writer.write("\"" );
+                }
+            }
+        }
+    }
+
+    public static class Capitalised implements Mustache.Lambda {
+        public void execute(Template.Fragment fragment, Writer writer) throws IOException {
+            String text = fragment.execute();
+            writer.write(text.substring(0, 1).toUpperCase() + text.substring(1).toLowerCase(Locale.ROOT));
+        }
+    }
+
 }
