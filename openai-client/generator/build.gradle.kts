@@ -19,6 +19,7 @@ task("downloadOpenAIAPI", JavaExec::class) {
     classpath = sourceSets["main"].runtimeClasspath
 }
 
+// TODO PRE-GENERATION TASK: clean client generated directory
 task("openaiClientGenerate", JavaExec::class) {
     group = "GenerateTasks"
     mainClass = "org.openapitools.codegen.OpenAPIGenerator"
@@ -30,12 +31,7 @@ task("openaiClientGenerate", JavaExec::class) {
         "ai.xef.openai.generator.KMMGeneratorConfig",
         "-o",
         "../client",
-        "--skip-validate-spec",
-//        "-c",
-//        "config/openai-config.json",
-//        "--global-property",
-//        "debugModels=true"
-//        "debugOperations=true",
+        "--skip-validate-spec"
     )
     classpath = sourceSets["main"].runtimeClasspath
 }.finalizedBy(":xef-openai-client:spotlessApply")

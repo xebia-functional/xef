@@ -6,7 +6,6 @@
 
 package com.xebia.functional.openai.generated.model
 
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -26,9 +25,7 @@ data class RunStepDetailsToolCallsRetrievalObject(
   @SerialName(value = "type") val type: RunStepDetailsToolCallsRetrievalObject.Type,
 
   /* For now, this is always going to be an empty object. */
-  @Contextual
-  @SerialName(value = "retrieval")
-  val retrieval: kotlinx.serialization.json.JsonObject? = null
+  @SerialName(value = "retrieval") val retrieval: kotlinx.serialization.json.JsonObject? = null
 ) {
 
   /**

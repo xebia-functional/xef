@@ -8,6 +8,7 @@ package com.xebia.functional.openai.generated.api
 
 import com.xebia.functional.openai.UploadFile
 import com.xebia.functional.openai.appendGen
+import com.xebia.functional.openai.generated.api.FilesApi.*
 import com.xebia.functional.openai.generated.model.DeleteFileResponse
 import com.xebia.functional.openai.generated.model.ListFilesResponse
 import com.xebia.functional.openai.generated.model.OpenAIFile
@@ -26,100 +27,133 @@ import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
 import kotlinx.serialization.json.Json
 
-/** enum for parameter purpose */
-@Serializable
-enum class PurposeCreateFile(val value: kotlin.String) {
+/**  */
+interface FilesApi {
 
-  @SerialName(value = "fine-tune") fine_tune("fine-tune"),
-  @SerialName(value = "assistants") assistants("assistants")
+  /** enum for parameter purpose */
+  @Serializable
+  enum class PurposeCreateFile(val value: kotlin.String) {
+
+    @SerialName(value = "fine-tune") fine_tune("fine-tune"),
+    @SerialName(value = "assistants") assistants("assistants")
+  }
+
+  /**
+   * Upload a file that can be used across various endpoints. The size of all the files uploaded by
+   * one organization can be up to 100 GB. The size of individual files can be a maximum of 512 MB
+   * or 2 million tokens for Assistants. See the [Assistants Tools guide](/docs/assistants/tools) to
+   * learn more about the types of files supported. The Fine-tuning API only supports
+   * &#x60;.jsonl&#x60; files. Please [contact us](https://help.openai.com/) if you need to increase
+   * these storage limits.
+   *
+   * @param file The File object (not file name) to be uploaded.
+   * @param purpose The intended purpose of the uploaded file. Use \\\&quot;fine-tune\\\&quot; for
+   *   [Fine-tuning](/docs/api-reference/fine-tuning) and \\\&quot;assistants\\\&quot; for
+   *   [Assistants](/docs/api-reference/assistants) and [Messages](/docs/api-reference/messages).
+   *   This allows us to validate the format of the uploaded file is correct for fine-tuning.
+   * @return OpenAIFile
+   */
+  suspend fun createFile(file: UploadFile, purpose: PurposeCreateFile): OpenAIFile
+
+  /**
+   * Delete a file.
+   *
+   * @param fileId The ID of the file to use for this request.
+   * @return DeleteFileResponse
+   */
+  suspend fun deleteFile(fileId: kotlin.String): DeleteFileResponse
+
+  /**
+   * Returns the contents of the specified file.
+   *
+   * @param fileId The ID of the file to use for this request.
+   * @return kotlin.String
+   */
+  suspend fun downloadFile(fileId: kotlin.String): kotlin.String
+
+  /**
+   * Returns a list of files that belong to the user&#39;s organization.
+   *
+   * @param purpose Only return files with the given purpose. (optional)
+   * @return ListFilesResponse
+   */
+  suspend fun listFiles(purpose: kotlin.String? = null): ListFilesResponse
+
+  /**
+   * Returns information about a specific file.
+   *
+   * @param fileId The ID of the file to use for this request.
+   * @return OpenAIFile
+   */
+  suspend fun retrieveFile(fileId: kotlin.String): OpenAIFile
 }
 
-/**
- * Upload a file that can be used across various endpoints. The size of all the files uploaded by
- * one organization can be up to 100 GB. The size of individual files can be a maximum of 512 MB or
- * 2 million tokens for Assistants. See the [Assistants Tools guide](/docs/assistants/tools) to
- * learn more about the types of files supported. The Fine-tuning API only supports
- * &#x60;.jsonl&#x60; files. Please [contact us](https://help.openai.com/) if you need to increase
- * these storage limits.
- *
- * @param file The File object (not file name) to be uploaded.
- * @param purpose The intended purpose of the uploaded file. Use \\\&quot;fine-tune\\\&quot; for
- *   [Fine-tuning](/docs/api-reference/fine-tuning) and \\\&quot;assistants\\\&quot; for
- *   [Assistants](/docs/api-reference/assistants) and [Messages](/docs/api-reference/messages). This
- *   allows us to validate the format of the uploaded file is correct for fine-tuning.
- * @return OpenAIFile
- */
-suspend fun HttpClient.createFile(file: UploadFile, purpose: PurposeCreateFile): OpenAIFile =
-  request {
-      method = HttpMethod.Post
-      contentType(ContentType.Application.Json)
-      url { path("/files") }
-      setBody(
-        formData {
-          file?.apply { appendGen("file", file) }
-          purpose?.apply { appendGen("purpose", purpose) }
+fun FilesApi(client: HttpClient): FilesApi =
+  object : FilesApi {
+    override suspend fun createFile(
+      file: UploadFile,
+      purpose: PurposeCreateFile,
+    ): OpenAIFile =
+      client
+        .request {
+          method = HttpMethod.Post
+          contentType(ContentType.Application.Json)
+          url { path("/files") }
+          setBody(
+            formData {
+              file?.apply { appendGen("file", file) }
+              purpose?.apply { appendGen("purpose", purpose) }
+            }
+          )
         }
-      )
-    }
-    .body()
+        .body()
 
-/**
- * Delete a file.
- *
- * @param fileId The ID of the file to use for this request.
- * @return DeleteFileResponse
- */
-suspend fun HttpClient.deleteFile(fileId: kotlin.String): DeleteFileResponse =
-  request {
-      method = HttpMethod.Delete
-      contentType(ContentType.Application.Json)
-      url { path("/files/{file_id}".replace("{" + "file_id" + "}", "$fileId")) }
-      setBody(io.ktor.client.utils.EmptyContent)
-    }
-    .body()
+    override suspend fun deleteFile(
+      fileId: kotlin.String,
+    ): DeleteFileResponse =
+      client
+        .request {
+          method = HttpMethod.Delete
+          contentType(ContentType.Application.Json)
+          url { path("/files/{file_id}".replace("{" + "file_id" + "}", "$fileId")) }
+          setBody(io.ktor.client.utils.EmptyContent)
+        }
+        .body()
 
-/**
- * Returns the contents of the specified file.
- *
- * @param fileId The ID of the file to use for this request.
- * @return kotlin.String
- */
-suspend fun HttpClient.downloadFile(fileId: kotlin.String): kotlin.String =
-  request {
-      method = HttpMethod.Get
-      contentType(ContentType.Application.Json)
-      url { path("/files/{file_id}/content".replace("{" + "file_id" + "}", "$fileId")) }
-      setBody(io.ktor.client.utils.EmptyContent)
-    }
-    .body()
+    override suspend fun downloadFile(
+      fileId: kotlin.String,
+    ): kotlin.String =
+      client
+        .request {
+          method = HttpMethod.Get
+          contentType(ContentType.Application.Json)
+          url { path("/files/{file_id}/content".replace("{" + "file_id" + "}", "$fileId")) }
+          setBody(io.ktor.client.utils.EmptyContent)
+        }
+        .body()
 
-/**
- * Returns a list of files that belong to the user&#39;s organization.
- *
- * @param purpose Only return files with the given purpose. (optional)
- * @return ListFilesResponse
- */
-suspend fun HttpClient.listFiles(purpose: kotlin.String? = null): ListFilesResponse =
-  request {
-      method = HttpMethod.Get
-      contentType(ContentType.Application.Json)
-      parameter("purpose", listOf("$purpose"))
-      url { path("/files") }
-      setBody(io.ktor.client.utils.EmptyContent)
-    }
-    .body()
+    override suspend fun listFiles(
+      purpose: kotlin.String?,
+    ): ListFilesResponse =
+      client
+        .request {
+          method = HttpMethod.Get
+          contentType(ContentType.Application.Json)
+          parameter("purpose", listOf("$purpose"))
+          url { path("/files") }
+          setBody(io.ktor.client.utils.EmptyContent)
+        }
+        .body()
 
-/**
- * Returns information about a specific file.
- *
- * @param fileId The ID of the file to use for this request.
- * @return OpenAIFile
- */
-suspend fun HttpClient.retrieveFile(fileId: kotlin.String): OpenAIFile =
-  request {
-      method = HttpMethod.Get
-      contentType(ContentType.Application.Json)
-      url { path("/files/{file_id}".replace("{" + "file_id" + "}", "$fileId")) }
-      setBody(io.ktor.client.utils.EmptyContent)
-    }
-    .body()
+    override suspend fun retrieveFile(
+      fileId: kotlin.String,
+    ): OpenAIFile =
+      client
+        .request {
+          method = HttpMethod.Get
+          contentType(ContentType.Application.Json)
+          url { path("/files/{file_id}".replace("{" + "file_id" + "}", "$fileId")) }
+          setBody(io.ktor.client.utils.EmptyContent)
+        }
+        .body()
+  }

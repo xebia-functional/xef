@@ -6,6 +6,7 @@
 
 package com.xebia.functional.openai.generated.api
 
+import com.xebia.functional.openai.generated.api.EmbeddingsApi.*
 import com.xebia.functional.openai.generated.model.CreateEmbeddingRequest
 import com.xebia.functional.openai.generated.model.CreateEmbeddingResponse
 import io.ktor.client.HttpClient
@@ -21,19 +22,31 @@ import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
 import kotlinx.serialization.json.Json
 
-/**
- * Creates an embedding vector representing the input text.
- *
- * @param createEmbeddingRequest
- * @return CreateEmbeddingResponse
- */
-suspend fun HttpClient.createEmbedding(
-  createEmbeddingRequest: CreateEmbeddingRequest
-): CreateEmbeddingResponse =
-  request {
-      method = HttpMethod.Post
-      contentType(ContentType.Application.Json)
-      url { path("/embeddings") }
-      setBody(createEmbeddingRequest)
-    }
-    .body()
+/**  */
+interface EmbeddingsApi {
+
+  /**
+   * Creates an embedding vector representing the input text.
+   *
+   * @param createEmbeddingRequest
+   * @return CreateEmbeddingResponse
+   */
+  suspend fun createEmbedding(
+    createEmbeddingRequest: CreateEmbeddingRequest
+  ): CreateEmbeddingResponse
+}
+
+fun EmbeddingsApi(client: HttpClient): EmbeddingsApi =
+  object : EmbeddingsApi {
+    override suspend fun createEmbedding(
+      createEmbeddingRequest: CreateEmbeddingRequest,
+    ): CreateEmbeddingResponse =
+      client
+        .request {
+          method = HttpMethod.Post
+          contentType(ContentType.Application.Json)
+          url { path("/embeddings") }
+          setBody(createEmbeddingRequest)
+        }
+        .body()
+  }

@@ -46,13 +46,13 @@ data class OpenAIFile(
   @SerialName(value = "purpose") val purpose: OpenAIFile.Purpose,
 
   /* Deprecated. The current status of the file, which can be either `uploaded`, `processed`, or `error`. */
-  @SerialName(value = "status")
   @Deprecated(message = "This property is deprecated.")
+  @SerialName(value = "status")
   val status: OpenAIFile.Status,
 
   /* Deprecated. For details on why a fine-tuning training file failed validation, see the `error` field on `fine_tuning.job`. */
-  @SerialName(value = "status_details")
   @Deprecated(message = "This property is deprecated.")
+  @SerialName(value = "status_details")
   val statusDetails: kotlin.String? = null
 ) {
 

@@ -6,6 +6,7 @@
 
 package com.xebia.functional.openai.generated.api
 
+import com.xebia.functional.openai.generated.api.ModerationsApi.*
 import com.xebia.functional.openai.generated.model.CreateModerationRequest
 import com.xebia.functional.openai.generated.model.CreateModerationResponse
 import io.ktor.client.HttpClient
@@ -21,19 +22,31 @@ import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
 import kotlinx.serialization.json.Json
 
-/**
- * Classifies if text violates OpenAI&#39;s Content Policy
- *
- * @param createModerationRequest
- * @return CreateModerationResponse
- */
-suspend fun HttpClient.createModeration(
-  createModerationRequest: CreateModerationRequest
-): CreateModerationResponse =
-  request {
-      method = HttpMethod.Post
-      contentType(ContentType.Application.Json)
-      url { path("/moderations") }
-      setBody(createModerationRequest)
-    }
-    .body()
+/**  */
+interface ModerationsApi {
+
+  /**
+   * Classifies if text violates OpenAI&#39;s Content Policy
+   *
+   * @param createModerationRequest
+   * @return CreateModerationResponse
+   */
+  suspend fun createModeration(
+    createModerationRequest: CreateModerationRequest
+  ): CreateModerationResponse
+}
+
+fun ModerationsApi(client: HttpClient): ModerationsApi =
+  object : ModerationsApi {
+    override suspend fun createModeration(
+      createModerationRequest: CreateModerationRequest,
+    ): CreateModerationResponse =
+      client
+        .request {
+          method = HttpMethod.Post
+          contentType(ContentType.Application.Json)
+          url { path("/moderations") }
+          setBody(createModerationRequest)
+        }
+        .body()
+  }

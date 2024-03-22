@@ -22,8 +22,8 @@ data class ChatCompletionStreamResponseDelta(
 
   /* The contents of the chunk message. */
   @SerialName(value = "content") val content: kotlin.String? = null,
-  @SerialName(value = "function_call")
   @Deprecated(message = "This property is deprecated.")
+  @SerialName(value = "function_call")
   val functionCall: ChatCompletionStreamResponseDeltaFunctionCall? = null,
   @SerialName(value = "tool_calls")
   val toolCalls: kotlin.collections.List<ChatCompletionMessageToolCallChunk>? = null,

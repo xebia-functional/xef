@@ -3,6 +3,7 @@ package {{apiPackage}}
 
 {{#imports}}import {{import}}
 {{/imports}}
+import com.xebia.functional.openai.generated.api.{{classname}}.*
 import com.xebia.functional.openai.UploadFile
 import com.xebia.functional.openai.appendUploadedFile
 import com.xebia.functional.openai.appendGen
@@ -23,6 +24,10 @@ import kotlinx.serialization.encoding.*
 import kotlinx.serialization.json.Json
 
 {{#operations}}
+/**
+  *
+  */
+interface {{classname}} {
     {{#operation}}
         {{#allParams}}
             {{#isEnum}}
@@ -55,44 +60,53 @@ import kotlinx.serialization.json.Json
     {{#allParams}} * @param {{{paramName}}} {{description}}{{^required}} (optional{{#defaultValue}}, default to {{{.}}}{{/defaultValue}}){{/required}}{{#required}}{{#defaultValue}} (default to {{{.}}}){{/defaultValue}}{{/required}}
     {{/allParams}} * @return {{{returnType}}}{{^returnType}}void{{/returnType}}
     */
-    suspend fun HttpClient.{{operationId}}({{#allParams}}{{{paramName}}}: {{#isEnum}}{{# isContainer}}kotlin.collections.List<{{enumName}}{{operationIdCamelCase}}>{{/isContainer}}{{^isContainer}}{{enumName}}{{operationIdCamelCase}}{{/isContainer}}{{/isEnum}}{{^isEnum}}{{{dataType}}}{{/isEnum}}{{#required}}{{#defaultValue}} = {{^isNumber}}{{#isEnum}}{{enumName}}{{operationIdCamelCase}}.{{enumDefaultValue}}{{/isEnum}}{{^isEnum}}{{{defaultValue}}}{{/isEnum}}{{/isNumber}}{{#isNumber}}{{{defaultValue}}}.toDouble(){{/isNumber}}{{/defaultValue}}{{/required}}{{^required}}?{{#defaultValue}} = {{^isNumber}}{{#isEnum}}{{enumName}}{{operationIdCamelCase}}.{{enumDefaultValue}}{{/isEnum}}{{^isEnum}}{{{defaultValue}}}{{/isEnum}}{{/isNumber}}{{#isNumber}}{{{defaultValue}}}.toDouble(){{/isNumber}}{{/defaultValue}}{{^defaultValue}} = null{{/defaultValue}}{{/required}}{{^-last}}, {{/-last}}{{/allParams}}): {{#returnProperty}}{{#isFile}}HttpResponse{{/isFile}}{{^isFile}}{{{returnType}}}{{^returnType}}Unit{{/returnType}}{{/isFile}}{{/returnProperty}} =
-      request {
-            method = HttpMethod.{{#lambda.capitalised}}{{httpMethod}}{{/lambda.capitalised}}
-            {{#headerParams}}
-            header("{{baseName}}", {{#isContainer}}this.joinToString(separator = collectionDelimiter("{{collectionFormat}}")){{/isContainer}}{{^isContainer}}this.toString(){{/isContainer}})
-            {{/headerParams}}
-            contentType(ContentType.Application.Json)
-            {{#queryParams}}
-            parameter("{{baseName}}", {{#isContainer}}toMultiValue(this, "{{collectionFormat}}"){{/isContainer}}{{^isContainer}}listOf("${{{paramName}}}"){{/isContainer}})
-            {{/queryParams}}
-            url { path("{{path}}"{{#pathParams}}.replace("{" + "{{baseName}}" + "}", {{#isContainer}}{{paramName}}.joinToString(","){{/isContainer}}{{^isContainer}}"${{{paramName}}}"{{/isContainer}}){{/pathParams}}) }
-            setBody({{#hasBodyParam}}{{#bodyParam}}{{#isArray}}{{operationIdCamelCase}}Request({{{paramName}}}{{^isList}}.asList(){{/isList}}){{/isArray}}{{^isArray}}{{#isMap}}{{operationIdCamelCase}}Request({{{paramName}}}){{/isMap}}{{^isMap}}{{{paramName}}}{{/isMap}}{{/isArray}}{{/bodyParam}}{{/hasBodyParam}}
-            {{^hasBodyParam}}
-                {{#hasFormParams}}
-                    {{#isMultipart}}
-                        formData {
-                        {{#formParams}}
-                            {{#isArray}}
-                                {{{paramName}}}?.onEach { appendGen("{{{baseName}}}[]", it) }
-                            {{/isArray}}
-                            {{^isArray}}
-                                {{{paramName}}}?.apply { appendGen("{{{baseName}}}", {{{paramName}}}) }
-                            {{/isArray}}
-                        {{/formParams}}
-                        }
-                    {{/isMultipart}}
-                    {{^isMultipart}}
-                        ParametersBuilder().also {
-                        {{#formParams}}
-                            {{{paramName}}}?.apply { it.append("{{{baseName}}}", {{{paramName}}}.toString()) }
-                        {{/formParams}}
-                        }.build()
-                    {{/isMultipart}}
-                {{/hasFormParams}}
-                {{^hasFormParams}}
-                    io.ktor.client.utils.EmptyContent
-                {{/hasFormParams}}
-            {{/hasBodyParam}})
-      }{{#returnProperty}}{{^isFile}}.body(){{/isFile}}{{/returnProperty}}
+    suspend fun {{operationId}}({{#allParams}}{{{paramName}}}: {{#isEnum}}{{# isContainer}}kotlin.collections.List<{{enumName}}{{operationIdCamelCase}}>{{/isContainer}}{{^isContainer}}{{enumName}}{{operationIdCamelCase}}{{/isContainer}}{{/isEnum}}{{^isEnum}}{{{dataType}}}{{/isEnum}}{{#required}}{{#defaultValue}} = {{^isNumber}}{{#isEnum}}{{enumName}}{{operationIdCamelCase}}.{{enumDefaultValue}}{{/isEnum}}{{^isEnum}}{{{defaultValue}}}{{/isEnum}}{{/isNumber}}{{#isNumber}}{{{defaultValue}}}.toDouble(){{/isNumber}}{{/defaultValue}}{{/required}}{{^required}}?{{#defaultValue}} = {{^isNumber}}{{#isEnum}}{{enumName}}{{operationIdCamelCase}}.{{enumDefaultValue}}{{/isEnum}}{{^isEnum}}{{{defaultValue}}}{{/isEnum}}{{/isNumber}}{{#isNumber}}{{{defaultValue}}}.toDouble(){{/isNumber}}{{/defaultValue}}{{^defaultValue}} = null{{/defaultValue}}{{/required}}{{^-last}}, {{/-last}}{{/allParams}}): {{#returnProperty}}{{#isFile}}HttpResponse{{/isFile}}{{^isFile}}{{{returnType}}}{{^returnType}}Unit{{/returnType}}{{/isFile}}{{/returnProperty}}
     {{/operation}}
+}
+{{/operations}}
+
+{{#operations}}
+fun {{classname}}(client: HttpClient): {{classname}} = object : {{classname}} {
+    {{#operation}}
+    override suspend fun {{operationId}}({{#allParams}}{{{paramName}}}: {{#isEnum}}{{# isContainer}}kotlin.collections.List<{{enumName}}{{operationIdCamelCase}}>{{/isContainer}}{{^isContainer}}{{enumName}}{{operationIdCamelCase}}{{/isContainer}}{{/isEnum}}{{^isEnum}}{{{dataType}}}{{/isEnum}}{{^required}}?{{/required}},{{/allParams}}): {{#returnProperty}}{{#isFile}}HttpResponse{{/isFile}}{{^isFile}}{{{returnType}}}{{^returnType}}Unit{{/returnType}}{{/isFile}}{{/returnProperty}} =
+      client.request {
+        method = HttpMethod.{{#lambda.capitalised}}{{httpMethod}}{{/lambda.capitalised}}
+        {{#headerParams}}
+            header("{{baseName}}", {{#isContainer}}this.joinToString(separator = collectionDelimiter("{{collectionFormat}}")){{/isContainer}}{{^isContainer}}this.toString(){{/isContainer}})
+        {{/headerParams}}
+        contentType(ContentType.Application.Json)
+        {{#queryParams}}
+            parameter("{{baseName}}", {{#isContainer}}toMultiValue(this, "{{collectionFormat}}"){{/isContainer}}{{^isContainer}}listOf("${{{paramName}}}"){{/isContainer}})
+        {{/queryParams}}
+        url { path("{{path}}"{{#pathParams}}.replace("{" + "{{baseName}}" + "}", {{#isContainer}}{{paramName}}.joinToString(","){{/isContainer}}{{^isContainer}}"${{{paramName}}}"{{/isContainer}}){{/pathParams}}) }
+        setBody({{#hasBodyParam}}{{#bodyParam}}{{#isArray}}{{operationIdCamelCase}}Request({{{paramName}}}{{^isList}}.asList(){{/isList}}){{/isArray}}{{^isArray}}{{#isMap}}{{operationIdCamelCase}}Request({{{paramName}}}){{/isMap}}{{^isMap}}{{{paramName}}}{{/isMap}}{{/isArray}}{{/bodyParam}}{{/hasBodyParam}}
+        {{^hasBodyParam}}
+            {{#hasFormParams}}
+                {{#isMultipart}}
+                    formData {
+                    {{#formParams}}
+                        {{#isArray}}
+                            {{{paramName}}}?.onEach { appendGen("{{{baseName}}}[]", it) }
+                        {{/isArray}}
+                        {{^isArray}}
+                            {{{paramName}}}?.apply { appendGen("{{{baseName}}}", {{{paramName}}}) }
+                        {{/isArray}}
+                    {{/formParams}}
+                    }
+                {{/isMultipart}}
+                {{^isMultipart}}
+                    ParametersBuilder().also {
+                    {{#formParams}}
+                        {{{paramName}}}?.apply { it.append("{{{baseName}}}", {{{paramName}}}.toString()) }
+                    {{/formParams}}
+                    }.build()
+                {{/isMultipart}}
+            {{/hasFormParams}}
+            {{^hasFormParams}}
+                io.ktor.client.utils.EmptyContent
+            {{/hasFormParams}}
+        {{/hasBodyParam}})
+      }{{#returnProperty}}{{^isFile}}.body(){{/isFile}}{{/returnProperty}}
+{{/operation}}
+}
 {{/operations}}

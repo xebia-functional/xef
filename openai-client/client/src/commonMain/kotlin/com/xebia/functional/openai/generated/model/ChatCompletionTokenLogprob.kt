@@ -6,7 +6,6 @@
 
 package com.xebia.functional.openai.generated.model
 
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -28,7 +27,7 @@ data class ChatCompletionTokenLogprob(
   @SerialName(value = "token") val token: kotlin.String,
 
   /* The log probability of this token. */
-  @Contextual @SerialName(value = "logprob") val logprob: kotlin.Double,
+  @SerialName(value = "logprob") val logprob: kotlin.Double,
 
   /* A list of integers representing the UTF-8 bytes representation of the token. Useful in instances where characters are represented by multiple tokens and their byte representations must be combined to generate the correct text representation. Can be `null` if there is no bytes representation for the token. */
   @SerialName(value = "bytes") val bytes: kotlin.collections.List<kotlin.Int>?,

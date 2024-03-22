@@ -6,7 +6,6 @@
 
 package com.xebia.functional.openai.generated.model
 
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -29,37 +28,35 @@ import kotlinx.serialization.Serializable
 data class CreateModerationResponseResultsInnerCategoryScores(
 
   /* The score for the category 'hate'. */
-  @Contextual @SerialName(value = "hate") val hate: kotlin.Double,
+  @SerialName(value = "hate") val hate: kotlin.Double,
 
   /* The score for the category 'hate/threatening'. */
-  @Contextual @SerialName(value = "hate/threatening") val hateThreatening: kotlin.Double,
+  @SerialName(value = "hate/threatening") val hateThreatening: kotlin.Double,
 
   /* The score for the category 'harassment'. */
-  @Contextual @SerialName(value = "harassment") val harassment: kotlin.Double,
+  @SerialName(value = "harassment") val harassment: kotlin.Double,
 
   /* The score for the category 'harassment/threatening'. */
-  @Contextual
-  @SerialName(value = "harassment/threatening")
-  val harassmentThreatening: kotlin.Double,
+  @SerialName(value = "harassment/threatening") val harassmentThreatening: kotlin.Double,
 
   /* The score for the category 'self-harm'. */
-  @Contextual @SerialName(value = "self-harm") val selfHarm: kotlin.Double,
+  @SerialName(value = "self-harm") val selfHarm: kotlin.Double,
 
   /* The score for the category 'self-harm/intent'. */
-  @Contextual @SerialName(value = "self-harm/intent") val selfHarmIntent: kotlin.Double,
+  @SerialName(value = "self-harm/intent") val selfHarmIntent: kotlin.Double,
 
   /* The score for the category 'self-harm/instructions'. */
-  @Contextual @SerialName(value = "self-harm/instructions") val selfHarmInstructions: kotlin.Double,
+  @SerialName(value = "self-harm/instructions") val selfHarmInstructions: kotlin.Double,
 
   /* The score for the category 'sexual'. */
-  @Contextual @SerialName(value = "sexual") val sexual: kotlin.Double,
+  @SerialName(value = "sexual") val sexual: kotlin.Double,
 
   /* The score for the category 'sexual/minors'. */
-  @Contextual @SerialName(value = "sexual/minors") val sexualMinors: kotlin.Double,
+  @SerialName(value = "sexual/minors") val sexualMinors: kotlin.Double,
 
   /* The score for the category 'violence'. */
-  @Contextual @SerialName(value = "violence") val violence: kotlin.Double,
+  @SerialName(value = "violence") val violence: kotlin.Double,
 
   /* The score for the category 'violence/graphic'. */
-  @Contextual @SerialName(value = "violence/graphic") val violenceGraphic: kotlin.Double
+  @SerialName(value = "violence/graphic") val violenceGraphic: kotlin.Double
 )

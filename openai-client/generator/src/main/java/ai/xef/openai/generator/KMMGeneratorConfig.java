@@ -25,8 +25,9 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
 
     public KMMGeneratorConfig() {
         super();
-        modelPackage = "com.xebia.functional.openai.generated.model";
-        apiPackage = "com.xebia.functional.openai.generated.api";
+        setModelPackage("com.xebia.functional.openai.generated.model");
+        setApiPackage("com.xebia.functional.openai.generated.api");
+        setApiNameSuffix("");
 
         // Generate in src/commonMain/kotlin, not /src/main/kotlin
         additionalProperties.put("sourceFolder", "src/commonMain/kotlin");
@@ -37,6 +38,8 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
         // Configure OpenAI `object` to be mapped to `JsonObject`
         typeMapping.put("object", "JsonObject");
         importMapping.put("JsonObject", "kotlinx.serialization.json.JsonObject");
+
+        typeMapping.put("java.net.URI", "kotlin.String");
 
         typeMapping.put("java.math.BigDecimal", "kotlin.Double");
         importMapping.put("BigDecimal", "kotlin.Double");

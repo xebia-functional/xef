@@ -6,6 +6,7 @@
 
 package com.xebia.functional.openai.generated.api
 
+import com.xebia.functional.openai.generated.api.FineTuningApi.*
 import com.xebia.functional.openai.generated.model.CreateFineTuningJobRequest
 import com.xebia.functional.openai.generated.model.FineTuningJob
 import com.xebia.functional.openai.generated.model.ListFineTuningJobEventsResponse
@@ -24,110 +25,145 @@ import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
 import kotlinx.serialization.json.Json
 
-/**
- * Immediately cancel a fine-tune job.
- *
- * @param fineTuningJobId The ID of the fine-tuning job to cancel.
- * @return FineTuningJob
- */
-suspend fun HttpClient.cancelFineTuningJob(fineTuningJobId: kotlin.String): FineTuningJob =
-  request {
-      method = HttpMethod.Post
-      contentType(ContentType.Application.Json)
-      url {
-        path(
-          "/fine_tuning/jobs/{fine_tuning_job_id}/cancel"
-            .replace("{" + "fine_tuning_job_id" + "}", "$fineTuningJobId")
-        )
-      }
-      setBody(io.ktor.client.utils.EmptyContent)
-    }
-    .body()
+/**  */
+interface FineTuningApi {
 
-/**
- * Creates a fine-tuning job which begins the process of creating a new model from a given dataset.
- * Response includes details of the enqueued job including job status and the name of the fine-tuned
- * models once complete. [Learn more about fine-tuning](/docs/guides/fine-tuning)
- *
- * @param createFineTuningJobRequest
- * @return FineTuningJob
- */
-suspend fun HttpClient.createFineTuningJob(
-  createFineTuningJobRequest: CreateFineTuningJobRequest
-): FineTuningJob =
-  request {
-      method = HttpMethod.Post
-      contentType(ContentType.Application.Json)
-      url { path("/fine_tuning/jobs") }
-      setBody(createFineTuningJobRequest)
-    }
-    .body()
+  /**
+   * Immediately cancel a fine-tune job.
+   *
+   * @param fineTuningJobId The ID of the fine-tuning job to cancel.
+   * @return FineTuningJob
+   */
+  suspend fun cancelFineTuningJob(fineTuningJobId: kotlin.String): FineTuningJob
 
-/**
- * Get status updates for a fine-tuning job.
- *
- * @param fineTuningJobId The ID of the fine-tuning job to get events for.
- * @param after Identifier for the last event from the previous pagination request. (optional)
- * @param limit Number of events to retrieve. (optional, default to 20)
- * @return ListFineTuningJobEventsResponse
- */
-suspend fun HttpClient.listFineTuningEvents(
-  fineTuningJobId: kotlin.String,
-  after: kotlin.String? = null,
-  limit: kotlin.Int? = 20
-): ListFineTuningJobEventsResponse =
-  request {
-      method = HttpMethod.Get
-      contentType(ContentType.Application.Json)
-      parameter("after", listOf("$after"))
-      parameter("limit", listOf("$limit"))
-      url {
-        path(
-          "/fine_tuning/jobs/{fine_tuning_job_id}/events"
-            .replace("{" + "fine_tuning_job_id" + "}", "$fineTuningJobId")
-        )
-      }
-      setBody(io.ktor.client.utils.EmptyContent)
-    }
-    .body()
+  /**
+   * Creates a fine-tuning job which begins the process of creating a new model from a given
+   * dataset. Response includes details of the enqueued job including job status and the name of the
+   * fine-tuned models once complete. [Learn more about fine-tuning](/docs/guides/fine-tuning)
+   *
+   * @param createFineTuningJobRequest
+   * @return FineTuningJob
+   */
+  suspend fun createFineTuningJob(
+    createFineTuningJobRequest: CreateFineTuningJobRequest
+  ): FineTuningJob
 
-/**
- * List your organization&#39;s fine-tuning jobs
- *
- * @param after Identifier for the last job from the previous pagination request. (optional)
- * @param limit Number of fine-tuning jobs to retrieve. (optional, default to 20)
- * @return ListPaginatedFineTuningJobsResponse
- */
-suspend fun HttpClient.listPaginatedFineTuningJobs(
-  after: kotlin.String? = null,
-  limit: kotlin.Int? = 20
-): ListPaginatedFineTuningJobsResponse =
-  request {
-      method = HttpMethod.Get
-      contentType(ContentType.Application.Json)
-      parameter("after", listOf("$after"))
-      parameter("limit", listOf("$limit"))
-      url { path("/fine_tuning/jobs") }
-      setBody(io.ktor.client.utils.EmptyContent)
-    }
-    .body()
+  /**
+   * Get status updates for a fine-tuning job.
+   *
+   * @param fineTuningJobId The ID of the fine-tuning job to get events for.
+   * @param after Identifier for the last event from the previous pagination request. (optional)
+   * @param limit Number of events to retrieve. (optional, default to 20)
+   * @return ListFineTuningJobEventsResponse
+   */
+  suspend fun listFineTuningEvents(
+    fineTuningJobId: kotlin.String,
+    after: kotlin.String? = null,
+    limit: kotlin.Int? = 20
+  ): ListFineTuningJobEventsResponse
 
-/**
- * Get info about a fine-tuning job. [Learn more about fine-tuning](/docs/guides/fine-tuning)
- *
- * @param fineTuningJobId The ID of the fine-tuning job.
- * @return FineTuningJob
- */
-suspend fun HttpClient.retrieveFineTuningJob(fineTuningJobId: kotlin.String): FineTuningJob =
-  request {
-      method = HttpMethod.Get
-      contentType(ContentType.Application.Json)
-      url {
-        path(
-          "/fine_tuning/jobs/{fine_tuning_job_id}"
-            .replace("{" + "fine_tuning_job_id" + "}", "$fineTuningJobId")
-        )
-      }
-      setBody(io.ktor.client.utils.EmptyContent)
-    }
-    .body()
+  /**
+   * List your organization&#39;s fine-tuning jobs
+   *
+   * @param after Identifier for the last job from the previous pagination request. (optional)
+   * @param limit Number of fine-tuning jobs to retrieve. (optional, default to 20)
+   * @return ListPaginatedFineTuningJobsResponse
+   */
+  suspend fun listPaginatedFineTuningJobs(
+    after: kotlin.String? = null,
+    limit: kotlin.Int? = 20
+  ): ListPaginatedFineTuningJobsResponse
+
+  /**
+   * Get info about a fine-tuning job. [Learn more about fine-tuning](/docs/guides/fine-tuning)
+   *
+   * @param fineTuningJobId The ID of the fine-tuning job.
+   * @return FineTuningJob
+   */
+  suspend fun retrieveFineTuningJob(fineTuningJobId: kotlin.String): FineTuningJob
+}
+
+fun FineTuningApi(client: HttpClient): FineTuningApi =
+  object : FineTuningApi {
+    override suspend fun cancelFineTuningJob(
+      fineTuningJobId: kotlin.String,
+    ): FineTuningJob =
+      client
+        .request {
+          method = HttpMethod.Post
+          contentType(ContentType.Application.Json)
+          url {
+            path(
+              "/fine_tuning/jobs/{fine_tuning_job_id}/cancel"
+                .replace("{" + "fine_tuning_job_id" + "}", "$fineTuningJobId")
+            )
+          }
+          setBody(io.ktor.client.utils.EmptyContent)
+        }
+        .body()
+
+    override suspend fun createFineTuningJob(
+      createFineTuningJobRequest: CreateFineTuningJobRequest,
+    ): FineTuningJob =
+      client
+        .request {
+          method = HttpMethod.Post
+          contentType(ContentType.Application.Json)
+          url { path("/fine_tuning/jobs") }
+          setBody(createFineTuningJobRequest)
+        }
+        .body()
+
+    override suspend fun listFineTuningEvents(
+      fineTuningJobId: kotlin.String,
+      after: kotlin.String?,
+      limit: kotlin.Int?,
+    ): ListFineTuningJobEventsResponse =
+      client
+        .request {
+          method = HttpMethod.Get
+          contentType(ContentType.Application.Json)
+          parameter("after", listOf("$after"))
+          parameter("limit", listOf("$limit"))
+          url {
+            path(
+              "/fine_tuning/jobs/{fine_tuning_job_id}/events"
+                .replace("{" + "fine_tuning_job_id" + "}", "$fineTuningJobId")
+            )
+          }
+          setBody(io.ktor.client.utils.EmptyContent)
+        }
+        .body()
+
+    override suspend fun listPaginatedFineTuningJobs(
+      after: kotlin.String?,
+      limit: kotlin.Int?,
+    ): ListPaginatedFineTuningJobsResponse =
+      client
+        .request {
+          method = HttpMethod.Get
+          contentType(ContentType.Application.Json)
+          parameter("after", listOf("$after"))
+          parameter("limit", listOf("$limit"))
+          url { path("/fine_tuning/jobs") }
+          setBody(io.ktor.client.utils.EmptyContent)
+        }
+        .body()
+
+    override suspend fun retrieveFineTuningJob(
+      fineTuningJobId: kotlin.String,
+    ): FineTuningJob =
+      client
+        .request {
+          method = HttpMethod.Get
+          contentType(ContentType.Application.Json)
+          url {
+            path(
+              "/fine_tuning/jobs/{fine_tuning_job_id}"
+                .replace("{" + "fine_tuning_job_id" + "}", "$fineTuningJobId")
+            )
+          }
+          setBody(io.ktor.client.utils.EmptyContent)
+        }
+        .body()
+  }

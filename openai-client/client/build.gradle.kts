@@ -14,8 +14,6 @@ plugins {
     alias(libs.plugins.arrow.gradle.publish)
     alias(libs.plugins.semver.gradle)
     alias(libs.plugins.detekt)
-    id("com.google.devtools.ksp") version "1.9.23-1.0.19"
-    id("de.jensklingenberg.ktorfit") version "1.10.1"
 }
 
 dependencies { detektPlugins(project(":detekt-rules")) }
@@ -34,37 +32,21 @@ detekt {
 }
 
 kotlin {
-    jvm {
-        compilations {
-            val integrationTest by compilations.creating {
-                // Create a test task to run the tests produced by this compilation:
-                tasks.register<Test>("integrationTest") {
-                    description = "Run the integration tests"
-                    group = "verification"
-                    classpath = compileDependencyFiles + runtimeDependencyFiles + output.allOutputs
-                    testClassesDirs = output.classesDirs
-                    testLogging { events("passed") }
-                }
-            }
-            val test by compilations.getting
-            integrationTest.associateWith(test)
-        }
-    }
+    jvm()
     js(IR) {
         browser()
         nodejs()
+        // TODO support wasm, etc
     }
     linuxX64()
     macosX64()
     macosArm64()
     mingwX64()
+    // iOS, Android, etc?
     sourceSets {
-        all {
-            languageSettings.optIn("kotlin.ExperimentalStdlibApi")
-        }
+        all { languageSettings.optIn("kotlin.ExperimentalStdlibApi") }
         val commonMain by getting {
             dependencies {
-                implementation("de.jensklingenberg.ktorfit:ktorfit-lib:1.10.1")
                 api(projects.xefTokenizer)
                 implementation(libs.ktor.client.content.negotiation)
                 implementation(libs.ktor.client.serialization)
@@ -92,11 +74,6 @@ kotlin {
         val macosArm64Main by getting { dependencies { api(libs.ktor.client.cio) } }
         val mingwX64Main by getting { dependencies { api(libs.ktor.client.winhttp) } }
     }
-}
-
-dependencies {
-    add("kspCommonMainMetadata", "de.jensklingenberg.ktorfit:ktorfit-ksp:1.10.1")
-    add("kspJvm", "de.jensklingenberg.ktorfit:ktorfit-ksp:1.10.1")
 }
 
 spotless {

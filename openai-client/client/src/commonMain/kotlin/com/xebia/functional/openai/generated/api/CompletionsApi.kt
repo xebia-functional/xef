@@ -6,6 +6,7 @@
 
 package com.xebia.functional.openai.generated.api
 
+import com.xebia.functional.openai.generated.api.CompletionsApi.*
 import com.xebia.functional.openai.generated.model.CreateCompletionRequest
 import com.xebia.functional.openai.generated.model.CreateCompletionResponse
 import io.ktor.client.HttpClient
@@ -21,19 +22,31 @@ import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
 import kotlinx.serialization.json.Json
 
-/**
- * Creates a completion for the provided prompt and parameters.
- *
- * @param createCompletionRequest
- * @return CreateCompletionResponse
- */
-suspend fun HttpClient.createCompletion(
-  createCompletionRequest: CreateCompletionRequest
-): CreateCompletionResponse =
-  request {
-      method = HttpMethod.Post
-      contentType(ContentType.Application.Json)
-      url { path("/completions") }
-      setBody(createCompletionRequest)
-    }
-    .body()
+/**  */
+interface CompletionsApi {
+
+  /**
+   * Creates a completion for the provided prompt and parameters.
+   *
+   * @param createCompletionRequest
+   * @return CreateCompletionResponse
+   */
+  suspend fun createCompletion(
+    createCompletionRequest: CreateCompletionRequest
+  ): CreateCompletionResponse
+}
+
+fun CompletionsApi(client: HttpClient): CompletionsApi =
+  object : CompletionsApi {
+    override suspend fun createCompletion(
+      createCompletionRequest: CreateCompletionRequest,
+    ): CreateCompletionResponse =
+      client
+        .request {
+          method = HttpMethod.Post
+          contentType(ContentType.Application.Json)
+          url { path("/completions") }
+          setBody(createCompletionRequest)
+        }
+        .body()
+  }

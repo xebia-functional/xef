@@ -6,6 +6,7 @@
 
 package com.xebia.functional.openai.generated.api
 
+import com.xebia.functional.openai.generated.api.ChatApi.*
 import com.xebia.functional.openai.generated.model.CreateChatCompletionRequest
 import com.xebia.functional.openai.generated.model.CreateChatCompletionResponse
 import io.ktor.client.HttpClient
@@ -21,19 +22,31 @@ import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
 import kotlinx.serialization.json.Json
 
-/**
- * Creates a model response for the given chat conversation.
- *
- * @param createChatCompletionRequest
- * @return CreateChatCompletionResponse
- */
-suspend fun HttpClient.createChatCompletion(
-  createChatCompletionRequest: CreateChatCompletionRequest
-): CreateChatCompletionResponse =
-  request {
-      method = HttpMethod.Post
-      contentType(ContentType.Application.Json)
-      url { path("/chat/completions") }
-      setBody(createChatCompletionRequest)
-    }
-    .body()
+/**  */
+interface ChatApi {
+
+  /**
+   * Creates a model response for the given chat conversation.
+   *
+   * @param createChatCompletionRequest
+   * @return CreateChatCompletionResponse
+   */
+  suspend fun createChatCompletion(
+    createChatCompletionRequest: CreateChatCompletionRequest
+  ): CreateChatCompletionResponse
+}
+
+fun ChatApi(client: HttpClient): ChatApi =
+  object : ChatApi {
+    override suspend fun createChatCompletion(
+      createChatCompletionRequest: CreateChatCompletionRequest,
+    ): CreateChatCompletionResponse =
+      client
+        .request {
+          method = HttpMethod.Post
+          contentType(ContentType.Application.Json)
+          url { path("/chat/completions") }
+          setBody(createChatCompletionRequest)
+        }
+        .body()
+  }

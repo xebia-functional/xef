@@ -6,6 +6,7 @@
 
 package com.xebia.functional.openai.generated.api
 
+import com.xebia.functional.openai.generated.api.ModelsApi.*
 import com.xebia.functional.openai.generated.model.DeleteModelResponse
 import com.xebia.functional.openai.generated.model.ListModelsResponse
 import com.xebia.functional.openai.generated.model.Model
@@ -22,48 +23,68 @@ import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
 import kotlinx.serialization.json.Json
 
-/**
- * Delete a fine-tuned model. You must have the Owner role in your organization to delete a model.
- *
- * @param model The model to delete
- * @return DeleteModelResponse
- */
-suspend fun HttpClient.deleteModel(model: kotlin.String): DeleteModelResponse =
-  request {
-      method = HttpMethod.Delete
-      contentType(ContentType.Application.Json)
-      url { path("/models/{model}".replace("{" + "model" + "}", "$model")) }
-      setBody(io.ktor.client.utils.EmptyContent)
-    }
-    .body()
+/**  */
+interface ModelsApi {
 
-/**
- * Lists the currently available models, and provides basic information about each one such as the
- * owner and availability.
- *
- * @return ListModelsResponse
- */
-suspend fun HttpClient.listModels(): ListModelsResponse =
-  request {
-      method = HttpMethod.Get
-      contentType(ContentType.Application.Json)
-      url { path("/models") }
-      setBody(io.ktor.client.utils.EmptyContent)
-    }
-    .body()
+  /**
+   * Delete a fine-tuned model. You must have the Owner role in your organization to delete a model.
+   *
+   * @param model The model to delete
+   * @return DeleteModelResponse
+   */
+  suspend fun deleteModel(model: kotlin.String): DeleteModelResponse
 
-/**
- * Retrieves a model instance, providing basic information about the model such as the owner and
- * permissioning.
- *
- * @param model The ID of the model to use for this request
- * @return Model
- */
-suspend fun HttpClient.retrieveModel(model: kotlin.String): Model =
-  request {
-      method = HttpMethod.Get
-      contentType(ContentType.Application.Json)
-      url { path("/models/{model}".replace("{" + "model" + "}", "$model")) }
-      setBody(io.ktor.client.utils.EmptyContent)
-    }
-    .body()
+  /**
+   * Lists the currently available models, and provides basic information about each one such as the
+   * owner and availability.
+   *
+   * @return ListModelsResponse
+   */
+  suspend fun listModels(): ListModelsResponse
+
+  /**
+   * Retrieves a model instance, providing basic information about the model such as the owner and
+   * permissioning.
+   *
+   * @param model The ID of the model to use for this request
+   * @return Model
+   */
+  suspend fun retrieveModel(model: kotlin.String): Model
+}
+
+fun ModelsApi(client: HttpClient): ModelsApi =
+  object : ModelsApi {
+    override suspend fun deleteModel(
+      model: kotlin.String,
+    ): DeleteModelResponse =
+      client
+        .request {
+          method = HttpMethod.Delete
+          contentType(ContentType.Application.Json)
+          url { path("/models/{model}".replace("{" + "model" + "}", "$model")) }
+          setBody(io.ktor.client.utils.EmptyContent)
+        }
+        .body()
+
+    override suspend fun listModels(): ListModelsResponse =
+      client
+        .request {
+          method = HttpMethod.Get
+          contentType(ContentType.Application.Json)
+          url { path("/models") }
+          setBody(io.ktor.client.utils.EmptyContent)
+        }
+        .body()
+
+    override suspend fun retrieveModel(
+      model: kotlin.String,
+    ): Model =
+      client
+        .request {
+          method = HttpMethod.Get
+          contentType(ContentType.Application.Json)
+          url { path("/models/{model}".replace("{" + "model" + "}", "$model")) }
+          setBody(io.ktor.client.utils.EmptyContent)
+        }
+        .body()
+  }
