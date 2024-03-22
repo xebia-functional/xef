@@ -6,9 +6,10 @@
 
 package com.xebia.functional.openai.generated.api
 
+import com.xebia.functional.openai.Config
 import io.ktor.client.HttpClient
 
-interface OpenAI {
+interface OpenAI : AutoCloseable {
   val assistants: Assistants
   val audio: Audio
   val chat: Chat
@@ -21,16 +22,18 @@ interface OpenAI {
   val moderations: Moderations
 }
 
-fun OpenAI(client: HttpClient): OpenAI =
-  object : OpenAI {
-    override val assistants = Assistants(client)
-    override val audio = Audio(client)
-    override val chat = Chat(client)
-    override val completions = Completions(client)
-    override val embeddings = Embeddings(client)
-    override val files = Files(client)
-    override val fineTuning = FineTuning(client)
-    override val images = Images(client)
-    override val models = Models(client)
-    override val moderations = Moderations(client)
+fun OpenAI(client: HttpClient, config: Config): OpenAI =
+  object : OpenAI, AutoCloseable {
+    override val assistants = Assistants(client, config)
+    override val audio = Audio(client, config)
+    override val chat = Chat(client, config)
+    override val completions = Completions(client, config)
+    override val embeddings = Embeddings(client, config)
+    override val files = Files(client, config)
+    override val fineTuning = FineTuning(client, config)
+    override val images = Images(client, config)
+    override val models = Models(client, config)
+    override val moderations = Moderations(client, config)
+
+    override fun close() = client.close()
   }

@@ -3,6 +3,7 @@ package {{apiPackage}}
 
 {{#imports}}import {{import}}
 {{/imports}}
+import com.xebia.functional.openai.Config
 import com.xebia.functional.openai.UploadFile
 import com.xebia.functional.openai.appendGen
 import com.xebia.functional.openai.generated.api.{{classname}}.*
@@ -10,6 +11,7 @@ import com.xebia.functional.openai.streamEvents
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.timeout
+import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.accept
 import io.ktor.client.request.header
 import io.ktor.client.request.forms.formData
@@ -68,28 +70,32 @@ interface {{classname}} {
     * {{summary}}
     * {{notes}}
     {{#allParams}} * @param {{{paramName}}} {{description}}{{^required}} (optional{{#defaultValue}}, default to {{{.}}}{{/defaultValue}}){{/required}}{{#required}}{{#defaultValue}} (default to {{{.}}}){{/defaultValue}}{{/required}}
-    {{/allParams}} * @return {{{returnType}}}{{^returnType}}void{{/returnType}}
+    {{/allParams}} * @param configure optional configuration for the request, allows overriding the default configuration.
+    * @return {{{returnType}}}{{^returnType}}void{{/returnType}}
     */
-    suspend fun {{operationId}}({{#allParams}}{{{paramName}}}: {{#isEnum}}{{# isContainer}}kotlin.collections.List<{{enumName}}{{operationIdCamelCase}}>{{/isContainer}}{{^isContainer}}{{enumName}}{{operationIdCamelCase}}{{/isContainer}}{{/isEnum}}{{^isEnum}}{{{dataType}}}{{/isEnum}}{{#required}}{{#defaultValue}} = {{^isNumber}}{{#isEnum}}{{enumName}}{{operationIdCamelCase}}.{{enumDefaultValue}}{{/isEnum}}{{^isEnum}}{{{defaultValue}}}{{/isEnum}}{{/isNumber}}{{#isNumber}}{{{defaultValue}}}.toDouble(){{/isNumber}}{{/defaultValue}}{{/required}}{{^required}}?{{#defaultValue}} = {{^isNumber}}{{#isEnum}}{{enumName}}{{operationIdCamelCase}}.{{enumDefaultValue}}{{/isEnum}}{{^isEnum}}{{{defaultValue}}}{{/isEnum}}{{/isNumber}}{{#isNumber}}{{{defaultValue}}}.toDouble(){{/isNumber}}{{/defaultValue}}{{^defaultValue}} = null{{/defaultValue}}{{/required}}{{^-last}}, {{/-last}}{{/allParams}}): {{#returnProperty}}{{#isFile}}HttpResponse{{/isFile}}{{^isFile}}{{{returnType}}}{{^returnType}}Unit{{/returnType}}{{/isFile}}{{/returnProperty}}
+    suspend fun {{operationId}}({{#allParams}}{{{paramName}}}: {{#isEnum}}{{# isContainer}}kotlin.collections.List<{{enumName}}{{operationIdCamelCase}}>{{/isContainer}}{{^isContainer}}{{enumName}}{{operationIdCamelCase}}{{/isContainer}}{{/isEnum}}{{^isEnum}}{{{dataType}}}{{/isEnum}}{{#required}}{{#defaultValue}} = {{^isNumber}}{{#isEnum}}{{enumName}}{{operationIdCamelCase}}.{{enumDefaultValue}}{{/isEnum}}{{^isEnum}}{{{defaultValue}}}{{/isEnum}}{{/isNumber}}{{#isNumber}}{{{defaultValue}}}.toDouble(){{/isNumber}}{{/defaultValue}}{{/required}}{{^required}}?{{#defaultValue}} = {{^isNumber}}{{#isEnum}}{{enumName}}{{operationIdCamelCase}}.{{enumDefaultValue}}{{/isEnum}}{{^isEnum}}{{{defaultValue}}}{{/isEnum}}{{/isNumber}}{{#isNumber}}{{{defaultValue}}}.toDouble(){{/isNumber}}{{/defaultValue}}{{^defaultValue}} = null{{/defaultValue}}{{/required}}, {{/allParams}}configure: HttpRequestBuilder.() -> Unit = {}): {{#returnProperty}}{{#isFile}}HttpResponse{{/isFile}}{{^isFile}}{{{returnType}}}{{^returnType}}Unit{{/returnType}}{{/isFile}}{{/returnProperty}}
 
     {{#vendorExtensions.x-streaming}}
     /**
     * Streaming variant: {{summary}}
+    * By default, the client is modified to timeout after 60 seconds. Which is overridable by the [configure].
     * {{notes}}
     {{#allParams}} * @param {{{paramName}}} {{description}}{{^required}} (optional{{#defaultValue}}, default to {{{.}}}{{/defaultValue}}){{/required}}{{#required}}{{#defaultValue}} (default to {{{.}}}){{/defaultValue}}{{/required}}
-    {{/allParams}} * @return [Flow]<[{{{vendorExtensions.x-streaming-return}}}]>
+    {{/allParams}} * @param configure optional configuration for the request, allows overriding the default configuration.
+    * @return [Flow]<[{{{vendorExtensions.x-streaming-return}}}]>
     */
-    fun {{operationId}}Stream({{#allParams}}{{{paramName}}}: {{#isEnum}}{{# isContainer}}kotlin.collections.List<{{enumName}}{{operationIdCamelCase}}>{{/isContainer}}{{^isContainer}}{{enumName}}{{operationIdCamelCase}}{{/isContainer}}{{/isEnum}}{{^isEnum}}{{{dataType}}}{{/isEnum}}{{#required}}{{#defaultValue}} = {{^isNumber}}{{#isEnum}}{{enumName}}{{operationIdCamelCase}}.{{enumDefaultValue}}{{/isEnum}}{{^isEnum}}{{{defaultValue}}}{{/isEnum}}{{/isNumber}}{{#isNumber}}{{{defaultValue}}}.toDouble(){{/isNumber}}{{/defaultValue}}{{/required}}{{^required}}?{{#defaultValue}} = {{^isNumber}}{{#isEnum}}{{enumName}}{{operationIdCamelCase}}.{{enumDefaultValue}}{{/isEnum}}{{^isEnum}}{{{defaultValue}}}{{/isEnum}}{{/isNumber}}{{#isNumber}}{{{defaultValue}}}.toDouble(){{/isNumber}}{{/defaultValue}}{{^defaultValue}} = null{{/defaultValue}}{{/required}}{{^-last}}, {{/-last}}{{/allParams}}): Flow<{{{vendorExtensions.x-streaming-return}}}>
+    fun {{operationId}}Stream({{#allParams}}{{{paramName}}}: {{#isEnum}}{{# isContainer}}kotlin.collections.List<{{enumName}}{{operationIdCamelCase}}>{{/isContainer}}{{^isContainer}}{{enumName}}{{operationIdCamelCase}}{{/isContainer}}{{/isEnum}}{{^isEnum}}{{{dataType}}}{{/isEnum}}{{#required}}{{#defaultValue}} = {{^isNumber}}{{#isEnum}}{{enumName}}{{operationIdCamelCase}}.{{enumDefaultValue}}{{/isEnum}}{{^isEnum}}{{{defaultValue}}}{{/isEnum}}{{/isNumber}}{{#isNumber}}{{{defaultValue}}}.toDouble(){{/isNumber}}{{/defaultValue}}{{/required}}{{^required}}?{{#defaultValue}} = {{^isNumber}}{{#isEnum}}{{enumName}}{{operationIdCamelCase}}.{{enumDefaultValue}}{{/isEnum}}{{^isEnum}}{{{defaultValue}}}{{/isEnum}}{{/isNumber}}{{#isNumber}}{{{defaultValue}}}.toDouble(){{/isNumber}}{{/defaultValue}}{{^defaultValue}} = null{{/defaultValue}}{{/required}}, {{/allParams}}configure: HttpRequestBuilder.() -> Unit = {}): Flow<{{{vendorExtensions.x-streaming-return}}}>
     {{/vendorExtensions.x-streaming}}
     {{/operation}}
 }
 {{/operations}}
 
 {{#operations}}
-fun {{classname}}(client: HttpClient): {{classname}} = object : {{classname}} {
+fun {{classname}}(client: HttpClient, config: Config): {{classname}} = object : {{classname}} {
     {{#operation}}
-    override suspend fun {{operationId}}({{#allParams}}{{{paramName}}}: {{#isEnum}}{{# isContainer}}kotlin.collections.List<{{enumName}}{{operationIdCamelCase}}>{{/isContainer}}{{^isContainer}}{{enumName}}{{operationIdCamelCase}}{{/isContainer}}{{/isEnum}}{{^isEnum}}{{{dataType}}}{{/isEnum}}{{^required}}?{{/required}},{{/allParams}}): {{#returnProperty}}{{#isFile}}HttpResponse{{/isFile}}{{^isFile}}{{{returnType}}}{{^returnType}}Unit{{/returnType}}{{/isFile}}{{/returnProperty}} =
+    override suspend fun {{operationId}}({{#allParams}}{{{paramName}}}: {{#isEnum}}{{# isContainer}}kotlin.collections.List<{{enumName}}{{operationIdCamelCase}}>{{/isContainer}}{{^isContainer}}{{enumName}}{{operationIdCamelCase}}{{/isContainer}}{{/isEnum}}{{^isEnum}}{{{dataType}}}{{/isEnum}}{{^required}}?{{/required}},{{/allParams}} configure: HttpRequestBuilder.() -> Unit): {{#returnProperty}}{{#isFile}}HttpResponse{{/isFile}}{{^isFile}}{{{returnType}}}{{^returnType}}Unit{{/returnType}}{{/isFile}}{{/returnProperty}} =
       client.request {
+        configure()
         method = HttpMethod.{{#lambda.capitalised}}{{httpMethod}}{{/lambda.capitalised}}
         {{#headerParams}}
             header("{{baseName}}", {{#isContainer}}this.joinToString(separator = collectionDelimiter("{{collectionFormat}}")){{/isContainer}}{{^isContainer}}this.toString(){{/isContainer}})
@@ -129,13 +135,14 @@ fun {{classname}}(client: HttpClient): {{classname}} = object : {{classname}} {
       }{{#returnProperty}}{{^isFile}}.body(){{/isFile}}{{/returnProperty}}
 
     {{#vendorExtensions.x-streaming}}
-    override fun {{operationId}}Stream({{#allParams}}{{{paramName}}}: {{#isEnum}}{{# isContainer}}kotlin.collections.List<{{enumName}}{{operationIdCamelCase}}>{{/isContainer}}{{^isContainer}}{{enumName}}{{operationIdCamelCase}}{{/isContainer}}{{/isEnum}}{{^isEnum}}{{{dataType}}}{{/isEnum}}{{#required}}{{#defaultValue}} = {{^isNumber}}{{#isEnum}}{{enumName}}{{operationIdCamelCase}}.{{enumDefaultValue}}{{/isEnum}}{{^isEnum}}{{{defaultValue}}}{{/isEnum}}{{/isNumber}}{{#isNumber}}{{{defaultValue}}}.toDouble(){{/isNumber}}{{/defaultValue}}{{/required}}{{^required}}?{{#defaultValue}} = {{^isNumber}}{{#isEnum}}{{enumName}}{{operationIdCamelCase}}.{{enumDefaultValue}}{{/isEnum}}{{^isEnum}}{{{defaultValue}}}{{/isEnum}}{{/isNumber}}{{#isNumber}}{{{defaultValue}}}.toDouble(){{/isNumber}}{{/defaultValue}}{{^defaultValue}} = null{{/defaultValue}}{{/required}}{{^-last}}, {{/-last}}{{/allParams}}): Flow<{{{vendorExtensions.x-streaming-return}}}> = flow {
+    override fun {{operationId}}Stream({{#allParams}}{{{paramName}}}: {{#isEnum}}{{# isContainer}}kotlin.collections.List<{{enumName}}{{operationIdCamelCase}}>{{/isContainer}}{{^isContainer}}{{enumName}}{{operationIdCamelCase}}{{/isContainer}}{{/isEnum}}{{^isEnum}}{{{dataType}}}{{/isEnum}}{{#required}}{{#defaultValue}} = {{^isNumber}}{{#isEnum}}{{enumName}}{{operationIdCamelCase}}.{{enumDefaultValue}}{{/isEnum}}{{^isEnum}}{{{defaultValue}}}{{/isEnum}}{{/isNumber}}{{#isNumber}}{{{defaultValue}}}.toDouble(){{/isNumber}}{{/defaultValue}}{{/required}}{{^required}}?{{#defaultValue}} = {{^isNumber}}{{#isEnum}}{{enumName}}{{operationIdCamelCase}}.{{enumDefaultValue}}{{/isEnum}}{{^isEnum}}{{{defaultValue}}}{{/isEnum}}{{/isNumber}}{{#isNumber}}{{{defaultValue}}}.toDouble(){{/isNumber}}{{/defaultValue}}{{^defaultValue}} = null{{/defaultValue}}{{/required}}, {{/allParams}}configure: HttpRequestBuilder.() -> Unit): Flow<{{{vendorExtensions.x-streaming-return}}}> = flow {
       client.prepareRequest {
-        method = HttpMethod.{{#lambda.capitalised}}{{httpMethod}}{{/lambda.capitalised}}
         timeout {
           requestTimeoutMillis = 60.seconds.toLong(DurationUnit.MILLISECONDS)
           socketTimeoutMillis = 60.seconds.toLong(DurationUnit.MILLISECONDS)
         }
+        configure()
+        method = HttpMethod.{{#lambda.capitalised}}{{httpMethod}}{{/lambda.capitalised}}
         accept(ContentType.Text.EventStream)
         header(HttpHeaders.CacheControl, "no-cache")
         header(HttpHeaders.Connection, "keep-alive")
@@ -174,7 +181,7 @@ fun {{classname}}(client: HttpClient): {{classname}} = object : {{classname}} {
                 io.ktor.client.utils.EmptyContent
             {{/hasFormParams}}
         {{/hasBodyParam}})
-      }.execute(::streamEvents)
+      }.execute { streamEvents(it, config.json, config.streamingPrefix, config.streamingDelimiter) }
     }
     {{/vendorExtensions.x-streaming}}
 {{/operation}}

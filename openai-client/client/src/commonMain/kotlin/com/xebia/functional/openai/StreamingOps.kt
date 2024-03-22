@@ -9,9 +9,9 @@ import kotlinx.serialization.json.Json
 
 internal suspend inline fun <reified A> FlowCollector<A>.streamEvents(
   response: HttpResponse,
-  json: Json = Json.Default,
-  prefix: String = "data:",
-  end: String = "$prefix [DONE]"
+  json: Json,
+  prefix: String,
+  end: String
 ) {
   val channel: ByteReadChannel = response.bodyAsChannel()
   while (!channel.isClosedForRead) {

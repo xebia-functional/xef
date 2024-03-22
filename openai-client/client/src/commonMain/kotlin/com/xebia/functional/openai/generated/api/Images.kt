@@ -6,6 +6,7 @@
 
 package com.xebia.functional.openai.generated.api
 
+import com.xebia.functional.openai.Config
 import com.xebia.functional.openai.UploadFile
 import com.xebia.functional.openai.appendGen
 import com.xebia.functional.openai.generated.api.Images.*
@@ -14,6 +15,7 @@ import com.xebia.functional.openai.generated.model.CreateImageRequest
 import com.xebia.functional.openai.generated.model.ImagesResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
@@ -33,9 +35,14 @@ interface Images {
    * Creates an image given a prompt.
    *
    * @param createImageRequest
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return ImagesResponse
    */
-  suspend fun createImage(createImageRequest: CreateImageRequest): ImagesResponse
+  suspend fun createImage(
+    createImageRequest: CreateImageRequest,
+    configure: HttpRequestBuilder.() -> Unit = {}
+  ): ImagesResponse
 
   /** enum for parameter size */
   @Serializable
@@ -72,6 +79,8 @@ interface Images {
    *   &#x60;url&#x60; or &#x60;b64_json&#x60;. (optional, default to url)
    * @param user A unique identifier representing your end-user, which can help OpenAI to monitor
    *   and detect abuse. [Learn more](/docs/guides/safety-best-practices/end-user-ids). (optional)
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return ImagesResponse
    */
   suspend fun createImageEdit(
@@ -82,7 +91,8 @@ interface Images {
     n: kotlin.Int? = 1,
     size: PropertySizeCreateImageEdit? = PropertySizeCreateImageEdit._1024x1024,
     responseFormat: ResponseFormatCreateImageEdit? = ResponseFormatCreateImageEdit.url,
-    user: kotlin.String? = null
+    user: kotlin.String? = null,
+    configure: HttpRequestBuilder.() -> Unit = {}
   ): ImagesResponse
 
   /** enum for parameter responseFormat */
@@ -116,6 +126,8 @@ interface Images {
    *   &#x60;512x512&#x60;, or &#x60;1024x1024&#x60;. (optional, default to 1024x1024)
    * @param user A unique identifier representing your end-user, which can help OpenAI to monitor
    *   and detect abuse. [Learn more](/docs/guides/safety-best-practices/end-user-ids). (optional)
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return ImagesResponse
    */
   suspend fun createImageVariation(
@@ -124,17 +136,20 @@ interface Images {
     n: kotlin.Int? = 1,
     responseFormat: ResponseFormatCreateImageVariation? = ResponseFormatCreateImageVariation.url,
     size: PropertySizeCreateImageVariation? = PropertySizeCreateImageVariation._1024x1024,
-    user: kotlin.String? = null
+    user: kotlin.String? = null,
+    configure: HttpRequestBuilder.() -> Unit = {}
   ): ImagesResponse
 }
 
-fun Images(client: HttpClient): Images =
+fun Images(client: HttpClient, config: Config): Images =
   object : Images {
     override suspend fun createImage(
       createImageRequest: CreateImageRequest,
+      configure: HttpRequestBuilder.() -> Unit
     ): ImagesResponse =
       client
         .request {
+          configure()
           method = HttpMethod.Post
           contentType(ContentType.Application.Json)
           url { path("/images/generations") }
@@ -151,9 +166,11 @@ fun Images(client: HttpClient): Images =
       size: PropertySizeCreateImageEdit?,
       responseFormat: ResponseFormatCreateImageEdit?,
       user: kotlin.String?,
+      configure: HttpRequestBuilder.() -> Unit
     ): ImagesResponse =
       client
         .request {
+          configure()
           method = HttpMethod.Post
           contentType(ContentType.Application.Json)
           url { path("/images/edits") }
@@ -179,9 +196,11 @@ fun Images(client: HttpClient): Images =
       responseFormat: ResponseFormatCreateImageVariation?,
       size: PropertySizeCreateImageVariation?,
       user: kotlin.String?,
+      configure: HttpRequestBuilder.() -> Unit
     ): ImagesResponse =
       client
         .request {
+          configure()
           method = HttpMethod.Post
           contentType(ContentType.Application.Json)
           url { path("/images/variations") }

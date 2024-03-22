@@ -7,6 +7,7 @@
 package com.xebia.functional.openai.generated.api
 
 import com.xebia.functional.openai.AssistantEvent
+import com.xebia.functional.openai.Config
 import com.xebia.functional.openai.generated.api.Assistants.*
 import com.xebia.functional.openai.generated.model.AssistantFileObject
 import com.xebia.functional.openai.generated.model.AssistantObject
@@ -39,6 +40,7 @@ import com.xebia.functional.openai.streamEvents
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.timeout
+import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.accept
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
@@ -67,17 +69,28 @@ interface Assistants {
    *
    * @param threadId The ID of the thread to which this run belongs.
    * @param runId The ID of the run to cancel.
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return RunObject
    */
-  suspend fun cancelRun(threadId: kotlin.String, runId: kotlin.String): RunObject
+  suspend fun cancelRun(
+    threadId: kotlin.String,
+    runId: kotlin.String,
+    configure: HttpRequestBuilder.() -> Unit = {}
+  ): RunObject
 
   /**
    * Create an assistant with a model and instructions.
    *
    * @param createAssistantRequest
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return AssistantObject
    */
-  suspend fun createAssistant(createAssistantRequest: CreateAssistantRequest): AssistantObject
+  suspend fun createAssistant(
+    createAssistantRequest: CreateAssistantRequest,
+    configure: HttpRequestBuilder.() -> Unit = {}
+  ): AssistantObject
 
   /**
    * Create an assistant file by attaching a [File](/docs/api-reference/files) to an
@@ -85,11 +98,14 @@ interface Assistants {
    *
    * @param assistantId The ID of the assistant for which to create a File.
    * @param createAssistantFileRequest
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return AssistantFileObject
    */
   suspend fun createAssistantFile(
     assistantId: kotlin.String,
-    createAssistantFileRequest: CreateAssistantFileRequest
+    createAssistantFileRequest: CreateAssistantFileRequest,
+    configure: HttpRequestBuilder.() -> Unit = {}
   ): AssistantFileObject
 
   /**
@@ -97,11 +113,14 @@ interface Assistants {
    *
    * @param threadId The ID of the [thread](/docs/api-reference/threads) to create a message for.
    * @param createMessageRequest
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return MessageObject
    */
   suspend fun createMessage(
     threadId: kotlin.String,
-    createMessageRequest: CreateMessageRequest
+    createMessageRequest: CreateMessageRequest,
+    configure: HttpRequestBuilder.() -> Unit = {}
   ): MessageObject
 
   /**
@@ -109,94 +128,139 @@ interface Assistants {
    *
    * @param threadId The ID of the thread to run.
    * @param createRunRequest
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return RunObject
    */
-  suspend fun createRun(threadId: kotlin.String, createRunRequest: CreateRunRequest): RunObject
+  suspend fun createRun(
+    threadId: kotlin.String,
+    createRunRequest: CreateRunRequest,
+    configure: HttpRequestBuilder.() -> Unit = {}
+  ): RunObject
 
   /**
-   * Streaming variant: Create a run.
+   * Streaming variant: Create a run. By default, the client is modified to timeout after 60
+   * seconds. Which is overridable by the [configure].
    *
    * @param threadId The ID of the thread to run.
    * @param createRunRequest
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return [Flow]<[AssistantEvent]>
    */
   fun createRunStream(
     threadId: kotlin.String,
-    createRunRequest: CreateRunRequest
+    createRunRequest: CreateRunRequest,
+    configure: HttpRequestBuilder.() -> Unit = {}
   ): Flow<AssistantEvent>
 
   /**
    * Create a thread.
    *
    * @param createThreadRequest (optional)
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return ThreadObject
    */
-  suspend fun createThread(createThreadRequest: CreateThreadRequest? = null): ThreadObject
+  suspend fun createThread(
+    createThreadRequest: CreateThreadRequest? = null,
+    configure: HttpRequestBuilder.() -> Unit = {}
+  ): ThreadObject
 
   /**
    * Create a thread and run it in one request.
    *
    * @param createThreadAndRunRequest
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return RunObject
    */
-  suspend fun createThreadAndRun(createThreadAndRunRequest: CreateThreadAndRunRequest): RunObject
+  suspend fun createThreadAndRun(
+    createThreadAndRunRequest: CreateThreadAndRunRequest,
+    configure: HttpRequestBuilder.() -> Unit = {}
+  ): RunObject
 
   /**
-   * Streaming variant: Create a thread and run it in one request.
+   * Streaming variant: Create a thread and run it in one request. By default, the client is
+   * modified to timeout after 60 seconds. Which is overridable by the [configure].
    *
    * @param createThreadAndRunRequest
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return [Flow]<[AssistantEvent]>
    */
   fun createThreadAndRunStream(
-    createThreadAndRunRequest: CreateThreadAndRunRequest
+    createThreadAndRunRequest: CreateThreadAndRunRequest,
+    configure: HttpRequestBuilder.() -> Unit = {}
   ): Flow<AssistantEvent>
 
   /**
    * Delete an assistant.
    *
    * @param assistantId The ID of the assistant to delete.
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return DeleteAssistantResponse
    */
-  suspend fun deleteAssistant(assistantId: kotlin.String): DeleteAssistantResponse
+  suspend fun deleteAssistant(
+    assistantId: kotlin.String,
+    configure: HttpRequestBuilder.() -> Unit = {}
+  ): DeleteAssistantResponse
 
   /**
    * Delete an assistant file.
    *
    * @param assistantId The ID of the assistant that the file belongs to.
    * @param fileId The ID of the file to delete.
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return DeleteAssistantFileResponse
    */
   suspend fun deleteAssistantFile(
     assistantId: kotlin.String,
-    fileId: kotlin.String
+    fileId: kotlin.String,
+    configure: HttpRequestBuilder.() -> Unit = {}
   ): DeleteAssistantFileResponse
 
   /**
    * Delete a thread.
    *
    * @param threadId The ID of the thread to delete.
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return DeleteThreadResponse
    */
-  suspend fun deleteThread(threadId: kotlin.String): DeleteThreadResponse
+  suspend fun deleteThread(
+    threadId: kotlin.String,
+    configure: HttpRequestBuilder.() -> Unit = {}
+  ): DeleteThreadResponse
 
   /**
    * Retrieves an assistant.
    *
    * @param assistantId The ID of the assistant to retrieve.
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return AssistantObject
    */
-  suspend fun getAssistant(assistantId: kotlin.String): AssistantObject
+  suspend fun getAssistant(
+    assistantId: kotlin.String,
+    configure: HttpRequestBuilder.() -> Unit = {}
+  ): AssistantObject
 
   /**
    * Retrieves an AssistantFile.
    *
    * @param assistantId The ID of the assistant who the file belongs to.
    * @param fileId The ID of the file we&#39;re getting.
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return AssistantFileObject
    */
   suspend fun getAssistantFile(
     assistantId: kotlin.String,
-    fileId: kotlin.String
+    fileId: kotlin.String,
+    configure: HttpRequestBuilder.() -> Unit = {}
   ): AssistantFileObject
 
   /**
@@ -205,9 +269,15 @@ interface Assistants {
    * @param threadId The ID of the [thread](/docs/api-reference/threads) to which this message
    *   belongs.
    * @param messageId The ID of the message to retrieve.
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return MessageObject
    */
-  suspend fun getMessage(threadId: kotlin.String, messageId: kotlin.String): MessageObject
+  suspend fun getMessage(
+    threadId: kotlin.String,
+    messageId: kotlin.String,
+    configure: HttpRequestBuilder.() -> Unit = {}
+  ): MessageObject
 
   /**
    * Retrieves a message file.
@@ -215,12 +285,15 @@ interface Assistants {
    * @param threadId The ID of the thread to which the message and File belong.
    * @param messageId The ID of the message the file belongs to.
    * @param fileId The ID of the file being retrieved.
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return MessageFileObject
    */
   suspend fun getMessageFile(
     threadId: kotlin.String,
     messageId: kotlin.String,
-    fileId: kotlin.String
+    fileId: kotlin.String,
+    configure: HttpRequestBuilder.() -> Unit = {}
   ): MessageFileObject
 
   /**
@@ -228,9 +301,15 @@ interface Assistants {
    *
    * @param threadId The ID of the [thread](/docs/api-reference/threads) that was run.
    * @param runId The ID of the run to retrieve.
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return RunObject
    */
-  suspend fun getRun(threadId: kotlin.String, runId: kotlin.String): RunObject
+  suspend fun getRun(
+    threadId: kotlin.String,
+    runId: kotlin.String,
+    configure: HttpRequestBuilder.() -> Unit = {}
+  ): RunObject
 
   /**
    * Retrieves a run step.
@@ -238,21 +317,29 @@ interface Assistants {
    * @param threadId The ID of the thread to which the run and run step belongs.
    * @param runId The ID of the run to which the run step belongs.
    * @param stepId The ID of the run step to retrieve.
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return RunStepObject
    */
   suspend fun getRunStep(
     threadId: kotlin.String,
     runId: kotlin.String,
-    stepId: kotlin.String
+    stepId: kotlin.String,
+    configure: HttpRequestBuilder.() -> Unit = {}
   ): RunStepObject
 
   /**
    * Retrieves a thread.
    *
    * @param threadId The ID of the thread to retrieve.
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return ThreadObject
    */
-  suspend fun getThread(threadId: kotlin.String): ThreadObject
+  suspend fun getThread(
+    threadId: kotlin.String,
+    configure: HttpRequestBuilder.() -> Unit = {}
+  ): ThreadObject
 
   /** enum for parameter order */
   @Serializable
@@ -278,6 +365,8 @@ interface Assistants {
    *   your place in the list. For instance, if you make a list request and receive 100 objects,
    *   ending with obj_foo, your subsequent call can include before&#x3D;obj_foo in order to fetch
    *   the previous page of the list. (optional)
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return ListAssistantFilesResponse
    */
   suspend fun listAssistantFiles(
@@ -285,7 +374,8 @@ interface Assistants {
     limit: kotlin.Int? = 20,
     order: OrderListAssistantFiles? = OrderListAssistantFiles.desc,
     after: kotlin.String? = null,
-    before: kotlin.String? = null
+    before: kotlin.String? = null,
+    configure: HttpRequestBuilder.() -> Unit = {}
   ): ListAssistantFilesResponse
 
   /** enum for parameter order */
@@ -311,13 +401,16 @@ interface Assistants {
    *   your place in the list. For instance, if you make a list request and receive 100 objects,
    *   ending with obj_foo, your subsequent call can include before&#x3D;obj_foo in order to fetch
    *   the previous page of the list. (optional)
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return ListAssistantsResponse
    */
   suspend fun listAssistants(
     limit: kotlin.Int? = 20,
     order: OrderListAssistants? = OrderListAssistants.desc,
     after: kotlin.String? = null,
-    before: kotlin.String? = null
+    before: kotlin.String? = null,
+    configure: HttpRequestBuilder.() -> Unit = {}
   ): ListAssistantsResponse
 
   /** enum for parameter order */
@@ -345,6 +438,8 @@ interface Assistants {
    *   your place in the list. For instance, if you make a list request and receive 100 objects,
    *   ending with obj_foo, your subsequent call can include before&#x3D;obj_foo in order to fetch
    *   the previous page of the list. (optional)
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return ListMessageFilesResponse
    */
   suspend fun listMessageFiles(
@@ -353,7 +448,8 @@ interface Assistants {
     limit: kotlin.Int? = 20,
     order: OrderListMessageFiles? = OrderListMessageFiles.desc,
     after: kotlin.String? = null,
-    before: kotlin.String? = null
+    before: kotlin.String? = null,
+    configure: HttpRequestBuilder.() -> Unit = {}
   ): ListMessageFilesResponse
 
   /** enum for parameter order */
@@ -380,6 +476,8 @@ interface Assistants {
    *   your place in the list. For instance, if you make a list request and receive 100 objects,
    *   ending with obj_foo, your subsequent call can include before&#x3D;obj_foo in order to fetch
    *   the previous page of the list. (optional)
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return ListMessagesResponse
    */
   suspend fun listMessages(
@@ -387,7 +485,8 @@ interface Assistants {
     limit: kotlin.Int? = 20,
     order: OrderListMessages? = OrderListMessages.desc,
     after: kotlin.String? = null,
-    before: kotlin.String? = null
+    before: kotlin.String? = null,
+    configure: HttpRequestBuilder.() -> Unit = {}
   ): ListMessagesResponse
 
   /** enum for parameter order */
@@ -415,6 +514,8 @@ interface Assistants {
    *   your place in the list. For instance, if you make a list request and receive 100 objects,
    *   ending with obj_foo, your subsequent call can include before&#x3D;obj_foo in order to fetch
    *   the previous page of the list. (optional)
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return ListRunStepsResponse
    */
   suspend fun listRunSteps(
@@ -423,7 +524,8 @@ interface Assistants {
     limit: kotlin.Int? = 20,
     order: OrderListRunSteps? = OrderListRunSteps.desc,
     after: kotlin.String? = null,
-    before: kotlin.String? = null
+    before: kotlin.String? = null,
+    configure: HttpRequestBuilder.() -> Unit = {}
   ): ListRunStepsResponse
 
   /** enum for parameter order */
@@ -450,6 +552,8 @@ interface Assistants {
    *   your place in the list. For instance, if you make a list request and receive 100 objects,
    *   ending with obj_foo, your subsequent call can include before&#x3D;obj_foo in order to fetch
    *   the previous page of the list. (optional)
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return ListRunsResponse
    */
   suspend fun listRuns(
@@ -457,7 +561,8 @@ interface Assistants {
     limit: kotlin.Int? = 20,
     order: OrderListRuns? = OrderListRuns.desc,
     after: kotlin.String? = null,
-    before: kotlin.String? = null
+    before: kotlin.String? = null,
+    configure: HttpRequestBuilder.() -> Unit = {}
   ): ListRunsResponse
 
   /**
@@ -465,11 +570,14 @@ interface Assistants {
    *
    * @param assistantId The ID of the assistant to modify.
    * @param modifyAssistantRequest
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return AssistantObject
    */
   suspend fun modifyAssistant(
     assistantId: kotlin.String,
-    modifyAssistantRequest: ModifyAssistantRequest
+    modifyAssistantRequest: ModifyAssistantRequest,
+    configure: HttpRequestBuilder.() -> Unit = {}
   ): AssistantObject
 
   /**
@@ -478,12 +586,15 @@ interface Assistants {
    * @param threadId The ID of the thread to which this message belongs.
    * @param messageId The ID of the message to modify.
    * @param modifyMessageRequest
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return MessageObject
    */
   suspend fun modifyMessage(
     threadId: kotlin.String,
     messageId: kotlin.String,
-    modifyMessageRequest: ModifyMessageRequest
+    modifyMessageRequest: ModifyMessageRequest,
+    configure: HttpRequestBuilder.() -> Unit = {}
   ): MessageObject
 
   /**
@@ -492,12 +603,15 @@ interface Assistants {
    * @param threadId The ID of the [thread](/docs/api-reference/threads) that was run.
    * @param runId The ID of the run to modify.
    * @param modifyRunRequest
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return RunObject
    */
   suspend fun modifyRun(
     threadId: kotlin.String,
     runId: kotlin.String,
-    modifyRunRequest: ModifyRunRequest
+    modifyRunRequest: ModifyRunRequest,
+    configure: HttpRequestBuilder.() -> Unit = {}
   ): RunObject
 
   /**
@@ -505,11 +619,14 @@ interface Assistants {
    *
    * @param threadId The ID of the thread to modify. Only the &#x60;metadata&#x60; can be modified.
    * @param modifyThreadRequest
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return ThreadObject
    */
   suspend fun modifyThread(
     threadId: kotlin.String,
-    modifyThreadRequest: ModifyThreadRequest
+    modifyThreadRequest: ModifyThreadRequest,
+    configure: HttpRequestBuilder.() -> Unit = {}
   ): ThreadObject
 
   /**
@@ -521,23 +638,28 @@ interface Assistants {
    * @param threadId The ID of the [thread](/docs/api-reference/threads) to which this run belongs.
    * @param runId The ID of the run that requires the tool output submission.
    * @param submitToolOutputsRunRequest
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return RunObject
    */
   suspend fun submitToolOuputsToRun(
     threadId: kotlin.String,
     runId: kotlin.String,
-    submitToolOutputsRunRequest: SubmitToolOutputsRunRequest
+    submitToolOutputsRunRequest: SubmitToolOutputsRunRequest,
+    configure: HttpRequestBuilder.() -> Unit = {}
   ): RunObject
 }
 
-fun Assistants(client: HttpClient): Assistants =
+fun Assistants(client: HttpClient, config: Config): Assistants =
   object : Assistants {
     override suspend fun cancelRun(
       threadId: kotlin.String,
       runId: kotlin.String,
+      configure: HttpRequestBuilder.() -> Unit
     ): RunObject =
       client
         .request {
+          configure()
           method = HttpMethod.Post
           contentType(ContentType.Application.Json)
           url {
@@ -553,9 +675,11 @@ fun Assistants(client: HttpClient): Assistants =
 
     override suspend fun createAssistant(
       createAssistantRequest: CreateAssistantRequest,
+      configure: HttpRequestBuilder.() -> Unit
     ): AssistantObject =
       client
         .request {
+          configure()
           method = HttpMethod.Post
           contentType(ContentType.Application.Json)
           url { path("/assistants") }
@@ -566,9 +690,11 @@ fun Assistants(client: HttpClient): Assistants =
     override suspend fun createAssistantFile(
       assistantId: kotlin.String,
       createAssistantFileRequest: CreateAssistantFileRequest,
+      configure: HttpRequestBuilder.() -> Unit
     ): AssistantFileObject =
       client
         .request {
+          configure()
           method = HttpMethod.Post
           contentType(ContentType.Application.Json)
           url {
@@ -583,9 +709,11 @@ fun Assistants(client: HttpClient): Assistants =
     override suspend fun createMessage(
       threadId: kotlin.String,
       createMessageRequest: CreateMessageRequest,
+      configure: HttpRequestBuilder.() -> Unit
     ): MessageObject =
       client
         .request {
+          configure()
           method = HttpMethod.Post
           contentType(ContentType.Application.Json)
           url {
@@ -598,9 +726,11 @@ fun Assistants(client: HttpClient): Assistants =
     override suspend fun createRun(
       threadId: kotlin.String,
       createRunRequest: CreateRunRequest,
+      configure: HttpRequestBuilder.() -> Unit
     ): RunObject =
       client
         .request {
+          configure()
           method = HttpMethod.Post
           contentType(ContentType.Application.Json)
           url { path("/threads/{thread_id}/runs".replace("{" + "thread_id" + "}", "$threadId")) }
@@ -610,15 +740,17 @@ fun Assistants(client: HttpClient): Assistants =
 
     override fun createRunStream(
       threadId: kotlin.String,
-      createRunRequest: CreateRunRequest
+      createRunRequest: CreateRunRequest,
+      configure: HttpRequestBuilder.() -> Unit
     ): Flow<AssistantEvent> = flow {
       client
         .prepareRequest {
-          method = HttpMethod.Post
           timeout {
             requestTimeoutMillis = 60.seconds.toLong(DurationUnit.MILLISECONDS)
             socketTimeoutMillis = 60.seconds.toLong(DurationUnit.MILLISECONDS)
           }
+          configure()
+          method = HttpMethod.Post
           accept(ContentType.Text.EventStream)
           header(HttpHeaders.CacheControl, "no-cache")
           header(HttpHeaders.Connection, "keep-alive")
@@ -626,14 +758,18 @@ fun Assistants(client: HttpClient): Assistants =
           url { path("/threads/{thread_id}/runs".replace("{" + "thread_id" + "}", "$threadId")) }
           setBody(createRunRequest)
         }
-        .execute(::streamEvents)
+        .execute {
+          streamEvents(it, config.json, config.streamingPrefix, config.streamingDelimiter)
+        }
     }
 
     override suspend fun createThread(
       createThreadRequest: CreateThreadRequest?,
+      configure: HttpRequestBuilder.() -> Unit
     ): ThreadObject =
       client
         .request {
+          configure()
           method = HttpMethod.Post
           contentType(ContentType.Application.Json)
           url { path("/threads") }
@@ -643,9 +779,11 @@ fun Assistants(client: HttpClient): Assistants =
 
     override suspend fun createThreadAndRun(
       createThreadAndRunRequest: CreateThreadAndRunRequest,
+      configure: HttpRequestBuilder.() -> Unit
     ): RunObject =
       client
         .request {
+          configure()
           method = HttpMethod.Post
           contentType(ContentType.Application.Json)
           url { path("/threads/runs") }
@@ -654,15 +792,17 @@ fun Assistants(client: HttpClient): Assistants =
         .body()
 
     override fun createThreadAndRunStream(
-      createThreadAndRunRequest: CreateThreadAndRunRequest
+      createThreadAndRunRequest: CreateThreadAndRunRequest,
+      configure: HttpRequestBuilder.() -> Unit
     ): Flow<AssistantEvent> = flow {
       client
         .prepareRequest {
-          method = HttpMethod.Post
           timeout {
             requestTimeoutMillis = 60.seconds.toLong(DurationUnit.MILLISECONDS)
             socketTimeoutMillis = 60.seconds.toLong(DurationUnit.MILLISECONDS)
           }
+          configure()
+          method = HttpMethod.Post
           accept(ContentType.Text.EventStream)
           header(HttpHeaders.CacheControl, "no-cache")
           header(HttpHeaders.Connection, "keep-alive")
@@ -670,14 +810,18 @@ fun Assistants(client: HttpClient): Assistants =
           url { path("/threads/runs") }
           setBody(createThreadAndRunRequest)
         }
-        .execute(::streamEvents)
+        .execute {
+          streamEvents(it, config.json, config.streamingPrefix, config.streamingDelimiter)
+        }
     }
 
     override suspend fun deleteAssistant(
       assistantId: kotlin.String,
+      configure: HttpRequestBuilder.() -> Unit
     ): DeleteAssistantResponse =
       client
         .request {
+          configure()
           method = HttpMethod.Delete
           contentType(ContentType.Application.Json)
           url {
@@ -690,9 +834,11 @@ fun Assistants(client: HttpClient): Assistants =
     override suspend fun deleteAssistantFile(
       assistantId: kotlin.String,
       fileId: kotlin.String,
+      configure: HttpRequestBuilder.() -> Unit
     ): DeleteAssistantFileResponse =
       client
         .request {
+          configure()
           method = HttpMethod.Delete
           contentType(ContentType.Application.Json)
           url {
@@ -708,9 +854,11 @@ fun Assistants(client: HttpClient): Assistants =
 
     override suspend fun deleteThread(
       threadId: kotlin.String,
+      configure: HttpRequestBuilder.() -> Unit
     ): DeleteThreadResponse =
       client
         .request {
+          configure()
           method = HttpMethod.Delete
           contentType(ContentType.Application.Json)
           url { path("/threads/{thread_id}".replace("{" + "thread_id" + "}", "$threadId")) }
@@ -720,9 +868,11 @@ fun Assistants(client: HttpClient): Assistants =
 
     override suspend fun getAssistant(
       assistantId: kotlin.String,
+      configure: HttpRequestBuilder.() -> Unit
     ): AssistantObject =
       client
         .request {
+          configure()
           method = HttpMethod.Get
           contentType(ContentType.Application.Json)
           url {
@@ -735,9 +885,11 @@ fun Assistants(client: HttpClient): Assistants =
     override suspend fun getAssistantFile(
       assistantId: kotlin.String,
       fileId: kotlin.String,
+      configure: HttpRequestBuilder.() -> Unit
     ): AssistantFileObject =
       client
         .request {
+          configure()
           method = HttpMethod.Get
           contentType(ContentType.Application.Json)
           url {
@@ -754,9 +906,11 @@ fun Assistants(client: HttpClient): Assistants =
     override suspend fun getMessage(
       threadId: kotlin.String,
       messageId: kotlin.String,
+      configure: HttpRequestBuilder.() -> Unit
     ): MessageObject =
       client
         .request {
+          configure()
           method = HttpMethod.Get
           contentType(ContentType.Application.Json)
           url {
@@ -774,9 +928,11 @@ fun Assistants(client: HttpClient): Assistants =
       threadId: kotlin.String,
       messageId: kotlin.String,
       fileId: kotlin.String,
+      configure: HttpRequestBuilder.() -> Unit
     ): MessageFileObject =
       client
         .request {
+          configure()
           method = HttpMethod.Get
           contentType(ContentType.Application.Json)
           url {
@@ -794,9 +950,11 @@ fun Assistants(client: HttpClient): Assistants =
     override suspend fun getRun(
       threadId: kotlin.String,
       runId: kotlin.String,
+      configure: HttpRequestBuilder.() -> Unit
     ): RunObject =
       client
         .request {
+          configure()
           method = HttpMethod.Get
           contentType(ContentType.Application.Json)
           url {
@@ -814,9 +972,11 @@ fun Assistants(client: HttpClient): Assistants =
       threadId: kotlin.String,
       runId: kotlin.String,
       stepId: kotlin.String,
+      configure: HttpRequestBuilder.() -> Unit
     ): RunStepObject =
       client
         .request {
+          configure()
           method = HttpMethod.Get
           contentType(ContentType.Application.Json)
           url {
@@ -833,9 +993,11 @@ fun Assistants(client: HttpClient): Assistants =
 
     override suspend fun getThread(
       threadId: kotlin.String,
+      configure: HttpRequestBuilder.() -> Unit
     ): ThreadObject =
       client
         .request {
+          configure()
           method = HttpMethod.Get
           contentType(ContentType.Application.Json)
           url { path("/threads/{thread_id}".replace("{" + "thread_id" + "}", "$threadId")) }
@@ -849,9 +1011,11 @@ fun Assistants(client: HttpClient): Assistants =
       order: OrderListAssistantFiles?,
       after: kotlin.String?,
       before: kotlin.String?,
+      configure: HttpRequestBuilder.() -> Unit
     ): ListAssistantFilesResponse =
       client
         .request {
+          configure()
           method = HttpMethod.Get
           contentType(ContentType.Application.Json)
           parameter("limit", listOf("$limit"))
@@ -872,9 +1036,11 @@ fun Assistants(client: HttpClient): Assistants =
       order: OrderListAssistants?,
       after: kotlin.String?,
       before: kotlin.String?,
+      configure: HttpRequestBuilder.() -> Unit
     ): ListAssistantsResponse =
       client
         .request {
+          configure()
           method = HttpMethod.Get
           contentType(ContentType.Application.Json)
           parameter("limit", listOf("$limit"))
@@ -893,9 +1059,11 @@ fun Assistants(client: HttpClient): Assistants =
       order: OrderListMessageFiles?,
       after: kotlin.String?,
       before: kotlin.String?,
+      configure: HttpRequestBuilder.() -> Unit
     ): ListMessageFilesResponse =
       client
         .request {
+          configure()
           method = HttpMethod.Get
           contentType(ContentType.Application.Json)
           parameter("limit", listOf("$limit"))
@@ -919,9 +1087,11 @@ fun Assistants(client: HttpClient): Assistants =
       order: OrderListMessages?,
       after: kotlin.String?,
       before: kotlin.String?,
+      configure: HttpRequestBuilder.() -> Unit
     ): ListMessagesResponse =
       client
         .request {
+          configure()
           method = HttpMethod.Get
           contentType(ContentType.Application.Json)
           parameter("limit", listOf("$limit"))
@@ -942,9 +1112,11 @@ fun Assistants(client: HttpClient): Assistants =
       order: OrderListRunSteps?,
       after: kotlin.String?,
       before: kotlin.String?,
+      configure: HttpRequestBuilder.() -> Unit
     ): ListRunStepsResponse =
       client
         .request {
+          configure()
           method = HttpMethod.Get
           contentType(ContentType.Application.Json)
           parameter("limit", listOf("$limit"))
@@ -968,9 +1140,11 @@ fun Assistants(client: HttpClient): Assistants =
       order: OrderListRuns?,
       after: kotlin.String?,
       before: kotlin.String?,
+      configure: HttpRequestBuilder.() -> Unit
     ): ListRunsResponse =
       client
         .request {
+          configure()
           method = HttpMethod.Get
           contentType(ContentType.Application.Json)
           parameter("limit", listOf("$limit"))
@@ -985,9 +1159,11 @@ fun Assistants(client: HttpClient): Assistants =
     override suspend fun modifyAssistant(
       assistantId: kotlin.String,
       modifyAssistantRequest: ModifyAssistantRequest,
+      configure: HttpRequestBuilder.() -> Unit
     ): AssistantObject =
       client
         .request {
+          configure()
           method = HttpMethod.Post
           contentType(ContentType.Application.Json)
           url {
@@ -1001,9 +1177,11 @@ fun Assistants(client: HttpClient): Assistants =
       threadId: kotlin.String,
       messageId: kotlin.String,
       modifyMessageRequest: ModifyMessageRequest,
+      configure: HttpRequestBuilder.() -> Unit
     ): MessageObject =
       client
         .request {
+          configure()
           method = HttpMethod.Post
           contentType(ContentType.Application.Json)
           url {
@@ -1021,9 +1199,11 @@ fun Assistants(client: HttpClient): Assistants =
       threadId: kotlin.String,
       runId: kotlin.String,
       modifyRunRequest: ModifyRunRequest,
+      configure: HttpRequestBuilder.() -> Unit
     ): RunObject =
       client
         .request {
+          configure()
           method = HttpMethod.Post
           contentType(ContentType.Application.Json)
           url {
@@ -1040,9 +1220,11 @@ fun Assistants(client: HttpClient): Assistants =
     override suspend fun modifyThread(
       threadId: kotlin.String,
       modifyThreadRequest: ModifyThreadRequest,
+      configure: HttpRequestBuilder.() -> Unit
     ): ThreadObject =
       client
         .request {
+          configure()
           method = HttpMethod.Post
           contentType(ContentType.Application.Json)
           url { path("/threads/{thread_id}".replace("{" + "thread_id" + "}", "$threadId")) }
@@ -1054,9 +1236,11 @@ fun Assistants(client: HttpClient): Assistants =
       threadId: kotlin.String,
       runId: kotlin.String,
       submitToolOutputsRunRequest: SubmitToolOutputsRunRequest,
+      configure: HttpRequestBuilder.() -> Unit
     ): RunObject =
       client
         .request {
+          configure()
           method = HttpMethod.Post
           contentType(ContentType.Application.Json)
           url {

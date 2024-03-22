@@ -6,12 +6,14 @@
 
 package com.xebia.functional.openai.generated.api
 
+import com.xebia.functional.openai.Config
 import com.xebia.functional.openai.generated.api.Models.*
 import com.xebia.functional.openai.generated.model.DeleteModelResponse
 import com.xebia.functional.openai.generated.model.ListModelsResponse
 import com.xebia.functional.openai.generated.model.Model
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
@@ -30,35 +32,49 @@ interface Models {
    * Delete a fine-tuned model. You must have the Owner role in your organization to delete a model.
    *
    * @param model The model to delete
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return DeleteModelResponse
    */
-  suspend fun deleteModel(model: kotlin.String): DeleteModelResponse
+  suspend fun deleteModel(
+    model: kotlin.String,
+    configure: HttpRequestBuilder.() -> Unit = {}
+  ): DeleteModelResponse
 
   /**
    * Lists the currently available models, and provides basic information about each one such as the
    * owner and availability.
    *
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return ListModelsResponse
    */
-  suspend fun listModels(): ListModelsResponse
+  suspend fun listModels(configure: HttpRequestBuilder.() -> Unit = {}): ListModelsResponse
 
   /**
    * Retrieves a model instance, providing basic information about the model such as the owner and
    * permissioning.
    *
    * @param model The ID of the model to use for this request
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return Model
    */
-  suspend fun retrieveModel(model: kotlin.String): Model
+  suspend fun retrieveModel(
+    model: kotlin.String,
+    configure: HttpRequestBuilder.() -> Unit = {}
+  ): Model
 }
 
-fun Models(client: HttpClient): Models =
+fun Models(client: HttpClient, config: Config): Models =
   object : Models {
     override suspend fun deleteModel(
       model: kotlin.String,
+      configure: HttpRequestBuilder.() -> Unit
     ): DeleteModelResponse =
       client
         .request {
+          configure()
           method = HttpMethod.Delete
           contentType(ContentType.Application.Json)
           url { path("/models/{model}".replace("{" + "model" + "}", "$model")) }
@@ -66,9 +82,10 @@ fun Models(client: HttpClient): Models =
         }
         .body()
 
-    override suspend fun listModels(): ListModelsResponse =
+    override suspend fun listModels(configure: HttpRequestBuilder.() -> Unit): ListModelsResponse =
       client
         .request {
+          configure()
           method = HttpMethod.Get
           contentType(ContentType.Application.Json)
           url { path("/models") }
@@ -78,9 +95,11 @@ fun Models(client: HttpClient): Models =
 
     override suspend fun retrieveModel(
       model: kotlin.String,
+      configure: HttpRequestBuilder.() -> Unit
     ): Model =
       client
         .request {
+          configure()
           method = HttpMethod.Get
           contentType(ContentType.Application.Json)
           url { path("/models/{model}".replace("{" + "model" + "}", "$model")) }

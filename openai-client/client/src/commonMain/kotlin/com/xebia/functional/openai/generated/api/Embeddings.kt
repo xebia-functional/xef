@@ -6,11 +6,13 @@
 
 package com.xebia.functional.openai.generated.api
 
+import com.xebia.functional.openai.Config
 import com.xebia.functional.openai.generated.api.Embeddings.*
 import com.xebia.functional.openai.generated.model.CreateEmbeddingRequest
 import com.xebia.functional.openai.generated.model.CreateEmbeddingResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
@@ -29,20 +31,25 @@ interface Embeddings {
    * Creates an embedding vector representing the input text.
    *
    * @param createEmbeddingRequest
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return CreateEmbeddingResponse
    */
   suspend fun createEmbedding(
-    createEmbeddingRequest: CreateEmbeddingRequest
+    createEmbeddingRequest: CreateEmbeddingRequest,
+    configure: HttpRequestBuilder.() -> Unit = {}
   ): CreateEmbeddingResponse
 }
 
-fun Embeddings(client: HttpClient): Embeddings =
+fun Embeddings(client: HttpClient, config: Config): Embeddings =
   object : Embeddings {
     override suspend fun createEmbedding(
       createEmbeddingRequest: CreateEmbeddingRequest,
+      configure: HttpRequestBuilder.() -> Unit
     ): CreateEmbeddingResponse =
       client
         .request {
+          configure()
           method = HttpMethod.Post
           contentType(ContentType.Application.Json)
           url { path("/embeddings") }

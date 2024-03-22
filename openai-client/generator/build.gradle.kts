@@ -24,7 +24,6 @@ val cleanClientGenerated = task("cleanClientGenerated", Delete::class) {
     delete(fileTree("../client/src/commonMain/kotlin/com/xebia/functional/openai/generated"))
 }
 
-// TODO PRE-GENERATION TASK: clean client generated directory
 task("openaiClientGenerate", JavaExec::class) {
     group = "GenerateTasks"
     mainClass = "org.openapitools.codegen.OpenAPIGenerator"
@@ -36,11 +35,7 @@ task("openaiClientGenerate", JavaExec::class) {
         "ai.xef.openai.generator.KMMGeneratorConfig",
         "-o",
         "../client",
-        "--skip-validate-spec",
-//        "--global-property",
-//        "debugModels=true",
-//        "debugOperations=true"
+        "--skip-validate-spec"
     )
     classpath = sourceSets["main"].runtimeClasspath
-}.finalizedBy(":xef-openai-client:spotlessApply")
-    .dependsOn(cleanClientGenerated)
+}.finalizedBy(":xef-openai-client:spotlessApply").dependsOn(cleanClientGenerated)

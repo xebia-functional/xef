@@ -2,22 +2,25 @@
 {{>licenseInfo}}
 package {{apiPackage}}
 
+import com.xebia.functional.openai.Config
 import io.ktor.client.HttpClient
 {{#imports}}import {{import}}
 {{/imports}}
 {{#apis}}import com.xebia.functional.openai.generated.api.{{classFilename}}
 {{/apis}}
 
-interface OpenAI {
+interface OpenAI : AutoCloseable {
 {{#apis}}
   val {{#lambda.camelcase}}{{classFilename}}{{/lambda.camelcase}}: {{classFilename}}
 {{/apis}}
 }
 
-fun OpenAI(client: HttpClient): OpenAI = object : OpenAI {
+fun OpenAI(client: HttpClient, config: Config): OpenAI = object : OpenAI, AutoCloseable {
 {{#apis}}
-  override val {{#lambda.camelcase}}{{classFilename}}{{/lambda.camelcase}} = {{classFilename}}(client)
+  override val {{#lambda.camelcase}}{{classFilename}}{{/lambda.camelcase}} = {{classFilename}}(client, config)
 {{/apis}}
+
+  override fun close() = client.close()
 }
 
 {{/apiInfo}}

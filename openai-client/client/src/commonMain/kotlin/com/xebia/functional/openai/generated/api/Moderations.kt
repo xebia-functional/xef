@@ -6,11 +6,13 @@
 
 package com.xebia.functional.openai.generated.api
 
+import com.xebia.functional.openai.Config
 import com.xebia.functional.openai.generated.api.Moderations.*
 import com.xebia.functional.openai.generated.model.CreateModerationRequest
 import com.xebia.functional.openai.generated.model.CreateModerationResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
@@ -29,20 +31,25 @@ interface Moderations {
    * Classifies if text violates OpenAI&#39;s Content Policy
    *
    * @param createModerationRequest
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return CreateModerationResponse
    */
   suspend fun createModeration(
-    createModerationRequest: CreateModerationRequest
+    createModerationRequest: CreateModerationRequest,
+    configure: HttpRequestBuilder.() -> Unit = {}
   ): CreateModerationResponse
 }
 
-fun Moderations(client: HttpClient): Moderations =
+fun Moderations(client: HttpClient, config: Config): Moderations =
   object : Moderations {
     override suspend fun createModeration(
       createModerationRequest: CreateModerationRequest,
+      configure: HttpRequestBuilder.() -> Unit
     ): CreateModerationResponse =
       client
         .request {
+          configure()
           method = HttpMethod.Post
           contentType(ContentType.Application.Json)
           url { path("/moderations") }

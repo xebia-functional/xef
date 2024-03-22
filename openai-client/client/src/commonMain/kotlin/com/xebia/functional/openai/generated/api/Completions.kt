@@ -6,11 +6,13 @@
 
 package com.xebia.functional.openai.generated.api
 
+import com.xebia.functional.openai.Config
 import com.xebia.functional.openai.generated.api.Completions.*
 import com.xebia.functional.openai.generated.model.CreateCompletionRequest
 import com.xebia.functional.openai.generated.model.CreateCompletionResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
@@ -29,20 +31,25 @@ interface Completions {
    * Creates a completion for the provided prompt and parameters.
    *
    * @param createCompletionRequest
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return CreateCompletionResponse
    */
   suspend fun createCompletion(
-    createCompletionRequest: CreateCompletionRequest
+    createCompletionRequest: CreateCompletionRequest,
+    configure: HttpRequestBuilder.() -> Unit = {}
   ): CreateCompletionResponse
 }
 
-fun Completions(client: HttpClient): Completions =
+fun Completions(client: HttpClient, config: Config): Completions =
   object : Completions {
     override suspend fun createCompletion(
       createCompletionRequest: CreateCompletionRequest,
+      configure: HttpRequestBuilder.() -> Unit
     ): CreateCompletionResponse =
       client
         .request {
+          configure()
           method = HttpMethod.Post
           contentType(ContentType.Application.Json)
           url { path("/completions") }

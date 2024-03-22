@@ -6,6 +6,7 @@
 
 package com.xebia.functional.openai.generated.api
 
+import com.xebia.functional.openai.Config
 import com.xebia.functional.openai.generated.api.FineTuning.*
 import com.xebia.functional.openai.generated.model.CreateFineTuningJobRequest
 import com.xebia.functional.openai.generated.model.FineTuningJob
@@ -13,6 +14,7 @@ import com.xebia.functional.openai.generated.model.ListFineTuningJobEventsRespon
 import com.xebia.functional.openai.generated.model.ListPaginatedFineTuningJobsResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.parameter
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
@@ -32,9 +34,14 @@ interface FineTuning {
    * Immediately cancel a fine-tune job.
    *
    * @param fineTuningJobId The ID of the fine-tuning job to cancel.
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return FineTuningJob
    */
-  suspend fun cancelFineTuningJob(fineTuningJobId: kotlin.String): FineTuningJob
+  suspend fun cancelFineTuningJob(
+    fineTuningJobId: kotlin.String,
+    configure: HttpRequestBuilder.() -> Unit = {}
+  ): FineTuningJob
 
   /**
    * Creates a fine-tuning job which begins the process of creating a new model from a given
@@ -42,10 +49,13 @@ interface FineTuning {
    * fine-tuned models once complete. [Learn more about fine-tuning](/docs/guides/fine-tuning)
    *
    * @param createFineTuningJobRequest
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return FineTuningJob
    */
   suspend fun createFineTuningJob(
-    createFineTuningJobRequest: CreateFineTuningJobRequest
+    createFineTuningJobRequest: CreateFineTuningJobRequest,
+    configure: HttpRequestBuilder.() -> Unit = {}
   ): FineTuningJob
 
   /**
@@ -54,12 +64,15 @@ interface FineTuning {
    * @param fineTuningJobId The ID of the fine-tuning job to get events for.
    * @param after Identifier for the last event from the previous pagination request. (optional)
    * @param limit Number of events to retrieve. (optional, default to 20)
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return ListFineTuningJobEventsResponse
    */
   suspend fun listFineTuningEvents(
     fineTuningJobId: kotlin.String,
     after: kotlin.String? = null,
-    limit: kotlin.Int? = 20
+    limit: kotlin.Int? = 20,
+    configure: HttpRequestBuilder.() -> Unit = {}
   ): ListFineTuningJobEventsResponse
 
   /**
@@ -67,29 +80,39 @@ interface FineTuning {
    *
    * @param after Identifier for the last job from the previous pagination request. (optional)
    * @param limit Number of fine-tuning jobs to retrieve. (optional, default to 20)
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return ListPaginatedFineTuningJobsResponse
    */
   suspend fun listPaginatedFineTuningJobs(
     after: kotlin.String? = null,
-    limit: kotlin.Int? = 20
+    limit: kotlin.Int? = 20,
+    configure: HttpRequestBuilder.() -> Unit = {}
   ): ListPaginatedFineTuningJobsResponse
 
   /**
    * Get info about a fine-tuning job. [Learn more about fine-tuning](/docs/guides/fine-tuning)
    *
    * @param fineTuningJobId The ID of the fine-tuning job.
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return FineTuningJob
    */
-  suspend fun retrieveFineTuningJob(fineTuningJobId: kotlin.String): FineTuningJob
+  suspend fun retrieveFineTuningJob(
+    fineTuningJobId: kotlin.String,
+    configure: HttpRequestBuilder.() -> Unit = {}
+  ): FineTuningJob
 }
 
-fun FineTuning(client: HttpClient): FineTuning =
+fun FineTuning(client: HttpClient, config: Config): FineTuning =
   object : FineTuning {
     override suspend fun cancelFineTuningJob(
       fineTuningJobId: kotlin.String,
+      configure: HttpRequestBuilder.() -> Unit
     ): FineTuningJob =
       client
         .request {
+          configure()
           method = HttpMethod.Post
           contentType(ContentType.Application.Json)
           url {
@@ -104,9 +127,11 @@ fun FineTuning(client: HttpClient): FineTuning =
 
     override suspend fun createFineTuningJob(
       createFineTuningJobRequest: CreateFineTuningJobRequest,
+      configure: HttpRequestBuilder.() -> Unit
     ): FineTuningJob =
       client
         .request {
+          configure()
           method = HttpMethod.Post
           contentType(ContentType.Application.Json)
           url { path("/fine_tuning/jobs") }
@@ -118,9 +143,11 @@ fun FineTuning(client: HttpClient): FineTuning =
       fineTuningJobId: kotlin.String,
       after: kotlin.String?,
       limit: kotlin.Int?,
+      configure: HttpRequestBuilder.() -> Unit
     ): ListFineTuningJobEventsResponse =
       client
         .request {
+          configure()
           method = HttpMethod.Get
           contentType(ContentType.Application.Json)
           parameter("after", listOf("$after"))
@@ -138,9 +165,11 @@ fun FineTuning(client: HttpClient): FineTuning =
     override suspend fun listPaginatedFineTuningJobs(
       after: kotlin.String?,
       limit: kotlin.Int?,
+      configure: HttpRequestBuilder.() -> Unit
     ): ListPaginatedFineTuningJobsResponse =
       client
         .request {
+          configure()
           method = HttpMethod.Get
           contentType(ContentType.Application.Json)
           parameter("after", listOf("$after"))
@@ -152,9 +181,11 @@ fun FineTuning(client: HttpClient): FineTuning =
 
     override suspend fun retrieveFineTuningJob(
       fineTuningJobId: kotlin.String,
+      configure: HttpRequestBuilder.() -> Unit
     ): FineTuningJob =
       client
         .request {
+          configure()
           method = HttpMethod.Get
           contentType(ContentType.Application.Json)
           url {

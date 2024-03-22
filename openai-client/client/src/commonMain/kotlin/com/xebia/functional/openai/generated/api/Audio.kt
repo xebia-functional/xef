@@ -6,6 +6,7 @@
 
 package com.xebia.functional.openai.generated.api
 
+import com.xebia.functional.openai.Config
 import com.xebia.functional.openai.UploadFile
 import com.xebia.functional.openai.appendGen
 import com.xebia.functional.openai.generated.api.Audio.*
@@ -15,6 +16,7 @@ import com.xebia.functional.openai.generated.model.CreateTranscriptionResponse
 import com.xebia.functional.openai.generated.model.CreateTranslationResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
@@ -35,9 +37,14 @@ interface Audio {
    * Generates audio from the input text.
    *
    * @param createSpeechRequest
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return UploadFile
    */
-  suspend fun createSpeech(createSpeechRequest: CreateSpeechRequest): HttpResponse
+  suspend fun createSpeech(
+    createSpeechRequest: CreateSpeechRequest,
+    configure: HttpRequestBuilder.() -> Unit = {}
+  ): HttpResponse
 
   /** enum for parameter responseFormat */
   @Serializable
@@ -82,6 +89,8 @@ interface Audio {
    *   Any of these options: &#x60;word&#x60;, or &#x60;segment&#x60;. Note: There is no additional
    *   latency for segment timestamps, but generating word timestamps incurs additional latency.
    *   (optional)
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return CreateTranscriptionResponse
    */
   suspend fun createTranscription(
@@ -92,7 +101,8 @@ interface Audio {
     responseFormat: ResponseFormatCreateTranscription? = ResponseFormatCreateTranscription.json,
     temperature: kotlin.Double? = 0.toDouble(),
     timestampGranularities: kotlin.collections.List<TimestampGranularitiesCreateTranscription>? =
-      null
+      null,
+    configure: HttpRequestBuilder.() -> Unit = {}
   ): CreateTranscriptionResponse
 
   /**
@@ -111,6 +121,8 @@ interface Audio {
    *   deterministic. If set to 0, the model will use
    *   [log probability](https://en.wikipedia.org/wiki/Log_probability) to automatically increase
    *   the temperature until certain thresholds are hit. (optional, default to 0)
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return CreateTranslationResponse
    */
   suspend fun createTranslation(
@@ -118,16 +130,19 @@ interface Audio {
     model: CreateTranscriptionRequestModel,
     prompt: kotlin.String? = null,
     responseFormat: kotlin.String? = "json",
-    temperature: kotlin.Double? = 0.toDouble()
+    temperature: kotlin.Double? = 0.toDouble(),
+    configure: HttpRequestBuilder.() -> Unit = {}
   ): CreateTranslationResponse
 }
 
-fun Audio(client: HttpClient): Audio =
+fun Audio(client: HttpClient, config: Config): Audio =
   object : Audio {
     override suspend fun createSpeech(
       createSpeechRequest: CreateSpeechRequest,
+      configure: HttpRequestBuilder.() -> Unit
     ): HttpResponse =
       client.request {
+        configure()
         method = HttpMethod.Post
         contentType(ContentType.Application.Json)
         url { path("/audio/speech") }
@@ -142,9 +157,11 @@ fun Audio(client: HttpClient): Audio =
       responseFormat: ResponseFormatCreateTranscription?,
       temperature: kotlin.Double?,
       timestampGranularities: kotlin.collections.List<TimestampGranularitiesCreateTranscription>?,
+      configure: HttpRequestBuilder.() -> Unit
     ): CreateTranscriptionResponse =
       client
         .request {
+          configure()
           method = HttpMethod.Post
           contentType(ContentType.Application.Json)
           url { path("/audio/transcriptions") }
@@ -168,9 +185,11 @@ fun Audio(client: HttpClient): Audio =
       prompt: kotlin.String?,
       responseFormat: kotlin.String?,
       temperature: kotlin.Double?,
+      configure: HttpRequestBuilder.() -> Unit
     ): CreateTranslationResponse =
       client
         .request {
+          configure()
           method = HttpMethod.Post
           contentType(ContentType.Application.Json)
           url { path("/audio/translations") }

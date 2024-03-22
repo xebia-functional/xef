@@ -6,6 +6,7 @@
 
 package com.xebia.functional.openai.generated.api
 
+import com.xebia.functional.openai.Config
 import com.xebia.functional.openai.UploadFile
 import com.xebia.functional.openai.appendGen
 import com.xebia.functional.openai.generated.api.Files.*
@@ -14,6 +15,7 @@ import com.xebia.functional.openai.generated.model.ListFilesResponse
 import com.xebia.functional.openai.generated.model.OpenAIFile
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.parameter
 import io.ktor.client.request.request
@@ -51,51 +53,79 @@ interface Files {
    *   [Fine-tuning](/docs/api-reference/fine-tuning) and \\\&quot;assistants\\\&quot; for
    *   [Assistants](/docs/api-reference/assistants) and [Messages](/docs/api-reference/messages).
    *   This allows us to validate the format of the uploaded file is correct for fine-tuning.
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return OpenAIFile
    */
-  suspend fun createFile(file: UploadFile, purpose: PurposeCreateFile): OpenAIFile
+  suspend fun createFile(
+    file: UploadFile,
+    purpose: PurposeCreateFile,
+    configure: HttpRequestBuilder.() -> Unit = {}
+  ): OpenAIFile
 
   /**
    * Delete a file.
    *
    * @param fileId The ID of the file to use for this request.
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return DeleteFileResponse
    */
-  suspend fun deleteFile(fileId: kotlin.String): DeleteFileResponse
+  suspend fun deleteFile(
+    fileId: kotlin.String,
+    configure: HttpRequestBuilder.() -> Unit = {}
+  ): DeleteFileResponse
 
   /**
    * Returns the contents of the specified file.
    *
    * @param fileId The ID of the file to use for this request.
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return kotlin.String
    */
-  suspend fun downloadFile(fileId: kotlin.String): kotlin.String
+  suspend fun downloadFile(
+    fileId: kotlin.String,
+    configure: HttpRequestBuilder.() -> Unit = {}
+  ): kotlin.String
 
   /**
    * Returns a list of files that belong to the user&#39;s organization.
    *
    * @param purpose Only return files with the given purpose. (optional)
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return ListFilesResponse
    */
-  suspend fun listFiles(purpose: kotlin.String? = null): ListFilesResponse
+  suspend fun listFiles(
+    purpose: kotlin.String? = null,
+    configure: HttpRequestBuilder.() -> Unit = {}
+  ): ListFilesResponse
 
   /**
    * Returns information about a specific file.
    *
    * @param fileId The ID of the file to use for this request.
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return OpenAIFile
    */
-  suspend fun retrieveFile(fileId: kotlin.String): OpenAIFile
+  suspend fun retrieveFile(
+    fileId: kotlin.String,
+    configure: HttpRequestBuilder.() -> Unit = {}
+  ): OpenAIFile
 }
 
-fun Files(client: HttpClient): Files =
+fun Files(client: HttpClient, config: Config): Files =
   object : Files {
     override suspend fun createFile(
       file: UploadFile,
       purpose: PurposeCreateFile,
+      configure: HttpRequestBuilder.() -> Unit
     ): OpenAIFile =
       client
         .request {
+          configure()
           method = HttpMethod.Post
           contentType(ContentType.Application.Json)
           url { path("/files") }
@@ -110,9 +140,11 @@ fun Files(client: HttpClient): Files =
 
     override suspend fun deleteFile(
       fileId: kotlin.String,
+      configure: HttpRequestBuilder.() -> Unit
     ): DeleteFileResponse =
       client
         .request {
+          configure()
           method = HttpMethod.Delete
           contentType(ContentType.Application.Json)
           url { path("/files/{file_id}".replace("{" + "file_id" + "}", "$fileId")) }
@@ -122,9 +154,11 @@ fun Files(client: HttpClient): Files =
 
     override suspend fun downloadFile(
       fileId: kotlin.String,
+      configure: HttpRequestBuilder.() -> Unit
     ): kotlin.String =
       client
         .request {
+          configure()
           method = HttpMethod.Get
           contentType(ContentType.Application.Json)
           url { path("/files/{file_id}/content".replace("{" + "file_id" + "}", "$fileId")) }
@@ -134,9 +168,11 @@ fun Files(client: HttpClient): Files =
 
     override suspend fun listFiles(
       purpose: kotlin.String?,
+      configure: HttpRequestBuilder.() -> Unit
     ): ListFilesResponse =
       client
         .request {
+          configure()
           method = HttpMethod.Get
           contentType(ContentType.Application.Json)
           parameter("purpose", listOf("$purpose"))
@@ -147,9 +183,11 @@ fun Files(client: HttpClient): Files =
 
     override suspend fun retrieveFile(
       fileId: kotlin.String,
+      configure: HttpRequestBuilder.() -> Unit
     ): OpenAIFile =
       client
         .request {
+          configure()
           method = HttpMethod.Get
           contentType(ContentType.Application.Json)
           url { path("/files/{file_id}".replace("{" + "file_id" + "}", "$fileId")) }

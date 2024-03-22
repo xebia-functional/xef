@@ -6,6 +6,7 @@
 
 package com.xebia.functional.openai.generated.api
 
+import com.xebia.functional.openai.Config
 import com.xebia.functional.openai.generated.api.Chat.*
 import com.xebia.functional.openai.generated.model.CreateChatCompletionRequest
 import com.xebia.functional.openai.generated.model.CreateChatCompletionResponse
@@ -14,6 +15,7 @@ import com.xebia.functional.openai.streamEvents
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.timeout
+import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.accept
 import io.ktor.client.request.header
 import io.ktor.client.request.prepareRequest
@@ -40,30 +42,39 @@ interface Chat {
    * Creates a model response for the given chat conversation.
    *
    * @param createChatCompletionRequest
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return CreateChatCompletionResponse
    */
   suspend fun createChatCompletion(
-    createChatCompletionRequest: CreateChatCompletionRequest
+    createChatCompletionRequest: CreateChatCompletionRequest,
+    configure: HttpRequestBuilder.() -> Unit = {}
   ): CreateChatCompletionResponse
 
   /**
-   * Streaming variant: Creates a model response for the given chat conversation.
+   * Streaming variant: Creates a model response for the given chat conversation. By default, the
+   * client is modified to timeout after 60 seconds. Which is overridable by the [configure].
    *
    * @param createChatCompletionRequest
+   * @param configure optional configuration for the request, allows overriding the default
+   *   configuration.
    * @return [Flow]<[CreateChatCompletionStreamResponse]>
    */
   fun createChatCompletionStream(
-    createChatCompletionRequest: CreateChatCompletionRequest
+    createChatCompletionRequest: CreateChatCompletionRequest,
+    configure: HttpRequestBuilder.() -> Unit = {}
   ): Flow<CreateChatCompletionStreamResponse>
 }
 
-fun Chat(client: HttpClient): Chat =
+fun Chat(client: HttpClient, config: Config): Chat =
   object : Chat {
     override suspend fun createChatCompletion(
       createChatCompletionRequest: CreateChatCompletionRequest,
+      configure: HttpRequestBuilder.() -> Unit
     ): CreateChatCompletionResponse =
       client
         .request {
+          configure()
           method = HttpMethod.Post
           contentType(ContentType.Application.Json)
           url { path("/chat/completions") }
@@ -72,15 +83,17 @@ fun Chat(client: HttpClient): Chat =
         .body()
 
     override fun createChatCompletionStream(
-      createChatCompletionRequest: CreateChatCompletionRequest
+      createChatCompletionRequest: CreateChatCompletionRequest,
+      configure: HttpRequestBuilder.() -> Unit
     ): Flow<CreateChatCompletionStreamResponse> = flow {
       client
         .prepareRequest {
-          method = HttpMethod.Post
           timeout {
             requestTimeoutMillis = 60.seconds.toLong(DurationUnit.MILLISECONDS)
             socketTimeoutMillis = 60.seconds.toLong(DurationUnit.MILLISECONDS)
           }
+          configure()
+          method = HttpMethod.Post
           accept(ContentType.Text.EventStream)
           header(HttpHeaders.CacheControl, "no-cache")
           header(HttpHeaders.Connection, "keep-alive")
@@ -88,6 +101,8 @@ fun Chat(client: HttpClient): Chat =
           url { path("/chat/completions") }
           setBody(createChatCompletionRequest)
         }
-        .execute(::streamEvents)
+        .execute {
+          streamEvents(it, config.json, config.streamingPrefix, config.streamingDelimiter)
+        }
     }
   }
