@@ -1,4 +1,3 @@
-proguard-rules.pro
 src/commonMain/kotlin/com/xebia/functional/openai/generated/api/Assistants.kt
 src/commonMain/kotlin/com/xebia/functional/openai/generated/api/Audio.kt
 src/commonMain/kotlin/com/xebia/functional/openai/generated/api/Chat.kt

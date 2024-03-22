@@ -12,3 +12,4 @@ settings.gradle
 
 **/test/**
 /**/org/openapitools/client/infrastructure/
+proguard-rules.pro
