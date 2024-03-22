@@ -7,14 +7,14 @@ class TestItemBuilder(val input: String) {
 
   private lateinit var context: String
 
-  private val outputs = mutableListOf<String>()
+  private val outputs = mutableListOf<OutputResponse>()
 
   operator fun ContextDescription.unaryPlus() {
     context = value
   }
 
   operator fun OutputResponse.unaryPlus() {
-    outputs.add(value)
+    outputs.add(this)
   }
 
   fun build() = ItemSpec(input, context, outputs)

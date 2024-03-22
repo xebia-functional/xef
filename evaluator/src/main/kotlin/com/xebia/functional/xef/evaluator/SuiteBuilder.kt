@@ -3,7 +3,7 @@ package com.xebia.functional.xef.evaluator
 import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.AI
 import com.xebia.functional.xef.evaluator.models.EvaluateResults
-import com.xebia.functional.xef.evaluator.models.OutputDescription
+import com.xebia.functional.xef.evaluator.models.OutputResponse
 import com.xebia.functional.xef.evaluator.models.OutputResult
 import kotlin.jvm.JvmSynthetic
 import kotlinx.serialization.SerialName
@@ -16,25 +16,18 @@ class SuiteBuilder(
   private val model: CreateChatCompletionRequestModel
 ) {
 
-  private val outputsDescription: MutableList<String> = mutableListOf()
-
   private val items = mutableListOf<ItemSpec>()
 
   operator fun ItemSpec.unaryPlus() {
     items.add(this)
   }
 
-  operator fun OutputDescription.unaryPlus() {
-    outputsDescription.add(this.value)
-  }
-
-  fun build() = SuiteSpec(description, outputsDescription, items, model = model)
+  fun build() = SuiteSpec(description, items, model = model)
 }
 
 @Serializable
 data class SuiteSpec(
   val description: String,
-  @SerialName("outputs_description") val outputsDescription: List<String>,
   val items: List<ItemSpec>,
   val model: CreateChatCompletionRequestModel
 ) {
@@ -46,10 +39,9 @@ data class SuiteSpec(
   E : Enum<E> {
     return items.map { item ->
       val res =
-        item.outputs.mapIndexed { index, output ->
-          val description = outputsDescription[index] // TODO Validate if index is valid
-          val classification = AI.classify<E>(item.input, item.context, output, model = model)
-          OutputResult(item.input, description, output, classification)
+        item.outputs.map { output ->
+          val classification = AI.classify<E>(item.input, item.context, output.value, model = model)
+          OutputResult(item.input, output.description.value, output.value, classification)
         }
       EvaluateResults(description, res)
     }
@@ -69,7 +61,7 @@ data class SuiteSpec(
 data class ItemSpec(
   val input: String,
   val context: String,
-  @SerialName("actual_outputs") val outputs: List<String>
+  @SerialName("actual_outputs") val outputs: List<OutputResponse>
 ) {
   companion object {
     @JvmSynthetic

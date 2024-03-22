@@ -31,23 +31,27 @@ object TestExample {
         description = "Check GTP3.5 and fake outputs",
         model = CreateChatCompletionRequestModel.gpt_4_turbo_preview
       ) {
-        +OutputDescription("Using GPT3.5")
-        +OutputDescription("Fake outputs with errors")
+        val gpt35Description = OutputDescription("Using GPT3.5")
+        val fakeOutputs = OutputDescription("Fake outputs with errors")
 
         +ItemSpec("Please provide a movie title, genre and director") {
           +ContextDescription("Contains information about a movie")
 
-          +OutputResponse { Conversation { promptMessage(Prompt(model) { +user(input) }) } }
+          +OutputResponse(gpt35Description) {
+            Conversation { promptMessage(Prompt(model) { +user(input) }) }
+          }
 
-          +OutputResponse("I don't know")
+          +OutputResponse(description = fakeOutputs, value = "I don't know")
         }
 
         +ItemSpec("Recipe for a chocolate cake") {
           +ContextDescription("Contains instructions for making a cake")
 
-          +OutputResponse { Conversation { promptMessage(Prompt(model) { +user(input) }) } }
+          +OutputResponse(gpt35Description) {
+            Conversation { promptMessage(Prompt(model) { +user(input) }) }
+          }
 
-          +OutputResponse("The movie is Jurassic Park")
+          +OutputResponse(description = fakeOutputs, value = "The movie is Jurassic Park")
         }
       }
 
