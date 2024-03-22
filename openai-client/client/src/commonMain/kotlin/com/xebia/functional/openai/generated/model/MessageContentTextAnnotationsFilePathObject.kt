@@ -21,10 +21,8 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class MessageContentTextAnnotationsFilePathObject(
-
   /* Always `file_path`. */
   @SerialName(value = "type") val type: MessageContentTextAnnotationsFilePathObject.Type,
-
   /* The text in the message content that needs to be replaced. */
   @SerialName(value = "text") val text: kotlin.String,
   @SerialName(value = "file_path")

@@ -6,6 +6,7 @@
 
 package com.xebia.functional.openai.generated.model
 
+import kotlin.js.JsName
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -20,7 +21,6 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class CreateCompletionResponseChoicesInner(
-
   /* The reason the model stopped generating tokens. This will be `stop` if the model hit a natural stop point or a provided stop sequence, `length` if the maximum number of tokens specified in the request was reached, or `content_filter` if content was omitted due to a flag from our content filters.  */
   @SerialName(value = "finish_reason")
   val finishReason: CreateCompletionResponseChoicesInner.FinishReason,
@@ -35,12 +35,12 @@ data class CreateCompletionResponseChoicesInner(
    * the request was reached, or `content_filter` if content was omitted due to a flag from our
    * content filters.
    *
-   * Values: stop,length_type,content_filter
+   * Values: stop,length,content_filter
    */
   @Serializable
   enum class FinishReason(val value: kotlin.String) {
     @SerialName(value = "stop") stop("stop"),
-    @SerialName(value = "length") length_type("length"),
+    @SerialName(value = "length") @JsName("length_type") length("length"),
     @SerialName(value = "content_filter") content_filter("content_filter")
   }
 }

@@ -19,10 +19,8 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class RunToolCallObject(
-
   /* The ID of the tool call. This ID must be referenced when you submit the tool outputs in using the [Submit tool outputs to run](/docs/api-reference/runs/submitToolOutputs) endpoint. */
   @SerialName(value = "id") val id: kotlin.String,
-
   /* The type of tool call the output is required for. For now, this is always `function`. */
   @SerialName(value = "type") val type: RunToolCallObject.Type,
   @SerialName(value = "function") val function: RunToolCallObjectFunction

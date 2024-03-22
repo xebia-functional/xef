@@ -19,13 +19,10 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class RunStepCompletionUsage(
-
   /* Number of completion tokens used over the course of the run step. */
   @SerialName(value = "completion_tokens") val completionTokens: kotlin.Int,
-
   /* Number of prompt tokens used over the course of the run step. */
   @SerialName(value = "prompt_tokens") val promptTokens: kotlin.Int,
-
   /* Total number of tokens used (prompt + completion). */
   @SerialName(value = "total_tokens") val totalTokens: kotlin.Int
 )

@@ -22,10 +22,8 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class MessageContentTextAnnotationsFileCitationObject(
-
   /* Always `file_citation`. */
   @SerialName(value = "type") val type: MessageContentTextAnnotationsFileCitationObject.Type,
-
   /* The text in the message content that needs to be replaced. */
   @SerialName(value = "text") val text: kotlin.String,
   @SerialName(value = "file_citation")

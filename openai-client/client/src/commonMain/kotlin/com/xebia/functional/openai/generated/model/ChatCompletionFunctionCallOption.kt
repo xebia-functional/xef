@@ -17,7 +17,6 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class ChatCompletionFunctionCallOption(
-
   /* The name of the function to call. */
   @SerialName(value = "name") val name: kotlin.String
 )

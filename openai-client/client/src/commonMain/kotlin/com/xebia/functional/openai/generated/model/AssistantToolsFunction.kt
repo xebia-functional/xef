@@ -15,7 +15,6 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class AssistantToolsFunction(
-
   /* The type of tool being defined: `function` */
   @SerialName(value = "type") val type: AssistantToolsFunction.Type,
   @SerialName(value = "function") val function: FunctionObject

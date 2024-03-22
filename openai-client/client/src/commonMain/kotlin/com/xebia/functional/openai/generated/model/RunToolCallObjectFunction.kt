@@ -17,10 +17,8 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class RunToolCallObjectFunction(
-
   /* The name of the function. */
   @SerialName(value = "name") val name: kotlin.String,
-
   /* The arguments that the model expects you to pass to the function. */
   @SerialName(value = "arguments") val arguments: kotlin.String
 )

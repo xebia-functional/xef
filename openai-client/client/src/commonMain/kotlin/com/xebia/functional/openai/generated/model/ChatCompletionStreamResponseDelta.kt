@@ -19,7 +19,6 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class ChatCompletionStreamResponseDelta(
-
   /* The contents of the chunk message. */
   @SerialName(value = "content") val content: kotlin.String? = null,
   @Deprecated(message = "This property is deprecated.")
@@ -27,7 +26,6 @@ data class ChatCompletionStreamResponseDelta(
   val functionCall: ChatCompletionStreamResponseDeltaFunctionCall? = null,
   @SerialName(value = "tool_calls")
   val toolCalls: kotlin.collections.List<ChatCompletionMessageToolCallChunk>? = null,
-
   /* The role of the author of this message. */
   @SerialName(value = "role") val role: ChatCompletionStreamResponseDelta.Role? = null
 ) {

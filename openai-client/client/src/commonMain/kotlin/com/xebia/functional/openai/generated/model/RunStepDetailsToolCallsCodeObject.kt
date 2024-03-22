@@ -19,10 +19,8 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class RunStepDetailsToolCallsCodeObject(
-
   /* The ID of the tool call. */
   @SerialName(value = "id") val id: kotlin.String,
-
   /* The type of tool call. This is always going to be `code_interpreter` for this type of tool call. */
   @SerialName(value = "type") val type: RunStepDetailsToolCallsCodeObject.Type,
   @SerialName(value = "code_interpreter")

@@ -16,7 +16,6 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class CreateAssistantFileRequest(
-
   /* A [File](/docs/api-reference/files) ID (with `purpose=\"assistants\"`) that the assistant should use. Useful for tools like `retrieval` and `code_interpreter` that can access files. */
   @SerialName(value = "file_id") val fileId: kotlin.String
 )

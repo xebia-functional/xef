@@ -26,30 +26,22 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class OpenAIFile(
-
   /* The file identifier, which can be referenced in the API endpoints. */
   @SerialName(value = "id") val id: kotlin.String,
-
   /* The size of the file, in bytes. */
   @SerialName(value = "bytes") val bytes: kotlin.Int,
-
   /* The Unix timestamp (in seconds) for when the file was created. */
   @SerialName(value = "created_at") val createdAt: kotlin.Int,
-
   /* The name of the file. */
   @SerialName(value = "filename") val filename: kotlin.String,
-
   /* The object type, which is always `file`. */
   @SerialName(value = "object") val `object`: OpenAIFile.`Object`,
-
   /* The intended purpose of the file. Supported values are `fine-tune`, `fine-tune-results`, `assistants`, and `assistants_output`. */
   @SerialName(value = "purpose") val purpose: OpenAIFile.Purpose,
-
   /* Deprecated. The current status of the file, which can be either `uploaded`, `processed`, or `error`. */
   @Deprecated(message = "This property is deprecated.")
   @SerialName(value = "status")
   val status: OpenAIFile.Status,
-
   /* Deprecated. For details on why a fine-tuning training file failed validation, see the `error` field on `fine_tuning.job`. */
   @Deprecated(message = "This property is deprecated.")
   @SerialName(value = "status_details")

@@ -17,13 +17,10 @@ import kotlinx.serialization.Serializable
 @Serializable
 @Deprecated(message = "This schema is deprecated.")
 data class ChatCompletionRequestFunctionMessage(
-
   /* The role of the messages author, in this case `function`. */
   @SerialName(value = "role") val role: ChatCompletionRequestFunctionMessage.Role,
-
   /* The contents of the function message. */
   @SerialName(value = "content") val content: kotlin.String?,
-
   /* The name of the function to call. */
   @SerialName(value = "name") val name: kotlin.String
 ) {

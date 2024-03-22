@@ -20,16 +20,12 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class MessageFileObject(
-
   /* The identifier, which can be referenced in API endpoints. */
   @SerialName(value = "id") val id: kotlin.String,
-
   /* The object type, which is always `thread.message.file`. */
   @SerialName(value = "object") val `object`: MessageFileObject.`Object`,
-
   /* The Unix timestamp (in seconds) for when the message file was created. */
   @SerialName(value = "created_at") val createdAt: kotlin.Int,
-
   /* The ID of the [message](/docs/api-reference/messages) that the [File](/docs/api-reference/files) is attached to. */
   @SerialName(value = "message_id") val messageId: kotlin.String
 ) {

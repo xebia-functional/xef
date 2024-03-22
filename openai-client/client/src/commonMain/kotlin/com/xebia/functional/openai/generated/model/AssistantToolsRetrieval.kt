@@ -12,7 +12,6 @@ import kotlinx.serialization.Serializable
 /** @param type The type of tool being defined: `retrieval` */
 @Serializable
 data class AssistantToolsRetrieval(
-
   /* The type of tool being defined: `retrieval` */
   @SerialName(value = "type") val type: AssistantToolsRetrieval.Type
 ) {

@@ -36,45 +36,32 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class RunStepObject(
-
   /* The identifier of the run step, which can be referenced in API endpoints. */
   @SerialName(value = "id") val id: kotlin.String,
-
   /* The object type, which is always `thread.run.step`. */
   @SerialName(value = "object") val `object`: RunStepObject.`Object`,
-
   /* The Unix timestamp (in seconds) for when the run step was created. */
   @SerialName(value = "created_at") val createdAt: kotlin.Int,
-
   /* The ID of the [assistant](/docs/api-reference/assistants) associated with the run step. */
   @SerialName(value = "assistant_id") val assistantId: kotlin.String,
-
   /* The ID of the [thread](/docs/api-reference/threads) that was run. */
   @SerialName(value = "thread_id") val threadId: kotlin.String,
-
   /* The ID of the [run](/docs/api-reference/runs) that this run step is a part of. */
   @SerialName(value = "run_id") val runId: kotlin.String,
-
   /* The type of run step, which can be either `message_creation` or `tool_calls`. */
   @SerialName(value = "type") val type: RunStepObject.Type,
-
   /* The status of the run step, which can be either `in_progress`, `cancelled`, `failed`, `completed`, or `expired`. */
   @SerialName(value = "status") val status: RunStepObject.Status,
   @SerialName(value = "step_details") val stepDetails: RunStepObjectStepDetails,
   @SerialName(value = "last_error") val lastError: RunStepObjectLastError?,
-
   /* The Unix timestamp (in seconds) for when the run step expired. A step is considered expired if the parent run is expired. */
   @SerialName(value = "expired_at") val expiredAt: kotlin.Int? = null,
-
   /* The Unix timestamp (in seconds) for when the run step was cancelled. */
   @SerialName(value = "cancelled_at") val cancelledAt: kotlin.Int?,
-
   /* The Unix timestamp (in seconds) for when the run step failed. */
   @SerialName(value = "failed_at") val failedAt: kotlin.Int?,
-
   /* The Unix timestamp (in seconds) for when the run step completed. */
   @SerialName(value = "completed_at") val completedAt: kotlin.Int?,
-
   /* Set of 16 key-value pairs that can be attached to an object. This can be useful for storing additional information about the object in a structured format. Keys can be a maximum of 64 characters long and values can be a maxium of 512 characters long.  */
   @SerialName(value = "metadata") val metadata: kotlinx.serialization.json.JsonObject? = null,
   @SerialName(value = "usage") val usage: RunStepCompletionUsage?

@@ -18,13 +18,10 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class CompletionUsage(
-
   /* Number of tokens in the generated completion. */
   @SerialName(value = "completion_tokens") val completionTokens: kotlin.Int,
-
   /* Number of tokens in the prompt. */
   @SerialName(value = "prompt_tokens") val promptTokens: kotlin.Int,
-
   /* Total number of tokens used in the request (prompt + completion). */
   @SerialName(value = "total_tokens") val totalTokens: kotlin.Int
 )

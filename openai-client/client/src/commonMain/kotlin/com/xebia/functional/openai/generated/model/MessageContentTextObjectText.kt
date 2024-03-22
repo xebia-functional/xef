@@ -15,7 +15,6 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class MessageContentTextObjectText(
-
   /* The data that makes up the text. */
   @SerialName(value = "value") val `value`: kotlin.String,
   @SerialName(value = "annotations")

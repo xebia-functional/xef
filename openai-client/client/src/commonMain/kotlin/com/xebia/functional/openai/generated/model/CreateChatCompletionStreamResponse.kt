@@ -25,23 +25,17 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class CreateChatCompletionStreamResponse(
-
   /* A unique identifier for the chat completion. Each chunk has the same ID. */
   @SerialName(value = "id") val id: kotlin.String,
-
   /* A list of chat completion choices. Can be more than one if `n` is greater than 1. */
   @SerialName(value = "choices")
   val choices: kotlin.collections.List<CreateChatCompletionStreamResponseChoicesInner>,
-
   /* The Unix timestamp (in seconds) of when the chat completion was created. Each chunk has the same timestamp. */
   @SerialName(value = "created") val created: kotlin.Int,
-
   /* The model to generate the completion. */
   @SerialName(value = "model") val model: kotlin.String,
-
   /* The object type, which is always `chat.completion.chunk`. */
   @SerialName(value = "object") val `object`: CreateChatCompletionStreamResponse.`Object`,
-
   /* This fingerprint represents the backend configuration that the model runs with. Can be used in conjunction with the `seed` request parameter to understand when backend changes have been made that might impact determinism.  */
   @SerialName(value = "system_fingerprint") val systemFingerprint: kotlin.String? = null
 ) {

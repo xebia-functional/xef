@@ -17,7 +17,6 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class MessageContentTextObject(
-
   /* Always `text`. */
   @SerialName(value = "type") val type: MessageContentTextObject.Type,
   @SerialName(value = "text") val text: MessageContentTextObjectText

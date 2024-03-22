@@ -12,7 +12,6 @@ import kotlinx.serialization.Serializable
 /** @param fileId The [File](/docs/api-reference/files) ID of the image in the message content. */
 @Serializable
 data class MessageContentImageFileObjectImageFile(
-
   /* The [File](/docs/api-reference/files) ID of the image in the message content. */
   @SerialName(value = "file_id") val fileId: kotlin.String
 )

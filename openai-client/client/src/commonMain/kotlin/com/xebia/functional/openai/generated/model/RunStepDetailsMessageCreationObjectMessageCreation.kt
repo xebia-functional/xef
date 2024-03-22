@@ -12,7 +12,6 @@ import kotlinx.serialization.Serializable
 /** @param messageId The ID of the message that was created by this run step. */
 @Serializable
 data class RunStepDetailsMessageCreationObjectMessageCreation(
-
   /* The ID of the message that was created by this run step. */
   @SerialName(value = "message_id") val messageId: kotlin.String
 )

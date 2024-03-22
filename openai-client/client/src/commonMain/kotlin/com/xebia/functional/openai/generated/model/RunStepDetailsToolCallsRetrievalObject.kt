@@ -17,13 +17,10 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class RunStepDetailsToolCallsRetrievalObject(
-
   /* The ID of the tool call object. */
   @SerialName(value = "id") val id: kotlin.String,
-
   /* The type of tool call. This is always going to be `retrieval` for this type of tool call. */
   @SerialName(value = "type") val type: RunStepDetailsToolCallsRetrievalObject.Type,
-
   /* For now, this is always going to be an empty object. */
   @SerialName(value = "retrieval") val retrieval: kotlinx.serialization.json.JsonObject? = null
 ) {

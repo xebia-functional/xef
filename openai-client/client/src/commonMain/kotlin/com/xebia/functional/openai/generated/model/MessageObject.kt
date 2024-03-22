@@ -31,35 +31,25 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class MessageObject(
-
   /* The identifier, which can be referenced in API endpoints. */
   @SerialName(value = "id") val id: kotlin.String,
-
   /* The object type, which is always `thread.message`. */
   @SerialName(value = "object") val `object`: MessageObject.`Object`,
-
   /* The Unix timestamp (in seconds) for when the message was created. */
   @SerialName(value = "created_at") val createdAt: kotlin.Int,
-
   /* The [thread](/docs/api-reference/threads) ID that this message belongs to. */
   @SerialName(value = "thread_id") val threadId: kotlin.String,
-
   /* The entity that produced the message. One of `user` or `assistant`. */
   @SerialName(value = "role") val role: MessageObject.Role,
-
   /* The content of the message in array of text and/or images. */
   @SerialName(value = "content") val content: kotlin.collections.List<MessageObjectContentInner>,
-
   /* If applicable, the ID of the [assistant](/docs/api-reference/assistants) that authored this message. */
   @SerialName(value = "assistant_id") val assistantId: kotlin.String?,
-
   /* If applicable, the ID of the [run](/docs/api-reference/runs) associated with the authoring of this message. */
   @SerialName(value = "run_id") val runId: kotlin.String?,
-
   /* A list of [file](/docs/api-reference/files) IDs that the assistant should use. Useful for tools like retrieval and code_interpreter that can access files. A maximum of 10 files can be attached to a message. */
   @SerialName(value = "file_ids")
   val fileIds: kotlin.collections.List<kotlin.String> = arrayListOf(),
-
   /* Set of 16 key-value pairs that can be attached to an object. This can be useful for storing additional information about the object in a structured format. Keys can be a maximum of 64 characters long and values can be a maxium of 512 characters long.  */
   @SerialName(value = "metadata") val metadata: kotlinx.serialization.json.JsonObject? = null
 ) {

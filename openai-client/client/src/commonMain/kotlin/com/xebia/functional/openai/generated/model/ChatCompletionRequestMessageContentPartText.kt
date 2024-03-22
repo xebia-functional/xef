@@ -15,10 +15,8 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class ChatCompletionRequestMessageContentPartText(
-
   /* The type of the content part. */
   @SerialName(value = "type") val type: ChatCompletionRequestMessageContentPartText.Type,
-
   /* The text content. */
   @SerialName(value = "text") val text: kotlin.String
 ) {

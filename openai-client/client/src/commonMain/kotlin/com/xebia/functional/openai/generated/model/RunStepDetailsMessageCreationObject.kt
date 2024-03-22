@@ -17,7 +17,6 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class RunStepDetailsMessageCreationObject(
-
   /* Always `message_creation`. */
   @SerialName(value = "type") val type: RunStepDetailsMessageCreationObject.Type,
   @SerialName(value = "message_creation")

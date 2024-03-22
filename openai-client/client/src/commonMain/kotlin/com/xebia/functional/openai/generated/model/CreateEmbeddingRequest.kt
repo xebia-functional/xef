@@ -23,14 +23,11 @@ import kotlinx.serialization.Serializable
 data class CreateEmbeddingRequest(
   @SerialName(value = "input") val input: CreateEmbeddingRequestInput,
   @SerialName(value = "model") val model: CreateEmbeddingRequestModel,
-
   /* The format to return the embeddings in. Can be either `float` or [`base64`](https://pypi.org/project/pybase64/). */
   @SerialName(value = "encoding_format")
   val encodingFormat: CreateEmbeddingRequest.EncodingFormat? = EncodingFormat.float,
-
   /* The number of dimensions the resulting output embeddings should have. Only supported in `text-embedding-3` and later models.  */
   @SerialName(value = "dimensions") val dimensions: kotlin.Int? = null,
-
   /* A unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse. [Learn more](/docs/guides/safety-best-practices/end-user-ids).  */
   @SerialName(value = "user") val user: kotlin.String? = null
 ) {

@@ -17,7 +17,6 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class MessageContentImageFileObject(
-
   /* Always `image_file`. */
   @SerialName(value = "type") val type: MessageContentImageFileObject.Type,
   @SerialName(value = "image_file") val imageFile: MessageContentImageFileObjectImageFile

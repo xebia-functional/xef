@@ -25,23 +25,17 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class CreateCompletionResponse(
-
   /* A unique identifier for the completion. */
   @SerialName(value = "id") val id: kotlin.String,
-
   /* The list of completion choices the model generated for the input prompt. */
   @SerialName(value = "choices")
   val choices: kotlin.collections.List<CreateCompletionResponseChoicesInner>,
-
   /* The Unix timestamp (in seconds) of when the completion was created. */
   @SerialName(value = "created") val created: kotlin.Int,
-
   /* The model used for completion. */
   @SerialName(value = "model") val model: kotlin.String,
-
   /* The object type, which is always \"text_completion\" */
   @SerialName(value = "object") val `object`: CreateCompletionResponse.`Object`,
-
   /* This fingerprint represents the backend configuration that the model runs with.  Can be used in conjunction with the `seed` request parameter to understand when backend changes have been made that might impact determinism.  */
   @SerialName(value = "system_fingerprint") val systemFingerprint: kotlin.String? = null,
   @SerialName(value = "usage") val usage: CompletionUsage? = null

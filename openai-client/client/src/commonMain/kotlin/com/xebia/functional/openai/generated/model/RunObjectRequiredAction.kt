@@ -17,7 +17,6 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class RunObjectRequiredAction(
-
   /* For now, this is always `submit_tool_outputs`. */
   @SerialName(value = "type") val type: RunObjectRequiredAction.Type,
   @SerialName(value = "submit_tool_outputs")

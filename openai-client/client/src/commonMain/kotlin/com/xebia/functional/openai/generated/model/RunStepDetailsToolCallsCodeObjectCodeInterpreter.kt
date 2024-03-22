@@ -19,10 +19,8 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class RunStepDetailsToolCallsCodeObjectCodeInterpreter(
-
   /* The input to the Code Interpreter tool call. */
   @SerialName(value = "input") val input: kotlin.String,
-
   /* The outputs from the Code Interpreter tool call. Code Interpreter can output one or more items, including text (`logs`) or images (`image`). Each of these are represented by a different object type. */
   @SerialName(value = "outputs")
   val outputs: kotlin.collections.List<RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInner>

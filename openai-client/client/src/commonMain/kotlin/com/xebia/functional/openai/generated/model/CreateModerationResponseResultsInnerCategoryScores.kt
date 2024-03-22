@@ -26,37 +26,26 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class CreateModerationResponseResultsInnerCategoryScores(
-
   /* The score for the category 'hate'. */
   @SerialName(value = "hate") val hate: kotlin.Double,
-
   /* The score for the category 'hate/threatening'. */
   @SerialName(value = "hate/threatening") val hateThreatening: kotlin.Double,
-
   /* The score for the category 'harassment'. */
   @SerialName(value = "harassment") val harassment: kotlin.Double,
-
   /* The score for the category 'harassment/threatening'. */
   @SerialName(value = "harassment/threatening") val harassmentThreatening: kotlin.Double,
-
   /* The score for the category 'self-harm'. */
   @SerialName(value = "self-harm") val selfHarm: kotlin.Double,
-
   /* The score for the category 'self-harm/intent'. */
   @SerialName(value = "self-harm/intent") val selfHarmIntent: kotlin.Double,
-
   /* The score for the category 'self-harm/instructions'. */
   @SerialName(value = "self-harm/instructions") val selfHarmInstructions: kotlin.Double,
-
   /* The score for the category 'sexual'. */
   @SerialName(value = "sexual") val sexual: kotlin.Double,
-
   /* The score for the category 'sexual/minors'. */
   @SerialName(value = "sexual/minors") val sexualMinors: kotlin.Double,
-
   /* The score for the category 'violence'. */
   @SerialName(value = "violence") val violence: kotlin.Double,
-
   /* The score for the category 'violence/graphic'. */
   @SerialName(value = "violence/graphic") val violenceGraphic: kotlin.Double
 )

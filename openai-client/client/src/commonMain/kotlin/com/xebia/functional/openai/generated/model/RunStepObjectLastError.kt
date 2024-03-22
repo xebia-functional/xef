@@ -17,10 +17,8 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class RunStepObjectLastError(
-
   /* One of `server_error` or `rate_limit_exceeded`. */
   @SerialName(value = "code") val code: RunStepObjectLastError.Code,
-
   /* A human-readable description of the error. */
   @SerialName(value = "message") val message: kotlin.String
 ) {

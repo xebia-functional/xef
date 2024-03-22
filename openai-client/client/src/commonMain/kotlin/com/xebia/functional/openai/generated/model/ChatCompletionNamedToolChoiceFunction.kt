@@ -12,7 +12,6 @@ import kotlinx.serialization.Serializable
 /** @param name The name of the function to call. */
 @Serializable
 data class ChatCompletionNamedToolChoiceFunction(
-
   /* The name of the function to call. */
   @SerialName(value = "name") val name: kotlin.String
 )

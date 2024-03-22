@@ -18,13 +18,10 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class CreateModerationResponse(
-
   /* The unique identifier for the moderation request. */
   @SerialName(value = "id") val id: kotlin.String,
-
   /* The model used to generate the moderation results. */
   @SerialName(value = "model") val model: kotlin.String,
-
   /* A list of moderation objects. */
   @SerialName(value = "results")
   val results: kotlin.collections.List<CreateModerationResponseResultsInner>

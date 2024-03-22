@@ -16,10 +16,8 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class ChatCompletionMessageToolCall(
-
   /* The ID of the tool call. */
   @SerialName(value = "id") val id: kotlin.String,
-
   /* The type of the tool. Currently, only `function` is supported. */
   @SerialName(value = "type") val type: ChatCompletionMessageToolCall.Type,
   @SerialName(value = "function") val function: ChatCompletionMessageToolCallFunction

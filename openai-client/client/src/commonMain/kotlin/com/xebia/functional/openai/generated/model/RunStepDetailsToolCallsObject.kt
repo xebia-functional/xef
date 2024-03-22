@@ -18,10 +18,8 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class RunStepDetailsToolCallsObject(
-
   /* Always `tool_calls`. */
   @SerialName(value = "type") val type: RunStepDetailsToolCallsObject.Type,
-
   /* An array of tool calls the run step was involved in. These can be associated with one of three types of tools: `code_interpreter`, `retrieval`, or `function`.  */
   @SerialName(value = "tool_calls")
   val toolCalls: kotlin.collections.List<RunStepDetailsToolCallsObjectToolCallsInner>

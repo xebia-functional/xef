@@ -16,13 +16,10 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class ChatCompletionRequestToolMessage(
-
   /* The role of the messages author, in this case `tool`. */
   @SerialName(value = "role") val role: ChatCompletionRequestToolMessage.Role,
-
   /* The contents of the tool message. */
   @SerialName(value = "content") val content: kotlin.String,
-
   /* Tool call that this message is responding to. */
   @SerialName(value = "tool_call_id") val toolCallId: kotlin.String
 ) {

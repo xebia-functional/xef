@@ -24,17 +24,13 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class CreateSpeechRequest(
   @SerialName(value = "model") val model: CreateSpeechRequestModel,
-
   /* The text to generate audio for. The maximum length is 4096 characters. */
   @SerialName(value = "input") val input: kotlin.String,
-
   /* The voice to use when generating the audio. Supported voices are `alloy`, `echo`, `fable`, `onyx`, `nova`, and `shimmer`. Previews of the voices are available in the [Text to speech guide](/docs/guides/text-to-speech/voice-options). */
   @SerialName(value = "voice") val voice: CreateSpeechRequest.Voice,
-
   /* The format to return audio in.  Supported formats are `mp3`, `opus`, `aac`, `flac`, `pcm`, and `wav`.   The `pcm` audio format, similar to `wav` but without a header, utilizes a 24kHz sample rate, mono channel, and 16-bit depth in signed little-endian format. */
   @SerialName(value = "response_format")
   val responseFormat: CreateSpeechRequest.ResponseFormat? = ResponseFormat.mp3,
-
   /* The speed of the generated audio. Select a value from `0.25` to `4.0`. `1.0` is the default. */
   @SerialName(value = "speed") val speed: kotlin.Double? = (1.0).toDouble()
 ) {

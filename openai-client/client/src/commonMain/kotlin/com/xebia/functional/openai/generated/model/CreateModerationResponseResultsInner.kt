@@ -16,7 +16,6 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class CreateModerationResponseResultsInner(
-
   /* Whether the content violates [OpenAI's usage policies](/policies/usage-policies). */
   @SerialName(value = "flagged") val flagged: kotlin.Boolean,
   @SerialName(value = "categories") val categories: CreateModerationResponseResultsInnerCategories,

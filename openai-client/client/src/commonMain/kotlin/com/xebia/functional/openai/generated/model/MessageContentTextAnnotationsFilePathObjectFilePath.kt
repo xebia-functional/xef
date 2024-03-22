@@ -12,7 +12,6 @@ import kotlinx.serialization.Serializable
 /** @param fileId The ID of the file that was generated. */
 @Serializable
 data class MessageContentTextAnnotationsFilePathObjectFilePath(
-
   /* The ID of the file that was generated. */
   @SerialName(value = "file_id") val fileId: kotlin.String
 )

@@ -17,13 +17,10 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class ChatCompletionRequestSystemMessage(
-
   /* The contents of the system message. */
   @SerialName(value = "content") val content: kotlin.String,
-
   /* The role of the messages author, in this case `system`. */
   @SerialName(value = "role") val role: ChatCompletionRequestSystemMessage.Role,
-
   /* An optional name for the participant. Provides the model information to differentiate between participants of the same role. */
   @SerialName(value = "name") val name: kotlin.String? = null
 ) {

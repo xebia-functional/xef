@@ -15,7 +15,6 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class RunStepDetailsToolCallsCodeOutputImageObject(
-
   /* Always `image`. */
   @SerialName(value = "type") val type: RunStepDetailsToolCallsCodeOutputImageObject.Type,
   @SerialName(value = "image") val image: RunStepDetailsToolCallsCodeOutputImageObjectImage

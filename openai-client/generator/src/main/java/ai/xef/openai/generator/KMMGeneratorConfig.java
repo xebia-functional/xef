@@ -107,7 +107,7 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
 
     /**
      * Map<OperationId, StreamedReturnType>
-     *     Used to generate additional code for operations that support streaming.
+     * Used to generate additional code for operations that support streaming.
      * <p>
      * Extra streaming operation will be generated for OperationId, and the return type will be Flow<StreamedReturnType>.
      */
@@ -171,23 +171,12 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
         return super.postProcessModels(objs);
     }
 
-    // TODO replace by vendor-extension `x-jsname`
-    @Override
-    public String toEnumVarName(String value, String datatype) {
-        String varName;
-        if ("length".equals(value)) {
-            varName = value + "Type";
-        } else {
-            varName = value;
-        }
-        return super.toEnumVarName(varName, datatype);
-    }
-
     @Override
     protected ImmutableMap.Builder<String, Mustache.Lambda> addMustacheLambdas() {
         return super.addMustacheLambdas()
                 .put("oneOfName", new OneOfName())
-                .put("capitalised", new Capitalised());
+                .put("capitalised", new Capitalised())
+                .put("jsname", new JsName());
     }
 
     /**
@@ -213,6 +202,21 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
             String text = fragment.execute();
             int index = Integer.parseInt(text);
             writer.write(names.get(index - 1));
+        }
+    }
+
+    /**
+     * Lambda to generate the `@JsName` annotation for the `length` property,
+     * can be generalised to other properties/names if needed.
+     */
+    public static class JsName implements Mustache.Lambda {
+        public void execute(Template.Fragment fragment, Writer writer) throws IOException {
+            String text = fragment.execute();
+            if (text.equals("length")) {
+                writer.write("@JsName(\"length_type\") length");
+            } else {
+                writer.write(text);
+            }
         }
     }
 

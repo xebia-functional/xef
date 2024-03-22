@@ -19,13 +19,10 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class RunStepDetailsToolCallsFunctionObjectFunction(
-
   /* The name of the function. */
   @SerialName(value = "name") val name: kotlin.String,
-
   /* The arguments passed to the function. */
   @SerialName(value = "arguments") val arguments: kotlin.String,
-
   /* The output of the function. This will be `null` if the outputs have not been [submitted](/docs/api-reference/runs/submitToolOutputs) yet. */
   @SerialName(value = "output") val output: kotlin.String? = null
 )

@@ -113,6 +113,13 @@ interface Assistants {
    */
   suspend fun createRun(threadId: kotlin.String, createRunRequest: CreateRunRequest): RunObject
 
+  /**
+   * Streaming variant: Create a run.
+   *
+   * @param threadId The ID of the thread to run.
+   * @param createRunRequest
+   * @return [Flow]<[AssistantEvent]>
+   */
   fun createRunStream(
     threadId: kotlin.String,
     createRunRequest: CreateRunRequest
@@ -134,6 +141,12 @@ interface Assistants {
    */
   suspend fun createThreadAndRun(createThreadAndRunRequest: CreateThreadAndRunRequest): RunObject
 
+  /**
+   * Streaming variant: Create a thread and run it in one request.
+   *
+   * @param createThreadAndRunRequest
+   * @return [Flow]<[AssistantEvent]>
+   */
   fun createThreadAndRunStream(
     createThreadAndRunRequest: CreateThreadAndRunRequest
   ): Flow<AssistantEvent>

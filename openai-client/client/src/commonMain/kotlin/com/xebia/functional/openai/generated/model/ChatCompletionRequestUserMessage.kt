@@ -18,10 +18,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class ChatCompletionRequestUserMessage(
   @SerialName(value = "content") val content: ChatCompletionRequestUserMessageContent,
-
   /* The role of the messages author, in this case `user`. */
   @SerialName(value = "role") val role: ChatCompletionRequestUserMessage.Role,
-
   /* An optional name for the participant. Provides the model information to differentiate between participants of the same role. */
   @SerialName(value = "name") val name: kotlin.String? = null
 ) {

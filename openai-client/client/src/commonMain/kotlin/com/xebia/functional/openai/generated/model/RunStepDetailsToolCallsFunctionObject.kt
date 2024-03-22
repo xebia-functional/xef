@@ -17,10 +17,8 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class RunStepDetailsToolCallsFunctionObject(
-
   /* The ID of the tool call object. */
   @SerialName(value = "id") val id: kotlin.String,
-
   /* The type of tool call. This is always going to be `function` for this type of tool call. */
   @SerialName(value = "type") val type: RunStepDetailsToolCallsFunctionObject.Type,
   @SerialName(value = "function") val function: RunStepDetailsToolCallsFunctionObjectFunction

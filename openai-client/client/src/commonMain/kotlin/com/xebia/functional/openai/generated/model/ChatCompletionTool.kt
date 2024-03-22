@@ -15,7 +15,6 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class ChatCompletionTool(
-
   /* The type of the tool. Currently, only `function` is supported. */
   @SerialName(value = "type") val type: ChatCompletionTool.Type,
   @SerialName(value = "function") val function: FunctionObject

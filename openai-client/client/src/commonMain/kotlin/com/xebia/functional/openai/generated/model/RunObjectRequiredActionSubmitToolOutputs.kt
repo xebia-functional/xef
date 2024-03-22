@@ -16,7 +16,6 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class RunObjectRequiredActionSubmitToolOutputs(
-
   /* A list of the relevant tool calls. */
   @SerialName(value = "tool_calls") val toolCalls: kotlin.collections.List<RunToolCallObject>
 )

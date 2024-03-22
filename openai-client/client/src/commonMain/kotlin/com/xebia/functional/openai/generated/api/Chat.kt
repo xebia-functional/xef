@@ -46,6 +46,12 @@ interface Chat {
     createChatCompletionRequest: CreateChatCompletionRequest
   ): CreateChatCompletionResponse
 
+  /**
+   * Streaming variant: Creates a model response for the given chat conversation.
+   *
+   * @param createChatCompletionRequest
+   * @return [Flow]<[CreateChatCompletionStreamResponse]>
+   */
   fun createChatCompletionStream(
     createChatCompletionRequest: CreateChatCompletionRequest
   ): Flow<CreateChatCompletionStreamResponse>

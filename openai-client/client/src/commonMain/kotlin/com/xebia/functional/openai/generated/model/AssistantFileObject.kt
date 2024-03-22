@@ -19,16 +19,12 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class AssistantFileObject(
-
   /* The identifier, which can be referenced in API endpoints. */
   @SerialName(value = "id") val id: kotlin.String,
-
   /* The object type, which is always `assistant.file`. */
   @SerialName(value = "object") val `object`: AssistantFileObject.`Object`,
-
   /* The Unix timestamp (in seconds) for when the assistant file was created. */
   @SerialName(value = "created_at") val createdAt: kotlin.Int,
-
   /* The assistant ID that the file is attached to. */
   @SerialName(value = "assistant_id") val assistantId: kotlin.String
 ) {

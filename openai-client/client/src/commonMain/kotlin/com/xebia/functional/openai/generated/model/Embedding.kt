@@ -20,14 +20,11 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class Embedding(
-
   /* The index of the embedding in the list of embeddings. */
   @SerialName(value = "index") val index: kotlin.Int,
-
   /* The embedding vector, which is a list of floats. The length of vector depends on the model as listed in the [embedding guide](/docs/guides/embeddings).  */
   @SerialName(value = "embedding")
   val embedding: kotlin.collections.List<@Contextual kotlin.Double>,
-
   /* The object type, which is always \"embedding\". */
   @SerialName(value = "object") val `object`: Embedding.`Object`
 ) {

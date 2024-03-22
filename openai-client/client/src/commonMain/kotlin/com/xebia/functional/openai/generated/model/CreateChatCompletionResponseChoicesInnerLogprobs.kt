@@ -16,7 +16,6 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class CreateChatCompletionResponseChoicesInnerLogprobs(
-
   /* A list of message content tokens with log probability information. */
   @SerialName(value = "content") val content: kotlin.collections.List<ChatCompletionTokenLogprob>?
 )

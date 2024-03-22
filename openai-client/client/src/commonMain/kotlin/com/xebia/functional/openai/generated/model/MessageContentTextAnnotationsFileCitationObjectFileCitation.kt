@@ -15,10 +15,8 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class MessageContentTextAnnotationsFileCitationObjectFileCitation(
-
   /* The ID of the specific File the citation is from. */
   @SerialName(value = "file_id") val fileId: kotlin.String,
-
   /* The specific quote in the file. */
   @SerialName(value = "quote") val quote: kotlin.String
 )

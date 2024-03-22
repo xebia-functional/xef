@@ -12,7 +12,6 @@ import kotlinx.serialization.Serializable
 /** @param type The type of tool being defined: `code_interpreter` */
 @Serializable
 data class AssistantToolsCode(
-
   /* The type of tool being defined: `code_interpreter` */
   @SerialName(value = "type") val type: AssistantToolsCode.Type
 ) {

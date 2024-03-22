@@ -19,16 +19,12 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class Model(
-
   /* The model identifier, which can be referenced in the API endpoints. */
   @SerialName(value = "id") val id: kotlin.String,
-
   /* The Unix timestamp (in seconds) when the model was created. */
   @SerialName(value = "created") val created: kotlin.Int,
-
   /* The object type, which is always \"model\". */
   @SerialName(value = "object") val `object`: Model.`Object`,
-
   /* The organization that owns the model. */
   @SerialName(value = "owned_by") val ownedBy: kotlin.String
 ) {

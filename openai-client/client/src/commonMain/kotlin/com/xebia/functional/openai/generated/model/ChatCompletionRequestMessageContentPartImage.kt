@@ -15,7 +15,6 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class ChatCompletionRequestMessageContentPartImage(
-
   /* The type of the content part. */
   @SerialName(value = "type") val type: ChatCompletionRequestMessageContentPartImage.Type,
   @SerialName(value = "image_url")

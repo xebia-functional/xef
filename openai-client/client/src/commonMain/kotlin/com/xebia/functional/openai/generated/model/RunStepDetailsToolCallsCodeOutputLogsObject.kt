@@ -17,10 +17,8 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class RunStepDetailsToolCallsCodeOutputLogsObject(
-
   /* Always `logs`. */
   @SerialName(value = "type") val type: RunStepDetailsToolCallsCodeOutputLogsObject.Type,
-
   /* The text output from the Code Interpreter tool call. */
   @SerialName(value = "logs") val logs: kotlin.String
 ) {

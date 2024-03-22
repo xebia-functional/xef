@@ -17,10 +17,8 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class CreateEmbeddingResponseUsage(
-
   /* The number of tokens used by the prompt. */
   @SerialName(value = "prompt_tokens") val promptTokens: kotlin.Int,
-
   /* The total number of tokens used by the request. */
   @SerialName(value = "total_tokens") val totalTokens: kotlin.Int
 )

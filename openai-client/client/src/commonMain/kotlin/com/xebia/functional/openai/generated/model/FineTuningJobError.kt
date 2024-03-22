@@ -20,13 +20,10 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class FineTuningJobError(
-
   /* A machine-readable error code. */
   @SerialName(value = "code") val code: kotlin.String,
-
   /* A human-readable error message. */
   @SerialName(value = "message") val message: kotlin.String,
-
   /* The parameter that was invalid, usually `training_file` or `validation_file`. This field will be null if the failure was not parameter-specific. */
   @SerialName(value = "param") val `param`: kotlin.String?
 )
