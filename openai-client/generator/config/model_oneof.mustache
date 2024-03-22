@@ -1,9 +1,14 @@
+{{#oneOf}}
+{{#-first}}
 import kotlin.jvm.JvmInline
 
 sealed interface {{classname}} {
-{{#oneOf}}
-  @JvmInline
-  value class {{#lambda.uniqueName}}{{-index}}{{/lambda.uniqueName}}(val {{#lambda.type-to-name}}{{{.}}}{{/lambda.type-to-name}}value: {{{.}}}): {{classname}}
-{{/oneOf}}
 
-}
+{{/-first}}
+  @JvmInline
+  value class {{#lambda.oneOfName}}{{-index}}{{/lambda.oneOfName}}(val {{#lambda.type-to-name}}{{{.}}}{{/lambda.type-to-name}}value: {{{.}}}): {{classname}}
+
+{{#-last}}
+    }
+{{/-last}}
+{{/oneOf}}

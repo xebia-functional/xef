@@ -73,6 +73,7 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
 
         specialCharReplacements.put("-", "_");
         specialCharReplacements.put(".", "_");
+        // TODO PascalCase!?!
         enumPropertyNaming = CodegenConstants.ENUM_PROPERTY_NAMING_TYPE.snake_case;
         nonRequiredFields.putAll(
                 Map.ofEntries(
@@ -124,14 +125,6 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
                     cm.setIsAnyType(enumProp.isAnyType);
                     cm.setComposedSchemas(null);
                 });
-            } else if (cm.name.endsWith("Request")) {
-//                cm
-//                        .allVars
-//                        .stream()
-//                        .filter(p -> p.name.equalsIgnoreCase("model"))
-//                        .findFirst()
-//                        .filter(p -> !p.dataType.equals("kotlin.String"))
-//                        .ifPresent(p -> p.dataType = String.format("ai.xef.openai.OpenAIModel<%s>", p.dataType));
             } else if (nonRequiredFields.containsKey(cm.classname)) {
                 List<String> fields = nonRequiredFields.getOrDefault(cm.classname, Collections.emptyList());
                 cm
@@ -198,13 +191,17 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
 
     @Override
     protected ImmutableMap.Builder<String, Mustache.Lambda> addMustacheLambdas() {
-        // TODO rename lambda {{#lamda.oneOfName}}
         return super.addMustacheLambdas()
-                .put("uniqueName", new OneOfName())
-                .put("test2", new Test2())
+                .put("oneOfName", new OneOfName())
                 .put("capitalised", new Capitalised());
     }
 
+    /**
+     * Mechanism to do array access in mustache...
+     * We need to generate names for the cases of `oneOf`,
+     * where we generate a `sealed interface` with the Schema name,
+     * and a `data class OneOfName.names(...)` for each of the `oneOf` cases.
+     */
     public static class OneOfName implements Mustache.Lambda {
         private List<String> names = List.of(
                 "First",
@@ -225,27 +222,11 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
         }
     }
 
-    // TODO rename to something someting inject " to the start -or end of a edgecase string
-    // Should actually use enum for these cases??
-    public static class Test2 implements Mustache.Lambda {
-
-        public void execute(Template.Fragment fragment, Writer writer) throws IOException {
-            String text = fragment.execute();
-            try {
-                Double.parseDouble(text);
-            } catch (NumberFormatException e) {
-                if (text.equals("url") || text.equals("json") || text.equals("1024x1024")) {
-                    writer.write("\"" );
-                }
-            }
-        }
-    }
-
+    /** Lambda to capitalise the first letter of a string, and lowercase the rest. */
     public static class Capitalised implements Mustache.Lambda {
         public void execute(Template.Fragment fragment, Writer writer) throws IOException {
             String text = fragment.execute();
             writer.write(text.substring(0, 1).toUpperCase() + text.substring(1).toLowerCase(Locale.ROOT));
         }
     }
-
 }

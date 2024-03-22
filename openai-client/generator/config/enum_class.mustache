@@ -1,3 +1,4 @@
+{{#isEnum}}
 import kotlinx.serialization.*
 
 
@@ -46,3 +47,4 @@ internal object {{classname}}Serializer : KSerializer<{{classname}}> {
         encoder.encodeSerializableValue({{{dataType}}}.serializer(), value.value)
     }
 }{{/enumUnknownDefaultCase}}
+{{/isEnum}}

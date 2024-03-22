@@ -6,23 +6,8 @@ package {{modelPackage}}
 
 {{#models}}
 {{#model}}
-{{#oneOf}}
-{{#-first}}
-import kotlin.jvm.JvmInline
-
-sealed interface {{classname}} {
-
-{{/-first}}
-@JvmInline
-value class {{#lambda.uniqueName}}{{-index}}{{/lambda.uniqueName}}(val {{#lambda.type-to-name}}{{{.}}}{{/lambda.type-to-name}}value: {{{.}}}): {{classname}}
-
-{{#-last}}
-}
-{{/-last}}
-{{/oneOf}}
-{{^oneOf}}
-{{#isEnum}}{{>enum_class}}{{/isEnum}}
-{{^isEnum}}
+{{>model_oneof}}{{^oneOf}}
+{{>enum_class}}{{^isEnum}}
 {{#isAlias}}typealias {{classname}} = {{{dataType}}}{{/isAlias}}
 {{^isAlias}}
 {{>data_class}}
