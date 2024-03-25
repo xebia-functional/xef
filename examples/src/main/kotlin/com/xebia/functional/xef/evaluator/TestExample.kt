@@ -5,7 +5,6 @@ import arrow.continuations.SuspendApp
 import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.evaluator.metrics.AnswerAccuracy
-import com.xebia.functional.xef.evaluator.models.ContextDescription
 import com.xebia.functional.xef.evaluator.models.OutputDescription
 import com.xebia.functional.xef.evaluator.models.OutputResponse
 import com.xebia.functional.xef.prompt.Prompt
@@ -25,9 +24,10 @@ object TestExample {
         val gpt35Description = OutputDescription("Using GPT3.5")
         val fakeOutputs = OutputDescription("Fake outputs with errors")
 
-        +ItemSpec("Please provide a movie title, genre and director") {
-          +ContextDescription("Contains information about a movie")
-
+        +ItemSpec(
+          input = "Please provide a movie title, genre and director",
+          context = "Contains information about a movie"
+        ) {
           +OutputResponse(gpt35Description) {
             Conversation { promptMessage(Prompt(model) { +user(input) }) }
           }
@@ -35,9 +35,10 @@ object TestExample {
           +OutputResponse(description = fakeOutputs, value = "I don't know")
         }
 
-        +ItemSpec("Recipe for a chocolate cake") {
-          +ContextDescription("Contains instructions for making a cake")
-
+        +ItemSpec(
+          input = "Recipe for a chocolate cake",
+          context = "Contains instructions for making a cake"
+        ) {
           +OutputResponse(gpt35Description) {
             Conversation { promptMessage(Prompt(model) { +user(input) }) }
           }
