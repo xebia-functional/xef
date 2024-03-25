@@ -86,9 +86,10 @@ sealed interface AI {
       input: String,
       output: String,
       context: String,
-      model: CreateChatCompletionRequestModel = CreateChatCompletionRequestModel.gpt_4_1106_preview,
+      model: CreateChatCompletionRequestModel = CreateChatCompletionRequestModel._4_1106_preview,
       target: KType = typeOf<E>(),
-      api: ChatApi = fromEnvironment(::ChatApi),
+      config: Config = Config(),
+      api: Chat = OpenAI(config).chat,
       conversation: Conversation = Conversation()
     ): E where E : PromptClassifier, E : Enum<E> {
       val value = enumValues<E>().firstOrNull() ?: error("No enum values found")
@@ -96,6 +97,7 @@ sealed interface AI {
         prompt = value.template(input, output, context),
         model = model,
         target = target,
+        config = config,
         api = api,
         conversation = conversation
       )

@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.evaluator
 
-import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
+import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.AI
 import com.xebia.functional.xef.evaluator.errors.FileNotFound
 import com.xebia.functional.xef.evaluator.models.ItemResult
@@ -8,7 +8,6 @@ import com.xebia.functional.xef.evaluator.models.OutputResponse
 import com.xebia.functional.xef.evaluator.models.OutputResult
 import com.xebia.functional.xef.evaluator.models.SuiteResults
 import java.io.File
-import kotlin.jvm.JvmSynthetic
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
