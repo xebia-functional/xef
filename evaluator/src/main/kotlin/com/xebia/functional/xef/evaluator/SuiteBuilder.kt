@@ -40,10 +40,12 @@ data class SuiteSpec(
   E : Enum<E> {
     val items =
       items.map { item ->
+        println("Evaluating item: ${item.input}")
         val outputResults =
           item.outputs.map { output ->
             val classification =
               AI.classify<E>(item.input, item.context, output.value, model = model)
+            println(" |_ ${output.description.value} = classification $classification")
             OutputResult(output.description.value, item.context, output.value, classification)
           }
         ItemResult(item.input, outputResults)
@@ -107,7 +109,8 @@ data class ItemSpec(
     @JvmSynthetic
     suspend operator fun invoke(
       input: String,
+      context: String,
       block: suspend TestItemBuilder.() -> Unit
-    ): ItemSpec = TestItemBuilder(input).apply { block() }.build()
+    ): ItemSpec = TestItemBuilder(input, context).apply { block() }.build()
   }
 }

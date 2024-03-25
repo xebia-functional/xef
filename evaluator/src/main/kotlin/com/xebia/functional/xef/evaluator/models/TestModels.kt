@@ -15,5 +15,3 @@ data class OutputResponse(val description: OutputDescription, val value: String)
     ): OutputResponse = OutputResponse(description, block())
   }
 }
-
-@Serializable data class ContextDescription(val value: String)
