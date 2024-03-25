@@ -19,6 +19,7 @@ dependencies {
     api(libs.kotlinx.serialization.json)
     detektPlugins(project(":detekt-rules"))
     implementation(projects.xefCore)
+    implementation(projects.xefOpenaiClient)
 }
 
 detekt {

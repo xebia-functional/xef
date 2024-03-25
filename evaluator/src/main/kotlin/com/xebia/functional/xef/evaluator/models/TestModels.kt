@@ -1,15 +1,17 @@
 package com.xebia.functional.xef.evaluator.models
 
 import kotlin.jvm.JvmSynthetic
+import kotlinx.serialization.Serializable
 
-data class OutputDescription(val value: String)
+@Serializable data class OutputDescription(val value: String)
 
-data class OutputResponse(val value: String) {
+@Serializable
+data class OutputResponse(val description: OutputDescription, val value: String) {
   companion object {
     @JvmSynthetic
-    suspend operator fun invoke(block: suspend () -> String): OutputResponse =
-      OutputResponse(block())
+    suspend operator fun invoke(
+      description: OutputDescription,
+      block: suspend () -> String
+    ): OutputResponse = OutputResponse(description, block())
   }
 }
-
-data class ContextDescription(val value: String)
