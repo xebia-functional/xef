@@ -62,8 +62,6 @@ project(":xef-reasoning").projectDir = file("reasoning")
 include("xef-evaluator")
 project(":xef-evaluator").projectDir = file("evaluator")
 
-include("xef-evaluator-example")
-project(":xef-evaluator-example").projectDir = file("evaluator-example")
 
 //<editor-fold desc="Kotlin">
 include("xef-server")

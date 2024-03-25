@@ -1,21 +1,14 @@
 package com.xebia.functional.xef.evaluator
 
-import com.xebia.functional.xef.evaluator.models.ContextDescription
 import com.xebia.functional.xef.evaluator.models.OutputResponse
 
-class TestItemBuilder(val input: String) {
+class TestItemBuilder(val input: String, val context: String) {
 
-  private val context = mutableListOf<String>()
-
-  private val outputs = mutableListOf<String>()
-
-  operator fun ContextDescription.unaryPlus() {
-    context.add(value)
-  }
+  private val outputs = mutableListOf<OutputResponse>()
 
   operator fun OutputResponse.unaryPlus() {
-    outputs.add(value)
+    outputs.add(this)
   }
 
-  fun build() = TestSpecItem(input, context, outputs)
+  fun build() = ItemSpec(input, context, outputs)
 }

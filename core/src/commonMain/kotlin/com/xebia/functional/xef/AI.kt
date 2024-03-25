@@ -6,6 +6,7 @@ import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestMo
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.prompt.Prompt
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf
@@ -16,6 +17,10 @@ import kotlinx.serialization.descriptors.SerialKind
 import kotlinx.serialization.serializer
 
 sealed interface AI {
+
+  interface PromptClassifier {
+    fun template(input: String, output: String, context: String): String
+  }
 
   companion object {
 
@@ -61,6 +66,40 @@ sealed interface AI {
           serializer<A>()
         }
         .invoke(prompt)
+
+    /**
+     * Classify a prompt using a given enum.
+     *
+     * @param input The input to the model.
+     * @param output The output to the model.
+     * @param context The context to the model.
+     * @param model The model to use.
+     * @param target The target type to return.
+     * @param api The chat API to use.
+     * @param conversation The conversation to use.
+     * @return The classified enum.
+     * @throws IllegalArgumentException If no enum values are found.
+     */
+    @AiDsl
+    @Throws(IllegalArgumentException::class, CancellationException::class)
+    suspend inline fun <reified E> classify(
+      input: String,
+      output: String,
+      context: String,
+      model: CreateChatCompletionRequestModel = CreateChatCompletionRequestModel.gpt_4_1106_preview,
+      target: KType = typeOf<E>(),
+      api: ChatApi = fromEnvironment(::ChatApi),
+      conversation: Conversation = Conversation()
+    ): E where E : PromptClassifier, E : Enum<E> {
+      val value = enumValues<E>().firstOrNull() ?: error("No enum values found")
+      return invoke(
+        prompt = value.template(input, output, context),
+        model = model,
+        target = target,
+        api = api,
+        conversation = conversation
+      )
+    }
 
     @AiDsl
     suspend inline operator fun <reified A : Any> invoke(
