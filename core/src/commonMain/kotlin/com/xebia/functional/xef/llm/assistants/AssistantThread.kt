@@ -1,10 +1,10 @@
 package com.xebia.functional.xef.llm.assistants
 
 import arrow.fx.coroutines.parMap
-import com.xebia.functional.openai.Config
-import com.xebia.functional.openai.OpenAI
 import com.xebia.functional.openai.generated.api.Assistants
 import com.xebia.functional.openai.generated.model.*
+import com.xebia.functional.xef.Config
+import com.xebia.functional.xef.OpenAI
 import com.xebia.functional.xef.llm.addMetrics
 import com.xebia.functional.xef.metrics.Metric
 import kotlin.jvm.JvmName

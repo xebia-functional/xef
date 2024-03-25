@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.store
 
-import ai.xef.openai.OpenAIModel
-import com.xebia.functional.openai.models.Embedding
+import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
+import com.xebia.functional.openai.generated.model.Embedding
 import com.xebia.functional.xef.llm.models.modelType
 
 /**
@@ -13,8 +13,8 @@ import com.xebia.functional.xef.llm.models.modelType
 class CombinedVectorStore(private val top: VectorStore, private val bottom: VectorStore) :
   VectorStore by top {
 
-  override suspend fun <T> memories(
-    model: OpenAIModel<T>,
+  override suspend fun memories(
+    model: CreateChatCompletionRequestModel,
     conversationId: ConversationId,
     limitTokens: Int
   ): List<Memory> {

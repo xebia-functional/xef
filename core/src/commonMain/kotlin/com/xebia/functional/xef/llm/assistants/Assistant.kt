@@ -1,20 +1,14 @@
 package com.xebia.functional.xef.llm.assistants
 
-import com.xebia.functional.openai.apis.AssistantsApi
-import com.xebia.functional.openai.infrastructure.ApiClient
-import com.xebia.functional.openai.models.AssistantObject
-import com.xebia.functional.openai.models.CreateAssistantRequest
-import com.xebia.functional.openai.models.FunctionObject
-import com.xebia.functional.openai.models.ModifyAssistantRequest
-import com.xebia.functional.openai.models.ext.assistant.AssistantTools
-import com.xebia.functional.openai.models.ext.assistant.AssistantToolsCode
-import com.xebia.functional.openai.models.ext.assistant.AssistantToolsFunction
-import com.xebia.functional.openai.models.ext.assistant.AssistantToolsRetrieval
-import com.xebia.functional.xef.llm.fromEnvironment
+import com.xebia.functional.openai.generated.api.Assistants
+import com.xebia.functional.openai.generated.model.*
+import com.xebia.functional.xef.Config
+import com.xebia.functional.xef.OpenAI
 import com.xebia.functional.xef.llm.models.functions.buildJsonSchema
 import io.ktor.util.logging.*
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -26,21 +20,24 @@ import net.mamoe.yamlkt.toYamlElement
 class Assistant(
   val assistantId: String,
   val toolsConfig: List<Tool.Companion.ToolConfig<*, *>> = emptyList(),
-  private val assistantsApi: AssistantsApi = fromEnvironment(::AssistantsApi),
+  val config: Config = Config(),
+  private val assistantsApi: Assistants = OpenAI(config).assistants,
 ) {
 
   constructor(
     assistantObject: AssistantObject,
     toolsConfig: List<Tool.Companion.ToolConfig<*, *>> = emptyList(),
-    assistantsApi: AssistantsApi = fromEnvironment(::AssistantsApi),
-  ) : this(assistantObject.id, toolsConfig, assistantsApi)
+    config: Config = Config(),
+    assistantsApi: Assistants = OpenAI(config).assistants,
+  ) : this(assistantObject.id, toolsConfig, config, assistantsApi)
 
-  suspend fun get(): AssistantObject = assistantsApi.getAssistant(assistantId).body()
+  suspend fun get(): AssistantObject = assistantsApi.getAssistant(assistantId)
 
   suspend fun modify(modifyAssistantRequest: ModifyAssistantRequest): Assistant =
     Assistant(
-      assistantsApi.modifyAssistant(assistantId, modifyAssistantRequest).body(),
+      assistantsApi.modifyAssistant(assistantId, modifyAssistantRequest),
       toolsConfig,
+      config,
       assistantsApi
     )
 
@@ -49,17 +46,14 @@ class Assistant(
       val toolConfig = toolsConfig.firstOrNull { it.functionObject.name == name }
 
       val toolSerializer = toolConfig?.serializers ?: error("Function $name not registered")
-      val input = ApiClient.JSON_DEFAULT.decodeFromString(toolSerializer.inputSerializer, args)
+      val input = Json.decodeFromString(toolSerializer.inputSerializer, args)
 
       val tool: Tool<Any?, Any?> = toolConfig.tool as Tool<Any?, Any?>
 
       val schema = buildJsonSchema(toolSerializer.outputSerializer.descriptor)
       val output: Any? = tool(input)
       val result =
-        ApiClient.JSON_DEFAULT.encodeToJsonElement(
-          toolSerializer.outputSerializer as KSerializer<Any?>,
-          output
-        )
+        Json.encodeToJsonElement(toolSerializer.outputSerializer as KSerializer<Any?>, output)
       ToolOutput(schema, result)
     } catch (e: Exception) {
       val message = "Error calling to tool registered $name: ${e.message}"
@@ -78,11 +72,12 @@ class Assistant(
       name: String? = null,
       description: String? = null,
       instructions: String? = null,
-      tools: List<AssistantTools> = arrayListOf(),
+      tools: List<AssistantObjectToolsInner> = arrayListOf(),
       fileIds: List<String> = arrayListOf(),
       metadata: JsonObject? = null,
       toolsConfig: List<Tool.Companion.ToolConfig<*, *>> = emptyList(),
-      assistantsApi: AssistantsApi = fromEnvironment(::AssistantsApi),
+      config: Config = Config(),
+      assistantsApi: Assistants = OpenAI(config).assistants,
     ): Assistant =
       Assistant(
         CreateAssistantRequest(
@@ -95,22 +90,25 @@ class Assistant(
           metadata = metadata
         ),
         toolsConfig,
+        config,
         assistantsApi
       )
 
     suspend operator fun invoke(
       request: CreateAssistantRequest,
       toolsConfig: List<Tool.Companion.ToolConfig<*, *>> = emptyList(),
-      assistantsApi: AssistantsApi = fromEnvironment(::AssistantsApi),
+      config: Config = Config(),
+      assistantsApi: Assistants = OpenAI(config).assistants,
     ): Assistant {
       val response = assistantsApi.createAssistant(request)
-      return Assistant(response.body(), toolsConfig, assistantsApi)
+      return Assistant(response, toolsConfig, config, assistantsApi)
     }
 
     suspend fun fromConfig(
       request: String,
       toolsConfig: List<Tool.Companion.ToolConfig<*, *>> = emptyList(),
-      assistantsApi: AssistantsApi = fromEnvironment(::AssistantsApi)
+      config: Config = Config(),
+      assistantsApi: Assistants = OpenAI(config).assistants,
     ): Assistant {
       val parsed = Yaml.Default.decodeYamlMapFromString(request)
       val assistantRequest =
@@ -145,8 +143,8 @@ class Assistant(
                           AssistantTool.Function(
                             functionObject.name,
                             functionObject.description ?: "",
-                            functionObject.parameters?.let {
-                              ApiClient.JSON_DEFAULT.encodeToString(JsonObject.serializer(), it)
+                            functionObject.parameters?.let { el ->
+                              Json.encodeToString(JsonObject.serializer(), el)
                             } ?: ""
                           )
                         } else {
@@ -168,6 +166,7 @@ class Assistant(
           Assistant(
             assistantId = assistantRequest.assistantId,
             toolsConfig = toolsConfig,
+            config = config,
             assistantsApi = assistantsApi,
           )
         // list all assistants and get their files
@@ -198,25 +197,37 @@ class Assistant(
               metadata = null // assistantRequest.metadata
             ),
           toolsConfig = toolsConfig,
+          config = config,
           assistantsApi = assistantsApi,
         )
     }
 
-    private fun assistantTools(assistantRequest: AssistantRequest) =
-      assistantRequest.tools?.map {
+    private fun assistantTools(
+      assistantRequest: AssistantRequest
+    ): List<AssistantObjectToolsInner> =
+      assistantRequest.tools.orEmpty().map {
         when (it) {
-          is AssistantTool.CodeInterpreter -> AssistantToolsCode()
-          is AssistantTool.Retrieval -> AssistantToolsRetrieval()
+          is AssistantTool.CodeInterpreter ->
+            AssistantObjectToolsInner.First(
+              AssistantToolsCode(type = AssistantToolsCode.Type.code_interpreter)
+            )
+          is AssistantTool.Retrieval ->
+            AssistantObjectToolsInner.Third(
+              AssistantToolsRetrieval(type = AssistantToolsRetrieval.Type.retrieval)
+            )
           is AssistantTool.Function ->
-            AssistantToolsFunction(
-              function =
-                FunctionObject(
-                  name = it.name,
-                  parameters =
-                    ApiClient.JSON_DEFAULT.parseToJsonElement(it.parameters) as? JsonObject
-                      ?: JsonObject(emptyMap()),
-                  description = it.description
-                )
+            AssistantObjectToolsInner.Second(
+              AssistantToolsFunction(
+                type = AssistantToolsFunction.Type.function,
+                function =
+                  FunctionObject(
+                    name = it.name,
+                    parameters =
+                      Json.parseToJsonElement(it.parameters) as? JsonObject
+                        ?: JsonObject(emptyMap()),
+                    description = it.description
+                  )
+              )
             )
         }
       }

@@ -1,8 +1,6 @@
 package com.xebia.functional.xef.assistants
 
-import com.xebia.functional.openai.models.*
-import com.xebia.functional.openai.models.ext.assistant.RunStepDetailsMessageCreationObject
-import com.xebia.functional.openai.models.ext.assistant.RunStepDetailsToolCallsObject
+import com.xebia.functional.openai.generated.model.*
 import com.xebia.functional.xef.llm.assistants.Assistant
 import com.xebia.functional.xef.llm.assistants.AssistantThread
 import com.xebia.functional.xef.llm.assistants.Tool
@@ -78,13 +76,12 @@ private fun displayReceivedMessages(
 ) {
   if (receivedMessage.message.role == MessageObject.Role.assistant) {
     receivedMessage.message.content.forEach {
-      val text = it.text?.value
-      if (text != null) {
-        println("${assistant.name}: $text")
-      }
-      val imageFile = it.imageFile
-      if (imageFile != null) {
-        println("${assistant.name}: https://platform.openai.com/files/${imageFile.fileId}")
+      when (it) {
+        is MessageObjectContentInner.First ->
+          println(
+            "${assistant.name}: https://platform.openai.com/files/${it.value.imageFile.fileId}"
+          )
+        is MessageObjectContentInner.Second -> println("${assistant.name}: ${it.value.text.value}")
       }
     }
   }
@@ -95,19 +92,19 @@ private fun displayStepsStatus(step: AssistantThread.RunDelta.Step) {
   val details = step.runStep.stepDetails
   val type =
     when (details) {
-      is RunStepDetailsMessageCreationObject -> details.type.value
-      is RunStepDetailsToolCallsObject -> details.type.value
+      is RunStepObjectStepDetails.First -> details.value.type.value
+      is RunStepObjectStepDetails.Second -> details.value.type.value
     }
   val calls =
     when (details) {
-      is RunStepDetailsMessageCreationObject -> listOf()
-      is RunStepDetailsToolCallsObject ->
-        details.toolCalls.map {
-          when (it.type) {
-            RunStepDetailsToolCallsObjectToolCallsInner.Type.code_interpreter -> "CodeInterpreter"
-            RunStepDetailsToolCallsObjectToolCallsInner.Type.retrieval -> "Retrieval"
-            RunStepDetailsToolCallsObjectToolCallsInner.Type.function ->
-              "${it.function?.name}(${it.function?.arguments ?: ""}) = ${it.function?.output ?: "empty"}: "
+      is RunStepObjectStepDetails.First -> listOf()
+      is RunStepObjectStepDetails.Second ->
+        details.value.toolCalls.map {
+          when (it) {
+            is RunStepDetailsToolCallsObjectToolCallsInner.First -> "CodeInterpreter"
+            is RunStepDetailsToolCallsObjectToolCallsInner.Second ->
+              "${it.value.function.name}(${it.value.function.arguments ?: ""}) = ${it.value.function.output ?: "empty"}: "
+            is RunStepDetailsToolCallsObjectToolCallsInner.Third -> "Retrieval"
           }
         }
     }
