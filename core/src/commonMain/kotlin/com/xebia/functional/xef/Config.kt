@@ -14,7 +14,7 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 
 data class Config(
-  val baseUrl: String = getenv(HOST_ENV_VAR) ?: "https://api.openai.com/v1",
+  val baseUrl: String = getenv(HOST_ENV_VAR) ?: "https://api.openai.com/v1/",
   val token: String? = getenv(KEY_ENV_VAR),
   val org: String? = getenv(ORG_ENV_VAR),
   val json: Json = Json.Default,

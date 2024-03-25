@@ -1,6 +1,7 @@
 package com.xebia.functional.xef.assistants
 
 import com.xebia.functional.openai.generated.model.*
+import com.xebia.functional.xef.OpenAI
 import com.xebia.functional.xef.llm.assistants.Assistant
 import com.xebia.functional.xef.llm.assistants.AssistantThread
 import com.xebia.functional.xef.llm.assistants.Tool
@@ -49,7 +50,7 @@ suspend fun main() {
       assistantId = "asst_UxczzpJkysC0l424ood87DAk",
       toolsConfig = listOf(Tool.toolOf(SumTool()))
     )
-  val thread = AssistantThread(metric = metric)
+  val thread = AssistantThread(api = OpenAI(logRequests = true).assistants, metric = metric)
   println("Welcome to the Math tutor, ask me anything about math:")
   while (true) {
     println()

@@ -7,6 +7,7 @@ import com.xebia.functional.xef.Config
 import com.xebia.functional.xef.OpenAI
 import com.xebia.functional.xef.llm.addMetrics
 import com.xebia.functional.xef.metrics.Metric
+import io.ktor.client.request.*
 import kotlin.jvm.JvmName
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -22,27 +23,30 @@ class AssistantThread(
   private val api: Assistants = OpenAI(config).assistants
 ) {
 
-  suspend fun delete(): Boolean = api.deleteThread(threadId).deleted
+  suspend fun delete(): Boolean =
+    api.deleteThread(threadId = threadId, configure = ::defaultConfig).deleted
 
   suspend fun modify(request: ModifyThreadRequest): AssistantThread =
-    AssistantThread(api.modifyThread(threadId, request).id)
+    AssistantThread(api.modifyThread(threadId, request, configure = ::defaultConfig).id)
 
   suspend fun createMessage(message: MessageWithFiles): MessageObject =
     createMessage(
-      CreateMessageRequest(
-        role = CreateMessageRequest.Role.user,
-        content = message.content,
-        fileIds = message.fileIds
-      )
+      request =
+        CreateMessageRequest(
+          role = CreateMessageRequest.Role.user,
+          content = message.content,
+          fileIds = message.fileIds
+        ),
     )
 
   suspend fun createMessage(content: String): MessageObject =
     createMessage(CreateMessageRequest(role = CreateMessageRequest.Role.user, content = content))
 
   suspend fun createMessage(request: CreateMessageRequest): MessageObject =
-    api.createMessage(threadId, request)
+    api.createMessage(threadId, request, configure = ::defaultConfig)
 
-  suspend fun getMessage(messageId: String): MessageObject = api.getMessage(threadId, messageId)
+  suspend fun getMessage(messageId: String): MessageObject =
+    api.getMessage(threadId, messageId, configure = ::defaultConfig)
 
   data class ThreadMessagesFilter(
     val limit: Int? = 20,
@@ -60,14 +64,16 @@ class AssistantThread(
         limit = filter.limit,
         order = filter.order,
         after = filter.after,
-        before = filter.before
+        before = filter.before,
+        configure = ::defaultConfig
       )
       .data
 
   suspend fun createRun(request: CreateRunRequest): RunObject =
-    api.createRun(threadId, request).addMetrics(metric)
+    api.createRun(threadId, request, configure = ::defaultConfig).addMetrics(metric)
 
-  suspend fun getRun(runId: String): RunObject = api.getRun(threadId, runId)
+  suspend fun getRun(runId: String): RunObject =
+    api.getRun(threadId, runId, configure = ::defaultConfig)
 
   suspend fun createRun(assistant: Assistant): RunObject =
     createRun(CreateRunRequest(assistantId = assistant.assistantId))
@@ -89,9 +95,11 @@ class AssistantThread(
     return awaitRun(assistant, run.id, filter)
   }
 
-  suspend fun cancelRun(runId: String): RunObject = api.cancelRun(threadId, runId)
+  suspend fun cancelRun(runId: String): RunObject =
+    api.cancelRun(threadId, runId, configure = ::defaultConfig)
 
-  suspend fun runSteps(runId: String): List<RunStepObject> = api.listRunSteps(threadId, runId).data
+  suspend fun runSteps(runId: String): List<RunStepObject> =
+    api.listRunSteps(threadId, runId, configure = ::defaultConfig).data
 
   sealed class RunDelta {
     data class ReceivedMessage(val message: MessageObject) : RunDelta()
@@ -255,7 +263,8 @@ class AssistantThread(
                         Json.encodeToString(Assistant.Companion.ToolOutput.serializer(), result)
                     )
                   }
-              )
+              ),
+            configure = ::defaultConfig
           )
         }
       }
@@ -263,6 +272,11 @@ class AssistantThread(
   }
 
   companion object {
+
+    /** Support for OpenAI-Beta: assistants=v1 */
+    private fun defaultConfig(httpRequestBuilder: HttpRequestBuilder): Unit {
+      httpRequestBuilder.header("OpenAI-Beta", "assistants=v1")
+    }
 
     @JvmName("createWithMessagesAndFiles")
     suspend operator fun invoke(
@@ -273,23 +287,26 @@ class AssistantThread(
       api: Assistants = OpenAI(config).assistants
     ): AssistantThread =
       AssistantThread(
-        api
-          .createThread(
-            CreateThreadRequest(
-              messages.map {
-                CreateMessageRequest(
-                  role = CreateMessageRequest.Role.user,
-                  content = it.content,
-                  fileIds = it.fileIds
-                )
-              },
-              metadata
+        threadId =
+          api
+            .createThread(
+              createThreadRequest =
+                CreateThreadRequest(
+                  messages.map {
+                    CreateMessageRequest(
+                      role = CreateMessageRequest.Role.user,
+                      content = it.content,
+                      fileIds = it.fileIds
+                    )
+                  },
+                  metadata
+                ),
+              configure = ::defaultConfig
             )
-          )
-          .id,
-        metric,
-        config,
-        api
+            .id,
+        metric = metric,
+        config = config,
+        api = api
       )
 
     @JvmName("createWithMessages")
@@ -303,12 +320,14 @@ class AssistantThread(
       AssistantThread(
         api
           .createThread(
-            CreateThreadRequest(
-              messages.map {
-                CreateMessageRequest(role = CreateMessageRequest.Role.user, content = it)
-              },
-              metadata
-            )
+            createThreadRequest =
+              CreateThreadRequest(
+                messages.map {
+                  CreateMessageRequest(role = CreateMessageRequest.Role.user, content = it)
+                },
+                metadata
+              ),
+            configure = ::defaultConfig
           )
           .id,
         metric,
@@ -325,7 +344,7 @@ class AssistantThread(
       api: Assistants = OpenAI(config).assistants
     ): AssistantThread =
       AssistantThread(
-        api.createThread(CreateThreadRequest(messages, metadata)).id,
+        api.createThread(CreateThreadRequest(messages, metadata), configure = ::defaultConfig).id,
         metric,
         config,
         api
@@ -336,13 +355,25 @@ class AssistantThread(
       metric: Metric = Metric.EMPTY,
       config: Config = Config(),
       api: Assistants = OpenAI(config).assistants
-    ): AssistantThread = AssistantThread(api.createThread(request).id, metric, config, api)
+    ): AssistantThread =
+      AssistantThread(
+        api.createThread(request, configure = ::defaultConfig).id,
+        metric,
+        config,
+        api
+      )
 
     suspend operator fun invoke(
       request: CreateThreadAndRunRequest,
       metric: Metric = Metric.EMPTY,
       config: Config = Config(),
       api: Assistants = OpenAI(config).assistants
-    ): AssistantThread = AssistantThread(api.createThreadAndRun(request).id, metric, config, api)
+    ): AssistantThread =
+      AssistantThread(
+        api.createThreadAndRun(request, configure = ::defaultConfig).id,
+        metric,
+        config,
+        api
+      )
   }
 }
