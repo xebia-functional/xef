@@ -4,6 +4,7 @@ import ai.xef.openai.CustomModel
 import ai.xef.openai.OpenAIModel
 import com.xebia.functional.openai.apis.ChatApi
 import com.xebia.functional.openai.apis.ImagesApi
+import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
 import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation

@@ -1,5 +1,8 @@
 package com.xebia.functional.xef.metrics
 
+import com.xebia.functional.openai.generated.model.MessageObject
+import com.xebia.functional.openai.generated.model.RunObject
+import com.xebia.functional.openai.generated.model.RunStepObject
 import com.xebia.functional.openai.models.MessageObject
 import com.xebia.functional.openai.models.RunObject
 import com.xebia.functional.openai.models.RunStepObject
