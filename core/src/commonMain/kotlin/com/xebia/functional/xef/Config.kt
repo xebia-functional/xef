@@ -56,14 +56,16 @@ fun OpenAI(
       retryOnExceptionIf { _, _ -> true }
       delayMillis { retry -> retry * 1000L }
     }
-    install(Logging) {
-      level = if (logRequests) LogLevel.ALL else LogLevel.NONE
-    }
+    install(Logging) { level = if (logRequests) LogLevel.ALL else LogLevel.NONE }
     httpClientConfig?.invoke(this)
     defaultRequest {
       url(config.baseUrl)
       config.org?.let { headers.append("org", it) }
-      bearerAuth(config.token ?: getenv(KEY_ENV_VAR) ?: throw AIError.Env.OpenAI(nonEmptyListOf("missing $KEY_ENV_VAR env var")))
+      bearerAuth(
+        config.token
+          ?: getenv(KEY_ENV_VAR)
+          ?: throw AIError.Env.OpenAI(nonEmptyListOf("missing $KEY_ENV_VAR env var"))
+      )
     }
   }
   val client = httpClientEngine?.let { HttpClient(it, clientConfig) } ?: HttpClient(clientConfig)
