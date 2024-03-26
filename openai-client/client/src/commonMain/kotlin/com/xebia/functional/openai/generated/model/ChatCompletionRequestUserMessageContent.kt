@@ -7,11 +7,16 @@
 package com.xebia.functional.openai.generated.model
 
 import kotlin.jvm.JvmInline
+import kotlinx.serialization.Serializable
 
+@Serializable
 sealed interface ChatCompletionRequestUserMessageContent {
 
-  @JvmInline value class First(val value: kotlin.String) : ChatCompletionRequestUserMessageContent
+  @Serializable
+  @JvmInline
+  value class First(val value: kotlin.String) : ChatCompletionRequestUserMessageContent
 
+  @Serializable
   @JvmInline
   value class Second(val value: kotlin.collections.List<ChatCompletionRequestMessageContentPart>) :
     ChatCompletionRequestUserMessageContent
