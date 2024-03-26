@@ -1,14 +1,15 @@
 package com.xebia.functional.xef.store
 
-import ai.xef.openai.OpenAIModel
 import arrow.atomic.AtomicInt
-import com.xebia.functional.openai.apis.EmbeddingsApi
-import com.xebia.functional.openai.models.ChatCompletionRole
-import com.xebia.functional.openai.models.CreateEmbeddingRequestModel
-import com.xebia.functional.openai.models.Embedding
+import com.xebia.functional.openai.generated.api.Embeddings
+import com.xebia.functional.openai.generated.model.ChatCompletionRole
+import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
+import com.xebia.functional.openai.generated.model.CreateEmbeddingRequestModel
+import com.xebia.functional.openai.generated.model.Embedding
 import com.xebia.functional.xef.llm.embedDocuments
 import com.xebia.functional.xef.llm.embedQuery
 import com.xebia.functional.xef.llm.models.modelType
+import com.xebia.functional.xef.prompt.contentAsString
 import com.xebia.functional.xef.store.postgresql.*
 import kotlinx.uuid.UUID
 import kotlinx.uuid.generateUUID
@@ -17,11 +18,11 @@ import javax.sql.DataSource
 class PGVectorStore(
   private val vectorSize: Int,
   private val dataSource: DataSource,
-  private val embeddings: EmbeddingsApi,
+  private val embeddings: Embeddings,
   private val collectionName: String,
   private val distanceStrategy: PGDistanceStrategy,
   private val preDeleteCollection: Boolean,
-  private val embeddingRequestModel: OpenAIModel<CreateEmbeddingRequestModel>,
+  private val embeddingRequestModel: CreateEmbeddingRequestModel,
   private val chunkSize: Int = 400
 ) : VectorStore {
 
@@ -45,7 +46,7 @@ class PGVectorStore(
     }
   }
 
-  override suspend fun <T> memories(model: OpenAIModel<T>, conversationId: ConversationId, limitTokens: Int): List<Memory> =
+  override suspend fun memories(model: CreateChatCompletionRequestModel, conversationId: ConversationId, limitTokens: Int): List<Memory> =
     getMemoryByConversationId(conversationId).reduceByLimitToken(model.modelType(), limitTokens).reversed()
 
   private fun JDBCSyntax.getCollection(collectionName: String): PGCollection =

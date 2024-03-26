@@ -1,19 +1,16 @@
 package com.xebia.functional.xef.llm
 
-import ai.xef.openai.OpenAIModel
-import ai.xef.openai.StandardModel
 import arrow.fx.coroutines.parMap
-import com.xebia.functional.openai.apis.EmbeddingsApi
-import com.xebia.functional.openai.models.CreateEmbeddingRequest
-import com.xebia.functional.openai.models.CreateEmbeddingRequestModel
-import com.xebia.functional.openai.models.Embedding
-import com.xebia.functional.openai.models.ext.embedding.create.CreateEmbeddingRequestInput
+import com.xebia.functional.openai.generated.api.Embeddings
+import com.xebia.functional.openai.generated.model.CreateEmbeddingRequest
+import com.xebia.functional.openai.generated.model.CreateEmbeddingRequestInput
+import com.xebia.functional.openai.generated.model.CreateEmbeddingRequestModel
+import com.xebia.functional.openai.generated.model.Embedding
 
-suspend fun EmbeddingsApi.embedDocuments(
+suspend fun Embeddings.embedDocuments(
   texts: List<String>,
   chunkSize: Int = 400,
-  embeddingRequestModel: OpenAIModel<CreateEmbeddingRequestModel> =
-    StandardModel(CreateEmbeddingRequestModel.text_embedding_ada_002)
+  embeddingRequestModel: CreateEmbeddingRequestModel = CreateEmbeddingRequestModel.ada_002
 ): List<Embedding> =
   if (texts.isEmpty()) emptyList()
   else
@@ -23,17 +20,16 @@ suspend fun EmbeddingsApi.embedDocuments(
         createEmbedding(
             CreateEmbeddingRequest(
               model = embeddingRequestModel,
-              input = CreateEmbeddingRequestInput.StringArrayValue(it)
+              input = CreateEmbeddingRequestInput.Third(it)
             )
           )
-          .body()
           .data
       }
       .flatten()
 
-suspend fun EmbeddingsApi.embedQuery(
+suspend fun Embeddings.embedQuery(
   text: String,
-  embeddingRequestModel: OpenAIModel<CreateEmbeddingRequestModel>
+  embeddingRequestModel: CreateEmbeddingRequestModel
 ): List<Embedding> =
   if (text.isNotEmpty())
     embedDocuments(texts = listOf(text), embeddingRequestModel = embeddingRequestModel)

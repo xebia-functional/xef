@@ -36,8 +36,6 @@ project(":xef-openai-client-generator").projectDir = file("openai-client/generat
 //</editor-fold>
 
 //<editor-fold desc="Integrations">
-include("xef-lucene")
-project(":xef-lucene").projectDir = file("integrations/lucene")
 
 include("xef-pdf")
 project(":xef-pdf").projectDir = file("integrations/pdf")
@@ -64,8 +62,6 @@ project(":xef-reasoning").projectDir = file("reasoning")
 include("xef-evaluator")
 project(":xef-evaluator").projectDir = file("evaluator")
 
-include("xef-evaluator-example")
-project(":xef-evaluator-example").projectDir = file("evaluator-example")
 
 //<editor-fold desc="Kotlin">
 include("xef-server")

@@ -1,30 +1,25 @@
 package com.xebia.functional.xef.llm
 
-import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage
+import com.xebia.functional.openai.generated.model.ChatCompletionRequestMessage
 import com.xebia.functional.tokenizer.truncateText
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.MessagesFromHistory
 import com.xebia.functional.xef.llm.models.modelType
 import com.xebia.functional.xef.prompt.Prompt
-import com.xebia.functional.xef.prompt.templates.assistant
+import com.xebia.functional.xef.prompt.PromptBuilder.Companion.assistant
+import com.xebia.functional.xef.prompt.contentAsString
 import com.xebia.functional.xef.store.Memory
 
 internal object PromptCalculator {
 
-  suspend fun <T> adaptPromptToConversationAndModel(
-    prompt: Prompt<T>,
-    scope: Conversation
-  ): Prompt<T> =
+  suspend fun adaptPromptToConversationAndModel(prompt: Prompt, scope: Conversation): Prompt =
     when (prompt.configuration.messagePolicy.addMessagesFromConversation) {
       MessagesFromHistory.ALL -> adaptPromptFromConversation(prompt, scope)
       MessagesFromHistory.NONE -> prompt
     }
 
-  private suspend fun <T> adaptPromptFromConversation(
-    prompt: Prompt<T>,
-    scope: Conversation
-  ): Prompt<T> {
+  private suspend fun adaptPromptFromConversation(prompt: Prompt, scope: Conversation): Prompt {
 
     // calculate tokens for history and context
     val remainingTokensForContexts = calculateRemainingTokensForContext(prompt)
@@ -57,7 +52,14 @@ internal object PromptCalculator {
         val ctxTruncated: String =
           prompt.model.modelType().encodingType.encoding.truncateText(ctx, maxContextTokens)
 
-        Prompt(prompt.model) { +assistant(ctxTruncated) }.messages
+        Prompt(
+            model = prompt.model,
+            functions = prompt.functions,
+            configuration = prompt.configuration
+          ) {
+            +assistant(ctxTruncated)
+          }
+          .messages
       } else {
         emptyList()
       }
@@ -68,8 +70,8 @@ internal object PromptCalculator {
   private fun messagesFromMemory(memories: List<Memory>): List<ChatCompletionRequestMessage> =
     memories.map { it.content.asRequestMessage() }
 
-  private fun <T> calculateMessagesFromHistory(
-    prompt: Prompt<T>,
+  private fun calculateMessagesFromHistory(
+    prompt: Prompt,
     memories: List<Memory>,
     maxHistoryTokens: Int
   ) =
@@ -99,25 +101,19 @@ internal object PromptCalculator {
       }
     } else emptyList()
 
-  private fun <T> calculateMaxContextTokens(
-    prompt: Prompt<T>,
-    remainingTokensForContexts: Int
-  ): Int {
+  private fun calculateMaxContextTokens(prompt: Prompt, remainingTokensForContexts: Int): Int {
     val contextPercent = prompt.configuration.messagePolicy.contextPercent
     val maxContextTokens = (remainingTokensForContexts * contextPercent) / 100
     return maxContextTokens
   }
 
-  private fun <T> calculateMaxHistoryTokens(
-    prompt: Prompt<T>,
-    remainingTokensForContexts: Int
-  ): Int {
+  private fun calculateMaxHistoryTokens(prompt: Prompt, remainingTokensForContexts: Int): Int {
     val historyPercent = prompt.configuration.messagePolicy.historyPercent
     val maxHistoryTokens = (remainingTokensForContexts * historyPercent) / 100
     return maxHistoryTokens
   }
 
-  private fun <T> calculateRemainingTokensForContext(prompt: Prompt<T>): Int {
+  private fun calculateRemainingTokensForContext(prompt: Prompt): Int {
     val maxContextLength: Int = prompt.model.modelType().maxContextLength
     val remainingTokens: Int = maxContextLength - prompt.configuration.maxTokens
 
@@ -131,6 +127,6 @@ internal object PromptCalculator {
     return remainingTokensForContexts
   }
 
-  private suspend fun <T> Conversation.memories(prompt: Prompt<T>, limitTokens: Int): List<Memory> =
+  private suspend fun Conversation.memories(prompt: Prompt, limitTokens: Int): List<Memory> =
     conversationId?.let { store.memories(prompt.model, it, limitTokens) } ?: emptyList()
 }

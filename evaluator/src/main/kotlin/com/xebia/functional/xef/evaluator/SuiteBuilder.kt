@@ -1,63 +1,115 @@
 package com.xebia.functional.xef.evaluator
 
-import com.xebia.functional.xef.evaluator.models.OutputDescription
-import kotlin.jvm.JvmSynthetic
+import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
+import com.xebia.functional.xef.AI
+import com.xebia.functional.xef.evaluator.errors.FileNotFound
+import com.xebia.functional.xef.evaluator.models.ItemResult
+import com.xebia.functional.xef.evaluator.models.OutputResponse
+import com.xebia.functional.xef.evaluator.models.OutputResult
+import com.xebia.functional.xef.evaluator.models.SuiteResults
+import java.io.File
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-class SuiteBuilder(private val description: String, private val metric: String) {
+class SuiteBuilder(
+  private val description: String,
+  private val model: CreateChatCompletionRequestModel
+) {
 
-  private val outputsDescription: MutableList<String> = mutableListOf()
+  private val items = mutableListOf<ItemSpec>()
 
-  private var minimumScore: Double = 0.7
-
-  private val items = mutableListOf<TestSpecItem>()
-
-  operator fun TestSpecItem.unaryPlus() {
+  operator fun ItemSpec.unaryPlus() {
     items.add(this)
   }
 
-  operator fun OutputDescription.unaryPlus() {
-    outputsDescription.add(this.value)
-  }
-
-  fun build() = TestsSpec(description, metric, outputsDescription, minimumScore, items)
+  fun build() = SuiteSpec(description, items, model = model)
 }
 
 @Serializable
-data class TestsSpec(
+data class SuiteSpec(
   val description: String,
-  val metric: String,
-  @SerialName("outputs_description") val outputsDescription: List<String>,
-  @SerialName("minimum_score") val minimumScore: Double,
-  val items: List<TestSpecItem>
+  val items: List<ItemSpec>,
+  val model: CreateChatCompletionRequestModel
 ) {
 
-  fun toJSON(): String = Json.encodeToString(this)
+  suspend inline fun <reified E> evaluate(): SuiteResults<E> where
+  E : AI.PromptClassifier,
+  E : Enum<E> {
+    val items =
+      items.map { item ->
+        println("Evaluating item: ${item.input}")
+        val outputResults =
+          item.outputs.map { output ->
+            val classification =
+              AI.classify<E>(item.input, item.context, output.value, model = model)
+            println(" |_ ${output.description.value} = classification $classification")
+            OutputResult(output.description.value, item.context, output.value, classification)
+          }
+        ItemResult(item.input, outputResults)
+      }
+    val suiteResults = SuiteResults(description, model.value, E::class.simpleName, items)
+    export(Json.encodeToString(suiteResults))
+    return suiteResults
+  }
 
   companion object {
     @JvmSynthetic
     suspend operator fun invoke(
       description: String,
-      metric: String = "FactualConsistencyMetric",
+      model: CreateChatCompletionRequestModel,
       block: suspend SuiteBuilder.() -> Unit
-    ): TestsSpec = SuiteBuilder(description, metric).apply { block() }.build()
+    ): SuiteSpec = SuiteBuilder(description, model).apply { block() }.build()
+  }
+
+  fun export(content: String): Boolean {
+    return arrow.core.raise.recover({
+      // Read the content of `index.html` inside resources folder
+      val indexHTML =
+        SuiteSpec::class.java.getResource("/web/index.html")?.readText()
+          ?: raise(FileNotFound("index.html"))
+      val scriptJS =
+        SuiteSpec::class.java.getResource("/web/script.js")?.readText()
+          ?: raise(FileNotFound("script.js"))
+      val styleCSS =
+        SuiteSpec::class.java.getResource("/web/style.css")?.readText()
+          ?: raise(FileNotFound("style.css"))
+      val contentJS = "const testData = $content;"
+
+      // Copy all the files inside build folder
+      val outputPath = System.getProperty("user.dir") + "/build/testSuite"
+      File(outputPath).mkdirs()
+      File("$outputPath/index.html").writeText(indexHTML)
+      File("$outputPath/script.js").writeText(scriptJS)
+      File("$outputPath/style.css").writeText(styleCSS)
+      File("$outputPath/content.js").writeText(contentJS)
+      val url = File("$outputPath/index.html").toURI()
+      println("Test suite exported to $url")
+      true
+    }) {
+      when (it) {
+        else -> {
+          println(it.message("File not found"))
+          false
+        }
+      }
+    }
   }
 }
 
 @Serializable
-data class TestSpecItem(
+data class ItemSpec(
   val input: String,
-  val context: List<String>,
-  @SerialName("actual_outputs") val outputs: List<String>
+  val context: String,
+  @SerialName("actual_outputs") val outputs: List<OutputResponse>
 ) {
   companion object {
     @JvmSynthetic
     suspend operator fun invoke(
       input: String,
+      context: String,
       block: suspend TestItemBuilder.() -> Unit
-    ): TestSpecItem = TestItemBuilder(input).apply { block() }.build()
+    ): ItemSpec = TestItemBuilder(input, context).apply { block() }.build()
   }
 }

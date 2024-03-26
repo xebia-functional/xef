@@ -1,7 +1,6 @@
 package com.xebia.functional.xef.store
 
-import ai.xef.openai.StandardModel
-import com.xebia.functional.openai.models.CreateFineTuneRequestModel
+import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.data.TestEmbeddings
 import com.xebia.functional.xef.llm.models.modelType
 import com.xebia.functional.xef.llm.tokensFromMessages
@@ -10,9 +9,9 @@ import io.kotest.matchers.shouldBe
 
 class LocalVectorStoreSpec :
   StringSpec({
-    val model = StandardModel(CreateFineTuneRequestModel.ada)
+    val model = CreateChatCompletionRequestModel._3_5_turbo
     "memories function should return all of messages in the right order when the limit is greater than the number of stored messages" {
-      val localVectorStore = LocalVectorStore(TestEmbeddings(coroutineContext))
+      val localVectorStore = LocalVectorStore(TestEmbeddings())
 
       val memoryData = MemoryData()
 
@@ -32,7 +31,7 @@ class LocalVectorStoreSpec :
 
     "memories function should return the last n messages in the right order" {
       val modelType = model.modelType()
-      val localVectorStore = LocalVectorStore(TestEmbeddings(coroutineContext))
+      val localVectorStore = LocalVectorStore(TestEmbeddings())
 
       val memoryData = MemoryData()
 
@@ -53,7 +52,7 @@ class LocalVectorStoreSpec :
 
     "memories function should return the last n messages in the right order for a specific conversation id" {
       val modelType = model.modelType()
-      val localVectorStore = LocalVectorStore(TestEmbeddings(coroutineContext))
+      val localVectorStore = LocalVectorStore(TestEmbeddings())
 
       val firstId = ConversationId("first-id")
       val secondId = ConversationId("second-id")
