@@ -6,7 +6,11 @@
 
 package com.xebia.functional.openai.generated.model
 
+import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel.Supported.*
+import kotlin.jvm.JvmStatic
 import kotlinx.serialization.*
+import kotlinx.serialization.builtins.*
+import kotlinx.serialization.encoding.*
 
 /**
  * ID of the model to use. See the
@@ -16,33 +20,115 @@ import kotlinx.serialization.*
  * Values:
  * _4_0125_preview,_4_turbo_preview,_4_1106_preview,_4_vision_preview,_4,_4_0314,_4_0613,_4_32k,_4_32k_0314,_4_32k_0613,_3_5_turbo,_3_5_turbo_16k,_3_5_turbo_0301,_3_5_turbo_0613,_3_5_turbo_1106,_3_5_turbo_0125,_3_5_turbo_16k_0613
  */
-@Serializable
-enum class CreateChatCompletionRequestModel(val value: kotlin.String) {
+// We define a serializer for the parent sum type,
+// and then use it to serialize the child types
+@Suppress("SERIALIZER_TYPE_INCOMPATIBLE")
+@Serializable(with = CreateChatCompletionRequestModelSerializer::class)
+sealed interface CreateChatCompletionRequestModel {
+  val value: kotlin.String
 
-  @SerialName(value = "gpt-4-0125-preview") _4_0125_preview("gpt-4-0125-preview"),
-  @SerialName(value = "gpt-4-turbo-preview") _4_turbo_preview("gpt-4-turbo-preview"),
-  @SerialName(value = "gpt-4-1106-preview") _4_1106_preview("gpt-4-1106-preview"),
-  @SerialName(value = "gpt-4-vision-preview") _4_vision_preview("gpt-4-vision-preview"),
-  @SerialName(value = "gpt-4") _4("gpt-4"),
-  @SerialName(value = "gpt-4-0314") _4_0314("gpt-4-0314"),
-  @SerialName(value = "gpt-4-0613") _4_0613("gpt-4-0613"),
-  @SerialName(value = "gpt-4-32k") _4_32k("gpt-4-32k"),
-  @SerialName(value = "gpt-4-32k-0314") _4_32k_0314("gpt-4-32k-0314"),
-  @SerialName(value = "gpt-4-32k-0613") _4_32k_0613("gpt-4-32k-0613"),
-  @SerialName(value = "gpt-3.5-turbo") _3_5_turbo("gpt-3.5-turbo"),
-  @SerialName(value = "gpt-3.5-turbo-16k") _3_5_turbo_16k("gpt-3.5-turbo-16k"),
-  @SerialName(value = "gpt-3.5-turbo-0301") _3_5_turbo_0301("gpt-3.5-turbo-0301"),
-  @SerialName(value = "gpt-3.5-turbo-0613") _3_5_turbo_0613("gpt-3.5-turbo-0613"),
-  @SerialName(value = "gpt-3.5-turbo-1106") _3_5_turbo_1106("gpt-3.5-turbo-1106"),
-  @SerialName(value = "gpt-3.5-turbo-0125") _3_5_turbo_0125("gpt-3.5-turbo-0125"),
-  @SerialName(value = "gpt-3.5-turbo-16k-0613") _3_5_turbo_16k_0613("gpt-3.5-turbo-16k-0613");
+  @Serializable(with = CreateChatCompletionRequestModelSerializer::class)
+  enum class Supported(override val value: kotlin.String) : CreateChatCompletionRequestModel {
 
-  /**
-   * Override [toString()] to avoid using the enum variable name as the value, and instead use the
-   * actual value defined in the API spec file.
-   *
-   * This solves a problem when the variable name and its value are different, and ensures that the
-   * client sends the correct enum values to the server always.
-   */
-  override fun toString(): kotlin.String = value
+    @SerialName(value = "gpt-4-0125-preview") gpt_4_0125_preview("gpt-4-0125-preview"),
+    @SerialName(value = "gpt-4-turbo-preview") gpt_4_turbo_preview("gpt-4-turbo-preview"),
+    @SerialName(value = "gpt-4-1106-preview") gpt_4_1106_preview("gpt-4-1106-preview"),
+    @SerialName(value = "gpt-4-vision-preview") gpt_4_vision_preview("gpt-4-vision-preview"),
+    @SerialName(value = "gpt-4") gpt_4("gpt-4"),
+    @SerialName(value = "gpt-4-0314") gpt_4_0314("gpt-4-0314"),
+    @SerialName(value = "gpt-4-0613") gpt_4_0613("gpt-4-0613"),
+    @SerialName(value = "gpt-4-32k") gpt_4_32k("gpt-4-32k"),
+    @SerialName(value = "gpt-4-32k-0314") gpt_4_32k_0314("gpt-4-32k-0314"),
+    @SerialName(value = "gpt-4-32k-0613") gpt_4_32k_0613("gpt-4-32k-0613"),
+    @SerialName(value = "gpt-3.5-turbo") gpt_3_5_turbo("gpt-3.5-turbo"),
+    @SerialName(value = "gpt-3.5-turbo-16k") gpt_3_5_turbo_16k("gpt-3.5-turbo-16k"),
+    @SerialName(value = "gpt-3.5-turbo-0301") gpt_3_5_turbo_0301("gpt-3.5-turbo-0301"),
+    @SerialName(value = "gpt-3.5-turbo-0613") gpt_3_5_turbo_0613("gpt-3.5-turbo-0613"),
+    @SerialName(value = "gpt-3.5-turbo-1106") gpt_3_5_turbo_1106("gpt-3.5-turbo-1106"),
+    @SerialName(value = "gpt-3.5-turbo-0125") gpt_3_5_turbo_0125("gpt-3.5-turbo-0125"),
+    @SerialName(value = "gpt-3.5-turbo-16k-0613") gpt_3_5_turbo_16k_0613("gpt-3.5-turbo-16k-0613");
+
+    override fun toString(): kotlin.String = value
+  }
+
+  @Serializable(with = CreateChatCompletionRequestModelSerializer::class)
+  data class Custom(override val value: kotlin.String) : CreateChatCompletionRequestModel
+
+  companion object {
+    @JvmStatic
+    fun fromValue(value: kotlin.String): CreateChatCompletionRequestModel =
+      values().firstOrNull { it.value == value } ?: Custom(value)
+
+    inline val gpt_4_0125_preview: CreateChatCompletionRequestModel
+      get() = Supported.gpt_4_0125_preview
+
+    inline val gpt_4_turbo_preview: CreateChatCompletionRequestModel
+      get() = Supported.gpt_4_turbo_preview
+
+    inline val gpt_4_1106_preview: CreateChatCompletionRequestModel
+      get() = Supported.gpt_4_1106_preview
+
+    inline val gpt_4_vision_preview: CreateChatCompletionRequestModel
+      get() = Supported.gpt_4_vision_preview
+
+    inline val gpt_4: CreateChatCompletionRequestModel
+      get() = Supported.gpt_4
+
+    inline val gpt_4_0314: CreateChatCompletionRequestModel
+      get() = Supported.gpt_4_0314
+
+    inline val gpt_4_0613: CreateChatCompletionRequestModel
+      get() = Supported.gpt_4_0613
+
+    inline val gpt_4_32k: CreateChatCompletionRequestModel
+      get() = Supported.gpt_4_32k
+
+    inline val gpt_4_32k_0314: CreateChatCompletionRequestModel
+      get() = Supported.gpt_4_32k_0314
+
+    inline val gpt_4_32k_0613: CreateChatCompletionRequestModel
+      get() = Supported.gpt_4_32k_0613
+
+    inline val gpt_3_5_turbo: CreateChatCompletionRequestModel
+      get() = Supported.gpt_3_5_turbo
+
+    inline val gpt_3_5_turbo_16k: CreateChatCompletionRequestModel
+      get() = Supported.gpt_3_5_turbo_16k
+
+    inline val gpt_3_5_turbo_0301: CreateChatCompletionRequestModel
+      get() = Supported.gpt_3_5_turbo_0301
+
+    inline val gpt_3_5_turbo_0613: CreateChatCompletionRequestModel
+      get() = Supported.gpt_3_5_turbo_0613
+
+    inline val gpt_3_5_turbo_1106: CreateChatCompletionRequestModel
+      get() = Supported.gpt_3_5_turbo_1106
+
+    inline val gpt_3_5_turbo_0125: CreateChatCompletionRequestModel
+      get() = Supported.gpt_3_5_turbo_0125
+
+    inline val gpt_3_5_turbo_16k_0613: CreateChatCompletionRequestModel
+      get() = Supported.gpt_3_5_turbo_16k_0613
+
+    @JvmStatic fun values(): List<CreateChatCompletionRequestModel> = Supported.entries
+
+    @JvmStatic
+    fun serializer(): KSerializer<CreateChatCompletionRequestModel> =
+      CreateChatCompletionRequestModelSerializer
+  }
+}
+
+private object CreateChatCompletionRequestModelSerializer :
+  KSerializer<CreateChatCompletionRequestModel> {
+  private val valueSerializer = kotlin.String.serializer()
+  override val descriptor = valueSerializer.descriptor
+
+  override fun deserialize(decoder: Decoder): CreateChatCompletionRequestModel {
+    val value = decoder.decodeSerializableValue(valueSerializer)
+    return CreateChatCompletionRequestModel.fromValue(value)
+  }
+
+  override fun serialize(encoder: Encoder, value: CreateChatCompletionRequestModel) {
+    encoder.encodeSerializableValue(valueSerializer, value.value)
+  }
 }

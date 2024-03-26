@@ -35,7 +35,10 @@ task("openaiClientGenerate", JavaExec::class) {
         "ai.xef.openai.generator.KMMGeneratorConfig",
         "-o",
         "../client",
-        "--skip-validate-spec"
+        "--skip-validate-spec",
+//        "--global-property",
+//        "debugModels=true",
+//        "debugOperations=true"
     )
     classpath = sourceSets["main"].runtimeClasspath
 }.finalizedBy(":xef-openai-client:spotlessApply").dependsOn(cleanClientGenerated)

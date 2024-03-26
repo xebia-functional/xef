@@ -6,24 +6,61 @@
 
 package com.xebia.functional.openai.generated.model
 
+import com.xebia.functional.openai.generated.model.CreateImageEditRequestModel.Supported.*
+import kotlin.jvm.JvmStatic
 import kotlinx.serialization.*
+import kotlinx.serialization.builtins.*
+import kotlinx.serialization.encoding.*
 
 /**
  * The model to use for image generation. Only `dall-e-2` is supported at this time.
  *
  * Values: dall_e_2
  */
-@Serializable
-enum class CreateImageEditRequestModel(val value: kotlin.String) {
+// We define a serializer for the parent sum type,
+// and then use it to serialize the child types
+@Suppress("SERIALIZER_TYPE_INCOMPATIBLE")
+@Serializable(with = CreateImageEditRequestModelSerializer::class)
+sealed interface CreateImageEditRequestModel {
+  val value: kotlin.String
 
-  @SerialName(value = "dall-e-2") dall_e_2("dall-e-2");
+  @Serializable(with = CreateImageEditRequestModelSerializer::class)
+  enum class Supported(override val value: kotlin.String) : CreateImageEditRequestModel {
 
-  /**
-   * Override [toString()] to avoid using the enum variable name as the value, and instead use the
-   * actual value defined in the API spec file.
-   *
-   * This solves a problem when the variable name and its value are different, and ensures that the
-   * client sends the correct enum values to the server always.
-   */
-  override fun toString(): kotlin.String = value
+    @SerialName(value = "dall-e-2") dall_e_2("dall-e-2");
+
+    override fun toString(): kotlin.String = value
+  }
+
+  @Serializable(with = CreateImageEditRequestModelSerializer::class)
+  data class Custom(override val value: kotlin.String) : CreateImageEditRequestModel
+
+  companion object {
+    @JvmStatic
+    fun fromValue(value: kotlin.String): CreateImageEditRequestModel =
+      values().firstOrNull { it.value == value } ?: Custom(value)
+
+    inline val dall_e_2: CreateImageEditRequestModel
+      get() = Supported.dall_e_2
+
+    @JvmStatic fun values(): List<CreateImageEditRequestModel> = Supported.entries
+
+    @JvmStatic
+    fun serializer(): KSerializer<CreateImageEditRequestModel> =
+      CreateImageEditRequestModelSerializer
+  }
+}
+
+private object CreateImageEditRequestModelSerializer : KSerializer<CreateImageEditRequestModel> {
+  private val valueSerializer = kotlin.String.serializer()
+  override val descriptor = valueSerializer.descriptor
+
+  override fun deserialize(decoder: Decoder): CreateImageEditRequestModel {
+    val value = decoder.decodeSerializableValue(valueSerializer)
+    return CreateImageEditRequestModel.fromValue(value)
+  }
+
+  override fun serialize(encoder: Encoder, value: CreateImageEditRequestModel) {
+    encoder.encodeSerializableValue(valueSerializer, value.value)
+  }
 }

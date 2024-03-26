@@ -6,25 +6,64 @@
 
 package com.xebia.functional.openai.generated.model
 
+import com.xebia.functional.openai.generated.model.CreateSpeechRequestModel.Supported.*
+import kotlin.jvm.JvmStatic
 import kotlinx.serialization.*
+import kotlinx.serialization.builtins.*
+import kotlinx.serialization.encoding.*
 
 /**
  * One of the available [TTS models](/docs/models/tts): `tts-1` or `tts-1-hd`
  *
  * Values: _1,_1_hd
  */
-@Serializable
-enum class CreateSpeechRequestModel(val value: kotlin.String) {
+// We define a serializer for the parent sum type,
+// and then use it to serialize the child types
+@Suppress("SERIALIZER_TYPE_INCOMPATIBLE")
+@Serializable(with = CreateSpeechRequestModelSerializer::class)
+sealed interface CreateSpeechRequestModel {
+  val value: kotlin.String
 
-  @SerialName(value = "tts-1") _1("tts-1"),
-  @SerialName(value = "tts-1-hd") _1_hd("tts-1-hd");
+  @Serializable(with = CreateSpeechRequestModelSerializer::class)
+  enum class Supported(override val value: kotlin.String) : CreateSpeechRequestModel {
 
-  /**
-   * Override [toString()] to avoid using the enum variable name as the value, and instead use the
-   * actual value defined in the API spec file.
-   *
-   * This solves a problem when the variable name and its value are different, and ensures that the
-   * client sends the correct enum values to the server always.
-   */
-  override fun toString(): kotlin.String = value
+    @SerialName(value = "tts-1") tts_1("tts-1"),
+    @SerialName(value = "tts-1-hd") tts_1_hd("tts-1-hd");
+
+    override fun toString(): kotlin.String = value
+  }
+
+  @Serializable(with = CreateSpeechRequestModelSerializer::class)
+  data class Custom(override val value: kotlin.String) : CreateSpeechRequestModel
+
+  companion object {
+    @JvmStatic
+    fun fromValue(value: kotlin.String): CreateSpeechRequestModel =
+      values().firstOrNull { it.value == value } ?: Custom(value)
+
+    inline val tts_1: CreateSpeechRequestModel
+      get() = Supported.tts_1
+
+    inline val tts_1_hd: CreateSpeechRequestModel
+      get() = Supported.tts_1_hd
+
+    @JvmStatic fun values(): List<CreateSpeechRequestModel> = Supported.entries
+
+    @JvmStatic
+    fun serializer(): KSerializer<CreateSpeechRequestModel> = CreateSpeechRequestModelSerializer
+  }
+}
+
+private object CreateSpeechRequestModelSerializer : KSerializer<CreateSpeechRequestModel> {
+  private val valueSerializer = kotlin.String.serializer()
+  override val descriptor = valueSerializer.descriptor
+
+  override fun deserialize(decoder: Decoder): CreateSpeechRequestModel {
+    val value = decoder.decodeSerializableValue(valueSerializer)
+    return CreateSpeechRequestModel.fromValue(value)
+  }
+
+  override fun serialize(encoder: Encoder, value: CreateSpeechRequestModel) {
+    encoder.encodeSerializableValue(valueSerializer, value.value)
+  }
 }

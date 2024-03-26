@@ -6,7 +6,11 @@
 
 package com.xebia.functional.openai.generated.model
 
+import com.xebia.functional.openai.generated.model.CreateEmbeddingRequestModel.Supported.*
+import kotlin.jvm.JvmStatic
 import kotlinx.serialization.*
+import kotlinx.serialization.builtins.*
+import kotlinx.serialization.encoding.*
 
 /**
  * ID of the model to use. You can use the [List models](/docs/api-reference/models/list) API to see
@@ -15,19 +19,58 @@ import kotlinx.serialization.*
  *
  * Values: ada_002,_3_small,_3_large
  */
-@Serializable
-enum class CreateEmbeddingRequestModel(val value: kotlin.String) {
+// We define a serializer for the parent sum type,
+// and then use it to serialize the child types
+@Suppress("SERIALIZER_TYPE_INCOMPATIBLE")
+@Serializable(with = CreateEmbeddingRequestModelSerializer::class)
+sealed interface CreateEmbeddingRequestModel {
+  val value: kotlin.String
 
-  @SerialName(value = "text-embedding-ada-002") ada_002("text-embedding-ada-002"),
-  @SerialName(value = "text-embedding-3-small") _3_small("text-embedding-3-small"),
-  @SerialName(value = "text-embedding-3-large") _3_large("text-embedding-3-large");
+  @Serializable(with = CreateEmbeddingRequestModelSerializer::class)
+  enum class Supported(override val value: kotlin.String) : CreateEmbeddingRequestModel {
 
-  /**
-   * Override [toString()] to avoid using the enum variable name as the value, and instead use the
-   * actual value defined in the API spec file.
-   *
-   * This solves a problem when the variable name and its value are different, and ensures that the
-   * client sends the correct enum values to the server always.
-   */
-  override fun toString(): kotlin.String = value
+    @SerialName(value = "text-embedding-ada-002") text_embedding_ada_002("text-embedding-ada-002"),
+    @SerialName(value = "text-embedding-3-small") text_embedding_3_small("text-embedding-3-small"),
+    @SerialName(value = "text-embedding-3-large") text_embedding_3_large("text-embedding-3-large");
+
+    override fun toString(): kotlin.String = value
+  }
+
+  @Serializable(with = CreateEmbeddingRequestModelSerializer::class)
+  data class Custom(override val value: kotlin.String) : CreateEmbeddingRequestModel
+
+  companion object {
+    @JvmStatic
+    fun fromValue(value: kotlin.String): CreateEmbeddingRequestModel =
+      values().firstOrNull { it.value == value } ?: Custom(value)
+
+    inline val text_embedding_ada_002: CreateEmbeddingRequestModel
+      get() = Supported.text_embedding_ada_002
+
+    inline val text_embedding_3_small: CreateEmbeddingRequestModel
+      get() = Supported.text_embedding_3_small
+
+    inline val text_embedding_3_large: CreateEmbeddingRequestModel
+      get() = Supported.text_embedding_3_large
+
+    @JvmStatic fun values(): List<CreateEmbeddingRequestModel> = Supported.entries
+
+    @JvmStatic
+    fun serializer(): KSerializer<CreateEmbeddingRequestModel> =
+      CreateEmbeddingRequestModelSerializer
+  }
+}
+
+private object CreateEmbeddingRequestModelSerializer : KSerializer<CreateEmbeddingRequestModel> {
+  private val valueSerializer = kotlin.String.serializer()
+  override val descriptor = valueSerializer.descriptor
+
+  override fun deserialize(decoder: Decoder): CreateEmbeddingRequestModel {
+    val value = decoder.decodeSerializableValue(valueSerializer)
+    return CreateEmbeddingRequestModel.fromValue(value)
+  }
+
+  override fun serialize(encoder: Encoder, value: CreateEmbeddingRequestModel) {
+    encoder.encodeSerializableValue(valueSerializer, value.value)
+  }
 }

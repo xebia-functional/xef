@@ -6,7 +6,11 @@
 
 package com.xebia.functional.openai.generated.model
 
+import com.xebia.functional.openai.generated.model.CreateCompletionRequestModel.Supported.*
+import kotlin.jvm.JvmStatic
 import kotlinx.serialization.*
+import kotlinx.serialization.builtins.*
+import kotlinx.serialization.encoding.*
 
 /**
  * ID of the model to use. You can use the [List models](/docs/api-reference/models/list) API to see
@@ -15,19 +19,58 @@ import kotlinx.serialization.*
  *
  * Values: gpt_3_5_turbo_instruct,davinci_002,babbage_002
  */
-@Serializable
-enum class CreateCompletionRequestModel(val value: kotlin.String) {
+// We define a serializer for the parent sum type,
+// and then use it to serialize the child types
+@Suppress("SERIALIZER_TYPE_INCOMPATIBLE")
+@Serializable(with = CreateCompletionRequestModelSerializer::class)
+sealed interface CreateCompletionRequestModel {
+  val value: kotlin.String
 
-  @SerialName(value = "gpt-3.5-turbo-instruct") gpt_3_5_turbo_instruct("gpt-3.5-turbo-instruct"),
-  @SerialName(value = "davinci-002") davinci_002("davinci-002"),
-  @SerialName(value = "babbage-002") babbage_002("babbage-002");
+  @Serializable(with = CreateCompletionRequestModelSerializer::class)
+  enum class Supported(override val value: kotlin.String) : CreateCompletionRequestModel {
 
-  /**
-   * Override [toString()] to avoid using the enum variable name as the value, and instead use the
-   * actual value defined in the API spec file.
-   *
-   * This solves a problem when the variable name and its value are different, and ensures that the
-   * client sends the correct enum values to the server always.
-   */
-  override fun toString(): kotlin.String = value
+    @SerialName(value = "gpt-3.5-turbo-instruct") gpt_3_5_turbo_instruct("gpt-3.5-turbo-instruct"),
+    @SerialName(value = "davinci-002") davinci_002("davinci-002"),
+    @SerialName(value = "babbage-002") babbage_002("babbage-002");
+
+    override fun toString(): kotlin.String = value
+  }
+
+  @Serializable(with = CreateCompletionRequestModelSerializer::class)
+  data class Custom(override val value: kotlin.String) : CreateCompletionRequestModel
+
+  companion object {
+    @JvmStatic
+    fun fromValue(value: kotlin.String): CreateCompletionRequestModel =
+      values().firstOrNull { it.value == value } ?: Custom(value)
+
+    inline val gpt_3_5_turbo_instruct: CreateCompletionRequestModel
+      get() = Supported.gpt_3_5_turbo_instruct
+
+    inline val davinci_002: CreateCompletionRequestModel
+      get() = Supported.davinci_002
+
+    inline val babbage_002: CreateCompletionRequestModel
+      get() = Supported.babbage_002
+
+    @JvmStatic fun values(): List<CreateCompletionRequestModel> = Supported.entries
+
+    @JvmStatic
+    fun serializer(): KSerializer<CreateCompletionRequestModel> =
+      CreateCompletionRequestModelSerializer
+  }
+}
+
+private object CreateCompletionRequestModelSerializer : KSerializer<CreateCompletionRequestModel> {
+  private val valueSerializer = kotlin.String.serializer()
+  override val descriptor = valueSerializer.descriptor
+
+  override fun deserialize(decoder: Decoder): CreateCompletionRequestModel {
+    val value = decoder.decodeSerializableValue(valueSerializer)
+    return CreateCompletionRequestModel.fromValue(value)
+  }
+
+  override fun serialize(encoder: Encoder, value: CreateCompletionRequestModel) {
+    encoder.encodeSerializableValue(valueSerializer, value.value)
+  }
 }

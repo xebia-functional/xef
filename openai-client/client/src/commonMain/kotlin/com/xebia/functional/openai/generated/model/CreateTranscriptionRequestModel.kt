@@ -6,24 +6,62 @@
 
 package com.xebia.functional.openai.generated.model
 
+import com.xebia.functional.openai.generated.model.CreateTranscriptionRequestModel.Supported.*
+import kotlin.jvm.JvmStatic
 import kotlinx.serialization.*
+import kotlinx.serialization.builtins.*
+import kotlinx.serialization.encoding.*
 
 /**
  * ID of the model to use. Only `whisper-1` is currently available.
  *
  * Values: whisper_1
  */
-@Serializable
-enum class CreateTranscriptionRequestModel(val value: kotlin.String) {
+// We define a serializer for the parent sum type,
+// and then use it to serialize the child types
+@Suppress("SERIALIZER_TYPE_INCOMPATIBLE")
+@Serializable(with = CreateTranscriptionRequestModelSerializer::class)
+sealed interface CreateTranscriptionRequestModel {
+  val value: kotlin.String
 
-  @SerialName(value = "whisper-1") whisper_1("whisper-1");
+  @Serializable(with = CreateTranscriptionRequestModelSerializer::class)
+  enum class Supported(override val value: kotlin.String) : CreateTranscriptionRequestModel {
 
-  /**
-   * Override [toString()] to avoid using the enum variable name as the value, and instead use the
-   * actual value defined in the API spec file.
-   *
-   * This solves a problem when the variable name and its value are different, and ensures that the
-   * client sends the correct enum values to the server always.
-   */
-  override fun toString(): kotlin.String = value
+    @SerialName(value = "whisper-1") whisper_1("whisper-1");
+
+    override fun toString(): kotlin.String = value
+  }
+
+  @Serializable(with = CreateTranscriptionRequestModelSerializer::class)
+  data class Custom(override val value: kotlin.String) : CreateTranscriptionRequestModel
+
+  companion object {
+    @JvmStatic
+    fun fromValue(value: kotlin.String): CreateTranscriptionRequestModel =
+      values().firstOrNull { it.value == value } ?: Custom(value)
+
+    inline val whisper_1: CreateTranscriptionRequestModel
+      get() = Supported.whisper_1
+
+    @JvmStatic fun values(): List<CreateTranscriptionRequestModel> = Supported.entries
+
+    @JvmStatic
+    fun serializer(): KSerializer<CreateTranscriptionRequestModel> =
+      CreateTranscriptionRequestModelSerializer
+  }
+}
+
+private object CreateTranscriptionRequestModelSerializer :
+  KSerializer<CreateTranscriptionRequestModel> {
+  private val valueSerializer = kotlin.String.serializer()
+  override val descriptor = valueSerializer.descriptor
+
+  override fun deserialize(decoder: Decoder): CreateTranscriptionRequestModel {
+    val value = decoder.decodeSerializableValue(valueSerializer)
+    return CreateTranscriptionRequestModel.fromValue(value)
+  }
+
+  override fun serialize(encoder: Encoder, value: CreateTranscriptionRequestModel) {
+    encoder.encodeSerializableValue(valueSerializer, value.value)
+  }
 }

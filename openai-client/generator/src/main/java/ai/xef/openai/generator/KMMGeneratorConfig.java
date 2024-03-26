@@ -9,6 +9,7 @@ import org.openapitools.codegen.languages.KotlinClientCodegen;
 import org.openapitools.codegen.model.ModelMap;
 import org.openapitools.codegen.model.ModelsMap;
 import org.openapitools.codegen.model.OperationsMap;
+import org.openapitools.codegen.utils.StringUtils;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -32,6 +33,7 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
         setModelPackage("com.xebia.functional.openai.generated.model");
         setApiPackage("com.xebia.functional.openai.generated.api");
         additionalProperties.put("apiSuffix", "");
+        additionalProperties.put("modelSuffix", "");
 
         // Configure OpenAI `object` to be mapped to `JsonObject`
         typeMapping.put("object", "JsonObject");
@@ -176,6 +178,7 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
         return super.addMustacheLambdas()
                 .put("oneOfName", new OneOfName())
                 .put("capitalised", new Capitalised())
+                .put("unquote", new Unquote())
                 .put("jsname", new JsName());
     }
 
@@ -227,6 +230,26 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
         public void execute(Template.Fragment fragment, Writer writer) throws IOException {
             String text = fragment.execute();
             writer.write(text.substring(0, 1).toUpperCase() + text.substring(1).toLowerCase(Locale.ROOT));
+        }
+    }
+
+    /**
+     * enum with `gpt-` are trimmed by `gpt_`,
+     * the raw value needs to trim the surrounding `"`.
+     */
+    public static class Unquote implements Mustache.Lambda {
+        public void execute(Template.Fragment fragment, Writer writer) throws IOException {
+            String text = snakeCase(fragment.execute());
+            if (text.startsWith("\"") && text.endsWith("\"")) {
+                writer.write(text.substring(1, text.length() - 1));
+            } else {
+                writer.write(text);
+            }
+        }
+
+        // Poor man lower snakeCase
+        private  String snakeCase(String text) {
+            return text.replace("-", "_").replace(".", "_");
         }
     }
 }
