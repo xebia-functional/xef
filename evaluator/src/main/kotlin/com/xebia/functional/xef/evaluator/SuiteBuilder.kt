@@ -35,7 +35,7 @@ data class SuiteSpec(
   val model: CreateChatCompletionRequestModel
 ) {
 
-  suspend inline fun <reified E> evaluate(): SuiteResults<E> where
+  suspend inline fun <reified E> evaluate(success: List<E>): SuiteResults<E> where
   E : AI.PromptClassifier,
   E : Enum<E> {
     val items =
@@ -46,7 +46,13 @@ data class SuiteSpec(
             val classification =
               AI.classify<E>(item.input, item.context, output.value, model = model)
             println(" |_ ${output.description.value} = classification $classification")
-            OutputResult(output.description.value, item.context, output.value, classification)
+            OutputResult(
+              output.description.value,
+              item.context,
+              output.value,
+              classification,
+              success.contains(classification)
+            )
           }
         ItemResult(item.input, outputResults)
       }
