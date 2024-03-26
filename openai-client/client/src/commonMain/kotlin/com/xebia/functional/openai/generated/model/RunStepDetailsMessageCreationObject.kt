@@ -29,7 +29,7 @@ data class RunStepDetailsMessageCreationObject(
    * Values: message_creation
    */
   @Serializable
-  enum class Type(name: kotlin.String) {
+  enum class Type(val value: kotlin.String) {
     @SerialName(value = "message_creation") message_creation("message_creation")
   }
 }

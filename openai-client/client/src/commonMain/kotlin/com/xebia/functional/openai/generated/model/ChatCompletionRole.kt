@@ -16,36 +16,31 @@ import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*
 import kotlinx.serialization.encoding.*
 
-/**
- * The role of the author of a message
- *
- * Values: system,user,assistant,tool,function
- */
-// We define a serializer for the parent sum type,
-// and then use it to serialize the child types
+/** The role of the author of a message */
+// We define a serializer for the parent sum type, and then use it to serialize the child types
 @Suppress("SERIALIZER_TYPE_INCOMPATIBLE")
 @Serializable(with = ChatCompletionRoleSerializer::class)
 sealed interface ChatCompletionRole {
-  val name: kotlin.String
+  val value: kotlin.String
 
   @Serializable(with = ChatCompletionRoleSerializer::class)
-  enum class Supported(name: kotlin.String) : ChatCompletionRole {
+  enum class Supported(override val value: kotlin.String) : ChatCompletionRole {
     @SerialName(value = "system") system("system"),
     @SerialName(value = "user") user("user"),
     @SerialName(value = "assistant") assistant("assistant"),
     @SerialName(value = "tool") tool("tool"),
     @SerialName(value = "function") function("function");
 
-    override fun toString(): kotlin.String = name
+    override fun toString(): kotlin.String = value
   }
 
   @Serializable(with = ChatCompletionRoleSerializer::class)
-  data class Custom(override val name: kotlin.String) : ChatCompletionRole
+  data class Custom(override val value: kotlin.String) : ChatCompletionRole
 
   companion object {
     @JvmStatic
-    fun valueOf(name: kotlin.String): ChatCompletionRole =
-      values().firstOrNull { it.name == name } ?: Custom(name)
+    fun valueOf(value: kotlin.String): ChatCompletionRole =
+      values().firstOrNull { it.value == value } ?: Custom(value)
 
     inline val system: ChatCompletionRole
       get() = Supported.system
@@ -63,11 +58,6 @@ sealed interface ChatCompletionRole {
       get() = Supported.function
 
     @JvmStatic fun values(): List<ChatCompletionRole> = Supported.entries
-
-    // Is this resulting in a recursive loop!?
-    //      @JvmStatic
-    //      fun serializer(): KSerializer<ChatCompletionRole> =
-    //        ChatCompletionRoleSerializer
   }
 }
 
@@ -81,6 +71,6 @@ private object ChatCompletionRoleSerializer : KSerializer<ChatCompletionRole> {
   }
 
   override fun serialize(encoder: Encoder, value: ChatCompletionRole) {
-    encoder.encodeSerializableValue(valueSerializer, value.name)
+    encoder.encodeSerializableValue(valueSerializer, value.value)
   }
 }

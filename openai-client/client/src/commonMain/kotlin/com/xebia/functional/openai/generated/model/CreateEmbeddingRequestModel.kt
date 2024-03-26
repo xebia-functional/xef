@@ -18,32 +18,29 @@ import kotlinx.serialization.encoding.*
  * ID of the model to use. You can use the [List models](/docs/api-reference/models/list) API to see
  * all of your available models, or see our [Model overview](/docs/models/overview) for descriptions
  * of them.
- *
- * Values: ada_002,_3_small,_3_large
  */
-// We define a serializer for the parent sum type,
-// and then use it to serialize the child types
+// We define a serializer for the parent sum type, and then use it to serialize the child types
 @Suppress("SERIALIZER_TYPE_INCOMPATIBLE")
 @Serializable(with = CreateEmbeddingRequestModelSerializer::class)
 sealed interface CreateEmbeddingRequestModel {
-  val name: kotlin.String
+  val value: kotlin.String
 
   @Serializable(with = CreateEmbeddingRequestModelSerializer::class)
-  enum class Supported(name: kotlin.String) : CreateEmbeddingRequestModel {
+  enum class Supported(override val value: kotlin.String) : CreateEmbeddingRequestModel {
     @SerialName(value = "text-embedding-ada-002") text_embedding_ada_002("text-embedding-ada-002"),
     @SerialName(value = "text-embedding-3-small") text_embedding_3_small("text-embedding-3-small"),
     @SerialName(value = "text-embedding-3-large") text_embedding_3_large("text-embedding-3-large");
 
-    override fun toString(): kotlin.String = name
+    override fun toString(): kotlin.String = value
   }
 
   @Serializable(with = CreateEmbeddingRequestModelSerializer::class)
-  data class Custom(override val name: kotlin.String) : CreateEmbeddingRequestModel
+  data class Custom(override val value: kotlin.String) : CreateEmbeddingRequestModel
 
   companion object {
     @JvmStatic
-    fun valueOf(name: kotlin.String): CreateEmbeddingRequestModel =
-      values().firstOrNull { it.name == name } ?: Custom(name)
+    fun valueOf(value: kotlin.String): CreateEmbeddingRequestModel =
+      values().firstOrNull { it.value == value } ?: Custom(value)
 
     inline val text_embedding_ada_002: CreateEmbeddingRequestModel
       get() = Supported.text_embedding_ada_002
@@ -55,11 +52,6 @@ sealed interface CreateEmbeddingRequestModel {
       get() = Supported.text_embedding_3_large
 
     @JvmStatic fun values(): List<CreateEmbeddingRequestModel> = Supported.entries
-
-    // Is this resulting in a recursive loop!?
-    //      @JvmStatic
-    //      fun serializer(): KSerializer<CreateEmbeddingRequestModel> =
-    //        CreateEmbeddingRequestModelSerializer
   }
 }
 
@@ -73,6 +65,6 @@ private object CreateEmbeddingRequestModelSerializer : KSerializer<CreateEmbeddi
   }
 
   override fun serialize(encoder: Encoder, value: CreateEmbeddingRequestModel) {
-    encoder.encodeSerializableValue(valueSerializer, value.name)
+    encoder.encodeSerializableValue(valueSerializer, value.value)
   }
 }

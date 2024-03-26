@@ -26,7 +26,7 @@ data class RunStepDetailsToolCallsCodeOutputImageObject(
    * Values: image
    */
   @Serializable
-  enum class Type(name: kotlin.String) {
+  enum class Type(val value: kotlin.String) {
     @SerialName(value = "image") image("image")
   }
 }

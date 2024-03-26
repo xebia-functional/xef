@@ -7,11 +7,51 @@
 package com.xebia.functional.openai.generated.model
 
 import kotlin.jvm.JvmInline
+import kotlinx.serialization.*
+import kotlinx.serialization.builtins.*
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.encoding.*
 
+@Serializable(with = ChatCompletionToolChoiceOptionSerializer::class)
 sealed interface ChatCompletionToolChoiceOption {
 
   @JvmInline
+  @Serializable
   value class First(val value: ChatCompletionNamedToolChoice) : ChatCompletionToolChoiceOption
 
-  @JvmInline value class Second(val value: kotlin.String) : ChatCompletionToolChoiceOption
+  @JvmInline
+  @Serializable
+  value class Second(val value: kotlin.String) : ChatCompletionToolChoiceOption
+}
+
+private object ChatCompletionToolChoiceOptionSerializer :
+  KSerializer<ChatCompletionToolChoiceOption> {
+  @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
+  override val descriptor: SerialDescriptor =
+    buildSerialDescriptor("ChatCompletionToolChoiceOption", PolymorphicKind.SEALED) {
+      element("First", ChatCompletionNamedToolChoice.serializer().descriptor)
+      element("Second", kotlin.String.serializer().descriptor)
+    }
+
+  override fun deserialize(decoder: Decoder): ChatCompletionToolChoiceOption =
+    kotlin
+      .runCatching {
+        ChatCompletionToolChoiceOption.First(
+          ChatCompletionNamedToolChoice.serializer().deserialize(decoder)
+        )
+      }
+      .getOrNull()
+      ?: kotlin
+        .runCatching {
+          ChatCompletionToolChoiceOption.Second(kotlin.String.serializer().deserialize(decoder))
+        }
+        .getOrThrow()
+
+  override fun serialize(encoder: Encoder, value: ChatCompletionToolChoiceOption) =
+    when (value) {
+      is ChatCompletionToolChoiceOption.First ->
+        encoder.encodeSerializableValue(ChatCompletionNamedToolChoice.serializer(), value.value)
+      is ChatCompletionToolChoiceOption.Second ->
+        encoder.encodeSerializableValue(kotlin.String.serializer(), value.value)
+    }
 }

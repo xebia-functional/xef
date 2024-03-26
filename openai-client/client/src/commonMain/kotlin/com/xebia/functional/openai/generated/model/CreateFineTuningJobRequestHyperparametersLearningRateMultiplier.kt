@@ -7,14 +7,65 @@
 package com.xebia.functional.openai.generated.model
 
 import kotlin.jvm.JvmInline
+import kotlinx.serialization.*
+import kotlinx.serialization.builtins.*
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.encoding.*
 
+@Serializable(
+  with = CreateFineTuningJobRequestHyperparametersLearningRateMultiplierSerializer::class
+)
 sealed interface CreateFineTuningJobRequestHyperparametersLearningRateMultiplier {
 
   @JvmInline
+  @Serializable
   value class First(val value: kotlin.Double) :
     CreateFineTuningJobRequestHyperparametersLearningRateMultiplier
 
   @JvmInline
+  @Serializable
   value class Second(val value: kotlin.String) :
     CreateFineTuningJobRequestHyperparametersLearningRateMultiplier
+}
+
+private object CreateFineTuningJobRequestHyperparametersLearningRateMultiplierSerializer :
+  KSerializer<CreateFineTuningJobRequestHyperparametersLearningRateMultiplier> {
+  @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
+  override val descriptor: SerialDescriptor =
+    buildSerialDescriptor(
+      "CreateFineTuningJobRequestHyperparametersLearningRateMultiplier",
+      PolymorphicKind.SEALED
+    ) {
+      element("First", kotlin.Double.serializer().descriptor)
+      element("Second", kotlin.String.serializer().descriptor)
+    }
+
+  override fun deserialize(
+    decoder: Decoder
+  ): CreateFineTuningJobRequestHyperparametersLearningRateMultiplier =
+    kotlin
+      .runCatching {
+        CreateFineTuningJobRequestHyperparametersLearningRateMultiplier.First(
+          kotlin.Double.serializer().deserialize(decoder)
+        )
+      }
+      .getOrNull()
+      ?: kotlin
+        .runCatching {
+          CreateFineTuningJobRequestHyperparametersLearningRateMultiplier.Second(
+            kotlin.String.serializer().deserialize(decoder)
+          )
+        }
+        .getOrThrow()
+
+  override fun serialize(
+    encoder: Encoder,
+    value: CreateFineTuningJobRequestHyperparametersLearningRateMultiplier
+  ) =
+    when (value) {
+      is CreateFineTuningJobRequestHyperparametersLearningRateMultiplier.First ->
+        encoder.encodeSerializableValue(kotlin.Double.serializer(), value.value)
+      is CreateFineTuningJobRequestHyperparametersLearningRateMultiplier.Second ->
+        encoder.encodeSerializableValue(kotlin.String.serializer(), value.value)
+    }
 }

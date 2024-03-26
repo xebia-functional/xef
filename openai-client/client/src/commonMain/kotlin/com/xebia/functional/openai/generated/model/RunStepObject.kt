@@ -73,7 +73,7 @@ data class RunStepObject(
    * Values: thread_run_step
    */
   @Serializable
-  enum class `Object`(name: kotlin.String) {
+  enum class `Object`(val value: kotlin.String) {
     @SerialName(value = "thread.run.step") thread_run_step("thread.run.step")
   }
   /**
@@ -82,7 +82,7 @@ data class RunStepObject(
    * Values: message_creation,tool_calls
    */
   @Serializable
-  enum class Type(name: kotlin.String) {
+  enum class Type(val value: kotlin.String) {
     @SerialName(value = "message_creation") message_creation("message_creation"),
     @SerialName(value = "tool_calls") tool_calls("tool_calls")
   }
@@ -93,7 +93,7 @@ data class RunStepObject(
    * Values: in_progress,cancelled,failed,completed,expired
    */
   @Serializable
-  enum class Status(name: kotlin.String) {
+  enum class Status(val value: kotlin.String) {
     @SerialName(value = "in_progress") in_progress("in_progress"),
     @SerialName(value = "cancelled") cancelled("cancelled"),
     @SerialName(value = "failed") failed("failed"),

@@ -38,7 +38,7 @@ data class MessageContentTextAnnotationsFileCitationObject(
    * Values: file_citation
    */
   @Serializable
-  enum class Type(name: kotlin.String) {
+  enum class Type(val value: kotlin.String) {
     @SerialName(value = "file_citation") file_citation("file_citation")
   }
 }

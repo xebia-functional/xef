@@ -7,11 +7,52 @@
 package com.xebia.functional.openai.generated.model
 
 import kotlin.jvm.JvmInline
+import kotlinx.serialization.*
+import kotlinx.serialization.builtins.*
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.encoding.*
 
+@Serializable(with = MessageObjectContentInnerSerializer::class)
 sealed interface MessageObjectContentInner {
 
   @JvmInline
+  @Serializable
   value class First(val value: MessageContentImageFileObject) : MessageObjectContentInner
 
-  @JvmInline value class Second(val value: MessageContentTextObject) : MessageObjectContentInner
+  @JvmInline
+  @Serializable
+  value class Second(val value: MessageContentTextObject) : MessageObjectContentInner
+}
+
+private object MessageObjectContentInnerSerializer : KSerializer<MessageObjectContentInner> {
+  @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
+  override val descriptor: SerialDescriptor =
+    buildSerialDescriptor("MessageObjectContentInner", PolymorphicKind.SEALED) {
+      element("First", MessageContentImageFileObject.serializer().descriptor)
+      element("Second", MessageContentTextObject.serializer().descriptor)
+    }
+
+  override fun deserialize(decoder: Decoder): MessageObjectContentInner =
+    kotlin
+      .runCatching {
+        MessageObjectContentInner.First(
+          MessageContentImageFileObject.serializer().deserialize(decoder)
+        )
+      }
+      .getOrNull()
+      ?: kotlin
+        .runCatching {
+          MessageObjectContentInner.Second(
+            MessageContentTextObject.serializer().deserialize(decoder)
+          )
+        }
+        .getOrThrow()
+
+  override fun serialize(encoder: Encoder, value: MessageObjectContentInner) =
+    when (value) {
+      is MessageObjectContentInner.First ->
+        encoder.encodeSerializableValue(MessageContentImageFileObject.serializer(), value.value)
+      is MessageObjectContentInner.Second ->
+        encoder.encodeSerializableValue(MessageContentTextObject.serializer(), value.value)
+    }
 }

@@ -19,31 +19,28 @@ import kotlinx.serialization.encoding.*
  * upgraded over time. This ensures you are always using our most accurate model. If you use
  * `text-moderation-stable`, we will provide advanced notice before updating the model. Accuracy of
  * `text-moderation-stable` may be slightly lower than for `text-moderation-latest`.
- *
- * Values: latest,stable
  */
-// We define a serializer for the parent sum type,
-// and then use it to serialize the child types
+// We define a serializer for the parent sum type, and then use it to serialize the child types
 @Suppress("SERIALIZER_TYPE_INCOMPATIBLE")
 @Serializable(with = CreateModerationRequestModelSerializer::class)
 sealed interface CreateModerationRequestModel {
-  val name: kotlin.String
+  val value: kotlin.String
 
   @Serializable(with = CreateModerationRequestModelSerializer::class)
-  enum class Supported(name: kotlin.String) : CreateModerationRequestModel {
+  enum class Supported(override val value: kotlin.String) : CreateModerationRequestModel {
     @SerialName(value = "text-moderation-latest") text_moderation_latest("text-moderation-latest"),
     @SerialName(value = "text-moderation-stable") text_moderation_stable("text-moderation-stable");
 
-    override fun toString(): kotlin.String = name
+    override fun toString(): kotlin.String = value
   }
 
   @Serializable(with = CreateModerationRequestModelSerializer::class)
-  data class Custom(override val name: kotlin.String) : CreateModerationRequestModel
+  data class Custom(override val value: kotlin.String) : CreateModerationRequestModel
 
   companion object {
     @JvmStatic
-    fun valueOf(name: kotlin.String): CreateModerationRequestModel =
-      values().firstOrNull { it.name == name } ?: Custom(name)
+    fun valueOf(value: kotlin.String): CreateModerationRequestModel =
+      values().firstOrNull { it.value == value } ?: Custom(value)
 
     inline val text_moderation_latest: CreateModerationRequestModel
       get() = Supported.text_moderation_latest
@@ -52,11 +49,6 @@ sealed interface CreateModerationRequestModel {
       get() = Supported.text_moderation_stable
 
     @JvmStatic fun values(): List<CreateModerationRequestModel> = Supported.entries
-
-    // Is this resulting in a recursive loop!?
-    //      @JvmStatic
-    //      fun serializer(): KSerializer<CreateModerationRequestModel> =
-    //        CreateModerationRequestModelSerializer
   }
 }
 
@@ -70,6 +62,6 @@ private object CreateModerationRequestModelSerializer : KSerializer<CreateModera
   }
 
   override fun serialize(encoder: Encoder, value: CreateModerationRequestModel) {
-    encoder.encodeSerializableValue(valueSerializer, value.name)
+    encoder.encodeSerializableValue(valueSerializer, value.value)
   }
 }

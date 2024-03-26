@@ -7,10 +7,51 @@
 package com.xebia.functional.openai.generated.model
 
 import kotlin.jvm.JvmInline
+import kotlinx.serialization.*
+import kotlinx.serialization.builtins.*
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.encoding.*
 
+@Serializable(with = FineTuningJobHyperparametersNEpochsSerializer::class)
 sealed interface FineTuningJobHyperparametersNEpochs {
 
-  @JvmInline value class First(val value: kotlin.Int) : FineTuningJobHyperparametersNEpochs
+  @JvmInline
+  @Serializable
+  value class First(val value: kotlin.Int) : FineTuningJobHyperparametersNEpochs
 
-  @JvmInline value class Second(val value: kotlin.String) : FineTuningJobHyperparametersNEpochs
+  @JvmInline
+  @Serializable
+  value class Second(val value: kotlin.String) : FineTuningJobHyperparametersNEpochs
+}
+
+private object FineTuningJobHyperparametersNEpochsSerializer :
+  KSerializer<FineTuningJobHyperparametersNEpochs> {
+  @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
+  override val descriptor: SerialDescriptor =
+    buildSerialDescriptor("FineTuningJobHyperparametersNEpochs", PolymorphicKind.SEALED) {
+      element("First", kotlin.Int.serializer().descriptor)
+      element("Second", kotlin.String.serializer().descriptor)
+    }
+
+  override fun deserialize(decoder: Decoder): FineTuningJobHyperparametersNEpochs =
+    kotlin
+      .runCatching {
+        FineTuningJobHyperparametersNEpochs.First(kotlin.Int.serializer().deserialize(decoder))
+      }
+      .getOrNull()
+      ?: kotlin
+        .runCatching {
+          FineTuningJobHyperparametersNEpochs.Second(
+            kotlin.String.serializer().deserialize(decoder)
+          )
+        }
+        .getOrThrow()
+
+  override fun serialize(encoder: Encoder, value: FineTuningJobHyperparametersNEpochs) =
+    when (value) {
+      is FineTuningJobHyperparametersNEpochs.First ->
+        encoder.encodeSerializableValue(kotlin.Int.serializer(), value.value)
+      is FineTuningJobHyperparametersNEpochs.Second ->
+        encoder.encodeSerializableValue(kotlin.String.serializer(), value.value)
+    }
 }

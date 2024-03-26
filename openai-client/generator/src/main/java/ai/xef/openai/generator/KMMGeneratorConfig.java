@@ -3,13 +3,13 @@ package ai.xef.openai.generator;
 import com.google.common.collect.ImmutableMap;
 import com.samskivert.mustache.Mustache;
 import com.samskivert.mustache.Template;
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.tuple.Pair;
 import org.openapitools.codegen.*;
 import org.openapitools.codegen.languages.KotlinClientCodegen;
 import org.openapitools.codegen.model.ModelMap;
 import org.openapitools.codegen.model.ModelsMap;
 import org.openapitools.codegen.model.OperationsMap;
-import org.openapitools.codegen.utils.StringUtils;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -179,7 +179,8 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
                 .put("oneOfName", new OneOfName())
                 .put("capitalised", new Capitalised())
                 .put("unquote", new Unquote())
-                .put("jsname", new JsName());
+                .put("jsname", new JsName())
+                .put("serializer", new Serializer());
     }
 
     /**
@@ -248,8 +249,35 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
         }
 
         // Poor man lower snakeCase
-        private  String snakeCase(String text) {
+        private String snakeCase(String text) {
             return text.replace("-", "_").replace(".", "_");
+        }
+    }
+
+    public static class Serializer implements Mustache.Lambda {
+        public void execute(Template.Fragment fragment, Writer writer) throws IOException {
+            String text = fragment.execute();
+            StringBuilder buffer = new StringBuilder();
+            serializer(buffer, text.trim(), 0);
+            writer.write(buffer.toString());
+        }
+
+        private void serializer(
+                StringBuilder buffer,
+                String text,
+                int depth
+        ) {
+            if (text.startsWith("kotlin.collections.List<")) {
+                String inner = text.substring(24, text.length() - 1);
+                buffer.append("ListSerializer(");
+                serializer(buffer, inner, depth + 1);
+            } else if (text.startsWith("Map<")) {
+                throw new NotImplementedException("Map serialization not supported **yet**");
+            } else {
+                buffer.append(text);
+                buffer.append(".serializer()");
+                buffer.append(")".repeat(Math.max(0, depth)));
+            }
         }
     }
 }

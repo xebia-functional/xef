@@ -46,7 +46,7 @@ data class CreateChatCompletionResponse(
    * Values: chat_completion
    */
   @Serializable
-  enum class `Object`(name: kotlin.String) {
+  enum class `Object`(val value: kotlin.String) {
     @SerialName(value = "chat.completion") chat_completion("chat.completion")
   }
 }

@@ -7,12 +7,59 @@
 package com.xebia.functional.openai.generated.model
 
 import kotlin.jvm.JvmInline
+import kotlinx.serialization.*
+import kotlinx.serialization.builtins.*
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.encoding.*
 
+@Serializable(with = CreateFineTuningJobRequestHyperparametersBatchSizeSerializer::class)
 sealed interface CreateFineTuningJobRequestHyperparametersBatchSize {
 
   @JvmInline
+  @Serializable
   value class First(val value: kotlin.Int) : CreateFineTuningJobRequestHyperparametersBatchSize
 
   @JvmInline
+  @Serializable
   value class Second(val value: kotlin.String) : CreateFineTuningJobRequestHyperparametersBatchSize
+}
+
+private object CreateFineTuningJobRequestHyperparametersBatchSizeSerializer :
+  KSerializer<CreateFineTuningJobRequestHyperparametersBatchSize> {
+  @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
+  override val descriptor: SerialDescriptor =
+    buildSerialDescriptor(
+      "CreateFineTuningJobRequestHyperparametersBatchSize",
+      PolymorphicKind.SEALED
+    ) {
+      element("First", kotlin.Int.serializer().descriptor)
+      element("Second", kotlin.String.serializer().descriptor)
+    }
+
+  override fun deserialize(decoder: Decoder): CreateFineTuningJobRequestHyperparametersBatchSize =
+    kotlin
+      .runCatching {
+        CreateFineTuningJobRequestHyperparametersBatchSize.First(
+          kotlin.Int.serializer().deserialize(decoder)
+        )
+      }
+      .getOrNull()
+      ?: kotlin
+        .runCatching {
+          CreateFineTuningJobRequestHyperparametersBatchSize.Second(
+            kotlin.String.serializer().deserialize(decoder)
+          )
+        }
+        .getOrThrow()
+
+  override fun serialize(
+    encoder: Encoder,
+    value: CreateFineTuningJobRequestHyperparametersBatchSize
+  ) =
+    when (value) {
+      is CreateFineTuningJobRequestHyperparametersBatchSize.First ->
+        encoder.encodeSerializableValue(kotlin.Int.serializer(), value.value)
+      is CreateFineTuningJobRequestHyperparametersBatchSize.Second ->
+        encoder.encodeSerializableValue(kotlin.String.serializer(), value.value)
+    }
 }

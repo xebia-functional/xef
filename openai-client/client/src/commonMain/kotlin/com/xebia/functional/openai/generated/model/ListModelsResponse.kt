@@ -21,7 +21,7 @@ data class ListModelsResponse(
 
   /** Values: list */
   @Serializable
-  enum class `Object`(name: kotlin.String) {
+  enum class `Object`(val value: kotlin.String) {
     @SerialName(value = "list") list("list")
   }
 }

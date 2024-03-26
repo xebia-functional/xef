@@ -7,18 +7,76 @@
 package com.xebia.functional.openai.generated.model
 
 import kotlin.jvm.JvmInline
+import kotlinx.serialization.*
+import kotlinx.serialization.builtins.*
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.encoding.*
 
+@Serializable(with = RunStepDetailsToolCallsObjectToolCallsInnerSerializer::class)
 sealed interface RunStepDetailsToolCallsObjectToolCallsInner {
 
   @JvmInline
+  @Serializable
   value class First(val value: RunStepDetailsToolCallsCodeObject) :
     RunStepDetailsToolCallsObjectToolCallsInner
 
   @JvmInline
+  @Serializable
   value class Second(val value: RunStepDetailsToolCallsFunctionObject) :
     RunStepDetailsToolCallsObjectToolCallsInner
 
   @JvmInline
+  @Serializable
   value class Third(val value: RunStepDetailsToolCallsRetrievalObject) :
     RunStepDetailsToolCallsObjectToolCallsInner
+}
+
+private object RunStepDetailsToolCallsObjectToolCallsInnerSerializer :
+  KSerializer<RunStepDetailsToolCallsObjectToolCallsInner> {
+  @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
+  override val descriptor: SerialDescriptor =
+    buildSerialDescriptor("RunStepDetailsToolCallsObjectToolCallsInner", PolymorphicKind.SEALED) {
+      element("First", RunStepDetailsToolCallsCodeObject.serializer().descriptor)
+      element("Second", RunStepDetailsToolCallsFunctionObject.serializer().descriptor)
+      element("Third", RunStepDetailsToolCallsRetrievalObject.serializer().descriptor)
+    }
+
+  override fun deserialize(decoder: Decoder): RunStepDetailsToolCallsObjectToolCallsInner =
+    kotlin
+      .runCatching {
+        RunStepDetailsToolCallsObjectToolCallsInner.First(
+          RunStepDetailsToolCallsCodeObject.serializer().deserialize(decoder)
+        )
+      }
+      .getOrNull()
+      ?: kotlin
+        .runCatching {
+          RunStepDetailsToolCallsObjectToolCallsInner.Second(
+            RunStepDetailsToolCallsFunctionObject.serializer().deserialize(decoder)
+          )
+        }
+        .getOrNull()
+      ?: kotlin
+        .runCatching {
+          RunStepDetailsToolCallsObjectToolCallsInner.Third(
+            RunStepDetailsToolCallsRetrievalObject.serializer().deserialize(decoder)
+          )
+        }
+        .getOrThrow()
+
+  override fun serialize(encoder: Encoder, value: RunStepDetailsToolCallsObjectToolCallsInner) =
+    when (value) {
+      is RunStepDetailsToolCallsObjectToolCallsInner.First ->
+        encoder.encodeSerializableValue(RunStepDetailsToolCallsCodeObject.serializer(), value.value)
+      is RunStepDetailsToolCallsObjectToolCallsInner.Second ->
+        encoder.encodeSerializableValue(
+          RunStepDetailsToolCallsFunctionObject.serializer(),
+          value.value
+        )
+      is RunStepDetailsToolCallsObjectToolCallsInner.Third ->
+        encoder.encodeSerializableValue(
+          RunStepDetailsToolCallsRetrievalObject.serializer(),
+          value.value
+        )
+    }
 }

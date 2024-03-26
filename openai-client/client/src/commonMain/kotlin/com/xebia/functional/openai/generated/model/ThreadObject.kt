@@ -37,7 +37,7 @@ data class ThreadObject(
    * Values: thread
    */
   @Serializable
-  enum class `Object`(name: kotlin.String) {
+  enum class `Object`(val value: kotlin.String) {
     @SerialName(value = "thread") thread("thread")
   }
 }

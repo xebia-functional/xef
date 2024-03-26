@@ -7,7 +7,7 @@ sealed class MemorizedMessage {
   val role: ChatCompletionRole
     get() =
       when (this) {
-        is Request -> ChatCompletionRole.valueOf(message.completionRole().name)
+        is Request -> ChatCompletionRole.valueOf(message.completionRole().value)
         is Response -> ChatCompletionRole.valueOf(message.role.name)
       }
 

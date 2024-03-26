@@ -7,12 +7,51 @@
 package com.xebia.functional.openai.generated.model
 
 import kotlin.jvm.JvmInline
+import kotlinx.serialization.*
+import kotlinx.serialization.builtins.*
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.encoding.*
 
+@Serializable(with = CreateModerationRequestInputSerializer::class)
 sealed interface CreateModerationRequestInput {
 
-  @JvmInline value class First(val value: kotlin.String) : CreateModerationRequestInput
+  @JvmInline
+  @Serializable
+  value class First(val value: kotlin.String) : CreateModerationRequestInput
 
   @JvmInline
+  @Serializable
   value class Second(val value: kotlin.collections.List<kotlin.String>) :
     CreateModerationRequestInput
+}
+
+private object CreateModerationRequestInputSerializer : KSerializer<CreateModerationRequestInput> {
+  @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
+  override val descriptor: SerialDescriptor =
+    buildSerialDescriptor("CreateModerationRequestInput", PolymorphicKind.SEALED) {
+      element("First", kotlin.String.serializer().descriptor)
+      element("Second", ListSerializer(kotlin.String.serializer()).descriptor)
+    }
+
+  override fun deserialize(decoder: Decoder): CreateModerationRequestInput =
+    kotlin
+      .runCatching {
+        CreateModerationRequestInput.First(kotlin.String.serializer().deserialize(decoder))
+      }
+      .getOrNull()
+      ?: kotlin
+        .runCatching {
+          CreateModerationRequestInput.Second(
+            ListSerializer(kotlin.String.serializer()).deserialize(decoder)
+          )
+        }
+        .getOrThrow()
+
+  override fun serialize(encoder: Encoder, value: CreateModerationRequestInput) =
+    when (value) {
+      is CreateModerationRequestInput.First ->
+        encoder.encodeSerializableValue(kotlin.String.serializer(), value.value)
+      is CreateModerationRequestInput.Second ->
+        encoder.encodeSerializableValue(ListSerializer(kotlin.String.serializer()), value.value)
+    }
 }

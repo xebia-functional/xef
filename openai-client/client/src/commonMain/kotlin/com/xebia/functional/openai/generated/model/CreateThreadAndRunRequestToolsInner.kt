@@ -7,14 +7,67 @@
 package com.xebia.functional.openai.generated.model
 
 import kotlin.jvm.JvmInline
+import kotlinx.serialization.*
+import kotlinx.serialization.builtins.*
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.encoding.*
 
+@Serializable(with = CreateThreadAndRunRequestToolsInnerSerializer::class)
 sealed interface CreateThreadAndRunRequestToolsInner {
 
-  @JvmInline value class First(val value: AssistantToolsCode) : CreateThreadAndRunRequestToolsInner
+  @JvmInline
+  @Serializable
+  value class First(val value: AssistantToolsCode) : CreateThreadAndRunRequestToolsInner
 
   @JvmInline
+  @Serializable
   value class Second(val value: AssistantToolsFunction) : CreateThreadAndRunRequestToolsInner
 
   @JvmInline
+  @Serializable
   value class Third(val value: AssistantToolsRetrieval) : CreateThreadAndRunRequestToolsInner
+}
+
+private object CreateThreadAndRunRequestToolsInnerSerializer :
+  KSerializer<CreateThreadAndRunRequestToolsInner> {
+  @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
+  override val descriptor: SerialDescriptor =
+    buildSerialDescriptor("CreateThreadAndRunRequestToolsInner", PolymorphicKind.SEALED) {
+      element("First", AssistantToolsCode.serializer().descriptor)
+      element("Second", AssistantToolsFunction.serializer().descriptor)
+      element("Third", AssistantToolsRetrieval.serializer().descriptor)
+    }
+
+  override fun deserialize(decoder: Decoder): CreateThreadAndRunRequestToolsInner =
+    kotlin
+      .runCatching {
+        CreateThreadAndRunRequestToolsInner.First(
+          AssistantToolsCode.serializer().deserialize(decoder)
+        )
+      }
+      .getOrNull()
+      ?: kotlin
+        .runCatching {
+          CreateThreadAndRunRequestToolsInner.Second(
+            AssistantToolsFunction.serializer().deserialize(decoder)
+          )
+        }
+        .getOrNull()
+      ?: kotlin
+        .runCatching {
+          CreateThreadAndRunRequestToolsInner.Third(
+            AssistantToolsRetrieval.serializer().deserialize(decoder)
+          )
+        }
+        .getOrThrow()
+
+  override fun serialize(encoder: Encoder, value: CreateThreadAndRunRequestToolsInner) =
+    when (value) {
+      is CreateThreadAndRunRequestToolsInner.First ->
+        encoder.encodeSerializableValue(AssistantToolsCode.serializer(), value.value)
+      is CreateThreadAndRunRequestToolsInner.Second ->
+        encoder.encodeSerializableValue(AssistantToolsFunction.serializer(), value.value)
+      is CreateThreadAndRunRequestToolsInner.Third ->
+        encoder.encodeSerializableValue(AssistantToolsRetrieval.serializer(), value.value)
+    }
 }

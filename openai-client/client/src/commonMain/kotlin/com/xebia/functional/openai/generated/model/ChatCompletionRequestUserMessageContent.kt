@@ -7,12 +7,61 @@
 package com.xebia.functional.openai.generated.model
 
 import kotlin.jvm.JvmInline
+import kotlinx.serialization.*
+import kotlinx.serialization.builtins.*
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.encoding.*
 
+@Serializable(with = ChatCompletionRequestUserMessageContentSerializer::class)
 sealed interface ChatCompletionRequestUserMessageContent {
 
-  @JvmInline value class First(val value: kotlin.String) : ChatCompletionRequestUserMessageContent
+  @JvmInline
+  @Serializable
+  value class First(val value: kotlin.String) : ChatCompletionRequestUserMessageContent
 
   @JvmInline
+  @Serializable
   value class Second(val value: kotlin.collections.List<ChatCompletionRequestMessageContentPart>) :
     ChatCompletionRequestUserMessageContent
+}
+
+private object ChatCompletionRequestUserMessageContentSerializer :
+  KSerializer<ChatCompletionRequestUserMessageContent> {
+  @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
+  override val descriptor: SerialDescriptor =
+    buildSerialDescriptor("ChatCompletionRequestUserMessageContent", PolymorphicKind.SEALED) {
+      element("First", kotlin.String.serializer().descriptor)
+      element(
+        "Second",
+        ListSerializer(ChatCompletionRequestMessageContentPart.serializer()).descriptor
+      )
+    }
+
+  override fun deserialize(decoder: Decoder): ChatCompletionRequestUserMessageContent =
+    kotlin
+      .runCatching {
+        ChatCompletionRequestUserMessageContent.First(
+          kotlin.String.serializer().deserialize(decoder)
+        )
+      }
+      .getOrNull()
+      ?: kotlin
+        .runCatching {
+          ChatCompletionRequestUserMessageContent.Second(
+            ListSerializer(ChatCompletionRequestMessageContentPart.serializer())
+              .deserialize(decoder)
+          )
+        }
+        .getOrThrow()
+
+  override fun serialize(encoder: Encoder, value: ChatCompletionRequestUserMessageContent) =
+    when (value) {
+      is ChatCompletionRequestUserMessageContent.First ->
+        encoder.encodeSerializableValue(kotlin.String.serializer(), value.value)
+      is ChatCompletionRequestUserMessageContent.Second ->
+        encoder.encodeSerializableValue(
+          ListSerializer(ChatCompletionRequestMessageContentPart.serializer()),
+          value.value
+        )
+    }
 }

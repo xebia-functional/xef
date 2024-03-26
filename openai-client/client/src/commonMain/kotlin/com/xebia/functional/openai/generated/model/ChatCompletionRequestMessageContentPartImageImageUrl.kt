@@ -30,7 +30,7 @@ data class ChatCompletionRequestMessageContentPartImageImageUrl(
    * Values: auto,low,high
    */
   @Serializable
-  enum class Detail(name: kotlin.String) {
+  enum class Detail(val value: kotlin.String) {
     @SerialName(value = "auto") auto("auto"),
     @SerialName(value = "low") low("low"),
     @SerialName(value = "high") high("high")

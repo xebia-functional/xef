@@ -29,14 +29,14 @@ data class FineTuningJobEvent(
 
   /** Values: info,warn,error */
   @Serializable
-  enum class Level(name: kotlin.String) {
+  enum class Level(val value: kotlin.String) {
     @SerialName(value = "info") info("info"),
     @SerialName(value = "warn") warn("warn"),
     @SerialName(value = "error") error("error")
   }
   /** Values: fine_tuning_job_event */
   @Serializable
-  enum class `Object`(name: kotlin.String) {
+  enum class `Object`(val value: kotlin.String) {
     @SerialName(value = "fine_tuning.job.event") fine_tuning_job_event("fine_tuning.job.event")
   }
 }

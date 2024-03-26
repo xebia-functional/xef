@@ -43,7 +43,7 @@ data class CreateSpeechRequest(
    * Values: alloy,echo,fable,onyx,nova,shimmer
    */
   @Serializable
-  enum class Voice(name: kotlin.String) {
+  enum class Voice(val value: kotlin.String) {
     @SerialName(value = "alloy") alloy("alloy"),
     @SerialName(value = "echo") echo("echo"),
     @SerialName(value = "fable") fable("fable"),
@@ -59,7 +59,7 @@ data class CreateSpeechRequest(
    * Values: mp3,opus,aac,flac,pcm,wav
    */
   @Serializable
-  enum class ResponseFormat(name: kotlin.String) {
+  enum class ResponseFormat(val value: kotlin.String) {
     @SerialName(value = "mp3") mp3("mp3"),
     @SerialName(value = "opus") opus("opus"),
     @SerialName(value = "aac") aac("aac"),

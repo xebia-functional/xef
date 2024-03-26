@@ -18,32 +18,29 @@ import kotlinx.serialization.encoding.*
  * ID of the model to use. You can use the [List models](/docs/api-reference/models/list) API to see
  * all of your available models, or see our [Model overview](/docs/models/overview) for descriptions
  * of them.
- *
- * Values: gpt_3_5_turbo_instruct,davinci_002,babbage_002
  */
-// We define a serializer for the parent sum type,
-// and then use it to serialize the child types
+// We define a serializer for the parent sum type, and then use it to serialize the child types
 @Suppress("SERIALIZER_TYPE_INCOMPATIBLE")
 @Serializable(with = CreateCompletionRequestModelSerializer::class)
 sealed interface CreateCompletionRequestModel {
-  val name: kotlin.String
+  val value: kotlin.String
 
   @Serializable(with = CreateCompletionRequestModelSerializer::class)
-  enum class Supported(name: kotlin.String) : CreateCompletionRequestModel {
+  enum class Supported(override val value: kotlin.String) : CreateCompletionRequestModel {
     @SerialName(value = "gpt-3.5-turbo-instruct") gpt_3_5_turbo_instruct("gpt-3.5-turbo-instruct"),
     @SerialName(value = "davinci-002") davinci_002("davinci-002"),
     @SerialName(value = "babbage-002") babbage_002("babbage-002");
 
-    override fun toString(): kotlin.String = name
+    override fun toString(): kotlin.String = value
   }
 
   @Serializable(with = CreateCompletionRequestModelSerializer::class)
-  data class Custom(override val name: kotlin.String) : CreateCompletionRequestModel
+  data class Custom(override val value: kotlin.String) : CreateCompletionRequestModel
 
   companion object {
     @JvmStatic
-    fun valueOf(name: kotlin.String): CreateCompletionRequestModel =
-      values().firstOrNull { it.name == name } ?: Custom(name)
+    fun valueOf(value: kotlin.String): CreateCompletionRequestModel =
+      values().firstOrNull { it.value == value } ?: Custom(value)
 
     inline val gpt_3_5_turbo_instruct: CreateCompletionRequestModel
       get() = Supported.gpt_3_5_turbo_instruct
@@ -55,11 +52,6 @@ sealed interface CreateCompletionRequestModel {
       get() = Supported.babbage_002
 
     @JvmStatic fun values(): List<CreateCompletionRequestModel> = Supported.entries
-
-    // Is this resulting in a recursive loop!?
-    //      @JvmStatic
-    //      fun serializer(): KSerializer<CreateCompletionRequestModel> =
-    //        CreateCompletionRequestModelSerializer
   }
 }
 
@@ -73,6 +65,6 @@ private object CreateCompletionRequestModelSerializer : KSerializer<CreateComple
   }
 
   override fun serialize(encoder: Encoder, value: CreateCompletionRequestModel) {
-    encoder.encodeSerializableValue(valueSerializer, value.name)
+    encoder.encodeSerializableValue(valueSerializer, value.value)
   }
 }

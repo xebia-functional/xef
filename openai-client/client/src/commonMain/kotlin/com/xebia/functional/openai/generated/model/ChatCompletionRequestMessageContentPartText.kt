@@ -27,7 +27,7 @@ data class ChatCompletionRequestMessageContentPartText(
    * Values: text
    */
   @Serializable
-  enum class Type(name: kotlin.String) {
+  enum class Type(val value: kotlin.String) {
     @SerialName(value = "text") text("text")
   }
 }

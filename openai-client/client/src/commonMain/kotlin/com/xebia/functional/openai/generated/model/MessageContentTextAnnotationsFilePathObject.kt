@@ -37,7 +37,7 @@ data class MessageContentTextAnnotationsFilePathObject(
    * Values: file_path
    */
   @Serializable
-  enum class Type(name: kotlin.String) {
+  enum class Type(val value: kotlin.String) {
     @SerialName(value = "file_path") file_path("file_path")
   }
 }

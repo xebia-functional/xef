@@ -7,12 +7,59 @@
 package com.xebia.functional.openai.generated.model
 
 import kotlin.jvm.JvmInline
+import kotlinx.serialization.*
+import kotlinx.serialization.builtins.*
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.encoding.*
 
+@Serializable(with = CreateFineTuningJobRequestHyperparametersNEpochsSerializer::class)
 sealed interface CreateFineTuningJobRequestHyperparametersNEpochs {
 
   @JvmInline
+  @Serializable
   value class First(val value: kotlin.Int) : CreateFineTuningJobRequestHyperparametersNEpochs
 
   @JvmInline
+  @Serializable
   value class Second(val value: kotlin.String) : CreateFineTuningJobRequestHyperparametersNEpochs
+}
+
+private object CreateFineTuningJobRequestHyperparametersNEpochsSerializer :
+  KSerializer<CreateFineTuningJobRequestHyperparametersNEpochs> {
+  @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
+  override val descriptor: SerialDescriptor =
+    buildSerialDescriptor(
+      "CreateFineTuningJobRequestHyperparametersNEpochs",
+      PolymorphicKind.SEALED
+    ) {
+      element("First", kotlin.Int.serializer().descriptor)
+      element("Second", kotlin.String.serializer().descriptor)
+    }
+
+  override fun deserialize(decoder: Decoder): CreateFineTuningJobRequestHyperparametersNEpochs =
+    kotlin
+      .runCatching {
+        CreateFineTuningJobRequestHyperparametersNEpochs.First(
+          kotlin.Int.serializer().deserialize(decoder)
+        )
+      }
+      .getOrNull()
+      ?: kotlin
+        .runCatching {
+          CreateFineTuningJobRequestHyperparametersNEpochs.Second(
+            kotlin.String.serializer().deserialize(decoder)
+          )
+        }
+        .getOrThrow()
+
+  override fun serialize(
+    encoder: Encoder,
+    value: CreateFineTuningJobRequestHyperparametersNEpochs
+  ) =
+    when (value) {
+      is CreateFineTuningJobRequestHyperparametersNEpochs.First ->
+        encoder.encodeSerializableValue(kotlin.Int.serializer(), value.value)
+      is CreateFineTuningJobRequestHyperparametersNEpochs.Second ->
+        encoder.encodeSerializableValue(kotlin.String.serializer(), value.value)
+    }
 }

@@ -28,7 +28,7 @@ suspend fun Prompt.addMetrics(conversation: Conversation) {
 
   conversation.metric.parameter(
     "openai.chat_completion.prompt.messages_roles",
-    messages.map { it.completionRole().name }
+    messages.map { it.completionRole().value }
   )
   conversation.metric.parameter(
     "openai.chat_completion.prompt.last-message",

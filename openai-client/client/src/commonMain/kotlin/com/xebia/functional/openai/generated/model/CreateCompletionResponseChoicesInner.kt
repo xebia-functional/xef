@@ -38,7 +38,7 @@ data class CreateCompletionResponseChoicesInner(
    * Values: stop,length,content_filter
    */
   @Serializable
-  enum class FinishReason(name: kotlin.String) {
+  enum class FinishReason(val value: kotlin.String) {
     @SerialName(value = "stop") stop("stop"),
     @SerialName(value = "length") @JsName("length_type") length("length"),
     @SerialName(value = "content_filter") content_filter("content_filter")

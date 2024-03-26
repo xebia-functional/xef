@@ -36,7 +36,7 @@ data class ChatCompletionStreamResponseDelta(
    * Values: system,user,assistant,tool
    */
   @Serializable
-  enum class Role(name: kotlin.String) {
+  enum class Role(val value: kotlin.String) {
     @SerialName(value = "system") system("system"),
     @SerialName(value = "user") user("user"),
     @SerialName(value = "assistant") assistant("assistant"),

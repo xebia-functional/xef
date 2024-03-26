@@ -32,19 +32,15 @@ import kotlinx.serialization.encoding.*
  * ID of the model to use. See the
  * [model endpoint compatibility](/docs/models/model-endpoint-compatibility) table for details on
  * which models work with the Chat API.
- *
- * Values:
- * _4_0125_preview,_4_turbo_preview,_4_1106_preview,_4_vision_preview,_4,_4_0314,_4_0613,_4_32k,_4_32k_0314,_4_32k_0613,_3_5_turbo,_3_5_turbo_16k,_3_5_turbo_0301,_3_5_turbo_0613,_3_5_turbo_1106,_3_5_turbo_0125,_3_5_turbo_16k_0613
  */
-// We define a serializer for the parent sum type,
-// and then use it to serialize the child types
+// We define a serializer for the parent sum type, and then use it to serialize the child types
 @Suppress("SERIALIZER_TYPE_INCOMPATIBLE")
 @Serializable(with = CreateChatCompletionRequestModelSerializer::class)
 sealed interface CreateChatCompletionRequestModel {
-  val name: kotlin.String
+  val value: kotlin.String
 
   @Serializable(with = CreateChatCompletionRequestModelSerializer::class)
-  enum class Supported(name: kotlin.String) : CreateChatCompletionRequestModel {
+  enum class Supported(override val value: kotlin.String) : CreateChatCompletionRequestModel {
     @SerialName(value = "gpt-4-0125-preview") gpt_4_0125_preview("gpt-4-0125-preview"),
     @SerialName(value = "gpt-4-turbo-preview") gpt_4_turbo_preview("gpt-4-turbo-preview"),
     @SerialName(value = "gpt-4-1106-preview") gpt_4_1106_preview("gpt-4-1106-preview"),
@@ -63,16 +59,16 @@ sealed interface CreateChatCompletionRequestModel {
     @SerialName(value = "gpt-3.5-turbo-0125") gpt_3_5_turbo_0125("gpt-3.5-turbo-0125"),
     @SerialName(value = "gpt-3.5-turbo-16k-0613") gpt_3_5_turbo_16k_0613("gpt-3.5-turbo-16k-0613");
 
-    override fun toString(): kotlin.String = name
+    override fun toString(): kotlin.String = value
   }
 
   @Serializable(with = CreateChatCompletionRequestModelSerializer::class)
-  data class Custom(override val name: kotlin.String) : CreateChatCompletionRequestModel
+  data class Custom(override val value: kotlin.String) : CreateChatCompletionRequestModel
 
   companion object {
     @JvmStatic
-    fun valueOf(name: kotlin.String): CreateChatCompletionRequestModel =
-      values().firstOrNull { it.name == name } ?: Custom(name)
+    fun valueOf(value: kotlin.String): CreateChatCompletionRequestModel =
+      values().firstOrNull { it.value == value } ?: Custom(value)
 
     inline val gpt_4_0125_preview: CreateChatCompletionRequestModel
       get() = Supported.gpt_4_0125_preview
@@ -126,11 +122,6 @@ sealed interface CreateChatCompletionRequestModel {
       get() = Supported.gpt_3_5_turbo_16k_0613
 
     @JvmStatic fun values(): List<CreateChatCompletionRequestModel> = Supported.entries
-
-    // Is this resulting in a recursive loop!?
-    //      @JvmStatic
-    //      fun serializer(): KSerializer<CreateChatCompletionRequestModel> =
-    //        CreateChatCompletionRequestModelSerializer
   }
 }
 
@@ -145,6 +136,6 @@ private object CreateChatCompletionRequestModelSerializer :
   }
 
   override fun serialize(encoder: Encoder, value: CreateChatCompletionRequestModel) {
-    encoder.encodeSerializableValue(valueSerializer, value.name)
+    encoder.encodeSerializableValue(valueSerializer, value.value)
   }
 }

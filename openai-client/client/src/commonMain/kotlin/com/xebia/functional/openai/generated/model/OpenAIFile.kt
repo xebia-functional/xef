@@ -54,7 +54,7 @@ data class OpenAIFile(
    * Values: file
    */
   @Serializable
-  enum class `Object`(name: kotlin.String) {
+  enum class `Object`(val value: kotlin.String) {
     @SerialName(value = "file") file("file")
   }
   /**
@@ -64,7 +64,7 @@ data class OpenAIFile(
    * Values: fine_tune,fine_tune_results,assistants,assistants_output
    */
   @Serializable
-  enum class Purpose(name: kotlin.String) {
+  enum class Purpose(val value: kotlin.String) {
     @SerialName(value = "fine-tune") fine_tune("fine-tune"),
     @SerialName(value = "fine-tune-results") fine_tune_results("fine-tune-results"),
     @SerialName(value = "assistants") assistants("assistants"),
@@ -77,7 +77,7 @@ data class OpenAIFile(
    * Values: uploaded,processed,error
    */
   @Serializable
-  enum class Status(name: kotlin.String) {
+  enum class Status(val value: kotlin.String) {
     @SerialName(value = "uploaded") uploaded("uploaded"),
     @SerialName(value = "processed") processed("processed"),
     @SerialName(value = "error") error("error")

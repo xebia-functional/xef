@@ -7,20 +7,85 @@
 package com.xebia.functional.openai.generated.model
 
 import kotlin.jvm.JvmInline
+import kotlinx.serialization.*
+import kotlinx.serialization.builtins.*
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.encoding.*
 
+@Serializable(with = CreateCompletionRequestPromptSerializer::class)
 sealed interface CreateCompletionRequestPrompt {
 
-  @JvmInline value class First(val value: kotlin.String) : CreateCompletionRequestPrompt
+  @JvmInline
+  @Serializable
+  value class First(val value: kotlin.String) : CreateCompletionRequestPrompt
 
   @JvmInline
+  @Serializable
   value class Second(val value: kotlin.collections.List<kotlin.Int>) :
     CreateCompletionRequestPrompt
 
   @JvmInline
+  @Serializable
   value class Third(val value: kotlin.collections.List<kotlin.String>) :
     CreateCompletionRequestPrompt
 
   @JvmInline
+  @Serializable
   value class Fourth(val value: kotlin.collections.List<kotlin.collections.List<kotlin.Int>>) :
     CreateCompletionRequestPrompt
+}
+
+private object CreateCompletionRequestPromptSerializer :
+  KSerializer<CreateCompletionRequestPrompt> {
+  @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
+  override val descriptor: SerialDescriptor =
+    buildSerialDescriptor("CreateCompletionRequestPrompt", PolymorphicKind.SEALED) {
+      element("First", kotlin.String.serializer().descriptor)
+      element("Second", ListSerializer(kotlin.Int.serializer()).descriptor)
+      element("Third", ListSerializer(kotlin.String.serializer()).descriptor)
+      element("Fourth", ListSerializer(ListSerializer(kotlin.Int.serializer())).descriptor)
+    }
+
+  override fun deserialize(decoder: Decoder): CreateCompletionRequestPrompt =
+    kotlin
+      .runCatching {
+        CreateCompletionRequestPrompt.First(kotlin.String.serializer().deserialize(decoder))
+      }
+      .getOrNull()
+      ?: kotlin
+        .runCatching {
+          CreateCompletionRequestPrompt.Second(
+            ListSerializer(kotlin.Int.serializer()).deserialize(decoder)
+          )
+        }
+        .getOrNull()
+      ?: kotlin
+        .runCatching {
+          CreateCompletionRequestPrompt.Third(
+            ListSerializer(kotlin.String.serializer()).deserialize(decoder)
+          )
+        }
+        .getOrNull()
+      ?: kotlin
+        .runCatching {
+          CreateCompletionRequestPrompt.Fourth(
+            ListSerializer(ListSerializer(kotlin.Int.serializer())).deserialize(decoder)
+          )
+        }
+        .getOrThrow()
+
+  override fun serialize(encoder: Encoder, value: CreateCompletionRequestPrompt) =
+    when (value) {
+      is CreateCompletionRequestPrompt.First ->
+        encoder.encodeSerializableValue(kotlin.String.serializer(), value.value)
+      is CreateCompletionRequestPrompt.Second ->
+        encoder.encodeSerializableValue(ListSerializer(kotlin.Int.serializer()), value.value)
+      is CreateCompletionRequestPrompt.Third ->
+        encoder.encodeSerializableValue(ListSerializer(kotlin.String.serializer()), value.value)
+      is CreateCompletionRequestPrompt.Fourth ->
+        encoder.encodeSerializableValue(
+          ListSerializer(ListSerializer(kotlin.Int.serializer())),
+          value.value
+        )
+    }
 }

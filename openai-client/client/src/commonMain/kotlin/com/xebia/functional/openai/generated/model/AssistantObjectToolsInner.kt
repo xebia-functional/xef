@@ -7,12 +7,60 @@
 package com.xebia.functional.openai.generated.model
 
 import kotlin.jvm.JvmInline
+import kotlinx.serialization.*
+import kotlinx.serialization.builtins.*
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.encoding.*
 
+@Serializable(with = AssistantObjectToolsInnerSerializer::class)
 sealed interface AssistantObjectToolsInner {
 
-  @JvmInline value class First(val value: AssistantToolsCode) : AssistantObjectToolsInner
+  @JvmInline
+  @Serializable
+  value class First(val value: AssistantToolsCode) : AssistantObjectToolsInner
 
-  @JvmInline value class Second(val value: AssistantToolsFunction) : AssistantObjectToolsInner
+  @JvmInline
+  @Serializable
+  value class Second(val value: AssistantToolsFunction) : AssistantObjectToolsInner
 
-  @JvmInline value class Third(val value: AssistantToolsRetrieval) : AssistantObjectToolsInner
+  @JvmInline
+  @Serializable
+  value class Third(val value: AssistantToolsRetrieval) : AssistantObjectToolsInner
+}
+
+private object AssistantObjectToolsInnerSerializer : KSerializer<AssistantObjectToolsInner> {
+  @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
+  override val descriptor: SerialDescriptor =
+    buildSerialDescriptor("AssistantObjectToolsInner", PolymorphicKind.SEALED) {
+      element("First", AssistantToolsCode.serializer().descriptor)
+      element("Second", AssistantToolsFunction.serializer().descriptor)
+      element("Third", AssistantToolsRetrieval.serializer().descriptor)
+    }
+
+  override fun deserialize(decoder: Decoder): AssistantObjectToolsInner =
+    kotlin
+      .runCatching {
+        AssistantObjectToolsInner.First(AssistantToolsCode.serializer().deserialize(decoder))
+      }
+      .getOrNull()
+      ?: kotlin
+        .runCatching {
+          AssistantObjectToolsInner.Second(AssistantToolsFunction.serializer().deserialize(decoder))
+        }
+        .getOrNull()
+      ?: kotlin
+        .runCatching {
+          AssistantObjectToolsInner.Third(AssistantToolsRetrieval.serializer().deserialize(decoder))
+        }
+        .getOrThrow()
+
+  override fun serialize(encoder: Encoder, value: AssistantObjectToolsInner) =
+    when (value) {
+      is AssistantObjectToolsInner.First ->
+        encoder.encodeSerializableValue(AssistantToolsCode.serializer(), value.value)
+      is AssistantObjectToolsInner.Second ->
+        encoder.encodeSerializableValue(AssistantToolsFunction.serializer(), value.value)
+      is AssistantObjectToolsInner.Third ->
+        encoder.encodeSerializableValue(AssistantToolsRetrieval.serializer(), value.value)
+    }
 }

@@ -7,14 +7,61 @@
 package com.xebia.functional.openai.generated.model
 
 import kotlin.jvm.JvmInline
+import kotlinx.serialization.*
+import kotlinx.serialization.builtins.*
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.encoding.*
 
+@Serializable(with = ChatCompletionRequestMessageContentPartSerializer::class)
 sealed interface ChatCompletionRequestMessageContentPart {
 
   @JvmInline
+  @Serializable
   value class First(val value: ChatCompletionRequestMessageContentPartImage) :
     ChatCompletionRequestMessageContentPart
 
   @JvmInline
+  @Serializable
   value class Second(val value: ChatCompletionRequestMessageContentPartText) :
     ChatCompletionRequestMessageContentPart
+}
+
+private object ChatCompletionRequestMessageContentPartSerializer :
+  KSerializer<ChatCompletionRequestMessageContentPart> {
+  @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
+  override val descriptor: SerialDescriptor =
+    buildSerialDescriptor("ChatCompletionRequestMessageContentPart", PolymorphicKind.SEALED) {
+      element("First", ChatCompletionRequestMessageContentPartImage.serializer().descriptor)
+      element("Second", ChatCompletionRequestMessageContentPartText.serializer().descriptor)
+    }
+
+  override fun deserialize(decoder: Decoder): ChatCompletionRequestMessageContentPart =
+    kotlin
+      .runCatching {
+        ChatCompletionRequestMessageContentPart.First(
+          ChatCompletionRequestMessageContentPartImage.serializer().deserialize(decoder)
+        )
+      }
+      .getOrNull()
+      ?: kotlin
+        .runCatching {
+          ChatCompletionRequestMessageContentPart.Second(
+            ChatCompletionRequestMessageContentPartText.serializer().deserialize(decoder)
+          )
+        }
+        .getOrThrow()
+
+  override fun serialize(encoder: Encoder, value: ChatCompletionRequestMessageContentPart) =
+    when (value) {
+      is ChatCompletionRequestMessageContentPart.First ->
+        encoder.encodeSerializableValue(
+          ChatCompletionRequestMessageContentPartImage.serializer(),
+          value.value
+        )
+      is ChatCompletionRequestMessageContentPart.Second ->
+        encoder.encodeSerializableValue(
+          ChatCompletionRequestMessageContentPartText.serializer(),
+          value.value
+        )
+    }
 }

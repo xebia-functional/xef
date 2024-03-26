@@ -7,14 +7,69 @@
 package com.xebia.functional.openai.generated.model
 
 import kotlin.jvm.JvmInline
+import kotlinx.serialization.*
+import kotlinx.serialization.builtins.*
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.encoding.*
 
+@Serializable(with = RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInnerSerializer::class)
 sealed interface RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInner {
 
   @JvmInline
+  @Serializable
   value class First(val value: RunStepDetailsToolCallsCodeOutputImageObject) :
     RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInner
 
   @JvmInline
+  @Serializable
   value class Second(val value: RunStepDetailsToolCallsCodeOutputLogsObject) :
     RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInner
+}
+
+private object RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInnerSerializer :
+  KSerializer<RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInner> {
+  @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
+  override val descriptor: SerialDescriptor =
+    buildSerialDescriptor(
+      "RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInner",
+      PolymorphicKind.SEALED
+    ) {
+      element("First", RunStepDetailsToolCallsCodeOutputImageObject.serializer().descriptor)
+      element("Second", RunStepDetailsToolCallsCodeOutputLogsObject.serializer().descriptor)
+    }
+
+  override fun deserialize(
+    decoder: Decoder
+  ): RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInner =
+    kotlin
+      .runCatching {
+        RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInner.First(
+          RunStepDetailsToolCallsCodeOutputImageObject.serializer().deserialize(decoder)
+        )
+      }
+      .getOrNull()
+      ?: kotlin
+        .runCatching {
+          RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInner.Second(
+            RunStepDetailsToolCallsCodeOutputLogsObject.serializer().deserialize(decoder)
+          )
+        }
+        .getOrThrow()
+
+  override fun serialize(
+    encoder: Encoder,
+    value: RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInner
+  ) =
+    when (value) {
+      is RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInner.First ->
+        encoder.encodeSerializableValue(
+          RunStepDetailsToolCallsCodeOutputImageObject.serializer(),
+          value.value
+        )
+      is RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInner.Second ->
+        encoder.encodeSerializableValue(
+          RunStepDetailsToolCallsCodeOutputLogsObject.serializer(),
+          value.value
+        )
+    }
 }

@@ -12,7 +12,7 @@ fun ModelType.tokensFromMessages(
 ): Int { // TODO: naive implementation with magic numbers
   fun Encoding.countTokensFromMessages(tokensPerMessage: Int, tokensPerName: Int): Int =
     messages.sumOf { message ->
-      countTokens(message.completionRole().name) +
+      countTokens(message.completionRole().value) +
         countTokens(message.contentAsString() ?: "") +
         tokensPerMessage +
         tokensPerName

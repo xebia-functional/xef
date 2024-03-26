@@ -26,7 +26,7 @@ data class DeleteAssistantFileResponse(
 
   /** Values: assistant_file_deleted */
   @Serializable
-  enum class `Object`(name: kotlin.String) {
+  enum class `Object`(val value: kotlin.String) {
     @SerialName(value = "assistant.file.deleted") assistant_file_deleted("assistant.file.deleted")
   }
 }

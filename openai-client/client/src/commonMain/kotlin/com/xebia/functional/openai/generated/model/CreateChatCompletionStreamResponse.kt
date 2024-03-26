@@ -46,7 +46,7 @@ data class CreateChatCompletionStreamResponse(
    * Values: chat_completion_chunk
    */
   @Serializable
-  enum class `Object`(name: kotlin.String) {
+  enum class `Object`(val value: kotlin.String) {
     @SerialName(value = "chat.completion.chunk") chat_completion_chunk("chat.completion.chunk")
   }
 }

@@ -7,14 +7,61 @@
 package com.xebia.functional.openai.generated.model
 
 import kotlin.jvm.JvmInline
+import kotlinx.serialization.*
+import kotlinx.serialization.builtins.*
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.encoding.*
 
+@Serializable(with = MessageContentTextObjectTextAnnotationsInnerSerializer::class)
 sealed interface MessageContentTextObjectTextAnnotationsInner {
 
   @JvmInline
+  @Serializable
   value class First(val value: MessageContentTextAnnotationsFileCitationObject) :
     MessageContentTextObjectTextAnnotationsInner
 
   @JvmInline
+  @Serializable
   value class Second(val value: MessageContentTextAnnotationsFilePathObject) :
     MessageContentTextObjectTextAnnotationsInner
+}
+
+private object MessageContentTextObjectTextAnnotationsInnerSerializer :
+  KSerializer<MessageContentTextObjectTextAnnotationsInner> {
+  @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
+  override val descriptor: SerialDescriptor =
+    buildSerialDescriptor("MessageContentTextObjectTextAnnotationsInner", PolymorphicKind.SEALED) {
+      element("First", MessageContentTextAnnotationsFileCitationObject.serializer().descriptor)
+      element("Second", MessageContentTextAnnotationsFilePathObject.serializer().descriptor)
+    }
+
+  override fun deserialize(decoder: Decoder): MessageContentTextObjectTextAnnotationsInner =
+    kotlin
+      .runCatching {
+        MessageContentTextObjectTextAnnotationsInner.First(
+          MessageContentTextAnnotationsFileCitationObject.serializer().deserialize(decoder)
+        )
+      }
+      .getOrNull()
+      ?: kotlin
+        .runCatching {
+          MessageContentTextObjectTextAnnotationsInner.Second(
+            MessageContentTextAnnotationsFilePathObject.serializer().deserialize(decoder)
+          )
+        }
+        .getOrThrow()
+
+  override fun serialize(encoder: Encoder, value: MessageContentTextObjectTextAnnotationsInner) =
+    when (value) {
+      is MessageContentTextObjectTextAnnotationsInner.First ->
+        encoder.encodeSerializableValue(
+          MessageContentTextAnnotationsFileCitationObject.serializer(),
+          value.value
+        )
+      is MessageContentTextObjectTextAnnotationsInner.Second ->
+        encoder.encodeSerializableValue(
+          MessageContentTextAnnotationsFilePathObject.serializer(),
+          value.value
+        )
+    }
 }

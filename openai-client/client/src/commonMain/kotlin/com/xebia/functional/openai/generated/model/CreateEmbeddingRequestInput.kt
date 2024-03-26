@@ -7,19 +7,83 @@
 package com.xebia.functional.openai.generated.model
 
 import kotlin.jvm.JvmInline
+import kotlinx.serialization.*
+import kotlinx.serialization.builtins.*
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.encoding.*
 
+@Serializable(with = CreateEmbeddingRequestInputSerializer::class)
 sealed interface CreateEmbeddingRequestInput {
 
-  @JvmInline value class First(val value: kotlin.String) : CreateEmbeddingRequestInput
+  @JvmInline
+  @Serializable
+  value class First(val value: kotlin.String) : CreateEmbeddingRequestInput
 
   @JvmInline
+  @Serializable
   value class Second(val value: kotlin.collections.List<kotlin.Int>) : CreateEmbeddingRequestInput
 
   @JvmInline
+  @Serializable
   value class Third(val value: kotlin.collections.List<kotlin.String>) :
     CreateEmbeddingRequestInput
 
   @JvmInline
+  @Serializable
   value class Fourth(val value: kotlin.collections.List<kotlin.collections.List<kotlin.Int>>) :
     CreateEmbeddingRequestInput
+}
+
+private object CreateEmbeddingRequestInputSerializer : KSerializer<CreateEmbeddingRequestInput> {
+  @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
+  override val descriptor: SerialDescriptor =
+    buildSerialDescriptor("CreateEmbeddingRequestInput", PolymorphicKind.SEALED) {
+      element("First", kotlin.String.serializer().descriptor)
+      element("Second", ListSerializer(kotlin.Int.serializer()).descriptor)
+      element("Third", ListSerializer(kotlin.String.serializer()).descriptor)
+      element("Fourth", ListSerializer(ListSerializer(kotlin.Int.serializer())).descriptor)
+    }
+
+  override fun deserialize(decoder: Decoder): CreateEmbeddingRequestInput =
+    kotlin
+      .runCatching {
+        CreateEmbeddingRequestInput.First(kotlin.String.serializer().deserialize(decoder))
+      }
+      .getOrNull()
+      ?: kotlin
+        .runCatching {
+          CreateEmbeddingRequestInput.Second(
+            ListSerializer(kotlin.Int.serializer()).deserialize(decoder)
+          )
+        }
+        .getOrNull()
+      ?: kotlin
+        .runCatching {
+          CreateEmbeddingRequestInput.Third(
+            ListSerializer(kotlin.String.serializer()).deserialize(decoder)
+          )
+        }
+        .getOrNull()
+      ?: kotlin
+        .runCatching {
+          CreateEmbeddingRequestInput.Fourth(
+            ListSerializer(ListSerializer(kotlin.Int.serializer())).deserialize(decoder)
+          )
+        }
+        .getOrThrow()
+
+  override fun serialize(encoder: Encoder, value: CreateEmbeddingRequestInput) =
+    when (value) {
+      is CreateEmbeddingRequestInput.First ->
+        encoder.encodeSerializableValue(kotlin.String.serializer(), value.value)
+      is CreateEmbeddingRequestInput.Second ->
+        encoder.encodeSerializableValue(ListSerializer(kotlin.Int.serializer()), value.value)
+      is CreateEmbeddingRequestInput.Third ->
+        encoder.encodeSerializableValue(ListSerializer(kotlin.String.serializer()), value.value)
+      is CreateEmbeddingRequestInput.Fourth ->
+        encoder.encodeSerializableValue(
+          ListSerializer(ListSerializer(kotlin.Int.serializer())),
+          value.value
+        )
+    }
 }

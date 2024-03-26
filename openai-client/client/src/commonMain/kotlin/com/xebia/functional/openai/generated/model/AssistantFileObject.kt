@@ -35,7 +35,7 @@ data class AssistantFileObject(
    * Values: assistant_file
    */
   @Serializable
-  enum class `Object`(name: kotlin.String) {
+  enum class `Object`(val value: kotlin.String) {
     @SerialName(value = "assistant.file") assistant_file("assistant.file")
   }
 }

@@ -7,12 +7,51 @@
 package com.xebia.functional.openai.generated.model
 
 import kotlin.jvm.JvmInline
+import kotlinx.serialization.*
+import kotlinx.serialization.builtins.*
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.encoding.*
 
+@Serializable(with = CreateCompletionRequestStopSerializer::class)
 sealed interface CreateCompletionRequestStop {
 
-  @JvmInline value class First(val value: kotlin.String) : CreateCompletionRequestStop
+  @JvmInline
+  @Serializable
+  value class First(val value: kotlin.String) : CreateCompletionRequestStop
 
   @JvmInline
+  @Serializable
   value class Second(val value: kotlin.collections.List<kotlin.String>) :
     CreateCompletionRequestStop
+}
+
+private object CreateCompletionRequestStopSerializer : KSerializer<CreateCompletionRequestStop> {
+  @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
+  override val descriptor: SerialDescriptor =
+    buildSerialDescriptor("CreateCompletionRequestStop", PolymorphicKind.SEALED) {
+      element("First", kotlin.String.serializer().descriptor)
+      element("Second", ListSerializer(kotlin.String.serializer()).descriptor)
+    }
+
+  override fun deserialize(decoder: Decoder): CreateCompletionRequestStop =
+    kotlin
+      .runCatching {
+        CreateCompletionRequestStop.First(kotlin.String.serializer().deserialize(decoder))
+      }
+      .getOrNull()
+      ?: kotlin
+        .runCatching {
+          CreateCompletionRequestStop.Second(
+            ListSerializer(kotlin.String.serializer()).deserialize(decoder)
+          )
+        }
+        .getOrThrow()
+
+  override fun serialize(encoder: Encoder, value: CreateCompletionRequestStop) =
+    when (value) {
+      is CreateCompletionRequestStop.First ->
+        encoder.encodeSerializableValue(kotlin.String.serializer(), value.value)
+      is CreateCompletionRequestStop.Second ->
+        encoder.encodeSerializableValue(ListSerializer(kotlin.String.serializer()), value.value)
+    }
 }

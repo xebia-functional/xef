@@ -7,12 +7,55 @@
 package com.xebia.functional.openai.generated.model
 
 import kotlin.jvm.JvmInline
+import kotlinx.serialization.*
+import kotlinx.serialization.builtins.*
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.encoding.*
 
+@Serializable(with = RunStepObjectStepDetailsSerializer::class)
 sealed interface RunStepObjectStepDetails {
 
   @JvmInline
+  @Serializable
   value class First(val value: RunStepDetailsMessageCreationObject) : RunStepObjectStepDetails
 
   @JvmInline
+  @Serializable
   value class Second(val value: RunStepDetailsToolCallsObject) : RunStepObjectStepDetails
+}
+
+private object RunStepObjectStepDetailsSerializer : KSerializer<RunStepObjectStepDetails> {
+  @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
+  override val descriptor: SerialDescriptor =
+    buildSerialDescriptor("RunStepObjectStepDetails", PolymorphicKind.SEALED) {
+      element("First", RunStepDetailsMessageCreationObject.serializer().descriptor)
+      element("Second", RunStepDetailsToolCallsObject.serializer().descriptor)
+    }
+
+  override fun deserialize(decoder: Decoder): RunStepObjectStepDetails =
+    kotlin
+      .runCatching {
+        RunStepObjectStepDetails.First(
+          RunStepDetailsMessageCreationObject.serializer().deserialize(decoder)
+        )
+      }
+      .getOrNull()
+      ?: kotlin
+        .runCatching {
+          RunStepObjectStepDetails.Second(
+            RunStepDetailsToolCallsObject.serializer().deserialize(decoder)
+          )
+        }
+        .getOrThrow()
+
+  override fun serialize(encoder: Encoder, value: RunStepObjectStepDetails) =
+    when (value) {
+      is RunStepObjectStepDetails.First ->
+        encoder.encodeSerializableValue(
+          RunStepDetailsMessageCreationObject.serializer(),
+          value.value
+        )
+      is RunStepObjectStepDetails.Second ->
+        encoder.encodeSerializableValue(RunStepDetailsToolCallsObject.serializer(), value.value)
+    }
 }

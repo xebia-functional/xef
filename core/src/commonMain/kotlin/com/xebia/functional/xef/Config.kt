@@ -17,7 +17,12 @@ data class Config(
   val baseUrl: String = getenv(HOST_ENV_VAR) ?: "https://api.openai.com/v1/",
   val token: String? = getenv(KEY_ENV_VAR),
   val org: String? = getenv(ORG_ENV_VAR),
-  val json: Json = Json.Default,
+  val json: Json = Json {
+    ignoreUnknownKeys = true
+    prettyPrint = true
+    isLenient = true
+    explicitNulls = false
+  },
   val streamingPrefix: String = "data:",
   val streamingDelimiter: String = "data: [DONE]"
 ) {

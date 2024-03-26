@@ -35,7 +35,7 @@ data class Embedding(
    * Values: embedding
    */
   @Serializable
-  enum class `Object`(name: kotlin.String) {
+  enum class `Object`(val value: kotlin.String) {
     @SerialName(value = "embedding") embedding("embedding")
   }
 }

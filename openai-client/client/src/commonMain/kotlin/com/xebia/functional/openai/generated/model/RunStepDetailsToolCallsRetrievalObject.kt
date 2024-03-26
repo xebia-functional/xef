@@ -31,7 +31,7 @@ data class RunStepDetailsToolCallsRetrievalObject(
    * Values: retrieval
    */
   @Serializable
-  enum class Type(name: kotlin.String) {
+  enum class Type(val value: kotlin.String) {
     @SerialName(value = "retrieval") retrieval("retrieval")
   }
 }

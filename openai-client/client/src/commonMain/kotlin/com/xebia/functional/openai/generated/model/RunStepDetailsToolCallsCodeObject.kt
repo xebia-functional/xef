@@ -34,7 +34,7 @@ data class RunStepDetailsToolCallsCodeObject(
    * Values: code_interpreter
    */
   @Serializable
-  enum class Type(name: kotlin.String) {
+  enum class Type(val value: kotlin.String) {
     @SerialName(value = "code_interpreter") code_interpreter("code_interpreter")
   }
 }

@@ -12,42 +12,32 @@ import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*
 import kotlinx.serialization.encoding.*
 
-/**
- * The model to use for image generation. Only `dall-e-2` is supported at this time.
- *
- * Values: dall_e_2
- */
-// We define a serializer for the parent sum type,
-// and then use it to serialize the child types
+/** The model to use for image generation. Only `dall-e-2` is supported at this time. */
+// We define a serializer for the parent sum type, and then use it to serialize the child types
 @Suppress("SERIALIZER_TYPE_INCOMPATIBLE")
 @Serializable(with = CreateImageEditRequestModelSerializer::class)
 sealed interface CreateImageEditRequestModel {
-  val name: kotlin.String
+  val value: kotlin.String
 
   @Serializable(with = CreateImageEditRequestModelSerializer::class)
-  enum class Supported(name: kotlin.String) : CreateImageEditRequestModel {
+  enum class Supported(override val value: kotlin.String) : CreateImageEditRequestModel {
     @SerialName(value = "dall-e-2") dall_e_2("dall-e-2");
 
-    override fun toString(): kotlin.String = name
+    override fun toString(): kotlin.String = value
   }
 
   @Serializable(with = CreateImageEditRequestModelSerializer::class)
-  data class Custom(override val name: kotlin.String) : CreateImageEditRequestModel
+  data class Custom(override val value: kotlin.String) : CreateImageEditRequestModel
 
   companion object {
     @JvmStatic
-    fun valueOf(name: kotlin.String): CreateImageEditRequestModel =
-      values().firstOrNull { it.name == name } ?: Custom(name)
+    fun valueOf(value: kotlin.String): CreateImageEditRequestModel =
+      values().firstOrNull { it.value == value } ?: Custom(value)
 
     inline val dall_e_2: CreateImageEditRequestModel
       get() = Supported.dall_e_2
 
     @JvmStatic fun values(): List<CreateImageEditRequestModel> = Supported.entries
-
-    // Is this resulting in a recursive loop!?
-    //      @JvmStatic
-    //      fun serializer(): KSerializer<CreateImageEditRequestModel> =
-    //        CreateImageEditRequestModelSerializer
   }
 }
 
@@ -61,6 +51,6 @@ private object CreateImageEditRequestModelSerializer : KSerializer<CreateImageEd
   }
 
   override fun serialize(encoder: Encoder, value: CreateImageEditRequestModel) {
-    encoder.encodeSerializableValue(valueSerializer, value.name)
+    encoder.encodeSerializableValue(valueSerializer, value.value)
   }
 }

@@ -7,12 +7,52 @@
 package com.xebia.functional.openai.generated.model
 
 import kotlin.jvm.JvmInline
+import kotlinx.serialization.*
+import kotlinx.serialization.builtins.*
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.encoding.*
 
+@Serializable(with = CreateChatCompletionRequestStopSerializer::class)
 sealed interface CreateChatCompletionRequestStop {
 
-  @JvmInline value class First(val value: kotlin.String) : CreateChatCompletionRequestStop
+  @JvmInline
+  @Serializable
+  value class First(val value: kotlin.String) : CreateChatCompletionRequestStop
 
   @JvmInline
+  @Serializable
   value class Second(val value: kotlin.collections.List<kotlin.String>) :
     CreateChatCompletionRequestStop
+}
+
+private object CreateChatCompletionRequestStopSerializer :
+  KSerializer<CreateChatCompletionRequestStop> {
+  @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
+  override val descriptor: SerialDescriptor =
+    buildSerialDescriptor("CreateChatCompletionRequestStop", PolymorphicKind.SEALED) {
+      element("First", kotlin.String.serializer().descriptor)
+      element("Second", ListSerializer(kotlin.String.serializer()).descriptor)
+    }
+
+  override fun deserialize(decoder: Decoder): CreateChatCompletionRequestStop =
+    kotlin
+      .runCatching {
+        CreateChatCompletionRequestStop.First(kotlin.String.serializer().deserialize(decoder))
+      }
+      .getOrNull()
+      ?: kotlin
+        .runCatching {
+          CreateChatCompletionRequestStop.Second(
+            ListSerializer(kotlin.String.serializer()).deserialize(decoder)
+          )
+        }
+        .getOrThrow()
+
+  override fun serialize(encoder: Encoder, value: CreateChatCompletionRequestStop) =
+    when (value) {
+      is CreateChatCompletionRequestStop.First ->
+        encoder.encodeSerializableValue(kotlin.String.serializer(), value.value)
+      is CreateChatCompletionRequestStop.Second ->
+        encoder.encodeSerializableValue(ListSerializer(kotlin.String.serializer()), value.value)
+    }
 }

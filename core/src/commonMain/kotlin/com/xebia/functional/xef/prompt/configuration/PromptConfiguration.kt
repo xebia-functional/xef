@@ -11,7 +11,7 @@ data class PromptConfiguration
 @JvmOverloads
 constructor(
   var maxDeserializationAttempts: Int = 3,
-  var user: String = ChatCompletionRole.user.name,
+  var user: String = ChatCompletionRole.user.value,
   var temperature: Double = 0.4,
   var numberOfPredictions: Int = 1,
   var docsInContext: Int = 5,

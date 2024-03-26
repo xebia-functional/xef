@@ -28,7 +28,7 @@ data class ChatCompletionNamedToolChoice(
    * Values: function
    */
   @Serializable
-  enum class Type(name: kotlin.String) {
+  enum class Type(val value: kotlin.String) {
     @SerialName(value = "function") function("function")
   }
 }

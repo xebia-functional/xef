@@ -1,14 +1,36 @@
-{{#oneOf}}
-{{#-first}}
 import kotlin.jvm.JvmInline
+import kotlinx.serialization.*
+import kotlinx.serialization.builtins.*
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.encoding.*
 
+@Serializable(with = {{classname}}Serializer::class)
 sealed interface {{classname}} {
 
-{{/-first}}
+  {{#oneOf}}
   @JvmInline
+  @Serializable
   value class {{#lambda.oneOfName}}{{-index}}{{/lambda.oneOfName}}(val {{#lambda.type-to-name}}{{{.}}}{{/lambda.type-to-name}}value: {{{.}}}): {{classname}}
+  {{/oneOf}}
 
-{{#-last}}
+}
+
+private object {{classname}}Serializer : KSerializer<{{classname}}> {
+    @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
+    override val descriptor: SerialDescriptor = buildSerialDescriptor("{{classname}}", PolymorphicKind.SEALED) { {{#oneOf}}
+      element("{{#lambda.oneOfName}}{{-index}}{{/lambda.oneOfName}}", {{#lambda.serializer}}{{{.}}}{{/lambda.serializer}}.descriptor){{/oneOf}}
     }
-{{/-last}}
-{{/oneOf}}
+
+    override fun deserialize(decoder: Decoder): {{classname}} =
+      {{#oneOf}}
+      kotlin.runCatching {
+        {{classname}}.{{#lambda.oneOfName}}{{-index}}{{/lambda.oneOfName}}({{#lambda.serializer}}{{{.}}}{{/lambda.serializer}}.deserialize(decoder))
+      }{{#-last}}.getOrThrow(){{/-last}}{{^-last}}.getOrNull() ?:{{/-last}}{{/oneOf}}
+
+    override fun serialize(encoder: Encoder, value: {{classname}}) =
+      when(value) { {{#oneOf}}
+        is {{classname}}.{{#lambda.oneOfName}}{{-index}}{{/lambda.oneOfName}} ->
+        encoder.encodeSerializableValue({{#lambda.serializer}}{{{.}}}{{/lambda.serializer}}, value.value)
+        {{/oneOf}}
+    }
+}

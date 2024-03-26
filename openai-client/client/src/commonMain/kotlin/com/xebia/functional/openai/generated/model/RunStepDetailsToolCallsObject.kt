@@ -31,7 +31,7 @@ data class RunStepDetailsToolCallsObject(
    * Values: tool_calls
    */
   @Serializable
-  enum class Type(name: kotlin.String) {
+  enum class Type(val value: kotlin.String) {
     @SerialName(value = "tool_calls") tool_calls("tool_calls")
   }
 }

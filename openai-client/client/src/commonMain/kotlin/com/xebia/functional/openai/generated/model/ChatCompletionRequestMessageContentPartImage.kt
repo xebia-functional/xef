@@ -27,7 +27,7 @@ data class ChatCompletionRequestMessageContentPartImage(
    * Values: image_url
    */
   @Serializable
-  enum class Type(name: kotlin.String) {
+  enum class Type(val value: kotlin.String) {
     @SerialName(value = "image_url") image_url("image_url")
   }
 }

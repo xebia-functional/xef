@@ -23,7 +23,7 @@ data class DeleteAssistantResponse(
 
   /** Values: assistant_deleted */
   @Serializable
-  enum class `Object`(name: kotlin.String) {
+  enum class `Object`(val value: kotlin.String) {
     @SerialName(value = "assistant.deleted") assistant_deleted("assistant.deleted")
   }
 }

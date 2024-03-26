@@ -7,12 +7,54 @@
 package com.xebia.functional.openai.generated.model
 
 import kotlin.jvm.JvmInline
+import kotlinx.serialization.*
+import kotlinx.serialization.builtins.*
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.encoding.*
 
+@Serializable(with = CreateChatCompletionRequestFunctionCallSerializer::class)
 sealed interface CreateChatCompletionRequestFunctionCall {
 
   @JvmInline
+  @Serializable
   value class First(val value: ChatCompletionFunctionCallOption) :
     CreateChatCompletionRequestFunctionCall
 
-  @JvmInline value class Second(val value: kotlin.String) : CreateChatCompletionRequestFunctionCall
+  @JvmInline
+  @Serializable
+  value class Second(val value: kotlin.String) : CreateChatCompletionRequestFunctionCall
+}
+
+private object CreateChatCompletionRequestFunctionCallSerializer :
+  KSerializer<CreateChatCompletionRequestFunctionCall> {
+  @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
+  override val descriptor: SerialDescriptor =
+    buildSerialDescriptor("CreateChatCompletionRequestFunctionCall", PolymorphicKind.SEALED) {
+      element("First", ChatCompletionFunctionCallOption.serializer().descriptor)
+      element("Second", kotlin.String.serializer().descriptor)
+    }
+
+  override fun deserialize(decoder: Decoder): CreateChatCompletionRequestFunctionCall =
+    kotlin
+      .runCatching {
+        CreateChatCompletionRequestFunctionCall.First(
+          ChatCompletionFunctionCallOption.serializer().deserialize(decoder)
+        )
+      }
+      .getOrNull()
+      ?: kotlin
+        .runCatching {
+          CreateChatCompletionRequestFunctionCall.Second(
+            kotlin.String.serializer().deserialize(decoder)
+          )
+        }
+        .getOrThrow()
+
+  override fun serialize(encoder: Encoder, value: CreateChatCompletionRequestFunctionCall) =
+    when (value) {
+      is CreateChatCompletionRequestFunctionCall.First ->
+        encoder.encodeSerializableValue(ChatCompletionFunctionCallOption.serializer(), value.value)
+      is CreateChatCompletionRequestFunctionCall.Second ->
+        encoder.encodeSerializableValue(kotlin.String.serializer(), value.value)
+    }
 }
