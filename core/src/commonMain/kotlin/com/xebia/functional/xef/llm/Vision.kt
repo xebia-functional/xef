@@ -20,21 +20,21 @@ suspend inline fun <reified A> Chat.visionStructured(
   prompt: String,
   url: String,
   conversation: Conversation = Conversation(),
-  model: CreateChatCompletionRequestModel = CreateChatCompletionRequestModel.gpt_4_vision_preview
+  model: CreateChatCompletionRequestModel = CreateChatCompletionRequestModel.gpt_4_vision_preview,
+  functionsModel: CreateChatCompletionRequestModel =
+    CreateChatCompletionRequestModel.gpt_3_5_turbo_0125
 ): A {
-  val response = vision(prompt, url, conversation).toList().joinToString("") { it }
-  return prompt(Prompt(model) { +user(response) }, conversation, serializer())
+  val response = vision(prompt, url, model, conversation).toList().joinToString("") { it }
+  return prompt(Prompt(functionsModel) { +user(response) }, conversation, serializer())
 }
 
 fun Chat.vision(
   prompt: String,
   url: String,
+  model: CreateChatCompletionRequestModel = CreateChatCompletionRequestModel.gpt_4_vision_preview,
   conversation: Conversation = Conversation()
 ): Flow<String> =
-  promptStreaming(
-    prompt = Prompt(CreateChatCompletionRequestModel.gpt_4_vision_preview) { +image(prompt, url) },
-    scope = conversation
-  )
+  promptStreaming(prompt = Prompt(model) { +image(url, prompt) }, scope = conversation)
 
 suspend fun Image.asInputProvider(): UploadFile {
   val url = url

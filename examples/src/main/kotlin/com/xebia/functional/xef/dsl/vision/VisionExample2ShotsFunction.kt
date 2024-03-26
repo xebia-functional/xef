@@ -11,7 +11,7 @@ data class ImageAnalysisResult(
 )
 
 suspend fun main() {
-  val openAI = OpenAI()
+  val openAI = OpenAI(logRequests = true)
   val result: ImageAnalysisResult =
     openAI.chat.visionStructured(
       prompt = "Describe the image in detail",
