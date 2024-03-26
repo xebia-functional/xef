@@ -6,6 +6,7 @@
 
 package com.xebia.functional.openai.generated.model
 
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -27,19 +28,23 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class ModifyAssistantRequest(
-  @SerialName(value = "model") val model: kotlin.String? = null,
+  @Contextual @SerialName(value = "model") val model: kotlin.String? = null,
   /* The name of the assistant. The maximum length is 256 characters.  */
-  @SerialName(value = "name") val name: kotlin.String? = null,
+  @Contextual @SerialName(value = "name") val name: kotlin.String? = null,
   /* The description of the assistant. The maximum length is 512 characters.  */
-  @SerialName(value = "description") val description: kotlin.String? = null,
+  @Contextual @SerialName(value = "description") val description: kotlin.String? = null,
   /* The system instructions that the assistant uses. The maximum length is 32768 characters.  */
-  @SerialName(value = "instructions") val instructions: kotlin.String? = null,
+  @Contextual @SerialName(value = "instructions") val instructions: kotlin.String? = null,
   /* A list of tool enabled on the assistant. There can be a maximum of 128 tools per assistant. Tools can be of types `code_interpreter`, `retrieval`, or `function`.  */
+  @Contextual
   @SerialName(value = "tools")
   val tools: kotlin.collections.List<AssistantObjectToolsInner>? = arrayListOf(),
   /* A list of [File](/docs/api-reference/files) IDs attached to this assistant. There can be a maximum of 20 files attached to the assistant. Files are ordered by their creation date in ascending order. If a file was previously attached to the list but does not show up in the list, it will be deleted from the assistant.  */
+  @Contextual
   @SerialName(value = "file_ids")
   val fileIds: kotlin.collections.List<kotlin.String>? = arrayListOf(),
   /* Set of 16 key-value pairs that can be attached to an object. This can be useful for storing additional information about the object in a structured format. Keys can be a maximum of 64 characters long and values can be a maxium of 512 characters long.  */
-  @SerialName(value = "metadata") val metadata: kotlinx.serialization.json.JsonObject? = null
+  @Contextual
+  @SerialName(value = "metadata")
+  val metadata: kotlinx.serialization.json.JsonObject? = null
 )

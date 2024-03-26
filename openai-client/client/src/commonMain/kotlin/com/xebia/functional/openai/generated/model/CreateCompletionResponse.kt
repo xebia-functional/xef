@@ -6,6 +6,7 @@
 
 package com.xebia.functional.openai.generated.model
 
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -37,8 +38,10 @@ data class CreateCompletionResponse(
   /* The object type, which is always \"text_completion\" */
   @SerialName(value = "object") val `object`: CreateCompletionResponse.`Object`,
   /* This fingerprint represents the backend configuration that the model runs with.  Can be used in conjunction with the `seed` request parameter to understand when backend changes have been made that might impact determinism.  */
-  @SerialName(value = "system_fingerprint") val systemFingerprint: kotlin.String? = null,
-  @SerialName(value = "usage") val usage: CompletionUsage? = null
+  @Contextual
+  @SerialName(value = "system_fingerprint")
+  val systemFingerprint: kotlin.String? = null,
+  @Contextual @SerialName(value = "usage") val usage: CompletionUsage? = null
 ) {
 
   /**

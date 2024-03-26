@@ -128,7 +128,7 @@ fun Files(client: HttpClient, config: Config): Files =
           configure()
           method = HttpMethod.Post
           contentType(ContentType.Application.Json)
-          url { path("/files") }
+          url { path("files") }
           setBody(
             formData {
               file?.apply { appendGen("file", file) }
@@ -147,7 +147,7 @@ fun Files(client: HttpClient, config: Config): Files =
           configure()
           method = HttpMethod.Delete
           contentType(ContentType.Application.Json)
-          url { path("/files/{file_id}".replace("{" + "file_id" + "}", "$fileId")) }
+          url { path("files/{file_id}".replace("{" + "file_id" + "}", "$fileId")) }
           setBody(io.ktor.client.utils.EmptyContent)
         }
         .body()
@@ -161,7 +161,7 @@ fun Files(client: HttpClient, config: Config): Files =
           configure()
           method = HttpMethod.Get
           contentType(ContentType.Application.Json)
-          url { path("/files/{file_id}/content".replace("{" + "file_id" + "}", "$fileId")) }
+          url { path("files/{file_id}/content".replace("{" + "file_id" + "}", "$fileId")) }
           setBody(io.ktor.client.utils.EmptyContent)
         }
         .body()
@@ -176,7 +176,7 @@ fun Files(client: HttpClient, config: Config): Files =
           method = HttpMethod.Get
           contentType(ContentType.Application.Json)
           parameter("purpose", listOf("$purpose"))
-          url { path("/files") }
+          url { path("files") }
           setBody(io.ktor.client.utils.EmptyContent)
         }
         .body()
@@ -190,7 +190,7 @@ fun Files(client: HttpClient, config: Config): Files =
           configure()
           method = HttpMethod.Get
           contentType(ContentType.Application.Json)
-          url { path("/files/{file_id}".replace("{" + "file_id" + "}", "$fileId")) }
+          url { path("files/{file_id}".replace("{" + "file_id" + "}", "$fileId")) }
           setBody(io.ktor.client.utils.EmptyContent)
         }
         .body()

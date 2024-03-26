@@ -6,6 +6,7 @@
 
 package com.xebia.functional.openai.generated.model
 
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -18,11 +19,14 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class CreateFineTuningJobRequestHyperparameters(
+  @Contextual
   @SerialName(value = "batch_size")
   val batchSize: CreateFineTuningJobRequestHyperparametersBatchSize? = null,
+  @Contextual
   @SerialName(value = "learning_rate_multiplier")
   val learningRateMultiplier: CreateFineTuningJobRequestHyperparametersLearningRateMultiplier? =
     null,
+  @Contextual
   @SerialName(value = "n_epochs")
   val nEpochs: CreateFineTuningJobRequestHyperparametersNEpochs? = null
 )

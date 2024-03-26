@@ -52,7 +52,7 @@ fun Embeddings(client: HttpClient, config: Config): Embeddings =
           configure()
           method = HttpMethod.Post
           contentType(ContentType.Application.Json)
-          url { path("/embeddings") }
+          url { path("embeddings") }
           setBody(createEmbeddingRequest)
         }
         .body()

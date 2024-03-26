@@ -6,6 +6,7 @@
 
 package com.xebia.functional.openai.generated.model
 
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -29,10 +30,11 @@ data class CreateSpeechRequest(
   /* The voice to use when generating the audio. Supported voices are `alloy`, `echo`, `fable`, `onyx`, `nova`, and `shimmer`. Previews of the voices are available in the [Text to speech guide](/docs/guides/text-to-speech/voice-options). */
   @SerialName(value = "voice") val voice: CreateSpeechRequest.Voice,
   /* The format to return audio in.  Supported formats are `mp3`, `opus`, `aac`, `flac`, `pcm`, and `wav`.   The `pcm` audio format, similar to `wav` but without a header, utilizes a 24kHz sample rate, mono channel, and 16-bit depth in signed little-endian format. */
+  @Contextual
   @SerialName(value = "response_format")
   val responseFormat: CreateSpeechRequest.ResponseFormat? = ResponseFormat.mp3,
   /* The speed of the generated audio. Select a value from `0.25` to `4.0`. `1.0` is the default. */
-  @SerialName(value = "speed") val speed: kotlin.Double? = (1.0).toDouble()
+  @Contextual @SerialName(value = "speed") val speed: kotlin.Double? = (1.0).toDouble()
 ) {
 
   /**

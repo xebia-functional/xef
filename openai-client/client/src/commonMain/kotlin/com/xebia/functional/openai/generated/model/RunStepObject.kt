@@ -6,6 +6,7 @@
 
 package com.xebia.functional.openai.generated.model
 
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -55,7 +56,7 @@ data class RunStepObject(
   @SerialName(value = "step_details") val stepDetails: RunStepObjectStepDetails,
   @SerialName(value = "last_error") val lastError: RunStepObjectLastError?,
   /* The Unix timestamp (in seconds) for when the run step expired. A step is considered expired if the parent run is expired. */
-  @SerialName(value = "expired_at") val expiredAt: kotlin.Int? = null,
+  @Contextual @SerialName(value = "expired_at") val expiredAt: kotlin.Int? = null,
   /* The Unix timestamp (in seconds) for when the run step was cancelled. */
   @SerialName(value = "cancelled_at") val cancelledAt: kotlin.Int?,
   /* The Unix timestamp (in seconds) for when the run step failed. */
@@ -63,7 +64,9 @@ data class RunStepObject(
   /* The Unix timestamp (in seconds) for when the run step completed. */
   @SerialName(value = "completed_at") val completedAt: kotlin.Int?,
   /* Set of 16 key-value pairs that can be attached to an object. This can be useful for storing additional information about the object in a structured format. Keys can be a maximum of 64 characters long and values can be a maxium of 512 characters long.  */
-  @SerialName(value = "metadata") val metadata: kotlinx.serialization.json.JsonObject? = null,
+  @Contextual
+  @SerialName(value = "metadata")
+  val metadata: kotlinx.serialization.json.JsonObject? = null,
   @SerialName(value = "usage") val usage: RunStepCompletionUsage?
 ) {
 

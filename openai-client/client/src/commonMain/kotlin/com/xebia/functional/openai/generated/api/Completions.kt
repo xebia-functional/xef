@@ -52,7 +52,7 @@ fun Completions(client: HttpClient, config: Config): Completions =
           configure()
           method = HttpMethod.Post
           contentType(ContentType.Application.Json)
-          url { path("/completions") }
+          url { path("completions") }
           setBody(createCompletionRequest)
         }
         .body()

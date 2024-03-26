@@ -77,7 +77,7 @@ fun Chat(client: HttpClient, config: Config): Chat =
           configure()
           method = HttpMethod.Post
           contentType(ContentType.Application.Json)
-          url { path("/chat/completions") }
+          url { path("chat/completions") }
           setBody(createChatCompletionRequest)
         }
         .body()

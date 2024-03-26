@@ -152,7 +152,7 @@ fun Images(client: HttpClient, config: Config): Images =
           configure()
           method = HttpMethod.Post
           contentType(ContentType.Application.Json)
-          url { path("/images/generations") }
+          url { path("images/generations") }
           setBody(createImageRequest)
         }
         .body()
@@ -173,7 +173,7 @@ fun Images(client: HttpClient, config: Config): Images =
           configure()
           method = HttpMethod.Post
           contentType(ContentType.Application.Json)
-          url { path("/images/edits") }
+          url { path("images/edits") }
           setBody(
             formData {
               image?.apply { appendGen("image", image) }
@@ -203,7 +203,7 @@ fun Images(client: HttpClient, config: Config): Images =
           configure()
           method = HttpMethod.Post
           contentType(ContentType.Application.Json)
-          url { path("/images/variations") }
+          url { path("images/variations") }
           setBody(
             formData {
               image?.apply { appendGen("image", image) }

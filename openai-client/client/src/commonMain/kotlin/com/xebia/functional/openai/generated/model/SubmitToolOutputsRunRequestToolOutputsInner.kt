@@ -6,6 +6,7 @@
 
 package com.xebia.functional.openai.generated.model
 
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -17,7 +18,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class SubmitToolOutputsRunRequestToolOutputsInner(
   /* The ID of the tool call in the `required_action` object within the run object the output is being submitted for. */
-  @SerialName(value = "tool_call_id") val toolCallId: kotlin.String? = null,
+  @Contextual @SerialName(value = "tool_call_id") val toolCallId: kotlin.String? = null,
   /* The output of the tool call to be submitted to continue the run. */
-  @SerialName(value = "output") val output: kotlin.String? = null
+  @Contextual @SerialName(value = "output") val output: kotlin.String? = null
 )

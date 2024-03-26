@@ -117,7 +117,7 @@ fun FineTuning(client: HttpClient, config: Config): FineTuning =
           contentType(ContentType.Application.Json)
           url {
             path(
-              "/fine_tuning/jobs/{fine_tuning_job_id}/cancel"
+              "fine_tuning/jobs/{fine_tuning_job_id}/cancel"
                 .replace("{" + "fine_tuning_job_id" + "}", "$fineTuningJobId")
             )
           }
@@ -134,7 +134,7 @@ fun FineTuning(client: HttpClient, config: Config): FineTuning =
           configure()
           method = HttpMethod.Post
           contentType(ContentType.Application.Json)
-          url { path("/fine_tuning/jobs") }
+          url { path("fine_tuning/jobs") }
           setBody(createFineTuningJobRequest)
         }
         .body()
@@ -154,7 +154,7 @@ fun FineTuning(client: HttpClient, config: Config): FineTuning =
           parameter("limit", listOf("$limit"))
           url {
             path(
-              "/fine_tuning/jobs/{fine_tuning_job_id}/events"
+              "fine_tuning/jobs/{fine_tuning_job_id}/events"
                 .replace("{" + "fine_tuning_job_id" + "}", "$fineTuningJobId")
             )
           }
@@ -174,7 +174,7 @@ fun FineTuning(client: HttpClient, config: Config): FineTuning =
           contentType(ContentType.Application.Json)
           parameter("after", listOf("$after"))
           parameter("limit", listOf("$limit"))
-          url { path("/fine_tuning/jobs") }
+          url { path("fine_tuning/jobs") }
           setBody(io.ktor.client.utils.EmptyContent)
         }
         .body()
@@ -190,7 +190,7 @@ fun FineTuning(client: HttpClient, config: Config): FineTuning =
           contentType(ContentType.Application.Json)
           url {
             path(
-              "/fine_tuning/jobs/{fine_tuning_job_id}"
+              "fine_tuning/jobs/{fine_tuning_job_id}"
                 .replace("{" + "fine_tuning_job_id" + "}", "$fineTuningJobId")
             )
           }

@@ -52,7 +52,7 @@ fun Moderations(client: HttpClient, config: Config): Moderations =
           configure()
           method = HttpMethod.Post
           contentType(ContentType.Application.Json)
-          url { path("/moderations") }
+          url { path("moderations") }
           setBody(createModerationRequest)
         }
         .body()

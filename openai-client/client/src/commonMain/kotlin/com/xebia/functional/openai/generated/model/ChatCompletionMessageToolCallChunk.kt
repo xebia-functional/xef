@@ -6,6 +6,7 @@
 
 package com.xebia.functional.openai.generated.model
 
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -19,10 +20,12 @@ import kotlinx.serialization.Serializable
 data class ChatCompletionMessageToolCallChunk(
   @SerialName(value = "index") val index: kotlin.Int,
   /* The ID of the tool call. */
-  @SerialName(value = "id") val id: kotlin.String? = null,
+  @Contextual @SerialName(value = "id") val id: kotlin.String? = null,
   /* The type of the tool. Currently, only `function` is supported. */
-  @SerialName(value = "type") val type: ChatCompletionMessageToolCallChunk.Type? = null,
-  @SerialName(value = "function") val function: ChatCompletionMessageToolCallChunkFunction? = null
+  @Contextual @SerialName(value = "type") val type: ChatCompletionMessageToolCallChunk.Type? = null,
+  @Contextual
+  @SerialName(value = "function")
+  val function: ChatCompletionMessageToolCallChunkFunction? = null
 ) {
 
   /**

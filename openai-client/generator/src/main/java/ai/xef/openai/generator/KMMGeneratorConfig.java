@@ -180,15 +180,14 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
                 .put("capitalised", new Capitalised())
                 .put("unquote", new Unquote())
                 .put("jsname", new JsName())
-                .put("serializer", new Serializer());
+                .put("serializer", new Serializer())
+                .put("dropslash", new DropSlash());
     }
 
-    /**
-     * Mechanism to do array access in mustache...
+    /* Mechanism to do array access in mustache...
      * We need to generate names for the cases of `oneOf`,
      * where we generate a `sealed interface` with the Schema name,
-     * and a `data class OneOfName.names(...)` for each of the `oneOf` cases.
-     */
+     * and a `data class OneOfName.names(...)` for each of the `oneOf` cases. */
     public static class OneOfName implements Mustache.Lambda {
         private final List<String> names = List.of(
                 "First",
@@ -209,10 +208,8 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
         }
     }
 
-    /**
-     * Lambda to generate the `@JsName` annotation for the `length` property,
-     * can be generalised to other properties/names if needed.
-     */
+    /* Lambda to generate the `@JsName` annotation for the `length` property,
+     * can be generalised to other properties/names if needed */
     public static class JsName implements Mustache.Lambda {
         public void execute(Template.Fragment fragment, Writer writer) throws IOException {
             String text = fragment.execute();
@@ -224,9 +221,7 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
         }
     }
 
-    /**
-     * Lambda to capitalise the first letter of a string, and lowercase the rest.
-     */
+    /* Lambda to capitalise the first letter of a string, and lowercase the rest */
     public static class Capitalised implements Mustache.Lambda {
         public void execute(Template.Fragment fragment, Writer writer) throws IOException {
             String text = fragment.execute();
@@ -234,10 +229,19 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
         }
     }
 
-    /**
-     * enum with `gpt-` are trimmed by `gpt_`,
-     * the raw value needs to trim the surrounding `"`.
-     */
+    /* Drop first `/` from a path */
+    public static class DropSlash implements Mustache.Lambda {
+        public void execute(Template.Fragment fragment, Writer writer) throws IOException {
+            String text = fragment.execute();
+            if (text.startsWith("/")) {
+                writer.write(text.substring(1));
+            } else {
+                writer.write(text);
+            }
+        }
+    }
+
+    /* enum with `gpt-` are trimmed by `gpt_`, the raw value needs to trim the surrounding `"` */
     public static class Unquote implements Mustache.Lambda {
         public void execute(Template.Fragment fragment, Writer writer) throws IOException {
             String text = snakeCase(fragment.execute());
@@ -254,6 +258,8 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
         }
     }
 
+    /* Most advanced lambda, to generate the `serializer()` call for the `kotlinx.serialization` library.
+     * This works for ListSerializer, but can work for much more!! */
     public static class Serializer implements Mustache.Lambda {
         public void execute(Template.Fragment fragment, Writer writer) throws IOException {
             String text = fragment.execute();

@@ -7,6 +7,7 @@
 package com.xebia.functional.openai.generated.model
 
 import kotlin.js.JsName
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -28,6 +29,7 @@ data class CreateChatCompletionStreamResponseChoicesInner(
   val finishReason: CreateChatCompletionStreamResponseChoicesInner.FinishReason?,
   /* The index of the choice in the list of choices. */
   @SerialName(value = "index") val index: kotlin.Int,
+  @Contextual
   @SerialName(value = "logprobs")
   val logprobs: CreateChatCompletionResponseChoicesInnerLogprobs? = null
 ) {

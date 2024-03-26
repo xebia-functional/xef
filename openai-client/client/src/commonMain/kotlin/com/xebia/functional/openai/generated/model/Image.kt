@@ -6,6 +6,7 @@
 
 package com.xebia.functional.openai.generated.model
 
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -21,9 +22,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Image(
   /* The base64-encoded JSON of the generated image, if `response_format` is `b64_json`. */
-  @SerialName(value = "b64_json") val b64Json: kotlin.String? = null,
+  @Contextual @SerialName(value = "b64_json") val b64Json: kotlin.String? = null,
   /* The URL of the generated image, if `response_format` is `url` (default). */
-  @SerialName(value = "url") val url: kotlin.String? = null,
+  @Contextual @SerialName(value = "url") val url: kotlin.String? = null,
   /* The prompt that was used to generate the image, if there was any revision to the prompt. */
-  @SerialName(value = "revised_prompt") val revisedPrompt: kotlin.String? = null
+  @Contextual @SerialName(value = "revised_prompt") val revisedPrompt: kotlin.String? = null
 )

@@ -1,5 +1,6 @@
 package com.xebia.functional.xef
 
+import arrow.core.nonEmptyListOf
 import com.xebia.functional.openai.Config as OpenAIConfig
 import com.xebia.functional.openai.generated.api.OpenAI
 import com.xebia.functional.xef.env.getenv
@@ -14,8 +15,8 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 
 data class Config(
-  val baseUrl: String = getenv(HOST_ENV_VAR) ?: "https://api.openai.com/v1",
-  val token: String? = getenv(KEY_ENV_VAR),
+  val baseUrl: String = getenv(HOST_ENV_VAR) ?: "https://api.openai.com/v1/",
+  val token: String? = null,
   val org: String? = getenv(ORG_ENV_VAR),
   val json: Json = Json {
     ignoreUnknownKeys = true
@@ -26,13 +27,11 @@ data class Config(
   },
   val streamingPrefix: String = "data:",
   val streamingDelimiter: String = "data: [DONE]"
-) {
-  companion object {
-    private const val KEY_ENV_VAR = "OPENAI_TOKEN"
-    private const val ORG_ENV_VAR = "OPENAI_ORG"
-    private const val HOST_ENV_VAR = "OPENAI_HOST"
-  }
-}
+)
+
+private const val ORG_ENV_VAR = "OPENAI_ORG"
+private const val HOST_ENV_VAR = "OPENAI_HOST"
+private const val KEY_ENV_VAR = "OPENAI_TOKEN"
 
 /**
  * Constructor that mimics the behavior of "ApiClient", but without the additional layer in between.
@@ -58,21 +57,13 @@ fun OpenAI(
       delayMillis { retry -> retry * 1000L }
     }
     install(Logging) {
-      level =
-        if (logRequests) {
-          LogLevel.ALL
-        } else LogLevel.NONE
+      level = if (logRequests) LogLevel.ALL else LogLevel.NONE
     }
     httpClientConfig?.invoke(this)
     defaultRequest {
       url(config.baseUrl)
       config.org?.let { headers.append("org", it) }
-      bearerAuth(
-        config.token
-          ?: TODO(
-            "?: getenv(KEY_ENV_VAR) ?: throw AIError.Env.OpenAI(nonEmptyListOf(\"missing \$KEY_ENV_VAR env var\"))"
-          )
-      )
+      bearerAuth(config.token ?: getenv(KEY_ENV_VAR) ?: throw AIError.Env.OpenAI(nonEmptyListOf("missing $KEY_ENV_VAR env var")))
     }
   }
   val client = httpClientEngine?.let { HttpClient(it, clientConfig) } ?: HttpClient(clientConfig)

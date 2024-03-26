@@ -6,6 +6,7 @@
 
 package com.xebia.functional.openai.generated.model
 
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -25,7 +26,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class CreateChatCompletionRequestResponseFormat(
   /* Must be one of `text` or `json_object`. */
-  @SerialName(value = "type") val type: CreateChatCompletionRequestResponseFormat.Type? = Type.text
+  @Contextual
+  @SerialName(value = "type")
+  val type: CreateChatCompletionRequestResponseFormat.Type? = Type.text
 ) {
 
   /**

@@ -6,6 +6,7 @@
 
 package com.xebia.functional.openai.generated.model
 
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -44,6 +45,7 @@ data class OpenAIFile(
   val status: OpenAIFile.Status,
   /* Deprecated. For details on why a fine-tuning training file failed validation, see the `error` field on `fine_tuning.job`. */
   @Deprecated(message = "This property is deprecated.")
+  @Contextual
   @SerialName(value = "status_details")
   val statusDetails: kotlin.String? = null
 ) {

@@ -6,6 +6,7 @@
 
 package com.xebia.functional.openai.generated.model
 
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -54,10 +55,12 @@ data class RunObject(
   @SerialName(value = "assistant_id") val assistantId: kotlin.String,
   /* The status of the run, which can be either `queued`, `in_progress`, `requires_action`, `cancelling`, `cancelled`, `failed`, `completed`, or `expired`. */
   @SerialName(value = "status") val status: RunObject.Status,
-  @SerialName(value = "required_action") val requiredAction: RunObjectRequiredAction? = null,
+  @Contextual
+  @SerialName(value = "required_action")
+  val requiredAction: RunObjectRequiredAction? = null,
   @SerialName(value = "last_error") val lastError: RunObjectLastError?,
   /* The Unix timestamp (in seconds) for when the run will expire. */
-  @SerialName(value = "expires_at") val expiresAt: kotlin.Int? = null,
+  @Contextual @SerialName(value = "expires_at") val expiresAt: kotlin.Int? = null,
   /* The Unix timestamp (in seconds) for when the run was started. */
   @SerialName(value = "started_at") val startedAt: kotlin.Int?,
   /* The Unix timestamp (in seconds) for when the run was cancelled. */

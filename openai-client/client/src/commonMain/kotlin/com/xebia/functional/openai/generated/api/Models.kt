@@ -77,7 +77,7 @@ fun Models(client: HttpClient, config: Config): Models =
           configure()
           method = HttpMethod.Delete
           contentType(ContentType.Application.Json)
-          url { path("/models/{model}".replace("{" + "model" + "}", "$model")) }
+          url { path("models/{model}".replace("{" + "model" + "}", "$model")) }
           setBody(io.ktor.client.utils.EmptyContent)
         }
         .body()
@@ -88,7 +88,7 @@ fun Models(client: HttpClient, config: Config): Models =
           configure()
           method = HttpMethod.Get
           contentType(ContentType.Application.Json)
-          url { path("/models") }
+          url { path("models") }
           setBody(io.ktor.client.utils.EmptyContent)
         }
         .body()
@@ -102,7 +102,7 @@ fun Models(client: HttpClient, config: Config): Models =
           configure()
           method = HttpMethod.Get
           contentType(ContentType.Application.Json)
-          url { path("/models/{model}".replace("{" + "model" + "}", "$model")) }
+          url { path("models/{model}".replace("{" + "model" + "}", "$model")) }
           setBody(io.ktor.client.utils.EmptyContent)
         }
         .body()

@@ -6,6 +6,7 @@
 
 package com.xebia.functional.openai.generated.model
 
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -19,6 +20,7 @@ data class ChatCompletionRequestMessageContentPartImageImageUrl(
   /* Either a URL of the image or the base64 encoded image data. */
   @SerialName(value = "url") val url: kotlin.String,
   /* Specifies the detail level of the image. Learn more in the [Vision guide](/docs/guides/vision/low-or-high-fidelity-image-understanding). */
+  @Contextual
   @SerialName(value = "detail")
   val detail: ChatCompletionRequestMessageContentPartImageImageUrl.Detail? = Detail.auto
 ) {

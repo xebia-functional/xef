@@ -6,6 +6,7 @@
 
 package com.xebia.functional.openai.generated.model
 
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -16,5 +17,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class CreateModerationRequest(
   @SerialName(value = "input") val input: CreateModerationRequestInput,
-  @SerialName(value = "model") val model: CreateModerationRequestModel? = null
+  @Contextual @SerialName(value = "model") val model: CreateModerationRequestModel? = null
 )

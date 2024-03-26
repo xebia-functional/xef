@@ -145,7 +145,7 @@ fun Audio(client: HttpClient, config: Config): Audio =
         configure()
         method = HttpMethod.Post
         contentType(ContentType.Application.Json)
-        url { path("/audio/speech") }
+        url { path("audio/speech") }
         setBody(createSpeechRequest)
       }
 
@@ -164,7 +164,7 @@ fun Audio(client: HttpClient, config: Config): Audio =
           configure()
           method = HttpMethod.Post
           contentType(ContentType.Application.Json)
-          url { path("/audio/transcriptions") }
+          url { path("audio/transcriptions") }
           setBody(
             formData {
               file?.apply { appendGen("file", file) }
@@ -192,7 +192,7 @@ fun Audio(client: HttpClient, config: Config): Audio =
           configure()
           method = HttpMethod.Post
           contentType(ContentType.Application.Json)
-          url { path("/audio/translations") }
+          url { path("audio/translations") }
           setBody(
             formData {
               file?.apply { appendGen("file", file) }

@@ -6,6 +6,7 @@
 
 package com.xebia.functional.openai.generated.model
 
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -20,14 +21,16 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class ChatCompletionStreamResponseDelta(
   /* The contents of the chunk message. */
-  @SerialName(value = "content") val content: kotlin.String? = null,
+  @Contextual @SerialName(value = "content") val content: kotlin.String? = null,
   @Deprecated(message = "This property is deprecated.")
+  @Contextual
   @SerialName(value = "function_call")
   val functionCall: ChatCompletionStreamResponseDeltaFunctionCall? = null,
+  @Contextual
   @SerialName(value = "tool_calls")
   val toolCalls: kotlin.collections.List<ChatCompletionMessageToolCallChunk>? = null,
   /* The role of the author of this message. */
-  @SerialName(value = "role") val role: ChatCompletionStreamResponseDelta.Role? = null
+  @Contextual @SerialName(value = "role") val role: ChatCompletionStreamResponseDelta.Role? = null
 ) {
 
   /**

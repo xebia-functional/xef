@@ -664,7 +664,7 @@ fun Assistants(client: HttpClient, config: Config): Assistants =
           contentType(ContentType.Application.Json)
           url {
             path(
-              "/threads/{thread_id}/runs/{run_id}/cancel"
+              "threads/{thread_id}/runs/{run_id}/cancel"
                 .replace("{" + "thread_id" + "}", "$threadId")
                 .replace("{" + "run_id" + "}", "$runId")
             )
@@ -682,7 +682,7 @@ fun Assistants(client: HttpClient, config: Config): Assistants =
           configure()
           method = HttpMethod.Post
           contentType(ContentType.Application.Json)
-          url { path("/assistants") }
+          url { path("assistants") }
           setBody(createAssistantRequest)
         }
         .body()
@@ -699,7 +699,7 @@ fun Assistants(client: HttpClient, config: Config): Assistants =
           contentType(ContentType.Application.Json)
           url {
             path(
-              "/assistants/{assistant_id}/files".replace("{" + "assistant_id" + "}", "$assistantId")
+              "assistants/{assistant_id}/files".replace("{" + "assistant_id" + "}", "$assistantId")
             )
           }
           setBody(createAssistantFileRequest)
@@ -716,9 +716,7 @@ fun Assistants(client: HttpClient, config: Config): Assistants =
           configure()
           method = HttpMethod.Post
           contentType(ContentType.Application.Json)
-          url {
-            path("/threads/{thread_id}/messages".replace("{" + "thread_id" + "}", "$threadId"))
-          }
+          url { path("threads/{thread_id}/messages".replace("{" + "thread_id" + "}", "$threadId")) }
           setBody(createMessageRequest)
         }
         .body()
@@ -733,7 +731,7 @@ fun Assistants(client: HttpClient, config: Config): Assistants =
           configure()
           method = HttpMethod.Post
           contentType(ContentType.Application.Json)
-          url { path("/threads/{thread_id}/runs".replace("{" + "thread_id" + "}", "$threadId")) }
+          url { path("threads/{thread_id}/runs".replace("{" + "thread_id" + "}", "$threadId")) }
           setBody(createRunRequest)
         }
         .body()
@@ -772,7 +770,7 @@ fun Assistants(client: HttpClient, config: Config): Assistants =
           configure()
           method = HttpMethod.Post
           contentType(ContentType.Application.Json)
-          url { path("/threads") }
+          url { path("threads") }
           setBody(createThreadRequest)
         }
         .body()
@@ -786,7 +784,7 @@ fun Assistants(client: HttpClient, config: Config): Assistants =
           configure()
           method = HttpMethod.Post
           contentType(ContentType.Application.Json)
-          url { path("/threads/runs") }
+          url { path("threads/runs") }
           setBody(createThreadAndRunRequest)
         }
         .body()
@@ -825,7 +823,7 @@ fun Assistants(client: HttpClient, config: Config): Assistants =
           method = HttpMethod.Delete
           contentType(ContentType.Application.Json)
           url {
-            path("/assistants/{assistant_id}".replace("{" + "assistant_id" + "}", "$assistantId"))
+            path("assistants/{assistant_id}".replace("{" + "assistant_id" + "}", "$assistantId"))
           }
           setBody(io.ktor.client.utils.EmptyContent)
         }
@@ -843,7 +841,7 @@ fun Assistants(client: HttpClient, config: Config): Assistants =
           contentType(ContentType.Application.Json)
           url {
             path(
-              "/assistants/{assistant_id}/files/{file_id}"
+              "assistants/{assistant_id}/files/{file_id}"
                 .replace("{" + "assistant_id" + "}", "$assistantId")
                 .replace("{" + "file_id" + "}", "$fileId")
             )
@@ -861,7 +859,7 @@ fun Assistants(client: HttpClient, config: Config): Assistants =
           configure()
           method = HttpMethod.Delete
           contentType(ContentType.Application.Json)
-          url { path("/threads/{thread_id}".replace("{" + "thread_id" + "}", "$threadId")) }
+          url { path("threads/{thread_id}".replace("{" + "thread_id" + "}", "$threadId")) }
           setBody(io.ktor.client.utils.EmptyContent)
         }
         .body()
@@ -876,7 +874,7 @@ fun Assistants(client: HttpClient, config: Config): Assistants =
           method = HttpMethod.Get
           contentType(ContentType.Application.Json)
           url {
-            path("/assistants/{assistant_id}".replace("{" + "assistant_id" + "}", "$assistantId"))
+            path("assistants/{assistant_id}".replace("{" + "assistant_id" + "}", "$assistantId"))
           }
           setBody(io.ktor.client.utils.EmptyContent)
         }
@@ -894,7 +892,7 @@ fun Assistants(client: HttpClient, config: Config): Assistants =
           contentType(ContentType.Application.Json)
           url {
             path(
-              "/assistants/{assistant_id}/files/{file_id}"
+              "assistants/{assistant_id}/files/{file_id}"
                 .replace("{" + "assistant_id" + "}", "$assistantId")
                 .replace("{" + "file_id" + "}", "$fileId")
             )
@@ -915,7 +913,7 @@ fun Assistants(client: HttpClient, config: Config): Assistants =
           contentType(ContentType.Application.Json)
           url {
             path(
-              "/threads/{thread_id}/messages/{message_id}"
+              "threads/{thread_id}/messages/{message_id}"
                 .replace("{" + "thread_id" + "}", "$threadId")
                 .replace("{" + "message_id" + "}", "$messageId")
             )
@@ -937,7 +935,7 @@ fun Assistants(client: HttpClient, config: Config): Assistants =
           contentType(ContentType.Application.Json)
           url {
             path(
-              "/threads/{thread_id}/messages/{message_id}/files/{file_id}"
+              "threads/{thread_id}/messages/{message_id}/files/{file_id}"
                 .replace("{" + "thread_id" + "}", "$threadId")
                 .replace("{" + "message_id" + "}", "$messageId")
                 .replace("{" + "file_id" + "}", "$fileId")
@@ -959,7 +957,7 @@ fun Assistants(client: HttpClient, config: Config): Assistants =
           contentType(ContentType.Application.Json)
           url {
             path(
-              "/threads/{thread_id}/runs/{run_id}"
+              "threads/{thread_id}/runs/{run_id}"
                 .replace("{" + "thread_id" + "}", "$threadId")
                 .replace("{" + "run_id" + "}", "$runId")
             )
@@ -981,7 +979,7 @@ fun Assistants(client: HttpClient, config: Config): Assistants =
           contentType(ContentType.Application.Json)
           url {
             path(
-              "/threads/{thread_id}/runs/{run_id}/steps/{step_id}"
+              "threads/{thread_id}/runs/{run_id}/steps/{step_id}"
                 .replace("{" + "thread_id" + "}", "$threadId")
                 .replace("{" + "run_id" + "}", "$runId")
                 .replace("{" + "step_id" + "}", "$stepId")
@@ -1000,7 +998,7 @@ fun Assistants(client: HttpClient, config: Config): Assistants =
           configure()
           method = HttpMethod.Get
           contentType(ContentType.Application.Json)
-          url { path("/threads/{thread_id}".replace("{" + "thread_id" + "}", "$threadId")) }
+          url { path("threads/{thread_id}".replace("{" + "thread_id" + "}", "$threadId")) }
           setBody(io.ktor.client.utils.EmptyContent)
         }
         .body()
@@ -1024,7 +1022,7 @@ fun Assistants(client: HttpClient, config: Config): Assistants =
           parameter("before", listOf("$before"))
           url {
             path(
-              "/assistants/{assistant_id}/files".replace("{" + "assistant_id" + "}", "$assistantId")
+              "assistants/{assistant_id}/files".replace("{" + "assistant_id" + "}", "$assistantId")
             )
           }
           setBody(io.ktor.client.utils.EmptyContent)
@@ -1047,7 +1045,7 @@ fun Assistants(client: HttpClient, config: Config): Assistants =
           parameter("order", listOf("$order"))
           parameter("after", listOf("$after"))
           parameter("before", listOf("$before"))
-          url { path("/assistants") }
+          url { path("assistants") }
           setBody(io.ktor.client.utils.EmptyContent)
         }
         .body()
@@ -1072,7 +1070,7 @@ fun Assistants(client: HttpClient, config: Config): Assistants =
           parameter("before", listOf("$before"))
           url {
             path(
-              "/threads/{thread_id}/messages/{message_id}/files"
+              "threads/{thread_id}/messages/{message_id}/files"
                 .replace("{" + "thread_id" + "}", "$threadId")
                 .replace("{" + "message_id" + "}", "$messageId")
             )
@@ -1098,9 +1096,7 @@ fun Assistants(client: HttpClient, config: Config): Assistants =
           parameter("order", listOf("$order"))
           parameter("after", listOf("$after"))
           parameter("before", listOf("$before"))
-          url {
-            path("/threads/{thread_id}/messages".replace("{" + "thread_id" + "}", "$threadId"))
-          }
+          url { path("threads/{thread_id}/messages".replace("{" + "thread_id" + "}", "$threadId")) }
           setBody(io.ktor.client.utils.EmptyContent)
         }
         .body()
@@ -1125,7 +1121,7 @@ fun Assistants(client: HttpClient, config: Config): Assistants =
           parameter("before", listOf("$before"))
           url {
             path(
-              "/threads/{thread_id}/runs/{run_id}/steps"
+              "threads/{thread_id}/runs/{run_id}/steps"
                 .replace("{" + "thread_id" + "}", "$threadId")
                 .replace("{" + "run_id" + "}", "$runId")
             )
@@ -1151,7 +1147,7 @@ fun Assistants(client: HttpClient, config: Config): Assistants =
           parameter("order", listOf("$order"))
           parameter("after", listOf("$after"))
           parameter("before", listOf("$before"))
-          url { path("/threads/{thread_id}/runs".replace("{" + "thread_id" + "}", "$threadId")) }
+          url { path("threads/{thread_id}/runs".replace("{" + "thread_id" + "}", "$threadId")) }
           setBody(io.ktor.client.utils.EmptyContent)
         }
         .body()
@@ -1167,7 +1163,7 @@ fun Assistants(client: HttpClient, config: Config): Assistants =
           method = HttpMethod.Post
           contentType(ContentType.Application.Json)
           url {
-            path("/assistants/{assistant_id}".replace("{" + "assistant_id" + "}", "$assistantId"))
+            path("assistants/{assistant_id}".replace("{" + "assistant_id" + "}", "$assistantId"))
           }
           setBody(modifyAssistantRequest)
         }
@@ -1186,7 +1182,7 @@ fun Assistants(client: HttpClient, config: Config): Assistants =
           contentType(ContentType.Application.Json)
           url {
             path(
-              "/threads/{thread_id}/messages/{message_id}"
+              "threads/{thread_id}/messages/{message_id}"
                 .replace("{" + "thread_id" + "}", "$threadId")
                 .replace("{" + "message_id" + "}", "$messageId")
             )
@@ -1208,7 +1204,7 @@ fun Assistants(client: HttpClient, config: Config): Assistants =
           contentType(ContentType.Application.Json)
           url {
             path(
-              "/threads/{thread_id}/runs/{run_id}"
+              "threads/{thread_id}/runs/{run_id}"
                 .replace("{" + "thread_id" + "}", "$threadId")
                 .replace("{" + "run_id" + "}", "$runId")
             )
@@ -1227,7 +1223,7 @@ fun Assistants(client: HttpClient, config: Config): Assistants =
           configure()
           method = HttpMethod.Post
           contentType(ContentType.Application.Json)
-          url { path("/threads/{thread_id}".replace("{" + "thread_id" + "}", "$threadId")) }
+          url { path("threads/{thread_id}".replace("{" + "thread_id" + "}", "$threadId")) }
           setBody(modifyThreadRequest)
         }
         .body()
@@ -1245,7 +1241,7 @@ fun Assistants(client: HttpClient, config: Config): Assistants =
           contentType(ContentType.Application.Json)
           url {
             path(
-              "/threads/{thread_id}/runs/{run_id}/submit_tool_outputs"
+              "threads/{thread_id}/runs/{run_id}/submit_tool_outputs"
                 .replace("{" + "thread_id" + "}", "$threadId")
                 .replace("{" + "run_id" + "}", "$runId")
             )
