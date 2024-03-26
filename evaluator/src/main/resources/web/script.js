@@ -53,6 +53,7 @@ document.addEventListener('DOMContentLoaded', function() {
             blockDiv.appendChild(outputDiv);
 
             const result = document.createElement('div');
+            result.classList.add('score', test.success ? 'score-passed' : 'score-failed');
             result.textContent = 'Result: ' + test.result;
             blockDiv.appendChild(result);
 
