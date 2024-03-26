@@ -6,7 +6,8 @@
 
 package com.xebia.functional.openai.generated.model
 
-import com.xebia.functional.openai.generated.model.CreateModerationRequestModel.Supported.*
+import com.xebia.functional.openai.generated.model.CreateModerationRequestModel.Supported.text_moderation_latest
+import com.xebia.functional.openai.generated.model.CreateModerationRequestModel.Supported.text_moderation_stable
 import kotlin.jvm.JvmStatic
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*
@@ -26,24 +27,23 @@ import kotlinx.serialization.encoding.*
 @Suppress("SERIALIZER_TYPE_INCOMPATIBLE")
 @Serializable(with = CreateModerationRequestModelSerializer::class)
 sealed interface CreateModerationRequestModel {
-  val value: kotlin.String
+  val name: kotlin.String
 
   @Serializable(with = CreateModerationRequestModelSerializer::class)
-  enum class Supported(override val value: kotlin.String) : CreateModerationRequestModel {
-
+  enum class Supported(name: kotlin.String) : CreateModerationRequestModel {
     @SerialName(value = "text-moderation-latest") text_moderation_latest("text-moderation-latest"),
     @SerialName(value = "text-moderation-stable") text_moderation_stable("text-moderation-stable");
 
-    override fun toString(): kotlin.String = value
+    override fun toString(): kotlin.String = name
   }
 
   @Serializable(with = CreateModerationRequestModelSerializer::class)
-  data class Custom(override val value: kotlin.String) : CreateModerationRequestModel
+  data class Custom(override val name: kotlin.String) : CreateModerationRequestModel
 
   companion object {
     @JvmStatic
-    fun fromValue(value: kotlin.String): CreateModerationRequestModel =
-      values().firstOrNull { it.value == value } ?: Custom(value)
+    fun valueOf(name: kotlin.String): CreateModerationRequestModel =
+      values().firstOrNull { it.name == name } ?: Custom(name)
 
     inline val text_moderation_latest: CreateModerationRequestModel
       get() = Supported.text_moderation_latest
@@ -53,9 +53,10 @@ sealed interface CreateModerationRequestModel {
 
     @JvmStatic fun values(): List<CreateModerationRequestModel> = Supported.entries
 
-    @JvmStatic
-    fun serializer(): KSerializer<CreateModerationRequestModel> =
-      CreateModerationRequestModelSerializer
+    // Is this resulting in a recursive loop!?
+    //      @JvmStatic
+    //      fun serializer(): KSerializer<CreateModerationRequestModel> =
+    //        CreateModerationRequestModelSerializer
   }
 }
 
@@ -65,10 +66,10 @@ private object CreateModerationRequestModelSerializer : KSerializer<CreateModera
 
   override fun deserialize(decoder: Decoder): CreateModerationRequestModel {
     val value = decoder.decodeSerializableValue(valueSerializer)
-    return CreateModerationRequestModel.fromValue(value)
+    return CreateModerationRequestModel.valueOf(value)
   }
 
   override fun serialize(encoder: Encoder, value: CreateModerationRequestModel) {
-    encoder.encodeSerializableValue(valueSerializer, value.value)
+    encoder.encodeSerializableValue(valueSerializer, value.name)
   }
 }

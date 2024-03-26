@@ -16,7 +16,7 @@ class OpenTelemetryAssistantState(private val tracer: Tracer) {
 
     val currentSpan =
       tracer
-        .spanBuilder(runObject.status.value)
+        .spanBuilder(runObject.status.name)
         .setParent(parentOrRoot)
         .setSpanKind(SpanKind.CLIENT)
         .startSpan()
@@ -42,7 +42,7 @@ class OpenTelemetryAssistantState(private val tracer: Tracer) {
     return try {
       val output = block()
       currentSpan.makeCurrent().use {
-        currentSpan.updateName(output.status.value)
+        currentSpan.updateName(output.status.name)
         output.setParameters(currentSpan)
       }
       output
@@ -65,7 +65,7 @@ class OpenTelemetryAssistantState(private val tracer: Tracer) {
     return try {
       val output = block()
       currentSpan.makeCurrent().use {
-        currentSpan.updateName("ToolOutput: ${output.status.value}")
+        currentSpan.updateName("ToolOutput: ${output.status.name}")
         output.setParameters(currentSpan)
       }
       output
@@ -90,16 +90,16 @@ class OpenTelemetryAssistantState(private val tracer: Tracer) {
       currentSpan.makeCurrent().use {
         when (val detail = output.stepDetails) {
           is RunStepObjectStepDetails.First ->
-            currentSpan.updateName("Creating message: ${output.status.value}")
+            currentSpan.updateName("Creating message: ${output.status.name}")
           is RunStepObjectStepDetails.Second ->
             currentSpan.updateName(
               "Tools: ${detail.value.toolCalls.joinToString {
                 when (it) {
-                  is RunStepDetailsToolCallsObjectToolCallsInner.First -> it.value.type.value
+                  is RunStepDetailsToolCallsObjectToolCallsInner.First -> it.value.type.name
                   is RunStepDetailsToolCallsObjectToolCallsInner.Second -> it.value.function.name
-                  is RunStepDetailsToolCallsObjectToolCallsInner.Third -> it.value.type.value
+                  is RunStepDetailsToolCallsObjectToolCallsInner.Third -> it.value.type.name
                 }
-              }}: ${output.status.value}"
+              }}: ${output.status.name}"
             )
         }
         output.setParameters(currentSpan)
@@ -154,7 +154,7 @@ class OpenTelemetryAssistantState(private val tracer: Tracer) {
     span.setAttribute("openai.assistant.thread.id", threadId)
     span.setAttribute("openai.assistant.assistant.id", assistantId)
     span.setAttribute("openai.assistant.run.id", id)
-    span.setAttribute("openai.assistant.status", status.value)
+    span.setAttribute("openai.assistant.status", status.name)
     usage?.let {
       span.setAttribute("openai.assistant.usage.totalTokens", it.totalTokens.toString())
       span.setAttribute("openai.assistant.usage.completionTokens", it.completionTokens.toString())
@@ -163,12 +163,12 @@ class OpenTelemetryAssistantState(private val tracer: Tracer) {
   }
 
   private fun RunStepObject.setParameters(span: Span) {
-    span.setAttribute("openai.assistant.type", type.value)
+    span.setAttribute("openai.assistant.type", type.name)
     span.setAttribute("openai.assistant.thread.id", threadId)
     span.setAttribute("openai.assistant.assistant.id", assistantId)
     span.setAttribute("openai.assistant.run.id", runId)
     span.setAttribute("openai.assistant.runStep.id", id)
-    span.setAttribute("openai.assistant.status", status.value)
+    span.setAttribute("openai.assistant.status", status.name)
     when (val detail = stepDetails) {
       is RunStepObjectStepDetails.First -> {
         span.setAttribute(
@@ -180,14 +180,14 @@ class OpenTelemetryAssistantState(private val tracer: Tracer) {
         detail.value.toolCalls.forEachIndexed { index, toolCall ->
           when (toolCall) {
             is RunStepDetailsToolCallsObjectToolCallsInner.First -> {
-              span.setAttribute("openai.assistant.toolCalls.$index.type", toolCall.value.type.value)
+              span.setAttribute("openai.assistant.toolCalls.$index.type", toolCall.value.type.name)
               span.setAttribute(
                 "openai.assistant.toolCalls.$index.function.name",
                 "code_interpreter"
               )
             }
             is RunStepDetailsToolCallsObjectToolCallsInner.Second -> {
-              span.setAttribute("openai.assistant.toolCalls.$index.type", toolCall.value.type.value)
+              span.setAttribute("openai.assistant.toolCalls.$index.type", toolCall.value.type.name)
               span.setAttribute(
                 "openai.assistant.toolCalls.$index.function.name",
                 toolCall.value.function.name
@@ -198,7 +198,7 @@ class OpenTelemetryAssistantState(private val tracer: Tracer) {
               )
             }
             is RunStepDetailsToolCallsObjectToolCallsInner.Third -> {
-              span.setAttribute("openai.assistant.toolCalls.$index.type", toolCall.value.type.value)
+              span.setAttribute("openai.assistant.toolCalls.$index.type", toolCall.value.type.name)
               span.setAttribute("openai.assistant.toolCalls.$index.function.name", "retrieval")
             }
           }
@@ -210,7 +210,7 @@ class OpenTelemetryAssistantState(private val tracer: Tracer) {
   private fun List<MessageObject>.setParameters(span: Span) {
     span.setAttribute("openai.assistant.messages.count", size.toString())
     forEach {
-      span.setAttribute("openai.assistant.messages.${indexOf(it)}.role", it.role.value)
+      span.setAttribute("openai.assistant.messages.${indexOf(it)}.role", it.role.name)
       when (val inner = it.content.firstOrNull()) {
         is MessageObjectContentInner.First -> {
           span.setAttribute(

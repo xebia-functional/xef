@@ -39,7 +39,7 @@ class PGVectorStoreSpec :
         )
       )
 
-    val embeddingsRequestModel = CreateEmbeddingRequestModel.ada_002
+    val embeddingsRequestModel = CreateEmbeddingRequestModel.text_embedding_ada_002
 
     fun StringSpecScope.pg() =
       PGVectorStore(
@@ -109,7 +109,7 @@ class PGVectorStoreSpec :
 
     "the added memories sorted by index should be obtained in the same order" {
       val memoryData = MemoryData()
-      val model = CreateChatCompletionRequestModel._4
+      val model = CreateChatCompletionRequestModel.gpt_4
       val memories = memoryData.generateRandomMessages(10)
       pg().addMemories(memories)
       memories.map { Tuple3(it.index, it.conversationId, it.content.asRequestMessage()) } shouldBe

@@ -30,7 +30,7 @@ data class ChatCompletionRequestUserMessage(
    * Values: user
    */
   @Serializable
-  enum class Role(val value: kotlin.String) {
+  enum class Role(name: kotlin.String) {
     @SerialName(value = "user") user("user")
   }
 }

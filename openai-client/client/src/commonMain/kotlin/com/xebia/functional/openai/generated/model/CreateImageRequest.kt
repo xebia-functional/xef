@@ -57,7 +57,7 @@ data class CreateImageRequest(
    * Values: standard,hd
    */
   @Serializable
-  enum class Quality(val value: kotlin.String) {
+  enum class Quality(name: kotlin.String) {
     @SerialName(value = "standard") standard("standard"),
     @SerialName(value = "hd") hd("hd")
   }
@@ -67,7 +67,7 @@ data class CreateImageRequest(
    * Values: url,b64_json
    */
   @Serializable
-  enum class ResponseFormat(val value: kotlin.String) {
+  enum class ResponseFormat(name: kotlin.String) {
     @SerialName(value = "url") url("url"),
     @SerialName(value = "b64_json") b64_json("b64_json")
   }
@@ -78,7 +78,7 @@ data class CreateImageRequest(
    * Values: _256x256,_512x512,_1024x1024,_1792x1024,_1024x1792
    */
   @Serializable
-  enum class PropertySize(val value: kotlin.String) {
+  enum class PropertySize(name: kotlin.String) {
     @SerialName(value = "256x256") _256x256("256x256"),
     @SerialName(value = "512x512") _512x512("512x512"),
     @SerialName(value = "1024x1024") _1024x1024("1024x1024"),
@@ -93,7 +93,7 @@ data class CreateImageRequest(
    * Values: vivid,natural
    */
   @Serializable
-  enum class Style(val value: kotlin.String) {
+  enum class Style(name: kotlin.String) {
     @SerialName(value = "vivid") vivid("vivid"),
     @SerialName(value = "natural") natural("natural")
   }

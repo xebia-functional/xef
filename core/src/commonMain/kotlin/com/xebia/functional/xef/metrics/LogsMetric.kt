@@ -54,7 +54,7 @@ class LogsMetric(private val level: Level = Level.INFO) : Metric {
       this.message = "${writeIndent(numberOfBlocks.get())}|-- RunId: ${runObject.id}"
     }
     logger.at(level) {
-      this.message = "${writeIndent(numberOfBlocks.get())}|-- Status: ${runObject.status.value}"
+      this.message = "${writeIndent(numberOfBlocks.get())}|-- Status: ${runObject.status.name}"
     }
   }
 
@@ -93,7 +93,7 @@ class LogsMetric(private val level: Level = Level.INFO) : Metric {
       this.message = "${writeIndent(numberOfBlocks.get())}|-- RunId: ${output.runId}"
     }
     logger.at(level) {
-      this.message = "${writeIndent(numberOfBlocks.get())}|-- Status: ${output.status.value}"
+      this.message = "${writeIndent(numberOfBlocks.get())}|-- Status: ${output.status.name}"
     }
     return output
   }

@@ -15,13 +15,13 @@ object TestExample {
 
   @JvmStatic
   fun main(args: Array<String>) = SuspendApp {
-    val model = CreateChatCompletionRequestModel._3_5_turbo_16k
+    val model = CreateChatCompletionRequestModel.gpt_3_5_turbo_16k
     val chat = OpenAI().chat
 
     val spec =
       SuiteSpec(
         description = "Check GTP3.5 and fake outputs",
-        model = CreateChatCompletionRequestModel._4_turbo_preview
+        model = CreateChatCompletionRequestModel.gpt_4_turbo_preview
       ) {
         val gpt35Description = OutputDescription("Using GPT3.5")
         val fakeOutputs = OutputDescription("Fake outputs with errors")

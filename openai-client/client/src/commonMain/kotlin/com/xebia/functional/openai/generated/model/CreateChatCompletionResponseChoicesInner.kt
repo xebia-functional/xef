@@ -41,7 +41,7 @@ data class CreateChatCompletionResponseChoicesInner(
    * Values: stop,length,tool_calls,content_filter,function_call
    */
   @Serializable
-  enum class FinishReason(val value: kotlin.String) {
+  enum class FinishReason(name: kotlin.String) {
     @SerialName(value = "stop") stop("stop"),
     @SerialName(value = "length") @JsName("length_type") length("length"),
     @SerialName(value = "tool_calls") tool_calls("tool_calls"),

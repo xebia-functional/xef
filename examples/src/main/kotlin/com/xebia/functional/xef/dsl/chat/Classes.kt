@@ -26,7 +26,7 @@ data class Book(
 )
 
 suspend fun books(topic: String): Books {
-  val model = CreateChatCompletionRequestModel._3_5_turbo_16k_0613
+  val model = CreateChatCompletionRequestModel.gpt_3_5_turbo_16k_0613
 
   val myCustomPrompt =
     Prompt(

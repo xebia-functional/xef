@@ -31,7 +31,7 @@ class ConversationSpec :
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
       val chatApi = TestChatApi()
-      val model = CreateChatCompletionRequestModel._4
+      val model = CreateChatCompletionRequestModel.gpt_4
 
       val scope =
         Conversation(
@@ -69,7 +69,7 @@ class ConversationSpec :
       val vectorStore = scope.store
 
       val chatApi = TestChatApi(responses = messages)
-      val model = CreateChatCompletionRequestModel._3_5_turbo
+      val model = CreateChatCompletionRequestModel.gpt_3_5_turbo
 
       val totalTokens =
         model.modelType().tokensFromMessages(messages.flatMap(::chatCompletionRequestMessages))
@@ -105,7 +105,7 @@ class ConversationSpec :
       val vectorStore = scope.store
 
       val chatApi = TestChatApi(responses = messages)
-      val model = CreateChatCompletionRequestModel._3_5_turbo_16k
+      val model = CreateChatCompletionRequestModel.gpt_3_5_turbo_16k
 
       val totalTokens =
         model.modelType().tokensFromMessages(messages.flatMap(::chatCompletionRequestMessages))
@@ -139,7 +139,7 @@ class ConversationSpec :
         )
 
       val chatApi = TestChatApi(message)
-      val model = CreateChatCompletionRequestModel._3_5_turbo_16k
+      val model = CreateChatCompletionRequestModel.gpt_3_5_turbo_16k
 
       val response: Answer =
         chatApi.prompt(
@@ -172,7 +172,7 @@ class ConversationSpec :
         )
 
       val chatApi = TestChatApi(message)
-      val model = CreateChatCompletionRequestModel._3_5_turbo_0613
+      val model = CreateChatCompletionRequestModel.gpt_3_5_turbo_0613
 
       val response: Answer =
         chatApi.prompt(
@@ -192,7 +192,7 @@ class ConversationSpec :
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
       val chatApi = TestChatApi()
-      val model = CreateChatCompletionRequestModel._3_5_turbo
+      val model = CreateChatCompletionRequestModel.gpt_3_5_turbo
 
       val scope =
         Conversation(
@@ -255,7 +255,7 @@ class ConversationSpec :
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
       val chatApi = TestChatApi()
-      val model = CreateChatCompletionRequestModel._3_5_turbo
+      val model = CreateChatCompletionRequestModel.gpt_3_5_turbo
 
       val vectorStore = LocalVectorStore(TestEmbeddings())
 
@@ -288,7 +288,7 @@ class ConversationSpec :
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
       val chatApi = TestChatApi()
-      val model = CreateChatCompletionRequestModel._3_5_turbo
+      val model = CreateChatCompletionRequestModel.gpt_3_5_turbo
 
       val vectorStore = LocalVectorStore(TestEmbeddings())
 
@@ -317,7 +317,7 @@ class ConversationSpec :
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
       val chatApi = TestChatApi()
-      val model = CreateChatCompletionRequestModel._3_5_turbo
+      val model = CreateChatCompletionRequestModel.gpt_3_5_turbo
 
       val vectorStore = LocalVectorStore(TestEmbeddings())
 
@@ -348,7 +348,7 @@ class ConversationSpec :
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
       val chatApi = TestChatApi()
-      val model = CreateChatCompletionRequestModel._3_5_turbo
+      val model = CreateChatCompletionRequestModel.gpt_3_5_turbo
 
       val vectorStore = LocalVectorStore(TestEmbeddings())
 
@@ -377,7 +377,7 @@ class ConversationSpec :
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
       val chatApi = TestChatApi()
-      val model = CreateChatCompletionRequestModel._3_5_turbo
+      val model = CreateChatCompletionRequestModel.gpt_3_5_turbo
 
       val vectorStore = LocalVectorStore(TestEmbeddings())
 
@@ -409,7 +409,7 @@ class ConversationSpec :
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
       val chatApi = TestChatApi()
-      val model = CreateChatCompletionRequestModel._3_5_turbo
+      val model = CreateChatCompletionRequestModel.gpt_3_5_turbo
 
       val vectorStore = LocalVectorStore(TestEmbeddings())
 
@@ -445,7 +445,7 @@ class ConversationSpec :
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
       val chatApi = TestChatApi()
-      val model = CreateChatCompletionRequestModel._3_5_turbo
+      val model = CreateChatCompletionRequestModel.gpt_3_5_turbo
 
       val vectorStore = LocalVectorStore(TestEmbeddings())
 

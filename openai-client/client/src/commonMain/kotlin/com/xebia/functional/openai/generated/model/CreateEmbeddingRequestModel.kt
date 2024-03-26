@@ -6,7 +6,9 @@
 
 package com.xebia.functional.openai.generated.model
 
-import com.xebia.functional.openai.generated.model.CreateEmbeddingRequestModel.Supported.*
+import com.xebia.functional.openai.generated.model.CreateEmbeddingRequestModel.Supported.text_embedding_3_large
+import com.xebia.functional.openai.generated.model.CreateEmbeddingRequestModel.Supported.text_embedding_3_small
+import com.xebia.functional.openai.generated.model.CreateEmbeddingRequestModel.Supported.text_embedding_ada_002
 import kotlin.jvm.JvmStatic
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*
@@ -24,25 +26,24 @@ import kotlinx.serialization.encoding.*
 @Suppress("SERIALIZER_TYPE_INCOMPATIBLE")
 @Serializable(with = CreateEmbeddingRequestModelSerializer::class)
 sealed interface CreateEmbeddingRequestModel {
-  val value: kotlin.String
+  val name: kotlin.String
 
   @Serializable(with = CreateEmbeddingRequestModelSerializer::class)
-  enum class Supported(override val value: kotlin.String) : CreateEmbeddingRequestModel {
-
+  enum class Supported(name: kotlin.String) : CreateEmbeddingRequestModel {
     @SerialName(value = "text-embedding-ada-002") text_embedding_ada_002("text-embedding-ada-002"),
     @SerialName(value = "text-embedding-3-small") text_embedding_3_small("text-embedding-3-small"),
     @SerialName(value = "text-embedding-3-large") text_embedding_3_large("text-embedding-3-large");
 
-    override fun toString(): kotlin.String = value
+    override fun toString(): kotlin.String = name
   }
 
   @Serializable(with = CreateEmbeddingRequestModelSerializer::class)
-  data class Custom(override val value: kotlin.String) : CreateEmbeddingRequestModel
+  data class Custom(override val name: kotlin.String) : CreateEmbeddingRequestModel
 
   companion object {
     @JvmStatic
-    fun fromValue(value: kotlin.String): CreateEmbeddingRequestModel =
-      values().firstOrNull { it.value == value } ?: Custom(value)
+    fun valueOf(name: kotlin.String): CreateEmbeddingRequestModel =
+      values().firstOrNull { it.name == name } ?: Custom(name)
 
     inline val text_embedding_ada_002: CreateEmbeddingRequestModel
       get() = Supported.text_embedding_ada_002
@@ -55,9 +56,10 @@ sealed interface CreateEmbeddingRequestModel {
 
     @JvmStatic fun values(): List<CreateEmbeddingRequestModel> = Supported.entries
 
-    @JvmStatic
-    fun serializer(): KSerializer<CreateEmbeddingRequestModel> =
-      CreateEmbeddingRequestModelSerializer
+    // Is this resulting in a recursive loop!?
+    //      @JvmStatic
+    //      fun serializer(): KSerializer<CreateEmbeddingRequestModel> =
+    //        CreateEmbeddingRequestModelSerializer
   }
 }
 
@@ -67,10 +69,10 @@ private object CreateEmbeddingRequestModelSerializer : KSerializer<CreateEmbeddi
 
   override fun deserialize(decoder: Decoder): CreateEmbeddingRequestModel {
     val value = decoder.decodeSerializableValue(valueSerializer)
-    return CreateEmbeddingRequestModel.fromValue(value)
+    return CreateEmbeddingRequestModel.valueOf(value)
   }
 
   override fun serialize(encoder: Encoder, value: CreateEmbeddingRequestModel) {
-    encoder.encodeSerializableValue(valueSerializer, value.value)
+    encoder.encodeSerializableValue(valueSerializer, value.name)
   }
 }

@@ -49,7 +49,7 @@ data class SuiteSpec(
           }
         ItemResult(item.input, outputResults)
       }
-    val suiteResults = SuiteResults(description, model.value, E::class.simpleName, items)
+    val suiteResults = SuiteResults(description, model.name, E::class.simpleName, items)
     export(Json.encodeToString(suiteResults))
     return suiteResults
   }

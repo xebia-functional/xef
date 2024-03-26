@@ -6,7 +6,9 @@
 
 package com.xebia.functional.openai.generated.model
 
-import com.xebia.functional.openai.generated.model.CreateFineTuningJobRequestModel.Supported.*
+import com.xebia.functional.openai.generated.model.CreateFineTuningJobRequestModel.Supported.babbage_002
+import com.xebia.functional.openai.generated.model.CreateFineTuningJobRequestModel.Supported.davinci_002
+import com.xebia.functional.openai.generated.model.CreateFineTuningJobRequestModel.Supported.gpt_3_5_turbo
 import kotlin.jvm.JvmStatic
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*
@@ -23,25 +25,24 @@ import kotlinx.serialization.encoding.*
 @Suppress("SERIALIZER_TYPE_INCOMPATIBLE")
 @Serializable(with = CreateFineTuningJobRequestModelSerializer::class)
 sealed interface CreateFineTuningJobRequestModel {
-  val value: kotlin.String
+  val name: kotlin.String
 
   @Serializable(with = CreateFineTuningJobRequestModelSerializer::class)
-  enum class Supported(override val value: kotlin.String) : CreateFineTuningJobRequestModel {
-
+  enum class Supported(name: kotlin.String) : CreateFineTuningJobRequestModel {
     @SerialName(value = "babbage-002") babbage_002("babbage-002"),
     @SerialName(value = "davinci-002") davinci_002("davinci-002"),
     @SerialName(value = "gpt-3.5-turbo") gpt_3_5_turbo("gpt-3.5-turbo");
 
-    override fun toString(): kotlin.String = value
+    override fun toString(): kotlin.String = name
   }
 
   @Serializable(with = CreateFineTuningJobRequestModelSerializer::class)
-  data class Custom(override val value: kotlin.String) : CreateFineTuningJobRequestModel
+  data class Custom(override val name: kotlin.String) : CreateFineTuningJobRequestModel
 
   companion object {
     @JvmStatic
-    fun fromValue(value: kotlin.String): CreateFineTuningJobRequestModel =
-      values().firstOrNull { it.value == value } ?: Custom(value)
+    fun valueOf(name: kotlin.String): CreateFineTuningJobRequestModel =
+      values().firstOrNull { it.name == name } ?: Custom(name)
 
     inline val babbage_002: CreateFineTuningJobRequestModel
       get() = Supported.babbage_002
@@ -54,9 +55,10 @@ sealed interface CreateFineTuningJobRequestModel {
 
     @JvmStatic fun values(): List<CreateFineTuningJobRequestModel> = Supported.entries
 
-    @JvmStatic
-    fun serializer(): KSerializer<CreateFineTuningJobRequestModel> =
-      CreateFineTuningJobRequestModelSerializer
+    // Is this resulting in a recursive loop!?
+    //      @JvmStatic
+    //      fun serializer(): KSerializer<CreateFineTuningJobRequestModel> =
+    //        CreateFineTuningJobRequestModelSerializer
   }
 }
 
@@ -67,10 +69,10 @@ private object CreateFineTuningJobRequestModelSerializer :
 
   override fun deserialize(decoder: Decoder): CreateFineTuningJobRequestModel {
     val value = decoder.decodeSerializableValue(valueSerializer)
-    return CreateFineTuningJobRequestModel.fromValue(value)
+    return CreateFineTuningJobRequestModel.valueOf(value)
   }
 
   override fun serialize(encoder: Encoder, value: CreateFineTuningJobRequestModel) {
-    encoder.encodeSerializableValue(valueSerializer, value.value)
+    encoder.encodeSerializableValue(valueSerializer, value.name)
   }
 }

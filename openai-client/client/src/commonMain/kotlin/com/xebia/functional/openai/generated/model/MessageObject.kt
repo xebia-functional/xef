@@ -60,7 +60,7 @@ data class MessageObject(
    * Values: thread_message
    */
   @Serializable
-  enum class `Object`(val value: kotlin.String) {
+  enum class `Object`(name: kotlin.String) {
     @SerialName(value = "thread.message") thread_message("thread.message")
   }
   /**
@@ -69,7 +69,7 @@ data class MessageObject(
    * Values: user,assistant
    */
   @Serializable
-  enum class Role(val value: kotlin.String) {
+  enum class Role(name: kotlin.String) {
     @SerialName(value = "user") user("user"),
     @SerialName(value = "assistant") assistant("assistant")
   }

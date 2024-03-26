@@ -20,7 +20,7 @@ suspend inline fun <reified A> Chat.visionStructured(
   prompt: String,
   url: String,
   conversation: Conversation = Conversation(),
-  model: CreateChatCompletionRequestModel = CreateChatCompletionRequestModel._4_vision_preview
+  model: CreateChatCompletionRequestModel = CreateChatCompletionRequestModel.gpt_4_vision_preview
 ): A {
   val response = vision(prompt, url, conversation).toList().joinToString("") { it }
   return prompt(Prompt(model) { +user(response) }, conversation, serializer())
@@ -32,7 +32,7 @@ fun Chat.vision(
   conversation: Conversation = Conversation()
 ): Flow<String> =
   promptStreaming(
-    prompt = Prompt(CreateChatCompletionRequestModel._4_vision_preview) { +image(prompt, url) },
+    prompt = Prompt(CreateChatCompletionRequestModel.gpt_4_vision_preview) { +image(prompt, url) },
     scope = conversation
   )
 

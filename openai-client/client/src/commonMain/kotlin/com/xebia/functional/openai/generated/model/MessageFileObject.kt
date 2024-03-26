@@ -36,7 +36,7 @@ data class MessageFileObject(
    * Values: thread_message_file
    */
   @Serializable
-  enum class `Object`(val value: kotlin.String) {
+  enum class `Object`(name: kotlin.String) {
     @SerialName(value = "thread.message.file") thread_message_file("thread.message.file")
   }
 }

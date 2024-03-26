@@ -34,7 +34,7 @@ data class CreateChatCompletionRequestResponseFormat(
    * Values: text,json_object
    */
   @Serializable
-  enum class Type(val value: kotlin.String) {
+  enum class Type(name: kotlin.String) {
     @SerialName(value = "text") text("text"),
     @SerialName(value = "json_object") json_object("json_object")
   }

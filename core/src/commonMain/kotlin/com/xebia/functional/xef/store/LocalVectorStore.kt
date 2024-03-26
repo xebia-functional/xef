@@ -33,7 +33,8 @@ private constructor(
 ) : VectorStore {
   constructor(
     embeddings: Embeddings,
-    embeddingRequestModel: CreateEmbeddingRequestModel = CreateEmbeddingRequestModel.ada_002
+    embeddingRequestModel: CreateEmbeddingRequestModel =
+      CreateEmbeddingRequestModel.text_embedding_ada_002
   ) : this(embeddings, Atomic(State.empty()), embeddingRequestModel)
 
   override val indexValue: AtomicInt = AtomicInt(0)

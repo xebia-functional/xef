@@ -63,7 +63,7 @@ data class AssistantObject(
    * Values: assistant
    */
   @Serializable
-  enum class `Object`(val value: kotlin.String) {
+  enum class `Object`(name: kotlin.String) {
     @SerialName(value = "assistant") assistant("assistant")
   }
 }

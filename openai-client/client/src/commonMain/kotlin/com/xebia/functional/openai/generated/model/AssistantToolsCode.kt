@@ -22,7 +22,7 @@ data class AssistantToolsCode(
    * Values: code_interpreter
    */
   @Serializable
-  enum class Type(val value: kotlin.String) {
+  enum class Type(name: kotlin.String) {
     @SerialName(value = "code_interpreter") code_interpreter("code_interpreter")
   }
 }

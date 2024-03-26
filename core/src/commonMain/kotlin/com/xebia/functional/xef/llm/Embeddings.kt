@@ -10,7 +10,8 @@ import com.xebia.functional.openai.generated.model.Embedding
 suspend fun Embeddings.embedDocuments(
   texts: List<String>,
   chunkSize: Int = 400,
-  embeddingRequestModel: CreateEmbeddingRequestModel = CreateEmbeddingRequestModel.ada_002
+  embeddingRequestModel: CreateEmbeddingRequestModel =
+    CreateEmbeddingRequestModel.text_embedding_ada_002
 ): List<Embedding> =
   if (texts.isEmpty()) emptyList()
   else

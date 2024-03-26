@@ -93,8 +93,8 @@ private fun displayStepsStatus(step: AssistantThread.RunDelta.Step) {
   val details = step.runStep.stepDetails
   val type =
     when (details) {
-      is RunStepObjectStepDetails.First -> details.value.type.value
-      is RunStepObjectStepDetails.Second -> details.value.type.value
+      is RunStepObjectStepDetails.First -> details.value.type.name
+      is RunStepObjectStepDetails.Second -> details.value.type.name
     }
   val calls =
     when (details) {

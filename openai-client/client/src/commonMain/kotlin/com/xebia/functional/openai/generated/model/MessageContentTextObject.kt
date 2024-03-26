@@ -28,7 +28,7 @@ data class MessageContentTextObject(
    * Values: text
    */
   @Serializable
-  enum class Type(val value: kotlin.String) {
+  enum class Type(name: kotlin.String) {
     @SerialName(value = "text") text("text")
   }
 }

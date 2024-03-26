@@ -31,7 +31,7 @@ data class ChatCompletionRequestSystemMessage(
    * Values: system
    */
   @Serializable
-  enum class Role(val value: kotlin.String) {
+  enum class Role(name: kotlin.String) {
     @SerialName(value = "system") system("system")
   }
 }

@@ -86,7 +86,7 @@ sealed interface AI {
       input: String,
       output: String,
       context: String,
-      model: CreateChatCompletionRequestModel = CreateChatCompletionRequestModel._4_1106_preview,
+      model: CreateChatCompletionRequestModel = CreateChatCompletionRequestModel.gpt_4_1106_preview,
       target: KType = typeOf<E>(),
       config: Config = Config(),
       api: Chat = OpenAI(config).chat,
@@ -107,7 +107,7 @@ sealed interface AI {
     suspend inline operator fun <reified A : Any> invoke(
       prompt: String,
       target: KType = typeOf<A>(),
-      model: CreateChatCompletionRequestModel = CreateChatCompletionRequestModel._4_1106_preview,
+      model: CreateChatCompletionRequestModel = CreateChatCompletionRequestModel.gpt_4_1106_preview,
       config: Config = Config(),
       api: Chat = OpenAI(config).chat,
       conversation: Conversation = Conversation()

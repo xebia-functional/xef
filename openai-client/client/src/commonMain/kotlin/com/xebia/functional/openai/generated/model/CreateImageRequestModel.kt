@@ -6,7 +6,8 @@
 
 package com.xebia.functional.openai.generated.model
 
-import com.xebia.functional.openai.generated.model.CreateImageRequestModel.Supported.*
+import com.xebia.functional.openai.generated.model.CreateImageRequestModel.Supported.dall_e_2
+import com.xebia.functional.openai.generated.model.CreateImageRequestModel.Supported.dall_e_3
 import kotlin.jvm.JvmStatic
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*
@@ -22,24 +23,23 @@ import kotlinx.serialization.encoding.*
 @Suppress("SERIALIZER_TYPE_INCOMPATIBLE")
 @Serializable(with = CreateImageRequestModelSerializer::class)
 sealed interface CreateImageRequestModel {
-  val value: kotlin.String
+  val name: kotlin.String
 
   @Serializable(with = CreateImageRequestModelSerializer::class)
-  enum class Supported(override val value: kotlin.String) : CreateImageRequestModel {
-
+  enum class Supported(name: kotlin.String) : CreateImageRequestModel {
     @SerialName(value = "dall-e-2") dall_e_2("dall-e-2"),
     @SerialName(value = "dall-e-3") dall_e_3("dall-e-3");
 
-    override fun toString(): kotlin.String = value
+    override fun toString(): kotlin.String = name
   }
 
   @Serializable(with = CreateImageRequestModelSerializer::class)
-  data class Custom(override val value: kotlin.String) : CreateImageRequestModel
+  data class Custom(override val name: kotlin.String) : CreateImageRequestModel
 
   companion object {
     @JvmStatic
-    fun fromValue(value: kotlin.String): CreateImageRequestModel =
-      values().firstOrNull { it.value == value } ?: Custom(value)
+    fun valueOf(name: kotlin.String): CreateImageRequestModel =
+      values().firstOrNull { it.name == name } ?: Custom(name)
 
     inline val dall_e_2: CreateImageRequestModel
       get() = Supported.dall_e_2
@@ -49,8 +49,10 @@ sealed interface CreateImageRequestModel {
 
     @JvmStatic fun values(): List<CreateImageRequestModel> = Supported.entries
 
-    @JvmStatic
-    fun serializer(): KSerializer<CreateImageRequestModel> = CreateImageRequestModelSerializer
+    // Is this resulting in a recursive loop!?
+    //      @JvmStatic
+    //      fun serializer(): KSerializer<CreateImageRequestModel> =
+    //        CreateImageRequestModelSerializer
   }
 }
 
@@ -60,10 +62,10 @@ private object CreateImageRequestModelSerializer : KSerializer<CreateImageReques
 
   override fun deserialize(decoder: Decoder): CreateImageRequestModel {
     val value = decoder.decodeSerializableValue(valueSerializer)
-    return CreateImageRequestModel.fromValue(value)
+    return CreateImageRequestModel.valueOf(value)
   }
 
   override fun serialize(encoder: Encoder, value: CreateImageRequestModel) {
-    encoder.encodeSerializableValue(valueSerializer, value.value)
+    encoder.encodeSerializableValue(valueSerializer, value.name)
   }
 }

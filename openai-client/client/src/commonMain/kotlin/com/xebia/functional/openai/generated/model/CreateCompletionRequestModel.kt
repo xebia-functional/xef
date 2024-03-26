@@ -6,7 +6,9 @@
 
 package com.xebia.functional.openai.generated.model
 
-import com.xebia.functional.openai.generated.model.CreateCompletionRequestModel.Supported.*
+import com.xebia.functional.openai.generated.model.CreateCompletionRequestModel.Supported.babbage_002
+import com.xebia.functional.openai.generated.model.CreateCompletionRequestModel.Supported.davinci_002
+import com.xebia.functional.openai.generated.model.CreateCompletionRequestModel.Supported.gpt_3_5_turbo_instruct
 import kotlin.jvm.JvmStatic
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*
@@ -24,25 +26,24 @@ import kotlinx.serialization.encoding.*
 @Suppress("SERIALIZER_TYPE_INCOMPATIBLE")
 @Serializable(with = CreateCompletionRequestModelSerializer::class)
 sealed interface CreateCompletionRequestModel {
-  val value: kotlin.String
+  val name: kotlin.String
 
   @Serializable(with = CreateCompletionRequestModelSerializer::class)
-  enum class Supported(override val value: kotlin.String) : CreateCompletionRequestModel {
-
+  enum class Supported(name: kotlin.String) : CreateCompletionRequestModel {
     @SerialName(value = "gpt-3.5-turbo-instruct") gpt_3_5_turbo_instruct("gpt-3.5-turbo-instruct"),
     @SerialName(value = "davinci-002") davinci_002("davinci-002"),
     @SerialName(value = "babbage-002") babbage_002("babbage-002");
 
-    override fun toString(): kotlin.String = value
+    override fun toString(): kotlin.String = name
   }
 
   @Serializable(with = CreateCompletionRequestModelSerializer::class)
-  data class Custom(override val value: kotlin.String) : CreateCompletionRequestModel
+  data class Custom(override val name: kotlin.String) : CreateCompletionRequestModel
 
   companion object {
     @JvmStatic
-    fun fromValue(value: kotlin.String): CreateCompletionRequestModel =
-      values().firstOrNull { it.value == value } ?: Custom(value)
+    fun valueOf(name: kotlin.String): CreateCompletionRequestModel =
+      values().firstOrNull { it.name == name } ?: Custom(name)
 
     inline val gpt_3_5_turbo_instruct: CreateCompletionRequestModel
       get() = Supported.gpt_3_5_turbo_instruct
@@ -55,9 +56,10 @@ sealed interface CreateCompletionRequestModel {
 
     @JvmStatic fun values(): List<CreateCompletionRequestModel> = Supported.entries
 
-    @JvmStatic
-    fun serializer(): KSerializer<CreateCompletionRequestModel> =
-      CreateCompletionRequestModelSerializer
+    // Is this resulting in a recursive loop!?
+    //      @JvmStatic
+    //      fun serializer(): KSerializer<CreateCompletionRequestModel> =
+    //        CreateCompletionRequestModelSerializer
   }
 }
 
@@ -67,10 +69,10 @@ private object CreateCompletionRequestModelSerializer : KSerializer<CreateComple
 
   override fun deserialize(decoder: Decoder): CreateCompletionRequestModel {
     val value = decoder.decodeSerializableValue(valueSerializer)
-    return CreateCompletionRequestModel.fromValue(value)
+    return CreateCompletionRequestModel.valueOf(value)
   }
 
   override fun serialize(encoder: Encoder, value: CreateCompletionRequestModel) {
-    encoder.encodeSerializableValue(valueSerializer, value.value)
+    encoder.encodeSerializableValue(valueSerializer, value.name)
   }
 }

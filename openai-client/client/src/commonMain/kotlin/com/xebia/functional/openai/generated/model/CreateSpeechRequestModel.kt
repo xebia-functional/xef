@@ -6,7 +6,8 @@
 
 package com.xebia.functional.openai.generated.model
 
-import com.xebia.functional.openai.generated.model.CreateSpeechRequestModel.Supported.*
+import com.xebia.functional.openai.generated.model.CreateSpeechRequestModel.Supported.tts_1
+import com.xebia.functional.openai.generated.model.CreateSpeechRequestModel.Supported.tts_1_hd
 import kotlin.jvm.JvmStatic
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*
@@ -22,24 +23,23 @@ import kotlinx.serialization.encoding.*
 @Suppress("SERIALIZER_TYPE_INCOMPATIBLE")
 @Serializable(with = CreateSpeechRequestModelSerializer::class)
 sealed interface CreateSpeechRequestModel {
-  val value: kotlin.String
+  val name: kotlin.String
 
   @Serializable(with = CreateSpeechRequestModelSerializer::class)
-  enum class Supported(override val value: kotlin.String) : CreateSpeechRequestModel {
-
+  enum class Supported(name: kotlin.String) : CreateSpeechRequestModel {
     @SerialName(value = "tts-1") tts_1("tts-1"),
     @SerialName(value = "tts-1-hd") tts_1_hd("tts-1-hd");
 
-    override fun toString(): kotlin.String = value
+    override fun toString(): kotlin.String = name
   }
 
   @Serializable(with = CreateSpeechRequestModelSerializer::class)
-  data class Custom(override val value: kotlin.String) : CreateSpeechRequestModel
+  data class Custom(override val name: kotlin.String) : CreateSpeechRequestModel
 
   companion object {
     @JvmStatic
-    fun fromValue(value: kotlin.String): CreateSpeechRequestModel =
-      values().firstOrNull { it.value == value } ?: Custom(value)
+    fun valueOf(name: kotlin.String): CreateSpeechRequestModel =
+      values().firstOrNull { it.name == name } ?: Custom(name)
 
     inline val tts_1: CreateSpeechRequestModel
       get() = Supported.tts_1
@@ -49,8 +49,10 @@ sealed interface CreateSpeechRequestModel {
 
     @JvmStatic fun values(): List<CreateSpeechRequestModel> = Supported.entries
 
-    @JvmStatic
-    fun serializer(): KSerializer<CreateSpeechRequestModel> = CreateSpeechRequestModelSerializer
+    // Is this resulting in a recursive loop!?
+    //      @JvmStatic
+    //      fun serializer(): KSerializer<CreateSpeechRequestModel> =
+    //        CreateSpeechRequestModelSerializer
   }
 }
 
@@ -60,10 +62,10 @@ private object CreateSpeechRequestModelSerializer : KSerializer<CreateSpeechRequ
 
   override fun deserialize(decoder: Decoder): CreateSpeechRequestModel {
     val value = decoder.decodeSerializableValue(valueSerializer)
-    return CreateSpeechRequestModel.fromValue(value)
+    return CreateSpeechRequestModel.valueOf(value)
   }
 
   override fun serialize(encoder: Encoder, value: CreateSpeechRequestModel) {
-    encoder.encodeSerializableValue(valueSerializer, value.value)
+    encoder.encodeSerializableValue(valueSerializer, value.name)
   }
 }

@@ -21,7 +21,7 @@ suspend fun main() {
       input = "Do I love Xef?",
       output = "I have three opened PRs",
       context = "The answer responds the question",
-      model = CreateChatCompletionRequestModel._3_5_turbo_0125
+      model = CreateChatCompletionRequestModel.gpt_3_5_turbo_0125
     )
   )
 }

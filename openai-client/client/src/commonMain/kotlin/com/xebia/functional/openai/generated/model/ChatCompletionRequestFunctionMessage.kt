@@ -31,7 +31,7 @@ data class ChatCompletionRequestFunctionMessage(
    * Values: function
    */
   @Serializable
-  enum class Role(val value: kotlin.String) {
+  enum class Role(name: kotlin.String) {
     @SerialName(value = "function") function("function")
   }
 }

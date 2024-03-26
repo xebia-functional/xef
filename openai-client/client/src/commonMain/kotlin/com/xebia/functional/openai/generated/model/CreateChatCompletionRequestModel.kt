@@ -6,7 +6,23 @@
 
 package com.xebia.functional.openai.generated.model
 
-import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel.Supported.*
+import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel.Supported.gpt_3_5_turbo
+import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel.Supported.gpt_3_5_turbo_0125
+import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel.Supported.gpt_3_5_turbo_0301
+import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel.Supported.gpt_3_5_turbo_0613
+import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel.Supported.gpt_3_5_turbo_1106
+import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel.Supported.gpt_3_5_turbo_16k
+import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel.Supported.gpt_3_5_turbo_16k_0613
+import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel.Supported.gpt_4
+import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel.Supported.gpt_4_0125_preview
+import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel.Supported.gpt_4_0314
+import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel.Supported.gpt_4_0613
+import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel.Supported.gpt_4_1106_preview
+import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel.Supported.gpt_4_32k
+import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel.Supported.gpt_4_32k_0314
+import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel.Supported.gpt_4_32k_0613
+import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel.Supported.gpt_4_turbo_preview
+import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel.Supported.gpt_4_vision_preview
 import kotlin.jvm.JvmStatic
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*
@@ -25,11 +41,10 @@ import kotlinx.serialization.encoding.*
 @Suppress("SERIALIZER_TYPE_INCOMPATIBLE")
 @Serializable(with = CreateChatCompletionRequestModelSerializer::class)
 sealed interface CreateChatCompletionRequestModel {
-  val value: kotlin.String
+  val name: kotlin.String
 
   @Serializable(with = CreateChatCompletionRequestModelSerializer::class)
-  enum class Supported(override val value: kotlin.String) : CreateChatCompletionRequestModel {
-
+  enum class Supported(name: kotlin.String) : CreateChatCompletionRequestModel {
     @SerialName(value = "gpt-4-0125-preview") gpt_4_0125_preview("gpt-4-0125-preview"),
     @SerialName(value = "gpt-4-turbo-preview") gpt_4_turbo_preview("gpt-4-turbo-preview"),
     @SerialName(value = "gpt-4-1106-preview") gpt_4_1106_preview("gpt-4-1106-preview"),
@@ -48,16 +63,16 @@ sealed interface CreateChatCompletionRequestModel {
     @SerialName(value = "gpt-3.5-turbo-0125") gpt_3_5_turbo_0125("gpt-3.5-turbo-0125"),
     @SerialName(value = "gpt-3.5-turbo-16k-0613") gpt_3_5_turbo_16k_0613("gpt-3.5-turbo-16k-0613");
 
-    override fun toString(): kotlin.String = value
+    override fun toString(): kotlin.String = name
   }
 
   @Serializable(with = CreateChatCompletionRequestModelSerializer::class)
-  data class Custom(override val value: kotlin.String) : CreateChatCompletionRequestModel
+  data class Custom(override val name: kotlin.String) : CreateChatCompletionRequestModel
 
   companion object {
     @JvmStatic
-    fun fromValue(value: kotlin.String): CreateChatCompletionRequestModel =
-      values().firstOrNull { it.value == value } ?: Custom(value)
+    fun valueOf(name: kotlin.String): CreateChatCompletionRequestModel =
+      values().firstOrNull { it.name == name } ?: Custom(name)
 
     inline val gpt_4_0125_preview: CreateChatCompletionRequestModel
       get() = Supported.gpt_4_0125_preview
@@ -112,9 +127,10 @@ sealed interface CreateChatCompletionRequestModel {
 
     @JvmStatic fun values(): List<CreateChatCompletionRequestModel> = Supported.entries
 
-    @JvmStatic
-    fun serializer(): KSerializer<CreateChatCompletionRequestModel> =
-      CreateChatCompletionRequestModelSerializer
+    // Is this resulting in a recursive loop!?
+    //      @JvmStatic
+    //      fun serializer(): KSerializer<CreateChatCompletionRequestModel> =
+    //        CreateChatCompletionRequestModelSerializer
   }
 }
 
@@ -125,10 +141,10 @@ private object CreateChatCompletionRequestModelSerializer :
 
   override fun deserialize(decoder: Decoder): CreateChatCompletionRequestModel {
     val value = decoder.decodeSerializableValue(valueSerializer)
-    return CreateChatCompletionRequestModel.fromValue(value)
+    return CreateChatCompletionRequestModel.valueOf(value)
   }
 
   override fun serialize(encoder: Encoder, value: CreateChatCompletionRequestModel) {
-    encoder.encodeSerializableValue(valueSerializer, value.value)
+    encoder.encodeSerializableValue(valueSerializer, value.name)
   }
 }

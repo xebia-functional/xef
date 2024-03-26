@@ -22,7 +22,7 @@ class PostgresVectorStoreService(
   private val chunkSize: Int = 400,
   private val distanceStrategy: PGDistanceStrategy = PGDistanceStrategy.Euclidean,
   private val embeddingRequestModel: CreateEmbeddingRequestModel =
-    CreateEmbeddingRequestModel.ada_002
+    CreateEmbeddingRequestModel.text_embedding_3_small
 ) : VectorStoreService() {
 
   fun addCollection() {

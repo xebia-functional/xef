@@ -26,11 +26,12 @@ interface PromptBuilder {
   ): ChatCompletionRequestMessage {
     val content = "${contentAsString()}\n${message.contentAsString()}"
     return when (completionRole()) {
-      ChatCompletionRole.system -> system(content)
-      ChatCompletionRole.user -> user(content)
-      ChatCompletionRole.assistant -> assistant(content)
-      ChatCompletionRole.tool -> error("Tool role is not supported")
-      ChatCompletionRole.function -> error("Function role is not supported")
+      ChatCompletionRole.Supported.system -> system(content)
+      ChatCompletionRole.Supported.user -> user(content)
+      ChatCompletionRole.Supported.assistant -> assistant(content)
+      ChatCompletionRole.Supported.tool -> error("Tool role is not supported")
+      ChatCompletionRole.Supported.function -> error("Function role is not supported")
+      is ChatCompletionRole.Custom -> error("Custom roles are not supported")
     }
   }
 

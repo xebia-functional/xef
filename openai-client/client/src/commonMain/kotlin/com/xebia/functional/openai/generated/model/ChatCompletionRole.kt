@@ -6,7 +6,11 @@
 
 package com.xebia.functional.openai.generated.model
 
-import com.xebia.functional.openai.generated.model.ChatCompletionRole.Supported.*
+import com.xebia.functional.openai.generated.model.ChatCompletionRole.Supported.assistant
+import com.xebia.functional.openai.generated.model.ChatCompletionRole.Supported.function
+import com.xebia.functional.openai.generated.model.ChatCompletionRole.Supported.system
+import com.xebia.functional.openai.generated.model.ChatCompletionRole.Supported.tool
+import com.xebia.functional.openai.generated.model.ChatCompletionRole.Supported.user
 import kotlin.jvm.JvmStatic
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*
@@ -22,27 +26,26 @@ import kotlinx.serialization.encoding.*
 @Suppress("SERIALIZER_TYPE_INCOMPATIBLE")
 @Serializable(with = ChatCompletionRoleSerializer::class)
 sealed interface ChatCompletionRole {
-  val value: kotlin.String
+  val name: kotlin.String
 
   @Serializable(with = ChatCompletionRoleSerializer::class)
-  enum class Supported(override val value: kotlin.String) : ChatCompletionRole {
-
+  enum class Supported(name: kotlin.String) : ChatCompletionRole {
     @SerialName(value = "system") system("system"),
     @SerialName(value = "user") user("user"),
     @SerialName(value = "assistant") assistant("assistant"),
     @SerialName(value = "tool") tool("tool"),
     @SerialName(value = "function") function("function");
 
-    override fun toString(): kotlin.String = value
+    override fun toString(): kotlin.String = name
   }
 
   @Serializable(with = ChatCompletionRoleSerializer::class)
-  data class Custom(override val value: kotlin.String) : ChatCompletionRole
+  data class Custom(override val name: kotlin.String) : ChatCompletionRole
 
   companion object {
     @JvmStatic
-    fun fromValue(value: kotlin.String): ChatCompletionRole =
-      values().firstOrNull { it.value == value } ?: Custom(value)
+    fun valueOf(name: kotlin.String): ChatCompletionRole =
+      values().firstOrNull { it.name == name } ?: Custom(name)
 
     inline val system: ChatCompletionRole
       get() = Supported.system
@@ -61,7 +64,10 @@ sealed interface ChatCompletionRole {
 
     @JvmStatic fun values(): List<ChatCompletionRole> = Supported.entries
 
-    @JvmStatic fun serializer(): KSerializer<ChatCompletionRole> = ChatCompletionRoleSerializer
+    // Is this resulting in a recursive loop!?
+    //      @JvmStatic
+    //      fun serializer(): KSerializer<ChatCompletionRole> =
+    //        ChatCompletionRoleSerializer
   }
 }
 
@@ -71,10 +77,10 @@ private object ChatCompletionRoleSerializer : KSerializer<ChatCompletionRole> {
 
   override fun deserialize(decoder: Decoder): ChatCompletionRole {
     val value = decoder.decodeSerializableValue(valueSerializer)
-    return ChatCompletionRole.fromValue(value)
+    return ChatCompletionRole.valueOf(value)
   }
 
   override fun serialize(encoder: Encoder, value: ChatCompletionRole) {
-    encoder.encodeSerializableValue(valueSerializer, value.value)
+    encoder.encodeSerializableValue(valueSerializer, value.name)
   }
 }

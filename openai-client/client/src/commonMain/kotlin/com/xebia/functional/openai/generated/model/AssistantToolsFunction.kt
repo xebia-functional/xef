@@ -26,7 +26,7 @@ data class AssistantToolsFunction(
    * Values: function
    */
   @Serializable
-  enum class Type(val value: kotlin.String) {
+  enum class Type(name: kotlin.String) {
     @SerialName(value = "function") function("function")
   }
 }

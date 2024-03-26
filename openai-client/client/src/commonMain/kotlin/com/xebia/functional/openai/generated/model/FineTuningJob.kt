@@ -70,7 +70,7 @@ data class FineTuningJob(
    * Values: fine_tuning_job
    */
   @Serializable
-  enum class `Object`(val value: kotlin.String) {
+  enum class `Object`(name: kotlin.String) {
     @SerialName(value = "fine_tuning.job") fine_tuning_job("fine_tuning.job")
   }
   /**
@@ -80,7 +80,7 @@ data class FineTuningJob(
    * Values: validating_files,queued,running,succeeded,failed,cancelled
    */
   @Serializable
-  enum class Status(val value: kotlin.String) {
+  enum class Status(name: kotlin.String) {
     @SerialName(value = "validating_files") validating_files("validating_files"),
     @SerialName(value = "queued") queued("queued"),
     @SerialName(value = "running") running("running"),

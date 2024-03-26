@@ -9,7 +9,7 @@ import io.kotest.matchers.shouldBe
 
 class LocalVectorStoreSpec :
   StringSpec({
-    val model = CreateChatCompletionRequestModel._3_5_turbo
+    val model = CreateChatCompletionRequestModel.gpt_3_5_turbo
     "memories function should return all of messages in the right order when the limit is greater than the number of stored messages" {
       val localVectorStore = LocalVectorStore(TestEmbeddings())
 

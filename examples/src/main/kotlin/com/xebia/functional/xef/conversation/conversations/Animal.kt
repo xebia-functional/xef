@@ -30,7 +30,7 @@ suspend fun main() {
       val configNoneFromConversation = PromptConfiguration {
         messagePolicy { addMessagesFromConversation = MessagesFromHistory.NONE }
       }
-      val model = CreateChatCompletionRequestModel._3_5_turbo_16k_0613
+      val model = CreateChatCompletionRequestModel.gpt_3_5_turbo_16k_0613
       val animal: Animal =
         AI(
           Prompt(model) { +user("A unique animal species.") }

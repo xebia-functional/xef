@@ -35,7 +35,7 @@ data class Model(
    * Values: model
    */
   @Serializable
-  enum class `Object`(val value: kotlin.String) {
+  enum class `Object`(name: kotlin.String) {
     @SerialName(value = "model") model("model")
   }
 }

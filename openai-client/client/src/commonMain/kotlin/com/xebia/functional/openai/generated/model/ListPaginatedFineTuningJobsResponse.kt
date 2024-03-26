@@ -23,7 +23,7 @@ data class ListPaginatedFineTuningJobsResponse(
 
   /** Values: list */
   @Serializable
-  enum class `Object`(val value: kotlin.String) {
+  enum class `Object`(name: kotlin.String) {
     @SerialName(value = "list") list("list")
   }
 }

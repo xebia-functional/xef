@@ -6,7 +6,7 @@
 
 package com.xebia.functional.openai.generated.model
 
-import com.xebia.functional.openai.generated.model.CreateTranscriptionRequestModel.Supported.*
+import com.xebia.functional.openai.generated.model.CreateTranscriptionRequestModel.Supported.whisper_1
 import kotlin.jvm.JvmStatic
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*
@@ -22,32 +22,32 @@ import kotlinx.serialization.encoding.*
 @Suppress("SERIALIZER_TYPE_INCOMPATIBLE")
 @Serializable(with = CreateTranscriptionRequestModelSerializer::class)
 sealed interface CreateTranscriptionRequestModel {
-  val value: kotlin.String
+  val name: kotlin.String
 
   @Serializable(with = CreateTranscriptionRequestModelSerializer::class)
-  enum class Supported(override val value: kotlin.String) : CreateTranscriptionRequestModel {
-
+  enum class Supported(name: kotlin.String) : CreateTranscriptionRequestModel {
     @SerialName(value = "whisper-1") whisper_1("whisper-1");
 
-    override fun toString(): kotlin.String = value
+    override fun toString(): kotlin.String = name
   }
 
   @Serializable(with = CreateTranscriptionRequestModelSerializer::class)
-  data class Custom(override val value: kotlin.String) : CreateTranscriptionRequestModel
+  data class Custom(override val name: kotlin.String) : CreateTranscriptionRequestModel
 
   companion object {
     @JvmStatic
-    fun fromValue(value: kotlin.String): CreateTranscriptionRequestModel =
-      values().firstOrNull { it.value == value } ?: Custom(value)
+    fun valueOf(name: kotlin.String): CreateTranscriptionRequestModel =
+      values().firstOrNull { it.name == name } ?: Custom(name)
 
     inline val whisper_1: CreateTranscriptionRequestModel
       get() = Supported.whisper_1
 
     @JvmStatic fun values(): List<CreateTranscriptionRequestModel> = Supported.entries
 
-    @JvmStatic
-    fun serializer(): KSerializer<CreateTranscriptionRequestModel> =
-      CreateTranscriptionRequestModelSerializer
+    // Is this resulting in a recursive loop!?
+    //      @JvmStatic
+    //      fun serializer(): KSerializer<CreateTranscriptionRequestModel> =
+    //        CreateTranscriptionRequestModelSerializer
   }
 }
 
@@ -58,10 +58,10 @@ private object CreateTranscriptionRequestModelSerializer :
 
   override fun deserialize(decoder: Decoder): CreateTranscriptionRequestModel {
     val value = decoder.decodeSerializableValue(valueSerializer)
-    return CreateTranscriptionRequestModel.fromValue(value)
+    return CreateTranscriptionRequestModel.valueOf(value)
   }
 
   override fun serialize(encoder: Encoder, value: CreateTranscriptionRequestModel) {
-    encoder.encodeSerializableValue(valueSerializer, value.value)
+    encoder.encodeSerializableValue(valueSerializer, value.name)
   }
 }

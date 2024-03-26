@@ -7,8 +7,8 @@ sealed class MemorizedMessage {
   val role: ChatCompletionRole
     get() =
       when (this) {
-        is Request -> ChatCompletionRole.valueOf(message.completionRole().value)
-        is Response -> ChatCompletionRole.valueOf(message.role.value)
+        is Request -> ChatCompletionRole.valueOf(message.completionRole().name)
+        is Response -> ChatCompletionRole.valueOf(message.role.name)
       }
 
   fun asRequestMessage(): ChatCompletionRequestMessage =
@@ -30,7 +30,7 @@ sealed class MemorizedMessage {
 
 fun memorizedMessage(role: ChatCompletionRole, content: String): MemorizedMessage =
   when (role) {
-    ChatCompletionRole.system ->
+    ChatCompletionRole.Supported.system ->
       MemorizedMessage.Request(
         ChatCompletionRequestMessage.Third(
           ChatCompletionRequestSystemMessage(
@@ -39,7 +39,7 @@ fun memorizedMessage(role: ChatCompletionRole, content: String): MemorizedMessag
           )
         )
       )
-    ChatCompletionRole.user ->
+    ChatCompletionRole.Supported.user ->
       MemorizedMessage.Request(
         ChatCompletionRequestMessage.Fifth(
           ChatCompletionRequestUserMessage(
@@ -48,13 +48,14 @@ fun memorizedMessage(role: ChatCompletionRole, content: String): MemorizedMessag
           )
         )
       )
-    ChatCompletionRole.assistant ->
+    ChatCompletionRole.Supported.assistant ->
       MemorizedMessage.Response(
         ChatCompletionResponseMessage(
           content = content,
           role = ChatCompletionResponseMessage.Role.assistant
         )
       )
-    ChatCompletionRole.tool -> error("Tool messages are not supported")
-    ChatCompletionRole.function -> error("Function messages are not supported")
+    ChatCompletionRole.Supported.tool -> error("Tool messages are not supported")
+    ChatCompletionRole.Supported.function -> error("Function messages are not supported")
+    is ChatCompletionRole.Custom -> error("Custom messages are not supported")
   }

@@ -30,7 +30,7 @@ suspend fun main() {
     val channel =
       audio.createSpeech(
         CreateSpeechRequest(
-          model = CreateSpeechRequestModel._1,
+          model = CreateSpeechRequestModel.tts_1,
           input = modelResponse,
           voice = CreateSpeechRequest.Voice.nova
         )

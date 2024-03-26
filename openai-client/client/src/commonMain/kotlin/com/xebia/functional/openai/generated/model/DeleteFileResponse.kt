@@ -23,7 +23,7 @@ data class DeleteFileResponse(
 
   /** Values: file */
   @Serializable
-  enum class `Object`(val value: kotlin.String) {
+  enum class `Object`(name: kotlin.String) {
     @SerialName(value = "file") file("file")
   }
 }

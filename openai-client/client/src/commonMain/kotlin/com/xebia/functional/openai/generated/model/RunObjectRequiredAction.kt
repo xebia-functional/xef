@@ -29,7 +29,7 @@ data class RunObjectRequiredAction(
    * Values: submit_tool_outputs
    */
   @Serializable
-  enum class Type(val value: kotlin.String) {
+  enum class Type(name: kotlin.String) {
     @SerialName(value = "submit_tool_outputs") submit_tool_outputs("submit_tool_outputs")
   }
 }

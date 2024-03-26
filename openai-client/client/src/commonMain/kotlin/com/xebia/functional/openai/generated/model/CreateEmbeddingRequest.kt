@@ -39,7 +39,7 @@ data class CreateEmbeddingRequest(
    * Values: float,base64
    */
   @Serializable
-  enum class EncodingFormat(val value: kotlin.String) {
+  enum class EncodingFormat(name: kotlin.String) {
     @SerialName(value = "float") float("float"),
     @SerialName(value = "base64") base64("base64")
   }

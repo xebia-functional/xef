@@ -9,7 +9,7 @@ import io.kotest.matchers.shouldBe
 
 class CombinedVectorStoreSpec :
   StringSpec({
-    val model = CreateChatCompletionRequestModel._3_5_turbo
+    val model = CreateChatCompletionRequestModel.gpt_3_5_turbo
     "memories function should return all of messages combined in the right order" {
       val memoryData = MemoryData()
 
