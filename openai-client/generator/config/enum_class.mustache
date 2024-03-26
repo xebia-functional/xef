@@ -7,11 +7,8 @@ import kotlin.jvm.JvmStatic
 
 /**
  * {{{description}}}
- *
- * Values: {{#allowableValues}}{{#enumVars}}{{&name}}{{^-last}},{{/-last}}{{/enumVars}}{{/allowableValues}}
  */
-// We define a serializer for the parent sum type,
-// and then use it to serialize the child types
+// We define a serializer for the parent sum type, and then use it to serialize the child types
 @Suppress("SERIALIZER_TYPE_INCOMPATIBLE")
 @Serializable(with = {{classname}}Serializer::class)
 sealed interface {{classname}} {
@@ -38,6 +35,7 @@ sealed interface {{classname}} {
       {{/enumVars}}{{/allowableValues}}
 
       @JvmStatic fun values(): List<{{classname}}> = Supported.entries
+    }
 }
 
 private object {{classname}}Serializer : KSerializer<{{classname}}> {

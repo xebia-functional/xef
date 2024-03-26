@@ -27,7 +27,7 @@ val cleanClientGenerated = task("cleanClientGenerated", Delete::class) {
 task("openaiClientGenerate", JavaExec::class) {
     group = "GenerateTasks"
     mainClass = "org.openapitools.codegen.OpenAPIGenerator"
-    args = listOf(
+    val command = (listOf(
         "generate",
         "-i",
         "config/openai-api.yaml",
@@ -35,10 +35,13 @@ task("openaiClientGenerate", JavaExec::class) {
         "ai.xef.openai.generator.KMMGeneratorConfig",
         "-o",
         "../client",
-        "--skip-validate-spec",
-//        "--global-property",
-//        "debugModels=true",
-//        "debugOperations=true"
-    )
+        "--skip-validate-spec"
+    ) + if (project.hasProperty("debugModels") && !project.hasProperty("debugOperations")) {
+        listOf("--global-property", "debugModels=true")
+    } else if(!project.hasProperty("debugModels") && project.hasProperty("debugOperations")) {
+        listOf("--global-property", "debugOperations=true")
+    } else emptyList())
+
+    args = command
     classpath = sourceSets["main"].runtimeClasspath
 }.finalizedBy(":xef-openai-client:spotlessApply").dependsOn(cleanClientGenerated)
