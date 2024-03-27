@@ -1016,10 +1016,10 @@ fun Assistants(client: HttpClient, config: Config): Assistants =
           configure()
           method = HttpMethod.Get
           contentType(ContentType.Application.Json)
-          parameter("limit", listOf("$limit"))
-          parameter("order", listOf("$order"))
-          parameter("after", listOf("$after"))
-          parameter("before", listOf("$before"))
+          parameter("limit", limit)
+          parameter("order", order)
+          parameter("after", after)
+          parameter("before", before)
           url {
             path(
               "assistants/{assistant_id}/files".replace("{" + "assistant_id" + "}", "$assistantId")
@@ -1041,10 +1041,10 @@ fun Assistants(client: HttpClient, config: Config): Assistants =
           configure()
           method = HttpMethod.Get
           contentType(ContentType.Application.Json)
-          parameter("limit", listOf("$limit"))
-          parameter("order", listOf("$order"))
-          parameter("after", listOf("$after"))
-          parameter("before", listOf("$before"))
+          parameter("limit", limit)
+          parameter("order", order)
+          parameter("after", after)
+          parameter("before", before)
           url { path("assistants") }
           setBody(io.ktor.client.utils.EmptyContent)
         }
@@ -1064,10 +1064,10 @@ fun Assistants(client: HttpClient, config: Config): Assistants =
           configure()
           method = HttpMethod.Get
           contentType(ContentType.Application.Json)
-          parameter("limit", listOf("$limit"))
-          parameter("order", listOf("$order"))
-          parameter("after", listOf("$after"))
-          parameter("before", listOf("$before"))
+          parameter("limit", limit)
+          parameter("order", order)
+          parameter("after", after)
+          parameter("before", before)
           url {
             path(
               "threads/{thread_id}/messages/{message_id}/files"
@@ -1092,10 +1092,10 @@ fun Assistants(client: HttpClient, config: Config): Assistants =
           configure()
           method = HttpMethod.Get
           contentType(ContentType.Application.Json)
-          parameter("limit", listOf("$limit"))
-          parameter("order", listOf("$order"))
-          parameter("after", listOf("$after"))
-          parameter("before", listOf("$before"))
+          parameter("limit", limit)
+          parameter("order", order)
+          parameter("after", after)
+          parameter("before", before)
           url { path("threads/{thread_id}/messages".replace("{" + "thread_id" + "}", "$threadId")) }
           setBody(io.ktor.client.utils.EmptyContent)
         }
@@ -1115,10 +1115,10 @@ fun Assistants(client: HttpClient, config: Config): Assistants =
           configure()
           method = HttpMethod.Get
           contentType(ContentType.Application.Json)
-          parameter("limit", listOf("$limit"))
-          parameter("order", listOf("$order"))
-          parameter("after", listOf("$after"))
-          parameter("before", listOf("$before"))
+          parameter("limit", limit)
+          parameter("order", order)
+          parameter("after", after)
+          parameter("before", before)
           url {
             path(
               "threads/{thread_id}/runs/{run_id}/steps"
@@ -1143,10 +1143,10 @@ fun Assistants(client: HttpClient, config: Config): Assistants =
           configure()
           method = HttpMethod.Get
           contentType(ContentType.Application.Json)
-          parameter("limit", listOf("$limit"))
-          parameter("order", listOf("$order"))
-          parameter("after", listOf("$after"))
-          parameter("before", listOf("$before"))
+          parameter("limit", limit)
+          parameter("order", order)
+          parameter("after", after)
+          parameter("before", before)
           url { path("threads/{thread_id}/runs".replace("{" + "thread_id" + "}", "$threadId")) }
           setBody(io.ktor.client.utils.EmptyContent)
         }

@@ -150,8 +150,8 @@ fun FineTuning(client: HttpClient, config: Config): FineTuning =
           configure()
           method = HttpMethod.Get
           contentType(ContentType.Application.Json)
-          parameter("after", listOf("$after"))
-          parameter("limit", listOf("$limit"))
+          parameter("after", after)
+          parameter("limit", limit)
           url {
             path(
               "fine_tuning/jobs/{fine_tuning_job_id}/events"
@@ -172,8 +172,8 @@ fun FineTuning(client: HttpClient, config: Config): FineTuning =
           configure()
           method = HttpMethod.Get
           contentType(ContentType.Application.Json)
-          parameter("after", listOf("$after"))
-          parameter("limit", listOf("$limit"))
+          parameter("after", after)
+          parameter("limit", limit)
           url { path("fine_tuning/jobs") }
           setBody(io.ktor.client.utils.EmptyContent)
         }

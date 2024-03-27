@@ -175,7 +175,7 @@ fun Files(client: HttpClient, config: Config): Files =
           configure()
           method = HttpMethod.Get
           contentType(ContentType.Application.Json)
-          parameter("purpose", listOf("$purpose"))
+          parameter("purpose", purpose)
           url { path("files") }
           setBody(io.ktor.client.utils.EmptyContent)
         }
