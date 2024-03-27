@@ -1,22 +1,19 @@
 package com.xebia.functional.xef.data
 
-import com.xebia.functional.openai.apis.ChatApi
-import com.xebia.functional.openai.infrastructure.HttpResponse
-import com.xebia.functional.openai.models.*
-import com.xebia.functional.xef.utils.TestBodyProvider
-import com.xebia.functional.xef.utils.TestHttpResponse
-import kotlin.coroutines.CoroutineContext
+import com.xebia.functional.openai.generated.api.Chat
+import com.xebia.functional.openai.generated.model.*
+import com.xebia.functional.xef.prompt.contentAsString
+import io.ktor.client.request.*
+import kotlinx.coroutines.flow.Flow
 
-class TestChatApi(
-  private val context: CoroutineContext,
-  private val responses: Map<String, String> = emptyMap()
-) : ChatApi(), AutoCloseable {
+class TestChatApi(private val responses: Map<String, String> = emptyMap()) : Chat, AutoCloseable {
 
   var requests: MutableList<CreateChatCompletionRequest> = mutableListOf()
 
   override suspend fun createChatCompletion(
-    createChatCompletionRequest: CreateChatCompletionRequest
-  ): HttpResponse<CreateChatCompletionResponse> {
+    createChatCompletionRequest: CreateChatCompletionRequest,
+    configure: HttpRequestBuilder.() -> Unit
+  ): CreateChatCompletionResponse {
     requests.add(createChatCompletionRequest)
     val response =
       CreateChatCompletionResponse(
@@ -53,7 +50,14 @@ class TestChatApi(
           ),
         usage = CompletionUsage(0, 0, 0)
       )
-    return HttpResponse(TestHttpResponse(context, 200), TestBodyProvider(response))
+    return response
+  }
+
+  override fun createChatCompletionStream(
+    createChatCompletionRequest: CreateChatCompletionRequest,
+    configure: HttpRequestBuilder.() -> Unit
+  ): Flow<CreateChatCompletionStreamResponse> {
+    throw NotImplementedError("Not implemented")
   }
 
   override fun close() {}

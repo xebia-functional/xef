@@ -1,11 +1,6 @@
 package com.xebia.functional.xef.opentelemetry
 
-import com.xebia.functional.openai.models.MessageObject
-import com.xebia.functional.openai.models.RunObject
-import com.xebia.functional.openai.models.RunStepDetailsToolCallsObjectToolCallsInner
-import com.xebia.functional.openai.models.RunStepObject
-import com.xebia.functional.openai.models.ext.assistant.RunStepDetailsMessageCreationObject
-import com.xebia.functional.openai.models.ext.assistant.RunStepDetailsToolCallsObject
+import com.xebia.functional.openai.generated.model.*
 import io.opentelemetry.api.trace.Span
 import io.opentelemetry.api.trace.SpanKind
 import io.opentelemetry.api.trace.Tracer
@@ -21,7 +16,7 @@ class OpenTelemetryAssistantState(private val tracer: Tracer) {
 
     val currentSpan =
       tracer
-        .spanBuilder(runObject.status.value)
+        .spanBuilder(runObject.status.name)
         .setParent(parentOrRoot)
         .setSpanKind(SpanKind.CLIENT)
         .startSpan()
@@ -47,7 +42,7 @@ class OpenTelemetryAssistantState(private val tracer: Tracer) {
     return try {
       val output = block()
       currentSpan.makeCurrent().use {
-        currentSpan.updateName(output.status.value)
+        currentSpan.updateName(output.status.name)
         output.setParameters(currentSpan)
       }
       output
@@ -70,7 +65,7 @@ class OpenTelemetryAssistantState(private val tracer: Tracer) {
     return try {
       val output = block()
       currentSpan.makeCurrent().use {
-        currentSpan.updateName("ToolOutput: ${output.status.value}")
+        currentSpan.updateName("ToolOutput: ${output.status.name}")
         output.setParameters(currentSpan)
       }
       output
@@ -94,20 +89,18 @@ class OpenTelemetryAssistantState(private val tracer: Tracer) {
       val output = block()
       currentSpan.makeCurrent().use {
         when (val detail = output.stepDetails) {
-          is RunStepDetailsMessageCreationObject -> {
-            currentSpan.updateName("Creating message: ${output.status.value}")
-          }
-          is RunStepDetailsToolCallsObject -> {
+          is RunStepObjectStepDetails.CaseRunStepDetailsMessageCreationObject ->
+            currentSpan.updateName("Creating message: ${output.status.name}")
+          is RunStepObjectStepDetails.CaseRunStepDetailsToolCallsObject ->
             currentSpan.updateName(
-              "Tools: ${detail.toolCalls.joinToString { 
-              when (it.type) {
-                RunStepDetailsToolCallsObjectToolCallsInner.Type.code_interpreter -> it.type.value
-                RunStepDetailsToolCallsObjectToolCallsInner.Type.retrieval -> it.type.value
-                RunStepDetailsToolCallsObjectToolCallsInner.Type.function -> it.function?.name ?: it.type.value
-              }
-            }}: ${output.status.value}"
+              "Tools: ${detail.value.toolCalls.joinToString {
+                when (it) {
+                  is RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsCodeObject -> it.value.type.name
+                  is RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsFunctionObject -> it.value.function.name
+                  is RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsRetrievalObject -> it.value.type.name
+                }
+              }}: ${output.status.name}"
             )
-          }
         }
         output.setParameters(currentSpan)
       }
@@ -161,7 +154,7 @@ class OpenTelemetryAssistantState(private val tracer: Tracer) {
     span.setAttribute("openai.assistant.thread.id", threadId)
     span.setAttribute("openai.assistant.assistant.id", assistantId)
     span.setAttribute("openai.assistant.run.id", id)
-    span.setAttribute("openai.assistant.status", status.value)
+    span.setAttribute("openai.assistant.status", status.name)
     usage?.let {
       span.setAttribute("openai.assistant.usage.totalTokens", it.totalTokens.toString())
       span.setAttribute("openai.assistant.usage.completionTokens", it.completionTokens.toString())
@@ -170,27 +163,45 @@ class OpenTelemetryAssistantState(private val tracer: Tracer) {
   }
 
   private fun RunStepObject.setParameters(span: Span) {
-    span.setAttribute("openai.assistant.type", type.value)
+    span.setAttribute("openai.assistant.type", type.name)
     span.setAttribute("openai.assistant.thread.id", threadId)
     span.setAttribute("openai.assistant.assistant.id", assistantId)
     span.setAttribute("openai.assistant.run.id", runId)
     span.setAttribute("openai.assistant.runStep.id", id)
-    span.setAttribute("openai.assistant.status", status.value)
+    span.setAttribute("openai.assistant.status", status.name)
     when (val detail = stepDetails) {
-      is RunStepDetailsMessageCreationObject -> {
-        span.setAttribute("openai.assistant.messageCreation.id", detail.messageCreation.messageId)
+      is RunStepObjectStepDetails.CaseRunStepDetailsMessageCreationObject -> {
+        span.setAttribute(
+          "openai.assistant.messageCreation.id",
+          detail.value.messageCreation.messageId
+        )
       }
-      is RunStepDetailsToolCallsObject -> {
-        detail.toolCalls.forEachIndexed { index, toolCall ->
-          span.setAttribute("openai.assistant.toolCalls.$index.type", toolCall.type.value)
-          span.setAttribute(
-            "openai.assistant.toolCalls.$index.function.name",
-            toolCall.function?.name ?: ""
-          )
-          span.setAttribute(
-            "openai.assistant.toolCalls.$index.function.arguments",
-            toolCall.function?.arguments ?: ""
-          )
+      is RunStepObjectStepDetails.CaseRunStepDetailsToolCallsObject -> {
+        detail.value.toolCalls.forEachIndexed { index, toolCall ->
+          when (toolCall) {
+            is RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsCodeObject -> {
+              span.setAttribute("openai.assistant.toolCalls.$index.type", toolCall.value.type.name)
+              span.setAttribute(
+                "openai.assistant.toolCalls.$index.function.name",
+                "code_interpreter"
+              )
+            }
+            is RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsFunctionObject -> {
+              span.setAttribute("openai.assistant.toolCalls.$index.type", toolCall.value.type.name)
+              span.setAttribute(
+                "openai.assistant.toolCalls.$index.function.name",
+                toolCall.value.function.name
+              )
+              span.setAttribute(
+                "openai.assistant.toolCalls.$index.function.arguments",
+                toolCall.value.function.arguments
+              )
+            }
+            is RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsRetrievalObject -> {
+              span.setAttribute("openai.assistant.toolCalls.$index.type", toolCall.value.type.name)
+              span.setAttribute("openai.assistant.toolCalls.$index.function.name", "retrieval")
+            }
+          }
         }
       }
     }
@@ -199,11 +210,22 @@ class OpenTelemetryAssistantState(private val tracer: Tracer) {
   private fun List<MessageObject>.setParameters(span: Span) {
     span.setAttribute("openai.assistant.messages.count", size.toString())
     forEach {
-      span.setAttribute("openai.assistant.messages.${indexOf(it)}.role", it.role.value)
-      span.setAttribute(
-        "openai.assistant.messages.${indexOf(it)}.content",
-        it.content.firstOrNull()?.text?.value ?: ""
-      )
+      span.setAttribute("openai.assistant.messages.${indexOf(it)}.role", it.role.name)
+      when (val inner = it.content.firstOrNull()) {
+        is MessageObjectContentInner.CaseMessageContentImageFileObject -> {
+          span.setAttribute(
+            "openai.assistant.messages.${indexOf(it)}.content",
+            inner.value.imageFile.fileId
+          )
+        }
+        is MessageObjectContentInner.CaseMessageContentTextObject -> {
+          span.setAttribute(
+            "openai.assistant.messages.${indexOf(it)}.content",
+            inner.value.text.value
+          )
+        }
+        null -> {}
+      }
     }
   }
 }

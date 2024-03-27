@@ -1,9 +1,9 @@
 package com.xebia.functional.xef.llm
 
-import com.xebia.functional.openai.models.ChatCompletionResponseMessage
-import com.xebia.functional.openai.models.ChatCompletionRole
-import com.xebia.functional.openai.models.CreateChatCompletionResponseChoicesInner
-import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage
+import com.xebia.functional.openai.generated.model.ChatCompletionRequestMessage
+import com.xebia.functional.openai.generated.model.ChatCompletionResponseMessage
+import com.xebia.functional.openai.generated.model.ChatCompletionRole
+import com.xebia.functional.openai.generated.model.CreateChatCompletionResponseChoicesInner
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.MessagesToHistory
 import com.xebia.functional.xef.store.ConversationId

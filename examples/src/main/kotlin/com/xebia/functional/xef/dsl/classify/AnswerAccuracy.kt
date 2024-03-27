@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.dsl.classify
 
-import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
+import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.AI
 import com.xebia.functional.xef.evaluator.metrics.AnswerAccuracy
 

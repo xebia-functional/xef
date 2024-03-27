@@ -1,10 +1,11 @@
 package com.xebia.functional.xef.metrics
 
 import arrow.atomic.AtomicInt
-import com.xebia.functional.openai.models.MessageObject
-import com.xebia.functional.openai.models.RunObject
-import com.xebia.functional.openai.models.RunStepObject
+import com.xebia.functional.openai.generated.model.MessageObject
+import com.xebia.functional.openai.generated.model.RunObject
+import com.xebia.functional.openai.generated.model.RunStepObject
 import com.xebia.functional.xef.prompt.Prompt
+import com.xebia.functional.xef.prompt.contentAsString
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.oshai.kotlinlogging.Level
 import io.ktor.util.date.*
@@ -29,7 +30,7 @@ class LogsMetric(private val level: Level = Level.INFO) : Metric {
     return output
   }
 
-  override suspend fun <A, T> promptSpan(prompt: Prompt<T>, block: suspend Metric.() -> A): A {
+  override suspend fun <A> promptSpan(prompt: Prompt, block: suspend Metric.() -> A): A {
     val millis = getTimeMillis()
     val name = prompt.messages.lastOrNull()?.contentAsString() ?: "empty"
     logger.at(level) { message = "${writeIndent(numberOfBlocks.get())}> Prompt-Span: $name" }
@@ -53,7 +54,7 @@ class LogsMetric(private val level: Level = Level.INFO) : Metric {
       this.message = "${writeIndent(numberOfBlocks.get())}|-- RunId: ${runObject.id}"
     }
     logger.at(level) {
-      this.message = "${writeIndent(numberOfBlocks.get())}|-- Status: ${runObject.status.value}"
+      this.message = "${writeIndent(numberOfBlocks.get())}|-- Status: ${runObject.status.name}"
     }
   }
 
@@ -92,7 +93,7 @@ class LogsMetric(private val level: Level = Level.INFO) : Metric {
       this.message = "${writeIndent(numberOfBlocks.get())}|-- RunId: ${output.runId}"
     }
     logger.at(level) {
-      this.message = "${writeIndent(numberOfBlocks.get())}|-- Status: ${output.status.value}"
+      this.message = "${writeIndent(numberOfBlocks.get())}|-- Status: ${output.status.name}"
     }
     return output
   }

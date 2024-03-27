@@ -149,3 +149,5 @@ kotlin-js-store/
 .env
 
 *.bin
+model.log
+operations.log

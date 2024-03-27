@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.prompt.configuration
 
-import com.xebia.functional.openai.models.ChatCompletionRole
+import com.xebia.functional.openai.generated.model.ChatCompletionRole
 import com.xebia.functional.xef.conversation.MessagePolicy
 import kotlin.jvm.JvmField
 import kotlin.jvm.JvmOverloads

@@ -36,8 +36,6 @@ project(":xef-openai-client-generator").projectDir = file("openai-client/generat
 //</editor-fold>
 
 //<editor-fold desc="Integrations">
-include("xef-lucene")
-project(":xef-lucene").projectDir = file("integrations/lucene")
 
 include("xef-pdf")
 project(":xef-pdf").projectDir = file("integrations/pdf")

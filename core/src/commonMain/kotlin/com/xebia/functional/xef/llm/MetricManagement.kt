@@ -1,10 +1,12 @@
 package com.xebia.functional.xef.llm
 
-import com.xebia.functional.openai.models.CreateChatCompletionResponse
-import com.xebia.functional.openai.models.RunObject
+import com.xebia.functional.openai.generated.model.CreateChatCompletionResponse
+import com.xebia.functional.openai.generated.model.RunObject
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.metrics.Metric
 import com.xebia.functional.xef.prompt.Prompt
+import com.xebia.functional.xef.prompt.completionRole
+import com.xebia.functional.xef.prompt.contentAsString
 
 suspend fun CreateChatCompletionResponse.addMetrics(
   conversation: Conversation
@@ -21,7 +23,7 @@ suspend fun CreateChatCompletionResponse.addMetrics(
   return this
 }
 
-suspend fun <T> Prompt<T>.addMetrics(conversation: Conversation) {
+suspend fun Prompt.addMetrics(conversation: Conversation) {
   conversation.metric.parameter("openai.chat_completion.prompt.message.count", "${messages.size}")
 
   conversation.metric.parameter(

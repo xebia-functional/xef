@@ -48,7 +48,6 @@ dependencies {
     implementation(libs.suspendApp.ktor)
     implementation(libs.uuid)
     implementation(projects.xefCore)
-    implementation(projects.xefLucene)
     implementation(projects.xefPostgresql)
     testImplementation(libs.junit.jupiter.api)
     testImplementation(libs.junit.jupiter.engine)

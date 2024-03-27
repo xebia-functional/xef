@@ -1,9 +1,10 @@
 package com.xebia.functional.xef.store
 
 import arrow.atomic.AtomicInt
-import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestAssistantMessage
-import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestUserMessage
-import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestUserMessageContentText
+import com.xebia.functional.openai.generated.model.ChatCompletionRequestAssistantMessage
+import com.xebia.functional.openai.generated.model.ChatCompletionRequestMessage
+import com.xebia.functional.openai.generated.model.ChatCompletionRequestUserMessage
+import com.xebia.functional.openai.generated.model.ChatCompletionRequestUserMessageContent
 
 class MemoryData {
   val defaultConversationId = ConversationId("default-id")
@@ -18,16 +19,32 @@ class MemoryData {
     (0 until n).flatMap {
       val m1 =
         ChatCompletionRequestUserMessage(
-          listOf(
-            ChatCompletionRequestUserMessageContentText(
+          role = ChatCompletionRequestUserMessage.Role.user,
+          content =
+            ChatCompletionRequestUserMessageContent.CaseString(
               "Question $it${append?.let { ": $it" } ?: ""}"
             )
-          )
         )
-      val m2 = ChatCompletionRequestAssistantMessage("Response $it${append?.let { ": $it" } ?: ""}")
+      val m2 =
+        ChatCompletionRequestAssistantMessage(
+          role = ChatCompletionRequestAssistantMessage.Role.assistant,
+          content = "Response $it${append?.let { ": $it" } ?: ""}"
+        )
       listOf(
-        Memory(conversationId, MemorizedMessage.Request(m1), atomicInt.addAndGet(1)),
-        Memory(conversationId, MemorizedMessage.Request(m2), atomicInt.addAndGet(1)),
+        Memory(
+          conversationId,
+          MemorizedMessage.Request(
+            ChatCompletionRequestMessage.CaseChatCompletionRequestUserMessage(m1)
+          ),
+          atomicInt.addAndGet(1)
+        ),
+        Memory(
+          conversationId,
+          MemorizedMessage.Request(
+            ChatCompletionRequestMessage.CaseChatCompletionRequestAssistantMessage(m2)
+          ),
+          atomicInt.addAndGet(1)
+        ),
       )
     }
 }

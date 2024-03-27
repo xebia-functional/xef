@@ -22,7 +22,6 @@ logback = "1.4.14"
 node-gradle = "7.0.2"
 kotlinx-coroutines = "1.8.0"
 rssreader = "3.5.0"
-lucene = "9.10.0"
 junit = "5.10.2"
 pdfbox = "3.0.2"
 mysql = "8.0.33"
@@ -99,8 +98,6 @@ postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" 
 testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 rss-reader = { module = "com.apptasticsoftware:rssreader", version.ref = "rssreader" }
-lucene-core = { module = "org.apache.lucene:lucene-core", version.ref = "lucene" }
-lucene-queries = { module = "org.apache.lucene:lucene-queries", version.ref = "lucene" }
 apache-pdf-box = { module = "org.apache.pdfbox:pdfbox", version.ref = "pdfbox" }
 jdbc-mysql-connector = { module = "mysql:mysql-connector-java", version.ref = "mysql" }
 jackson = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }

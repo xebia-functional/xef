@@ -18,20 +18,6 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.jsonPrimitive
 
-enum class Provider {
-  OPENAI,
-  GPT4ALL,
-  GCP
-}
-
-fun String.toProvider(): Provider? =
-  when (this) {
-    "openai" -> Provider.OPENAI
-    "gpt4all" -> Provider.GPT4ALL
-    "gcp" -> Provider.GCP
-    else -> Provider.OPENAI
-  }
-
 fun Routing.aiRoutes(client: HttpClient) {
   val openAiUrl = "https://api.openai.com/v1"
 

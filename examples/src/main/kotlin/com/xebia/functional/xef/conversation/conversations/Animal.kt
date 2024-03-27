@@ -1,14 +1,14 @@
 package com.xebia.functional.xef.conversation.conversations
 
-import ai.xef.openai.StandardModel
-import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
+import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
+import com.xebia.functional.xef.AI
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.MessagesFromHistory
 import com.xebia.functional.xef.conversation.MessagesToHistory
 import com.xebia.functional.xef.prompt.Prompt
+import com.xebia.functional.xef.prompt.PromptBuilder.Companion.system
+import com.xebia.functional.xef.prompt.PromptBuilder.Companion.user
 import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
-import com.xebia.functional.xef.prompt.templates.system
-import com.xebia.functional.xef.prompt.templates.user
 import kotlinx.serialization.Serializable
 
 @Serializable data class Animal(val name: String, val habitat: String, val diet: String)
@@ -30,15 +30,15 @@ suspend fun main() {
       val configNoneFromConversation = PromptConfiguration {
         messagePolicy { addMessagesFromConversation = MessagesFromHistory.NONE }
       }
-      val model = StandardModel(CreateChatCompletionRequestModel.gpt_3_5_turbo_16k_0613)
+      val model = CreateChatCompletionRequestModel.gpt_3_5_turbo_16k_0613
       val animal: Animal =
-        prompt<Animal>(
+        AI(
           Prompt(model) { +user("A unique animal species.") }
             .copy(configuration = configNoneFromConversation)
         )
 
       val invention: Invention =
-        prompt(
+        AI(
           Prompt(model) { +user("A groundbreaking invention from the 20th century.") }
             .copy(configuration = configNoneFromConversation)
         )
@@ -58,7 +58,7 @@ suspend fun main() {
               }
           )
 
-      val story: String = promptMessage(storyPrompt)
+      val story: String = AI(storyPrompt)
 
       println("\nStory 1:\n$story\n")
 
@@ -67,7 +67,7 @@ suspend fun main() {
           +user("Write a short story of 100 words that involves the animal in a city called Cadiz")
         }
 
-      val story2: String = promptMessage(storyPrompt2)
+      val story2: String = AI(storyPrompt2)
 
       println("\nStory 2:\n$story2\n")
     }

@@ -1,7 +1,10 @@
 package xef
 
 import arrow.atomic.AtomicInt
-import com.xebia.functional.openai.models.ext.chat.*
+import com.xebia.functional.openai.generated.model.ChatCompletionRequestAssistantMessage
+import com.xebia.functional.openai.generated.model.ChatCompletionRequestMessage
+import com.xebia.functional.openai.generated.model.ChatCompletionRequestUserMessage
+import com.xebia.functional.openai.generated.model.ChatCompletionRequestUserMessageContent
 import com.xebia.functional.xef.store.ConversationId
 import com.xebia.functional.xef.store.MemorizedMessage
 import com.xebia.functional.xef.store.Memory
@@ -17,14 +20,18 @@ class MemoryData {
         conversationId: ConversationId = defaultConversationId
     ): List<Memory> =
         (0 until n).flatMap {
-            val m1 = ChatCompletionRequestUserMessage(
-                listOf(
-                    ChatCompletionRequestUserMessageContentText(
-                        "Question $it${append?.let { ": $it" } ?: ""}"
-                    )
+            val m1 = ChatCompletionRequestMessage.CaseChatCompletionRequestUserMessage(
+                ChatCompletionRequestUserMessage(
+                    role = ChatCompletionRequestUserMessage.Role.user,
+                    content = ChatCompletionRequestUserMessageContent.CaseString("Question $it${append?.let { ": $it" } ?: ""}")
                 )
             )
-            val m2 = ChatCompletionRequestAssistantMessage("Response $it${append?.let { ": $it" } ?: ""}")
+            val m2 = ChatCompletionRequestMessage.CaseChatCompletionRequestAssistantMessage(
+                ChatCompletionRequestAssistantMessage(
+                    role = ChatCompletionRequestAssistantMessage.Role.assistant,
+                    content = "Answer $it${append?.let { ": $it" } ?: ""}"
+                )
+            )
             listOf(
                 Memory(conversationId, MemorizedMessage.Request(m1), atomicInt.addAndGet(1)),
                 Memory(conversationId, MemorizedMessage.Request(m2), atomicInt.addAndGet(1)),

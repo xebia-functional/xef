@@ -1,15 +1,9 @@
 package com.xebia.functional.xef.conversation.streaming
 
-import ai.xef.openai.StandardModel
-import com.xebia.functional.openai.apis.EmbeddingsApi
-import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
-import com.xebia.functional.xef.conversation.Conversation
+import com.xebia.functional.xef.AI
 import com.xebia.functional.xef.conversation.Description
 import com.xebia.functional.xef.llm.StreamedFunction
-import com.xebia.functional.xef.llm.fromEnvironment
-import com.xebia.functional.xef.metrics.LogsMetric
-import com.xebia.functional.xef.prompt.Prompt
-import com.xebia.functional.xef.store.LocalVectorStore
+import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -38,13 +32,8 @@ data class InterstellarCraft(
 )
 
 suspend fun main() {
-  val model = StandardModel(CreateChatCompletionRequestModel.gpt_3_5_turbo_16k_0613)
-
-  val scope = Conversation(LocalVectorStore(fromEnvironment(::EmbeddingsApi)), LogsMetric())
-
-  scope
-    .promptStreamingFunctions<InterstellarCraft>(
-      Prompt(model, "Make a spacecraft with a mission to Mars"),
+  AI<Flow<StreamedFunction<InterstellarCraft>>>(
+      "Make a spacecraft with a mission to Mars",
     )
     .collect { element ->
       when (element) {
