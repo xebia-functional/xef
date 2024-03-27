@@ -85,7 +85,7 @@ interface PromptBuilder {
     ): PlatformPromptBuilder = PlatformPromptBuilder.create(model, functions, configuration)
 
     fun assistant(value: String): ChatCompletionRequestMessage =
-      ChatCompletionRequestMessage.First(
+      ChatCompletionRequestMessage.CaseChatCompletionRequestAssistantMessage(
         ChatCompletionRequestAssistantMessage(
           role = ChatCompletionRequestAssistantMessage.Role.assistant,
           content = value
@@ -93,15 +93,15 @@ interface PromptBuilder {
       )
 
     fun user(value: String): ChatCompletionRequestMessage =
-      ChatCompletionRequestMessage.Fifth(
+      ChatCompletionRequestMessage.CaseChatCompletionRequestUserMessage(
         ChatCompletionRequestUserMessage(
           role = ChatCompletionRequestUserMessage.Role.user,
-          content = ChatCompletionRequestUserMessageContent.First(value)
+          content = ChatCompletionRequestUserMessageContent.CaseString(value)
         )
       )
 
     fun system(value: String): ChatCompletionRequestMessage =
-      ChatCompletionRequestMessage.Third(
+      ChatCompletionRequestMessage.CaseChatCompletionRequestSystemMessage(
         ChatCompletionRequestSystemMessage(
           role = ChatCompletionRequestSystemMessage.Role.system,
           content = value
@@ -109,24 +109,26 @@ interface PromptBuilder {
       )
 
     fun image(url: String, text: String): ChatCompletionRequestMessage =
-      ChatCompletionRequestMessage.Fifth(
+      ChatCompletionRequestMessage.CaseChatCompletionRequestUserMessage(
         ChatCompletionRequestUserMessage(
           role = ChatCompletionRequestUserMessage.Role.user,
           content =
-            ChatCompletionRequestUserMessageContent.Second(
+            ChatCompletionRequestUserMessageContent.CaseChatCompletionRequestMessageContentParts(
               listOf(
-                ChatCompletionRequestMessageContentPart.First(
-                  ChatCompletionRequestMessageContentPartImage(
-                    type = ChatCompletionRequestMessageContentPartImage.Type.image_url,
-                    imageUrl = ChatCompletionRequestMessageContentPartImageImageUrl(url)
+                ChatCompletionRequestMessageContentPart
+                  .CaseChatCompletionRequestMessageContentPartImage(
+                    ChatCompletionRequestMessageContentPartImage(
+                      type = ChatCompletionRequestMessageContentPartImage.Type.image_url,
+                      imageUrl = ChatCompletionRequestMessageContentPartImageImageUrl(url)
+                    )
+                  ),
+                ChatCompletionRequestMessageContentPart
+                  .CaseChatCompletionRequestMessageContentPartText(
+                    ChatCompletionRequestMessageContentPartText(
+                      type = ChatCompletionRequestMessageContentPartText.Type.text,
+                      text = text
+                    )
                   )
-                ),
-                ChatCompletionRequestMessageContentPart.Second(
-                  ChatCompletionRequestMessageContentPartText(
-                    type = ChatCompletionRequestMessageContentPartText.Type.text,
-                    text = text
-                  )
-                )
               )
             )
         )
@@ -136,29 +138,36 @@ interface PromptBuilder {
 
 fun ChatCompletionRequestMessage.contentAsString(): String =
   when (this) {
-    is ChatCompletionRequestMessage.Fifth ->
+    is ChatCompletionRequestMessage.CaseChatCompletionRequestUserMessage ->
       when (val content = value.content) {
-        is ChatCompletionRequestUserMessageContent.First -> content.value
-        is ChatCompletionRequestUserMessageContent.Second ->
+        is ChatCompletionRequestUserMessageContent.CaseString -> content.value
+        is ChatCompletionRequestUserMessageContent.CaseChatCompletionRequestMessageContentParts ->
           content.value.joinToString {
             when (it) {
-              is ChatCompletionRequestMessageContentPart.First -> it.value.imageUrl.url
-              is ChatCompletionRequestMessageContentPart.Second -> it.value.text
+              is ChatCompletionRequestMessageContentPart.CaseChatCompletionRequestMessageContentPartImage ->
+                it.value.imageUrl.url
+              is ChatCompletionRequestMessageContentPart.CaseChatCompletionRequestMessageContentPartText ->
+                it.value.text
             }
           }
       }
-    is ChatCompletionRequestMessage.First -> value.content ?: ""
-    is ChatCompletionRequestMessage.Fourth -> value.content
-    is ChatCompletionRequestMessage.Second -> value.content ?: ""
-    is ChatCompletionRequestMessage.Third -> value.content
+    is ChatCompletionRequestMessage.CaseChatCompletionRequestAssistantMessage -> value.content ?: ""
+    is ChatCompletionRequestMessage.CaseChatCompletionRequestToolMessage -> value.content
+    is ChatCompletionRequestMessage.CaseChatCompletionRequestFunctionMessage -> value.content ?: ""
+    is ChatCompletionRequestMessage.CaseChatCompletionRequestSystemMessage -> value.content
   }
 
 internal fun ChatCompletionRequestMessage.completionRole(): ChatCompletionRole =
   when (this) {
     /* this conversion is needed because we don't have a hierarchy for nested roles */
-    is ChatCompletionRequestMessage.Fifth -> ChatCompletionRole.valueOf(value.role.name)
-    is ChatCompletionRequestMessage.First -> ChatCompletionRole.valueOf(value.role.name)
-    is ChatCompletionRequestMessage.Fourth -> ChatCompletionRole.valueOf(value.role.name)
-    is ChatCompletionRequestMessage.Second -> ChatCompletionRole.valueOf(value.role.name)
-    is ChatCompletionRequestMessage.Third -> ChatCompletionRole.valueOf(value.role.name)
+    is ChatCompletionRequestMessage.CaseChatCompletionRequestUserMessage ->
+      ChatCompletionRole.valueOf(value.role.name)
+    is ChatCompletionRequestMessage.CaseChatCompletionRequestAssistantMessage ->
+      ChatCompletionRole.valueOf(value.role.name)
+    is ChatCompletionRequestMessage.CaseChatCompletionRequestToolMessage ->
+      ChatCompletionRole.valueOf(value.role.name)
+    is ChatCompletionRequestMessage.CaseChatCompletionRequestFunctionMessage ->
+      ChatCompletionRole.valueOf(value.role.name)
+    is ChatCompletionRequestMessage.CaseChatCompletionRequestSystemMessage ->
+      ChatCompletionRole.valueOf(value.role.name)
   }

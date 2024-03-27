@@ -18,12 +18,13 @@ sealed interface ChatCompletionRequestUserMessageContent {
 
   @JvmInline
   @Serializable
-  value class First(val value: kotlin.String) : ChatCompletionRequestUserMessageContent
+  value class CaseString(val value: kotlin.String) : ChatCompletionRequestUserMessageContent
 
   @JvmInline
   @Serializable
-  value class Second(val value: kotlin.collections.List<ChatCompletionRequestMessageContentPart>) :
-    ChatCompletionRequestUserMessageContent
+  value class CaseChatCompletionRequestMessageContentParts(
+    val value: kotlin.collections.List<ChatCompletionRequestMessageContentPart>
+  ) : ChatCompletionRequestUserMessageContent
 }
 
 private object ChatCompletionRequestUserMessageContentSerializer :
@@ -31,25 +32,22 @@ private object ChatCompletionRequestUserMessageContentSerializer :
   @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
   override val descriptor: SerialDescriptor =
     buildSerialDescriptor("ChatCompletionRequestUserMessageContent", PolymorphicKind.SEALED) {
-      element("First", kotlin.String.serializer().descriptor)
-      element(
-        "Second",
-        ListSerializer(ChatCompletionRequestMessageContentPart.serializer()).descriptor
-      )
+      element("1", kotlin.String.serializer().descriptor)
+      element("2", ListSerializer(ChatCompletionRequestMessageContentPart.serializer()).descriptor)
     }
 
   override fun deserialize(decoder: Decoder): ChatCompletionRequestUserMessageContent {
     val json = decoder.decodeSerializableValue(JsonElement.serializer())
     return kotlin
       .runCatching {
-        ChatCompletionRequestUserMessageContent.First(
+        ChatCompletionRequestUserMessageContent.CaseString(
           Json.decodeFromJsonElement(kotlin.String.serializer(), json)
         )
       }
       .getOrNull()
       ?: kotlin
         .runCatching {
-          ChatCompletionRequestUserMessageContent.Second(
+          ChatCompletionRequestUserMessageContent.CaseChatCompletionRequestMessageContentParts(
             Json.decodeFromJsonElement(
               ListSerializer(ChatCompletionRequestMessageContentPart.serializer()),
               json
@@ -61,9 +59,9 @@ private object ChatCompletionRequestUserMessageContentSerializer :
 
   override fun serialize(encoder: Encoder, value: ChatCompletionRequestUserMessageContent) =
     when (value) {
-      is ChatCompletionRequestUserMessageContent.First ->
+      is ChatCompletionRequestUserMessageContent.CaseString ->
         encoder.encodeSerializableValue(kotlin.String.serializer(), value.value)
-      is ChatCompletionRequestUserMessageContent.Second ->
+      is ChatCompletionRequestUserMessageContent.CaseChatCompletionRequestMessageContentParts ->
         encoder.encodeSerializableValue(
           ListSerializer(ChatCompletionRequestMessageContentPart.serializer()),
           value.value

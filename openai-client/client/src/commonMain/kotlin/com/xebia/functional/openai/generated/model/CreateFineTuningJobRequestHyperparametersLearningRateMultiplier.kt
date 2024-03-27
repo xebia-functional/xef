@@ -20,12 +20,12 @@ sealed interface CreateFineTuningJobRequestHyperparametersLearningRateMultiplier
 
   @JvmInline
   @Serializable
-  value class First(val value: kotlin.Double) :
+  value class CaseDouble(val value: kotlin.Double) :
     CreateFineTuningJobRequestHyperparametersLearningRateMultiplier
 
   @JvmInline
   @Serializable
-  value class Second(val value: kotlin.String) :
+  value class CaseString(val value: kotlin.String) :
     CreateFineTuningJobRequestHyperparametersLearningRateMultiplier
 }
 
@@ -37,8 +37,8 @@ private object CreateFineTuningJobRequestHyperparametersLearningRateMultiplierSe
       "CreateFineTuningJobRequestHyperparametersLearningRateMultiplier",
       PolymorphicKind.SEALED
     ) {
-      element("First", kotlin.Double.serializer().descriptor)
-      element("Second", kotlin.String.serializer().descriptor)
+      element("1", kotlin.Double.serializer().descriptor)
+      element("2", kotlin.String.serializer().descriptor)
     }
 
   override fun deserialize(
@@ -47,14 +47,14 @@ private object CreateFineTuningJobRequestHyperparametersLearningRateMultiplierSe
     val json = decoder.decodeSerializableValue(JsonElement.serializer())
     return kotlin
       .runCatching {
-        CreateFineTuningJobRequestHyperparametersLearningRateMultiplier.First(
+        CreateFineTuningJobRequestHyperparametersLearningRateMultiplier.CaseDouble(
           Json.decodeFromJsonElement(kotlin.Double.serializer(), json)
         )
       }
       .getOrNull()
       ?: kotlin
         .runCatching {
-          CreateFineTuningJobRequestHyperparametersLearningRateMultiplier.Second(
+          CreateFineTuningJobRequestHyperparametersLearningRateMultiplier.CaseString(
             Json.decodeFromJsonElement(kotlin.String.serializer(), json)
           )
         }
@@ -66,9 +66,9 @@ private object CreateFineTuningJobRequestHyperparametersLearningRateMultiplierSe
     value: CreateFineTuningJobRequestHyperparametersLearningRateMultiplier
   ) =
     when (value) {
-      is CreateFineTuningJobRequestHyperparametersLearningRateMultiplier.First ->
+      is CreateFineTuningJobRequestHyperparametersLearningRateMultiplier.CaseDouble ->
         encoder.encodeSerializableValue(kotlin.Double.serializer(), value.value)
-      is CreateFineTuningJobRequestHyperparametersLearningRateMultiplier.Second ->
+      is CreateFineTuningJobRequestHyperparametersLearningRateMultiplier.CaseString ->
         encoder.encodeSerializableValue(kotlin.String.serializer(), value.value)
     }
 }

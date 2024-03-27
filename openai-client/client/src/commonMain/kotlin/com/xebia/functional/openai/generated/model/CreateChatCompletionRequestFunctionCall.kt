@@ -18,12 +18,12 @@ sealed interface CreateChatCompletionRequestFunctionCall {
 
   @JvmInline
   @Serializable
-  value class First(val value: ChatCompletionFunctionCallOption) :
+  value class CaseChatCompletionFunctionCallOption(val value: ChatCompletionFunctionCallOption) :
     CreateChatCompletionRequestFunctionCall
 
   @JvmInline
   @Serializable
-  value class Second(val value: kotlin.String) : CreateChatCompletionRequestFunctionCall
+  value class CaseString(val value: kotlin.String) : CreateChatCompletionRequestFunctionCall
 }
 
 private object CreateChatCompletionRequestFunctionCallSerializer :
@@ -31,22 +31,22 @@ private object CreateChatCompletionRequestFunctionCallSerializer :
   @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
   override val descriptor: SerialDescriptor =
     buildSerialDescriptor("CreateChatCompletionRequestFunctionCall", PolymorphicKind.SEALED) {
-      element("First", ChatCompletionFunctionCallOption.serializer().descriptor)
-      element("Second", kotlin.String.serializer().descriptor)
+      element("1", ChatCompletionFunctionCallOption.serializer().descriptor)
+      element("2", kotlin.String.serializer().descriptor)
     }
 
   override fun deserialize(decoder: Decoder): CreateChatCompletionRequestFunctionCall {
     val json = decoder.decodeSerializableValue(JsonElement.serializer())
     return kotlin
       .runCatching {
-        CreateChatCompletionRequestFunctionCall.First(
+        CreateChatCompletionRequestFunctionCall.CaseChatCompletionFunctionCallOption(
           Json.decodeFromJsonElement(ChatCompletionFunctionCallOption.serializer(), json)
         )
       }
       .getOrNull()
       ?: kotlin
         .runCatching {
-          CreateChatCompletionRequestFunctionCall.Second(
+          CreateChatCompletionRequestFunctionCall.CaseString(
             Json.decodeFromJsonElement(kotlin.String.serializer(), json)
           )
         }
@@ -55,9 +55,9 @@ private object CreateChatCompletionRequestFunctionCallSerializer :
 
   override fun serialize(encoder: Encoder, value: CreateChatCompletionRequestFunctionCall) =
     when (value) {
-      is CreateChatCompletionRequestFunctionCall.First ->
+      is CreateChatCompletionRequestFunctionCall.CaseChatCompletionFunctionCallOption ->
         encoder.encodeSerializableValue(ChatCompletionFunctionCallOption.serializer(), value.value)
-      is CreateChatCompletionRequestFunctionCall.Second ->
+      is CreateChatCompletionRequestFunctionCall.CaseString ->
         encoder.encodeSerializableValue(kotlin.String.serializer(), value.value)
     }
 }

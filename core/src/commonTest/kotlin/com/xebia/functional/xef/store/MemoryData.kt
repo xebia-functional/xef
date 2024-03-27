@@ -21,7 +21,7 @@ class MemoryData {
         ChatCompletionRequestUserMessage(
           role = ChatCompletionRequestUserMessage.Role.user,
           content =
-            ChatCompletionRequestUserMessageContent.First(
+            ChatCompletionRequestUserMessageContent.CaseString(
               "Question $it${append?.let { ": $it" } ?: ""}"
             )
         )
@@ -33,12 +33,16 @@ class MemoryData {
       listOf(
         Memory(
           conversationId,
-          MemorizedMessage.Request(ChatCompletionRequestMessage.Fifth(m1)),
+          MemorizedMessage.Request(
+            ChatCompletionRequestMessage.CaseChatCompletionRequestUserMessage(m1)
+          ),
           atomicInt.addAndGet(1)
         ),
         Memory(
           conversationId,
-          MemorizedMessage.Request(ChatCompletionRequestMessage.First(m2)),
+          MemorizedMessage.Request(
+            ChatCompletionRequestMessage.CaseChatCompletionRequestAssistantMessage(m2)
+          ),
           atomicInt.addAndGet(1)
         ),
       )

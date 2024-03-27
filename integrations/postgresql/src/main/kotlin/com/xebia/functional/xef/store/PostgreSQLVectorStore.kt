@@ -38,7 +38,7 @@ class PGVectorStore(
         update(addNewMemory) {
           bind(UUID.generateUUID().toString())
           bind(memory.conversationId.value)
-          bind(memory.content.role.name.lowercase())
+          bind(memory.content.role.value.lowercase())
           bind(memory.content.asRequestMessage().contentAsString())
           bind(memory.index)
         }

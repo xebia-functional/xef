@@ -18,13 +18,15 @@ sealed interface ChatCompletionRequestMessageContentPart {
 
   @JvmInline
   @Serializable
-  value class First(val value: ChatCompletionRequestMessageContentPartImage) :
-    ChatCompletionRequestMessageContentPart
+  value class CaseChatCompletionRequestMessageContentPartImage(
+    val value: ChatCompletionRequestMessageContentPartImage
+  ) : ChatCompletionRequestMessageContentPart
 
   @JvmInline
   @Serializable
-  value class Second(val value: ChatCompletionRequestMessageContentPartText) :
-    ChatCompletionRequestMessageContentPart
+  value class CaseChatCompletionRequestMessageContentPartText(
+    val value: ChatCompletionRequestMessageContentPartText
+  ) : ChatCompletionRequestMessageContentPart
 }
 
 private object ChatCompletionRequestMessageContentPartSerializer :
@@ -32,15 +34,15 @@ private object ChatCompletionRequestMessageContentPartSerializer :
   @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
   override val descriptor: SerialDescriptor =
     buildSerialDescriptor("ChatCompletionRequestMessageContentPart", PolymorphicKind.SEALED) {
-      element("First", ChatCompletionRequestMessageContentPartImage.serializer().descriptor)
-      element("Second", ChatCompletionRequestMessageContentPartText.serializer().descriptor)
+      element("1", ChatCompletionRequestMessageContentPartImage.serializer().descriptor)
+      element("2", ChatCompletionRequestMessageContentPartText.serializer().descriptor)
     }
 
   override fun deserialize(decoder: Decoder): ChatCompletionRequestMessageContentPart {
     val json = decoder.decodeSerializableValue(JsonElement.serializer())
     return kotlin
       .runCatching {
-        ChatCompletionRequestMessageContentPart.First(
+        ChatCompletionRequestMessageContentPart.CaseChatCompletionRequestMessageContentPartImage(
           Json.decodeFromJsonElement(
             ChatCompletionRequestMessageContentPartImage.serializer(),
             json
@@ -50,7 +52,7 @@ private object ChatCompletionRequestMessageContentPartSerializer :
       .getOrNull()
       ?: kotlin
         .runCatching {
-          ChatCompletionRequestMessageContentPart.Second(
+          ChatCompletionRequestMessageContentPart.CaseChatCompletionRequestMessageContentPartText(
             Json.decodeFromJsonElement(
               ChatCompletionRequestMessageContentPartText.serializer(),
               json
@@ -62,12 +64,12 @@ private object ChatCompletionRequestMessageContentPartSerializer :
 
   override fun serialize(encoder: Encoder, value: ChatCompletionRequestMessageContentPart) =
     when (value) {
-      is ChatCompletionRequestMessageContentPart.First ->
+      is ChatCompletionRequestMessageContentPart.CaseChatCompletionRequestMessageContentPartImage ->
         encoder.encodeSerializableValue(
           ChatCompletionRequestMessageContentPartImage.serializer(),
           value.value
         )
-      is ChatCompletionRequestMessageContentPart.Second ->
+      is ChatCompletionRequestMessageContentPart.CaseChatCompletionRequestMessageContentPartText ->
         encoder.encodeSerializableValue(
           ChatCompletionRequestMessageContentPartText.serializer(),
           value.value

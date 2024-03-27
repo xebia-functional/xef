@@ -18,11 +18,12 @@ sealed interface CreateFineTuningJobRequestHyperparametersBatchSize {
 
   @JvmInline
   @Serializable
-  value class First(val value: kotlin.Int) : CreateFineTuningJobRequestHyperparametersBatchSize
+  value class CaseInt(val value: kotlin.Int) : CreateFineTuningJobRequestHyperparametersBatchSize
 
   @JvmInline
   @Serializable
-  value class Second(val value: kotlin.String) : CreateFineTuningJobRequestHyperparametersBatchSize
+  value class CaseString(val value: kotlin.String) :
+    CreateFineTuningJobRequestHyperparametersBatchSize
 }
 
 private object CreateFineTuningJobRequestHyperparametersBatchSizeSerializer :
@@ -33,22 +34,22 @@ private object CreateFineTuningJobRequestHyperparametersBatchSizeSerializer :
       "CreateFineTuningJobRequestHyperparametersBatchSize",
       PolymorphicKind.SEALED
     ) {
-      element("First", kotlin.Int.serializer().descriptor)
-      element("Second", kotlin.String.serializer().descriptor)
+      element("1", kotlin.Int.serializer().descriptor)
+      element("2", kotlin.String.serializer().descriptor)
     }
 
   override fun deserialize(decoder: Decoder): CreateFineTuningJobRequestHyperparametersBatchSize {
     val json = decoder.decodeSerializableValue(JsonElement.serializer())
     return kotlin
       .runCatching {
-        CreateFineTuningJobRequestHyperparametersBatchSize.First(
+        CreateFineTuningJobRequestHyperparametersBatchSize.CaseInt(
           Json.decodeFromJsonElement(kotlin.Int.serializer(), json)
         )
       }
       .getOrNull()
       ?: kotlin
         .runCatching {
-          CreateFineTuningJobRequestHyperparametersBatchSize.Second(
+          CreateFineTuningJobRequestHyperparametersBatchSize.CaseString(
             Json.decodeFromJsonElement(kotlin.String.serializer(), json)
           )
         }
@@ -60,9 +61,9 @@ private object CreateFineTuningJobRequestHyperparametersBatchSizeSerializer :
     value: CreateFineTuningJobRequestHyperparametersBatchSize
   ) =
     when (value) {
-      is CreateFineTuningJobRequestHyperparametersBatchSize.First ->
+      is CreateFineTuningJobRequestHyperparametersBatchSize.CaseInt ->
         encoder.encodeSerializableValue(kotlin.Int.serializer(), value.value)
-      is CreateFineTuningJobRequestHyperparametersBatchSize.Second ->
+      is CreateFineTuningJobRequestHyperparametersBatchSize.CaseString ->
         encoder.encodeSerializableValue(kotlin.String.serializer(), value.value)
     }
 }

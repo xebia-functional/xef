@@ -18,22 +18,23 @@ sealed interface CreateCompletionRequestPrompt {
 
   @JvmInline
   @Serializable
-  value class First(val value: kotlin.String) : CreateCompletionRequestPrompt
+  value class CaseString(val value: kotlin.String) : CreateCompletionRequestPrompt
 
   @JvmInline
   @Serializable
-  value class Second(val value: kotlin.collections.List<kotlin.Int>) :
+  value class CaseInts(val value: kotlin.collections.List<kotlin.Int>) :
     CreateCompletionRequestPrompt
 
   @JvmInline
   @Serializable
-  value class Third(val value: kotlin.collections.List<kotlin.String>) :
+  value class CaseStrings(val value: kotlin.collections.List<kotlin.String>) :
     CreateCompletionRequestPrompt
 
   @JvmInline
   @Serializable
-  value class Fourth(val value: kotlin.collections.List<kotlin.collections.List<kotlin.Int>>) :
-    CreateCompletionRequestPrompt
+  value class CaseIntsList(
+    val value: kotlin.collections.List<kotlin.collections.List<kotlin.Int>>
+  ) : CreateCompletionRequestPrompt
 }
 
 private object CreateCompletionRequestPromptSerializer :
@@ -41,38 +42,38 @@ private object CreateCompletionRequestPromptSerializer :
   @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
   override val descriptor: SerialDescriptor =
     buildSerialDescriptor("CreateCompletionRequestPrompt", PolymorphicKind.SEALED) {
-      element("First", kotlin.String.serializer().descriptor)
-      element("Second", ListSerializer(kotlin.Int.serializer()).descriptor)
-      element("Third", ListSerializer(kotlin.String.serializer()).descriptor)
-      element("Fourth", ListSerializer(ListSerializer(kotlin.Int.serializer())).descriptor)
+      element("1", kotlin.String.serializer().descriptor)
+      element("2", ListSerializer(kotlin.Int.serializer()).descriptor)
+      element("3", ListSerializer(kotlin.String.serializer()).descriptor)
+      element("4", ListSerializer(ListSerializer(kotlin.Int.serializer())).descriptor)
     }
 
   override fun deserialize(decoder: Decoder): CreateCompletionRequestPrompt {
     val json = decoder.decodeSerializableValue(JsonElement.serializer())
     return kotlin
       .runCatching {
-        CreateCompletionRequestPrompt.First(
+        CreateCompletionRequestPrompt.CaseString(
           Json.decodeFromJsonElement(kotlin.String.serializer(), json)
         )
       }
       .getOrNull()
       ?: kotlin
         .runCatching {
-          CreateCompletionRequestPrompt.Second(
+          CreateCompletionRequestPrompt.CaseInts(
             Json.decodeFromJsonElement(ListSerializer(kotlin.Int.serializer()), json)
           )
         }
         .getOrNull()
       ?: kotlin
         .runCatching {
-          CreateCompletionRequestPrompt.Third(
+          CreateCompletionRequestPrompt.CaseStrings(
             Json.decodeFromJsonElement(ListSerializer(kotlin.String.serializer()), json)
           )
         }
         .getOrNull()
       ?: kotlin
         .runCatching {
-          CreateCompletionRequestPrompt.Fourth(
+          CreateCompletionRequestPrompt.CaseIntsList(
             Json.decodeFromJsonElement(
               ListSerializer(ListSerializer(kotlin.Int.serializer())),
               json
@@ -84,13 +85,13 @@ private object CreateCompletionRequestPromptSerializer :
 
   override fun serialize(encoder: Encoder, value: CreateCompletionRequestPrompt) =
     when (value) {
-      is CreateCompletionRequestPrompt.First ->
+      is CreateCompletionRequestPrompt.CaseString ->
         encoder.encodeSerializableValue(kotlin.String.serializer(), value.value)
-      is CreateCompletionRequestPrompt.Second ->
+      is CreateCompletionRequestPrompt.CaseInts ->
         encoder.encodeSerializableValue(ListSerializer(kotlin.Int.serializer()), value.value)
-      is CreateCompletionRequestPrompt.Third ->
+      is CreateCompletionRequestPrompt.CaseStrings ->
         encoder.encodeSerializableValue(ListSerializer(kotlin.String.serializer()), value.value)
-      is CreateCompletionRequestPrompt.Fourth ->
+      is CreateCompletionRequestPrompt.CaseIntsList ->
         encoder.encodeSerializableValue(
           ListSerializer(ListSerializer(kotlin.Int.serializer())),
           value.value

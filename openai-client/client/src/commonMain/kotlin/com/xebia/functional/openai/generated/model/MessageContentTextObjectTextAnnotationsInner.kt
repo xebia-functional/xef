@@ -18,13 +18,15 @@ sealed interface MessageContentTextObjectTextAnnotationsInner {
 
   @JvmInline
   @Serializable
-  value class First(val value: MessageContentTextAnnotationsFileCitationObject) :
-    MessageContentTextObjectTextAnnotationsInner
+  value class CaseMessageContentTextAnnotationsFileCitationObject(
+    val value: MessageContentTextAnnotationsFileCitationObject
+  ) : MessageContentTextObjectTextAnnotationsInner
 
   @JvmInline
   @Serializable
-  value class Second(val value: MessageContentTextAnnotationsFilePathObject) :
-    MessageContentTextObjectTextAnnotationsInner
+  value class CaseMessageContentTextAnnotationsFilePathObject(
+    val value: MessageContentTextAnnotationsFilePathObject
+  ) : MessageContentTextObjectTextAnnotationsInner
 }
 
 private object MessageContentTextObjectTextAnnotationsInnerSerializer :
@@ -32,42 +34,44 @@ private object MessageContentTextObjectTextAnnotationsInnerSerializer :
   @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
   override val descriptor: SerialDescriptor =
     buildSerialDescriptor("MessageContentTextObjectTextAnnotationsInner", PolymorphicKind.SEALED) {
-      element("First", MessageContentTextAnnotationsFileCitationObject.serializer().descriptor)
-      element("Second", MessageContentTextAnnotationsFilePathObject.serializer().descriptor)
+      element("1", MessageContentTextAnnotationsFileCitationObject.serializer().descriptor)
+      element("2", MessageContentTextAnnotationsFilePathObject.serializer().descriptor)
     }
 
   override fun deserialize(decoder: Decoder): MessageContentTextObjectTextAnnotationsInner {
     val json = decoder.decodeSerializableValue(JsonElement.serializer())
     return kotlin
       .runCatching {
-        MessageContentTextObjectTextAnnotationsInner.First(
-          Json.decodeFromJsonElement(
-            MessageContentTextAnnotationsFileCitationObject.serializer(),
-            json
+        MessageContentTextObjectTextAnnotationsInner
+          .CaseMessageContentTextAnnotationsFileCitationObject(
+            Json.decodeFromJsonElement(
+              MessageContentTextAnnotationsFileCitationObject.serializer(),
+              json
+            )
           )
-        )
       }
       .getOrNull()
       ?: kotlin
         .runCatching {
-          MessageContentTextObjectTextAnnotationsInner.Second(
-            Json.decodeFromJsonElement(
-              MessageContentTextAnnotationsFilePathObject.serializer(),
-              json
+          MessageContentTextObjectTextAnnotationsInner
+            .CaseMessageContentTextAnnotationsFilePathObject(
+              Json.decodeFromJsonElement(
+                MessageContentTextAnnotationsFilePathObject.serializer(),
+                json
+              )
             )
-          )
         }
         .getOrThrow()
   }
 
   override fun serialize(encoder: Encoder, value: MessageContentTextObjectTextAnnotationsInner) =
     when (value) {
-      is MessageContentTextObjectTextAnnotationsInner.First ->
+      is MessageContentTextObjectTextAnnotationsInner.CaseMessageContentTextAnnotationsFileCitationObject ->
         encoder.encodeSerializableValue(
           MessageContentTextAnnotationsFileCitationObject.serializer(),
           value.value
         )
-      is MessageContentTextObjectTextAnnotationsInner.Second ->
+      is MessageContentTextObjectTextAnnotationsInner.CaseMessageContentTextAnnotationsFilePathObject ->
         encoder.encodeSerializableValue(
           MessageContentTextAnnotationsFilePathObject.serializer(),
           value.value

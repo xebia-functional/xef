@@ -183,8 +183,9 @@ class AssistantThread(
         val content =
           message.content.filterNot {
             when (it) {
-              is MessageObjectContentInner.First -> false
-              is MessageObjectContentInner.Second -> it.value.text.value.isBlank()
+              is MessageObjectContentInner.CaseMessageContentImageFileObject -> false
+              is MessageObjectContentInner.CaseMessageContentTextObject ->
+                it.value.text.value.isBlank()
             }
           }
         if (content.isNotEmpty() && message !in cache) {
@@ -200,8 +201,8 @@ class AssistantThread(
   private fun RunStepObjectStepDetails.toolCalls():
     List<RunStepDetailsToolCallsObjectToolCallsInner> =
     when (val step = this) {
-      is RunStepObjectStepDetails.First -> emptyList()
-      is RunStepObjectStepDetails.Second -> step.value.toolCalls
+      is RunStepObjectStepDetails.CaseRunStepDetailsMessageCreationObject -> emptyList()
+      is RunStepObjectStepDetails.CaseRunStepDetailsToolCallsObject -> step.value.toolCalls
     }
 
   private suspend fun FlowCollector<RunDelta>.checkSteps(
@@ -241,7 +242,9 @@ class AssistantThread(
       ) {
         val results: Map<String, Assistant.Companion.ToolOutput> =
           calls
-            .filterIsInstance<RunStepDetailsToolCallsObjectToolCallsInner.Second>()
+            .filterIsInstance<
+              RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsFunctionObject
+            >()
             .parMap { toolCall ->
               val function = toolCall.value.function
               val result = assistant.getToolRegistered(function.name, function.arguments)

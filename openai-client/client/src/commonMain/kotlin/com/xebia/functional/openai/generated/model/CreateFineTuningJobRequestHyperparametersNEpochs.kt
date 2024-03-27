@@ -18,11 +18,12 @@ sealed interface CreateFineTuningJobRequestHyperparametersNEpochs {
 
   @JvmInline
   @Serializable
-  value class First(val value: kotlin.Int) : CreateFineTuningJobRequestHyperparametersNEpochs
+  value class CaseInt(val value: kotlin.Int) : CreateFineTuningJobRequestHyperparametersNEpochs
 
   @JvmInline
   @Serializable
-  value class Second(val value: kotlin.String) : CreateFineTuningJobRequestHyperparametersNEpochs
+  value class CaseString(val value: kotlin.String) :
+    CreateFineTuningJobRequestHyperparametersNEpochs
 }
 
 private object CreateFineTuningJobRequestHyperparametersNEpochsSerializer :
@@ -33,22 +34,22 @@ private object CreateFineTuningJobRequestHyperparametersNEpochsSerializer :
       "CreateFineTuningJobRequestHyperparametersNEpochs",
       PolymorphicKind.SEALED
     ) {
-      element("First", kotlin.Int.serializer().descriptor)
-      element("Second", kotlin.String.serializer().descriptor)
+      element("1", kotlin.Int.serializer().descriptor)
+      element("2", kotlin.String.serializer().descriptor)
     }
 
   override fun deserialize(decoder: Decoder): CreateFineTuningJobRequestHyperparametersNEpochs {
     val json = decoder.decodeSerializableValue(JsonElement.serializer())
     return kotlin
       .runCatching {
-        CreateFineTuningJobRequestHyperparametersNEpochs.First(
+        CreateFineTuningJobRequestHyperparametersNEpochs.CaseInt(
           Json.decodeFromJsonElement(kotlin.Int.serializer(), json)
         )
       }
       .getOrNull()
       ?: kotlin
         .runCatching {
-          CreateFineTuningJobRequestHyperparametersNEpochs.Second(
+          CreateFineTuningJobRequestHyperparametersNEpochs.CaseString(
             Json.decodeFromJsonElement(kotlin.String.serializer(), json)
           )
         }
@@ -60,9 +61,9 @@ private object CreateFineTuningJobRequestHyperparametersNEpochsSerializer :
     value: CreateFineTuningJobRequestHyperparametersNEpochs
   ) =
     when (value) {
-      is CreateFineTuningJobRequestHyperparametersNEpochs.First ->
+      is CreateFineTuningJobRequestHyperparametersNEpochs.CaseInt ->
         encoder.encodeSerializableValue(kotlin.Int.serializer(), value.value)
-      is CreateFineTuningJobRequestHyperparametersNEpochs.Second ->
+      is CreateFineTuningJobRequestHyperparametersNEpochs.CaseString ->
         encoder.encodeSerializableValue(kotlin.String.serializer(), value.value)
     }
 }

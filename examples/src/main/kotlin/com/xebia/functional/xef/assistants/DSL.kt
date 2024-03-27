@@ -78,11 +78,12 @@ private fun displayReceivedMessages(
   if (receivedMessage.message.role == MessageObject.Role.assistant) {
     receivedMessage.message.content.forEach {
       when (it) {
-        is MessageObjectContentInner.First ->
+        is MessageObjectContentInner.CaseMessageContentImageFileObject ->
           println(
             "${assistant.name}: https://platform.openai.com/files/${it.value.imageFile.fileId}"
           )
-        is MessageObjectContentInner.Second -> println("${assistant.name}: ${it.value.text.value}")
+        is MessageObjectContentInner.CaseMessageContentTextObject ->
+          println("${assistant.name}: ${it.value.text.value}")
       }
     }
   }
@@ -93,19 +94,21 @@ private fun displayStepsStatus(step: AssistantThread.RunDelta.Step) {
   val details = step.runStep.stepDetails
   val type =
     when (details) {
-      is RunStepObjectStepDetails.First -> details.value.type.name
-      is RunStepObjectStepDetails.Second -> details.value.type.name
+      is RunStepObjectStepDetails.CaseRunStepDetailsMessageCreationObject -> details.value.type.name
+      is RunStepObjectStepDetails.CaseRunStepDetailsToolCallsObject -> details.value.type.name
     }
   val calls =
     when (details) {
-      is RunStepObjectStepDetails.First -> listOf()
-      is RunStepObjectStepDetails.Second ->
+      is RunStepObjectStepDetails.CaseRunStepDetailsMessageCreationObject -> listOf()
+      is RunStepObjectStepDetails.CaseRunStepDetailsToolCallsObject ->
         details.value.toolCalls.map {
           when (it) {
-            is RunStepDetailsToolCallsObjectToolCallsInner.First -> "CodeInterpreter"
-            is RunStepDetailsToolCallsObjectToolCallsInner.Second ->
+            is RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsCodeObject ->
+              "CodeInterpreter"
+            is RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsFunctionObject ->
               "${it.value.function.name}(${it.value.function.arguments ?: ""}) = ${it.value.function.output ?: "empty"}: "
-            is RunStepDetailsToolCallsObjectToolCallsInner.Third -> "Retrieval"
+            is RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsRetrievalObject ->
+              "Retrieval"
           }
         }
     }

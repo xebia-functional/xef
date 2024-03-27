@@ -18,18 +18,20 @@ sealed interface RunStepDetailsToolCallsObjectToolCallsInner {
 
   @JvmInline
   @Serializable
-  value class First(val value: RunStepDetailsToolCallsCodeObject) :
+  value class CaseRunStepDetailsToolCallsCodeObject(val value: RunStepDetailsToolCallsCodeObject) :
     RunStepDetailsToolCallsObjectToolCallsInner
 
   @JvmInline
   @Serializable
-  value class Second(val value: RunStepDetailsToolCallsFunctionObject) :
-    RunStepDetailsToolCallsObjectToolCallsInner
+  value class CaseRunStepDetailsToolCallsFunctionObject(
+    val value: RunStepDetailsToolCallsFunctionObject
+  ) : RunStepDetailsToolCallsObjectToolCallsInner
 
   @JvmInline
   @Serializable
-  value class Third(val value: RunStepDetailsToolCallsRetrievalObject) :
-    RunStepDetailsToolCallsObjectToolCallsInner
+  value class CaseRunStepDetailsToolCallsRetrievalObject(
+    val value: RunStepDetailsToolCallsRetrievalObject
+  ) : RunStepDetailsToolCallsObjectToolCallsInner
 }
 
 private object RunStepDetailsToolCallsObjectToolCallsInnerSerializer :
@@ -37,30 +39,30 @@ private object RunStepDetailsToolCallsObjectToolCallsInnerSerializer :
   @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
   override val descriptor: SerialDescriptor =
     buildSerialDescriptor("RunStepDetailsToolCallsObjectToolCallsInner", PolymorphicKind.SEALED) {
-      element("First", RunStepDetailsToolCallsCodeObject.serializer().descriptor)
-      element("Second", RunStepDetailsToolCallsFunctionObject.serializer().descriptor)
-      element("Third", RunStepDetailsToolCallsRetrievalObject.serializer().descriptor)
+      element("1", RunStepDetailsToolCallsCodeObject.serializer().descriptor)
+      element("2", RunStepDetailsToolCallsFunctionObject.serializer().descriptor)
+      element("3", RunStepDetailsToolCallsRetrievalObject.serializer().descriptor)
     }
 
   override fun deserialize(decoder: Decoder): RunStepDetailsToolCallsObjectToolCallsInner {
     val json = decoder.decodeSerializableValue(JsonElement.serializer())
     return kotlin
       .runCatching {
-        RunStepDetailsToolCallsObjectToolCallsInner.First(
+        RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsCodeObject(
           Json.decodeFromJsonElement(RunStepDetailsToolCallsCodeObject.serializer(), json)
         )
       }
       .getOrNull()
       ?: kotlin
         .runCatching {
-          RunStepDetailsToolCallsObjectToolCallsInner.Second(
+          RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsFunctionObject(
             Json.decodeFromJsonElement(RunStepDetailsToolCallsFunctionObject.serializer(), json)
           )
         }
         .getOrNull()
       ?: kotlin
         .runCatching {
-          RunStepDetailsToolCallsObjectToolCallsInner.Third(
+          RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsRetrievalObject(
             Json.decodeFromJsonElement(RunStepDetailsToolCallsRetrievalObject.serializer(), json)
           )
         }
@@ -69,14 +71,14 @@ private object RunStepDetailsToolCallsObjectToolCallsInnerSerializer :
 
   override fun serialize(encoder: Encoder, value: RunStepDetailsToolCallsObjectToolCallsInner) =
     when (value) {
-      is RunStepDetailsToolCallsObjectToolCallsInner.First ->
+      is RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsCodeObject ->
         encoder.encodeSerializableValue(RunStepDetailsToolCallsCodeObject.serializer(), value.value)
-      is RunStepDetailsToolCallsObjectToolCallsInner.Second ->
+      is RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsFunctionObject ->
         encoder.encodeSerializableValue(
           RunStepDetailsToolCallsFunctionObject.serializer(),
           value.value
         )
-      is RunStepDetailsToolCallsObjectToolCallsInner.Third ->
+      is RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsRetrievalObject ->
         encoder.encodeSerializableValue(
           RunStepDetailsToolCallsRetrievalObject.serializer(),
           value.value

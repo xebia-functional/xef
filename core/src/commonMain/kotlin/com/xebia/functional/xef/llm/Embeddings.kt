@@ -21,7 +21,7 @@ suspend fun Embeddings.embedDocuments(
         createEmbedding(
             CreateEmbeddingRequest(
               model = embeddingRequestModel,
-              input = CreateEmbeddingRequestInput.Third(it)
+              input = CreateEmbeddingRequestInput.CaseStrings(it)
             )
           )
           .data

@@ -20,13 +20,13 @@ class MemoryData {
         conversationId: ConversationId = defaultConversationId
     ): List<Memory> =
         (0 until n).flatMap {
-            val m1 = ChatCompletionRequestMessage.Fifth(
+            val m1 = ChatCompletionRequestMessage.CaseChatCompletionRequestUserMessage(
                 ChatCompletionRequestUserMessage(
                     role = ChatCompletionRequestUserMessage.Role.user,
-                    content = ChatCompletionRequestUserMessageContent.First("Question $it${append?.let { ": $it" } ?: ""}")
+                    content = ChatCompletionRequestUserMessageContent.CaseString("Question $it${append?.let { ": $it" } ?: ""}")
                 )
             )
-            val m2 = ChatCompletionRequestMessage.First(
+            val m2 = ChatCompletionRequestMessage.CaseChatCompletionRequestAssistantMessage(
                 ChatCompletionRequestAssistantMessage(
                     role = ChatCompletionRequestAssistantMessage.Role.assistant,
                     content = "Answer $it${append?.let { ": $it" } ?: ""}"

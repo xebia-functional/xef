@@ -18,33 +18,35 @@ sealed interface MessageObjectContentInner {
 
   @JvmInline
   @Serializable
-  value class First(val value: MessageContentImageFileObject) : MessageObjectContentInner
+  value class CaseMessageContentImageFileObject(val value: MessageContentImageFileObject) :
+    MessageObjectContentInner
 
   @JvmInline
   @Serializable
-  value class Second(val value: MessageContentTextObject) : MessageObjectContentInner
+  value class CaseMessageContentTextObject(val value: MessageContentTextObject) :
+    MessageObjectContentInner
 }
 
 private object MessageObjectContentInnerSerializer : KSerializer<MessageObjectContentInner> {
   @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
   override val descriptor: SerialDescriptor =
     buildSerialDescriptor("MessageObjectContentInner", PolymorphicKind.SEALED) {
-      element("First", MessageContentImageFileObject.serializer().descriptor)
-      element("Second", MessageContentTextObject.serializer().descriptor)
+      element("1", MessageContentImageFileObject.serializer().descriptor)
+      element("2", MessageContentTextObject.serializer().descriptor)
     }
 
   override fun deserialize(decoder: Decoder): MessageObjectContentInner {
     val json = decoder.decodeSerializableValue(JsonElement.serializer())
     return kotlin
       .runCatching {
-        MessageObjectContentInner.First(
+        MessageObjectContentInner.CaseMessageContentImageFileObject(
           Json.decodeFromJsonElement(MessageContentImageFileObject.serializer(), json)
         )
       }
       .getOrNull()
       ?: kotlin
         .runCatching {
-          MessageObjectContentInner.Second(
+          MessageObjectContentInner.CaseMessageContentTextObject(
             Json.decodeFromJsonElement(MessageContentTextObject.serializer(), json)
           )
         }
@@ -53,9 +55,9 @@ private object MessageObjectContentInnerSerializer : KSerializer<MessageObjectCo
 
   override fun serialize(encoder: Encoder, value: MessageObjectContentInner) =
     when (value) {
-      is MessageObjectContentInner.First ->
+      is MessageObjectContentInner.CaseMessageContentImageFileObject ->
         encoder.encodeSerializableValue(MessageContentImageFileObject.serializer(), value.value)
-      is MessageObjectContentInner.Second ->
+      is MessageObjectContentInner.CaseMessageContentTextObject ->
         encoder.encodeSerializableValue(MessageContentTextObject.serializer(), value.value)
     }
 }

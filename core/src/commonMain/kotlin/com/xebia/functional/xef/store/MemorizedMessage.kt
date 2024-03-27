@@ -15,7 +15,7 @@ sealed class MemorizedMessage {
     when (this) {
       is Request -> message
       is Response ->
-        ChatCompletionRequestMessage.First(
+        ChatCompletionRequestMessage.CaseChatCompletionRequestAssistantMessage(
           ChatCompletionRequestAssistantMessage(
             role = ChatCompletionRequestAssistantMessage.Role.assistant,
             content = message.content
@@ -32,7 +32,7 @@ fun memorizedMessage(role: ChatCompletionRole, content: String): MemorizedMessag
   when (role) {
     ChatCompletionRole.Supported.system ->
       MemorizedMessage.Request(
-        ChatCompletionRequestMessage.Third(
+        ChatCompletionRequestMessage.CaseChatCompletionRequestSystemMessage(
           ChatCompletionRequestSystemMessage(
             content = content,
             role = ChatCompletionRequestSystemMessage.Role.system
@@ -41,9 +41,9 @@ fun memorizedMessage(role: ChatCompletionRole, content: String): MemorizedMessag
       )
     ChatCompletionRole.Supported.user ->
       MemorizedMessage.Request(
-        ChatCompletionRequestMessage.Fifth(
+        ChatCompletionRequestMessage.CaseChatCompletionRequestUserMessage(
           ChatCompletionRequestUserMessage(
-            content = ChatCompletionRequestUserMessageContent.First(content),
+            content = ChatCompletionRequestUserMessageContent.CaseString(content),
             role = ChatCompletionRequestUserMessage.Role.user
           )
         )

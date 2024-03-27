@@ -118,13 +118,13 @@ private fun createChatCompletionRequest(adaptedPrompt: Prompt): CreateChatComple
 
 private fun chatCompletionToolChoiceOption(adaptedPrompt: Prompt): ChatCompletionToolChoiceOption =
   if (adaptedPrompt.functions.size == 1)
-    ChatCompletionToolChoiceOption.First(
+    ChatCompletionToolChoiceOption.CaseChatCompletionNamedToolChoice(
       ChatCompletionNamedToolChoice(
         type = ChatCompletionNamedToolChoice.Type.function,
         function = ChatCompletionNamedToolChoiceFunction(adaptedPrompt.functions.first().name)
       )
     )
-  else ChatCompletionToolChoiceOption.Second("auto")
+  else ChatCompletionToolChoiceOption.CaseString("auto")
 
 private fun chatCompletionTools(adaptedPrompt: Prompt): List<ChatCompletionTool> =
   adaptedPrompt.functions.map {

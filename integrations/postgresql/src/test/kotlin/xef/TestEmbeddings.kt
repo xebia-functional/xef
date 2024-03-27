@@ -14,8 +14,8 @@ class TestEmbeddings : Embeddings, AutoCloseable {
   ): CreateEmbeddingResponse {
     requests.add(createEmbeddingRequest)
     val maybeTextInput = when(val input = createEmbeddingRequest.input) {
-      is CreateEmbeddingRequestInput.Third -> input.value.firstOrNull()
-      is CreateEmbeddingRequestInput.First -> input.value
+      is CreateEmbeddingRequestInput.CaseStrings -> input.value.firstOrNull()
+      is CreateEmbeddingRequestInput.CaseString -> input.value
       else -> null
     }
     val data = when(maybeTextInput) {

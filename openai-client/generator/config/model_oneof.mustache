@@ -11,7 +11,7 @@ sealed interface {{classname}} {
   {{#oneOf}}
   @JvmInline
   @Serializable
-  value class {{#lambda.oneOfName}}{{-index}}{{/lambda.oneOfName}}(val {{#lambda.type-to-name}}{{{.}}}{{/lambda.type-to-name}}value: {{{.}}}): {{classname}}
+  value class Case{{#lambda.oneOfName}}{{{.}}}{{/lambda.oneOfName}}(val value: {{{.}}}): {{classname}}
   {{/oneOf}}
 
 }
@@ -25,13 +25,13 @@ private object {{classname}}Serializer : KSerializer<{{classname}}> {
     override fun deserialize(decoder: Decoder): {{classname}} {
       val json = decoder.decodeSerializableValue(JsonElement.serializer())
       return {{#oneOf}}kotlin.runCatching {
-        {{classname}}.{{#lambda.oneOfName}}{{-index}}{{/lambda.oneOfName}}(Json.decodeFromJsonElement({{#lambda.serializer}}{{{.}}}{{/lambda.serializer}}, json))
+        {{classname}}.Case{{#lambda.oneOfName}}{{{.}}}{{/lambda.oneOfName}}(Json.decodeFromJsonElement({{#lambda.serializer}}{{{.}}}{{/lambda.serializer}}, json))
       }{{#-last}}.getOrThrow(){{/-last}}{{^-last}}.getOrNull() ?:{{/-last}}{{/oneOf}}
     }
 
     override fun serialize(encoder: Encoder, value: {{classname}}) =
       when(value) { {{#oneOf}}
-        is {{classname}}.{{#lambda.oneOfName}}{{-index}}{{/lambda.oneOfName}} ->
+        is {{classname}}.Case{{#lambda.oneOfName}}{{{.}}}{{/lambda.oneOfName}} ->
         encoder.encodeSerializableValue({{#lambda.serializer}}{{{.}}}{{/lambda.serializer}}, value.value)
         {{/oneOf}}
     }

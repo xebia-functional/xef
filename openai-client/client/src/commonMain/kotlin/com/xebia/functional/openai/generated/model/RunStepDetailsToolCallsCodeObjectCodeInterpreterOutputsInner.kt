@@ -18,13 +18,15 @@ sealed interface RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInner {
 
   @JvmInline
   @Serializable
-  value class First(val value: RunStepDetailsToolCallsCodeOutputImageObject) :
-    RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInner
+  value class CaseRunStepDetailsToolCallsCodeOutputImageObject(
+    val value: RunStepDetailsToolCallsCodeOutputImageObject
+  ) : RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInner
 
   @JvmInline
   @Serializable
-  value class Second(val value: RunStepDetailsToolCallsCodeOutputLogsObject) :
-    RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInner
+  value class CaseRunStepDetailsToolCallsCodeOutputLogsObject(
+    val value: RunStepDetailsToolCallsCodeOutputLogsObject
+  ) : RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInner
 }
 
 private object RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInnerSerializer :
@@ -35,8 +37,8 @@ private object RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInnerSeria
       "RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInner",
       PolymorphicKind.SEALED
     ) {
-      element("First", RunStepDetailsToolCallsCodeOutputImageObject.serializer().descriptor)
-      element("Second", RunStepDetailsToolCallsCodeOutputLogsObject.serializer().descriptor)
+      element("1", RunStepDetailsToolCallsCodeOutputImageObject.serializer().descriptor)
+      element("2", RunStepDetailsToolCallsCodeOutputLogsObject.serializer().descriptor)
     }
 
   override fun deserialize(
@@ -45,22 +47,24 @@ private object RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInnerSeria
     val json = decoder.decodeSerializableValue(JsonElement.serializer())
     return kotlin
       .runCatching {
-        RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInner.First(
-          Json.decodeFromJsonElement(
-            RunStepDetailsToolCallsCodeOutputImageObject.serializer(),
-            json
+        RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInner
+          .CaseRunStepDetailsToolCallsCodeOutputImageObject(
+            Json.decodeFromJsonElement(
+              RunStepDetailsToolCallsCodeOutputImageObject.serializer(),
+              json
+            )
           )
-        )
       }
       .getOrNull()
       ?: kotlin
         .runCatching {
-          RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInner.Second(
-            Json.decodeFromJsonElement(
-              RunStepDetailsToolCallsCodeOutputLogsObject.serializer(),
-              json
+          RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInner
+            .CaseRunStepDetailsToolCallsCodeOutputLogsObject(
+              Json.decodeFromJsonElement(
+                RunStepDetailsToolCallsCodeOutputLogsObject.serializer(),
+                json
+              )
             )
-          )
         }
         .getOrThrow()
   }
@@ -70,12 +74,12 @@ private object RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInnerSeria
     value: RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInner
   ) =
     when (value) {
-      is RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInner.First ->
+      is RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInner.CaseRunStepDetailsToolCallsCodeOutputImageObject ->
         encoder.encodeSerializableValue(
           RunStepDetailsToolCallsCodeOutputImageObject.serializer(),
           value.value
         )
-      is RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInner.Second ->
+      is RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInner.CaseRunStepDetailsToolCallsCodeOutputLogsObject ->
         encoder.encodeSerializableValue(
           RunStepDetailsToolCallsCodeOutputLogsObject.serializer(),
           value.value

@@ -89,15 +89,15 @@ class OpenTelemetryAssistantState(private val tracer: Tracer) {
       val output = block()
       currentSpan.makeCurrent().use {
         when (val detail = output.stepDetails) {
-          is RunStepObjectStepDetails.First ->
+          is RunStepObjectStepDetails.CaseRunStepDetailsMessageCreationObject ->
             currentSpan.updateName("Creating message: ${output.status.name}")
-          is RunStepObjectStepDetails.Second ->
+          is RunStepObjectStepDetails.CaseRunStepDetailsToolCallsObject ->
             currentSpan.updateName(
               "Tools: ${detail.value.toolCalls.joinToString {
                 when (it) {
-                  is RunStepDetailsToolCallsObjectToolCallsInner.First -> it.value.type.name
-                  is RunStepDetailsToolCallsObjectToolCallsInner.Second -> it.value.function.name
-                  is RunStepDetailsToolCallsObjectToolCallsInner.Third -> it.value.type.name
+                  is RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsCodeObject -> it.value.type.name
+                  is RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsFunctionObject -> it.value.function.name
+                  is RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsRetrievalObject -> it.value.type.name
                 }
               }}: ${output.status.name}"
             )
@@ -170,23 +170,23 @@ class OpenTelemetryAssistantState(private val tracer: Tracer) {
     span.setAttribute("openai.assistant.runStep.id", id)
     span.setAttribute("openai.assistant.status", status.name)
     when (val detail = stepDetails) {
-      is RunStepObjectStepDetails.First -> {
+      is RunStepObjectStepDetails.CaseRunStepDetailsMessageCreationObject -> {
         span.setAttribute(
           "openai.assistant.messageCreation.id",
           detail.value.messageCreation.messageId
         )
       }
-      is RunStepObjectStepDetails.Second -> {
+      is RunStepObjectStepDetails.CaseRunStepDetailsToolCallsObject -> {
         detail.value.toolCalls.forEachIndexed { index, toolCall ->
           when (toolCall) {
-            is RunStepDetailsToolCallsObjectToolCallsInner.First -> {
+            is RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsCodeObject -> {
               span.setAttribute("openai.assistant.toolCalls.$index.type", toolCall.value.type.name)
               span.setAttribute(
                 "openai.assistant.toolCalls.$index.function.name",
                 "code_interpreter"
               )
             }
-            is RunStepDetailsToolCallsObjectToolCallsInner.Second -> {
+            is RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsFunctionObject -> {
               span.setAttribute("openai.assistant.toolCalls.$index.type", toolCall.value.type.name)
               span.setAttribute(
                 "openai.assistant.toolCalls.$index.function.name",
@@ -197,7 +197,7 @@ class OpenTelemetryAssistantState(private val tracer: Tracer) {
                 toolCall.value.function.arguments
               )
             }
-            is RunStepDetailsToolCallsObjectToolCallsInner.Third -> {
+            is RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsRetrievalObject -> {
               span.setAttribute("openai.assistant.toolCalls.$index.type", toolCall.value.type.name)
               span.setAttribute("openai.assistant.toolCalls.$index.function.name", "retrieval")
             }
@@ -212,13 +212,13 @@ class OpenTelemetryAssistantState(private val tracer: Tracer) {
     forEach {
       span.setAttribute("openai.assistant.messages.${indexOf(it)}.role", it.role.name)
       when (val inner = it.content.firstOrNull()) {
-        is MessageObjectContentInner.First -> {
+        is MessageObjectContentInner.CaseMessageContentImageFileObject -> {
           span.setAttribute(
             "openai.assistant.messages.${indexOf(it)}.content",
             inner.value.imageFile.fileId
           )
         }
-        is MessageObjectContentInner.Second -> {
+        is MessageObjectContentInner.CaseMessageContentTextObject -> {
           span.setAttribute(
             "openai.assistant.messages.${indexOf(it)}.content",
             inner.value.text.value

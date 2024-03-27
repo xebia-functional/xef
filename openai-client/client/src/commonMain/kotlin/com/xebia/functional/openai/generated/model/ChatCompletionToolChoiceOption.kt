@@ -18,11 +18,12 @@ sealed interface ChatCompletionToolChoiceOption {
 
   @JvmInline
   @Serializable
-  value class First(val value: ChatCompletionNamedToolChoice) : ChatCompletionToolChoiceOption
+  value class CaseChatCompletionNamedToolChoice(val value: ChatCompletionNamedToolChoice) :
+    ChatCompletionToolChoiceOption
 
   @JvmInline
   @Serializable
-  value class Second(val value: kotlin.String) : ChatCompletionToolChoiceOption
+  value class CaseString(val value: kotlin.String) : ChatCompletionToolChoiceOption
 }
 
 private object ChatCompletionToolChoiceOptionSerializer :
@@ -30,22 +31,22 @@ private object ChatCompletionToolChoiceOptionSerializer :
   @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
   override val descriptor: SerialDescriptor =
     buildSerialDescriptor("ChatCompletionToolChoiceOption", PolymorphicKind.SEALED) {
-      element("First", ChatCompletionNamedToolChoice.serializer().descriptor)
-      element("Second", kotlin.String.serializer().descriptor)
+      element("1", ChatCompletionNamedToolChoice.serializer().descriptor)
+      element("2", kotlin.String.serializer().descriptor)
     }
 
   override fun deserialize(decoder: Decoder): ChatCompletionToolChoiceOption {
     val json = decoder.decodeSerializableValue(JsonElement.serializer())
     return kotlin
       .runCatching {
-        ChatCompletionToolChoiceOption.First(
+        ChatCompletionToolChoiceOption.CaseChatCompletionNamedToolChoice(
           Json.decodeFromJsonElement(ChatCompletionNamedToolChoice.serializer(), json)
         )
       }
       .getOrNull()
       ?: kotlin
         .runCatching {
-          ChatCompletionToolChoiceOption.Second(
+          ChatCompletionToolChoiceOption.CaseString(
             Json.decodeFromJsonElement(kotlin.String.serializer(), json)
           )
         }
@@ -54,9 +55,9 @@ private object ChatCompletionToolChoiceOptionSerializer :
 
   override fun serialize(encoder: Encoder, value: ChatCompletionToolChoiceOption) =
     when (value) {
-      is ChatCompletionToolChoiceOption.First ->
+      is ChatCompletionToolChoiceOption.CaseChatCompletionNamedToolChoice ->
         encoder.encodeSerializableValue(ChatCompletionNamedToolChoice.serializer(), value.value)
-      is ChatCompletionToolChoiceOption.Second ->
+      is ChatCompletionToolChoiceOption.CaseString ->
         encoder.encodeSerializableValue(kotlin.String.serializer(), value.value)
     }
 }

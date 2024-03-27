@@ -18,11 +18,11 @@ sealed interface CreateCompletionRequestStop {
 
   @JvmInline
   @Serializable
-  value class First(val value: kotlin.String) : CreateCompletionRequestStop
+  value class CaseString(val value: kotlin.String) : CreateCompletionRequestStop
 
   @JvmInline
   @Serializable
-  value class Second(val value: kotlin.collections.List<kotlin.String>) :
+  value class CaseStrings(val value: kotlin.collections.List<kotlin.String>) :
     CreateCompletionRequestStop
 }
 
@@ -30,22 +30,22 @@ private object CreateCompletionRequestStopSerializer : KSerializer<CreateComplet
   @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
   override val descriptor: SerialDescriptor =
     buildSerialDescriptor("CreateCompletionRequestStop", PolymorphicKind.SEALED) {
-      element("First", kotlin.String.serializer().descriptor)
-      element("Second", ListSerializer(kotlin.String.serializer()).descriptor)
+      element("1", kotlin.String.serializer().descriptor)
+      element("2", ListSerializer(kotlin.String.serializer()).descriptor)
     }
 
   override fun deserialize(decoder: Decoder): CreateCompletionRequestStop {
     val json = decoder.decodeSerializableValue(JsonElement.serializer())
     return kotlin
       .runCatching {
-        CreateCompletionRequestStop.First(
+        CreateCompletionRequestStop.CaseString(
           Json.decodeFromJsonElement(kotlin.String.serializer(), json)
         )
       }
       .getOrNull()
       ?: kotlin
         .runCatching {
-          CreateCompletionRequestStop.Second(
+          CreateCompletionRequestStop.CaseStrings(
             Json.decodeFromJsonElement(ListSerializer(kotlin.String.serializer()), json)
           )
         }
@@ -54,9 +54,9 @@ private object CreateCompletionRequestStopSerializer : KSerializer<CreateComplet
 
   override fun serialize(encoder: Encoder, value: CreateCompletionRequestStop) =
     when (value) {
-      is CreateCompletionRequestStop.First ->
+      is CreateCompletionRequestStop.CaseString ->
         encoder.encodeSerializableValue(kotlin.String.serializer(), value.value)
-      is CreateCompletionRequestStop.Second ->
+      is CreateCompletionRequestStop.CaseStrings ->
         encoder.encodeSerializableValue(ListSerializer(kotlin.String.serializer()), value.value)
     }
 }

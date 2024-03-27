@@ -241,11 +241,13 @@ class ConversationSpec :
       val memories = vectorStore.memories(model, conversationId, 10000)
       val expectedMessages: List<String> =
         (firstPrompt.messages +
-            ChatCompletionRequestMessage.First(aiFirstMessage) +
+            ChatCompletionRequestMessage.CaseChatCompletionRequestAssistantMessage(aiFirstMessage) +
             secondPrompt.messages +
-            ChatCompletionRequestMessage.First(aiSecondMessage) +
+            ChatCompletionRequestMessage.CaseChatCompletionRequestAssistantMessage(
+              aiSecondMessage
+            ) +
             thirdPrompt.messages +
-            ChatCompletionRequestMessage.First(aiThirdMessage))
+            ChatCompletionRequestMessage.CaseChatCompletionRequestAssistantMessage(aiThirdMessage))
           .map { it.contentAsString() }
       val actualMessages = memories.map { it.content.asRequestMessage().contentAsString() }
       actualMessages shouldBe expectedMessages
@@ -480,13 +482,13 @@ class ConversationSpec :
 
 private fun chatCompletionRequestMessages(it: Map.Entry<String, String>) =
   listOf(
-    ChatCompletionRequestMessage.Fifth(
+    ChatCompletionRequestMessage.CaseChatCompletionRequestUserMessage(
       ChatCompletionRequestUserMessage(
         role = ChatCompletionRequestUserMessage.Role.user,
-        content = ChatCompletionRequestUserMessageContent.First(it.key)
+        content = ChatCompletionRequestUserMessageContent.CaseString(it.key)
       )
     ),
-    ChatCompletionRequestMessage.First(
+    ChatCompletionRequestMessage.CaseChatCompletionRequestAssistantMessage(
       ChatCompletionRequestAssistantMessage(
         role = ChatCompletionRequestAssistantMessage.Role.assistant,
         content = it.value

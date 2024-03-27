@@ -187,24 +187,35 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
     /* Mechanism to do array access in mustache...
      * We need to generate names for the cases of `oneOf`,
      * where we generate a `sealed interface` with the Schema name,
-     * and a `data class OneOfName.names(...)` for each of the `oneOf` cases. */
+     * and a `data class CaseInnerType(val value: InnerType)` for each of the `oneOf` cases. */
     public static class OneOfName implements Mustache.Lambda {
-        private final List<String> names = List.of(
-                "First",
-                "Second",
-                "Third",
-                "Fourth",
-                "Fifth",
-                "Sixth",
-                "Seventh",
-                "Eighth",
-                "Ninth"
-        );
-
         public void execute(Template.Fragment fragment, Writer writer) throws IOException {
-            String text = fragment.execute();
-            int index = Integer.parseInt(text);
-            writer.write(names.get(index - 1));
+            serializer(writer, fragment.execute().trim(), 0);
+        }
+
+        private void serializer(
+                Writer buffer,
+                String text,
+                int depth
+        ) throws IOException {
+            if (text.startsWith("kotlin.collections.List<")) {
+                String inner = text.substring(24, text.length() - 1);
+                serializer(buffer, inner, depth + 1);
+            } else if (text.startsWith("kotlin.collections.")) {
+                throw new NotImplementedException(text + " collection serialization not supported **yet**");
+            } else {
+                if (text.startsWith("kotlin.")) {
+                    text = text.substring(7);
+                }
+                buffer.write(text);
+                if (depth > 0) {
+                    buffer.write("s");
+                    depth--;
+                }
+                while (depth-- > 0) {
+                    buffer.write("List");
+                }
+            }
         }
     }
 
@@ -262,27 +273,24 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
      * This works for ListSerializer, but can work for much more!! */
     public static class Serializer implements Mustache.Lambda {
         public void execute(Template.Fragment fragment, Writer writer) throws IOException {
-            String text = fragment.execute();
-            StringBuilder buffer = new StringBuilder();
-            serializer(buffer, text.trim(), 0);
-            writer.write(buffer.toString());
+            serializer(writer, fragment.execute().trim(), 0);
         }
 
         private void serializer(
-                StringBuilder buffer,
+                Writer buffer,
                 String text,
                 int depth
-        ) {
+        ) throws IOException {
             if (text.startsWith("kotlin.collections.List<")) {
                 String inner = text.substring(24, text.length() - 1);
-                buffer.append("ListSerializer(");
+                buffer.write("ListSerializer(");
                 serializer(buffer, inner, depth + 1);
             } else if (text.startsWith("Map<")) {
                 throw new NotImplementedException("Map serialization not supported **yet**");
             } else {
-                buffer.append(text);
-                buffer.append(".serializer()");
-                buffer.append(")".repeat(Math.max(0, depth)));
+                buffer.write(text);
+                buffer.write(".serializer()");
+                buffer.write(")".repeat(Math.max(0, depth)));
             }
         }
     }

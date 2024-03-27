@@ -18,59 +18,61 @@ sealed interface CreateEmbeddingRequestInput {
 
   @JvmInline
   @Serializable
-  value class First(val value: kotlin.String) : CreateEmbeddingRequestInput
+  value class CaseString(val value: kotlin.String) : CreateEmbeddingRequestInput
 
   @JvmInline
   @Serializable
-  value class Second(val value: kotlin.collections.List<kotlin.Int>) : CreateEmbeddingRequestInput
-
-  @JvmInline
-  @Serializable
-  value class Third(val value: kotlin.collections.List<kotlin.String>) :
+  value class CaseInts(val value: kotlin.collections.List<kotlin.Int>) :
     CreateEmbeddingRequestInput
 
   @JvmInline
   @Serializable
-  value class Fourth(val value: kotlin.collections.List<kotlin.collections.List<kotlin.Int>>) :
+  value class CaseStrings(val value: kotlin.collections.List<kotlin.String>) :
     CreateEmbeddingRequestInput
+
+  @JvmInline
+  @Serializable
+  value class CaseIntsList(
+    val value: kotlin.collections.List<kotlin.collections.List<kotlin.Int>>
+  ) : CreateEmbeddingRequestInput
 }
 
 private object CreateEmbeddingRequestInputSerializer : KSerializer<CreateEmbeddingRequestInput> {
   @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
   override val descriptor: SerialDescriptor =
     buildSerialDescriptor("CreateEmbeddingRequestInput", PolymorphicKind.SEALED) {
-      element("First", kotlin.String.serializer().descriptor)
-      element("Second", ListSerializer(kotlin.Int.serializer()).descriptor)
-      element("Third", ListSerializer(kotlin.String.serializer()).descriptor)
-      element("Fourth", ListSerializer(ListSerializer(kotlin.Int.serializer())).descriptor)
+      element("1", kotlin.String.serializer().descriptor)
+      element("2", ListSerializer(kotlin.Int.serializer()).descriptor)
+      element("3", ListSerializer(kotlin.String.serializer()).descriptor)
+      element("4", ListSerializer(ListSerializer(kotlin.Int.serializer())).descriptor)
     }
 
   override fun deserialize(decoder: Decoder): CreateEmbeddingRequestInput {
     val json = decoder.decodeSerializableValue(JsonElement.serializer())
     return kotlin
       .runCatching {
-        CreateEmbeddingRequestInput.First(
+        CreateEmbeddingRequestInput.CaseString(
           Json.decodeFromJsonElement(kotlin.String.serializer(), json)
         )
       }
       .getOrNull()
       ?: kotlin
         .runCatching {
-          CreateEmbeddingRequestInput.Second(
+          CreateEmbeddingRequestInput.CaseInts(
             Json.decodeFromJsonElement(ListSerializer(kotlin.Int.serializer()), json)
           )
         }
         .getOrNull()
       ?: kotlin
         .runCatching {
-          CreateEmbeddingRequestInput.Third(
+          CreateEmbeddingRequestInput.CaseStrings(
             Json.decodeFromJsonElement(ListSerializer(kotlin.String.serializer()), json)
           )
         }
         .getOrNull()
       ?: kotlin
         .runCatching {
-          CreateEmbeddingRequestInput.Fourth(
+          CreateEmbeddingRequestInput.CaseIntsList(
             Json.decodeFromJsonElement(
               ListSerializer(ListSerializer(kotlin.Int.serializer())),
               json
@@ -82,13 +84,13 @@ private object CreateEmbeddingRequestInputSerializer : KSerializer<CreateEmbeddi
 
   override fun serialize(encoder: Encoder, value: CreateEmbeddingRequestInput) =
     when (value) {
-      is CreateEmbeddingRequestInput.First ->
+      is CreateEmbeddingRequestInput.CaseString ->
         encoder.encodeSerializableValue(kotlin.String.serializer(), value.value)
-      is CreateEmbeddingRequestInput.Second ->
+      is CreateEmbeddingRequestInput.CaseInts ->
         encoder.encodeSerializableValue(ListSerializer(kotlin.Int.serializer()), value.value)
-      is CreateEmbeddingRequestInput.Third ->
+      is CreateEmbeddingRequestInput.CaseStrings ->
         encoder.encodeSerializableValue(ListSerializer(kotlin.String.serializer()), value.value)
-      is CreateEmbeddingRequestInput.Fourth ->
+      is CreateEmbeddingRequestInput.CaseIntsList ->
         encoder.encodeSerializableValue(
           ListSerializer(ListSerializer(kotlin.Int.serializer())),
           value.value

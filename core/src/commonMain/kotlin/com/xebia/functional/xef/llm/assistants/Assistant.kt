@@ -211,15 +211,15 @@ class Assistant(
       assistantRequest.tools.orEmpty().map {
         when (it) {
           is AssistantTool.CodeInterpreter ->
-            AssistantObjectToolsInner.First(
+            AssistantObjectToolsInner.CaseAssistantToolsCode(
               AssistantToolsCode(type = AssistantToolsCode.Type.code_interpreter)
             )
           is AssistantTool.Retrieval ->
-            AssistantObjectToolsInner.Third(
+            AssistantObjectToolsInner.CaseAssistantToolsRetrieval(
               AssistantToolsRetrieval(type = AssistantToolsRetrieval.Type.retrieval)
             )
           is AssistantTool.Function ->
-            AssistantObjectToolsInner.Second(
+            AssistantObjectToolsInner.CaseAssistantToolsFunction(
               AssistantToolsFunction(
                 type = AssistantToolsFunction.Type.function,
                 function =

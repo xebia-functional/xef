@@ -18,11 +18,11 @@ sealed interface CreateModerationRequestInput {
 
   @JvmInline
   @Serializable
-  value class First(val value: kotlin.String) : CreateModerationRequestInput
+  value class CaseString(val value: kotlin.String) : CreateModerationRequestInput
 
   @JvmInline
   @Serializable
-  value class Second(val value: kotlin.collections.List<kotlin.String>) :
+  value class CaseStrings(val value: kotlin.collections.List<kotlin.String>) :
     CreateModerationRequestInput
 }
 
@@ -30,22 +30,22 @@ private object CreateModerationRequestInputSerializer : KSerializer<CreateModera
   @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
   override val descriptor: SerialDescriptor =
     buildSerialDescriptor("CreateModerationRequestInput", PolymorphicKind.SEALED) {
-      element("First", kotlin.String.serializer().descriptor)
-      element("Second", ListSerializer(kotlin.String.serializer()).descriptor)
+      element("1", kotlin.String.serializer().descriptor)
+      element("2", ListSerializer(kotlin.String.serializer()).descriptor)
     }
 
   override fun deserialize(decoder: Decoder): CreateModerationRequestInput {
     val json = decoder.decodeSerializableValue(JsonElement.serializer())
     return kotlin
       .runCatching {
-        CreateModerationRequestInput.First(
+        CreateModerationRequestInput.CaseString(
           Json.decodeFromJsonElement(kotlin.String.serializer(), json)
         )
       }
       .getOrNull()
       ?: kotlin
         .runCatching {
-          CreateModerationRequestInput.Second(
+          CreateModerationRequestInput.CaseStrings(
             Json.decodeFromJsonElement(ListSerializer(kotlin.String.serializer()), json)
           )
         }
@@ -54,9 +54,9 @@ private object CreateModerationRequestInputSerializer : KSerializer<CreateModera
 
   override fun serialize(encoder: Encoder, value: CreateModerationRequestInput) =
     when (value) {
-      is CreateModerationRequestInput.First ->
+      is CreateModerationRequestInput.CaseString ->
         encoder.encodeSerializableValue(kotlin.String.serializer(), value.value)
-      is CreateModerationRequestInput.Second ->
+      is CreateModerationRequestInput.CaseStrings ->
         encoder.encodeSerializableValue(ListSerializer(kotlin.String.serializer()), value.value)
     }
 }

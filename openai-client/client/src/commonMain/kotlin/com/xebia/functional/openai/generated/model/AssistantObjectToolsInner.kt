@@ -18,45 +18,47 @@ sealed interface AssistantObjectToolsInner {
 
   @JvmInline
   @Serializable
-  value class First(val value: AssistantToolsCode) : AssistantObjectToolsInner
+  value class CaseAssistantToolsCode(val value: AssistantToolsCode) : AssistantObjectToolsInner
 
   @JvmInline
   @Serializable
-  value class Second(val value: AssistantToolsFunction) : AssistantObjectToolsInner
+  value class CaseAssistantToolsFunction(val value: AssistantToolsFunction) :
+    AssistantObjectToolsInner
 
   @JvmInline
   @Serializable
-  value class Third(val value: AssistantToolsRetrieval) : AssistantObjectToolsInner
+  value class CaseAssistantToolsRetrieval(val value: AssistantToolsRetrieval) :
+    AssistantObjectToolsInner
 }
 
 private object AssistantObjectToolsInnerSerializer : KSerializer<AssistantObjectToolsInner> {
   @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
   override val descriptor: SerialDescriptor =
     buildSerialDescriptor("AssistantObjectToolsInner", PolymorphicKind.SEALED) {
-      element("First", AssistantToolsCode.serializer().descriptor)
-      element("Second", AssistantToolsFunction.serializer().descriptor)
-      element("Third", AssistantToolsRetrieval.serializer().descriptor)
+      element("1", AssistantToolsCode.serializer().descriptor)
+      element("2", AssistantToolsFunction.serializer().descriptor)
+      element("3", AssistantToolsRetrieval.serializer().descriptor)
     }
 
   override fun deserialize(decoder: Decoder): AssistantObjectToolsInner {
     val json = decoder.decodeSerializableValue(JsonElement.serializer())
     return kotlin
       .runCatching {
-        AssistantObjectToolsInner.First(
+        AssistantObjectToolsInner.CaseAssistantToolsCode(
           Json.decodeFromJsonElement(AssistantToolsCode.serializer(), json)
         )
       }
       .getOrNull()
       ?: kotlin
         .runCatching {
-          AssistantObjectToolsInner.Second(
+          AssistantObjectToolsInner.CaseAssistantToolsFunction(
             Json.decodeFromJsonElement(AssistantToolsFunction.serializer(), json)
           )
         }
         .getOrNull()
       ?: kotlin
         .runCatching {
-          AssistantObjectToolsInner.Third(
+          AssistantObjectToolsInner.CaseAssistantToolsRetrieval(
             Json.decodeFromJsonElement(AssistantToolsRetrieval.serializer(), json)
           )
         }
@@ -65,11 +67,11 @@ private object AssistantObjectToolsInnerSerializer : KSerializer<AssistantObject
 
   override fun serialize(encoder: Encoder, value: AssistantObjectToolsInner) =
     when (value) {
-      is AssistantObjectToolsInner.First ->
+      is AssistantObjectToolsInner.CaseAssistantToolsCode ->
         encoder.encodeSerializableValue(AssistantToolsCode.serializer(), value.value)
-      is AssistantObjectToolsInner.Second ->
+      is AssistantObjectToolsInner.CaseAssistantToolsFunction ->
         encoder.encodeSerializableValue(AssistantToolsFunction.serializer(), value.value)
-      is AssistantObjectToolsInner.Third ->
+      is AssistantObjectToolsInner.CaseAssistantToolsRetrieval ->
         encoder.encodeSerializableValue(AssistantToolsRetrieval.serializer(), value.value)
     }
 }

@@ -18,71 +18,77 @@ sealed interface ChatCompletionRequestMessage {
 
   @JvmInline
   @Serializable
-  value class First(val value: ChatCompletionRequestAssistantMessage) :
+  value class CaseChatCompletionRequestAssistantMessage(
+    val value: ChatCompletionRequestAssistantMessage
+  ) : ChatCompletionRequestMessage
+
+  @JvmInline
+  @Serializable
+  value class CaseChatCompletionRequestFunctionMessage(
+    val value: ChatCompletionRequestFunctionMessage
+  ) : ChatCompletionRequestMessage
+
+  @JvmInline
+  @Serializable
+  value class CaseChatCompletionRequestSystemMessage(
+    val value: ChatCompletionRequestSystemMessage
+  ) : ChatCompletionRequestMessage
+
+  @JvmInline
+  @Serializable
+  value class CaseChatCompletionRequestToolMessage(val value: ChatCompletionRequestToolMessage) :
     ChatCompletionRequestMessage
 
   @JvmInline
   @Serializable
-  value class Second(val value: ChatCompletionRequestFunctionMessage) :
+  value class CaseChatCompletionRequestUserMessage(val value: ChatCompletionRequestUserMessage) :
     ChatCompletionRequestMessage
-
-  @JvmInline
-  @Serializable
-  value class Third(val value: ChatCompletionRequestSystemMessage) : ChatCompletionRequestMessage
-
-  @JvmInline
-  @Serializable
-  value class Fourth(val value: ChatCompletionRequestToolMessage) : ChatCompletionRequestMessage
-
-  @JvmInline
-  @Serializable
-  value class Fifth(val value: ChatCompletionRequestUserMessage) : ChatCompletionRequestMessage
 }
 
 private object ChatCompletionRequestMessageSerializer : KSerializer<ChatCompletionRequestMessage> {
   @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
   override val descriptor: SerialDescriptor =
     buildSerialDescriptor("ChatCompletionRequestMessage", PolymorphicKind.SEALED) {
-      element("First", ChatCompletionRequestAssistantMessage.serializer().descriptor)
-      element("Second", ChatCompletionRequestFunctionMessage.serializer().descriptor)
-      element("Third", ChatCompletionRequestSystemMessage.serializer().descriptor)
-      element("Fourth", ChatCompletionRequestToolMessage.serializer().descriptor)
-      element("Fifth", ChatCompletionRequestUserMessage.serializer().descriptor)
+      element("1", ChatCompletionRequestAssistantMessage.serializer().descriptor)
+      element("2", ChatCompletionRequestFunctionMessage.serializer().descriptor)
+      element("3", ChatCompletionRequestSystemMessage.serializer().descriptor)
+      element("4", ChatCompletionRequestToolMessage.serializer().descriptor)
+      element("5", ChatCompletionRequestUserMessage.serializer().descriptor)
     }
 
   override fun deserialize(decoder: Decoder): ChatCompletionRequestMessage {
     val json = decoder.decodeSerializableValue(JsonElement.serializer())
     return kotlin
       .runCatching {
-        ChatCompletionRequestMessage.First(
+        ChatCompletionRequestMessage.CaseChatCompletionRequestAssistantMessage(
           Json.decodeFromJsonElement(ChatCompletionRequestAssistantMessage.serializer(), json)
         )
       }
       .getOrNull()
       ?: kotlin
         .runCatching {
-          ChatCompletionRequestMessage.Second(
+          ChatCompletionRequestMessage.CaseChatCompletionRequestFunctionMessage(
             Json.decodeFromJsonElement(ChatCompletionRequestFunctionMessage.serializer(), json)
           )
         }
         .getOrNull()
       ?: kotlin
         .runCatching {
-          ChatCompletionRequestMessage.Third(
+          ChatCompletionRequestMessage.CaseChatCompletionRequestSystemMessage(
             Json.decodeFromJsonElement(ChatCompletionRequestSystemMessage.serializer(), json)
           )
         }
         .getOrNull()
       ?: kotlin
         .runCatching {
-          ChatCompletionRequestMessage.Fourth(
+          ChatCompletionRequestMessage.CaseChatCompletionRequestToolMessage(
             Json.decodeFromJsonElement(ChatCompletionRequestToolMessage.serializer(), json)
           )
         }
         .getOrNull()
       ?: kotlin
         .runCatching {
-          ChatCompletionRequestMessage.Fifth(
+          ChatCompletionRequestMessage.CaseChatCompletionRequestUserMessage(
             Json.decodeFromJsonElement(ChatCompletionRequestUserMessage.serializer(), json)
           )
         }
@@ -91,24 +97,24 @@ private object ChatCompletionRequestMessageSerializer : KSerializer<ChatCompleti
 
   override fun serialize(encoder: Encoder, value: ChatCompletionRequestMessage) =
     when (value) {
-      is ChatCompletionRequestMessage.First ->
+      is ChatCompletionRequestMessage.CaseChatCompletionRequestAssistantMessage ->
         encoder.encodeSerializableValue(
           ChatCompletionRequestAssistantMessage.serializer(),
           value.value
         )
-      is ChatCompletionRequestMessage.Second ->
+      is ChatCompletionRequestMessage.CaseChatCompletionRequestFunctionMessage ->
         encoder.encodeSerializableValue(
           ChatCompletionRequestFunctionMessage.serializer(),
           value.value
         )
-      is ChatCompletionRequestMessage.Third ->
+      is ChatCompletionRequestMessage.CaseChatCompletionRequestSystemMessage ->
         encoder.encodeSerializableValue(
           ChatCompletionRequestSystemMessage.serializer(),
           value.value
         )
-      is ChatCompletionRequestMessage.Fourth ->
+      is ChatCompletionRequestMessage.CaseChatCompletionRequestToolMessage ->
         encoder.encodeSerializableValue(ChatCompletionRequestToolMessage.serializer(), value.value)
-      is ChatCompletionRequestMessage.Fifth ->
+      is ChatCompletionRequestMessage.CaseChatCompletionRequestUserMessage ->
         encoder.encodeSerializableValue(ChatCompletionRequestUserMessage.serializer(), value.value)
     }
 }
