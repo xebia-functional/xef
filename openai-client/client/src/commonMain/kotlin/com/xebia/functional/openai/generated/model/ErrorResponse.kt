@@ -8,6 +8,7 @@ package com.xebia.functional.openai.generated.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
 
 /** @param error */
-@Serializable data class ErrorResponse(@SerialName(value = "error") val error: Error)
+@Serializable data class ErrorResponse(@SerialName(value = "error") val error: Error) {}

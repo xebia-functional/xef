@@ -11,6 +11,7 @@ import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
+import kotlinx.serialization.json.*
 
 @Serializable(with = CreateThreadAndRunRequestToolsInnerSerializer::class)
 sealed interface CreateThreadAndRunRequestToolsInner {
@@ -38,28 +39,30 @@ private object CreateThreadAndRunRequestToolsInnerSerializer :
       element("Third", AssistantToolsRetrieval.serializer().descriptor)
     }
 
-  override fun deserialize(decoder: Decoder): CreateThreadAndRunRequestToolsInner =
-    kotlin
+  override fun deserialize(decoder: Decoder): CreateThreadAndRunRequestToolsInner {
+    val json = decoder.decodeSerializableValue(JsonElement.serializer())
+    return kotlin
       .runCatching {
         CreateThreadAndRunRequestToolsInner.First(
-          AssistantToolsCode.serializer().deserialize(decoder)
+          Json.decodeFromJsonElement(AssistantToolsCode.serializer(), json)
         )
       }
       .getOrNull()
       ?: kotlin
         .runCatching {
           CreateThreadAndRunRequestToolsInner.Second(
-            AssistantToolsFunction.serializer().deserialize(decoder)
+            Json.decodeFromJsonElement(AssistantToolsFunction.serializer(), json)
           )
         }
         .getOrNull()
       ?: kotlin
         .runCatching {
           CreateThreadAndRunRequestToolsInner.Third(
-            AssistantToolsRetrieval.serializer().deserialize(decoder)
+            Json.decodeFromJsonElement(AssistantToolsRetrieval.serializer(), json)
           )
         }
         .getOrThrow()
+  }
 
   override fun serialize(encoder: Encoder, value: CreateThreadAndRunRequestToolsInner) =
     when (value) {

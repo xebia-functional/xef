@@ -8,6 +8,7 @@ package com.xebia.functional.openai.generated.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
 
 /**
  * The hyperparameters used for the fine-tuning job. See the
@@ -18,4 +19,4 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class FineTuningJobHyperparameters(
   @SerialName(value = "n_epochs") val nEpochs: FineTuningJobHyperparametersNEpochs
-)
+) {}

@@ -9,6 +9,7 @@ package com.xebia.functional.openai.generated.model
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
 
 /**
  * @param model
@@ -107,4 +108,4 @@ data class CreateCompletionRequest(
   @Contextual @SerialName(value = "top_p") val topP: kotlin.Double? = (1).toDouble(),
   /* A unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse. [Learn more](/docs/guides/safety-best-practices/end-user-ids).  */
   @Contextual @SerialName(value = "user") val user: kotlin.String? = null
-)
+) {}

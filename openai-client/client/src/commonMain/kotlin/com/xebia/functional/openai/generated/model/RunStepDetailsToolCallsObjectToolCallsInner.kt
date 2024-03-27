@@ -11,6 +11,7 @@ import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
+import kotlinx.serialization.json.*
 
 @Serializable(with = RunStepDetailsToolCallsObjectToolCallsInnerSerializer::class)
 sealed interface RunStepDetailsToolCallsObjectToolCallsInner {
@@ -41,28 +42,30 @@ private object RunStepDetailsToolCallsObjectToolCallsInnerSerializer :
       element("Third", RunStepDetailsToolCallsRetrievalObject.serializer().descriptor)
     }
 
-  override fun deserialize(decoder: Decoder): RunStepDetailsToolCallsObjectToolCallsInner =
-    kotlin
+  override fun deserialize(decoder: Decoder): RunStepDetailsToolCallsObjectToolCallsInner {
+    val json = decoder.decodeSerializableValue(JsonElement.serializer())
+    return kotlin
       .runCatching {
         RunStepDetailsToolCallsObjectToolCallsInner.First(
-          RunStepDetailsToolCallsCodeObject.serializer().deserialize(decoder)
+          Json.decodeFromJsonElement(RunStepDetailsToolCallsCodeObject.serializer(), json)
         )
       }
       .getOrNull()
       ?: kotlin
         .runCatching {
           RunStepDetailsToolCallsObjectToolCallsInner.Second(
-            RunStepDetailsToolCallsFunctionObject.serializer().deserialize(decoder)
+            Json.decodeFromJsonElement(RunStepDetailsToolCallsFunctionObject.serializer(), json)
           )
         }
         .getOrNull()
       ?: kotlin
         .runCatching {
           RunStepDetailsToolCallsObjectToolCallsInner.Third(
-            RunStepDetailsToolCallsRetrievalObject.serializer().deserialize(decoder)
+            Json.decodeFromJsonElement(RunStepDetailsToolCallsRetrievalObject.serializer(), json)
           )
         }
         .getOrThrow()
+  }
 
   override fun serialize(encoder: Encoder, value: RunStepDetailsToolCallsObjectToolCallsInner) =
     when (value) {

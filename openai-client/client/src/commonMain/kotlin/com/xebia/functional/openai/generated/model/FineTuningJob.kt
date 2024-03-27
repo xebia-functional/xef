@@ -8,6 +8,7 @@ package com.xebia.functional.openai.generated.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
 
 /**
  * The `fine_tuning.job` object represents a fine-tuning job that has been created through the API.

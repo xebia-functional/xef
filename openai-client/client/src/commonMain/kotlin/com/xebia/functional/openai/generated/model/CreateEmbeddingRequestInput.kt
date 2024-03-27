@@ -11,6 +11,7 @@ import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
+import kotlinx.serialization.json.*
 
 @Serializable(with = CreateEmbeddingRequestInputSerializer::class)
 sealed interface CreateEmbeddingRequestInput {
@@ -44,33 +45,40 @@ private object CreateEmbeddingRequestInputSerializer : KSerializer<CreateEmbeddi
       element("Fourth", ListSerializer(ListSerializer(kotlin.Int.serializer())).descriptor)
     }
 
-  override fun deserialize(decoder: Decoder): CreateEmbeddingRequestInput =
-    kotlin
+  override fun deserialize(decoder: Decoder): CreateEmbeddingRequestInput {
+    val json = decoder.decodeSerializableValue(JsonElement.serializer())
+    return kotlin
       .runCatching {
-        CreateEmbeddingRequestInput.First(kotlin.String.serializer().deserialize(decoder))
+        CreateEmbeddingRequestInput.First(
+          Json.decodeFromJsonElement(kotlin.String.serializer(), json)
+        )
       }
       .getOrNull()
       ?: kotlin
         .runCatching {
           CreateEmbeddingRequestInput.Second(
-            ListSerializer(kotlin.Int.serializer()).deserialize(decoder)
+            Json.decodeFromJsonElement(ListSerializer(kotlin.Int.serializer()), json)
           )
         }
         .getOrNull()
       ?: kotlin
         .runCatching {
           CreateEmbeddingRequestInput.Third(
-            ListSerializer(kotlin.String.serializer()).deserialize(decoder)
+            Json.decodeFromJsonElement(ListSerializer(kotlin.String.serializer()), json)
           )
         }
         .getOrNull()
       ?: kotlin
         .runCatching {
           CreateEmbeddingRequestInput.Fourth(
-            ListSerializer(ListSerializer(kotlin.Int.serializer())).deserialize(decoder)
+            Json.decodeFromJsonElement(
+              ListSerializer(ListSerializer(kotlin.Int.serializer())),
+              json
+            )
           )
         }
         .getOrThrow()
+  }
 
   override fun serialize(encoder: Encoder, value: CreateEmbeddingRequestInput) =
     when (value) {

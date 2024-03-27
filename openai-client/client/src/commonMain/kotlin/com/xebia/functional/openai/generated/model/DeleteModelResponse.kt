@@ -8,6 +8,7 @@ package com.xebia.functional.openai.generated.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
 
 /**
  * @param id
@@ -19,4 +20,4 @@ data class DeleteModelResponse(
   @SerialName(value = "id") val id: kotlin.String,
   @SerialName(value = "deleted") val deleted: kotlin.Boolean,
   @SerialName(value = "object") val `object`: kotlin.String
-)
+) {}

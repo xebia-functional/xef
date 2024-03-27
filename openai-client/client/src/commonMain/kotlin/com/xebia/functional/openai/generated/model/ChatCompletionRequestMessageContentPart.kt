@@ -11,6 +11,7 @@ import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
+import kotlinx.serialization.json.*
 
 @Serializable(with = ChatCompletionRequestMessageContentPartSerializer::class)
 sealed interface ChatCompletionRequestMessageContentPart {
@@ -35,21 +36,29 @@ private object ChatCompletionRequestMessageContentPartSerializer :
       element("Second", ChatCompletionRequestMessageContentPartText.serializer().descriptor)
     }
 
-  override fun deserialize(decoder: Decoder): ChatCompletionRequestMessageContentPart =
-    kotlin
+  override fun deserialize(decoder: Decoder): ChatCompletionRequestMessageContentPart {
+    val json = decoder.decodeSerializableValue(JsonElement.serializer())
+    return kotlin
       .runCatching {
         ChatCompletionRequestMessageContentPart.First(
-          ChatCompletionRequestMessageContentPartImage.serializer().deserialize(decoder)
+          Json.decodeFromJsonElement(
+            ChatCompletionRequestMessageContentPartImage.serializer(),
+            json
+          )
         )
       }
       .getOrNull()
       ?: kotlin
         .runCatching {
           ChatCompletionRequestMessageContentPart.Second(
-            ChatCompletionRequestMessageContentPartText.serializer().deserialize(decoder)
+            Json.decodeFromJsonElement(
+              ChatCompletionRequestMessageContentPartText.serializer(),
+              json
+            )
           )
         }
         .getOrThrow()
+  }
 
   override fun serialize(encoder: Encoder, value: ChatCompletionRequestMessageContentPart) =
     when (value) {

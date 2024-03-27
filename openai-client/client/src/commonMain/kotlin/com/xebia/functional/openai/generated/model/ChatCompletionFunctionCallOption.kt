@@ -8,6 +8,7 @@ package com.xebia.functional.openai.generated.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
 
 /**
  * Specifying a particular function via `{\"name\": \"my_function\"}` forces the model to call that
@@ -19,4 +20,4 @@ import kotlinx.serialization.Serializable
 data class ChatCompletionFunctionCallOption(
   /* The name of the function to call. */
   @SerialName(value = "name") val name: kotlin.String
-)
+) {}

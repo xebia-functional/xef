@@ -8,6 +8,7 @@ package com.xebia.functional.openai.generated.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
 
 /**
  * @param token The token.
@@ -31,4 +32,4 @@ data class ChatCompletionTokenLogprob(
   /* List of the most likely tokens and their log probability, at this token position. In rare cases, there may be fewer than the number of requested `top_logprobs` returned. */
   @SerialName(value = "top_logprobs")
   val topLogprobs: kotlin.collections.List<ChatCompletionTokenLogprobTopLogprobsInner>
-)
+) {}

@@ -9,6 +9,7 @@ package com.xebia.functional.openai.generated.model
 import kotlin.js.JsName
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
 
 /**
  * @param finishReason The reason the model stopped generating tokens. This will be `stop` if the

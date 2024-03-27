@@ -8,10 +8,11 @@ package com.xebia.functional.openai.generated.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
 
 /** @param fileId The ID of the file that was generated. */
 @Serializable
 data class MessageContentTextAnnotationsFilePathObjectFilePath(
   /* The ID of the file that was generated. */
   @SerialName(value = "file_id") val fileId: kotlin.String
-)
+) {}

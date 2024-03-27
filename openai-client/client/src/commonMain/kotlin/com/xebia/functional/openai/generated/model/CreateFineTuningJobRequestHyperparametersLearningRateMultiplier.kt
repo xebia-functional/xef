@@ -11,6 +11,7 @@ import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
+import kotlinx.serialization.json.*
 
 @Serializable(
   with = CreateFineTuningJobRequestHyperparametersLearningRateMultiplierSerializer::class
@@ -42,21 +43,23 @@ private object CreateFineTuningJobRequestHyperparametersLearningRateMultiplierSe
 
   override fun deserialize(
     decoder: Decoder
-  ): CreateFineTuningJobRequestHyperparametersLearningRateMultiplier =
-    kotlin
+  ): CreateFineTuningJobRequestHyperparametersLearningRateMultiplier {
+    val json = decoder.decodeSerializableValue(JsonElement.serializer())
+    return kotlin
       .runCatching {
         CreateFineTuningJobRequestHyperparametersLearningRateMultiplier.First(
-          kotlin.Double.serializer().deserialize(decoder)
+          Json.decodeFromJsonElement(kotlin.Double.serializer(), json)
         )
       }
       .getOrNull()
       ?: kotlin
         .runCatching {
           CreateFineTuningJobRequestHyperparametersLearningRateMultiplier.Second(
-            kotlin.String.serializer().deserialize(decoder)
+            Json.decodeFromJsonElement(kotlin.String.serializer(), json)
           )
         }
         .getOrThrow()
+  }
 
   override fun serialize(
     encoder: Encoder,

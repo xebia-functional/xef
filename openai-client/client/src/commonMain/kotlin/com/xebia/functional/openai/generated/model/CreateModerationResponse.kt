@@ -8,6 +8,7 @@ package com.xebia.functional.openai.generated.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
 
 /**
  * Represents policy compliance report by OpenAI's content moderation model against a given input.
@@ -25,4 +26,4 @@ data class CreateModerationResponse(
   /* A list of moderation objects. */
   @SerialName(value = "results")
   val results: kotlin.collections.List<CreateModerationResponseResultsInner>
-)
+) {}

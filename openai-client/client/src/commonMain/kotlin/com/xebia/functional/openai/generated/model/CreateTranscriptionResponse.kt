@@ -8,7 +8,8 @@ package com.xebia.functional.openai.generated.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
 
 /** @param text */
 @Serializable
-data class CreateTranscriptionResponse(@SerialName(value = "text") val text: kotlin.String)
+data class CreateTranscriptionResponse(@SerialName(value = "text") val text: kotlin.String) {}

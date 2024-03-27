@@ -8,6 +8,7 @@ package com.xebia.functional.openai.generated.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
 
 /**
  * Deprecated and replaced by `tool_calls`. The name and arguments of a function that should be
@@ -26,4 +27,4 @@ data class ChatCompletionRequestAssistantMessageFunctionCall(
   @SerialName(value = "arguments") val arguments: kotlin.String,
   /* The name of the function to call. */
   @SerialName(value = "name") val name: kotlin.String
-)
+) {}

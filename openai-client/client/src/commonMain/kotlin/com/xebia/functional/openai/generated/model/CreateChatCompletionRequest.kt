@@ -9,6 +9,7 @@ package com.xebia.functional.openai.generated.model
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
 
 /**
  * @param messages A list of messages comprising the conversation so far.
@@ -125,4 +126,4 @@ data class CreateChatCompletionRequest(
   @Contextual
   @SerialName(value = "functions")
   val functions: kotlin.collections.List<ChatCompletionFunctions>? = null
-)
+) {}

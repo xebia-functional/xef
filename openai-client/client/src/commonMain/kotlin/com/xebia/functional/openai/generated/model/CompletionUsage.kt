@@ -8,6 +8,7 @@ package com.xebia.functional.openai.generated.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
 
 /**
  * Usage statistics for the completion request.
@@ -24,4 +25,4 @@ data class CompletionUsage(
   @SerialName(value = "prompt_tokens") val promptTokens: kotlin.Int,
   /* Total number of tokens used in the request (prompt + completion). */
   @SerialName(value = "total_tokens") val totalTokens: kotlin.Int
-)
+) {}

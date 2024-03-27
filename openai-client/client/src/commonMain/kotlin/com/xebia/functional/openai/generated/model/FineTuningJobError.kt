@@ -8,6 +8,7 @@ package com.xebia.functional.openai.generated.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
 
 /**
  * For fine-tuning jobs that have `failed`, this will contain more information on the cause of the
@@ -26,4 +27,4 @@ data class FineTuningJobError(
   @SerialName(value = "message") val message: kotlin.String,
   /* The parameter that was invalid, usually `training_file` or `validation_file`. This field will be null if the failure was not parameter-specific. */
   @SerialName(value = "param") val `param`: kotlin.String?
-)
+) {}

@@ -8,6 +8,7 @@ package com.xebia.functional.openai.generated.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
 
 /**
  * @param flagged Whether the content violates [OpenAI's usage policies](/policies/usage-policies).
@@ -21,4 +22,4 @@ data class CreateModerationResponseResultsInner(
   @SerialName(value = "categories") val categories: CreateModerationResponseResultsInnerCategories,
   @SerialName(value = "category_scores")
   val categoryScores: CreateModerationResponseResultsInnerCategoryScores
-)
+) {}

@@ -9,6 +9,7 @@ package com.xebia.functional.openai.generated.model
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
 
 /**
  * @param model
@@ -39,4 +40,4 @@ data class CreateFineTuningJobRequest(
   @Contextual @SerialName(value = "suffix") val suffix: kotlin.String? = null,
   /* The ID of an uploaded file that contains validation data.  If you provide this file, the data is used to generate validation metrics periodically during fine-tuning. These metrics can be viewed in the fine-tuning results file. The same data should not be present in both train and validation files.  Your dataset must be formatted as a JSONL file. You must upload your file with the purpose `fine-tune`.  See the [fine-tuning guide](/docs/guides/fine-tuning) for more details.  */
   @Contextual @SerialName(value = "validation_file") val validationFile: kotlin.String? = null
-)
+) {}

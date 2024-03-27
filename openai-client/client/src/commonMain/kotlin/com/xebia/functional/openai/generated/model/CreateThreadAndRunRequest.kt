@@ -9,6 +9,7 @@ package com.xebia.functional.openai.generated.model
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
 
 /**
  * @param assistantId The ID of the [assistant](/docs/api-reference/assistants) to use to execute
@@ -42,4 +43,4 @@ data class CreateThreadAndRunRequest(
   @Contextual
   @SerialName(value = "metadata")
   val metadata: kotlinx.serialization.json.JsonObject? = null
-)
+) {}

@@ -9,6 +9,7 @@ package com.xebia.functional.openai.generated.model
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
 
 /**
  * The definition of the function that was called.
@@ -26,4 +27,4 @@ data class RunStepDetailsToolCallsFunctionObjectFunction(
   @SerialName(value = "arguments") val arguments: kotlin.String,
   /* The output of the function. This will be `null` if the outputs have not been [submitted](/docs/api-reference/runs/submitToolOutputs) yet. */
   @Contextual @SerialName(value = "output") val output: kotlin.String? = null
-)
+) {}

@@ -8,6 +8,7 @@ package com.xebia.functional.openai.generated.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
 
 /**
  * Details on the tool outputs needed for this run to continue.
@@ -18,4 +19,4 @@ import kotlinx.serialization.Serializable
 data class RunObjectRequiredActionSubmitToolOutputs(
   /* A list of the relevant tool calls. */
   @SerialName(value = "tool_calls") val toolCalls: kotlin.collections.List<RunToolCallObject>
-)
+) {}

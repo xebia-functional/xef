@@ -11,6 +11,7 @@ import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
+import kotlinx.serialization.json.*
 
 @Serializable(with = CreateCompletionRequestPromptSerializer::class)
 sealed interface CreateCompletionRequestPrompt {
@@ -46,33 +47,40 @@ private object CreateCompletionRequestPromptSerializer :
       element("Fourth", ListSerializer(ListSerializer(kotlin.Int.serializer())).descriptor)
     }
 
-  override fun deserialize(decoder: Decoder): CreateCompletionRequestPrompt =
-    kotlin
+  override fun deserialize(decoder: Decoder): CreateCompletionRequestPrompt {
+    val json = decoder.decodeSerializableValue(JsonElement.serializer())
+    return kotlin
       .runCatching {
-        CreateCompletionRequestPrompt.First(kotlin.String.serializer().deserialize(decoder))
+        CreateCompletionRequestPrompt.First(
+          Json.decodeFromJsonElement(kotlin.String.serializer(), json)
+        )
       }
       .getOrNull()
       ?: kotlin
         .runCatching {
           CreateCompletionRequestPrompt.Second(
-            ListSerializer(kotlin.Int.serializer()).deserialize(decoder)
+            Json.decodeFromJsonElement(ListSerializer(kotlin.Int.serializer()), json)
           )
         }
         .getOrNull()
       ?: kotlin
         .runCatching {
           CreateCompletionRequestPrompt.Third(
-            ListSerializer(kotlin.String.serializer()).deserialize(decoder)
+            Json.decodeFromJsonElement(ListSerializer(kotlin.String.serializer()), json)
           )
         }
         .getOrNull()
       ?: kotlin
         .runCatching {
           CreateCompletionRequestPrompt.Fourth(
-            ListSerializer(ListSerializer(kotlin.Int.serializer())).deserialize(decoder)
+            Json.decodeFromJsonElement(
+              ListSerializer(ListSerializer(kotlin.Int.serializer())),
+              json
+            )
           )
         }
         .getOrThrow()
+  }
 
   override fun serialize(encoder: Encoder, value: CreateCompletionRequestPrompt) =
     when (value) {

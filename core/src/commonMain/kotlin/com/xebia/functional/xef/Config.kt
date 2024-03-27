@@ -43,6 +43,9 @@ fun OpenAI(
   httpClientConfig: ((HttpClientConfig<*>) -> Unit)? = null,
   logRequests: Boolean = false
 ): OpenAI {
+  val token = config.token
+    ?: getenv(KEY_ENV_VAR)
+    ?: throw AIError.Env.OpenAI(nonEmptyListOf("missing $KEY_ENV_VAR env var"))
   val clientConfig: HttpClientConfig<*>.() -> Unit = {
     install(ContentNegotiation) { json(config.json) }
     install(HttpTimeout) {
@@ -61,11 +64,7 @@ fun OpenAI(
     defaultRequest {
       url(config.baseUrl)
       config.org?.let { headers.append("org", it) }
-      bearerAuth(
-        config.token
-          ?: getenv(KEY_ENV_VAR)
-          ?: throw AIError.Env.OpenAI(nonEmptyListOf("missing $KEY_ENV_VAR env var"))
-      )
+      bearerAuth(token)
     }
   }
   val client = httpClientEngine?.let { HttpClient(it, clientConfig) } ?: HttpClient(clientConfig)
@@ -73,7 +72,7 @@ fun OpenAI(
     client,
     OpenAIConfig(
       baseUrl = config.baseUrl,
-      token = config.token,
+      token = token,
       org = config.org,
       json = config.json,
       streamingPrefix = config.streamingPrefix,

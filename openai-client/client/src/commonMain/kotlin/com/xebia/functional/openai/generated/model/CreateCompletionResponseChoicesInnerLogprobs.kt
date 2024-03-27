@@ -9,6 +9,7 @@ package com.xebia.functional.openai.generated.model
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
 
 /**
  * @param textOffset
@@ -32,4 +33,4 @@ data class CreateCompletionResponseChoicesInnerLogprobs(
   val topLogprobs:
     kotlin.collections.List<@Contextual kotlin.collections.Map<kotlin.String, kotlin.Double>>? =
     null
-)
+) {}

@@ -11,6 +11,7 @@ import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
+import kotlinx.serialization.json.*
 
 @Serializable(with = CreateChatCompletionRequestStopSerializer::class)
 sealed interface CreateChatCompletionRequestStop {
@@ -34,19 +35,23 @@ private object CreateChatCompletionRequestStopSerializer :
       element("Second", ListSerializer(kotlin.String.serializer()).descriptor)
     }
 
-  override fun deserialize(decoder: Decoder): CreateChatCompletionRequestStop =
-    kotlin
+  override fun deserialize(decoder: Decoder): CreateChatCompletionRequestStop {
+    val json = decoder.decodeSerializableValue(JsonElement.serializer())
+    return kotlin
       .runCatching {
-        CreateChatCompletionRequestStop.First(kotlin.String.serializer().deserialize(decoder))
+        CreateChatCompletionRequestStop.First(
+          Json.decodeFromJsonElement(kotlin.String.serializer(), json)
+        )
       }
       .getOrNull()
       ?: kotlin
         .runCatching {
           CreateChatCompletionRequestStop.Second(
-            ListSerializer(kotlin.String.serializer()).deserialize(decoder)
+            Json.decodeFromJsonElement(ListSerializer(kotlin.String.serializer()), json)
           )
         }
         .getOrThrow()
+  }
 
   override fun serialize(encoder: Encoder, value: CreateChatCompletionRequestStop) =
     when (value) {

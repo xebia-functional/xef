@@ -2,6 +2,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Contextual
 import kotlin.js.JsName
+import kotlinx.serialization.json.*
 {{#enumUnknownDefaultCase}}
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializer
@@ -28,8 +29,7 @@ import kotlinx.serialization.encoding.Encoder
 {{#allVars}}
     {{#required}}{{>data_class_req_var}}{{/required}}{{^required}}{{>data_class_opt_var}}{{/required}}{{^-last}},{{/-last}}
 {{/allVars}}
-){{/discriminator}}{{#parent}} : {{{parent}}}{{#isMap}}(){{/isMap}}{{#isArray}}(){{/isArray}}{{/parent}}{{#vendorExtensions.x-has-data-class-body}} {
-{{/vendorExtensions.x-has-data-class-body}}
+){{/discriminator}}{{#parent}} : {{{parent}}}{{#isMap}}(){{/isMap}}{{#isArray}}(){{/isArray}}{{/parent}} {
 {{#discriminator}}{{#vars}}{{#required}}
     {{>interface_req_var}}{{/required}}{{^required}}
     {{>interface_opt_var}}{{/required}}{{/vars}}{{/discriminator}}
@@ -67,6 +67,4 @@ import kotlinx.serialization.encoding.Encoder
         {{/isEnum}}
     {{/vars}}
 {{/hasEnums}}
-{{#vendorExtensions.x-has-data-class-body}}
-        }
-{{/vendorExtensions.x-has-data-class-body}}
+}

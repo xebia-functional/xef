@@ -8,10 +8,11 @@ package com.xebia.functional.openai.generated.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
 
 /** @param fileId The [file](/docs/api-reference/files) ID of the image. */
 @Serializable
 data class RunStepDetailsToolCallsCodeOutputImageObjectImage(
   /* The [file](/docs/api-reference/files) ID of the image. */
   @SerialName(value = "file_id") val fileId: kotlin.String
-)
+) {}

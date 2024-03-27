@@ -8,10 +8,11 @@ package com.xebia.functional.openai.generated.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
 
 /** @param messageId The ID of the message that was created by this run step. */
 @Serializable
 data class RunStepDetailsMessageCreationObjectMessageCreation(
   /* The ID of the message that was created by this run step. */
   @SerialName(value = "message_id") val messageId: kotlin.String
-)
+) {}

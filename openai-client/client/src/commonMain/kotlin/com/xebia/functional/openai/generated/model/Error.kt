@@ -8,6 +8,7 @@ package com.xebia.functional.openai.generated.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
 
 /**
  * @param code
@@ -21,4 +22,4 @@ data class Error(
   @SerialName(value = "message") val message: kotlin.String,
   @SerialName(value = "param") val `param`: kotlin.String?,
   @SerialName(value = "type") val type: kotlin.String
-)
+) {}

@@ -8,6 +8,7 @@ package com.xebia.functional.openai.generated.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
 
 /**
  * Usage statistics related to the run step. This value will be `null` while the run step's status
@@ -25,4 +26,4 @@ data class RunStepCompletionUsage(
   @SerialName(value = "prompt_tokens") val promptTokens: kotlin.Int,
   /* Total number of tokens used (prompt + completion). */
   @SerialName(value = "total_tokens") val totalTokens: kotlin.Int
-)
+) {}

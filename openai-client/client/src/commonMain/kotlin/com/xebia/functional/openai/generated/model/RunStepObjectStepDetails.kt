@@ -11,6 +11,7 @@ import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
+import kotlinx.serialization.json.*
 
 @Serializable(with = RunStepObjectStepDetailsSerializer::class)
 sealed interface RunStepObjectStepDetails {
@@ -32,21 +33,23 @@ private object RunStepObjectStepDetailsSerializer : KSerializer<RunStepObjectSte
       element("Second", RunStepDetailsToolCallsObject.serializer().descriptor)
     }
 
-  override fun deserialize(decoder: Decoder): RunStepObjectStepDetails =
-    kotlin
+  override fun deserialize(decoder: Decoder): RunStepObjectStepDetails {
+    val json = decoder.decodeSerializableValue(JsonElement.serializer())
+    return kotlin
       .runCatching {
         RunStepObjectStepDetails.First(
-          RunStepDetailsMessageCreationObject.serializer().deserialize(decoder)
+          Json.decodeFromJsonElement(RunStepDetailsMessageCreationObject.serializer(), json)
         )
       }
       .getOrNull()
       ?: kotlin
         .runCatching {
           RunStepObjectStepDetails.Second(
-            RunStepDetailsToolCallsObject.serializer().deserialize(decoder)
+            Json.decodeFromJsonElement(RunStepDetailsToolCallsObject.serializer(), json)
           )
         }
         .getOrThrow()
+  }
 
   override fun serialize(encoder: Encoder, value: RunStepObjectStepDetails) =
     when (value) {

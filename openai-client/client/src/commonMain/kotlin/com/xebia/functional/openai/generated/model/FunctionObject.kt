@@ -9,6 +9,7 @@ package com.xebia.functional.openai.generated.model
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
 
 /**
  * @param name The name of the function to be called. Must be a-z, A-Z, 0-9, or contain underscores
@@ -26,4 +27,4 @@ data class FunctionObject(
   @Contextual
   @SerialName(value = "parameters")
   val parameters: kotlinx.serialization.json.JsonObject? = null
-)
+) {}

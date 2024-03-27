@@ -11,6 +11,7 @@ import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
+import kotlinx.serialization.json.*
 
 @Serializable(with = CreateModerationRequestInputSerializer::class)
 sealed interface CreateModerationRequestInput {
@@ -33,19 +34,23 @@ private object CreateModerationRequestInputSerializer : KSerializer<CreateModera
       element("Second", ListSerializer(kotlin.String.serializer()).descriptor)
     }
 
-  override fun deserialize(decoder: Decoder): CreateModerationRequestInput =
-    kotlin
+  override fun deserialize(decoder: Decoder): CreateModerationRequestInput {
+    val json = decoder.decodeSerializableValue(JsonElement.serializer())
+    return kotlin
       .runCatching {
-        CreateModerationRequestInput.First(kotlin.String.serializer().deserialize(decoder))
+        CreateModerationRequestInput.First(
+          Json.decodeFromJsonElement(kotlin.String.serializer(), json)
+        )
       }
       .getOrNull()
       ?: kotlin
         .runCatching {
           CreateModerationRequestInput.Second(
-            ListSerializer(kotlin.String.serializer()).deserialize(decoder)
+            Json.decodeFromJsonElement(ListSerializer(kotlin.String.serializer()), json)
           )
         }
         .getOrThrow()
+  }
 
   override fun serialize(encoder: Encoder, value: CreateModerationRequestInput) =
     when (value) {

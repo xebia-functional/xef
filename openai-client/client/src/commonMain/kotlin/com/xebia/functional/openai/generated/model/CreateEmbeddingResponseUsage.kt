@@ -8,6 +8,7 @@ package com.xebia.functional.openai.generated.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
 
 /**
  * The usage information for the request.
@@ -21,4 +22,4 @@ data class CreateEmbeddingResponseUsage(
   @SerialName(value = "prompt_tokens") val promptTokens: kotlin.Int,
   /* The total number of tokens used by the request. */
   @SerialName(value = "total_tokens") val totalTokens: kotlin.Int
-)
+) {}

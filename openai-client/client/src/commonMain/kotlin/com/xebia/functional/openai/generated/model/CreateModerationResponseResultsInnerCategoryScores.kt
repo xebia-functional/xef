@@ -8,6 +8,7 @@ package com.xebia.functional.openai.generated.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
 
 /**
  * A list of the categories along with their scores as predicted by model.
@@ -48,4 +49,4 @@ data class CreateModerationResponseResultsInnerCategoryScores(
   @SerialName(value = "violence") val violence: kotlin.Double,
   /* The score for the category 'violence/graphic'. */
   @SerialName(value = "violence/graphic") val violenceGraphic: kotlin.Double
-)
+) {}

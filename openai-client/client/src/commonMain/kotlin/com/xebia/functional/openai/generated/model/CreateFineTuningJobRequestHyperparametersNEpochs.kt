@@ -11,6 +11,7 @@ import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
+import kotlinx.serialization.json.*
 
 @Serializable(with = CreateFineTuningJobRequestHyperparametersNEpochsSerializer::class)
 sealed interface CreateFineTuningJobRequestHyperparametersNEpochs {
@@ -36,21 +37,23 @@ private object CreateFineTuningJobRequestHyperparametersNEpochsSerializer :
       element("Second", kotlin.String.serializer().descriptor)
     }
 
-  override fun deserialize(decoder: Decoder): CreateFineTuningJobRequestHyperparametersNEpochs =
-    kotlin
+  override fun deserialize(decoder: Decoder): CreateFineTuningJobRequestHyperparametersNEpochs {
+    val json = decoder.decodeSerializableValue(JsonElement.serializer())
+    return kotlin
       .runCatching {
         CreateFineTuningJobRequestHyperparametersNEpochs.First(
-          kotlin.Int.serializer().deserialize(decoder)
+          Json.decodeFromJsonElement(kotlin.Int.serializer(), json)
         )
       }
       .getOrNull()
       ?: kotlin
         .runCatching {
           CreateFineTuningJobRequestHyperparametersNEpochs.Second(
-            kotlin.String.serializer().deserialize(decoder)
+            Json.decodeFromJsonElement(kotlin.String.serializer(), json)
           )
         }
         .getOrThrow()
+  }
 
   override fun serialize(
     encoder: Encoder,

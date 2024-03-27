@@ -8,6 +8,7 @@ package com.xebia.functional.openai.generated.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
 
 /**
  * @param fileId The ID of the specific File the citation is from.
@@ -19,4 +20,4 @@ data class MessageContentTextAnnotationsFileCitationObjectFileCitation(
   @SerialName(value = "file_id") val fileId: kotlin.String,
   /* The specific quote in the file. */
   @SerialName(value = "quote") val quote: kotlin.String
-)
+) {}

@@ -11,6 +11,7 @@ import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
+import kotlinx.serialization.json.*
 
 @Serializable(with = MessageObjectContentInnerSerializer::class)
 sealed interface MessageObjectContentInner {
@@ -32,21 +33,23 @@ private object MessageObjectContentInnerSerializer : KSerializer<MessageObjectCo
       element("Second", MessageContentTextObject.serializer().descriptor)
     }
 
-  override fun deserialize(decoder: Decoder): MessageObjectContentInner =
-    kotlin
+  override fun deserialize(decoder: Decoder): MessageObjectContentInner {
+    val json = decoder.decodeSerializableValue(JsonElement.serializer())
+    return kotlin
       .runCatching {
         MessageObjectContentInner.First(
-          MessageContentImageFileObject.serializer().deserialize(decoder)
+          Json.decodeFromJsonElement(MessageContentImageFileObject.serializer(), json)
         )
       }
       .getOrNull()
       ?: kotlin
         .runCatching {
           MessageObjectContentInner.Second(
-            MessageContentTextObject.serializer().deserialize(decoder)
+            Json.decodeFromJsonElement(MessageContentTextObject.serializer(), json)
           )
         }
         .getOrThrow()
+  }
 
   override fun serialize(encoder: Encoder, value: MessageObjectContentInner) =
     when (value) {

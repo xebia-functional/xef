@@ -9,6 +9,7 @@ package com.xebia.functional.openai.generated.model
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
 
 /**
  * Deprecated and replaced by `tool_calls`. The name and arguments of a function that should be
@@ -27,4 +28,4 @@ data class ChatCompletionStreamResponseDeltaFunctionCall(
   @Contextual @SerialName(value = "arguments") val arguments: kotlin.String? = null,
   /* The name of the function to call. */
   @Contextual @SerialName(value = "name") val name: kotlin.String? = null
-)
+) {}

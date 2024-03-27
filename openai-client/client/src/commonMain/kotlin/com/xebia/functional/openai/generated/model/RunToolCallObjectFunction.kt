@@ -8,6 +8,7 @@ package com.xebia.functional.openai.generated.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
 
 /**
  * The function definition.
@@ -21,4 +22,4 @@ data class RunToolCallObjectFunction(
   @SerialName(value = "name") val name: kotlin.String,
   /* The arguments that the model expects you to pass to the function. */
   @SerialName(value = "arguments") val arguments: kotlin.String
-)
+) {}

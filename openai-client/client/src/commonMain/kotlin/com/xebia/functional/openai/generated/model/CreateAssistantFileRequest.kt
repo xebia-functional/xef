@@ -8,6 +8,7 @@ package com.xebia.functional.openai.generated.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
 
 /**
  * @param fileId A [File](/docs/api-reference/files) ID (with `purpose=\"assistants\"`) that the
@@ -18,4 +19,4 @@ import kotlinx.serialization.Serializable
 data class CreateAssistantFileRequest(
   /* A [File](/docs/api-reference/files) ID (with `purpose=\"assistants\"`) that the assistant should use. Useful for tools like `retrieval` and `code_interpreter` that can access files. */
   @SerialName(value = "file_id") val fileId: kotlin.String
-)
+) {}

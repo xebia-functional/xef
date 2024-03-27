@@ -11,6 +11,7 @@ import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
+import kotlinx.serialization.json.*
 
 @Serializable(with = ChatCompletionRequestMessageSerializer::class)
 sealed interface ChatCompletionRequestMessage {
@@ -49,42 +50,44 @@ private object ChatCompletionRequestMessageSerializer : KSerializer<ChatCompleti
       element("Fifth", ChatCompletionRequestUserMessage.serializer().descriptor)
     }
 
-  override fun deserialize(decoder: Decoder): ChatCompletionRequestMessage =
-    kotlin
+  override fun deserialize(decoder: Decoder): ChatCompletionRequestMessage {
+    val json = decoder.decodeSerializableValue(JsonElement.serializer())
+    return kotlin
       .runCatching {
         ChatCompletionRequestMessage.First(
-          ChatCompletionRequestAssistantMessage.serializer().deserialize(decoder)
+          Json.decodeFromJsonElement(ChatCompletionRequestAssistantMessage.serializer(), json)
         )
       }
       .getOrNull()
       ?: kotlin
         .runCatching {
           ChatCompletionRequestMessage.Second(
-            ChatCompletionRequestFunctionMessage.serializer().deserialize(decoder)
+            Json.decodeFromJsonElement(ChatCompletionRequestFunctionMessage.serializer(), json)
           )
         }
         .getOrNull()
       ?: kotlin
         .runCatching {
           ChatCompletionRequestMessage.Third(
-            ChatCompletionRequestSystemMessage.serializer().deserialize(decoder)
+            Json.decodeFromJsonElement(ChatCompletionRequestSystemMessage.serializer(), json)
           )
         }
         .getOrNull()
       ?: kotlin
         .runCatching {
           ChatCompletionRequestMessage.Fourth(
-            ChatCompletionRequestToolMessage.serializer().deserialize(decoder)
+            Json.decodeFromJsonElement(ChatCompletionRequestToolMessage.serializer(), json)
           )
         }
         .getOrNull()
       ?: kotlin
         .runCatching {
           ChatCompletionRequestMessage.Fifth(
-            ChatCompletionRequestUserMessage.serializer().deserialize(decoder)
+            Json.decodeFromJsonElement(ChatCompletionRequestUserMessage.serializer(), json)
           )
         }
         .getOrThrow()
+  }
 
   override fun serialize(encoder: Encoder, value: ChatCompletionRequestMessage) =
     when (value) {

@@ -9,6 +9,7 @@ package com.xebia.functional.openai.generated.model
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
 
 /**
  * @param messages A list of [messages](/docs/api-reference/messages) to start the thread with.
@@ -26,4 +27,4 @@ data class CreateThreadRequest(
   @Contextual
   @SerialName(value = "metadata")
   val metadata: kotlinx.serialization.json.JsonObject? = null
-)
+) {}

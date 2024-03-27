@@ -8,6 +8,7 @@ package com.xebia.functional.openai.generated.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
 
 /**
  * Log probability information for the choice.
@@ -18,4 +19,4 @@ import kotlinx.serialization.Serializable
 data class CreateChatCompletionResponseChoicesInnerLogprobs(
   /* A list of message content tokens with log probability information. */
   @SerialName(value = "content") val content: kotlin.collections.List<ChatCompletionTokenLogprob>?
-)
+) {}

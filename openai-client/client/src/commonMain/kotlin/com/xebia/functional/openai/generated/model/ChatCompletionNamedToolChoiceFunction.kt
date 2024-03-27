@@ -8,10 +8,11 @@ package com.xebia.functional.openai.generated.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
 
 /** @param name The name of the function to call. */
 @Serializable
 data class ChatCompletionNamedToolChoiceFunction(
   /* The name of the function to call. */
   @SerialName(value = "name") val name: kotlin.String
-)
+) {}

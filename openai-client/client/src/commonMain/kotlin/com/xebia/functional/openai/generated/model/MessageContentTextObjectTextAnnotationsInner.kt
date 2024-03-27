@@ -11,6 +11,7 @@ import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
+import kotlinx.serialization.json.*
 
 @Serializable(with = MessageContentTextObjectTextAnnotationsInnerSerializer::class)
 sealed interface MessageContentTextObjectTextAnnotationsInner {
@@ -35,21 +36,29 @@ private object MessageContentTextObjectTextAnnotationsInnerSerializer :
       element("Second", MessageContentTextAnnotationsFilePathObject.serializer().descriptor)
     }
 
-  override fun deserialize(decoder: Decoder): MessageContentTextObjectTextAnnotationsInner =
-    kotlin
+  override fun deserialize(decoder: Decoder): MessageContentTextObjectTextAnnotationsInner {
+    val json = decoder.decodeSerializableValue(JsonElement.serializer())
+    return kotlin
       .runCatching {
         MessageContentTextObjectTextAnnotationsInner.First(
-          MessageContentTextAnnotationsFileCitationObject.serializer().deserialize(decoder)
+          Json.decodeFromJsonElement(
+            MessageContentTextAnnotationsFileCitationObject.serializer(),
+            json
+          )
         )
       }
       .getOrNull()
       ?: kotlin
         .runCatching {
           MessageContentTextObjectTextAnnotationsInner.Second(
-            MessageContentTextAnnotationsFilePathObject.serializer().deserialize(decoder)
+            Json.decodeFromJsonElement(
+              MessageContentTextAnnotationsFilePathObject.serializer(),
+              json
+            )
           )
         }
         .getOrThrow()
+  }
 
   override fun serialize(encoder: Encoder, value: MessageContentTextObjectTextAnnotationsInner) =
     when (value) {

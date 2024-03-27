@@ -11,6 +11,7 @@ import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
+import kotlinx.serialization.json.*
 
 @Serializable(with = CreateFineTuningJobRequestHyperparametersBatchSizeSerializer::class)
 sealed interface CreateFineTuningJobRequestHyperparametersBatchSize {
@@ -36,21 +37,23 @@ private object CreateFineTuningJobRequestHyperparametersBatchSizeSerializer :
       element("Second", kotlin.String.serializer().descriptor)
     }
 
-  override fun deserialize(decoder: Decoder): CreateFineTuningJobRequestHyperparametersBatchSize =
-    kotlin
+  override fun deserialize(decoder: Decoder): CreateFineTuningJobRequestHyperparametersBatchSize {
+    val json = decoder.decodeSerializableValue(JsonElement.serializer())
+    return kotlin
       .runCatching {
         CreateFineTuningJobRequestHyperparametersBatchSize.First(
-          kotlin.Int.serializer().deserialize(decoder)
+          Json.decodeFromJsonElement(kotlin.Int.serializer(), json)
         )
       }
       .getOrNull()
       ?: kotlin
         .runCatching {
           CreateFineTuningJobRequestHyperparametersBatchSize.Second(
-            kotlin.String.serializer().deserialize(decoder)
+            Json.decodeFromJsonElement(kotlin.String.serializer(), json)
           )
         }
         .getOrThrow()
+  }
 
   override fun serialize(
     encoder: Encoder,

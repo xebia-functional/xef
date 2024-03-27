@@ -11,6 +11,7 @@ import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
+import kotlinx.serialization.json.*
 
 @Serializable(with = RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInnerSerializer::class)
 sealed interface RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInner {
@@ -40,21 +41,29 @@ private object RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInnerSeria
 
   override fun deserialize(
     decoder: Decoder
-  ): RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInner =
-    kotlin
+  ): RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInner {
+    val json = decoder.decodeSerializableValue(JsonElement.serializer())
+    return kotlin
       .runCatching {
         RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInner.First(
-          RunStepDetailsToolCallsCodeOutputImageObject.serializer().deserialize(decoder)
+          Json.decodeFromJsonElement(
+            RunStepDetailsToolCallsCodeOutputImageObject.serializer(),
+            json
+          )
         )
       }
       .getOrNull()
       ?: kotlin
         .runCatching {
           RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInner.Second(
-            RunStepDetailsToolCallsCodeOutputLogsObject.serializer().deserialize(decoder)
+            Json.decodeFromJsonElement(
+              RunStepDetailsToolCallsCodeOutputLogsObject.serializer(),
+              json
+            )
           )
         }
         .getOrThrow()
+  }
 
   override fun serialize(
     encoder: Encoder,

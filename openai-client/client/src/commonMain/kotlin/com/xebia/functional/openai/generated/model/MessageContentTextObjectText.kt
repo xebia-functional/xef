@@ -8,6 +8,7 @@ package com.xebia.functional.openai.generated.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
 
 /**
  * @param `value` The data that makes up the text.
@@ -19,4 +20,4 @@ data class MessageContentTextObjectText(
   @SerialName(value = "value") val `value`: kotlin.String,
   @SerialName(value = "annotations")
   val annotations: kotlin.collections.List<MessageContentTextObjectTextAnnotationsInner>
-)
+) {}

@@ -11,6 +11,7 @@ import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
+import kotlinx.serialization.json.*
 
 @Serializable(with = AssistantObjectToolsInnerSerializer::class)
 sealed interface AssistantObjectToolsInner {
@@ -37,22 +38,30 @@ private object AssistantObjectToolsInnerSerializer : KSerializer<AssistantObject
       element("Third", AssistantToolsRetrieval.serializer().descriptor)
     }
 
-  override fun deserialize(decoder: Decoder): AssistantObjectToolsInner =
-    kotlin
+  override fun deserialize(decoder: Decoder): AssistantObjectToolsInner {
+    val json = decoder.decodeSerializableValue(JsonElement.serializer())
+    return kotlin
       .runCatching {
-        AssistantObjectToolsInner.First(AssistantToolsCode.serializer().deserialize(decoder))
+        AssistantObjectToolsInner.First(
+          Json.decodeFromJsonElement(AssistantToolsCode.serializer(), json)
+        )
       }
       .getOrNull()
       ?: kotlin
         .runCatching {
-          AssistantObjectToolsInner.Second(AssistantToolsFunction.serializer().deserialize(decoder))
+          AssistantObjectToolsInner.Second(
+            Json.decodeFromJsonElement(AssistantToolsFunction.serializer(), json)
+          )
         }
         .getOrNull()
       ?: kotlin
         .runCatching {
-          AssistantObjectToolsInner.Third(AssistantToolsRetrieval.serializer().deserialize(decoder))
+          AssistantObjectToolsInner.Third(
+            Json.decodeFromJsonElement(AssistantToolsRetrieval.serializer(), json)
+          )
         }
         .getOrThrow()
+  }
 
   override fun serialize(encoder: Encoder, value: AssistantObjectToolsInner) =
     when (value) {

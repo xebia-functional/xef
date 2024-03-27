@@ -9,6 +9,7 @@ package com.xebia.functional.openai.generated.model
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
 
 /**
  * @param metadata Set of 16 key-value pairs that can be attached to an object. This can be useful
@@ -21,4 +22,4 @@ data class ModifyRunRequest(
   @Contextual
   @SerialName(value = "metadata")
   val metadata: kotlinx.serialization.json.JsonObject? = null
-)
+) {}

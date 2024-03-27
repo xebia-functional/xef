@@ -11,6 +11,7 @@ import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
+import kotlinx.serialization.json.*
 
 @Serializable(with = ChatCompletionToolChoiceOptionSerializer::class)
 sealed interface ChatCompletionToolChoiceOption {
@@ -33,19 +34,23 @@ private object ChatCompletionToolChoiceOptionSerializer :
       element("Second", kotlin.String.serializer().descriptor)
     }
 
-  override fun deserialize(decoder: Decoder): ChatCompletionToolChoiceOption =
-    kotlin
+  override fun deserialize(decoder: Decoder): ChatCompletionToolChoiceOption {
+    val json = decoder.decodeSerializableValue(JsonElement.serializer())
+    return kotlin
       .runCatching {
         ChatCompletionToolChoiceOption.First(
-          ChatCompletionNamedToolChoice.serializer().deserialize(decoder)
+          Json.decodeFromJsonElement(ChatCompletionNamedToolChoice.serializer(), json)
         )
       }
       .getOrNull()
       ?: kotlin
         .runCatching {
-          ChatCompletionToolChoiceOption.Second(kotlin.String.serializer().deserialize(decoder))
+          ChatCompletionToolChoiceOption.Second(
+            Json.decodeFromJsonElement(kotlin.String.serializer(), json)
+          )
         }
         .getOrThrow()
+  }
 
   override fun serialize(encoder: Encoder, value: ChatCompletionToolChoiceOption) =
     when (value) {

@@ -8,6 +8,7 @@ package com.xebia.functional.openai.generated.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
 
 /**
  * The Code Interpreter tool call definition.
@@ -24,4 +25,4 @@ data class RunStepDetailsToolCallsCodeObjectCodeInterpreter(
   /* The outputs from the Code Interpreter tool call. Code Interpreter can output one or more items, including text (`logs`) or images (`image`). Each of these are represented by a different object type. */
   @SerialName(value = "outputs")
   val outputs: kotlin.collections.List<RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInner>
-)
+) {}

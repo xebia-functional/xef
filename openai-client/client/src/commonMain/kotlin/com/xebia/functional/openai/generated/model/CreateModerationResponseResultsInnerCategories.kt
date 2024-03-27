@@ -8,6 +8,7 @@ package com.xebia.functional.openai.generated.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
 
 /**
  * A list of the categories, and whether they are flagged or not.
@@ -60,4 +61,4 @@ data class CreateModerationResponseResultsInnerCategories(
   @SerialName(value = "violence") val violence: kotlin.Boolean,
   /* Content that depicts death, violence, or physical injury in graphic detail. */
   @SerialName(value = "violence/graphic") val violenceGraphic: kotlin.Boolean
-)
+) {}
