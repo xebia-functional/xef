@@ -48,6 +48,6 @@ object TestExample {
           +OutputResponse(description = fakeOutputs, value = "The movie is Jurassic Park")
         }
       }
-    spec.evaluate<AnswerAccuracy>()
+    spec.evaluate<AnswerAccuracy>(success = listOf(AnswerAccuracy.yes))
   }
 }

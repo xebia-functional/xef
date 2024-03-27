@@ -21,5 +21,6 @@ data class OutputResult<E>(
   val description: String,
   val contextDescription: String,
   val output: String,
-  val result: E
+  val result: E,
+  val success: Boolean
 ) where E : AI.PromptClassifier, E : Enum<E>
