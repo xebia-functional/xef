@@ -43,9 +43,10 @@ fun OpenAI(
   httpClientConfig: ((HttpClientConfig<*>) -> Unit)? = null,
   logRequests: Boolean = false
 ): OpenAI {
-  val token = config.token
-    ?: getenv(KEY_ENV_VAR)
-    ?: throw AIError.Env.OpenAI(nonEmptyListOf("missing $KEY_ENV_VAR env var"))
+  val token =
+    config.token
+      ?: getenv(KEY_ENV_VAR)
+      ?: throw AIError.Env.OpenAI(nonEmptyListOf("missing $KEY_ENV_VAR env var"))
   val clientConfig: HttpClientConfig<*>.() -> Unit = {
     install(ContentNegotiation) { json(config.json) }
     install(HttpTimeout) {
