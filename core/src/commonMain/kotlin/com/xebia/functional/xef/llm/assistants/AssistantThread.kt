@@ -274,7 +274,7 @@ class AssistantThread(
   companion object {
 
     /** Support for OpenAI-Beta: assistants=v1 */
-    private fun defaultConfig(httpRequestBuilder: HttpRequestBuilder): Unit {
+    fun defaultConfig(httpRequestBuilder: HttpRequestBuilder): Unit {
       httpRequestBuilder.header("OpenAI-Beta", "assistants=v1")
     }
 

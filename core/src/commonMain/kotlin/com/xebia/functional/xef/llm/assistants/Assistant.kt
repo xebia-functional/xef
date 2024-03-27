@@ -4,6 +4,7 @@ import com.xebia.functional.openai.generated.api.Assistants
 import com.xebia.functional.openai.generated.model.*
 import com.xebia.functional.xef.Config
 import com.xebia.functional.xef.OpenAI
+import com.xebia.functional.xef.llm.assistants.AssistantThread.Companion.defaultConfig
 import com.xebia.functional.xef.llm.models.functions.buildJsonSchema
 import io.ktor.util.logging.*
 import kotlinx.serialization.KSerializer
@@ -21,21 +22,26 @@ class Assistant(
   val assistantId: String,
   val toolsConfig: List<Tool.Companion.ToolConfig<*, *>> = emptyList(),
   val config: Config = Config(),
-  private val assistantsApi: Assistants = OpenAI(config).assistants,
+  private val assistantsApi: Assistants = OpenAI(config, logRequests = true).assistants,
 ) {
 
   constructor(
     assistantObject: AssistantObject,
     toolsConfig: List<Tool.Companion.ToolConfig<*, *>> = emptyList(),
     config: Config = Config(),
-    assistantsApi: Assistants = OpenAI(config).assistants,
+    assistantsApi: Assistants = OpenAI(config, logRequests = true).assistants,
   ) : this(assistantObject.id, toolsConfig, config, assistantsApi)
 
-  suspend fun get(): AssistantObject = assistantsApi.getAssistant(assistantId)
+  suspend fun get(): AssistantObject =
+    assistantsApi.getAssistant(assistantId, configure = ::defaultConfig)
 
   suspend fun modify(modifyAssistantRequest: ModifyAssistantRequest): Assistant =
     Assistant(
-      assistantsApi.modifyAssistant(assistantId, modifyAssistantRequest),
+      assistantsApi.modifyAssistant(
+        assistantId,
+        modifyAssistantRequest,
+        configure = ::defaultConfig
+      ),
       toolsConfig,
       config,
       assistantsApi
@@ -77,7 +83,7 @@ class Assistant(
       metadata: JsonObject? = null,
       toolsConfig: List<Tool.Companion.ToolConfig<*, *>> = emptyList(),
       config: Config = Config(),
-      assistantsApi: Assistants = OpenAI(config).assistants,
+      assistantsApi: Assistants = OpenAI(config, logRequests = true).assistants,
     ): Assistant =
       Assistant(
         CreateAssistantRequest(
@@ -98,9 +104,9 @@ class Assistant(
       request: CreateAssistantRequest,
       toolsConfig: List<Tool.Companion.ToolConfig<*, *>> = emptyList(),
       config: Config = Config(),
-      assistantsApi: Assistants = OpenAI(config).assistants,
+      assistantsApi: Assistants = OpenAI(config, logRequests = true).assistants,
     ): Assistant {
-      val response = assistantsApi.createAssistant(request)
+      val response = assistantsApi.createAssistant(request, configure = ::defaultConfig)
       return Assistant(response, toolsConfig, config, assistantsApi)
     }
 
@@ -108,7 +114,7 @@ class Assistant(
       request: String,
       toolsConfig: List<Tool.Companion.ToolConfig<*, *>> = emptyList(),
       config: Config = Config(),
-      assistantsApi: Assistants = OpenAI(config).assistants,
+      assistantsApi: Assistants = OpenAI(config, logRequests = true).assistants,
     ): Assistant {
       val parsed = Yaml.Default.decodeYamlMapFromString(request)
       val assistantRequest =
@@ -169,9 +175,6 @@ class Assistant(
             config = config,
             assistantsApi = assistantsApi,
           )
-        // list all assistants and get their files
-        // list all the org files
-        assistantsApi.listAssistants()
 
         assistant.modify(
           ModifyAssistantRequest(
