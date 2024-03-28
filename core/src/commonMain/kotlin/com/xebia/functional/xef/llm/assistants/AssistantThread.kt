@@ -9,9 +9,7 @@ import com.xebia.functional.xef.llm.addMetrics
 import com.xebia.functional.xef.metrics.Metric
 import io.ktor.client.request.*
 import kotlin.jvm.JvmName
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 
@@ -98,29 +96,34 @@ class AssistantThread(
                     .parMap { toolCall -> executeToolCall(toolCall, assistant) }
                     .filterNotNull()
                 val results: Map<String, Assistant.Companion.ToolOutput> = callsResult.toMap()
-
+                val toolOutputsRequest =
+                  SubmitToolOutputsRunRequest(
+                    toolOutputs =
+                      results.map { (toolCallId, result) ->
+                        SubmitToolOutputsRunRequestToolOutputsInner(
+                          toolCallId = toolCallId,
+                          output =
+                            Json.encodeToString(Assistant.Companion.ToolOutput.serializer(), result)
+                        )
+                      }
+                  )
                 metric.assistantToolOutputsRun(event.run.id) {
                   api
                     .submitToolOuputsToRunStream(
                       threadId = threadId,
                       runId = event.run.id,
-                      submitToolOutputsRunRequest =
-                        SubmitToolOutputsRunRequest(
-                          toolOutputs =
-                            results.map { (toolCallId, result) ->
-                              SubmitToolOutputsRunRequestToolOutputsInner(
-                                toolCallId = toolCallId,
-                                output =
-                                  Json.encodeToString(
-                                    Assistant.Companion.ToolOutput.serializer(),
-                                    result
-                                  )
-                              )
-                            }
-                        ),
+                      submitToolOutputsRunRequest = toolOutputsRequest,
                       configure = ::defaultConfig
                     )
-                    .collect { emit(RunDelta.fromServerSentEvent(it)) }
+                    .collect {
+                      val delta = RunDelta.fromServerSentEvent(it)
+                      if (delta is RunDelta.RunStepCompleted) {
+                        emit(delta)
+                        emit(RunDelta.RunSubmitToolOutputs(toolOutputsRequest))
+                      } else {
+                        emit(delta)
+                      }
+                    }
                   getRun(event.run.id)
                 }
               }

@@ -27,7 +27,9 @@ sealed interface RunDelta {
   /** [RunDeltaEvent.thread_run_requires_action] */
   @JvmInline @Serializable value class RunRequiresAction(val run: RunObject) : RunDelta
 
-  @JvmInline @Serializable value class RunSubmittingToolOutputs(val run: RunObject) : RunDelta
+  @JvmInline
+  @Serializable
+  value class RunSubmitToolOutputs(val run: SubmitToolOutputsRunRequest) : RunDelta
 
   /** [RunDeltaEvent.thread_run_completed] */
   @JvmInline @Serializable value class RunCompleted(val run: RunObject) : RunDelta
@@ -191,7 +193,7 @@ sealed interface RunDelta {
     }
   }
 
-  fun printEvent(showData: Boolean = true) {
+  fun printEvent(showData: Boolean = false) {
     val event = this::class.simpleName
     when (this) {
       is MessageInProgress -> {
@@ -226,6 +228,9 @@ sealed interface RunDelta {
             }}"
             )
         }
+      }
+      is RunSubmitToolOutputs -> {
+        run.toolOutputs.forEach { println("Tool output: ${it.toolCallId} - ${it.output}") }
       }
       else -> {
         val data = Json.encodeToString(serializer(), this)
