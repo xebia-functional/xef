@@ -20,7 +20,13 @@ import static java.util.Map.entry;
 @SuppressWarnings("unused")
 public class KMMGeneratorConfig extends KotlinClientCodegen {
 
+
     private final Map<String, List<String>> nonRequiredFields = new LinkedHashMap<>();
+
+    @Override
+    public String getIgnoreFilePathOverride() {
+        return ".openapi-generator-ignore";
+    }
 
     public KMMGeneratorConfig() {
         super();
@@ -133,10 +139,13 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
                             if (streamingOps.containsKey(op.operationId)) {
                                 op.vendorExtensions.put("x-streaming", true);
                                 Pair<String, String> returnType = streamingOps.get(op.operationId);
-                                objs.getImports().add(Map.of(
+                                Map<String, String> imports = Map.of(
                                         "import", returnType.getKey() + "." + returnType.getValue(),
                                         "classname", returnType.getValue()
-                                ));
+                                );
+                                if(!objs.getImports().contains(imports)) {
+                                    objs.getImports().add(imports);
+                                }
                                 op.vendorExtensions.put("x-streaming-return", returnType.getValue());
                             }
                         }

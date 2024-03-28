@@ -24,6 +24,16 @@ java {
     toolchain { languageVersion = JavaLanguageVersion.of(11) }
 }
 
+kotlin {
+    sourceSets.commonMain {
+        kotlin.srcDir(project.file("build/generated/OpenAI/src/commonMain/kotlin"))
+    }
+}
+
+// Automatically run the generator when importing
+tasks.maybeCreate("prepareKotlinIdeaImport")
+    .dependsOn(":xef-openai-client-generator:openaiClientGenerate")
+
 detekt {
     toolVersion = "1.23.1"
     source.setFrom("src/commonMain/kotlin", "src/jvmMain/kotlin")

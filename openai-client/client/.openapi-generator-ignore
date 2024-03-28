@@ -10,6 +10,6 @@ docs/**
 build.gradle
 settings.gradle
 
-**/test/**
+**/src/test/
 /**/org/openapitools/client/infrastructure/
-proguard-rules.pro
+**/proguard-rules.pro

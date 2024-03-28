@@ -7,6 +7,8 @@ import io.ktor.utils.io.readUTF8Line
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.serialization.json.Json
 
+// ServerSentEvent, INTERNAL TO THIS MODULE
+// RunDelta | CreateChatCompletionStreamResponse
 internal suspend inline fun <reified A> FlowCollector<A>.streamEvents(
   response: HttpResponse,
   json: Json,
@@ -24,4 +26,6 @@ internal suspend inline fun <reified A> FlowCollector<A>.streamEvents(
       }
     emit(value)
   }
+
+  // serverevent as A
 }
