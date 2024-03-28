@@ -21,9 +21,7 @@ import kotlinx.serialization.encoding.Encoder
 {{/allVars}}
 */
 {{^discriminator}}@Serializable{{/discriminator}}
-{{#isDeprecated}}
-    @Deprecated(message = "This schema is deprecated.")
-{{/isDeprecated}}
+{{#isDeprecated}}@Deprecated(message = "This schema is deprecated."){{/isDeprecated}}
 {{>additionalModelTypeAnnotations}}
 {{#nonPublicApi}}internal {{/nonPublicApi}}{{#discriminator}}interface{{/discriminator}}{{^discriminator}}data class{{/discriminator}} {{classname}}{{^discriminator}} (
 {{#allVars}}

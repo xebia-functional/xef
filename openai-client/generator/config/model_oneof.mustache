@@ -1,3 +1,4 @@
+import com.xebia.functional.openai.attemptDeserialize
 import kotlin.jvm.JvmInline
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*
@@ -24,9 +25,10 @@ private object {{classname}}Serializer : KSerializer<{{classname}}> {
 
     override fun deserialize(decoder: Decoder): {{classname}} {
       val json = decoder.decodeSerializableValue(JsonElement.serializer())
-      return {{#oneOf}}kotlin.runCatching {
-        {{classname}}.Case{{#lambda.oneOfName}}{{{.}}}{{/lambda.oneOfName}}(Json.decodeFromJsonElement({{#lambda.serializer}}{{{.}}}{{/lambda.serializer}}, json))
-      }{{#-last}}.getOrThrow(){{/-last}}{{^-last}}.getOrNull() ?:{{/-last}}{{/oneOf}}
+      return attemptDeserialize(json, {{#oneOf}}
+        Pair({{classname}}.Case{{#lambda.oneOfName}}{{{.}}}{{/lambda.oneOfName}}::class) {
+          {{classname}}.Case{{#lambda.oneOfName}}{{{.}}}{{/lambda.oneOfName}}(Json.decodeFromJsonElement({{#lambda.serializer}}{{{.}}}{{/lambda.serializer}}, json))
+      }{{#-last}}){{/-last}}{{^-last}},{{/-last}}{{/oneOf}}
     }
 
     override fun serialize(encoder: Encoder, value: {{classname}}) =
