@@ -1,9 +1,6 @@
 package com.xebia.functional.xef.assistants
 
-import com.xebia.functional.xef.llm.assistants.Assistant
-import com.xebia.functional.xef.llm.assistants.AssistantThread
-import com.xebia.functional.xef.llm.assistants.MessageWithFiles
-import com.xebia.functional.xef.llm.assistants.Tool
+import com.xebia.functional.xef.llm.assistants.*
 
 suspend fun main() {
   //  val filesApi = fromEnvironment(::FilesApi)
@@ -46,13 +43,5 @@ suspend fun main() {
   println("assistant: $assistantInfo")
   val thread = AssistantThread()
   thread.createMessage(MessageWithFiles("What does this file say?", listOf(fileId)))
-  val stream = thread.run(assistant)
-  stream.collect {
-    when (it) {
-      is AssistantThread.RunDelta.ReceivedMessage ->
-        println("received message: ${it.message.content.firstOrNull()}")
-      is AssistantThread.RunDelta.Run -> println("run: ${it.message.status.name}")
-      is AssistantThread.RunDelta.Step -> println("step: ${it.runStep.type.name}")
-    }
-  }
+  thread.run(assistant).collect(RunDelta::printEvent)
 }

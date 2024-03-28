@@ -27,7 +27,11 @@ data class Config(
   },
   val streamingPrefix: String = "data:",
   val streamingDelimiter: String = "data: [DONE]"
-)
+) {
+  companion object {
+    val DEFAULT = Config()
+  }
+}
 
 private const val ORG_ENV_VAR = "OPENAI_ORG"
 private const val HOST_ENV_VAR = "OPENAI_HOST"

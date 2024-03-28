@@ -96,7 +96,7 @@ class OpenTelemetryAssistantState(private val tracer: Tracer) {
               "Tools: ${detail.value.toolCalls.joinToString {
                 when (it) {
                   is RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsCodeObject -> it.value.type.name
-                  is RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsFunctionObject -> it.value.function.name
+                  is RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsFunctionObject -> it.value.function.name ?: ""
                   is RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsRetrievalObject -> it.value.type.name
                 }
               }}: ${output.status.name}"
@@ -190,11 +190,11 @@ class OpenTelemetryAssistantState(private val tracer: Tracer) {
               span.setAttribute("openai.assistant.toolCalls.$index.type", toolCall.value.type.name)
               span.setAttribute(
                 "openai.assistant.toolCalls.$index.function.name",
-                toolCall.value.function.name
+                toolCall.value.function.name ?: ""
               )
               span.setAttribute(
                 "openai.assistant.toolCalls.$index.function.arguments",
-                toolCall.value.function.arguments
+                toolCall.value.function.arguments ?: ""
               )
             }
             is RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsRetrievalObject -> {

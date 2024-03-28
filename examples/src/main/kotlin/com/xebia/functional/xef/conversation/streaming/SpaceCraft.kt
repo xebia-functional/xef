@@ -18,14 +18,14 @@ data class MissionDetail(
 data class SpaceTool(
   @Description("The name of the tool") val name: String,
   @Description("The type of the tool") val type: String,
-  @Description("The weight of the tool") val weight: Int
+  @Description("The weight of the tool") val weight: Double
 )
 
 @Serializable
 data class InterstellarCraft(
   @Description("The designation name of the spacecraft") val designation: String,
   @Description("The current mission name") val mission: String,
-  @Description("Coordinates of the spacecraft") val coordinates: Pair<Int, Int>,
+  @Description("Coordinates of the spacecraft") val coordinates: Pair<Double, Double>,
   @Description("Details related to the mission") val missionDetail: MissionDetail,
   @Description("A list of at least 10 tools that should be in the space craft")
   val tools: List<SpaceTool>
@@ -33,7 +33,7 @@ data class InterstellarCraft(
 
 suspend fun main() {
   AI<Flow<StreamedFunction<InterstellarCraft>>>(
-      "Make a spacecraft with a mission to Mars",
+      prompt = "Make a spacecraft with a mission to Mars",
     )
     .collect { element ->
       when (element) {
