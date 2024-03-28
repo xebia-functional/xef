@@ -32,6 +32,9 @@ import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 
@@ -154,7 +157,11 @@ fun {{classname}}(client: HttpClient, config: Config): {{classname}} = object : 
             parameter("{{baseName}}", {{#isContainer}}toMultiValue(this, "{{collectionFormat}}"){{/isContainer}}{{^isContainer}}listOf("${{{paramName}}}"){{/isContainer}})
         {{/queryParams}}
         url { path("{{path}}"{{#pathParams}}.replace("{" + "{{baseName}}" + "}", {{#isContainer}}{{paramName}}.joinToString(","){{/isContainer}}{{^isContainer}}"${{{paramName}}}"{{/isContainer}}){{/pathParams}}) }
-        setBody({{#hasBodyParam}}{{#bodyParam}}{{#isArray}}{{operationIdCamelCase}}Request({{{paramName}}}{{^isList}}.asList(){{/isList}}){{/isArray}}{{^isArray}}{{#isMap}}{{operationIdCamelCase}}Request({{{paramName}}}){{/isMap}}{{^isMap}}{{{paramName}}}{{/isMap}}{{/isArray}}{{/bodyParam}}{{/hasBodyParam}}
+        {{#hasBodyParam}}
+        val element = Json.encodeToJsonElement({{#lambda.serializer}}{{#bodyParam}}{{{baseName}}}{{/bodyParam}}{{/lambda.serializer}}, {{#bodyParam}}{{{paramName}}}{{/bodyParam}})
+        val jsObject = JsonObject(element.jsonObject + Pair("stream", JsonPrimitive(true)))
+        setBody(jsObject)
+        {{/hasBodyParam}}
         {{^hasBodyParam}}
             {{#hasFormParams}}
                 {{#isMultipart}}
@@ -177,10 +184,7 @@ fun {{classname}}(client: HttpClient, config: Config): {{classname}} = object : 
                     }.build()
                 {{/isMultipart}}
             {{/hasFormParams}}
-            {{^hasFormParams}}
-                io.ktor.client.utils.EmptyContent
-            {{/hasFormParams}}
-        {{/hasBodyParam}})
+        {{/hasBodyParam}}
       }.execute { streamEvents(it, config.json, config.streamingPrefix, config.streamingDelimiter) }
     }
     {{/vendorExtensions.x-streaming}}

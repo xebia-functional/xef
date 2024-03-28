@@ -60,6 +60,9 @@ import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonObject
 
 /**  */
 interface Assistants {
@@ -754,7 +757,9 @@ fun Assistants(client: HttpClient, config: Config): Assistants =
           header(HttpHeaders.Connection, "keep-alive")
           contentType(ContentType.Application.Json)
           url { path("/threads/{thread_id}/runs".replace("{" + "thread_id" + "}", "$threadId")) }
-          setBody(createRunRequest)
+          val element = Json.encodeToJsonElement(CreateRunRequest.serializer(), createRunRequest)
+          val jsObject = JsonObject(element.jsonObject + Pair("stream", JsonPrimitive(true)))
+          setBody(jsObject)
         }
         .execute {
           streamEvents(it, config.json, config.streamingPrefix, config.streamingDelimiter)
@@ -806,7 +811,13 @@ fun Assistants(client: HttpClient, config: Config): Assistants =
           header(HttpHeaders.Connection, "keep-alive")
           contentType(ContentType.Application.Json)
           url { path("/threads/runs") }
-          setBody(createThreadAndRunRequest)
+          val element =
+            Json.encodeToJsonElement(
+              CreateThreadAndRunRequest.serializer(),
+              createThreadAndRunRequest
+            )
+          val jsObject = JsonObject(element.jsonObject + Pair("stream", JsonPrimitive(true)))
+          setBody(jsObject)
         }
         .execute {
           streamEvents(it, config.json, config.streamingPrefix, config.streamingDelimiter)

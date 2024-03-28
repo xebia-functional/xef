@@ -34,6 +34,9 @@ import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonObject
 
 /**  */
 interface Chat {
@@ -99,7 +102,13 @@ fun Chat(client: HttpClient, config: Config): Chat =
           header(HttpHeaders.Connection, "keep-alive")
           contentType(ContentType.Application.Json)
           url { path("/chat/completions") }
-          setBody(createChatCompletionRequest)
+          val element =
+            Json.encodeToJsonElement(
+              CreateChatCompletionRequest.serializer(),
+              createChatCompletionRequest
+            )
+          val jsObject = JsonObject(element.jsonObject + Pair("stream", JsonPrimitive(true)))
+          setBody(jsObject)
         }
         .execute {
           streamEvents(it, config.json, config.streamingPrefix, config.streamingDelimiter)
