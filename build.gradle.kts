@@ -1,5 +1,8 @@
 @file:Suppress("DSL_SCOPE_VIOLATION")
 
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+
 plugins {
     base
     alias(libs.plugins.kotlin.multiplatform) apply false
@@ -59,3 +62,9 @@ fun getGradleCommand(platform: String): String {
 
 configureBuildAndTestTask("buildAndTestMultip", ModulePlatformType.MULTI)
 configureBuildAndTestTask("buildAndTestSinglep", ModulePlatformType.SINGLE)
+
+gradle.projectsEvaluated {
+  tasks.withType<KotlinCompile> {
+    dependsOn("openaiClientGenerate")
+  }
+}
