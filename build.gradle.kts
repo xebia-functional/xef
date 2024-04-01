@@ -29,8 +29,7 @@ fun Project.configureBuildAndTestTask(taskName: String, moduleType: ModulePlatfo
       when (moduleType) {
         ModulePlatformType.SINGLE -> {
           val excludedModules = includeOrNotModulesToCommand(multiPlatformModules, platform, false)
-          project.exec { commandLine(gradleCommand, "openaiClientGenerate") }
-          project.exec { commandLine(gradleCommand, "build", *excludedModules) }
+          project.exec { commandLine(gradleCommand, "openaiClientGenerate", "build", *excludedModules) }
         }
         ModulePlatformType.MULTI -> {
           project.exec { commandLine(gradleCommand, "openaiClientGenerate") }
