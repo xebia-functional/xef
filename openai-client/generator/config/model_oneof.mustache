@@ -17,7 +17,7 @@ sealed interface {{classname}} {
 
 }
 
-private object {{classname}}Serializer : KSerializer<{{classname}}> {
+object {{classname}}Serializer : KSerializer<{{classname}}> {
     @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
     override val descriptor: SerialDescriptor = buildSerialDescriptor("{{classname}}", PolymorphicKind.SEALED) { {{#oneOf}}
       element("{{#lambda.oneOfName}}{{-index}}{{/lambda.oneOfName}}", {{#lambda.serializer}}{{{.}}}{{/lambda.serializer}}.descriptor){{/oneOf}}

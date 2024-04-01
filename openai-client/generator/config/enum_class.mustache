@@ -38,7 +38,7 @@ sealed interface {{classname}} {
     }
 }
 
-private object {{classname}}Serializer : KSerializer<{{classname}}> {
+object {{classname}}Serializer : KSerializer<{{classname}}> {
     private val valueSerializer = {{{dataType}}}.serializer()
     override val descriptor = valueSerializer.descriptor
 
