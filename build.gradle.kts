@@ -1,5 +1,8 @@
 @file:Suppress("DSL_SCOPE_VIOLATION")
 
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+
 plugins {
     base
     alias(libs.plugins.kotlin.multiplatform) apply false
@@ -25,10 +28,12 @@ fun Project.configureBuildAndTestTask(taskName: String, moduleType: ModulePlatfo
     doLast {
       when (moduleType) {
         ModulePlatformType.SINGLE -> {
+          project.exec { commandLine(gradleCommand, ":xef-openai-client-generator:openaiClientGenerate") }
           val excludedModules = includeOrNotModulesToCommand(multiPlatformModules, platform, false)
           project.exec { commandLine(gradleCommand, "build", *excludedModules) }
         }
         ModulePlatformType.MULTI -> {
+          project.exec { commandLine(gradleCommand, ":xef-openai-client-generator:openaiClientGenerate") }
           val includedModules = includeOrNotModulesToCommand(multiPlatformModules, platform, true)
           project.exec { commandLine(gradleCommand, *includedModules) }
         }
@@ -59,3 +64,4 @@ fun getGradleCommand(platform: String): String {
 
 configureBuildAndTestTask("buildAndTestMultip", ModulePlatformType.MULTI)
 configureBuildAndTestTask("buildAndTestSinglep", ModulePlatformType.SINGLE)
+
