@@ -1,0 +1,40 @@
+import com.xebia.functional.openai.attemptDeserialize
+import kotlin.jvm.JvmInline
+import kotlinx.serialization.*
+import kotlinx.serialization.builtins.*
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.encoding.*
+import kotlinx.serialization.json.*
+
+@Serializable(with = {{classname}}Serializer::class)
+sealed interface {{classname}} {
+
+  {{#oneOf}}
+  @JvmInline
+  @Serializable
+  value class Case{{#lambda.oneOfName}}{{{.}}}{{/lambda.oneOfName}}(val value: {{{.}}}): {{classname}}
+  {{/oneOf}}
+
+}
+
+object {{classname}}Serializer : KSerializer<{{classname}}> {
+    @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
+    override val descriptor: SerialDescriptor = buildSerialDescriptor("{{classname}}", PolymorphicKind.SEALED) { {{#oneOf}}
+      element("{{#lambda.oneOfName}}{{-index}}{{/lambda.oneOfName}}", {{#lambda.serializer}}{{{.}}}{{/lambda.serializer}}.descriptor){{/oneOf}}
+    }
+
+    override fun deserialize(decoder: Decoder): {{classname}} {
+      val json = decoder.decodeSerializableValue(JsonElement.serializer())
+      return attemptDeserialize(json, {{#oneOf}}
+        Pair({{classname}}.Case{{#lambda.oneOfName}}{{{.}}}{{/lambda.oneOfName}}::class) {
+          {{classname}}.Case{{#lambda.oneOfName}}{{{.}}}{{/lambda.oneOfName}}(Json.decodeFromJsonElement({{#lambda.serializer}}{{{.}}}{{/lambda.serializer}}, json))
+      }{{#-last}}){{/-last}}{{^-last}},{{/-last}}{{/oneOf}}
+    }
+
+    override fun serialize(encoder: Encoder, value: {{classname}}) =
+      when(value) { {{#oneOf}}
+        is {{classname}}.Case{{#lambda.oneOfName}}{{{.}}}{{/lambda.oneOfName}} ->
+        encoder.encodeSerializableValue({{#lambda.serializer}}{{{.}}}{{/lambda.serializer}}, value.value)
+        {{/oneOf}}
+    }
+}

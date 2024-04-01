@@ -23,7 +23,7 @@ jobs:
       - name: Build
         uses: gradle/gradle-build-action@v3
         with:
-          arguments: build
+          arguments: :xef-openai-client-generator:openaiClientGenerate build
 
       - name: Read version
         id: read-version

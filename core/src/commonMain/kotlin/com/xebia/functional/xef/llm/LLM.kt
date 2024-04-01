@@ -1,8 +1,10 @@
 package com.xebia.functional.xef.llm
 
-import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage
+import com.xebia.functional.openai.generated.model.ChatCompletionRequestMessage
 import com.xebia.functional.tokenizer.Encoding
 import com.xebia.functional.tokenizer.ModelType
+import com.xebia.functional.xef.prompt.completionRole
+import com.xebia.functional.xef.prompt.contentAsString
 
 fun ModelType.tokensFromMessages(
   messages: List<ChatCompletionRequestMessage>,
@@ -10,7 +12,7 @@ fun ModelType.tokensFromMessages(
 ): Int { // TODO: naive implementation with magic numbers
   fun Encoding.countTokensFromMessages(tokensPerMessage: Int, tokensPerName: Int): Int =
     messages.sumOf { message ->
-      countTokens(message.completionRole().name) +
+      countTokens(message.completionRole().value) +
         countTokens(message.contentAsString() ?: "") +
         tokensPerMessage +
         tokensPerName

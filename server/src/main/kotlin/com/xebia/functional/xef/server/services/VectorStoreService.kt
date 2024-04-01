@@ -2,7 +2,6 @@ package com.xebia.functional.xef.server.services
 
 import arrow.fx.coroutines.ResourceScope
 import com.typesafe.config.Config
-import com.xebia.functional.xef.server.http.routes.Provider
 import com.xebia.functional.xef.store.VectorStore
 import com.xebia.functional.xef.store.config.PostgreSQLVectorStoreConfig
 import com.xebia.functional.xef.store.migrations.runDatabaseMigrations
@@ -61,9 +60,5 @@ suspend fun ResourceScope.vectorStoreService(
   }
 
 abstract class VectorStoreService {
-  abstract fun getVectorStore(
-    provider: Provider = Provider.OPENAI,
-    token: String? = null,
-    org: String? = null
-  ): VectorStore
+  abstract fun getVectorStore(token: String? = null, org: String? = null): VectorStore
 }

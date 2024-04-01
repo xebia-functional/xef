@@ -11,6 +11,8 @@ public class DownloadOpenAIAPI {
         try {
             String commit = readCommit();
             downloadAPI(commit);
+
+            // list streaming methods
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

@@ -34,7 +34,7 @@ jobs:
       - name: Assemble
         uses: gradle/gradle-build-action@v3
         with:
-          arguments: assemble
+          arguments: :xef-openai-client-generator:openaiClientGenerate assemble
 
       - name: Upload reports
         if: failure()

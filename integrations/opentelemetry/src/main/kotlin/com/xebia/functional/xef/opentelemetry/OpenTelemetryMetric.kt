@@ -1,10 +1,11 @@
 package com.xebia.functional.xef.opentelemetry
 
-import com.xebia.functional.openai.models.MessageObject
-import com.xebia.functional.openai.models.RunObject
-import com.xebia.functional.openai.models.RunStepObject
+import com.xebia.functional.openai.generated.model.MessageObject
+import com.xebia.functional.openai.generated.model.RunObject
+import com.xebia.functional.openai.generated.model.RunStepObject
 import com.xebia.functional.xef.metrics.Metric
 import com.xebia.functional.xef.prompt.Prompt
+import com.xebia.functional.xef.prompt.contentAsString
 import io.opentelemetry.api.trace.*
 
 class OpenTelemetryMetric(
@@ -20,7 +21,7 @@ class OpenTelemetryMetric(
   override suspend fun <A> customSpan(name: String, block: suspend Metric.() -> A): A =
     state.span(name) { block() }
 
-  override suspend fun <A, T> promptSpan(prompt: Prompt<T>, block: suspend Metric.() -> A): A =
+  override suspend fun <A> promptSpan(prompt: Prompt, block: suspend Metric.() -> A): A =
     state.span("Prompt: ${prompt.messages.lastOrNull()?.contentAsString() ?: "empty"}") { block() }
 
   override suspend fun event(message: String) {
