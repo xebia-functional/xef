@@ -29,9 +29,11 @@ fun Project.configureBuildAndTestTask(taskName: String, moduleType: ModulePlatfo
       when (moduleType) {
         ModulePlatformType.SINGLE -> {
           val excludedModules = includeOrNotModulesToCommand(multiPlatformModules, platform, false)
+          project.exec { commandLine(gradleCommand, "openaiClientGenerate") }
           project.exec { commandLine(gradleCommand, "build", *excludedModules) }
         }
         ModulePlatformType.MULTI -> {
+          project.exec { commandLine(gradleCommand, "openaiClientGenerate") }
           val includedModules = includeOrNotModulesToCommand(multiPlatformModules, platform, true)
           project.exec { commandLine(gradleCommand, *includedModules) }
         }
@@ -63,8 +65,3 @@ fun getGradleCommand(platform: String): String {
 configureBuildAndTestTask("buildAndTestMultip", ModulePlatformType.MULTI)
 configureBuildAndTestTask("buildAndTestSinglep", ModulePlatformType.SINGLE)
 
-gradle.projectsEvaluated {
-  tasks.withType<KotlinCompile> {
-    dependsOn("openaiClientGenerate")
-  }
-}
