@@ -28,11 +28,12 @@ fun Project.configureBuildAndTestTask(taskName: String, moduleType: ModulePlatfo
     doLast {
       when (moduleType) {
         ModulePlatformType.SINGLE -> {
+          project.exec { commandLine(gradleCommand, ":xef-openai-client:openaiClientGenerate") }
           val excludedModules = includeOrNotModulesToCommand(multiPlatformModules, platform, false)
-          project.exec { commandLine(gradleCommand, "openaiClientGenerate", "build", *excludedModules) }
+          project.exec { commandLine(gradleCommand, "build", *excludedModules) }
         }
         ModulePlatformType.MULTI -> {
-          project.exec { commandLine(gradleCommand, "openaiClientGenerate") }
+          project.exec { commandLine(gradleCommand, "xef-openai-client:openaiClientGenerate") }
           val includedModules = includeOrNotModulesToCommand(multiPlatformModules, platform, true)
           project.exec { commandLine(gradleCommand, *includedModules) }
         }
