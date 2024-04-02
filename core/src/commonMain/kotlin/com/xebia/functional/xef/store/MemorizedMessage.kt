@@ -18,7 +18,7 @@ sealed class MemorizedMessage {
         ChatCompletionRequestMessage.CaseChatCompletionRequestAssistantMessage(
           ChatCompletionRequestAssistantMessage(
             role = ChatCompletionRequestAssistantMessage.Role.assistant,
-            content = message.content
+            content = message.content ?: message.toolCalls?.firstOrNull()?.toString()
           )
         )
     }
