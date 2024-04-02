@@ -1,7 +1,8 @@
 package xef
 
-import ai.xef.openai.StandardModel
-import com.xebia.functional.openai.models.*
+import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
+import com.xebia.functional.openai.generated.model.CreateEmbeddingRequestModel
+import com.xebia.functional.openai.generated.model.Embedding
 import com.xebia.functional.xef.store.PGVectorStore
 import com.xebia.functional.xef.store.migrations.runDatabaseMigrations
 import com.xebia.functional.xef.store.postgresql.PGDistanceStrategy
@@ -38,13 +39,13 @@ class PGVectorStoreSpec :
         )
       )
 
-    val embeddingsRequestModel = StandardModel(CreateEmbeddingRequestModel.text_embedding_ada_002)
+    val embeddingsRequestModel = CreateEmbeddingRequestModel.text_embedding_ada_002
 
     fun StringSpecScope.pg() =
       PGVectorStore(
         vectorSize = 3,
         dataSource = dataSource,
-        embeddings = TestEmbeddings(coroutineContext),
+        embeddings = TestEmbeddings(),
         collectionName = "test_collection",
         distanceStrategy = PGDistanceStrategy.Euclidean,
         preDeleteCollection = false,
@@ -56,7 +57,7 @@ class PGVectorStoreSpec :
       val postgresVector = PGVectorStore(
         vectorSize = 3,
         dataSource = dataSource,
-        embeddings = TestEmbeddings(coroutineContext),
+        embeddings = TestEmbeddings(),
         collectionName = "test_collection",
         distanceStrategy = PGDistanceStrategy.Euclidean,
         preDeleteCollection = false,
@@ -108,7 +109,7 @@ class PGVectorStoreSpec :
 
     "the added memories sorted by index should be obtained in the same order" {
       val memoryData = MemoryData()
-      val model = StandardModel(CreateFineTuneRequestModel.ada)
+      val model = CreateChatCompletionRequestModel.gpt_4
       val memories = memoryData.generateRandomMessages(10)
       pg().addMemories(memories)
       memories.map { Tuple3(it.index, it.conversationId, it.content.asRequestMessage()) } shouldBe

@@ -24,6 +24,20 @@ java {
     toolchain { languageVersion = JavaLanguageVersion.of(11) }
 }
 
+kotlin {
+    sourceSets.commonMain {
+        kotlin.srcDir(project.file("build/generated/OpenAI/src/commonMain/kotlin"))
+    }
+}
+
+// Automatically run the generator when importing
+tasks.maybeCreate("prepareKotlinIdeaImport")
+    .dependsOn(":xef-openai-client-generator:openaiClientGenerate")
+
+// Make sure the client code is always available upon assemble
+tasks.assemble.get()
+    .dependsOn(":xef-openai-client-generator:openaiClientGenerate")
+
 detekt {
     toolVersion = "1.23.1"
     source.setFrom("src/commonMain/kotlin", "src/jvmMain/kotlin")
@@ -32,34 +46,19 @@ detekt {
 }
 
 kotlin {
-    jvm {
-        compilations {
-            val integrationTest by compilations.creating {
-                // Create a test task to run the tests produced by this compilation:
-                tasks.register<Test>("integrationTest") {
-                    description = "Run the integration tests"
-                    group = "verification"
-                    classpath = compileDependencyFiles + runtimeDependencyFiles + output.allOutputs
-                    testClassesDirs = output.classesDirs
-                    testLogging { events("passed") }
-                }
-            }
-            val test by compilations.getting
-            integrationTest.associateWith(test)
-        }
-    }
+    jvm()
     js(IR) {
         browser()
         nodejs()
+        // TODO support wasm, etc
     }
     linuxX64()
     macosX64()
     macosArm64()
     mingwX64()
+    // iOS, Android, etc?
     sourceSets {
-        all {
-            languageSettings.optIn("kotlin.ExperimentalStdlibApi")
-        }
+        all { languageSettings.optIn("kotlin.ExperimentalStdlibApi") }
         val commonMain by getting {
             dependencies {
                 api(projects.xefTokenizer)

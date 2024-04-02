@@ -1,24 +1,21 @@
 package xef
 
-import com.xebia.functional.openai.apis.EmbeddingsApi
-import com.xebia.functional.openai.infrastructure.HttpResponse
-import com.xebia.functional.openai.models.*
-import com.xebia.functional.openai.models.ext.embedding.create.CreateEmbeddingRequestInput
-import com.xebia.functional.xef.utils.TestBodyProvider
-import com.xebia.functional.xef.utils.TestHttpResponse
-import kotlin.coroutines.CoroutineContext
+import com.xebia.functional.openai.generated.api.Embeddings
+import com.xebia.functional.openai.generated.model.*
+import io.ktor.client.request.*
 
-class TestEmbeddings(private val context: CoroutineContext) : EmbeddingsApi(), AutoCloseable {
+class TestEmbeddings : Embeddings, AutoCloseable {
 
   var requests: MutableList<CreateEmbeddingRequest> = mutableListOf()
 
   override suspend fun createEmbedding(
-    createEmbeddingRequest: CreateEmbeddingRequest
-  ): HttpResponse<CreateEmbeddingResponse> {
+    createEmbeddingRequest: CreateEmbeddingRequest,
+    configure: HttpRequestBuilder.() -> Unit
+  ): CreateEmbeddingResponse {
     requests.add(createEmbeddingRequest)
     val maybeTextInput = when(val input = createEmbeddingRequest.input) {
-      is CreateEmbeddingRequestInput.StringArrayValue -> input.v.firstOrNull()
-      is CreateEmbeddingRequestInput.StringValue -> input.v
+      is CreateEmbeddingRequestInput.CaseStrings -> input.value.firstOrNull()
+      is CreateEmbeddingRequestInput.CaseString -> input.value
       else -> null
     }
     val data = when(maybeTextInput) {
@@ -31,15 +28,14 @@ class TestEmbeddings(private val context: CoroutineContext) : EmbeddingsApi(), A
       "baz" -> listOf()
       else -> listOf()
     }
-    val response =
-      CreateEmbeddingResponse(
-        data = data,
-        model = "test-model",
-        `object` = CreateEmbeddingResponse.Object.list,
-        usage = CreateEmbeddingResponseUsage(0, 0)
-      )
-    return HttpResponse(TestHttpResponse(context, 200), TestBodyProvider(response))
+    return CreateEmbeddingResponse(
+      data = data,
+      model = "test-model",
+      `object` = CreateEmbeddingResponse.Object.list,
+      usage = CreateEmbeddingResponseUsage(0, 0)
+    )
   }
+
 
   override fun close() {}
 }

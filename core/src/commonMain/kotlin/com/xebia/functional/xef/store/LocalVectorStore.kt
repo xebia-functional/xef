@@ -1,14 +1,13 @@
 package com.xebia.functional.xef.store
 
-import ai.xef.openai.OpenAIModel
-import ai.xef.openai.StandardModel
 import arrow.atomic.Atomic
 import arrow.atomic.AtomicInt
 import arrow.atomic.getAndUpdate
 import arrow.atomic.update
-import com.xebia.functional.openai.apis.EmbeddingsApi
-import com.xebia.functional.openai.models.CreateEmbeddingRequestModel
-import com.xebia.functional.openai.models.Embedding
+import com.xebia.functional.openai.generated.api.Embeddings
+import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
+import com.xebia.functional.openai.generated.model.CreateEmbeddingRequestModel
+import com.xebia.functional.openai.generated.model.Embedding
 import com.xebia.functional.xef.llm.embedDocuments
 import com.xebia.functional.xef.llm.embedQuery
 import com.xebia.functional.xef.llm.models.modelType
@@ -28,14 +27,14 @@ private typealias AtomicState = Atomic<State>
 
 class LocalVectorStore
 private constructor(
-  private val embeddings: EmbeddingsApi,
+  private val embeddings: Embeddings,
   private val state: AtomicState,
-  private val embeddingRequestModel: OpenAIModel<CreateEmbeddingRequestModel>
+  private val embeddingRequestModel: CreateEmbeddingRequestModel
 ) : VectorStore {
   constructor(
-    embeddings: EmbeddingsApi,
-    embeddingRequestModel: OpenAIModel<CreateEmbeddingRequestModel> =
-      StandardModel(CreateEmbeddingRequestModel.text_embedding_ada_002)
+    embeddings: Embeddings,
+    embeddingRequestModel: CreateEmbeddingRequestModel =
+      CreateEmbeddingRequestModel.text_embedding_ada_002
   ) : this(embeddings, Atomic(State.empty()), embeddingRequestModel)
 
   override val indexValue: AtomicInt = AtomicInt(0)
@@ -63,8 +62,8 @@ private constructor(
     }
   }
 
-  override suspend fun <T> memories(
-    model: OpenAIModel<T>,
+  override suspend fun memories(
+    model: CreateChatCompletionRequestModel,
     conversationId: ConversationId,
     limitTokens: Int
   ): List<Memory> {

@@ -1,0 +1,68 @@
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Contextual
+import kotlin.js.JsName
+import kotlinx.serialization.json.*
+{{#enumUnknownDefaultCase}}
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializer
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+{{/enumUnknownDefaultCase}}
+{{#hasEnums}}
+{{/hasEnums}}
+
+/**
+* {{{description}}}
+*
+{{#allVars}}
+    * @param {{{name}}} {{{description}}}
+{{/allVars}}
+*/
+{{^discriminator}}@Serializable{{/discriminator}}
+{{#isDeprecated}}@Deprecated(message = "This schema is deprecated."){{/isDeprecated}}
+{{>additionalModelTypeAnnotations}}
+{{#nonPublicApi}}internal {{/nonPublicApi}}{{#discriminator}}interface{{/discriminator}}{{^discriminator}}data class{{/discriminator}} {{classname}}{{^discriminator}} (
+{{#allVars}}
+    {{#required}}{{>data_class_req_var}}{{/required}}{{^required}}{{>data_class_opt_var}}{{/required}}{{^-last}},{{/-last}}
+{{/allVars}}
+){{/discriminator}}{{#parent}} : {{{parent}}}{{#isMap}}(){{/isMap}}{{#isArray}}(){{/isArray}}{{/parent}} {
+{{#discriminator}}{{#vars}}{{#required}}
+    {{>interface_req_var}}{{/required}}{{^required}}
+    {{>interface_opt_var}}{{/required}}{{/vars}}{{/discriminator}}
+{{#hasEnums}}
+    {{#vars}}
+        {{#isEnum}}
+            /**
+            * {{{description}}}
+            *
+            * Values: {{#allowableValues}}{{#enumVars}}{{&name}}{{^-last}},{{/-last}}{{/enumVars}}{{/allowableValues}}
+            */
+            @Serializable{{#enumUnknownDefaultCase}}(with = {{classname}}Serializer::class){{/enumUnknownDefaultCase}}
+            {{#nonPublicApi}}internal {{/nonPublicApi}}enum class {{{nameInCamelCase}}}(val value: {{dataType}}) {
+            {{#allowableValues}}
+                {{#enumVars}}
+                @SerialName(value = {{#lambda.doublequote}}{{{value}}}{{/lambda.doublequote}}) {{#lambda.jsname}}{{&name}}{{/lambda.jsname}}({{{value}}}){{^-last}},{{/-last}}{{#-last}};{{/-last}}
+                {{/enumVars}}
+            {{/allowableValues}}
+                }{{#kotlinx_serialization}}{{#enumUnknownDefaultCase}}
+
+                    @Serializer(forClass = {{{nameInCamelCase}}}::class)
+                    internal object {{nameInCamelCase}}Serializer : KSerializer<{{nameInCamelCase}}> {
+                      override val descriptor = {{{dataType}}}.serializer().descriptor
+
+                      override fun deserialize(decoder: Decoder): {{nameInCamelCase}} {
+                        val value = decoder.decodeSerializableValue({{{dataType}}}.serializer())
+                        return {{nameInCamelCase}}.values().firstOrNull { it.value == value }
+                          ?: {{nameInCamelCase}}.{{#allowableValues}}{{#enumVars}}{{#-last}}{{&name}}{{/-last}}{{/enumVars}}{{/allowableValues}}
+                      }
+
+                      override fun serialize(encoder: Encoder, value: {{nameInCamelCase}}) {
+                        encoder.encodeSerializableValue({{{dataType}}}.serializer(), value.value)
+                      }
+                    }{{/enumUnknownDefaultCase}}{{/kotlinx_serialization}}
+        {{/isEnum}}
+    {{/vars}}
+{{/hasEnums}}
+}

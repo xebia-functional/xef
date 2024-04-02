@@ -1,0 +1,7 @@
+**/docs/**
+**/README.md
+**/test/**
+**/org/openapitools/**
+**/proguard-rules.pro
+**/build.gradle
+**/settings.gradle
