@@ -1,8 +1,7 @@
 package com.xebia.functional.xef.assistants
 
-import com.xebia.functional.openai.models.*
-import com.xebia.functional.openai.models.ext.assistant.RunStepDetailsMessageCreationObject
-import com.xebia.functional.openai.models.ext.assistant.RunStepDetailsToolCallsObject
+import com.xebia.functional.openai.generated.model.*
+import com.xebia.functional.xef.OpenAI
 import com.xebia.functional.xef.llm.assistants.Assistant
 import com.xebia.functional.xef.llm.assistants.AssistantThread
 import com.xebia.functional.xef.llm.assistants.Tool
@@ -51,7 +50,7 @@ suspend fun main() {
       assistantId = "asst_UxczzpJkysC0l424ood87DAk",
       toolsConfig = listOf(Tool.toolOf(SumTool()))
     )
-  val thread = AssistantThread(metric = metric)
+  val thread = AssistantThread(api = OpenAI(logRequests = true).assistants, metric = metric)
   println("Welcome to the Math tutor, ask me anything about math:")
   while (true) {
     println()
@@ -78,13 +77,13 @@ private fun displayReceivedMessages(
 ) {
   if (receivedMessage.message.role == MessageObject.Role.assistant) {
     receivedMessage.message.content.forEach {
-      val text = it.text?.value
-      if (text != null) {
-        println("${assistant.name}: $text")
-      }
-      val imageFile = it.imageFile
-      if (imageFile != null) {
-        println("${assistant.name}: https://platform.openai.com/files/${imageFile.fileId}")
+      when (it) {
+        is MessageObjectContentInner.CaseMessageContentImageFileObject ->
+          println(
+            "${assistant.name}: https://platform.openai.com/files/${it.value.imageFile.fileId}"
+          )
+        is MessageObjectContentInner.CaseMessageContentTextObject ->
+          println("${assistant.name}: ${it.value.text.value}")
       }
     }
   }
@@ -95,19 +94,21 @@ private fun displayStepsStatus(step: AssistantThread.RunDelta.Step) {
   val details = step.runStep.stepDetails
   val type =
     when (details) {
-      is RunStepDetailsMessageCreationObject -> details.type.value
-      is RunStepDetailsToolCallsObject -> details.type.value
+      is RunStepObjectStepDetails.CaseRunStepDetailsMessageCreationObject -> details.value.type.name
+      is RunStepObjectStepDetails.CaseRunStepDetailsToolCallsObject -> details.value.type.name
     }
   val calls =
     when (details) {
-      is RunStepDetailsMessageCreationObject -> listOf()
-      is RunStepDetailsToolCallsObject ->
-        details.toolCalls.map {
-          when (it.type) {
-            RunStepDetailsToolCallsObjectToolCallsInner.Type.code_interpreter -> "CodeInterpreter"
-            RunStepDetailsToolCallsObjectToolCallsInner.Type.retrieval -> "Retrieval"
-            RunStepDetailsToolCallsObjectToolCallsInner.Type.function ->
-              "${it.function?.name}(${it.function?.arguments ?: ""}) = ${it.function?.output ?: "empty"}: "
+      is RunStepObjectStepDetails.CaseRunStepDetailsMessageCreationObject -> listOf()
+      is RunStepObjectStepDetails.CaseRunStepDetailsToolCallsObject ->
+        details.value.toolCalls.map {
+          when (it) {
+            is RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsCodeObject ->
+              "CodeInterpreter"
+            is RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsFunctionObject ->
+              "${it.value.function.name}(${it.value.function.arguments ?: ""}) = ${it.value.function.output ?: "empty"}: "
+            is RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsRetrievalObject ->
+              "Retrieval"
           }
         }
     }

@@ -1,20 +1,22 @@
 package com.xebia.functional.xef.evaluator
 
-import ai.xef.openai.StandardModel
 import arrow.continuations.SuspendApp
-import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
+import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
+import com.xebia.functional.xef.OpenAI
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.evaluator.metrics.AnswerAccuracy
 import com.xebia.functional.xef.evaluator.models.OutputDescription
 import com.xebia.functional.xef.evaluator.models.OutputResponse
+import com.xebia.functional.xef.llm.promptMessage
 import com.xebia.functional.xef.prompt.Prompt
-import com.xebia.functional.xef.prompt.templates.user
+import com.xebia.functional.xef.prompt.PromptBuilder.Companion.user
 
 object TestExample {
 
   @JvmStatic
   fun main(args: Array<String>) = SuspendApp {
-    val model = StandardModel(CreateChatCompletionRequestModel.gpt_3_5_turbo_16k)
+    val model = CreateChatCompletionRequestModel.gpt_3_5_turbo_16k
+    val chat = OpenAI(logRequests = true).chat
 
     val spec =
       SuiteSpec(
@@ -29,7 +31,7 @@ object TestExample {
           context = "Contains information about a movie"
         ) {
           +OutputResponse(gpt35Description) {
-            Conversation { promptMessage(Prompt(model) { +user(input) }) }
+            Conversation { chat.promptMessage(Prompt(model) { +user(input) }) }
           }
 
           +OutputResponse(description = fakeOutputs, value = "I don't know")
@@ -40,12 +42,29 @@ object TestExample {
           context = "Contains instructions for making a cake"
         ) {
           +OutputResponse(gpt35Description) {
-            Conversation { promptMessage(Prompt(model) { +user(input) }) }
+            Conversation { chat.promptMessage(Prompt(model) { +user(input) }) }
           }
 
           +OutputResponse(description = fakeOutputs, value = "The movie is Jurassic Park")
         }
       }
-    spec.evaluate<AnswerAccuracy>()
+    val results = spec.evaluate<AnswerAccuracy>(success = listOf(AnswerAccuracy.yes))
+    results.items.forEach {
+      println("==============")
+      println("  ${it.description}")
+      println("==============")
+      it.items.zip(it.items.indices).forEach { (item, index) ->
+        println()
+        println(">> Output ${index + 1}")
+        println("Description: ${item.description}")
+        println("Success: ${item.success}")
+        println()
+        println("AI Output:")
+        println(item.output)
+        println()
+      }
+      println()
+      println()
+    }
   }
 }

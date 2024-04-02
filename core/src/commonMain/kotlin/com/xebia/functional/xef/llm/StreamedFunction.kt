@@ -1,13 +1,11 @@
 package com.xebia.functional.xef.llm
 
-import com.xebia.functional.openai.apis.ChatApi
-import com.xebia.functional.openai.models.*
-import com.xebia.functional.openai.models.ext.chat.ChatCompletionRequestMessage
-import com.xebia.functional.openai.models.ext.chat.stream.createChatCompletionStream
+import com.xebia.functional.openai.generated.api.Chat
+import com.xebia.functional.openai.generated.model.*
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.StreamedFunction.Companion.PropertyType.*
 import com.xebia.functional.xef.prompt.Prompt
-import com.xebia.functional.xef.prompt.templates.assistant
+import com.xebia.functional.xef.prompt.PromptBuilder
 import kotlin.jvm.JvmSynthetic
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.onCompletion
@@ -41,8 +39,8 @@ sealed class StreamedFunction<out A> {
      */
     @JvmSynthetic
     internal suspend fun <A> FlowCollector<StreamedFunction<A>>.streamFunctionCall(
-      chat: ChatApi,
-      prompt: Prompt<CreateChatCompletionRequestModel>,
+      chat: Chat,
+      prompt: Prompt,
       request: CreateChatCompletionRequest,
       scope: Conversation,
       serializer: (json: String) -> A,
@@ -135,7 +133,7 @@ sealed class StreamedFunction<out A> {
       serializer: (json: String) -> A
     ) {
       val arguments = functionCall.arguments
-      messages.add(assistant("Function call: $functionCall"))
+      messages.add(PromptBuilder.assistant("Function call: $functionCall"))
       val result = serializer(arguments)
       // stream the result
       emit(Result(result))
@@ -302,7 +300,7 @@ sealed class StreamedFunction<out A> {
     ): String? =
       """"(.*?)":"""
         .toRegex()
-        .findAll(functionCall.arguments!!)
+        .findAll(functionCall.arguments)
         .lastOrNull()
         ?.groupValues
         ?.lastOrNull()

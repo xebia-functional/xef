@@ -1,0 +1,53 @@
+import kotlinx.serialization.*
+import kotlinx.serialization.builtins.*
+import kotlinx.serialization.encoding.*
+import kotlin.jvm.JvmStatic
+{{#allowableValues}}{{#enumVars}}import com.xebia.functional.openai.generated.model.{{classname}}.Supported.{{#lambda.unquote}}{{&value}}{{/lambda.unquote}}
+{{/enumVars}}{{/allowableValues}}
+
+/**
+ * {{{description}}}
+ */
+// We define a serializer for the parent sum type, and then use it to serialize the child types
+@Suppress("SERIALIZER_TYPE_INCOMPATIBLE")
+@Serializable(with = {{classname}}Serializer::class)
+sealed interface {{classname}} {
+  val value: {{{dataType}}}
+
+  @Serializable(with = {{classname}}Serializer::class)
+  enum class Supported(override val value: {{{dataType}}}) : {{classname}} {
+    {{#allowableValues}}{{#enumVars}}@SerialName(value = {{{value}}}) {{#lambda.unquote}}{{&value}}{{/lambda.unquote}}({{#isArray}}{{#isList}}listOf({{{value}}})){{/isList}}{{^isList}}arrayOf({{{value}}})){{/isList}}{{/isArray}}{{^isArray}}{{#isString}}{{#lambda.doublequote}}{{{value}}}{{/lambda.doublequote}}{{/isString}}{{^isString}}{{{value}}}{{/isString}}{{/isArray}}){{^-last}},{{/-last}}{{#-last}};{{/-last}}{{/enumVars}}{{/allowableValues}}
+
+    override fun toString(): kotlin.String = value{{^isString}}.toString(){{/isString}}
+  }
+
+  @Serializable(with = {{classname}}Serializer::class)
+  data class Custom(override val value: kotlin.String) : {{classname}}
+
+    companion object {
+      @JvmStatic
+      fun valueOf(value: {{{dataType}}}): {{classname}} =
+        values().firstOrNull { it.value == value } ?: Custom(value)
+
+      {{#allowableValues}}{{#enumVars}}
+          inline val {{#lambda.unquote}}{{&value}}{{/lambda.unquote}}: {{classname}}
+            get() = Supported.{{#lambda.unquote}}{{&value}}{{/lambda.unquote}}
+      {{/enumVars}}{{/allowableValues}}
+
+      @JvmStatic fun values(): List<{{classname}}> = Supported.entries
+    }
+}
+
+object {{classname}}Serializer : KSerializer<{{classname}}> {
+    private val valueSerializer = {{{dataType}}}.serializer()
+    override val descriptor = valueSerializer.descriptor
+
+    override fun deserialize(decoder: Decoder): {{classname}} {
+        val value = decoder.decodeSerializableValue(valueSerializer)
+        return {{classname}}.valueOf(value)
+    }
+
+    override fun serialize(encoder: Encoder, value: {{classname}}) {
+        encoder.encodeSerializableValue(valueSerializer, value.value)
+    }
+}

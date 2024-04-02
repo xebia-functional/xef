@@ -50,9 +50,9 @@ suspend fun main() {
   stream.collect {
     when (it) {
       is AssistantThread.RunDelta.ReceivedMessage ->
-        println("received message: ${it.message.content.firstOrNull()?.text}")
-      is AssistantThread.RunDelta.Run -> println("run: ${it.message.status.value}")
-      is AssistantThread.RunDelta.Step -> println("step: ${it.runStep.type.value}")
+        println("received message: ${it.message.content.firstOrNull()}")
+      is AssistantThread.RunDelta.Run -> println("run: ${it.message.status.name}")
+      is AssistantThread.RunDelta.Step -> println("step: ${it.runStep.type.name}")
     }
   }
 }
