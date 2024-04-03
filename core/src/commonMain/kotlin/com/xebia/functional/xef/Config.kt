@@ -68,7 +68,7 @@ fun OpenAI(
     httpClientConfig?.invoke(this)
     defaultRequest {
       url(config.baseUrl)
-      config.org?.let { headers.append("org", it) }
+      config.org?.let { headers.append("OpenAI-Organization", it) }
       bearerAuth(token)
     }
   }
