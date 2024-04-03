@@ -24,10 +24,11 @@ object {{classname}}Serializer : KSerializer<{{classname}}> {
     }
 
     override fun deserialize(decoder: Decoder): {{classname}} {
+      val jsonSerde = Json { ignoreUnknownKeys = true }
       val json = decoder.decodeSerializableValue(JsonElement.serializer())
       return attemptDeserialize(json, {{#oneOf}}
         Pair({{classname}}.Case{{#lambda.oneOfName}}{{{.}}}{{/lambda.oneOfName}}::class) {
-          {{classname}}.Case{{#lambda.oneOfName}}{{{.}}}{{/lambda.oneOfName}}(Json.decodeFromJsonElement({{#lambda.serializer}}{{{.}}}{{/lambda.serializer}}, json))
+          {{classname}}.Case{{#lambda.oneOfName}}{{{.}}}{{/lambda.oneOfName}}(jsonSerde.decodeFromJsonElement({{#lambda.serializer}}{{{.}}}{{/lambda.serializer}}, json))
       }{{#-last}}){{/-last}}{{^-last}},{{/-last}}{{/oneOf}}
     }
 

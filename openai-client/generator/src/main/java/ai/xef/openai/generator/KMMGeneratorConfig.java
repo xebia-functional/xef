@@ -93,7 +93,8 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
                         entry("MessageObjectContentInner", List.of("imageFile", "text")),
                         entry("RunObject", List.of("expiresAt", "requiredAction")),
                         entry("RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInner", List.of("logs", "image")),
-                        entry("RunStepDetailsToolCallsFunctionObjectFunction", List.of("output")),
+                        entry("RunStepDetailsToolCallsFunctionObjectFunction", List.of("name", "arguments", "output")),
+                        entry("RunStepDetailsToolCallsFunctionObject", List.of("id")),
                         entry("RunStepDetailsToolCallsObjectToolCallsInner", List.of("codeInterpreter", "retrieval", "function")),
                         entry("RunStepDetailsToolCallsRetrievalObject", List.of("retrieval")),
                         entry("RunStepObject", List.of("expiredAt", "metadata")),
@@ -120,8 +121,9 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
      * Extra streaming operation will be generated for OperationId, and the return type will be Flow<StreamedReturnType>.
      */
     private final static Map<String, Pair<String, String>> streamingOps = Map.of(
-            "createThreadAndRun", Pair.of("com.xebia.functional.openai", "AssistantEvent"),
-            "createRun", Pair.of("com.xebia.functional.openai", "AssistantEvent"),
+            "createThreadAndRun", Pair.of("com.xebia.functional.openai", "ServerSentEvent"),
+            "createRun", Pair.of("com.xebia.functional.openai", "ServerSentEvent"),
+            "submitToolOuputsToRun", Pair.of("com.xebia.functional.openai", "ServerSentEvent"),
             "createChatCompletion", Pair.of("com.xebia.functional.openai.generated.model", "CreateChatCompletionStreamResponse")
     );
 
