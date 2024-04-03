@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.llm.assistants
 
-import arrow.fx.coroutines.parMap
+import arrow.fx.coroutines.parMapNotNull
 import com.xebia.functional.openai.generated.api.Assistants
 import com.xebia.functional.openai.generated.model.*
 import com.xebia.functional.xef.Config
@@ -93,8 +93,7 @@ class AssistantThread(
                     .filterIsInstance<
                       RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsFunctionObject
                     >()
-                    .parMap { toolCall -> executeToolCall(toolCall, assistant) }
-                    .filterNotNull()
+                    .parMapNotNull { toolCall -> executeToolCall(toolCall, assistant) }
                 val results: Map<String, Assistant.Companion.ToolOutput> = callsResult.toMap()
                 val toolOutputsRequest =
                   SubmitToolOutputsRunRequest(
