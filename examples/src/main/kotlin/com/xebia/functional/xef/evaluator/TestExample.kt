@@ -48,6 +48,23 @@ object TestExample {
           +OutputResponse(description = fakeOutputs, value = "The movie is Jurassic Park")
         }
       }
-    spec.evaluate<AnswerAccuracy>(success = listOf(AnswerAccuracy.yes))
+    val results = spec.evaluate<AnswerAccuracy>(success = listOf(AnswerAccuracy.yes))
+    results.items.forEach {
+      println("==============")
+      println("  ${it.description}")
+      println("==============")
+      it.items.zip(it.items.indices).forEach { (item, index) ->
+        println()
+        println(">> Output ${index + 1}")
+        println("Description: ${item.description}")
+        println("Success: ${item.success}")
+        println()
+        println("AI Output:")
+        println(item.output)
+        println()
+      }
+      println()
+      println()
+    }
   }
 }
