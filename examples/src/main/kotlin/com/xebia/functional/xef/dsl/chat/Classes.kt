@@ -34,7 +34,6 @@ suspend fun books(topic: String): Books {
       configuration =
         PromptConfiguration {
           temperature = 0.0
-          maxTokens = 100
           messagePolicy =
             MessagePolicy(
               historyPercent = 50,

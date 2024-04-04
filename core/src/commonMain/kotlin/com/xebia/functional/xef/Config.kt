@@ -20,10 +20,10 @@ data class Config(
   val org: String? = getenv(ORG_ENV_VAR),
   val json: Json = Json {
     ignoreUnknownKeys = true
-    prettyPrint = true
+    prettyPrint = false
     isLenient = true
     explicitNulls = false
-    useArrayPolymorphism = true
+    classDiscriminator = "_type_"
   },
   val streamingPrefix: String = "data:",
   val streamingDelimiter: String = "data: [DONE]"
