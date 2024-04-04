@@ -22,11 +22,11 @@ data class Books(@Description("The list of books") val books: List<Book>)
 data class Book(
   @Description("The title of the book") val title: String,
   @Description("The author of the book") val author: String,
-  @Description("A 20 word summary of the book") val summary: String
+  @Description("A one line sentence summary of the book") val summary: String
 )
 
 suspend fun books(topic: String): Books {
-  val model = CreateChatCompletionRequestModel.gpt_3_5_turbo_0125
+  val model = CreateChatCompletionRequestModel.gpt_4_turbo_preview
 
   val myCustomPrompt =
     Prompt(
