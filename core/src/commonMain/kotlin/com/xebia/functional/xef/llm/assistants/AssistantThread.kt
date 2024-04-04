@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.llm.assistants
 
-import arrow.fx.coroutines.parMap
+import arrow.fx.coroutines.parMapNotNull
 import com.xebia.functional.openai.generated.api.Assistants
 import com.xebia.functional.openai.generated.model.*
 import com.xebia.functional.xef.Config
@@ -9,10 +9,7 @@ import com.xebia.functional.xef.llm.addMetrics
 import com.xebia.functional.xef.metrics.Metric
 import io.ktor.client.request.*
 import kotlin.jvm.JvmName
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.FlowCollector
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 
@@ -72,28 +69,95 @@ class AssistantThread(
   suspend fun createRun(request: CreateRunRequest): RunObject =
     api.createRun(threadId, request, configure = ::defaultConfig).addMetrics(metric)
 
+  fun createRunStream(assistant: Assistant, request: CreateRunRequest): Flow<RunDelta> = flow {
+    api
+      .createRunStream(threadId, request, configure = ::defaultConfig)
+      .map { RunDelta.fromServerSentEvent(it) }
+      .collect { event ->
+        when (event) {
+          // submit tool outputs and join streams
+          is RunDelta.RunRequiresAction -> {
+            val steps =
+              runSteps(event.run.id).map { metric.assistantCreateRunStep(event.run.id) { it } }
+
+            steps.forEach { step ->
+              val calls = step.stepDetails.toolCalls()
+
+              val run = getRun(event.run.id)
+              if (
+                run.status == RunObject.Status.requires_action &&
+                  run.requiredAction?.type == RunObjectRequiredAction.Type.submit_tool_outputs
+              ) {
+                val callsResult: List<Pair<String, Assistant.Companion.ToolOutput>> =
+                  calls
+                    .filterIsInstance<
+                      RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsFunctionObject
+                    >()
+                    .parMapNotNull { toolCall -> executeToolCall(toolCall, assistant) }
+                val results: Map<String, Assistant.Companion.ToolOutput> = callsResult.toMap()
+                val toolOutputsRequest =
+                  SubmitToolOutputsRunRequest(
+                    toolOutputs =
+                      results.map { (toolCallId, result) ->
+                        SubmitToolOutputsRunRequestToolOutputsInner(
+                          toolCallId = toolCallId,
+                          output =
+                            Json.encodeToString(Assistant.Companion.ToolOutput.serializer(), result)
+                        )
+                      }
+                  )
+                metric.assistantToolOutputsRun(event.run.id) {
+                  api
+                    .submitToolOuputsToRunStream(
+                      threadId = threadId,
+                      runId = event.run.id,
+                      submitToolOutputsRunRequest = toolOutputsRequest,
+                      configure = ::defaultConfig
+                    )
+                    .collect {
+                      val delta = RunDelta.fromServerSentEvent(it)
+                      if (delta is RunDelta.RunStepCompleted) {
+                        emit(delta)
+                        emit(RunDelta.RunSubmitToolOutputs(toolOutputsRequest))
+                      } else {
+                        emit(delta)
+                      }
+                    }
+                  getRun(event.run.id)
+                }
+              }
+            }
+          }
+          // previous to submitting tool outputs we let all events pass through the outer flow
+          else -> emit(event)
+        }
+      }
+  }
+
+  private suspend fun executeToolCall(
+    toolCall: RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsFunctionObject,
+    assistant: Assistant
+  ): Pair<String, Assistant.Companion.ToolOutput>? {
+    val function = toolCall.value.function
+    val functionName = function.name
+    val functionArguments = function.arguments
+    return if (functionName != null && functionArguments != null) {
+      val result = assistant.getToolRegistered(functionName, functionArguments)
+      val callId = toolCall.value.id
+      if (callId != null) {
+        callId to result
+      } else null
+    } else null
+  }
+
   suspend fun getRun(runId: String): RunObject =
     api.getRun(threadId, runId, configure = ::defaultConfig)
 
   suspend fun createRun(assistant: Assistant): RunObject =
     createRun(CreateRunRequest(assistantId = assistant.assistantId))
 
-  suspend fun run(
-    assistant: Assistant,
-    filter: ThreadMessagesFilter = ThreadMessagesFilter()
-  ): Flow<RunDelta> {
-    val run = createRun(assistant)
-    return awaitRun(assistant, run.id, filter)
-  }
-
-  suspend fun run(
-    assistant: Assistant,
-    request: CreateRunRequest,
-    filter: ThreadMessagesFilter = ThreadMessagesFilter()
-  ): Flow<RunDelta> {
-    val run = createRun(request)
-    return awaitRun(assistant, run.id, filter)
-  }
+  fun run(assistant: Assistant): Flow<RunDelta> =
+    createRunStream(assistant, CreateRunRequest(assistantId = assistant.assistantId))
 
   suspend fun cancelRun(runId: String): RunObject =
     api.cancelRun(threadId, runId, configure = ::defaultConfig)
@@ -101,178 +165,12 @@ class AssistantThread(
   suspend fun runSteps(runId: String): List<RunStepObject> =
     api.listRunSteps(threadId, runId, configure = ::defaultConfig).data
 
-  sealed class RunDelta {
-    data class ReceivedMessage(val message: MessageObject) : RunDelta()
-
-    data class Run(val message: RunObject) : RunDelta()
-
-    data class Step(val runStep: RunStepObject) : RunDelta()
-  }
-
-  private fun awaitRun(
-    assistant: Assistant,
-    runId: String,
-    filter: ThreadMessagesFilter
-  ): Flow<RunDelta> = flow {
-    val stepCache = mutableSetOf<RunStepObject>() // CacheTool
-    val messagesCache = mutableSetOf<MessageObject>()
-    val runCache = mutableSetOf<RunObject>()
-    try {
-      var run = checkRun(runId = runId, cache = runCache)
-      while (run.status != RunObject.Status.completed) {
-        checkSteps(assistant = assistant, runId = runId, cache = stepCache)
-        delay(500) // To avoid excessive calls to OpenAI
-        checkMessages(runId = runId, cache = messagesCache, filter = filter)
-        delay(500) // To avoid excessive calls to OpenAI
-        run = checkRun(runId = runId, cache = runCache)
-      }
-    } catch (e: Exception) {
-      emit(
-        RunDelta.Run(
-          RunObject(
-            id = runId,
-            `object` = RunObject.Object.thread_run,
-            createdAt = 0,
-            threadId = threadId,
-            assistantId = assistant.assistantId,
-            status = RunObject.Status.failed,
-            lastError =
-              RunObjectLastError(
-                code = RunObjectLastError.Code.server_error,
-                message = e.message ?: "Unknown error"
-              ),
-            startedAt = null,
-            cancelledAt = null,
-            failedAt = null,
-            completedAt = null,
-            model = "",
-            instructions = "",
-            tools = emptyList(),
-            fileIds = emptyList(),
-            metadata = null,
-            usage = null
-          )
-        )
-      )
-    } finally {
-      checkMessages(runId = runId, cache = messagesCache, filter = filter)
-    }
-  }
-
-  private suspend fun FlowCollector<RunDelta>.checkRun(
-    runId: String,
-    cache: MutableSet<RunObject>
-  ): RunObject {
-    val run = metric.assistantCreateRun(runId) { getRun(runId) }
-    if (run !in cache) {
-      cache.add(run)
-      emit(RunDelta.Run(run))
-    }
-    return run
-  }
-
-  private suspend fun FlowCollector<RunDelta>.checkMessages(
-    runId: String,
-    cache: MutableSet<MessageObject>,
-    filter: ThreadMessagesFilter,
-  ) {
-    metric.assistantCreatedMessage(runId) {
-      val messages = mutableListOf<MessageObject>()
-      val updatedAndNewMessages = listMessages(filter).filterNot { it in cache }
-      updatedAndNewMessages.forEach { message ->
-        val content =
-          message.content.filterNot {
-            when (it) {
-              is MessageObjectContentInner.CaseMessageContentImageFileObject -> false
-              is MessageObjectContentInner.CaseMessageContentTextObject ->
-                it.value.text.value.isBlank()
-            }
-          }
-        if (content.isNotEmpty() && message !in cache) {
-          cache.add(message)
-          messages.add(message)
-          emit(RunDelta.ReceivedMessage(message))
-        }
-      }
-      messages
-    }
-  }
-
   private fun RunStepObjectStepDetails.toolCalls():
     List<RunStepDetailsToolCallsObjectToolCallsInner> =
     when (val step = this) {
       is RunStepObjectStepDetails.CaseRunStepDetailsMessageCreationObject -> emptyList()
       is RunStepObjectStepDetails.CaseRunStepDetailsToolCallsObject -> step.value.toolCalls
     }
-
-  private suspend fun FlowCollector<RunDelta>.checkSteps(
-    assistant: Assistant,
-    runId: String,
-    cache: MutableSet<RunStepObject>
-  ) {
-
-    val steps = runSteps(runId).map { metric.assistantCreateRunStep(runId) { it } }
-
-    steps.forEach { step ->
-      val calls = step.stepDetails.toolCalls()
-      //          .filter {
-      //            it.function != null && it.function!!.arguments.isNotBlank()
-      //          }
-
-      // We have detected that tool call in in_progress state sometimes don't have any arguments
-      // and this is not valid. We need to skip this step in this case.
-      val canEmitToolCalls =
-        if (
-          step.type == RunStepObject.Type.tool_calls &&
-            step.status == RunStepObject.Status.in_progress
-        )
-          calls.isNotEmpty()
-        else true
-
-      val emitEvent = canEmitToolCalls && step !in cache
-
-      if (emitEvent) {
-        cache.add(step)
-        emit(RunDelta.Step(step))
-      }
-      val run = getRun(runId)
-      if (
-        run.status == RunObject.Status.requires_action &&
-          run.requiredAction?.type == RunObjectRequiredAction.Type.submit_tool_outputs
-      ) {
-        val results: Map<String, Assistant.Companion.ToolOutput> =
-          calls
-            .filterIsInstance<
-              RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsFunctionObject
-            >()
-            .parMap { toolCall ->
-              val function = toolCall.value.function
-              val result = assistant.getToolRegistered(function.name, function.arguments)
-              toolCall.value.id to result
-            }
-            .toMap()
-
-        metric.assistantToolOutputsRun(runId) {
-          api.submitToolOuputsToRun(
-            threadId = threadId,
-            runId = runId,
-            submitToolOutputsRunRequest =
-              SubmitToolOutputsRunRequest(
-                toolOutputs =
-                  results.map { (toolCallId, result) ->
-                    SubmitToolOutputsRunRequestToolOutputsInner(
-                      toolCallId = toolCallId,
-                      output =
-                        Json.encodeToString(Assistant.Companion.ToolOutput.serializer(), result)
-                    )
-                  }
-              ),
-            configure = ::defaultConfig
-          )
-        }
-      }
-    }
-  }
 
   companion object {
 

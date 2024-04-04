@@ -107,7 +107,7 @@ sealed interface AI {
     suspend inline operator fun <reified A : Any> invoke(
       prompt: String,
       target: KType = typeOf<A>(),
-      model: CreateChatCompletionRequestModel = CreateChatCompletionRequestModel.gpt_4_1106_preview,
+      model: CreateChatCompletionRequestModel = CreateChatCompletionRequestModel.gpt_3_5_turbo_0125,
       config: Config = Config(),
       api: Chat = OpenAI(config).chat,
       conversation: Conversation = Conversation()

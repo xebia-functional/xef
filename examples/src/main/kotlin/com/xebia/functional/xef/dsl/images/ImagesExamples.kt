@@ -1,11 +1,12 @@
 package com.xebia.functional.xef.dsl.images
 
 import com.xebia.functional.openai.generated.model.CreateImageRequest
-import com.xebia.functional.xef.AI
+import com.xebia.functional.xef.OpenAI
 import com.xebia.functional.xef.llm.asInputProvider
 
 suspend fun main() {
-  val ai = AI.images()
+  val openAI = OpenAI(logRequests = true)
+  val ai = openAI.images
   val image =
     ai.createImage(
       createImageRequest = CreateImageRequest(prompt = "Event horizon in a black hole")

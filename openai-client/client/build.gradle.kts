@@ -34,10 +34,6 @@ kotlin {
 tasks.maybeCreate("prepareKotlinIdeaImport")
     .dependsOn(":xef-openai-client-generator:openaiClientGenerate")
 
-// Make sure the client code is always available upon assemble
-tasks.assemble.get()
-    .dependsOn(":xef-openai-client-generator:openaiClientGenerate")
-
 detekt {
     toolVersion = "1.23.1"
     source.setFrom("src/commonMain/kotlin", "src/jvmMain/kotlin")
