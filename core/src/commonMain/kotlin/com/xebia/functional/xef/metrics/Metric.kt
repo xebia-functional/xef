@@ -20,6 +20,8 @@ interface Metric {
 
   suspend fun assistantCreateRun(runId: String, block: suspend Metric.() -> RunObject): RunObject
 
+  suspend fun assistantCreateRunStep(runObject: RunStepObject)
+
   suspend fun assistantCreatedMessage(
     runId: String,
     block: suspend Metric.() -> List<MessageObject>
@@ -50,6 +52,8 @@ interface Metric {
           runId: String,
           block: suspend Metric.() -> RunObject
         ): RunObject = block()
+
+        override suspend fun assistantCreateRunStep(runObject: RunStepObject) {}
 
         override suspend fun assistantCreatedMessage(
           runId: String,
