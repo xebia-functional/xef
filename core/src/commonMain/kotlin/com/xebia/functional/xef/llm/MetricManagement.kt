@@ -84,7 +84,6 @@ suspend fun RunDelta.addMetrics(metric: Metric): RunDelta {
     is RunDelta.RunStepCancelled -> runStep.addMetrics(metric)
     is RunDelta.RunStepCompleted -> runStep.addMetrics(metric)
     is RunDelta.RunStepCreated -> runStep.addMetrics(metric)
-    is RunDelta.RunStepDelta -> {}
     is RunDelta.RunStepExpired -> runStep.addMetrics(metric)
     is RunDelta.RunStepFailed -> runStep.addMetrics(metric)
     is RunDelta.RunStepInProgress -> runStep.addMetrics(metric)
