@@ -129,7 +129,6 @@ kotlin {
     ...
     val jvmMain by getting {
       dependencies {
-        implementation(libs.logback)
         api(libs.ktor.client.cio)
       }
     }
