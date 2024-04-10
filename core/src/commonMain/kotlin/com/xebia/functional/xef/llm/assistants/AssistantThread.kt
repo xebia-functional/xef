@@ -66,6 +66,9 @@ class AssistantThread(
       )
       .data
 
+  suspend fun createRun(assistant: Assistant): RunObject =
+    createRun(CreateRunRequest(assistantId = assistant.assistantId))
+
   suspend fun createRun(request: CreateRunRequest): RunObject =
     api.createRun(threadId, request, configure = ::defaultConfig).addMetrics(metric)
 
@@ -73,6 +76,7 @@ class AssistantThread(
     api
       .createRunStream(threadId, request, configure = ::defaultConfig)
       .map { RunDelta.fromServerSentEvent(it) }
+      .map { it.addMetrics(metric) }
       .collect { event ->
         when (event) {
           // submit tool outputs and join streams
@@ -152,9 +156,6 @@ class AssistantThread(
 
   suspend fun getRun(runId: String): RunObject =
     api.getRun(threadId, runId, configure = ::defaultConfig)
-
-  suspend fun createRun(assistant: Assistant): RunObject =
-    createRun(CreateRunRequest(assistantId = assistant.assistantId))
 
   fun run(assistant: Assistant): Flow<RunDelta> =
     createRunStream(assistant, CreateRunRequest(assistantId = assistant.assistantId))

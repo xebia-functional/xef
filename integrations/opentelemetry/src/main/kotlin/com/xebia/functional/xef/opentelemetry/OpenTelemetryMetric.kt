@@ -43,6 +43,9 @@ class OpenTelemetryMetric(
     block: suspend Metric.() -> RunObject
   ): RunObject = assistantState.runSpan(runId) { block() }
 
+  override suspend fun assistantCreateRunStep(runObject: RunStepObject) =
+    assistantState.runStepSpan(runObject)
+
   override suspend fun assistantCreatedMessage(
     runId: String,
     block: suspend Metric.() -> List<MessageObject>
