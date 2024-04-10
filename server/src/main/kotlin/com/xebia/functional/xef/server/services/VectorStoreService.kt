@@ -5,11 +5,11 @@ import com.typesafe.config.Config
 import com.xebia.functional.xef.store.VectorStore
 import com.xebia.functional.xef.store.config.PostgreSQLVectorStoreConfig
 import com.xebia.functional.xef.store.migrations.runDatabaseMigrations
+import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.hocon.Hocon
-import org.slf4j.Logger
 
 enum class XefVectorStoreType {
   PSQL,
@@ -27,7 +27,7 @@ enum class XefVectorStoreType {
 suspend fun ResourceScope.vectorStoreService(
   configNamespace: String,
   config: Config,
-  logger: Logger
+  logger: KLogger
 ): VectorStoreService =
   withContext(Dispatchers.IO) {
     val vectorStoreConfig = config.getConfig(configNamespace)
