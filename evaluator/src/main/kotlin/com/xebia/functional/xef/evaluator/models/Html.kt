@@ -1,6 +1,7 @@
-package com.xebia.functional.xef.evaluator.output
+package com.xebia.functional.xef.evaluator.models
 
-class Html {
+@JvmInline
+value class Html(val value: String) {
 
   companion object {
 
@@ -168,9 +169,10 @@ class Html {
         """
         .trimIndent()
 
-    fun get(contentJson: String): String {
+    fun get(contentJson: String, suiteName: String): Html {
       // language=html
-      return """
+      return Html(
+        """
           <!DOCTYPE html>
           <html lang="es">
           <head>
@@ -180,6 +182,7 @@ class Html {
               <script>
                 $jsContent
                 const testData = $contentJson;
+                const suiteName = $suiteName
               </script>
           </head>
           <body>
@@ -187,7 +190,8 @@ class Html {
           </body>
           </html>
         """
-        .trimIndent()
+          .trimIndent()
+      )
     }
   }
 }
