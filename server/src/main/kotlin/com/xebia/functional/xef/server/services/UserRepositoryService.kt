@@ -7,15 +7,15 @@ import com.xebia.functional.xef.server.models.LoginResponse
 import com.xebia.functional.xef.server.models.RegisterRequest
 import com.xebia.functional.xef.server.models.exceptions.XefExceptions.UserException
 import com.xebia.functional.xef.server.utils.HashUtils
+import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.uuid.UUID
 import kotlinx.uuid.generateUUID
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.slf4j.Logger
 
-class UserRepositoryService(private val logger: Logger) {
+class UserRepositoryService(private val logger: KLogger) {
 
   fun register(request: RegisterRequest): LoginResponse {
-    logger.info("Registering user ${request.email}")
+    logger.info { "Registering user ${request.email}" }
 
     return transaction {
       if (User.find { UsersTable.email eq request.email }.count() > 0) {
@@ -38,7 +38,7 @@ class UserRepositoryService(private val logger: Logger) {
   }
 
   fun login(request: LoginRequest): LoginResponse {
-    logger.info("Login user ${request.email}")
+    logger.info { "Login user ${request.email}" }
     return transaction {
       val user =
         User.find { UsersTable.email eq request.email }.firstOrNull()
