@@ -90,7 +90,6 @@ kotlin {
       val jvmMain by getting {
           dependencies {
               implementation(libs.ktor.http)
-              implementation(libs.logback)
               implementation(libs.rss.reader)
               api(libs.jackson)
               api(libs.jackson.schema)

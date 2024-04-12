@@ -11,6 +11,7 @@ import com.xebia.functional.xef.server.http.routes.xefRoutes
 import com.xebia.functional.xef.server.services.hikariDataSource
 import com.xebia.functional.xef.server.services.vectorStoreService
 import com.xebia.functional.xef.store.migrations.runDatabaseMigrations
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.auth.Auth
@@ -30,13 +31,12 @@ import io.ktor.server.resources.Resources
 import io.ktor.server.routing.routing
 import kotlinx.coroutines.awaitCancellation
 import org.jetbrains.exposed.sql.Database
-import org.slf4j.LoggerFactory
 
 object Server {
   @JvmStatic
   fun main(args: Array<String>) = SuspendApp {
     resourceScope {
-      val logger = LoggerFactory.getLogger("xef-server")
+      val logger = KotlinLogging.logger("xef-server")
 
       val config = ConfigFactory.load("database.conf").resolve()
       val xefDBConfig = XefDatabaseConfig.load("xef-database", config)
