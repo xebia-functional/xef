@@ -3,13 +3,13 @@ package com.xebia.functional.xef.server.services
 import com.xebia.functional.xef.server.db.tables.*
 import com.xebia.functional.xef.server.models.*
 import com.xebia.functional.xef.server.models.exceptions.XefExceptions.*
+import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.datetime.Clock
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.slf4j.Logger
 
-class ProjectRepositoryService(private val logger: Logger) {
+class ProjectRepositoryService(private val logger: KLogger) {
   fun createProject(data: ProjectRequest, token: Token): ProjectSimpleResponse {
-    logger.info("Creating project with name: ${data.name}")
+    logger.info { "Creating project with name: ${data.name}" }
     return transaction {
       val user = token.getUser()
 
@@ -30,7 +30,7 @@ class ProjectRepositoryService(private val logger: Logger) {
   }
 
   fun getProjects(token: Token): List<ProjectFullResponse> {
-    logger.info("Getting projects")
+    logger.info { "Getting projects" }
     return transaction {
       val user = token.getUser()
 
@@ -43,7 +43,7 @@ class ProjectRepositoryService(private val logger: Logger) {
   }
 
   fun getProject(token: Token, id: Int): ProjectFullResponse {
-    logger.info("Getting project")
+    logger.info { "Getting project" }
     return transaction {
       val user = token.getUser()
 
@@ -58,7 +58,7 @@ class ProjectRepositoryService(private val logger: Logger) {
   }
 
   fun getProjectsByOrganization(token: Token, orgId: Int): List<ProjectSimpleResponse> {
-    logger.info("Getting projects")
+    logger.info { "Getting projects" }
     return transaction {
       val user = token.getUser()
 
@@ -71,7 +71,7 @@ class ProjectRepositoryService(private val logger: Logger) {
   }
 
   fun updateProject(token: Token, data: ProjectUpdateRequest, id: Int): ProjectFullResponse {
-    logger.info("Updating project with name: ${data.name}")
+    logger.info { "Updating project with name: ${data.name}" }
     return transaction {
       val user = token.getUser()
 
@@ -101,7 +101,7 @@ class ProjectRepositoryService(private val logger: Logger) {
   }
 
   fun deleteProject(token: Token, id: Int) {
-    logger.info("Deleting project with id: $id")
+    logger.info { "Deleting project with id: $id" }
     transaction {
       val user = token.getUser()
       val project = Project.findById(id) ?: throw ProjectException("Project not found")
