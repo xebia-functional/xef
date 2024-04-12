@@ -4,14 +4,14 @@ import com.xebia.functional.xef.server.db.tables.Organization
 import com.xebia.functional.xef.server.db.tables.User
 import com.xebia.functional.xef.server.models.*
 import com.xebia.functional.xef.server.models.exceptions.XefExceptions.*
+import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.datetime.Clock
 import org.jetbrains.exposed.sql.SizedCollection
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.slf4j.Logger
 
-class OrganizationRepositoryService(private val logger: Logger) {
+class OrganizationRepositoryService(private val logger: KLogger) {
   fun createOrganization(data: OrganizationRequest, token: Token): OrganizationSimpleResponse {
-    logger.info("Creating organization with name: ${data.name}")
+    logger.info { "Creating organization with name: ${data.name}" }
     return transaction {
       // Getting the user from the token
       val user = token.getUser()
@@ -30,7 +30,7 @@ class OrganizationRepositoryService(private val logger: Logger) {
   }
 
   fun getOrganizations(token: Token): List<OrganizationFullResponse> {
-    logger.info("Getting organizations")
+    logger.info { "Getting organizations" }
     return transaction {
       // Getting the user from the token
       val user = token.getUser()
@@ -41,7 +41,7 @@ class OrganizationRepositoryService(private val logger: Logger) {
   }
 
   fun getOrganization(token: Token, id: Int): OrganizationFullResponse {
-    logger.info("Getting organizations")
+    logger.info { "Getting organizations" }
     return transaction {
       // Getting the user from the token
       val user = token.getUser()
@@ -53,7 +53,7 @@ class OrganizationRepositoryService(private val logger: Logger) {
   }
 
   fun getUsersInOrganization(token: Token, id: Int): List<UserResponse> {
-    logger.info("Getting users in organization")
+    logger.info { "Getting users in organization" }
     return transaction {
       // Getting the user from the token
       val user = token.getUser()
@@ -71,7 +71,7 @@ class OrganizationRepositoryService(private val logger: Logger) {
     data: OrganizationUpdateRequest,
     id: Int
   ): OrganizationFullResponse {
-    logger.info("Updating organization with name: ${data.name}")
+    logger.info { "Updating organization with name: ${data.name}" }
     return transaction {
       // Getting the user from the token
       val user = token.getUser()
@@ -95,7 +95,7 @@ class OrganizationRepositoryService(private val logger: Logger) {
   }
 
   fun deleteOrganization(token: Token, id: Int) {
-    logger.info("Deleting organization with id: $id")
+    logger.info { "Deleting organization with id: $id" }
     transaction {
       val user = token.getUser()
       val organization =
