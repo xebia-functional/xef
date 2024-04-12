@@ -1,14 +1,17 @@
 package com.xebia.functional.xef.conversation.conversations
 
-import ai.xef.openai.StandardModel
-import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
+import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
+import com.xebia.functional.xef.AI
+import com.xebia.functional.xef.OpenAI
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.MessagesFromHistory
 import com.xebia.functional.xef.conversation.MessagesToHistory
+import com.xebia.functional.xef.llm.promptMessage
 import com.xebia.functional.xef.prompt.Prompt
+import com.xebia.functional.xef.prompt.PromptBuilder.Companion.system
+import com.xebia.functional.xef.prompt.PromptBuilder.Companion.user
 import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
-import com.xebia.functional.xef.prompt.templates.system
-import com.xebia.functional.xef.prompt.templates.user
+import com.xebia.functional.xef.store.LocalVectorStore
 import kotlinx.serialization.Serializable
 
 @Serializable data class Animal(val name: String, val habitat: String, val diet: String)
@@ -22,25 +25,29 @@ suspend fun main() {
   //  - # cd server/docker/opentelemetry
   //  - # docker-compose up
 
+  val openAI = OpenAI()
+
   Conversation(
     //    metric = com.xebia.functional.xef.opentelemetry.OpenTelemetryMetric(),
-    metric = com.xebia.functional.xef.metrics.LogsMetric()
+    store = LocalVectorStore(openAI.embeddings),
   ) {
     metric.customSpan("Animal Example") {
       val configNoneFromConversation = PromptConfiguration {
         messagePolicy { addMessagesFromConversation = MessagesFromHistory.NONE }
       }
-      val model = StandardModel(CreateChatCompletionRequestModel.gpt_3_5_turbo_16k_0613)
+      val model = CreateChatCompletionRequestModel.gpt_3_5_turbo_16k_0613
       val animal: Animal =
-        prompt<Animal>(
+        AI(
           Prompt(model) { +user("A unique animal species.") }
-            .copy(configuration = configNoneFromConversation)
+            .copy(configuration = configNoneFromConversation),
+          conversation = this@Conversation
         )
 
       val invention: Invention =
-        prompt(
+        AI(
           Prompt(model) { +user("A groundbreaking invention from the 20th century.") }
-            .copy(configuration = configNoneFromConversation)
+            .copy(configuration = configNoneFromConversation),
+          conversation = this@Conversation
         )
 
       println("\nAnimal: $animal")
@@ -58,7 +65,7 @@ suspend fun main() {
               }
           )
 
-      val story: String = promptMessage(storyPrompt)
+      val story: String = openAI.chat.promptMessage(storyPrompt, scope = this@Conversation)
 
       println("\nStory 1:\n$story\n")
 
@@ -67,7 +74,7 @@ suspend fun main() {
           +user("Write a short story of 100 words that involves the animal in a city called Cadiz")
         }
 
-      val story2: String = promptMessage(storyPrompt2)
+      val story2: String = openAI.chat.promptMessage(storyPrompt2, scope = this@Conversation)
 
       println("\nStory 2:\n$story2\n")
     }

@@ -7,13 +7,13 @@ import com.xebia.functional.xef.server.db.tables.XefTokens
 import com.xebia.functional.xef.server.db.tables.XefTokensTable
 import com.xebia.functional.xef.server.models.*
 import com.xebia.functional.xef.server.models.exceptions.XefExceptions.*
+import io.github.oshai.kotlinlogging.KLogger
 import java.util.UUID
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.slf4j.Logger
 
-class TokenRepositoryService(private val logger: Logger) {
+class TokenRepositoryService(private val logger: KLogger) {
   fun createToken(data: TokenRequest, userToken: Token): TokenSimpleResponse {
     return transaction {
       val user = userToken.getUser()
@@ -21,7 +21,7 @@ class TokenRepositoryService(private val logger: Logger) {
       val project =
         Project.findById(data.projectId) ?: throw OrganizationsException("Project not found")
 
-      logger.info("Creating token with name ${data.name} from project ${project.name}")
+      logger.info { "Creating token with name ${data.name} from project ${project.name}" }
 
       if (user.organizations.none { it.id == project.orgId }) {
         throw OrganizationsException(
@@ -43,7 +43,7 @@ class TokenRepositoryService(private val logger: Logger) {
   }
 
   fun getTokens(userToken: Token): List<TokenFullResponse> {
-    logger.info("Getting tokens")
+    logger.info { "Getting tokens" }
     return transaction {
       val user = userToken.getUser()
 
@@ -64,7 +64,7 @@ class TokenRepositoryService(private val logger: Logger) {
   }
 
   fun getTokensByProject(userToken: Token, projectId: Int): List<TokenFullResponse> {
-    logger.info("Getting tokens by project")
+    logger.info { "Getting tokens by project" }
     return transaction {
       val user = userToken.getUser()
 
@@ -78,7 +78,7 @@ class TokenRepositoryService(private val logger: Logger) {
   }
 
   fun updateToken(userToken: Token, data: TokenUpdateRequest, id: Int): TokenFullResponse {
-    logger.info("Updating token with name: ${data.name}")
+    logger.info { "Updating token with name: ${data.name}" }
     return transaction {
       val user = userToken.getUser()
 
@@ -102,7 +102,7 @@ class TokenRepositoryService(private val logger: Logger) {
   }
 
   fun deleteToken(userToken: Token, id: Int) {
-    logger.info("Deleting token: $id")
+    logger.info { "Deleting token: $id" }
     transaction {
       val user = userToken.getUser()
 

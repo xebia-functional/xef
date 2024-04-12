@@ -76,6 +76,8 @@ kotlin {
               implementation(libs.bundles.ktor.client)
               implementation(libs.klogging)
               implementation(libs.uuid)
+              implementation(libs.ktor.client.logging)
+              implementation(libs.klogging)
           }
       }
       val commonTest by getting {
@@ -88,7 +90,6 @@ kotlin {
       val jvmMain by getting {
           dependencies {
               implementation(libs.ktor.http)
-              implementation(libs.logback)
               implementation(libs.rss.reader)
               api(libs.jackson)
               api(libs.jackson.schema)

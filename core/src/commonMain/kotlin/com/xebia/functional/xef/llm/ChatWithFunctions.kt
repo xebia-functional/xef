@@ -2,10 +2,8 @@ package com.xebia.functional.xef.llm
 
 import arrow.core.nonFatalOrThrow
 import arrow.core.raise.catch
-import com.xebia.functional.openai.apis.ChatApi
-import com.xebia.functional.openai.infrastructure.ApiClient
-import com.xebia.functional.openai.models.*
-import com.xebia.functional.openai.models.ext.chat.ChatCompletionToolChoiceOption
+import com.xebia.functional.openai.generated.api.Chat
+import com.xebia.functional.openai.generated.model.*
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
@@ -32,27 +30,26 @@ fun chatFunction(fnName: String, schema: JsonObject): FunctionObject =
   FunctionObject(fnName, "Generated function for $fnName", schema)
 
 @AiDsl
-suspend fun <A> ChatApi.prompt(
-  prompt: Prompt<CreateChatCompletionRequestModel>,
+suspend fun <A> Chat.prompt(
+  prompt: Prompt,
   scope: Conversation,
   serializer: KSerializer<A>,
 ): A =
   prompt(prompt, scope, chatFunctions(listOf(serializer.descriptor))) { call ->
-    ApiClient.JSON_DEFAULT.decodeFromString(serializer, call.arguments)
+    Json.decodeFromString(serializer, call.arguments)
   }
 
 @OptIn(ExperimentalSerializationApi::class)
 @AiDsl
-suspend fun <A> ChatApi.prompt(
-  prompt: Prompt<CreateChatCompletionRequestModel>,
+suspend fun <A> Chat.prompt(
+  prompt: Prompt,
   scope: Conversation,
   serializer: KSerializer<A>,
   descriptors: List<SerialDescriptor>,
 ): A =
   prompt(prompt, scope, chatFunctions(descriptors)) { call ->
     // adds a `type` field with the call.functionName serial name equivalent to the call arguments
-    val jsonWithDiscriminator =
-      ApiClient.JSON_DEFAULT.decodeFromString(JsonElement.serializer(), call.arguments)
+    val jsonWithDiscriminator = Json.decodeFromString(JsonElement.serializer(), call.arguments)
     val descriptor =
       descriptors.firstOrNull { it.serialName.endsWith(call.functionName) }
         ?: error("No descriptor found for ${call.functionName}")
@@ -60,25 +57,22 @@ suspend fun <A> ChatApi.prompt(
       JsonObject(
         jsonWithDiscriminator.jsonObject + ("type" to JsonPrimitive(descriptor.serialName))
       )
-    ApiClient.JSON_DEFAULT.decodeFromString(
-      serializer,
-      ApiClient.JSON_DEFAULT.encodeToString(newJson)
-    )
+    Json.decodeFromString(serializer, Json.encodeToString(newJson))
   }
 
 @AiDsl
-fun <A> ChatApi.promptStreaming(
-  prompt: Prompt<CreateChatCompletionRequestModel>,
+fun <A> Chat.promptStreaming(
+  prompt: Prompt,
   scope: Conversation,
   serializer: KSerializer<A>,
 ): Flow<StreamedFunction<A>> =
   promptStreaming(prompt, scope, chatFunction(serializer.descriptor)) { json ->
-    ApiClient.JSON_DEFAULT.decodeFromString(serializer, json)
+    Json.decodeFromString(serializer, json)
   }
 
 @AiDsl
-suspend fun <A> ChatApi.prompt(
-  prompt: Prompt<CreateChatCompletionRequestModel>,
+suspend fun <A> Chat.prompt(
+  prompt: Prompt,
   scope: Conversation,
   functions: List<FunctionObject>,
   serializer: (call: FunctionCall) -> A,
@@ -92,7 +86,6 @@ suspend fun <A> ChatApi.prompt(
     tryDeserialize(serializer, promptWithFunctions.configuration.maxDeserializationAttempts) {
       val requestedMemories = prompt.messages.toMemory(scope)
       createChatCompletion(request)
-        .body()
         .addMetrics(scope)
         .choices
         .addChoiceWithFunctionsToMemory(
@@ -110,9 +103,7 @@ suspend fun <A> ChatApi.prompt(
     }
   }
 
-private fun createChatCompletionRequest(
-  adaptedPrompt: Prompt<CreateChatCompletionRequestModel>
-): CreateChatCompletionRequest =
+private fun createChatCompletionRequest(adaptedPrompt: Prompt): CreateChatCompletionRequest =
   CreateChatCompletionRequest(
     user = adaptedPrompt.configuration.user,
     messages = adaptedPrompt.messages,
@@ -125,25 +116,24 @@ private fun createChatCompletionRequest(
     seed = adaptedPrompt.configuration.seed,
   )
 
-private fun chatCompletionToolChoiceOption(
-  adaptedPrompt: Prompt<CreateChatCompletionRequestModel>
-): ChatCompletionToolChoiceOption =
+private fun chatCompletionToolChoiceOption(adaptedPrompt: Prompt): ChatCompletionToolChoiceOption =
   if (adaptedPrompt.functions.size == 1)
-    ChatCompletionToolChoiceOption.function(
-      ChatCompletionNamedToolChoiceFunction(adaptedPrompt.functions.first().name)
+    ChatCompletionToolChoiceOption.CaseChatCompletionNamedToolChoice(
+      ChatCompletionNamedToolChoice(
+        type = ChatCompletionNamedToolChoice.Type.function,
+        function = ChatCompletionNamedToolChoiceFunction(adaptedPrompt.functions.first().name)
+      )
     )
-  else ChatCompletionToolChoiceOption.auto
+  else ChatCompletionToolChoiceOption.CaseString("auto")
 
-private fun chatCompletionTools(
-  adaptedPrompt: Prompt<CreateChatCompletionRequestModel>
-): List<ChatCompletionTool> =
+private fun chatCompletionTools(adaptedPrompt: Prompt): List<ChatCompletionTool> =
   adaptedPrompt.functions.map {
     ChatCompletionTool(type = ChatCompletionTool.Type.function, function = it)
   }
 
 @AiDsl
-fun <A> ChatApi.promptStreaming(
-  prompt: Prompt<CreateChatCompletionRequestModel>,
+fun <A> Chat.promptStreaming(
+  prompt: Prompt,
   scope: Conversation,
   function: FunctionObject,
   serializer: (json: String) -> A,

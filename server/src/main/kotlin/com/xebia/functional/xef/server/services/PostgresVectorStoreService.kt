@@ -1,32 +1,28 @@
 package com.xebia.functional.xef.server.services
 
-import ai.xef.openai.OpenAIModel
-import ai.xef.openai.StandardModel
-import com.xebia.functional.openai.apis.EmbeddingsApi
-import com.xebia.functional.openai.models.CreateEmbeddingRequestModel
-import com.xebia.functional.xef.llm.fromEnvironment
-import com.xebia.functional.xef.llm.fromToken
-import com.xebia.functional.xef.server.http.routes.Provider
+import com.xebia.functional.openai.generated.model.CreateEmbeddingRequestModel
+import com.xebia.functional.xef.Config
+import com.xebia.functional.xef.OpenAI
 import com.xebia.functional.xef.store.PGVectorStore
 import com.xebia.functional.xef.store.VectorStore
 import com.xebia.functional.xef.store.postgresql.PGDistanceStrategy
 import com.xebia.functional.xef.store.postgresql.addNewCollection
 import com.xebia.functional.xef.store.postgresql.connection
+import io.github.oshai.kotlinlogging.KLogger
 import javax.sql.DataSource
 import kotlinx.uuid.UUID
 import kotlinx.uuid.generateUUID
-import org.slf4j.Logger
 
 class PostgresVectorStoreService(
-  private val logger: Logger,
+  private val logger: KLogger,
   private val dataSource: DataSource,
   private val collectionName: String,
   private val vectorSize: Int,
   private val preDeleteCollection: Boolean = false,
   private val chunkSize: Int = 400,
   private val distanceStrategy: PGDistanceStrategy = PGDistanceStrategy.Euclidean,
-  private val embeddingRequestModel: OpenAIModel<CreateEmbeddingRequestModel> =
-    StandardModel(CreateEmbeddingRequestModel.text_embedding_ada_002)
+  private val embeddingRequestModel: CreateEmbeddingRequestModel =
+    CreateEmbeddingRequestModel.text_embedding_3_small
 ) : VectorStoreService() {
 
   fun addCollection() {
@@ -37,14 +33,19 @@ class PostgresVectorStoreService(
           bind(uuid.toString())
           bind(collectionName)
         }
-        .also { logger.info("Created collection $collectionName") }
+        .also { logger.info { "Created collection $collectionName" } }
     }
   }
 
-  override fun getVectorStore(provider: Provider, token: String?, org: String?): VectorStore {
+  override fun getVectorStore(token: String?, org: String?): VectorStore {
     val embeddingsApi =
-      token?.let { fromToken(token, org) { baseUrl, org -> EmbeddingsApi(baseUrl, org) } }
-        ?: fromEnvironment { baseUrl, org -> EmbeddingsApi(baseUrl, org) }
+      OpenAI(
+          Config(
+            token = token,
+            org = org,
+          )
+        )
+        .embeddings
 
     return PGVectorStore(
       vectorSize = vectorSize,

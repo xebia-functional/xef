@@ -1,15 +1,9 @@
 package com.xebia.functional.xef.conversation.streaming
 
-import ai.xef.openai.StandardModel
-import com.xebia.functional.openai.apis.EmbeddingsApi
-import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
-import com.xebia.functional.xef.conversation.Conversation
+import com.xebia.functional.xef.AI
 import com.xebia.functional.xef.conversation.Description
 import com.xebia.functional.xef.llm.StreamedFunction
-import com.xebia.functional.xef.llm.fromEnvironment
-import com.xebia.functional.xef.metrics.LogsMetric
-import com.xebia.functional.xef.prompt.Prompt
-import com.xebia.functional.xef.store.LocalVectorStore
+import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -24,27 +18,22 @@ data class MissionDetail(
 data class SpaceTool(
   @Description("The name of the tool") val name: String,
   @Description("The type of the tool") val type: String,
-  @Description("The weight of the tool") val weight: Int
+  @Description("The weight of the tool") val weight: Double
 )
 
 @Serializable
 data class InterstellarCraft(
   @Description("The designation name of the spacecraft") val designation: String,
   @Description("The current mission name") val mission: String,
-  @Description("Coordinates of the spacecraft") val coordinates: Pair<Int, Int>,
+  @Description("Coordinates of the spacecraft") val coordinates: Pair<Double, Double>,
   @Description("Details related to the mission") val missionDetail: MissionDetail,
   @Description("A list of at least 10 tools that should be in the space craft")
   val tools: List<SpaceTool>
 )
 
 suspend fun main() {
-  val model = StandardModel(CreateChatCompletionRequestModel.gpt_3_5_turbo_16k_0613)
-
-  val scope = Conversation(LocalVectorStore(fromEnvironment(::EmbeddingsApi)), LogsMetric())
-
-  scope
-    .promptStreamingFunctions<InterstellarCraft>(
-      Prompt(model, "Make a spacecraft with a mission to Mars"),
+  AI<Flow<StreamedFunction<InterstellarCraft>>>(
+      prompt = "Make a spacecraft with a mission to Mars",
     )
     .collect { element ->
       when (element) {

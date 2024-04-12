@@ -1,17 +1,16 @@
 package com.xebia.functional.xef.dsl.chat
 
-import ai.xef.openai.StandardModel
-import com.xebia.functional.openai.models.CreateChatCompletionRequestModel
+import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.AI
 import com.xebia.functional.xef.conversation.Description
 import com.xebia.functional.xef.conversation.MessagePolicy
 import com.xebia.functional.xef.conversation.MessagesFromHistory
 import com.xebia.functional.xef.conversation.MessagesToHistory
 import com.xebia.functional.xef.prompt.Prompt
+import com.xebia.functional.xef.prompt.PromptBuilder.Companion.assistant
+import com.xebia.functional.xef.prompt.PromptBuilder.Companion.system
+import com.xebia.functional.xef.prompt.PromptBuilder.Companion.user
 import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
-import com.xebia.functional.xef.prompt.templates.assistant
-import com.xebia.functional.xef.prompt.templates.system
-import com.xebia.functional.xef.prompt.templates.user
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -23,11 +22,11 @@ data class Books(@Description("The list of books") val books: List<Book>)
 data class Book(
   @Description("The title of the book") val title: String,
   @Description("The author of the book") val author: String,
-  @Description("A 20 word summary of the book") val summary: String
+  @Description("A one line sentence summary of the book") val summary: String
 )
 
 suspend fun books(topic: String): Books {
-  val model = StandardModel(CreateChatCompletionRequestModel.gpt_3_5_turbo_16k_0613)
+  val model = CreateChatCompletionRequestModel.gpt_4_turbo_preview
 
   val myCustomPrompt =
     Prompt(
@@ -35,7 +34,6 @@ suspend fun books(topic: String): Books {
       configuration =
         PromptConfiguration {
           temperature = 0.0
-          maxTokens = 100
           messagePolicy =
             MessagePolicy(
               historyPercent = 50,

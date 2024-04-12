@@ -1,14 +1,14 @@
 package com.xebia.functional.xef.metrics
 
-import com.xebia.functional.openai.models.MessageObject
-import com.xebia.functional.openai.models.RunObject
-import com.xebia.functional.openai.models.RunStepObject
+import com.xebia.functional.openai.generated.model.MessageObject
+import com.xebia.functional.openai.generated.model.RunObject
+import com.xebia.functional.openai.generated.model.RunStepObject
 import com.xebia.functional.xef.prompt.Prompt
 
 interface Metric {
   suspend fun <A> customSpan(name: String, block: suspend Metric.() -> A): A
 
-  suspend fun <A, T> promptSpan(prompt: Prompt<T>, block: suspend Metric.() -> A): A
+  suspend fun <A> promptSpan(prompt: Prompt, block: suspend Metric.() -> A): A
 
   suspend fun event(message: String)
 
@@ -19,6 +19,8 @@ interface Metric {
   suspend fun assistantCreateRun(runObject: RunObject)
 
   suspend fun assistantCreateRun(runId: String, block: suspend Metric.() -> RunObject): RunObject
+
+  suspend fun assistantCreateRunStep(runObject: RunStepObject)
 
   suspend fun assistantCreatedMessage(
     runId: String,
@@ -41,10 +43,8 @@ interface Metric {
         override suspend fun <A> customSpan(name: String, block: suspend Metric.() -> A): A =
           block()
 
-        override suspend fun <A, T> promptSpan(
-          prompt: Prompt<T>,
-          block: suspend Metric.() -> A
-        ): A = block()
+        override suspend fun <A> promptSpan(prompt: Prompt, block: suspend Metric.() -> A): A =
+          block()
 
         override suspend fun assistantCreateRun(runObject: RunObject) {}
 
@@ -52,6 +52,8 @@ interface Metric {
           runId: String,
           block: suspend Metric.() -> RunObject
         ): RunObject = block()
+
+        override suspend fun assistantCreateRunStep(runObject: RunStepObject) {}
 
         override suspend fun assistantCreatedMessage(
           runId: String,

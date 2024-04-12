@@ -1,19 +1,19 @@
 package com.xebia.functional.xef.data
 
-import com.xebia.functional.openai.apis.EmbeddingsApi
-import com.xebia.functional.openai.infrastructure.HttpResponse
-import com.xebia.functional.openai.models.*
-import com.xebia.functional.xef.utils.TestBodyProvider
-import com.xebia.functional.xef.utils.TestHttpResponse
-import kotlin.coroutines.CoroutineContext
+import com.xebia.functional.openai.generated.api.Embeddings
+import com.xebia.functional.openai.generated.model.CreateEmbeddingRequest
+import com.xebia.functional.openai.generated.model.CreateEmbeddingResponse
+import com.xebia.functional.openai.generated.model.CreateEmbeddingResponseUsage
+import io.ktor.client.request.*
 
-class TestEmbeddings(private val context: CoroutineContext) : EmbeddingsApi(), AutoCloseable {
+class TestEmbeddings : Embeddings, AutoCloseable {
 
   var requests: MutableList<CreateEmbeddingRequest> = mutableListOf()
 
   override suspend fun createEmbedding(
-    createEmbeddingRequest: CreateEmbeddingRequest
-  ): HttpResponse<CreateEmbeddingResponse> {
+    createEmbeddingRequest: CreateEmbeddingRequest,
+    configure: HttpRequestBuilder.() -> Unit
+  ): CreateEmbeddingResponse {
     requests.add(createEmbeddingRequest)
     val response =
       CreateEmbeddingResponse(
@@ -22,7 +22,7 @@ class TestEmbeddings(private val context: CoroutineContext) : EmbeddingsApi(), A
         `object` = CreateEmbeddingResponse.Object.list,
         usage = CreateEmbeddingResponseUsage(0, 0)
       )
-    return HttpResponse(TestHttpResponse(context, 200), TestBodyProvider(response))
+    return response
   }
 
   override fun close() {}

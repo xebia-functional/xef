@@ -1,13 +1,18 @@
 package com.xebia.functional.xef.dsl.images
 
-import com.xebia.functional.xef.AI
+import com.xebia.functional.openai.generated.model.CreateImageRequest
+import com.xebia.functional.xef.OpenAI
+import com.xebia.functional.xef.llm.asInputProvider
 
 suspend fun main() {
-  val ai = AI.images()
-  val images = ai.image(prompt = "Event horizon in a black hole", amount = 1)
-  images.collect { image ->
-    println("Image: $image")
-    val variants = ai.variant(image)
-    variants.collect { variant -> println("Variant: $variant") }
-  }
+  val openAI = OpenAI(logRequests = true)
+  val ai = openAI.images
+  val image =
+    ai.createImage(
+      createImageRequest = CreateImageRequest(prompt = "Event horizon in a black hole")
+    )
+  val generatedImage = image.data.first()
+  println("Image: $generatedImage")
+  val variant = ai.createImageVariation(generatedImage.asInputProvider())
+  println("Variant: $variant")
 }

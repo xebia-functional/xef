@@ -76,7 +76,6 @@ kotlin {
         }
         val jvmMain by getting {
             dependencies {
-                implementation(libs.logback)
                 implementation(projects.xefPdf)
                 implementation(projects.xefFilesystem)
                 api(libs.ktor.client.cio)
