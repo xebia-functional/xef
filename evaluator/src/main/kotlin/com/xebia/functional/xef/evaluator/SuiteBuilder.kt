@@ -2,12 +2,7 @@ package com.xebia.functional.xef.evaluator
 
 import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.AI
-import com.xebia.functional.xef.evaluator.models.ItemResult
-import com.xebia.functional.xef.evaluator.models.OutputResponse
-import com.xebia.functional.xef.evaluator.models.OutputResult
-import com.xebia.functional.xef.evaluator.models.SuiteResults
-import com.xebia.functional.xef.evaluator.output.Html
-import java.io.File
+import com.xebia.functional.xef.evaluator.models.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -67,18 +62,15 @@ data class SuiteSpec(
       block: suspend SuiteBuilder.() -> Unit
     ): SuiteSpec = SuiteBuilder(description, model).apply { block() }.build()
 
-    inline fun <reified E> toHtml(
+    inline fun <reified E> toHtml(result: SuiteResults<E>, suiteName: String): Html where
+    E : AI.PromptClassifier,
+    E : Enum<E> =
+      Html.get(Json.encodeToString(SuiteResults.serializer(serializer<E>()), result), suiteName)
+
+    inline fun <reified E> toMarkdown(
       result: SuiteResults<E>,
-      htmlFilename: String = "index.html"
-    ) where E : AI.PromptClassifier, E : Enum<E> {
-      val content = Json.encodeToString(SuiteResults.serializer(serializer<E>()), result)
-      // Copy file inside build folder
-      val outputPath = System.getProperty("user.dir") + "/build/testSuite"
-      File(outputPath).mkdirs()
-      val htmlFile = File("$outputPath/$htmlFilename")
-      htmlFile.writeText(Html.get(content))
-      println("Test suite exported to ${htmlFile.absoluteFile}")
-    }
+      suiteName: String,
+    ): Markdown where E : AI.PromptClassifier, E : Enum<E> = Markdown.get(result, suiteName)
   }
 }
 
