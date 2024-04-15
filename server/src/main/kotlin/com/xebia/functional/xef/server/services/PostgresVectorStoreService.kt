@@ -8,13 +8,13 @@ import com.xebia.functional.xef.store.VectorStore
 import com.xebia.functional.xef.store.postgresql.PGDistanceStrategy
 import com.xebia.functional.xef.store.postgresql.addNewCollection
 import com.xebia.functional.xef.store.postgresql.connection
+import io.github.oshai.kotlinlogging.KLogger
 import javax.sql.DataSource
 import kotlinx.uuid.UUID
 import kotlinx.uuid.generateUUID
-import org.slf4j.Logger
 
 class PostgresVectorStoreService(
-  private val logger: Logger,
+  private val logger: KLogger,
   private val dataSource: DataSource,
   private val collectionName: String,
   private val vectorSize: Int,
@@ -33,7 +33,7 @@ class PostgresVectorStoreService(
           bind(uuid.toString())
           bind(collectionName)
         }
-        .also { logger.info("Created collection $collectionName") }
+        .also { logger.info { "Created collection $collectionName" } }
     }
   }
 
