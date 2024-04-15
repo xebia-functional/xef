@@ -12,6 +12,7 @@ import kotlin.jvm.JvmName
 import kotlinx.coroutines.flow.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 
 class AssistantThread(
   val threadId: String,
@@ -164,16 +165,24 @@ class AssistantThread(
     toolCall: RunToolCallObject,
     assistant: Assistant
   ): Pair<String, Assistant.Companion.ToolOutput>? {
-    val function = toolCall.function
-    val functionName = function.name
-    val functionArguments = function.arguments
-    return if (functionName != null && functionArguments != null) {
-      val result = assistant.getToolRegistered(functionName, functionArguments)
-      val callId = toolCall.id
-      if (callId != null) {
-        callId to result
+    return try {
+      val function = toolCall.function
+      val functionName = function.name
+      val functionArguments = function.arguments
+      return if (functionName != null && functionArguments != null) {
+        val result = assistant.getToolRegistered(functionName, functionArguments)
+        val callId = toolCall.id
+        if (callId != null) {
+          callId to result
+        } else null
       } else null
-    } else null
+    } catch (e: Throwable) {
+      toolCall.id to
+        Assistant.Companion.ToolOutput(
+          schema = JsonObject(emptyMap()),
+          result = JsonObject(mapOf("error" to JsonPrimitive(e.message ?: "Unknown error")))
+        )
+    }
   }
 
   suspend fun getRun(runId: String): RunObject =
