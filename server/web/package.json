@@ -40,6 +40,6 @@
     "prettier": "2.8.8",
     "typescript": "5.0.2",
     "typescript-plugin-css-modules": "5.0.1",
-    "vite": "4.5.2"
+    "vite": "4.5.3"
   }
 }
