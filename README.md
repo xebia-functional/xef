@@ -86,3 +86,7 @@ To build the project locally, you can use the following commands:
 ./gradlew openaiClientGenerate
 ./gradlew build
 ```
+
+The server and postgres tests may fail if you don't have [Docker](https://www.docker.com/) installed. 
+The server and postgres related tests depend on [Testcontainers](https://testcontainers.com/), which in turn depends on Docker.
+
