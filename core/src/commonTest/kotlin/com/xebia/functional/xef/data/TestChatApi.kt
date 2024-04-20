@@ -1,5 +1,7 @@
 package com.xebia.functional.xef.data
 
+import com.xebia.functional.openai.CompletableFuture
+import com.xebia.functional.openai.StreamCallback
 import com.xebia.functional.openai.generated.api.Chat
 import com.xebia.functional.openai.generated.model.*
 import com.xebia.functional.xef.prompt.contentAsString
@@ -9,6 +11,21 @@ import kotlinx.coroutines.flow.Flow
 class TestChatApi(private val responses: Map<String, String> = emptyMap()) : Chat, AutoCloseable {
 
   var requests: MutableList<CreateChatCompletionRequest> = mutableListOf()
+
+  override fun createChatCompletionAsync(
+    createChatCompletionRequest: CreateChatCompletionRequest,
+    configure: HttpRequestBuilder.() -> Unit
+  ): CompletableFuture<CreateChatCompletionResponse> {
+    TODO("Not yet implemented")
+  }
+
+  override fun createChatCompletionStream(
+    createChatCompletionRequest: CreateChatCompletionRequest,
+    configure: HttpRequestBuilder.() -> Unit,
+    callback: StreamCallback<CreateChatCompletionStreamResponse>
+  ) {
+    TODO("Not yet implemented")
+  }
 
   override suspend fun createChatCompletion(
     createChatCompletionRequest: CreateChatCompletionRequest,

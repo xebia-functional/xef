@@ -8,6 +8,7 @@ import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.image
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.user
+import com.xebia.functional.xef.serialization.Serializer
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
@@ -25,7 +26,7 @@ suspend inline fun <reified A> Chat.visionStructured(
     CreateChatCompletionRequestModel.gpt_3_5_turbo_0125
 ): A {
   val response = vision(prompt, url, model, conversation).toList().joinToString("") { it }
-  return prompt(Prompt(functionsModel) { +user(response) }, conversation, serializer())
+  return prompt(Prompt(functionsModel) { +user(response) }, conversation, Serializer())
 }
 
 fun Chat.vision(

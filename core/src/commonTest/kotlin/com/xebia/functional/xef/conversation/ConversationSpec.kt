@@ -14,6 +14,7 @@ import com.xebia.functional.xef.prompt.PromptBuilder.Companion.system
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.user
 import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
 import com.xebia.functional.xef.prompt.contentAsString
+import com.xebia.functional.xef.serialization.Serializer
 import com.xebia.functional.xef.store.ConversationId
 import com.xebia.functional.xef.store.LocalVectorStore
 import io.kotest.core.spec.style.StringSpec
@@ -145,7 +146,7 @@ class ConversationSpec :
         chatApi.prompt(
           prompt = Prompt(model, question),
           scope = scope,
-          serializer = Answer.serializer()
+          serializer = Serializer()
         )
 
       val lastRequest = chatApi.requests.last()
@@ -178,7 +179,7 @@ class ConversationSpec :
         chatApi.prompt(
           prompt = Prompt(model) { +user(Json.encodeToString(Question.serializer(), question)) },
           scope = scope,
-          serializer = Answer.serializer()
+          serializer = Serializer()
         )
 
       val lastRequest = chatApi.requests.last()

@@ -2,6 +2,9 @@
 {{>licenseInfo}}
 package {{apiPackage}}
 
+import kotlin.jvm.JvmStatic
+import kotlin.jvm.JvmOverloads
+import kotlin.jvm.JvmName
 import com.xebia.functional.openai.Config
 import io.ktor.client.HttpClient
 {{#imports}}import {{import}}
@@ -13,6 +16,14 @@ interface OpenAI : AutoCloseable {
 {{#apis}}
   val {{#lambda.camelcase}}{{classFilename}}{{/lambda.camelcase}}: {{classFilename}}
 {{/apis}}
+
+   companion object {
+      @JvmStatic
+      @JvmOverloads
+      @JvmName("create")
+      operator fun invoke(client: HttpClient, config: Config): OpenAI =
+        OpenAI(client, config)
+   }
 }
 
 fun OpenAI(client: HttpClient, config: Config): OpenAI = object : OpenAI, AutoCloseable {

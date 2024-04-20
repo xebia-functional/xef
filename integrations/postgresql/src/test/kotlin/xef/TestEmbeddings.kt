@@ -1,5 +1,6 @@
 package xef
 
+import com.xebia.functional.openai.CompletableFuture
 import com.xebia.functional.openai.generated.api.Embeddings
 import com.xebia.functional.openai.generated.model.*
 import io.ktor.client.request.*
@@ -7,6 +8,13 @@ import io.ktor.client.request.*
 class TestEmbeddings : Embeddings, AutoCloseable {
 
   var requests: MutableList<CreateEmbeddingRequest> = mutableListOf()
+
+  override fun createEmbeddingAsync(
+    createEmbeddingRequest: CreateEmbeddingRequest,
+    configure: HttpRequestBuilder.() -> Unit
+  ): CompletableFuture<CreateEmbeddingResponse> {
+    TODO("Not yet implemented")
+  }
 
   override suspend fun createEmbedding(
     createEmbeddingRequest: CreateEmbeddingRequest,

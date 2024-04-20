@@ -9,6 +9,7 @@ import com.xebia.functional.xef.llm.*
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.system
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.user
+import com.xebia.functional.xef.serialization.Serializer
 import com.xebia.functional.xef.sql.ResultSetOps.toQueryResult
 import com.xebia.functional.xef.sql.jdbc.JdbcConfig
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -120,7 +121,7 @@ class SQLImpl(private val chatApi: Chat, private val model: CreateChatCompletion
         return chatApi.prompt(
             prompt = prompt,
             scope = this,
-            serializer = serializer<QueriesAnswer>()
+            serializer = Serializer()
         )
     }
 

@@ -14,12 +14,19 @@ which states the following:
 // TODO: We should consider a fork and maintain it ourselves.
  */
 import com.xebia.functional.xef.conversation.Description
+import com.xebia.functional.xef.serialization.Serializer
 import kotlin.jvm.JvmMultifileClass
 import kotlin.jvm.JvmName
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialInfo
-import kotlinx.serialization.descriptors.*
-import kotlinx.serialization.json.*
+import kotlinx.serialization.descriptors.PolymorphicKind
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.SerialKind
+import kotlinx.serialization.descriptors.StructureKind
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 
 /** Represents the type of json type */
 enum class JsonType(jsonType: String) {
@@ -107,17 +114,17 @@ annotation class JsonSchema {
 }
 
 /** Creates a Json Schema using the provided [descriptor] */
-fun buildJsonSchema(descriptor: SerialDescriptor): JsonObject {
+fun buildJsonSchema(descriptor: Serializer<*>): JsonObject {
   val autoDefinitions = false
   val prepend = mapOf("\$schema" to JsonPrimitive("http://json-schema.org/draft-07/schema"))
   val definitions = JsonSchemaDefinitions(autoDefinitions)
-  val root = descriptor.createJsonSchema(descriptor.annotations, definitions)
+  val root = descriptor.createJsonSchema(descriptor.annotations(), definitions)
   val append = mapOf("definitions" to definitions.getDefinitionsAsJsonObject())
 
   return JsonObject(prepend + root + append)
 }
 
-private inline val SerialDescriptor.jsonLiteral
+private inline val Serializer<*>.jsonLiteral
   inline get() = kind.jsonType.json
 
 private inline val SerialKind.jsonType: JsonType
@@ -142,11 +149,11 @@ private inline val SerialKind.jsonType: JsonType
 private inline fun <reified T> List<Annotation>.lastOfInstance(): T? =
   filterIsInstance<T>().lastOrNull()
 
-private fun SerialDescriptor.jsonSchemaObject(definitions: JsonSchemaDefinitions): JsonObject {
+private fun Serializer<*>.jsonSchemaObject(definitions: JsonSchemaDefinitions): JsonObject {
   val properties = mutableMapOf<String, JsonElement>()
   val required = mutableListOf<JsonPrimitive>()
 
-  elementDescriptors.forEachIndexed { index, child ->
+  elements().forEachIndexed { index, child ->
     val name = getElementName(index)
     val annotations = getElementAnnotations(index)
 
@@ -157,7 +164,7 @@ private fun SerialDescriptor.jsonSchemaObject(definitions: JsonSchemaDefinitions
     }
   }
 
-  return jsonSchemaElement(annotations) {
+  return jsonSchemaElement(annotations()) {
     if (properties.isNotEmpty()) {
       it["properties"] = JsonObject(properties)
     }
@@ -168,8 +175,8 @@ private fun SerialDescriptor.jsonSchemaObject(definitions: JsonSchemaDefinitions
   }
 }
 
-private fun SerialDescriptor.jsonSchemaObjectMap(definitions: JsonSchemaDefinitions): JsonObject {
-  return jsonSchemaElement(annotations, skipNullCheck = false) {
+private fun Serializer<*>.jsonSchemaObjectMap(definitions: JsonSchemaDefinitions): JsonObject {
+  return jsonSchemaElement(annotations(), skipNullCheck = false) {
     val (key, value) = elementDescriptors.toList()
 
     require(key.kind == PrimitiveKind.STRING) { "cannot have non string keys in maps" }
@@ -178,7 +185,7 @@ private fun SerialDescriptor.jsonSchemaObjectMap(definitions: JsonSchemaDefiniti
   }
 }
 
-private fun SerialDescriptor.jsonSchemaObjectSealed(
+private fun Serializer<*>.jsonSchemaObjectSealed(
   definitions: JsonSchemaDefinitions
 ): JsonObject {
   val properties = mutableMapOf<String, JsonElement>()
@@ -189,7 +196,7 @@ private fun SerialDescriptor.jsonSchemaObjectSealed(
 
   properties["type"] = buildJson {
     it["type"] = JsonType.STRING.json
-    it["enum"] = value.elementNames
+    it["enum"] = value.elementNames()
   }
 
   required += JsonPrimitive("type")
@@ -205,7 +212,7 @@ private fun SerialDescriptor.jsonSchemaObjectSealed(
         if (element is JsonObject && name == "properties") {
           val prependProps = mutableMapOf<String, JsonElement>()
 
-          prependProps["type"] = buildJson { it["const"] = child.serialName }
+          prependProps["type"] = buildJson { it["const"] = child.name }
 
           JsonObject(prependProps + element)
         } else {
@@ -216,7 +223,7 @@ private fun SerialDescriptor.jsonSchemaObjectSealed(
     anyOf += JsonObject(newSchema)
   }
 
-  return jsonSchemaElement(annotations, skipNullCheck = true, skipTypeCheck = true) {
+  return jsonSchemaElement(annotations(), skipNullCheck = true, skipTypeCheck = true) {
     if (properties.isNotEmpty()) {
       it["properties"] = JsonObject(properties)
     }
@@ -231,7 +238,7 @@ private fun SerialDescriptor.jsonSchemaObjectSealed(
   }
 }
 
-private fun SerialDescriptor.jsonSchemaArray(
+private fun Serializer<*>.jsonSchemaArray(
   annotations: List<Annotation> = listOf(),
   definitions: JsonSchemaDefinitions
 ): JsonObject =
@@ -241,7 +248,7 @@ private fun SerialDescriptor.jsonSchemaArray(
     it["items"] = type.createJsonSchema(getElementAnnotations(0), definitions)
   }
 
-private fun SerialDescriptor.jsonSchemaString(
+private fun Serializer<*>.jsonSchemaString(
   annotations: List<Annotation> = listOf()
 ): JsonObject {
   return jsonSchemaElement(annotations) {
@@ -258,7 +265,7 @@ private fun SerialDescriptor.jsonSchemaString(
   }
 }
 
-private fun SerialDescriptor.jsonSchemaNumber(
+private fun Serializer<*>.jsonSchemaNumber(
   annotations: List<Annotation> = listOf()
 ): JsonObject =
   jsonSchemaElement(annotations) {
@@ -285,15 +292,15 @@ private fun SerialDescriptor.jsonSchemaNumber(
     }
   }
 
-private fun SerialDescriptor.jsonSchemaBoolean(
+private fun Serializer<*>.jsonSchemaBoolean(
   annotations: List<Annotation> = listOf()
 ): JsonObject = jsonSchemaElement(annotations)
 
-private fun SerialDescriptor.createJsonSchema(
+private fun Serializer<*>.createJsonSchema(
   annotations: List<Annotation>,
   definitions: JsonSchemaDefinitions
 ): JsonObject {
-  val combinedAnnotations = annotations + this.annotations
+  val combinedAnnotations = annotations + this.annotations()
   val key = JsonSchemaDefinitions.Key(this, combinedAnnotations)
 
   return when (kind.jsonType) {
@@ -308,7 +315,7 @@ private fun SerialDescriptor.createJsonSchema(
 }
 
 private fun JsonObjectBuilder.applyJsonSchemaDefaults(
-  descriptor: SerialDescriptor,
+  descriptor: Serializer<*>,
   annotations: List<Annotation>,
   skipNullCheck: Boolean = false,
   skipTypeCheck: Boolean = false
@@ -323,7 +330,7 @@ private fun JsonObjectBuilder.applyJsonSchemaDefaults(
   }
 
   if (descriptor.kind == SerialKind.ENUM) {
-    this["enum"] = descriptor.elementNames
+    this["enum"] = descriptor.elementNames()
   }
 
   if (annotations.isNotEmpty()) {
@@ -344,7 +351,7 @@ private fun JsonObjectBuilder.applyJsonSchemaDefaults(
   }
 }
 
-private inline fun SerialDescriptor.jsonSchemaElement(
+private inline fun Serializer<*>.jsonSchemaElement(
   annotations: List<Annotation>,
   skipNullCheck: Boolean = false,
   skipTypeCheck: Boolean = false,
@@ -368,9 +375,9 @@ private class JsonObjectBuilder(val content: MutableMap<String, JsonElement> = l
   operator fun set(key: String, value: Iterable<String>) =
     set(key, JsonArray(value.map(::JsonPrimitive)))
 
-  operator fun set(key: String, value: String?) = set(key, JsonPrimitive(value))
+  operator fun set(key: String, value: String?): Unit = set(key, JsonPrimitive(value))
 
-  operator fun set(key: String, value: Number?) = set(key, JsonPrimitive(value))
+  operator fun set(key: String, value: Number?): Unit = set(key, JsonPrimitive(value))
 }
 
 private class JsonSchemaDefinitions(private val isEnabled: Boolean = true) {
@@ -431,5 +438,5 @@ private class JsonSchemaDefinitions(private val isEnabled: Boolean = true) {
     return JsonObject(definitions)
   }
 
-  data class Key(val descriptor: SerialDescriptor, val annotations: List<Annotation>)
+  data class Key(val descriptor: Serializer<*>, val annotations: List<Annotation>)
 }

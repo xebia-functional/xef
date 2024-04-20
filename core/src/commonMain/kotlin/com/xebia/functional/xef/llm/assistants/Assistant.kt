@@ -52,11 +52,11 @@ class Assistant(
       val toolConfig = toolsConfig.firstOrNull { it.functionObject.name == name }
 
       val toolSerializer = toolConfig?.serializers ?: error("Function $name not registered")
-      val input = Json.decodeFromString(toolSerializer.inputSerializer, args)
+      val input = toolSerializer.inputSerializer.deserialize(args)
 
       val tool: Tool<Any?, Any?> = toolConfig.tool as Tool<Any?, Any?>
 
-      val schema = buildJsonSchema(toolSerializer.outputSerializer.descriptor)
+      val schema = buildJsonSchema(toolSerializer.outputSerializer)
       val output: Any? = tool(input)
       val result =
         Json.encodeToJsonElement(toolSerializer.outputSerializer as KSerializer<Any?>, output)

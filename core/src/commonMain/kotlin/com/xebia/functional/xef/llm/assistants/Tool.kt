@@ -2,8 +2,7 @@ package com.xebia.functional.xef.llm.assistants
 
 import com.xebia.functional.openai.generated.model.FunctionObject
 import com.xebia.functional.xef.llm.chatFunction
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.serializer
+import com.xebia.functional.xef.serialization.Serializer
 
 fun interface Tool<Input, out Output> {
   suspend operator fun invoke(input: Input): Output
@@ -17,15 +16,15 @@ fun interface Tool<Input, out Output> {
     )
 
     data class ToolSerializer(
-      val inputSerializer: KSerializer<*>,
-      val outputSerializer: KSerializer<*>
+      val inputSerializer: Serializer<*>,
+      val outputSerializer: Serializer<*>
     )
 
-    inline fun <reified I, reified O> toolOf(tool: Tool<I, O>): ToolConfig<I, O> {
-      val serializer = serializer<I>()
-      val outputSerializer = serializer<O>()
+    inline fun <reified I: Any, reified O: Any> toolOf(tool: Tool<I, O>): ToolConfig<I, O> {
+      val serializer = Serializer<I>()
+      val outputSerializer = Serializer<O>()
       val toolSerializer = ToolSerializer(serializer, outputSerializer)
-      val fn = chatFunction(serializer.descriptor)
+      val fn = chatFunction(serializer)
       return ToolConfig(
         fn.copy(name = tool::class.simpleName ?: error("unnamed class")),
         toolSerializer,

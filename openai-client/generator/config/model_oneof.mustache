@@ -1,5 +1,6 @@
 import com.xebia.functional.openai.attemptDeserialize
 import kotlin.jvm.JvmInline
+import kotlin.jvm.JvmStatic
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*
 import kotlinx.serialization.descriptors.*
@@ -12,7 +13,12 @@ sealed interface {{classname}} {
   {{#oneOf}}
   @JvmInline
   @Serializable
-  value class Case{{#lambda.oneOfName}}{{{.}}}{{/lambda.oneOfName}}(val value: {{{.}}}): {{classname}}
+  value class Case{{#lambda.oneOfName}}{{{.}}}{{/lambda.oneOfName}}(val value: {{{.}}}): {{classname}} {
+    companion object {
+      @JvmStatic
+      fun create(value: {{{.}}}): {{classname}} = Case{{#lambda.oneOfName}}{{{.}}}{{/lambda.oneOfName}}(value)
+    }
+  }
   {{/oneOf}}
 
 }

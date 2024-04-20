@@ -6,35 +6,29 @@ import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestMo
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.prompt.Prompt
-import kotlin.coroutines.cancellation.CancellationException
-import kotlin.reflect.KClass
-import kotlin.reflect.KType
-import kotlin.reflect.typeOf
+import com.xebia.functional.xef.serialization.Serializer
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
-import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.SerialKind
-import kotlinx.serialization.serializer
+import kotlin.coroutines.cancellation.CancellationException
 
 sealed interface AI {
 
-  interface PromptClassifier {
+  fun interface PromptClassifier {
     fun template(input: String, output: String, context: String): String
   }
 
   companion object {
 
     fun <A : Any> chat(
-      target: KType,
       model: CreateChatCompletionRequestModel,
       api: Chat,
       conversation: Conversation,
       enumSerializer: ((case: String) -> A)?,
-      caseSerializers: List<KSerializer<A>>,
-      serializer: () -> KSerializer<A>,
+      caseSerializers: List<Serializer<A>>,
+      serializer: () -> Serializer<A>,
     ): DefaultAI<A> =
       DefaultAI(
-        target = target,
         model = model,
         api = api,
         serializer = serializer,
@@ -50,20 +44,18 @@ sealed interface AI {
     @PublishedApi
     internal suspend inline fun <reified A : Any> invokeEnum(
       prompt: Prompt,
-      target: KType = typeOf<A>(),
       config: Config = Config(),
       api: Chat = OpenAI(config).chat,
       conversation: Conversation = Conversation()
     ): A =
       chat(
-          target = target,
           model = prompt.model,
           api = api,
           conversation = conversation,
           enumSerializer = { @Suppress("UPPER_BOUND_VIOLATED") enumValueOf<A>(it) },
           caseSerializers = emptyList()
         ) {
-          serializer<A>()
+          Serializer()
         }
         .invoke(prompt)
 
@@ -87,7 +79,6 @@ sealed interface AI {
       output: String,
       context: String,
       model: CreateChatCompletionRequestModel = CreateChatCompletionRequestModel.gpt_4_1106_preview,
-      target: KType = typeOf<E>(),
       config: Config = Config(),
       api: Chat = OpenAI(config).chat,
       conversation: Conversation = Conversation()
@@ -96,7 +87,6 @@ sealed interface AI {
       return invoke(
         prompt = value.template(input, output, context),
         model = model,
-        target = target,
         config = config,
         api = api,
         conversation = conversation
@@ -106,46 +96,40 @@ sealed interface AI {
     @AiDsl
     suspend inline operator fun <reified A : Any> invoke(
       prompt: String,
-      target: KType = typeOf<A>(),
       model: CreateChatCompletionRequestModel = CreateChatCompletionRequestModel.gpt_3_5_turbo_0125,
       config: Config = Config(),
       api: Chat = OpenAI(config).chat,
       conversation: Conversation = Conversation()
-    ): A = chat(Prompt(model, prompt), target, config, api, conversation)
+    ): A = chat(Prompt(model, prompt), config, api, conversation)
 
     @AiDsl
     suspend inline operator fun <reified A : Any> invoke(
       prompt: Prompt,
-      target: KType = typeOf<A>(),
       config: Config = Config(),
       api: Chat = OpenAI(config).chat,
       conversation: Conversation = Conversation()
-    ): A = chat(prompt, target, config, api, conversation)
+    ): A = chat(prompt, config, api, conversation)
 
     @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
     @AiDsl
     suspend inline fun <reified A : Any> chat(
       prompt: Prompt,
-      target: KType = typeOf<A>(),
       config: Config = Config(),
       api: Chat = OpenAI(config).chat,
       conversation: Conversation = Conversation()
     ): A {
-      val kind =
-        (target.classifier as? KClass<*>)?.serializer()?.descriptor?.kind
-          ?: error("Cannot find SerialKind for $target")
-      return when (kind) {
-        SerialKind.ENUM -> invokeEnum<A>(prompt, target, config, api, conversation)
+      val serializer = Serializer<A>()
+      return when (serializer.kind) {
+        SerialKind.ENUM -> invokeEnum<A>(prompt, config, api, conversation)
         else -> {
           chat(
-              target = target,
               model = prompt.model,
               api = api,
               conversation = conversation,
               enumSerializer = null,
               caseSerializers = emptyList()
             ) {
-              serializer<A>()
+              serializer
             }
             .invoke(prompt)
         }

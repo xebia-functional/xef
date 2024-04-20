@@ -2,6 +2,8 @@ package com.xebia.functional.xef.llm
 
 import arrow.core.nonFatalOrThrow
 import arrow.core.raise.catch
+import com.xebia.functional.openai.CompletableFuture
+import com.xebia.functional.openai.future
 import com.xebia.functional.openai.generated.api.Chat
 import com.xebia.functional.openai.generated.model.*
 import com.xebia.functional.xef.AIError
@@ -9,21 +11,22 @@ import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.models.functions.buildJsonSchema
 import com.xebia.functional.xef.prompt.Prompt
+import com.xebia.functional.xef.serialization.Serializer
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
 
-@OptIn(ExperimentalSerializationApi::class)
-fun chatFunction(descriptor: SerialDescriptor): FunctionObject {
-  val fnName = descriptor.serialName.substringAfterLast(".")
+fun chatFunction(descriptor: Serializer<*>): FunctionObject {
+  val fnName = descriptor.name.substringAfterLast(".")
   return chatFunction(fnName, buildJsonSchema(descriptor))
 }
 
-fun chatFunctions(descriptors: List<SerialDescriptor>): List<FunctionObject> =
+fun chatFunctions(descriptors: List<Serializer<*>>): List<FunctionObject> =
   descriptors.map(::chatFunction)
 
 fun chatFunction(fnName: String, schema: JsonObject): FunctionObject =
@@ -33,10 +36,20 @@ fun chatFunction(fnName: String, schema: JsonObject): FunctionObject =
 suspend fun <A> Chat.prompt(
   prompt: Prompt,
   scope: Conversation,
-  serializer: KSerializer<A>,
+  serializer: Serializer<A>,
 ): A =
-  prompt(prompt, scope, chatFunctions(listOf(serializer.descriptor))) { call ->
-    Json.decodeFromString(serializer, call.arguments)
+  prompt(prompt, scope, chatFunctions(listOf(serializer))) { call ->
+    serializer.deserialize(call.arguments)
+  }
+
+fun <A> Chat.prompt(
+  prompt: Prompt,
+  scope: Conversation,
+  serializer: Serializer<A>,
+  coroutineScope: CoroutineScope = CoroutineScope(SupervisorJob()),
+): CompletableFuture<A> =
+  coroutineScope.future {
+    prompt(prompt, scope, serializer)
   }
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -44,30 +57,30 @@ suspend fun <A> Chat.prompt(
 suspend fun <A> Chat.prompt(
   prompt: Prompt,
   scope: Conversation,
-  serializer: KSerializer<A>,
-  descriptors: List<SerialDescriptor>,
+  serializer: Serializer<A>,
+  descriptors: List<Serializer<*>>,
 ): A =
   prompt(prompt, scope, chatFunctions(descriptors)) { call ->
     // adds a `type` field with the call.functionName serial name equivalent to the call arguments
     val jsonWithDiscriminator = Json.decodeFromString(JsonElement.serializer(), call.arguments)
     val descriptor =
-      descriptors.firstOrNull { it.serialName.endsWith(call.functionName) }
+      descriptors.firstOrNull { it.name.endsWith(call.functionName) }
         ?: error("No descriptor found for ${call.functionName}")
     val newJson =
       JsonObject(
-        jsonWithDiscriminator.jsonObject + ("type" to JsonPrimitive(descriptor.serialName))
+        jsonWithDiscriminator.jsonObject + ("type" to JsonPrimitive(descriptor.name))
       )
-    Json.decodeFromString(serializer, Json.encodeToString(newJson))
+    serializer.deserialize(Json.encodeToString(newJson))
   }
 
 @AiDsl
 fun <A> Chat.promptStreaming(
   prompt: Prompt,
   scope: Conversation,
-  serializer: KSerializer<A>,
+  serializer: Serializer<A>,
 ): Flow<StreamedFunction<A>> =
-  promptStreaming(prompt, scope, chatFunction(serializer.descriptor)) { json ->
-    Json.decodeFromString(serializer, json)
+  promptStreaming(prompt, scope, chatFunction(serializer)) { json ->
+    serializer.deserialize(json)
   }
 
 @AiDsl
