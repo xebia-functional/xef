@@ -6,9 +6,30 @@ import com.xebia.functional.openai.generated.model.*
 import com.xebia.functional.xef.server.assistants.tables.*
 import com.xebia.functional.xef.server.assistants.utils.RequestConversions.assistantObjectToolsInner
 import io.ktor.client.request.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.modules.EmptySerializersModule
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
-class GeneralAssistants() : Assistants {
+/**
+ * @param parent an optional parent Job. If a parent job is passed,
+ *   cancelling the parent job will cancel all launched coroutines by [GeneralAssistants].
+ *   This is useful when you want to couple the lifecycle of Spring, Ktor, Android,
+ *   or any other framework to [GeneralAssistants]. When any of them close, so will all launched jobs.
+ */
+class GeneralAssistants(
+  context: CoroutineContext = EmptyCoroutineContext,
+  parent: Job? = null
+) : Assistants, AutoCloseable {
+  private val supervisor = SupervisorJob(parent)
+  private val scope = CoroutineScope(context + supervisor)
 
   //region Assistants
 
@@ -216,7 +237,12 @@ class GeneralAssistants() : Assistants {
     configure: HttpRequestBuilder.() -> Unit
   ): RunObject =
     RunsTable.create(threadId, createRunRequest).also {
-      TODO("kick off the run which delegates to the createRunStream method.")
+      // We remove the parent, such that our scope Job doesn't get overridden
+      // This way we inherit the dispatcher, and context from createRun but run on our scope.
+      val context = currentCoroutineContext().minusKey(Job)
+      scope.launch(context) {
+        TODO("kick off the run which delegates to the createRunStream method.")
+      }
     }
 
   override suspend fun cancelRun(threadId: String, runId: String, configure: HttpRequestBuilder.() -> Unit): RunObject {
@@ -298,4 +324,9 @@ class GeneralAssistants() : Assistants {
   }
 
   //endregion
+
+  // Guarantee backpressure on cancellation
+  override fun close() = runBlocking {
+    supervisor.cancelAndJoin()
+  }
 }
