@@ -7,9 +7,10 @@ import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.evaluator.metrics.AnswerAccuracy
 import com.xebia.functional.xef.evaluator.models.OutputDescription
 import com.xebia.functional.xef.evaluator.models.OutputResponse
-import com.xebia.functional.xef.llm.promptMessage
+import com.xebia.functional.xef.llm.promptMessageAndUsage
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.user
+import java.io.File
 
 object TestExample {
 
@@ -31,10 +32,10 @@ object TestExample {
           context = "Contains information about a movie"
         ) {
           +OutputResponse(gpt35Description) {
-            Conversation { chat.promptMessage(Prompt(model) { +user(input) }) }
+            Conversation { chat.promptMessageAndUsage(Prompt(model) { +user(input) }) }
           }
 
-          +OutputResponse(description = fakeOutputs, value = "I don't know")
+          +OutputResponse(description = fakeOutputs, null, value = "I don't know")
         }
 
         +ItemSpec(
@@ -42,13 +43,22 @@ object TestExample {
           context = "Contains instructions for making a cake"
         ) {
           +OutputResponse(gpt35Description) {
-            Conversation { chat.promptMessage(Prompt(model) { +user(input) }) }
+            Conversation { chat.promptMessageAndUsage(Prompt(model) { +user(input) }) }
           }
 
-          +OutputResponse(description = fakeOutputs, value = "The movie is Jurassic Park")
+          +OutputResponse(description = fakeOutputs, null, value = "The movie is Jurassic Park")
         }
       }
     val results = spec.evaluate<AnswerAccuracy>(success = listOf(AnswerAccuracy.yes))
+
+    val outputPath = System.getProperty("user.dir") + "/build/testSuite"
+    File(outputPath).mkdir()
+    val fileHtml = File("$outputPath/test.html")
+    fileHtml.writeText(SuiteSpec.toHtml(results, "test.html").value)
+
+    val fileMarkDown = File("$outputPath/test.md")
+    fileMarkDown.writeText(SuiteSpec.toMarkdown(results, "test.md").value)
+
     results.items.forEach {
       println("==============")
       println("  ${it.description}")
@@ -57,6 +67,7 @@ object TestExample {
         println()
         println(">> Output ${index + 1}")
         println("Description: ${item.description}")
+        println("Usage: ${item.usage}")
         println("Success: ${item.success}")
         println()
         println("AI Output:")

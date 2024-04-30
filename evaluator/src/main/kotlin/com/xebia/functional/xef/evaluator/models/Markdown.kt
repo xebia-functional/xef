@@ -28,6 +28,16 @@ value class Markdown(val value: String) {
                 |<blockquote>
                 |${outputResult.output}
                 |</blockquote>
+                |- Usage:
+                |<blockquote>
+                |${outputResult.usage?.let { usage ->
+                  """
+                  |Completion Tokens: ${usage.completionTokens}
+                  |Prompt Tokens: ${usage.promptTokens}
+                  |Total Tokens: ${usage.totalTokens}
+                  """.trimMargin()
+                } ?: "No usage information available"}
+                |</blockquote>
                 |
                 |Result: ${if (outputResult.success) "✅ Success" else "❌ Failure"} (${outputResult.result})
               """.trimMargin()

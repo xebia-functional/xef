@@ -56,10 +56,12 @@ value class Html(val value: String) {
                     const outputDiv = document.createElement('pre');
                     outputDiv.classList.add('output');
                     outputDiv.innerText = 'Output: ' + test.output;
-                    outputDiv.addEventListener('click', function() {
-                        this.classList.toggle('expanded');
-                    });
                     blockDiv.appendChild(outputDiv);
+                    
+                    const usageDiv = document.createElement('pre');
+                    usageDiv.classList.add('output');
+                    usageDiv.innerText = 'Usage: \n Completion Tokens: ' + test.usage?.completionTokens + '\n Prompt Tokens: ' + test.usage?.promptTokens + '\n Total Tokens: ' + test.usage?.totalTokens;
+                    blockDiv.appendChild(usageDiv);
         
                     const result = document.createElement('div');
                     result.classList.add('score', test.success ? 'score-passed' : 'score-failed');
@@ -123,14 +125,9 @@ value class Html(val value: String) {
 
           .output {
               color: #666;
-              cursor: pointer;
-              white-space: nowrap;
+              white-space: normal;
               overflow: hidden;
               text-overflow: ellipsis;
-          }
-
-          .output.expanded {
-              white-space: normal;
           }
 
           .score {
