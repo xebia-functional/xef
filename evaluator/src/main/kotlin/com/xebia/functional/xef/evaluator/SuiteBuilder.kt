@@ -44,6 +44,7 @@ data class SuiteSpec(
               output.description.value,
               item.context,
               output.value,
+              output.tokens,
               classification,
               success.contains(classification)
             )
