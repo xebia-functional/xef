@@ -32,9 +32,10 @@ value class Markdown(val value: String) {
                 |<blockquote>
                 |${outputResult.usage?.let { usage ->
                   """
-                  |Completion Tokens: ${usage.completionTokens}
-                  |Prompt Tokens: ${usage.promptTokens}
+                  |Prompt Tokens: ${usage.promptTokens} ${usage.estimatePricePerToken?.let { "(~ ${it.to2DecimalsString()} ${usage.currency ?: ""})" } ?: "" }
+                  |Completion Tokens: ${usage.completionTokens} ${usage.estimatePriceCompletionToken?.let { "(~ ${it.to2DecimalsString()} ${usage.currency ?: ""})" } ?: "" }
                   |Total Tokens: ${usage.totalTokens}
+                  |Total Price: ${usage.estimatePriceTotalToken?.let { "${it.to2DecimalsString()} ${usage.currency ?: ""}" } ?: "Unknown"}
                   """.trimMargin()
                 } ?: "No usage information available"}
                 |</blockquote>
@@ -50,5 +51,7 @@ value class Markdown(val value: String) {
           .trimMargin()
       return Markdown(content)
     }
+
+    private fun Double.to2DecimalsString() = String.format("%.6f", this)
   }
 }

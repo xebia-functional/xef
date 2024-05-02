@@ -5,6 +5,7 @@ import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestMo
 import com.xebia.functional.xef.OpenAI
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.evaluator.metrics.AnswerAccuracy
+import com.xebia.functional.xef.evaluator.models.ModelsPricing
 import com.xebia.functional.xef.evaluator.models.OutputDescription
 import com.xebia.functional.xef.evaluator.models.OutputResponse
 import com.xebia.functional.xef.llm.promptMessageAndUsage
@@ -31,7 +32,7 @@ object TestExample {
           input = "Please provide a movie title, genre and director",
           context = "Contains information about a movie"
         ) {
-          +OutputResponse(gpt35Description) {
+          +OutputResponse(gpt35Description, ModelsPricing.gpt3_5Turbo) {
             Conversation { chat.promptMessageAndUsage(Prompt(model) { +user(input) }) }
           }
 
@@ -42,7 +43,7 @@ object TestExample {
           input = "Recipe for a chocolate cake",
           context = "Contains instructions for making a cake"
         ) {
-          +OutputResponse(gpt35Description) {
+          +OutputResponse(gpt35Description, ModelsPricing.gpt3_5Turbo) {
             Conversation { chat.promptMessageAndUsage(Prompt(model) { +user(input) }) }
           }
 

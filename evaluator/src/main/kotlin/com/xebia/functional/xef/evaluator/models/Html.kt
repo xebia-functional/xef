@@ -58,10 +58,12 @@ value class Html(val value: String) {
                     outputDiv.innerText = 'Output: ' + test.output;
                     blockDiv.appendChild(outputDiv);
                     
-                    const usageDiv = document.createElement('pre');
-                    usageDiv.classList.add('output');
-                    usageDiv.innerText = 'Usage: \n Completion Tokens: ' + test.usage?.completionTokens + '\n Prompt Tokens: ' + test.usage?.promptTokens + '\n Total Tokens: ' + test.usage?.totalTokens;
-                    blockDiv.appendChild(usageDiv);
+                    if (test.usage != undefined) {
+                        const usageDiv = document.createElement('pre');
+                        usageDiv.classList.add('output');
+                        usageDiv.innerText = 'Usage: \n Prompt Tokens: ' + test.usage?.promptTokens + ' (~' + test.usage?.estimatePricePerToken + ' ' + test.usage?.currency + ')\n Completion Tokens: ' + test.usage?.completionTokens + ' (~' + test.usage?.estimatePriceCompletionToken + ' ' + test.usage?.currency + ')\n Total Tokens: ' + test.usage?.totalTokens + '\n Total Price: ~' + test.usage?.estimatePriceTotalToken + ' ' + test.usage?.currency;
+                        blockDiv.appendChild(usageDiv);
+                    }
         
                     const result = document.createElement('div');
                     result.classList.add('score', test.success ? 'score-passed' : 'score-failed');
@@ -100,6 +102,10 @@ value class Html(val value: String) {
               margin-bottom: 20px;
               border-bottom: 1px solid #eee;
               padding-bottom: 20px;
+          }
+          
+          .test-block pre {
+              margin-bottom: 20px;
           }
 
           .test-title {
