@@ -68,10 +68,9 @@ data class SuiteSpec(
     E : Enum<E> =
       Html.get(Json.encodeToString(SuiteResults.serializer(serializer<E>()), result), suiteName)
 
-    inline fun <reified E> toMarkdown(
-      result: SuiteResults<E>,
-      suiteName: String,
-    ): Markdown where E : AI.PromptClassifier, E : Enum<E> = Markdown.get(result, suiteName)
+    inline fun <reified E> toMarkdown(result: SuiteResults<E>, suiteName: String): Markdown where
+    E : AI.PromptClassifier,
+    E : Enum<E> = Markdown.get(result, suiteName)
   }
 }
 
