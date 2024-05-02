@@ -76,3 +76,17 @@ In [this](https://xef.ai/learn/quickstart/) small introduction we look at the ma
 ## 🚀 Examples
 
 You can also have a look at the [examples](https://github.com/xebia-functional/xef/tree/main/examples/src/main/kotlin/com/xebia/functional/xef/conversation) to have a feeling of how using the library looks like.
+
+## 🚧 Local Development
+
+To build the project locally, you can use the following commands:
+
+```shell
+./gradlew downloadOpenAIAPI
+./gradlew openaiClientGenerate
+./gradlew build
+```
+
+The server and postgres tests may fail if you don't have [Docker](https://www.docker.com/) installed. 
+The server and postgres related tests depend on [Testcontainers](https://testcontainers.com/), which in turn depends on Docker.
+
