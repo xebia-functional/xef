@@ -3,6 +3,7 @@ package com.xebia.functional.xef.llm.assistants
 import com.xebia.functional.openai.ServerSentEvent
 import com.xebia.functional.openai.generated.model.*
 import com.xebia.functional.xef.Config
+import com.xebia.functional.xef.llm.assistants.RunDelta.Companion.RunDeltaEvent.*
 import kotlin.jvm.JvmInline
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -134,6 +135,44 @@ sealed interface RunDelta {
   @JvmInline @Serializable value class Unknown(val event: ServerSentEvent) : RunDelta
 
   companion object {
+
+    fun toServerSentEvent(runDelta: RunDelta): ServerSentEvent? {
+      return when (runDelta) {
+        is MessageCompleted -> runDelta.serverSentEventOf(ThreadMessageCompleted)
+        is MessageCreated -> runDelta.serverSentEventOf(ThreadMessageCreated)
+        is MessageDelta -> runDelta.serverSentEventOf(ThreadMessageDelta)
+        is MessageInProgress -> runDelta.serverSentEventOf(ThreadMessageInProgress)
+        is MessageIncomplete -> runDelta.serverSentEventOf(ThreadMessageIncomplete)
+        is RunCancelled -> runDelta.serverSentEventOf(ThreadRunCancelled)
+        is RunCancelling -> runDelta.serverSentEventOf(ThreadRunCancelling)
+        is RunCompleted -> runDelta.serverSentEventOf(ThreadRunCompleted)
+        is RunCreated -> runDelta.serverSentEventOf(ThreadRunCreated)
+        is RunExpired -> runDelta.serverSentEventOf(ThreadRunExpired)
+        is RunFailed -> runDelta.serverSentEventOf(ThreadRunFailed)
+        is RunInProgress -> runDelta.serverSentEventOf(ThreadRunInProgress)
+        is RunQueued -> runDelta.serverSentEventOf(ThreadRunQueued)
+        is RunRequiresAction -> runDelta.serverSentEventOf(ThreadRunRequiresAction)
+        is RunStepCancelled -> runDelta.serverSentEventOf(ThreadRunStepCancelled)
+        is RunStepCompleted -> runDelta.serverSentEventOf(ThreadRunStepCompleted)
+        is RunStepCreated -> runDelta.serverSentEventOf(ThreadRunStepCreated)
+        is RunStepDelta -> runDelta.serverSentEventOf(ThreadRunStepDelta)
+        is RunStepExpired -> runDelta.serverSentEventOf(ThreadRunStepExpired)
+        is RunStepFailed -> runDelta.serverSentEventOf(ThreadRunStepFailed)
+        is RunStepInProgress -> runDelta.serverSentEventOf(ThreadRunStepInProgress)
+        is RunSubmitToolOutputs -> null
+        is ThreadCreated -> runDelta.serverSentEventOf(RunDeltaEvent.ThreadCreated)
+        is Unknown -> runDelta.event
+      }
+    }
+
+    private inline fun <reified Delta : RunDelta> Delta.serverSentEventOf(
+      event: RunDeltaEvent
+    ): ServerSentEvent =
+      ServerSentEvent(
+        event = event.value,
+        data = Config.DEFAULT.json.encodeToJsonElement(serializer(), this)
+      )
+
     fun fromServerSentEvent(serverEvent: ServerSentEvent): RunDelta {
       val data = serverEvent.data ?: error("Expected data in ServerSentEvent for RunDelta")
       val type = serverEvent.event ?: error("Expected event in ServerSentEvent for RunDelta")
@@ -145,77 +184,71 @@ sealed interface RunDelta {
       return when (event) {
         RunDeltaEvent.ThreadCreated ->
           ThreadCreated(json.decodeFromJsonElement(ThreadObject.serializer(), data))
-        RunDeltaEvent.ThreadRunCreated ->
-          RunCreated(json.decodeFromJsonElement(RunObject.serializer(), data))
-        RunDeltaEvent.ThreadRunQueued ->
-          RunQueued(json.decodeFromJsonElement(RunObject.serializer(), data))
-        RunDeltaEvent.ThreadRunInProgress ->
+        ThreadRunCreated -> RunCreated(json.decodeFromJsonElement(RunObject.serializer(), data))
+        ThreadRunQueued -> RunQueued(json.decodeFromJsonElement(RunObject.serializer(), data))
+        ThreadRunInProgress ->
           RunInProgress(json.decodeFromJsonElement(RunObject.serializer(), data))
-        RunDeltaEvent.ThreadRunRequiresAction ->
+        ThreadRunRequiresAction ->
           RunRequiresAction(json.decodeFromJsonElement(RunObject.serializer(), data))
-        RunDeltaEvent.ThreadRunCompleted ->
-          RunCompleted(json.decodeFromJsonElement(RunObject.serializer(), data))
-        RunDeltaEvent.ThreadRunFailed ->
-          RunFailed(json.decodeFromJsonElement(RunObject.serializer(), data))
-        RunDeltaEvent.ThreadRunCancelling ->
+        ThreadRunCompleted -> RunCompleted(json.decodeFromJsonElement(RunObject.serializer(), data))
+        ThreadRunFailed -> RunFailed(json.decodeFromJsonElement(RunObject.serializer(), data))
+        ThreadRunCancelling ->
           RunCancelling(json.decodeFromJsonElement(RunObject.serializer(), data))
-        RunDeltaEvent.ThreadRunCancelled ->
-          RunCancelled(json.decodeFromJsonElement(RunObject.serializer(), data))
-        RunDeltaEvent.ThreadRunExpired ->
-          RunExpired(json.decodeFromJsonElement(RunObject.serializer(), data))
-        RunDeltaEvent.ThreadRunStepCreated ->
+        ThreadRunCancelled -> RunCancelled(json.decodeFromJsonElement(RunObject.serializer(), data))
+        ThreadRunExpired -> RunExpired(json.decodeFromJsonElement(RunObject.serializer(), data))
+        ThreadRunStepCreated ->
           RunStepCreated(json.decodeFromJsonElement(RunStepObject.serializer(), data))
-        RunDeltaEvent.ThreadRunStepInProgress ->
+        ThreadRunStepInProgress ->
           RunStepInProgress(json.decodeFromJsonElement(RunStepObject.serializer(), data))
-        RunDeltaEvent.ThreadRunStepDelta ->
+        ThreadRunStepDelta ->
           RunStepDelta(json.decodeFromJsonElement(RunStepDeltaObject.serializer(), data))
-        RunDeltaEvent.ThreadRunStepCompleted ->
+        ThreadRunStepCompleted ->
           RunStepCompleted(json.decodeFromJsonElement(RunStepObject.serializer(), data))
-        RunDeltaEvent.ThreadRunStepFailed ->
+        ThreadRunStepFailed ->
           RunStepFailed(json.decodeFromJsonElement(RunStepObject.serializer(), data))
-        RunDeltaEvent.ThreadRunStepCancelled ->
+        ThreadRunStepCancelled ->
           RunStepCancelled(json.decodeFromJsonElement(RunStepObject.serializer(), data))
-        RunDeltaEvent.ThreadRunStepExpired ->
+        ThreadRunStepExpired ->
           RunStepExpired(json.decodeFromJsonElement(RunStepObject.serializer(), data))
-        RunDeltaEvent.ThreadMessageCreated ->
+        ThreadMessageCreated ->
           MessageCreated(json.decodeFromJsonElement(MessageObject.serializer(), data))
-        RunDeltaEvent.ThreadMessageInProgress ->
+        ThreadMessageInProgress ->
           MessageInProgress(json.decodeFromJsonElement(MessageObject.serializer(), data))
-        RunDeltaEvent.ThreadMessageDelta ->
+        ThreadMessageDelta ->
           MessageDelta(json.decodeFromJsonElement(MessageDeltaObject.serializer(), data))
-        RunDeltaEvent.ThreadMessageCompleted ->
+        ThreadMessageCompleted ->
           MessageCompleted(json.decodeFromJsonElement(MessageObject.serializer(), data))
-        RunDeltaEvent.ThreadMessageIncomplete ->
+        ThreadMessageIncomplete ->
           MessageIncomplete(json.decodeFromJsonElement(MessageObject.serializer(), data))
         RunDeltaEvent.Error -> Unknown(serverEvent)
         null -> Unknown(serverEvent)
       }
     }
 
-    enum class RunDeltaEvent {
-      ThreadCreated,
-      ThreadRunCreated,
-      ThreadRunQueued,
-      ThreadRunInProgress,
-      ThreadRunRequiresAction,
-      ThreadRunCompleted,
-      ThreadRunFailed,
-      ThreadRunCancelling,
-      ThreadRunCancelled,
-      ThreadRunExpired,
-      ThreadRunStepCreated,
-      ThreadRunStepInProgress,
-      ThreadRunStepDelta,
-      ThreadRunStepCompleted,
-      ThreadRunStepFailed,
-      ThreadRunStepCancelled,
-      ThreadRunStepExpired,
-      ThreadMessageCreated,
-      ThreadMessageInProgress,
-      ThreadMessageDelta,
-      ThreadMessageCompleted,
-      ThreadMessageIncomplete,
-      Error
+    enum class RunDeltaEvent(val value: String) {
+      ThreadCreated("thread.created"),
+      ThreadRunCreated("thread.run.created"),
+      ThreadRunQueued("thread.run.queued"),
+      ThreadRunInProgress("thread.run.in_progress"),
+      ThreadRunRequiresAction("thread.run.requires_action"),
+      ThreadRunCompleted("thread.run.completed"),
+      ThreadRunFailed("thread.run.failed"),
+      ThreadRunCancelling("thread.run.cancelling"),
+      ThreadRunCancelled("thread.run.cancelled"),
+      ThreadRunExpired("thread.run.expired"),
+      ThreadRunStepCreated("thread.run.step.created"),
+      ThreadRunStepInProgress("thread.run.step.in_progress"),
+      ThreadRunStepDelta("thread.run.step.delta"),
+      ThreadRunStepCompleted("thread.run.step.completed"),
+      ThreadRunStepFailed("thread.run.step.failed"),
+      ThreadRunStepCancelled("thread.run.step.cancelled"),
+      ThreadRunStepExpired("thread.run.step.expired"),
+      ThreadMessageCreated("thread.message.created"),
+      ThreadMessageInProgress("thread.message.in_progress"),
+      ThreadMessageDelta("thread.message.delta"),
+      ThreadMessageCompleted("thread.message.completed"),
+      ThreadMessageIncomplete("thread.message.incomplete"),
+      Error("error")
     }
   }
 

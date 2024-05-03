@@ -24,6 +24,8 @@ dependencies {
     implementation(projects.xefReasoning)
     implementation(projects.xefOpentelemetry)
     implementation(projects.xefMlflow)
+    implementation(projects.xefServer)
+    implementation(projects.xefPostgresql)
     implementation(libs.suspendApp.core)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.logback)
