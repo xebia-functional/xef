@@ -327,15 +327,21 @@ private fun JsonObjectBuilder.applyJsonSchemaDefaults(
     if (descriptor.kind == SerialKind.ENUM) {
       this["enum"] = descriptor.elementNames
       descriptor.elementNames
-        .mapIndexed { index, name ->
-          "$name (${descriptor.getElementAnnotations(index).lastOfInstance<Description>()?.value})"
+        .mapIndexedNotNull { index, name ->
+          val enumDescription =
+            descriptor.getElementAnnotations(index).lastOfInstance<Description>()?.value
+          if (enumDescription != null) {
+            "$name ($enumDescription)"
+          } else {
+            null
+          }
         }
         .joinToString("\n - ")
     } else null
 
   if (annotations.isNotEmpty()) {
     val description = annotations.filterIsInstance<Description>().firstOrNull()?.value
-    if (additionalEnumDescription != null) {
+    if (!additionalEnumDescription.isNullOrEmpty()) {
       this["description"] = "$description\n - $additionalEnumDescription"
     } else {
       this["description"] = description
