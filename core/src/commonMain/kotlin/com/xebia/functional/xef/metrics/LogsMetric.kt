@@ -67,21 +67,6 @@ class LogsMetric(private val level: Level = Level.INFO) : Metric {
     return output
   }
 
-  override suspend fun assistantCreateRunStep(runObject: RunStepObject) {
-    logger.at(level) {
-      this.message = "${writeIndent(numberOfBlocks.get())}|-- AssistantId: ${runObject.assistantId}"
-    }
-    logger.at(level) {
-      this.message = "${writeIndent(numberOfBlocks.get())}|-- ThreadId: ${runObject.threadId}"
-    }
-    logger.at(level) {
-      this.message = "${writeIndent(numberOfBlocks.get())}|-- RunId: ${runObject.id}"
-    }
-    logger.at(level) {
-      this.message = "${writeIndent(numberOfBlocks.get())}|-- Status: ${runObject.status.name}"
-    }
-  }
-
   override suspend fun assistantCreatedMessage(
     runId: String,
     block: suspend Metric.() -> List<MessageObject>

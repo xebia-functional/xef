@@ -1,5 +1,6 @@
 package com.xebia.functional.xef.assistants
 
+import com.xebia.functional.openai.generated.model.*
 import com.xebia.functional.xef.OpenAI
 import com.xebia.functional.xef.llm.assistants.Assistant
 import com.xebia.functional.xef.llm.assistants.AssistantThread

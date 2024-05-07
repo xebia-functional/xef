@@ -74,24 +74,6 @@ class OpenTelemetryAssistantState(private val tracer: Tracer) {
     }
   }
 
-  fun runStepSpan(runObject: RunStepObject) {
-
-    val parentOrRoot: Context = runObject.runId.getOrCreateContext()
-
-    val currentSpan =
-      tracer
-        .spanBuilder("step ${runObject.status.name} ${runObject.id}")
-        .setParent(parentOrRoot)
-        .setSpanKind(SpanKind.CLIENT)
-        .startSpan()
-
-    try {
-      currentSpan.makeCurrent().use { runObject.setParameters(currentSpan) }
-    } finally {
-      currentSpan.end()
-    }
-  }
-
   suspend fun runStepSpan(runId: String, block: suspend () -> RunStepObject): RunStepObject {
 
     val parentOrRoot: Context = runId.getOrCreateContext()
