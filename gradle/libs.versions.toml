@@ -39,6 +39,7 @@ progressbar = "0.10.0"
 jmf = "2.1.1e"
 mp3-wav-converter = "1.0.4"
 yamlkt="0.13.0"
+tegral = "0.0.4"
 
 
 [libraries]
@@ -115,7 +116,13 @@ opentelemetry-extension-kotlin = { module = "io.opentelemetry:opentelemetry-exte
 progressbar = { module = "me.tongfei:progressbar", version.ref = "progressbar" }
 jmf = { module = "javax.media:jmf", version.ref = "jmf" }
 mp3-wav-converter = { module = "com.sipgate:mp3-wav", version.ref = "mp3-wav-converter" }
-
+tegral-catalog = { module = "guru.zoroark.tegral:tegral-catalog", version.ref = "tegral" }
+tegral-core = { module = "guru.zoroark.tegral:tegral-core", version.ref = "tegral" }
+tegral-openapi-dsl = { module = "guru.zoroark.tegral:tegral-openapi-dsl", version.ref = "tegral" }
+tegral-openapi-scriptdef = { module = "guru.zoroark.tegral:tegral-openapi-scriptdef", version.ref = "tegral" }
+tegral-openapi-ktor = { module = "guru.zoroark.tegral:tegral-openapi-ktor", version.ref = "tegral" }
+tegral-openapi-ktor-resources = { module = "guru.zoroark.tegral:tegral-openapi-ktor-resources", version.ref = "tegral" }
+tegral-openapi-ktorui = { module = "guru.zoroark.tegral:tegral-openapi-ktorui", version.ref = "tegral" }
 
 
 [bundles]

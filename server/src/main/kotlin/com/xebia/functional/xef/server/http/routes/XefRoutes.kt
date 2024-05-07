@@ -5,7 +5,7 @@ import com.xebia.functional.xef.server.services.ProjectRepositoryService
 import com.xebia.functional.xef.server.services.TokenRepositoryService
 import com.xebia.functional.xef.server.services.UserRepositoryService
 import io.github.oshai.kotlinlogging.KLogger
-import io.ktor.server.routing.*
+import io.ktor.server.routing.Routing
 
 fun Routing.xefRoutes(logger: KLogger) {
   userRoutes(UserRepositoryService(logger))
