@@ -2,13 +2,16 @@ package com.xebia.functional.xef.llm
 
 import com.xebia.functional.openai.generated.api.Chat
 import com.xebia.functional.openai.generated.model.*
+import com.xebia.functional.xef.Config
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.StreamedFunction.Companion.PropertyType.*
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.PromptBuilder
+import com.xebia.functional.xef.prompt.PromptBuilder.Companion.assistant
+import com.xebia.functional.xef.prompt.ToolCallStrategy
+import io.ktor.client.request.*
 import kotlin.jvm.JvmSynthetic
-import kotlinx.coroutines.flow.FlowCollector
-import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.*
 
@@ -17,6 +20,13 @@ sealed class StreamedFunction<out A> {
     StreamedFunction<Nothing>()
 
   data class Result<out A>(val value: A) : StreamedFunction<A>()
+
+  fun print() {
+    when (this) {
+      is Property -> println("Property: $name = $value")
+      is Result -> println("Result: $value")
+    }
+  }
 
   companion object {
 
@@ -61,8 +71,13 @@ sealed class StreamedFunction<out A> {
       // as the LLM is sending us chunks with malformed JSON
       if (schema != null) {
         val example = createExampleFromSchema(schema)
-        chat
-          .createChatCompletionStream(request)
+        val stream =
+          when (prompt.toolCallStrategy) {
+            ToolCallStrategy.Supported -> chat.createChatCompletionStream(request)
+            ToolCallStrategy.InferJsonFromStringResponse ->
+              chat.createChatCompletionStreamFromStringParsing(request)
+          }
+        stream
           .onCompletion {
             val newMessages = prompt.messages + messages
             newMessages.addToMemory(
@@ -189,7 +204,8 @@ sealed class StreamedFunction<out A> {
           // repack the body as a valid JSON string
           val propertyValueAsJson = repackBodyAsJsonString(propertyType, detectedBody)
           if (propertyValueAsJson != null) {
-            val propertyValue = Json.decodeFromString<JsonElement>(propertyValueAsJson)
+            val propertyValue =
+              Config.DEFAULT.json.decodeFromString<JsonElement>(propertyValueAsJson)
             // we try to extract the text value of the property
             // or for cases like objects that we don't want to report on
             // we return null
@@ -336,7 +352,7 @@ sealed class StreamedFunction<out A> {
     }
 
     @OptIn(ExperimentalSerializationApi::class)
-    private fun createExampleFromSchema(jsonElement: JsonElement): JsonElement {
+    fun createExampleFromSchema(jsonElement: JsonElement): JsonElement {
       return when {
         jsonElement is JsonObject && jsonElement.containsKey("type") -> {
           when (jsonElement["type"]?.jsonPrimitive?.content) {
@@ -359,6 +375,65 @@ sealed class StreamedFunction<out A> {
           }
         }
         else -> JsonPrimitive(null)
+      }
+    }
+
+    fun Chat.createChatCompletionStreamFromStringParsing(
+      request: CreateChatCompletionRequest
+    ): Flow<CreateChatCompletionStreamResponse> {
+      val choiceName =
+        request.toolChoice?.let {
+          when (it) {
+            is ChatCompletionToolChoiceOption.CaseChatCompletionNamedToolChoice ->
+              it.value.function.name
+            else -> null
+          }
+        }
+      val includedTool = request.tools?.firstOrNull { it.function.name == choiceName }
+      val params = includedTool?.function?.parameters
+      val additionalMessage =
+        if (params == null) null
+        else
+          assistant(
+            """
+        <function>$choiceName</function>  
+        <schema>${params}</schema>
+        <example>${createExampleFromSchema(params)}</example>
+        IMPORTANT: 
+          - Reply in JSON format.
+          - Follow the schema structure.
+          - Follow the example structure.
+          - Create your own values based on the user prompt.
+      """
+              .trimIndent()
+          )
+      val modifiedRequest =
+        request.copy(
+          toolChoice = null,
+          tools = emptyList(),
+          messages = listOfNotNull(additionalMessage) + request.messages,
+        )
+      return createChatCompletionStream(modifiedRequest).map { response ->
+        response.copy(
+          choices =
+            response.choices.map { choice ->
+              choice.copy(
+                ChatCompletionStreamResponseDelta(
+                  toolCalls =
+                    listOf(
+                      ChatCompletionMessageToolCallChunk(
+                        index = 0,
+                        function =
+                          ChatCompletionMessageToolCallChunkFunction(
+                            name = choiceName,
+                            arguments = choice.delta.content
+                          )
+                      )
+                    )
+                )
+              )
+            }
+        )
       }
     }
   }

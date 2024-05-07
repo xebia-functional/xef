@@ -9,10 +9,13 @@ import com.xebia.functional.xef.llm.models.modelType
 import com.xebia.functional.xef.llm.prompt
 import com.xebia.functional.xef.llm.promptStreaming
 import com.xebia.functional.xef.prompt.Prompt
+import com.xebia.functional.xef.prompt.ToolCallStrategy
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.single
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 
@@ -29,7 +32,18 @@ data class DefaultAI<A : Any>(
   @Serializable data class Value<A>(val value: A)
 
   private suspend fun <B> runWithSerializer(prompt: Prompt, serializer: KSerializer<B>): B =
-    api.prompt(prompt, conversation, serializer)
+    when (prompt.toolCallStrategy) {
+      ToolCallStrategy.Supported -> api.prompt(prompt, conversation, serializer)
+      ToolCallStrategy.InferJsonFromStringResponse ->
+        runStreamingWithFunctionSerializer(prompt, serializer)
+          .mapNotNull {
+            when (it) {
+              is StreamedFunction.Property -> null
+              is StreamedFunction.Result -> it.value
+            }
+          }
+          .single()
+    }
 
   private fun runStreamingWithStringSerializer(prompt: Prompt): Flow<String> =
     api.promptStreaming(prompt, conversation)

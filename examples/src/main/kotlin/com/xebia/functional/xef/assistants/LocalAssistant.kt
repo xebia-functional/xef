@@ -7,29 +7,31 @@ import com.xebia.functional.xef.llm.assistants.AssistantThread
 import com.xebia.functional.xef.llm.assistants.RunDelta
 import com.xebia.functional.xef.llm.assistants.Tool
 import com.xebia.functional.xef.llm.assistants.local.InMemoryAssistants
+import com.xebia.functional.xef.prompt.ToolCallStrategy
 
 suspend fun main() {
 
   // language=yaml
   val yamlConfig =
     """
-      model: "llama3-70b-8192"
+      model: "llama3:8b"
       name: "Math Assistant"
       description: "Help with math"
-      instructions: Run the SumTool to add two numbers if asked otherwise reply to the user message
+      instructions: 
+        Roleplay:  Assistant that helps with math or other general questions. 
+        Instructions: 
+          - For math it has a SumTool. For other questions just reply with the answer.
+          - If the user input does not contain information to fill the parameters of the tool,
+          - the assistant will ask for the missing information.
       tools:
         - type: "function"
           name: "SumTool"
       metadata:
-        version: "1.0"
-        created_by: "Xef"
-        use_case: "Help with math"
-        language: "English"
-        additional_info: "This assistant is continuously updated with the latest information."
+        ${ToolCallStrategy.Key}: ${ToolCallStrategy.InferJsonFromStringResponse.name}
     """
       .trimIndent()
   val tools = listOf(Tool.toolOf(SumTool()))
-  val config = Config(baseUrl = "https://api.groq.com/openai/v1/", token = "your_token")
+  val config = Config(baseUrl = "http://localhost:11434/v1/")
   val chat = OpenAI(config = config, logRequests = true).chat
   val localAssistants = InMemoryAssistants(api = chat)
   val assistant =

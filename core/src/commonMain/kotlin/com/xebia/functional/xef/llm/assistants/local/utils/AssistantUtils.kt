@@ -35,7 +35,7 @@ object AssistantUtils {
       instructions = request.instructions ?: assistant.instructions ?: "",
       tools = request.tools ?: assistant.tools,
       fileIds = assistant.fileIds,
-      metadata = request.metadata,
+      metadata = request.metadata ?: assistant.metadata,
       usage = null,
       requiredAction = null,
       lastError = null,

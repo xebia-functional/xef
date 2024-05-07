@@ -5,8 +5,11 @@ import com.xebia.functional.openai.generated.api.Assistants
 import com.xebia.functional.openai.generated.api.Chat
 import com.xebia.functional.openai.generated.model.*
 import com.xebia.functional.xef.AI
+import com.xebia.functional.xef.Config
+import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.Description
 import com.xebia.functional.xef.conversation.MessagePolicy
+import com.xebia.functional.xef.llm.PromptCalculator.adaptPromptToConversationAndModel
 import com.xebia.functional.xef.llm.assistants.RunDelta
 import com.xebia.functional.xef.llm.assistants.RunDelta.MessageDeltaObject
 import com.xebia.functional.xef.llm.chatFunction
@@ -14,6 +17,7 @@ import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.assistant
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.system
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.user
+import com.xebia.functional.xef.prompt.ToolCallStrategy
 import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
 import com.xebia.functional.xef.server.assistants.utils.AssistantUtils.assistantObjectToolsInner
 import io.ktor.client.request.*
@@ -26,8 +30,7 @@ import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.*
 import kotlinx.serialization.Required
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.*
 
 /**
  * @param parent an optional parent Job. If a parent job is passed, cancelling the parent job will
@@ -258,10 +261,10 @@ class GeneralAssistants(
   data class ToolsOrMessageDecision(
     @Required
     @Description("Set `tool = 1, message = 0` if `context` requires a tool")
-    val tool: Int = 99,
+    val tool: Int,
     @Required
     @Description("Set `tool = 0, message = 1` if `context` requires a reply message")
-    val message: Int = 99,
+    val message: Int,
     @Required
     @Description(
       "A short statement describing the reason why you made the choice of tool or reply message."
@@ -299,12 +302,6 @@ class GeneralAssistants(
         }
     ) {
       +system(runObject.instructions)
-      +system(
-        """
-      Available tools:
-    """
-          .trimIndent()
-      )
       +createToolsMessages(runObject.tools)
       +createPromptMessages(messages)
     }
@@ -319,11 +316,13 @@ class GeneralAssistants(
         is AssistantObjectToolsInner.CaseAssistantToolsFunction ->
           assistant(
             """
+            |<available-tool>
             |Function: ${tool.value.function.name}
             |Description: ${tool.value.function.description}
             |<schema>
             |${tool.value.function.parameters?.let { Json.encodeToString(JsonObject.serializer(), it) }}
             |</schema>
+            |</available-tool>
           """
               .trimMargin()
           )
@@ -366,17 +365,7 @@ class GeneralAssistants(
     send(RunDelta.RunInProgress(runObject))
     val thread = getThread(runObject.threadId)
     val messages = listMessages(thread.id, limit = 1, order = Assistants.OrderListMessages.desc)
-    val decisionPrompt =
-      Prompt(
-        functions = listOf(chatFunction(ToolsOrMessageDecision.serializer().descriptor)),
-        model = CreateChatCompletionRequestModel.Custom(runObject.model)
-      ) {
-        +system(runObject.instructions)
-        +assistant("Choose tool call or message to answer the context.")
-        +assistant("<context>")
-        +createPromptMessages(messages.data)
-        +assistant("</context>")
-      }
+    val decisionPrompt = decisionPrompt(runObject, messages)
     val decision = AI<ToolsOrMessageDecision>(prompt = decisionPrompt, api = api)
     val choice = AssistantDecision.fromToolsOrMessageDecision(decision)
     val prompt: Prompt = createPrompt(runObject, messages.data)
@@ -415,6 +404,18 @@ class GeneralAssistants(
     }
   }
 
+  private suspend fun decisionPrompt(runObject: RunObject, messages: ListMessagesResponse): Prompt =
+    Prompt(
+        functions = listOf(chatFunction(ToolsOrMessageDecision.serializer().descriptor)),
+        model = CreateChatCompletionRequestModel.Custom(runObject.model),
+        toolCallStrategy = runObject.toolCallStrategy()
+      ) {
+        +createToolsMessages(runObject.tools)
+        +createPromptMessages(messages.data)
+        +user("Please select the tool you would like to run or provide a message.")
+      }
+      .adaptPromptToConversationAndModel(Conversation())
+
   private fun toolCallsToStepDetails(call: SelectedTool) =
     RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsFunctionObject(
       RunStepDetailsToolCallsFunctionObject(
@@ -422,7 +423,8 @@ class GeneralAssistants(
         function =
           RunStepDetailsToolCallsFunctionObjectFunction(
             name = call.name,
-            arguments = Json.encodeToString(JsonObject.serializer(), call.parameters),
+            arguments =
+              Config.DEFAULT.json.encodeToString(JsonObject.serializer(), call.parameters),
             output = null
           )
       )
@@ -439,6 +441,14 @@ class GeneralAssistants(
     )
   }
 
+  private fun RunObject.toolCallStrategy(): ToolCallStrategy =
+    metadata?.get(ToolCallStrategy.Key)?.let {
+      when (it) {
+        is JsonPrimitive -> it.contentOrNull?.let { ToolCallStrategy.valueOf(it) }
+        else -> null
+      }
+    } ?: ToolCallStrategy.Supported
+
   private fun selectToolPrompt(
     functions: List<FunctionObject>,
     runObject: RunObject,
@@ -451,7 +461,8 @@ class GeneralAssistants(
         PromptConfiguration {
           maxTokens = 1000
           messagePolicy = MessagePolicy(historyPercent = 100, contextPercent = 0)
-        }
+        },
+      toolCallStrategy = runObject.toolCallStrategy()
     ) {
       +currentConversationPrompt
       runObject.tools.forEach { tool ->
