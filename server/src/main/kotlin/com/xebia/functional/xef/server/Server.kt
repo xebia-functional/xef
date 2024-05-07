@@ -11,6 +11,10 @@ import com.xebia.functional.xef.server.http.routes.xefRoutes
 import com.xebia.functional.xef.server.services.hikariDataSource
 import com.xebia.functional.xef.server.services.vectorStoreService
 import com.xebia.functional.xef.store.migrations.runDatabaseMigrations
+import guru.zoroark.tegral.openapi.ktor.TegralOpenApiKtor
+import guru.zoroark.tegral.openapi.ktor.openApiEndpoint
+import guru.zoroark.tegral.openapi.ktorui.TegralSwaggerUiKtor
+import guru.zoroark.tegral.openapi.ktorui.swaggerUiEndpoint
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
@@ -77,10 +81,14 @@ object Server {
             authenticate { tokenCredential -> UserIdPrincipal(tokenCredential.token) }
           }
         }
+        install(TegralOpenApiKtor) { title = "Xef Server" }
+        install(TegralSwaggerUiKtor)
         exceptionsHandler()
         routing {
           xefRoutes(logger)
           aiRoutes(ktorClient)
+          openApiEndpoint("/openapi")
+          swaggerUiEndpoint(path = "/docs", openApiPath = "/openapi")
         }
       }
       awaitCancellation()
