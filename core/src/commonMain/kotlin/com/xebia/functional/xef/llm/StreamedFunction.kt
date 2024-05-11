@@ -404,6 +404,7 @@ sealed class StreamedFunction<out A> {
           - Follow the schema structure.
           - Follow the example structure.
           - Create your own values based on the user prompt.
+          - IMPORTANT: Start your response with `{` and end it with `}`.
       """
               .trimIndent()
           )

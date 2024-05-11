@@ -63,6 +63,9 @@ include("xef-evaluator")
 project(":xef-evaluator").projectDir = file("evaluator")
 
 
+include("xef-aws-bedrock")
+project(":xef-aws-bedrock").projectDir = file("integrations/aws/bedrock")
+
 //<editor-fold desc="Kotlin">
 include("xef-server")
 project(":xef-server").projectDir = file("server")

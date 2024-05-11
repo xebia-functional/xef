@@ -15,7 +15,7 @@ kotest-arrow = "1.4.0"
 klogging = "6.0.9"
 uuid = "0.0.22"
 postgresql = "42.7.3"
-testcontainers = "1.19.5"
+testcontainers = "1.19.7"
 hikari = "5.1.0"
 dokka = "1.9.20"
 logback = "1.5.5"
@@ -39,6 +39,7 @@ progressbar = "0.10.0"
 jmf = "2.1.1e"
 mp3-wav-converter = "1.0.4"
 yamlkt="0.13.0"
+aws-sdk="1.2.9"
 
 
 [libraries]
@@ -115,7 +116,9 @@ opentelemetry-extension-kotlin = { module = "io.opentelemetry:opentelemetry-exte
 progressbar = { module = "me.tongfei:progressbar", version.ref = "progressbar" }
 jmf = { module = "javax.media:jmf", version.ref = "jmf" }
 mp3-wav-converter = { module = "com.sipgate:mp3-wav", version.ref = "mp3-wav-converter" }
-
+ollama-testcontainers = { module = "org.testcontainers:ollama", version.ref = "testcontainers" }
+aws-bedrock = { module = "aws.sdk.kotlin:bedrock", version.ref = "aws-sdk" }
+aws-bedrock-runtime = { module = "aws.sdk.kotlin:bedrockruntime", version.ref = "aws-sdk" }
 
 
 [bundles]

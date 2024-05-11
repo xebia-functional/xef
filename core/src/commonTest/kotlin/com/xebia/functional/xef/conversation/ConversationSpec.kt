@@ -42,9 +42,9 @@ class ConversationSpec :
 
       val vectorStore = scope.store
 
-      chatApi.promptMessages(prompt = Prompt(model, "question 1"), scope = scope)
+      chatApi.promptMessages(prompt = Prompt(model, listOf(user("question 1"))), scope = scope)
 
-      chatApi.promptMessages(prompt = Prompt(model, "question 2"), scope = scope)
+      chatApi.promptMessages(prompt = Prompt(model, listOf(user("question 2"))), scope = scope)
 
       val memories = vectorStore.memories(model, conversationId, 10000)
 
@@ -75,7 +75,7 @@ class ConversationSpec :
         model.modelType().tokensFromMessages(messages.flatMap(::chatCompletionRequestMessages))
 
       messages.forEach { message ->
-        chatApi.promptMessages(prompt = Prompt(model, message.key), scope = scope)
+        chatApi.promptMessages(prompt = Prompt(model, listOf(user(message.key))), scope = scope)
       }
 
       val lastRequest = chatApi.requests.last()
@@ -111,7 +111,7 @@ class ConversationSpec :
         model.modelType().tokensFromMessages(messages.flatMap(::chatCompletionRequestMessages))
 
       messages.forEach { message ->
-        chatApi.promptMessages(prompt = Prompt(model, message.key), scope = scope)
+        chatApi.promptMessages(prompt = Prompt(model, listOf(user(message.key))), scope = scope)
       }
 
       val lastRequest = chatApi.requests.last()
@@ -143,7 +143,7 @@ class ConversationSpec :
 
       val response: Answer =
         chatApi.prompt(
-          prompt = Prompt(model, question),
+          prompt = Prompt(model, listOf(user(question))),
           scope = scope,
           serializer = Answer.serializer()
         )

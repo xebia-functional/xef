@@ -26,6 +26,7 @@ dependencies {
     implementation(projects.xefMlflow)
     implementation(projects.xefServer)
     implementation(projects.xefPostgresql)
+    implementation(projects.xefAwsBedrock)
     implementation(libs.suspendApp.core)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.logback)
