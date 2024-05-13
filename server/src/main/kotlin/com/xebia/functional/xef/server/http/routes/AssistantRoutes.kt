@@ -5,6 +5,7 @@ import com.xebia.functional.openai.generated.model.CreateAssistantRequest
 import com.xebia.functional.openai.generated.model.ListAssistantsResponse
 import com.xebia.functional.xef.Config
 import com.xebia.functional.xef.OpenAI
+import com.xebia.functional.xef.llm.assistants.Assistant
 import com.xebia.functional.xef.server.models.Token
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -63,10 +64,10 @@ fun Routing.assistantRoutes() {
 
 suspend fun createAssistant(token: Token, request: CreateAssistantRequest): AssistantObject {
   val openAIConfig = Config(token = token.value)
-  val openAI = OpenAI(openAIConfig)
+  val openAI = OpenAI(openAIConfig, logRequests = true)
   val assistants = openAI.assistants
-  val assistantObject = assistants.createAssistant(request)
-  return assistantObject
+  val assistant = Assistant(request)
+  return assistant.get()
 }
 
 // suspend fun updateAssistant(token: String, request: AssistantRequest, id: Int): String {
