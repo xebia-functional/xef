@@ -12,4 +12,5 @@ fun Routing.xefRoutes(logger: KLogger) {
   organizationRoutes(OrganizationRepositoryService(logger))
   projectsRoutes(ProjectRepositoryService(logger))
   tokensRoutes(TokenRepositoryService(logger))
+  assistantRoutes()
 }

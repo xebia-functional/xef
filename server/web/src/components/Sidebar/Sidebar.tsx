@@ -44,6 +44,12 @@ export function Sidebar({ drawerWidth, open }: SidebarProps) {
             </ListItemButton>
           </ListItem>
           <ListItem disablePadding>
+            <ListItemButton component={RouterLink} to="/assistants">
+              {/* Puedes agregar un ícono si es necesario, por ejemplo <AssistantsIcon /> */}
+              <ListItemText primary="Assistants" />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
             <ListItemButton component={RouterLink} to="projects">
               <ListItemText primary="Projects" />
             </ListItemButton>
