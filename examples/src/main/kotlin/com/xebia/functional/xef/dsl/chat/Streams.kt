@@ -5,14 +5,7 @@ import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestMo
 import com.xebia.functional.xef.AI
 import com.xebia.functional.xef.Config
 import com.xebia.functional.xef.OpenAI
-import com.xebia.functional.xef.conversation.Description
 import com.xebia.functional.xef.prompt.ToolCallStrategy
-import kotlinx.serialization.Serializable
-
-@Serializable
-data class Planets(
-  @Description("A list of ALL the planets in the solar system") val planets: List<Planet>
-)
 
 suspend fun main() {
   val result = llama3_8b<SolarSystemPlanet>("Your favorite planet")
@@ -28,6 +21,6 @@ suspend inline fun <reified A> llama3_8b(
     prompt = prompt,
     config = config,
     api = api,
-    model = CreateChatCompletionRequestModel.Custom("gemma:2b"),
+    model = CreateChatCompletionRequestModel.Custom("llama3:8b"),
     toolCallStrategy = ToolCallStrategy.InferJsonFromStringResponse
   )

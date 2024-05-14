@@ -12,5 +12,5 @@ interface BedrockClient {
   fun runInferenceWithStream(
     requestBody: JsonElement,
     model: AwsFoundationModel
-  ): Flow<ChatCompletionResponse>
+  ): Flow<SdkBedrockClient.ChatCompletionResponseEvent>
 }

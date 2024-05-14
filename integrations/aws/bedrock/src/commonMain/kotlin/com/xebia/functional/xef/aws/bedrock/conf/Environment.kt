@@ -17,9 +17,7 @@ value class Secret(val value: String) {
 
 fun String.secret(): Secret = Secret(this)
 
-data class Environment(
-  val aws: Aws = Aws()
-) {
+data class Environment(val aws: Aws = Aws()) {
   data class Aws(
     val credentials: Credentials = Credentials(),
     val regionName: String = getenv("AWS_REGION_NAME") ?: "us-east-1"

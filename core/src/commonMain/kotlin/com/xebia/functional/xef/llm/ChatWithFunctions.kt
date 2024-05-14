@@ -8,6 +8,7 @@ import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.Config
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
+import com.xebia.functional.xef.conversation.Description
 import com.xebia.functional.xef.llm.PromptCalculator.adaptPromptToConversationAndModel
 import com.xebia.functional.xef.llm.models.functions.buildJsonSchema
 import com.xebia.functional.xef.prompt.Prompt
@@ -22,14 +23,16 @@ import kotlinx.serialization.json.*
 @OptIn(ExperimentalSerializationApi::class)
 fun chatFunction(descriptor: SerialDescriptor): FunctionObject {
   val fnName = descriptor.serialName.substringAfterLast(".")
-  return chatFunction(fnName, buildJsonSchema(descriptor))
+  val description =
+    descriptor.annotations.firstOrNull { it is Description }?.let { it as Description }?.value
+  return chatFunction(fnName, description, buildJsonSchema(descriptor))
 }
 
 fun chatFunctions(descriptors: List<SerialDescriptor>): List<FunctionObject> =
   descriptors.map(::chatFunction)
 
-fun chatFunction(fnName: String, schema: JsonObject): FunctionObject =
-  FunctionObject(fnName, "Generated function for $fnName", schema)
+fun chatFunction(fnName: String, description: String?, schema: JsonObject): FunctionObject =
+  FunctionObject(fnName, description ?: "Generated function for $fnName", schema)
 
 @AiDsl
 suspend fun <A> Chat.prompt(

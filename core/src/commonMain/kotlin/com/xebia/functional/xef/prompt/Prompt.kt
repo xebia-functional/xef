@@ -9,7 +9,9 @@ import kotlin.jvm.JvmSynthetic
 
 enum class ToolCallStrategy {
   Supported,
-  InferJsonFromStringResponse;
+  InferJsonFromStringResponse,
+  InferXmlFromStringResponse,
+  ;
 
   companion object {
     const val Key = "toolCallStrategy"

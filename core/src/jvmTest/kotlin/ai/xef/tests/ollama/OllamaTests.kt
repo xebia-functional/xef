@@ -20,9 +20,7 @@ class OllamaTests {
     private const val OLLAMA_IMAGE = "ollama/ollama:0.1.26"
     private const val NEW_IMAGE_NAME = "ollama/ollama:test"
 
-    val ollama: OllamaContainer by lazy {
-      OllamaContainer(DockerImageName.parse(OLLAMA_IMAGE))
-    }
+    val ollama: OllamaContainer by lazy { OllamaContainer(DockerImageName.parse(OLLAMA_IMAGE)) }
 
     @BeforeAll
     @JvmStatic
@@ -53,10 +51,7 @@ class OllamaTests {
       toolCallStrategy = ToolCallStrategy.InferJsonFromStringResponse
     )
 
-  @Serializable
-  data class SolarSystemPlanet(
-    val planet: String
-  )
+  @Serializable data class SolarSystemPlanet(val planet: String)
 
   @Test
   fun `test AI chat function`() = runBlocking {

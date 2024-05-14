@@ -22,7 +22,7 @@ import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.json.*
 
 /** Represents the type of json type */
-enum class JsonType(jsonType: String) {
+private enum class JsonType(jsonType: String) {
   /** Represents the json array type */
   ARRAY("array"),
 

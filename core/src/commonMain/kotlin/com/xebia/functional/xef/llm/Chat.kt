@@ -37,14 +37,13 @@ fun Chat.promptStreaming(prompt: Prompt, scope: Conversation = Conversation()): 
         }
         content
       }
-      .onEach { emit(it) }
       .onCompletion {
         val aiResponseMessage = PromptBuilder.assistant(buffer.toString())
         val newMessages = prompt.messages + listOf(aiResponseMessage)
         newMessages.addToMemory(scope, prompt.configuration.messagePolicy.addMessagesToConversation)
         buffer.clear()
       }
-      .collect()
+      .collect { emit(it) }
   }
 
 @AiDsl

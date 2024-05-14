@@ -7,7 +7,11 @@ import io.ktor.client.request.*
 import kotlinx.coroutines.flow.Flow
 
 class BedrockAssistants : Assistants {
-  override suspend fun cancelRun(threadId: String, runId: String, configure: HttpRequestBuilder.() -> Unit): RunObject {
+  override suspend fun cancelRun(
+    threadId: String,
+    runId: String,
+    configure: HttpRequestBuilder.() -> Unit
+  ): RunObject {
     TODO("Not yet implemented")
   }
 
@@ -86,11 +90,17 @@ class BedrockAssistants : Assistants {
     TODO("Not yet implemented")
   }
 
-  override suspend fun deleteThread(threadId: String, configure: HttpRequestBuilder.() -> Unit): DeleteThreadResponse {
+  override suspend fun deleteThread(
+    threadId: String,
+    configure: HttpRequestBuilder.() -> Unit
+  ): DeleteThreadResponse {
     TODO("Not yet implemented")
   }
 
-  override suspend fun getAssistant(assistantId: String, configure: HttpRequestBuilder.() -> Unit): AssistantObject {
+  override suspend fun getAssistant(
+    assistantId: String,
+    configure: HttpRequestBuilder.() -> Unit
+  ): AssistantObject {
     TODO("Not yet implemented")
   }
 
@@ -119,7 +129,11 @@ class BedrockAssistants : Assistants {
     TODO("Not yet implemented")
   }
 
-  override suspend fun getRun(threadId: String, runId: String, configure: HttpRequestBuilder.() -> Unit): RunObject {
+  override suspend fun getRun(
+    threadId: String,
+    runId: String,
+    configure: HttpRequestBuilder.() -> Unit
+  ): RunObject {
     TODO("Not yet implemented")
   }
 
@@ -132,7 +146,10 @@ class BedrockAssistants : Assistants {
     TODO("Not yet implemented")
   }
 
-  override suspend fun getThread(threadId: String, configure: HttpRequestBuilder.() -> Unit): ThreadObject {
+  override suspend fun getThread(
+    threadId: String,
+    configure: HttpRequestBuilder.() -> Unit
+  ): ThreadObject {
     TODO("Not yet implemented")
   }
 

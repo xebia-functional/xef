@@ -16,8 +16,13 @@ data class Anthropic(
   override val guardrailVersion: String? = null
 ) : AWSBedrockModelAdapter {
   override fun chatCompletionRequest(request: CreateChatCompletionRequest): JsonObject = TODO()
-  override fun chatCompletionStreamRequest(request: CreateChatCompletionRequest): JsonObject = TODO()
-  override fun chatCompletionsResponse(response: JsonObject): CreateChatCompletionResponse = TODO()
-  override fun chatCompletionsSteamResponse(response: InvokeModelWithResponseStreamResponse): Flow<CreateChatCompletionStreamResponse> =
+
+  override fun chatCompletionStreamRequest(request: CreateChatCompletionRequest): JsonObject =
     TODO()
+
+  override fun chatCompletionsResponse(response: JsonObject): CreateChatCompletionResponse = TODO()
+
+  override fun chatCompletionsSteamResponse(
+    response: InvokeModelWithResponseStreamResponse
+  ): Flow<CreateChatCompletionStreamResponse> = TODO()
 }

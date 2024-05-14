@@ -7,6 +7,7 @@ import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.StreamedFunction
 import com.xebia.functional.xef.llm.models.modelType
 import com.xebia.functional.xef.llm.prompt
+import com.xebia.functional.xef.llm.promptMessage
 import com.xebia.functional.xef.llm.promptStreaming
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.ToolCallStrategy
@@ -34,7 +35,7 @@ data class DefaultAI<A : Any>(
   private suspend fun <B> runWithSerializer(prompt: Prompt, serializer: KSerializer<B>): B =
     when (prompt.toolCallStrategy) {
       ToolCallStrategy.Supported -> api.prompt(prompt, conversation, serializer)
-      ToolCallStrategy.InferJsonFromStringResponse ->
+      else ->
         runStreamingWithFunctionSerializer(prompt, serializer)
           .mapNotNull {
             when (it) {
@@ -63,6 +64,7 @@ data class DefaultAI<A : Any>(
   suspend operator fun invoke(prompt: Prompt): A {
     val serializer = serializer()
     return when (serializer.descriptor.kind) {
+      PrimitiveKind.STRING -> api.promptMessage(prompt, conversation) as A
       SerialKind.ENUM -> {
         runWithEnumSingleTokenSerializer(serializer, prompt)
       }

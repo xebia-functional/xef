@@ -10,12 +10,18 @@ import kotlinx.serialization.json.JsonObject
 
 interface AWSBedrockModelAdapter {
   val region: String
+
   fun chatCompletionRequest(request: CreateChatCompletionRequest): JsonObject
+
   fun chatCompletionStreamRequest(request: CreateChatCompletionRequest): JsonObject
+
   fun chatCompletionsResponse(response: JsonObject): CreateChatCompletionResponse
+
   val trace: Trace
   val guardrailIdentifier: String?
   val guardrailVersion: String?
-  fun chatCompletionsSteamResponse(response: InvokeModelWithResponseStreamResponse): Flow<CreateChatCompletionStreamResponse>
-}
 
+  fun chatCompletionsSteamResponse(
+    response: InvokeModelWithResponseStreamResponse
+  ): Flow<CreateChatCompletionStreamResponse>
+}
