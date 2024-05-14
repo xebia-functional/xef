@@ -307,6 +307,7 @@ private fun SerialDescriptor.createJsonSchema(
   }
 }
 
+@OptIn(ExperimentalSerializationApi::class)
 private fun JsonObjectBuilder.applyJsonSchemaDefaults(
   descriptor: SerialDescriptor,
   annotations: List<Annotation>,
@@ -322,25 +323,31 @@ private fun JsonObjectBuilder.applyJsonSchemaDefaults(
     }
   }
 
-  if (descriptor.kind == SerialKind.ENUM) {
-    this["enum"] = descriptor.elementNames
-  }
+  val additionalEnumDescription: String? =
+    if (descriptor.kind == SerialKind.ENUM) {
+      this["enum"] = descriptor.elementNames
+      descriptor.elementNames
+        .mapIndexedNotNull { index, name ->
+          val enumDescription =
+            descriptor.getElementAnnotations(index).lastOfInstance<Description>()?.value
+          if (enumDescription != null) {
+            "$name ($enumDescription)"
+          } else {
+            null
+          }
+        }
+        .joinToString("\n - ")
+    } else null
 
   if (annotations.isNotEmpty()) {
-    val multiplatformDescription = annotations.filterIsInstance<Description>()
-    val description =
-      if (multiplatformDescription.isEmpty()) {
-        try {
-          val jvmDescription = annotations.filterIsInstance<Description>()
-          jvmDescription.firstOrNull()?.value
-        } catch (e: Throwable) {
-          null
-        }
-      } else {
-        multiplatformDescription.firstOrNull()?.value
-      }
-
-    this["description"] = description
+    val description = annotations.filterIsInstance<Description>().firstOrNull()?.value
+    if (!additionalEnumDescription.isNullOrEmpty()) {
+      this["description"] = "$description\n - $additionalEnumDescription"
+    } else {
+      this["description"] = description
+    }
+  } else if (additionalEnumDescription != null) {
+    this["description"] = " - $additionalEnumDescription"
   }
 }
 
