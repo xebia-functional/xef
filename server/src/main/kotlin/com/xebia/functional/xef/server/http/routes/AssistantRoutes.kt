@@ -40,9 +40,8 @@ fun Routing.assistantRoutes() {
         val token = call.getToken()
         val openAI = OpenAI(Config(token = token.value), logRequests = true)
         val assistantsApi = openAI.assistants
-        val response = assistantsApi.listAssistants(configure = {
-          header("OpenAI-Beta", "assistants=v1")
-        })
+        val response =
+          assistantsApi.listAssistants(configure = { header("OpenAI-Beta", "assistants=v1") })
         call.respond(HttpStatusCode.OK, response)
       } catch (e: Exception) {
         val trace = e.stackTraceToString()
@@ -84,9 +83,8 @@ fun Routing.assistantRoutes() {
         }
         val openAI = OpenAI(Config(token = token.value), logRequests = true)
         val assistantsApi = openAI.assistants
-        val response = assistantsApi.deleteAssistant(id, configure = {
-          header("OpenAI-Beta", "assistants=v1")
-        })
+        val response =
+          assistantsApi.deleteAssistant(id, configure = { header("OpenAI-Beta", "assistants=v1") })
         call.respond(status = HttpStatusCode.NoContent, response)
       } catch (e: Exception) {
         val trace = e.stackTraceToString()
