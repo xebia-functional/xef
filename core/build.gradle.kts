@@ -78,7 +78,6 @@ kotlin {
               implementation(libs.uuid)
               implementation(libs.ktor.client.logging)
               implementation(libs.klogging)
-              implementation(libs.ksoup)
           }
       }
       val commonTest by getting {
