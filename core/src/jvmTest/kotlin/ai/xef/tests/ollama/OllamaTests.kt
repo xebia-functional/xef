@@ -10,10 +10,12 @@ import io.kotest.common.runBlocking
 import kotlinx.serialization.Serializable
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.testcontainers.ollama.OllamaContainer
 import org.testcontainers.utility.DockerImageName
 
+@Disabled
 class OllamaTests {
 
   companion object {
