@@ -63,7 +63,8 @@ object Server {
           install(ClientContentNegotiation)
         }
 
-      server(factory = Netty, port = 8081, host = "0.0.0.0") {
+      server(factory = Netty, port = 8081, host = "0.0.0.0"
+      ) {
         install(CORS) {
           allowNonSimpleContentTypes = true
           HttpMethod.DefaultMethods.forEach { allowMethod(it) }
