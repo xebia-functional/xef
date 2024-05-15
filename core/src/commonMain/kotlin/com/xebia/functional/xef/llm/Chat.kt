@@ -7,6 +7,7 @@ import com.xebia.functional.openai.generated.model.CreateChatCompletionResponseC
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
+import com.xebia.functional.xef.llm.PromptCalculator.adaptPromptToConversationAndModel
 import com.xebia.functional.xef.llm.models.MessageWithUsage
 import com.xebia.functional.xef.llm.models.MessagesUsage
 import com.xebia.functional.xef.llm.models.MessagesWithUsage
@@ -18,7 +19,7 @@ import kotlinx.coroutines.flow.*
 @AiDsl
 fun Chat.promptStreaming(prompt: Prompt, scope: Conversation = Conversation()): Flow<String> =
   flow {
-    val messagesForRequestPrompt = PromptCalculator.adaptPromptToConversationAndModel(prompt, scope)
+    val messagesForRequestPrompt = prompt.adaptPromptToConversationAndModel(scope)
 
     val request =
       CreateChatCompletionRequest(
@@ -87,7 +88,7 @@ private suspend fun <T> Chat.promptResponse(
 ): Pair<List<T>, CreateChatCompletionResponse> =
   scope.metric.promptSpan(prompt) {
     val promptMemories: List<Memory> = prompt.messages.toMemory(scope)
-    val adaptedPrompt = PromptCalculator.adaptPromptToConversationAndModel(prompt, scope)
+    val adaptedPrompt = prompt.adaptPromptToConversationAndModel(scope)
 
     adaptedPrompt.addMetrics(scope)
 
