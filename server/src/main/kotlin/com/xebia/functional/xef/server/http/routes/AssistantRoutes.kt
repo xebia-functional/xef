@@ -74,16 +74,25 @@ fun Routing.assistantRoutes() {
       }
     }
 
-    //        delete("/v1/settings/assistants/{id}") {
-    //            val token = call.getToken()
-    //            val id = call.parameters["id"]?.toIntOrNull()
-    //            if (id == null) {
-    //                call.respond(HttpStatusCode.BadRequest, "Invalid assistant id")
-    //                return@delete
-    //            }
-    //            val response = deleteAssistant(token, id)
-    //            call.respond(status = HttpStatusCode.NoContent, response)
-    //        }
+    delete("/v1/settings/assistants/{id}") {
+      try {
+        val token = call.getToken()
+        val id = call.parameters["id"]
+        if (id == null) {
+          call.respond(HttpStatusCode.BadRequest, "Invalid assistant id")
+          return@delete
+        }
+        val openAI = OpenAI(Config(token = token.value), logRequests = true)
+        val assistantsApi = openAI.assistants
+        val response = assistantsApi.deleteAssistant(id, configure = {
+          header("OpenAI-Beta", "assistants=v1")
+        })
+        call.respond(status = HttpStatusCode.NoContent, response)
+      } catch (e: Exception) {
+        val trace = e.stackTraceToString()
+        call.respond(HttpStatusCode.BadRequest, "Invalid request: $trace")
+      }
+    }
   }
 }
 
@@ -96,7 +105,3 @@ suspend fun updateAssistant(request: ModifyAssistantRequest, id: String): Assist
   val assistant = Assistant(id)
   return assistant.modify(request).get()
 }
-
-/*suspend fun deleteAssistant(token: String, id: Int): String {
-
-}*/
