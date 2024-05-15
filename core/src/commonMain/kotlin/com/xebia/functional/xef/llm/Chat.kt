@@ -2,18 +2,23 @@ package com.xebia.functional.xef.llm
 
 import com.xebia.functional.openai.generated.api.Chat
 import com.xebia.functional.openai.generated.model.CreateChatCompletionRequest
+import com.xebia.functional.openai.generated.model.CreateChatCompletionResponse
+import com.xebia.functional.openai.generated.model.CreateChatCompletionResponseChoicesInner
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
-import com.xebia.functional.xef.llm.PromptCalculator.adaptPromptToConversationAndModel
+import com.xebia.functional.xef.llm.models.MessageWithUsage
+import com.xebia.functional.xef.llm.models.MessagesUsage
+import com.xebia.functional.xef.llm.models.MessagesWithUsage
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.PromptBuilder
+import com.xebia.functional.xef.store.Memory
 import kotlinx.coroutines.flow.*
 
 @AiDsl
 fun Chat.promptStreaming(prompt: Prompt, scope: Conversation = Conversation()): Flow<String> =
   flow {
-    val messagesForRequestPrompt = prompt.adaptPromptToConversationAndModel(scope)
+    val messagesForRequestPrompt = PromptCalculator.adaptPromptToConversationAndModel(prompt, scope)
 
     val request =
       CreateChatCompletionRequest(
@@ -54,10 +59,35 @@ suspend fun Chat.promptMessage(prompt: Prompt, scope: Conversation = Conversatio
 suspend fun Chat.promptMessages(
   prompt: Prompt,
   scope: Conversation = Conversation()
-): List<String> =
+): List<String> = promptResponse(prompt, scope) { it.message.content }.first
+
+@AiDsl
+suspend fun Chat.promptMessageAndUsage(
+  prompt: Prompt,
+  scope: Conversation = Conversation()
+): MessageWithUsage {
+  val response = promptMessagesAndUsage(prompt, scope)
+  val message = response.messages.firstOrNull() ?: throw AIError.NoResponse()
+  return MessageWithUsage(message, response.usage)
+}
+
+@AiDsl
+suspend fun Chat.promptMessagesAndUsage(
+  prompt: Prompt,
+  scope: Conversation = Conversation()
+): MessagesWithUsage {
+  val response = promptResponse(prompt, scope) { it.message.content }
+  return MessagesWithUsage(response.first, response.second.usage?.let { MessagesUsage(it) })
+}
+
+private suspend fun <T> Chat.promptResponse(
+  prompt: Prompt,
+  scope: Conversation = Conversation(),
+  block: suspend Chat.(CreateChatCompletionResponseChoicesInner) -> T?
+): Pair<List<T>, CreateChatCompletionResponse> =
   scope.metric.promptSpan(prompt) {
-    val promptMemories = prompt.messages.toMemory(scope)
-    val adaptedPrompt = prompt.adaptPromptToConversationAndModel(scope)
+    val promptMemories: List<Memory> = prompt.messages.toMemory(scope)
+    val adaptedPrompt = PromptCalculator.adaptPromptToConversationAndModel(prompt, scope)
 
     adaptedPrompt.addMetrics(scope)
 
@@ -72,13 +102,17 @@ suspend fun Chat.promptMessages(
         seed = adaptedPrompt.configuration.seed,
       )
 
-    createChatCompletion(request)
-      .addMetrics(scope)
-      .choices
-      .addChoiceToMemory(
-        scope,
-        promptMemories,
-        prompt.configuration.messagePolicy.addMessagesToConversation
-      )
-      .mapNotNull { it.message.content }
+    val createResponse: CreateChatCompletionResponse = createChatCompletion(request)
+    Pair(
+      createResponse
+        .addMetrics(scope)
+        .choices
+        .addChoiceToMemory(
+          scope,
+          promptMemories,
+          prompt.configuration.messagePolicy.addMessagesToConversation
+        )
+        .mapNotNull { block(it) },
+      createResponse
+    )
   }
