@@ -5,8 +5,11 @@ import arrow.core.raise.catch
 import com.xebia.functional.openai.generated.api.Chat
 import com.xebia.functional.openai.generated.model.*
 import com.xebia.functional.xef.AIError
+import com.xebia.functional.xef.Config
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
+import com.xebia.functional.xef.conversation.Description
+import com.xebia.functional.xef.llm.PromptCalculator.adaptPromptToConversationAndModel
 import com.xebia.functional.xef.llm.models.functions.buildJsonSchema
 import com.xebia.functional.xef.prompt.Prompt
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -20,14 +23,16 @@ import kotlinx.serialization.json.*
 @OptIn(ExperimentalSerializationApi::class)
 fun chatFunction(descriptor: SerialDescriptor): FunctionObject {
   val fnName = descriptor.serialName.substringAfterLast(".")
-  return chatFunction(fnName, buildJsonSchema(descriptor))
+  val description =
+    descriptor.annotations.firstOrNull { it is Description }?.let { it as Description }?.value
+  return chatFunction(fnName, description, buildJsonSchema(descriptor))
 }
 
 fun chatFunctions(descriptors: List<SerialDescriptor>): List<FunctionObject> =
   descriptors.map(::chatFunction)
 
-fun chatFunction(fnName: String, schema: JsonObject): FunctionObject =
-  FunctionObject(fnName, "Generated function for $fnName", schema)
+fun chatFunction(fnName: String, description: String?, schema: JsonObject): FunctionObject =
+  FunctionObject(fnName, description ?: "Generated function for $fnName", schema)
 
 @AiDsl
 suspend fun <A> Chat.prompt(
@@ -36,7 +41,7 @@ suspend fun <A> Chat.prompt(
   serializer: KSerializer<A>,
 ): A =
   prompt(prompt, scope, chatFunctions(listOf(serializer.descriptor))) { call ->
-    Json.decodeFromString(serializer, call.arguments)
+    Config.DEFAULT.json.decodeFromString(serializer, call.arguments)
   }
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -49,7 +54,8 @@ suspend fun <A> Chat.prompt(
 ): A =
   prompt(prompt, scope, chatFunctions(descriptors)) { call ->
     // adds a `type` field with the call.functionName serial name equivalent to the call arguments
-    val jsonWithDiscriminator = Json.decodeFromString(JsonElement.serializer(), call.arguments)
+    val jsonWithDiscriminator =
+      Config.DEFAULT.json.decodeFromString(JsonElement.serializer(), call.arguments)
     val descriptor =
       descriptors.firstOrNull { it.serialName.endsWith(call.functionName) }
         ?: error("No descriptor found for ${call.functionName}")
@@ -57,7 +63,7 @@ suspend fun <A> Chat.prompt(
       JsonObject(
         jsonWithDiscriminator.jsonObject + ("type" to JsonPrimitive(descriptor.serialName))
       )
-    Json.decodeFromString(serializer, Json.encodeToString(newJson))
+    Config.DEFAULT.json.decodeFromString(serializer, Config.DEFAULT.json.encodeToString(newJson))
   }
 
 @AiDsl
@@ -67,7 +73,7 @@ fun <A> Chat.promptStreaming(
   serializer: KSerializer<A>,
 ): Flow<StreamedFunction<A>> =
   promptStreaming(prompt, scope, chatFunction(serializer.descriptor)) { json ->
-    Json.decodeFromString(serializer, json)
+    Config.DEFAULT.json.decodeFromString(serializer, json)
   }
 
 @AiDsl
@@ -79,8 +85,7 @@ suspend fun <A> Chat.prompt(
 ): A =
   scope.metric.promptSpan(prompt) {
     val promptWithFunctions = prompt.copy(functions = functions)
-    val adaptedPrompt =
-      PromptCalculator.adaptPromptToConversationAndModel(promptWithFunctions, scope)
+    val adaptedPrompt = promptWithFunctions.adaptPromptToConversationAndModel(scope)
     adaptedPrompt.addMetrics(scope)
     val request = createChatCompletionRequest(adaptedPrompt)
     tryDeserialize(serializer, promptWithFunctions.configuration.maxDeserializationAttempts) {
@@ -139,7 +144,7 @@ fun <A> Chat.promptStreaming(
   serializer: (json: String) -> A,
 ): Flow<StreamedFunction<A>> = flow {
   val promptWithFunctions = prompt.copy(functions = listOf(function))
-  val adaptedPrompt = PromptCalculator.adaptPromptToConversationAndModel(promptWithFunctions, scope)
+  val adaptedPrompt = promptWithFunctions.adaptPromptToConversationAndModel(scope)
 
   val request = createChatCompletionRequest(adaptedPrompt).copy(stream = true)
 

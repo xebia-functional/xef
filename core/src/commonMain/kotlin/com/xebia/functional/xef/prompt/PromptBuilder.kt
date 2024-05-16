@@ -81,8 +81,10 @@ interface PromptBuilder {
     operator fun invoke(
       model: CreateChatCompletionRequestModel,
       functions: List<FunctionObject>,
+      toolCallStrategy: ToolCallStrategy,
       configuration: PromptConfiguration
-    ): PlatformPromptBuilder = PlatformPromptBuilder.create(model, functions, configuration)
+    ): PlatformPromptBuilder =
+      PlatformPromptBuilder.create(model, functions, toolCallStrategy, configuration)
 
     fun assistant(value: String): ChatCompletionRequestMessage =
       ChatCompletionRequestMessage.CaseChatCompletionRequestAssistantMessage(

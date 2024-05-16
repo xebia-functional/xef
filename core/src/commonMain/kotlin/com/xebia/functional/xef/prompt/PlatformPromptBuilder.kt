@@ -8,6 +8,7 @@ import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
 class PlatformPromptBuilder(
   private val model: CreateChatCompletionRequestModel,
   private val functions: List<FunctionObject>,
+  private val toolCallStrategy: ToolCallStrategy,
   private val configuration: PromptConfiguration
 ) : PromptBuilder {
 
@@ -17,13 +18,16 @@ class PlatformPromptBuilder(
     elements: List<ChatCompletionRequestMessage>
   ): List<ChatCompletionRequestMessage> = elements
 
-  override fun build(): Prompt = Prompt(model, preprocess(items), functions, configuration)
+  override fun build(): Prompt =
+    Prompt(model, preprocess(items), functions, toolCallStrategy, configuration)
 
   companion object {
     fun create(
       model: CreateChatCompletionRequestModel,
       functions: List<FunctionObject>,
-      configuration: PromptConfiguration
-    ): PlatformPromptBuilder = PlatformPromptBuilder(model, functions, configuration)
+      toolCallStrategy: ToolCallStrategy,
+      configuration: PromptConfiguration,
+    ): PlatformPromptBuilder =
+      PlatformPromptBuilder(model, functions, toolCallStrategy, configuration)
   }
 }

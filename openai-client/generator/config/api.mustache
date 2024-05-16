@@ -156,7 +156,7 @@ fun {{classname}}(client: HttpClient, config: Config): {{classname}} = object : 
         {{#queryParams}}
             parameter("{{baseName}}", {{#isContainer}}toMultiValue(this, "{{collectionFormat}}"){{/isContainer}}{{^isContainer}}listOf("${{{paramName}}}"){{/isContainer}})
         {{/queryParams}}
-        url { path("{{path}}"{{#pathParams}}.replace("{" + "{{baseName}}" + "}", {{#isContainer}}{{paramName}}.joinToString(","){{/isContainer}}{{^isContainer}}"${{{paramName}}}"{{/isContainer}}){{/pathParams}}) }
+        url { path("{{#lambda.dropslash}}{{path}}{{/lambda.dropslash}}"{{#pathParams}}.replace("{" + "{{baseName}}" + "}", {{#isContainer}}{{paramName}}.joinToString(","){{/isContainer}}{{^isContainer}}"${{{paramName}}}"{{/isContainer}}){{/pathParams}}) }
         {{#hasBodyParam}}
         val element = Json.encodeToJsonElement({{#lambda.serializer}}{{#bodyParam}}{{{baseName}}}{{/bodyParam}}{{/lambda.serializer}}, {{#bodyParam}}{{{paramName}}}{{/bodyParam}})
         val jsObject = JsonObject(element.jsonObject + Pair("stream", JsonPrimitive(true)))

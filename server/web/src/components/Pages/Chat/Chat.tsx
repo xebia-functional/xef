@@ -38,10 +38,15 @@ export function Chat({initialMessages = []}: {
                 setMessages(prevState => [...prevState, {role: 'user', content: prompt}]);
 
                 const client = openai(settings);
+                //add header for json content type
                 const completion = await client.chat.completions.create({
                     messages: [{role: 'user', content: prompt}],
                     model: 'gpt-3.5-turbo-16k',
                     stream: true
+                }, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
                 });
 
                 let currentAssistantMessage = ''; // Create a local variable to accumulate the message

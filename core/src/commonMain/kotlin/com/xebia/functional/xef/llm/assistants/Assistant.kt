@@ -13,10 +13,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
-import net.mamoe.yamlkt.Yaml
-import net.mamoe.yamlkt.YamlMap
-import net.mamoe.yamlkt.literalContentOrNull
-import net.mamoe.yamlkt.toYamlElement
+import net.mamoe.yamlkt.*
 
 class Assistant(
   val assistantId: String,
@@ -166,6 +163,11 @@ class Assistant(
             },
           fileIds =
             parsed["file_ids"]?.let { (it as List<*>).map { it.toString() } } ?: emptyList(),
+          metadata =
+            // turn to Map<String, String>
+            (parsed["metadata"] as? YamlMap)?.toContentMap()?.let {
+              it.mapKeys { (k, _) -> k.toString() }.mapValues { (_, v) -> v.toString() }
+            }
         )
       return if (assistantRequest.assistantId != null) {
         val assistant =
@@ -197,7 +199,10 @@ class Assistant(
               instructions = assistantRequest.instructions,
               tools = assistantTools(assistantRequest),
               fileIds = assistantRequest.fileIds,
-              metadata = null // assistantRequest.metadata
+              metadata =
+                assistantRequest.metadata?.let {
+                  JsonObject(it.mapValues { (_, v) -> JsonPrimitive(v) })
+                }
             ),
           toolsConfig = toolsConfig,
           config = config,

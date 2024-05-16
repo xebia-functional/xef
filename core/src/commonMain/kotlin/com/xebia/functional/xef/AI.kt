@@ -6,6 +6,7 @@ import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestMo
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.prompt.Prompt
+import com.xebia.functional.xef.prompt.ToolCallStrategy
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
@@ -108,10 +109,11 @@ sealed interface AI {
       prompt: String,
       target: KType = typeOf<A>(),
       model: CreateChatCompletionRequestModel = CreateChatCompletionRequestModel.gpt_3_5_turbo_0125,
+      toolCallStrategy: ToolCallStrategy = ToolCallStrategy.Supported,
       config: Config = Config(),
       api: Chat = OpenAI(config).chat,
       conversation: Conversation = Conversation()
-    ): A = chat(Prompt(model, prompt), target, config, api, conversation)
+    ): A = chat(Prompt(model, toolCallStrategy, prompt), target, config, api, conversation)
 
     @AiDsl
     suspend inline operator fun <reified A : Any> invoke(

@@ -3,20 +3,29 @@ package com.xebia.functional.xef.llm
 import com.xebia.functional.openai.generated.api.Chat
 import com.xebia.functional.openai.generated.model.*
 import com.xebia.functional.xef.conversation.Conversation
-import com.xebia.functional.xef.llm.StreamedFunction.Companion.PropertyType.*
+import com.xebia.functional.xef.llm.streaming.FunctionCallFormat
+import com.xebia.functional.xef.llm.streaming.JsonSupport
+import com.xebia.functional.xef.llm.streaming.XmlSupport
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.PromptBuilder
+import com.xebia.functional.xef.prompt.PromptBuilder.Companion.user
+import com.xebia.functional.xef.prompt.ToolCallStrategy
+import io.ktor.client.request.*
 import kotlin.jvm.JvmSynthetic
-import kotlinx.coroutines.flow.FlowCollector
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.json.*
+import kotlinx.coroutines.flow.*
 
 sealed class StreamedFunction<out A> {
   data class Property(val path: List<String>, val name: String, val value: String) :
     StreamedFunction<Nothing>()
 
   data class Result<out A>(val value: A) : StreamedFunction<A>()
+
+  fun print() {
+    when (this) {
+      is Property -> println("Property: $name = $value")
+      is Result -> println("Result: $value")
+    }
+  }
 
   companion object {
 
@@ -43,7 +52,7 @@ sealed class StreamedFunction<out A> {
       prompt: Prompt,
       request: CreateChatCompletionRequest,
       scope: Conversation,
-      serializer: (json: String) -> A,
+      serializer: (output: String) -> A,
       function: FunctionObject
     ) {
       val messages = mutableListOf<ChatCompletionRequestMessage>()
@@ -58,18 +67,14 @@ sealed class StreamedFunction<out A> {
       // we extract the expected JSON schema before the LLM replies
       val schema = function.parameters
       // we create an example from the schema from which we can expect and infer the paths
-      // as the LLM is sending us chunks with malformed JSON
+      // as the LLM is sending us chunks with malformed JSON or XML
+      // val format : FunctionCallFormat = JsonSupport
       if (schema != null) {
-        val example = createExampleFromSchema(schema)
-        chat
-          .createChatCompletionStream(request)
-          .onCompletion {
-            val newMessages = prompt.messages + messages
-            newMessages.addToMemory(
-              scope,
-              prompt.configuration.messagePolicy.addMessagesToConversation
-            )
-          }
+        val format = functionCallFormat(prompt)
+        val stream = functionCallStream(prompt, chat, request)
+        val example = format.createExampleFromSchema(schema)
+        stream
+          .onCompletion { addMessagesToMemory(prompt, messages, scope) }
           .collect { responseChunk ->
             // Each chunk is emitted from the LLM and it will include a delta.parameters with
             // the function is streaming, the JSON received will be partial and usually malformed
@@ -101,12 +106,13 @@ sealed class StreamedFunction<out A> {
                     // we update the path
                     // a change of property happens and we try to stream it
                     streamProperty(
+                      format,
                       path,
                       currentProperty,
                       functionCall.arguments,
                       streamedProperties
                     )
-                    path = findPropertyPath(example, currentArg) ?: listOf(currentArg)
+                    path = format.findPropertyPath(example, currentArg) ?: listOf(currentArg)
                   }
                   // update the current property being evaluated
                   currentProperty = currentArg
@@ -115,48 +121,65 @@ sealed class StreamedFunction<out A> {
                   // the stream is finished and we try to stream the last property
                   // because the previous chunk may had a partial property whose body
                   // may had not been fully streamed
-                  streamProperty(path, currentProperty, functionCall.arguments, streamedProperties)
+                  streamProperty(
+                    format,
+                    path,
+                    currentProperty,
+                    functionCall.arguments,
+                    streamedProperties
+                  )
                 }
               }
               if (finishReason != null) {
                 // we stream the result
-                streamResult(functionCall, messages, serializer)
+                streamResult(format, functionCall, messages, serializer)
               }
             }
           }
       }
     }
 
-    private suspend fun <A> FlowCollector<StreamedFunction<A>>.streamResult(
-      functionCall: ChatCompletionMessageToolCallFunction,
+    private suspend fun addMessagesToMemory(
+      prompt: Prompt,
       messages: MutableList<ChatCompletionRequestMessage>,
-      serializer: (json: String) -> A
+      scope: Conversation
     ) {
-      val arguments = functionCall.arguments
-      messages.add(PromptBuilder.assistant("Function call: $functionCall"))
-      val result = serializer(arguments)
-      // stream the result
-      emit(Result(result))
+      val newMessages = prompt.messages + messages
+      newMessages.addToMemory(scope, prompt.configuration.messagePolicy.addMessagesToConversation)
     }
 
-    /**
-     * The PropertyType enum represents the different types of properties that can be identified
-     * from JSON. These include STRING, NUMBER, BOOLEAN, ARRAY, OBJECT, NULL, and UNKNOWN.
-     *
-     * STRING: Represents a property with a string value. NUMBER: Represents a property with a
-     * numeric value. BOOLEAN: Represents a property with a boolean value. ARRAY: Represents a
-     * property that is an array of values. OBJECT: Represents a property that is an object with
-     * key-value pairs. NULL: Represents a property with a null value. UNKNOWN: Represents a
-     * property of unknown type.
-     */
-    private enum class PropertyType {
-      STRING,
-      NUMBER,
-      BOOLEAN,
-      ARRAY,
-      OBJECT,
-      NULL,
-      UNKNOWN
+    private fun functionCallStream(
+      prompt: Prompt,
+      chat: Chat,
+      request: CreateChatCompletionRequest
+    ): Flow<CreateChatCompletionStreamResponse> =
+      when (prompt.toolCallStrategy) {
+        ToolCallStrategy.Supported -> chat.createChatCompletionStream(request)
+        ToolCallStrategy.InferJsonFromStringResponse ->
+          chat.createChatCompletionStreamFromStringParsing(JsonSupport, request)
+        ToolCallStrategy.InferXmlFromStringResponse ->
+          chat.createChatCompletionStreamFromStringParsing(XmlSupport, request)
+      }
+
+    private fun functionCallFormat(prompt: Prompt): FunctionCallFormat =
+      when (prompt.toolCallStrategy) {
+        ToolCallStrategy.Supported -> JsonSupport
+        ToolCallStrategy.InferJsonFromStringResponse -> JsonSupport
+        ToolCallStrategy.InferXmlFromStringResponse -> XmlSupport
+      }
+
+    private suspend fun <A> FlowCollector<StreamedFunction<A>>.streamResult(
+      format: FunctionCallFormat,
+      functionCall: ChatCompletionMessageToolCallFunction,
+      messages: MutableList<ChatCompletionRequestMessage>,
+      serializer: (output: String) -> A
+    ) {
+      val arguments = format.cleanArguments(functionCall)
+      val jsonArguments = format.argumentsToJsonString(arguments)
+      messages.add(PromptBuilder.assistant("Function call: $functionCall"))
+      val result = serializer(jsonArguments)
+      // stream the result
+      emit(Result(result))
     }
 
     /**
@@ -172,6 +195,7 @@ sealed class StreamedFunction<out A> {
      * @param streamedProperties The set of already streamed properties.
      */
     private suspend fun <A> FlowCollector<StreamedFunction<A>>.streamProperty(
+      format: FunctionCallFormat,
       path: List<String>,
       prop: String?,
       currentArgs: String?,
@@ -180,20 +204,12 @@ sealed class StreamedFunction<out A> {
       if (prop != null && currentArgs != null) {
         // stream a new property
         try {
-          val remainingText = currentArgs.replace("\n", "")
-          val body = remainingText.substringAfterLast("\"$prop\":").trim()
-          // detect the type of the property
-          val propertyType = propertyType(body)
-          // extract the body of the property or if null don't report it
-          val detectedBody = extractBody(propertyType, body) ?: return
-          // repack the body as a valid JSON string
-          val propertyValueAsJson = repackBodyAsJsonString(propertyType, detectedBody)
-          if (propertyValueAsJson != null) {
-            val propertyValue = Json.decodeFromString<JsonElement>(propertyValueAsJson)
+          val propertyValue = format.propertyValue(prop, currentArgs)
+          if (propertyValue != null) {
             // we try to extract the text value of the property
             // or for cases like objects that we don't want to report on
             // we return null
-            val text = textProperty(propertyValue)
+            val text = format.textProperty(propertyValue)
             if (text != null) {
               val streamedProperty = Property(path, prop, text)
               // we only stream the property if it has not been streamed before
@@ -207,85 +223,6 @@ sealed class StreamedFunction<out A> {
         } catch (e: Throwable) {
           // ignore
         }
-      }
-    }
-
-    /**
-     * Repacks the detected body as a JSON string based on the provided property type.
-     *
-     * @param propertyType The property type to determine how the body should be repacked.
-     * @param detectedBody The detected body to be repacked as a JSON string.
-     * @return The repacked body as a JSON string.
-     */
-    private fun repackBodyAsJsonString(propertyType: PropertyType, detectedBody: String?): String? =
-      when (propertyType) {
-        STRING -> "\"$detectedBody\""
-        NUMBER -> detectedBody
-        BOOLEAN -> detectedBody
-        ARRAY -> "[$detectedBody]"
-        OBJECT -> "{$detectedBody}"
-        NULL -> "null"
-        else -> null
-      }
-
-    /**
-     * Extracts the body from a given input string which may contain potentially malformed json or
-     * partial json chunk results.
-     *
-     * @param propertyType The type of property being extracted.
-     * @param body The input string to extract the body from.
-     * @return The extracted body string, or null if the body cannot be found.
-     */
-    private fun extractBody(propertyType: PropertyType, body: String): String? =
-      when (propertyType) {
-        STRING -> stringBody.find(body)?.groupValues?.get(1)
-        NUMBER -> numberBody.find(body)?.groupValues?.get(1)
-        BOOLEAN -> booleanBody.find(body)?.groupValues?.get(1)
-        ARRAY -> arrayBody.find(body)?.groupValues?.get(1)
-        OBJECT -> objectBody.find(body)?.groupValues?.get(1)
-        NULL -> nullBody.find(body)?.groupValues?.get(1)
-        else -> null
-      }
-
-    /**
-     * Determines the type of a property based on a partial chnk of it's body.
-     *
-     * @param body The body of the property.
-     * @return The type of the property.
-     */
-    private fun propertyType(body: String): PropertyType =
-      when (body.firstOrNull()) {
-        '"' -> STRING
-        in '0'..'9' -> NUMBER
-        't',
-        'f' -> BOOLEAN
-        '[' -> ARRAY
-        '{' -> OBJECT
-        'n' -> NULL
-        else -> UNKNOWN
-      }
-
-    private val stringBody = """\"(.*?)\"""".toRegex()
-    private val numberBody = "(-?\\d+(\\.\\d+)?)".toRegex()
-    private val booleanBody = """(true|false)""".toRegex()
-    private val arrayBody = """\[(.*?)\]""".toRegex()
-    private val objectBody = """\{(.*?)\}""".toRegex()
-    private val nullBody = """null""".toRegex()
-
-    /**
-     * Searches for the content of the property within a given JsonElement.
-     *
-     * @param element The JsonElement to search within.
-     * @return The text property as a String, or null if not found.
-     */
-    private fun textProperty(element: JsonElement): String? {
-      return when (element) {
-        // we don't report on properties holding objects since we report on the properties of the
-        // object
-        is JsonObject -> null
-        is JsonArray -> element.map { textProperty(it) }.joinToString(", ")
-        is JsonPrimitive -> element.content
-        is JsonNull -> "null"
       }
     }
 
@@ -305,61 +242,65 @@ sealed class StreamedFunction<out A> {
         ?.groupValues
         ?.lastOrNull()
 
-    private fun findPropertyPath(jsonElement: JsonElement, targetProperty: String): List<String>? {
-      return findPropertyPathTailrec(listOf(jsonElement to emptyList()), targetProperty)
-    }
-
-    private tailrec fun findPropertyPathTailrec(
-      stack: List<Pair<JsonElement, List<String>>>,
-      targetProperty: String
-    ): List<String>? {
-      if (stack.isEmpty()) return null
-
-      val (currentElement, currentPath) = stack.first()
-      val remainingStack = stack.drop(1)
-
-      return when (currentElement) {
-        is JsonObject -> {
-          if (currentElement.containsKey(targetProperty)) {
-            currentPath + targetProperty
-          } else {
-            val newStack = currentElement.entries.map { it.value to (currentPath + it.key) }
-            findPropertyPathTailrec(remainingStack + newStack, targetProperty)
+    fun Chat.createChatCompletionStreamFromStringParsing(
+      format: FunctionCallFormat,
+      request: CreateChatCompletionRequest
+    ): Flow<CreateChatCompletionStreamResponse> {
+      val choiceName =
+        request.toolChoice?.let {
+          when (it) {
+            is ChatCompletionToolChoiceOption.CaseChatCompletionNamedToolChoice ->
+              it.value.function.name
+            else -> null
           }
         }
-        is JsonArray -> {
-          val newStack = currentElement.map { it to currentPath }
-          findPropertyPathTailrec(remainingStack + newStack, targetProperty)
-        }
-        else -> findPropertyPathTailrec(remainingStack, targetProperty)
+      val tools = request.tools.orEmpty()
+      val additionalMessage =
+        if (tools.isEmpty()) null
+        else
+          user(
+            """
+            <tools>
+              ${chatCompletionsAvailableToolsInstructions(format, tools)}
+            </tools>
+            ${if (choiceName != null) "<tool_choice>$choiceName</tool_choice>" else ""}
+          """
+              .trimIndent()
+          )
+      val modifiedRequest =
+        request.copy(
+          toolChoice = null,
+          tools = emptyList(),
+          messages = listOfNotNull(additionalMessage) + request.messages,
+          stop = format.stopOn()
+        )
+      return createChatCompletionStream(modifiedRequest).map { response ->
+        response.copy(
+          choices =
+            response.choices.map { choice ->
+              choice.copy(
+                ChatCompletionStreamResponseDelta(
+                  toolCalls =
+                    listOf(
+                      ChatCompletionMessageToolCallChunk(
+                        index = 0,
+                        function =
+                          ChatCompletionMessageToolCallChunkFunction(
+                            name = choiceName,
+                            arguments = choice.delta.content
+                          )
+                      )
+                    )
+                )
+              )
+            }
+        )
       }
     }
 
-    @OptIn(ExperimentalSerializationApi::class)
-    private fun createExampleFromSchema(jsonElement: JsonElement): JsonElement {
-      return when {
-        jsonElement is JsonObject && jsonElement.containsKey("type") -> {
-          when (jsonElement["type"]?.jsonPrimitive?.content) {
-            "object" -> {
-              val properties = jsonElement["properties"] as? JsonObject
-              val resultMap = mutableMapOf<String, JsonElement>()
-              properties?.forEach { (key, value) ->
-                resultMap[key] = createExampleFromSchema(value)
-              }
-              JsonObject(resultMap)
-            }
-            "array" -> {
-              val items = jsonElement["items"]
-              val exampleItems = items?.let { createExampleFromSchema(it) }
-              JsonArray(listOfNotNull(exampleItems))
-            }
-            "string" -> JsonPrimitive("default_string")
-            "number" -> JsonPrimitive(0)
-            else -> JsonPrimitive(null)
-          }
-        }
-        else -> JsonPrimitive(null)
-      }
-    }
+    fun chatCompletionsAvailableToolsInstructions(
+      format: FunctionCallFormat,
+      tools: List<ChatCompletionTool>
+    ): String = tools.joinToString("\n") { tool -> format.chatCompletionToolInstructions(tool) }
   }
 }

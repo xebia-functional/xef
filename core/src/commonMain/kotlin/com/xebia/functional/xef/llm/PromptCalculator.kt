@@ -13,10 +13,10 @@ import com.xebia.functional.xef.store.Memory
 
 internal object PromptCalculator {
 
-  suspend fun adaptPromptToConversationAndModel(prompt: Prompt, scope: Conversation): Prompt =
-    when (prompt.configuration.messagePolicy.addMessagesFromConversation) {
-      MessagesFromHistory.ALL -> adaptPromptFromConversation(prompt, scope)
-      MessagesFromHistory.NONE -> prompt
+  suspend fun Prompt.adaptPromptToConversationAndModel(scope: Conversation): Prompt =
+    when (configuration.messagePolicy.addMessagesFromConversation) {
+      MessagesFromHistory.ALL -> adaptPromptFromConversation(this, scope)
+      MessagesFromHistory.NONE -> this
     }
 
   private suspend fun adaptPromptFromConversation(prompt: Prompt, scope: Conversation): Prompt {
