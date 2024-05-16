@@ -15,6 +15,9 @@ java {
 }
 
 dependencies {
+    implementation(libs.exposed.core)
+    implementation(libs.flyway.core)
+    implementation(libs.hikari)
     implementation(projects.xefCore)
     implementation(projects.xefEvaluator)
     implementation(projects.xefFilesystem)

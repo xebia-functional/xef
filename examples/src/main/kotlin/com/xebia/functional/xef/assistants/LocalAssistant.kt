@@ -1,5 +1,6 @@
 package com.xebia.functional.xef.assistants
 
+import com.xebia.functional.openai.generated.api.Assistants
 import com.xebia.functional.xef.Config
 import com.xebia.functional.xef.OpenAI
 import com.xebia.functional.xef.llm.assistants.Assistant
@@ -9,8 +10,7 @@ import com.xebia.functional.xef.llm.assistants.Tool
 import com.xebia.functional.xef.llm.assistants.local.InMemoryAssistants
 import com.xebia.functional.xef.prompt.ToolCallStrategy
 
-suspend fun main() {
-
+suspend fun getAssistant(assistants: Assistants): Assistant {
   // language=yaml
   val yamlConfig =
     """
@@ -31,11 +31,18 @@ suspend fun main() {
     """
       .trimIndent()
   val tools = listOf(Tool.toolOf(SumTool()))
+
+  return Assistant.fromConfig(request = yamlConfig, toolsConfig = tools, assistantsApi = assistants)
+}
+
+suspend fun main() {
+
   val config = Config(baseUrl = "http://localhost:11434/v1/")
   val chat = OpenAI(config = config, logRequests = true).chat
   val localAssistants = InMemoryAssistants(api = chat)
-  val assistant =
-    Assistant.fromConfig(request = yamlConfig, toolsConfig = tools, assistantsApi = localAssistants)
+
+  val assistant = getAssistant(localAssistants)
+
   val assistantInfo = assistant.get()
   println("assistant: $assistantInfo")
   val thread = AssistantThread(api = localAssistants)
