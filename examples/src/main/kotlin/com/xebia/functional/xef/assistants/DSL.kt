@@ -47,7 +47,7 @@ suspend fun main() {
 
   val assistant =
     Assistant(
-      assistantId = "asst_UxczzpJkysC0l424ood87DAk",
+      assistantId = "asst_BwQvmWIbGUMDvCuXOtAFH8B6",
       toolsConfig = listOf(Tool.toolOf(SumTool()))
     )
   val thread = AssistantThread(api = OpenAI(logRequests = false).assistants, metric = metric)
