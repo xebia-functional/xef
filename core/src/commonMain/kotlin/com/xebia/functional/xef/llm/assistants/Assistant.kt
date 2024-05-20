@@ -22,14 +22,14 @@ class Assistant(
   val assistantId: String,
   val toolsConfig: List<Tool.Companion.ToolConfig<*, *>> = emptyList(),
   val config: Config = Config(),
-  private val assistantsApi: Assistants = OpenAI(config, logRequests = true).assistants,
+  private val assistantsApi: Assistants = OpenAI(config, logRequests = false).assistants,
 ) {
 
   constructor(
     assistantObject: AssistantObject,
     toolsConfig: List<Tool.Companion.ToolConfig<*, *>> = emptyList(),
     config: Config = Config(),
-    assistantsApi: Assistants = OpenAI(config, logRequests = true).assistants,
+    assistantsApi: Assistants = OpenAI(config, logRequests = false).assistants,
   ) : this(assistantObject.id, toolsConfig, config, assistantsApi)
 
   suspend fun get(): AssistantObject =
@@ -83,7 +83,7 @@ class Assistant(
       metadata: JsonObject? = null,
       toolsConfig: List<Tool.Companion.ToolConfig<*, *>> = emptyList(),
       config: Config = Config(),
-      assistantsApi: Assistants = OpenAI(config, logRequests = true).assistants,
+      assistantsApi: Assistants = OpenAI(config, logRequests = false).assistants,
     ): Assistant =
       Assistant(
         CreateAssistantRequest(
@@ -104,7 +104,7 @@ class Assistant(
       request: CreateAssistantRequest,
       toolsConfig: List<Tool.Companion.ToolConfig<*, *>> = emptyList(),
       config: Config = Config(),
-      assistantsApi: Assistants = OpenAI(config, logRequests = true).assistants,
+      assistantsApi: Assistants = OpenAI(config, logRequests = false).assistants,
     ): Assistant {
       val response = assistantsApi.createAssistant(request, configure = ::defaultConfig)
       return Assistant(response, toolsConfig, config, assistantsApi)
@@ -114,7 +114,7 @@ class Assistant(
       request: String,
       toolsConfig: List<Tool.Companion.ToolConfig<*, *>> = emptyList(),
       config: Config = Config(),
-      assistantsApi: Assistants = OpenAI(config, logRequests = true).assistants,
+      assistantsApi: Assistants = OpenAI(config, logRequests = false).assistants,
     ): Assistant {
       val parsed = Yaml.Default.decodeYamlMapFromString(request)
       val fileIds = parsed["file_ids"]?.let { (it as List<*>).map { it.toString() } }
