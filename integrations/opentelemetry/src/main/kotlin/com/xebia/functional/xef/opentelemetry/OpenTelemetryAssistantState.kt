@@ -115,7 +115,7 @@ class OpenTelemetryAssistantState(private val tracer: Tracer) {
                 when (it) {
                   is RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsCodeObject -> it.value.type.name
                   is RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsFunctionObject -> it.value.function.name ?: ""
-                  is RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsRetrievalObject -> it.value.type.name
+                  is RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsFileSearchObject -> it.value.type.name
                 }
               }}: ${output.status.name}"
             )
@@ -167,7 +167,6 @@ class OpenTelemetryAssistantState(private val tracer: Tracer) {
 
   private fun RunObject.setParameters(span: Span) {
     span.setAttribute("openai.assistant.model", model)
-    if (fileIds.isNotEmpty()) span.setAttribute("openai.assistant.fileIds", fileIds.joinToString())
     span.setAttribute("openai.assistant.tools.count", tools.count().toString())
     span.setAttribute("openai.assistant.thread.id", threadId)
     span.setAttribute("openai.assistant.assistant.id", assistantId)
@@ -215,7 +214,7 @@ class OpenTelemetryAssistantState(private val tracer: Tracer) {
                 toolCall.value.function.arguments ?: ""
               )
             }
-            is RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsRetrievalObject -> {
+            is RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsFileSearchObject -> {
               span.setAttribute("openai.assistant.toolCalls.$index.type", toolCall.value.type.name)
               span.setAttribute("openai.assistant.toolCalls.$index.function.name", "retrieval")
             }
@@ -242,6 +241,11 @@ class OpenTelemetryAssistantState(private val tracer: Tracer) {
             inner.value.text.value
           )
         }
+        is MessageObjectContentInner.CaseMessageContentImageUrlObject ->
+          span.setAttribute(
+            "openai.assistant.messages.${indexOf(it)}.content",
+            inner.value.imageUrl.url
+          )
         null -> {}
       }
     }
