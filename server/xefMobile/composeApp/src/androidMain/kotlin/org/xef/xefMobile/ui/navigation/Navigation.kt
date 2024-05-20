@@ -28,7 +28,7 @@ fun AppNavigator(authViewModel: IAuthViewModel) {
             AssistantScreen(navController = navController)
         }
         composable("createAssistantScreen") {
-            CreateAssistantScreen()
+            CreateAssistantScreen(navController = navController)
         }
     }
 }

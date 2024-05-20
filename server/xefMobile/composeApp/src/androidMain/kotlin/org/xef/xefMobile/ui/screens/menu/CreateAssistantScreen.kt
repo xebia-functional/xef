@@ -13,20 +13,24 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import org.xef.xefMobile.theme.LocalCustomColors
 
 class CreateAssistantActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            CreateAssistantScreen()
+            // Pass the NavController to CreateAssistantScreen
+            val navController = rememberNavController()
+            CreateAssistantScreen(navController)
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreateAssistantScreen() {
+fun CreateAssistantScreen(navController: NavController) {
     var name by remember { mutableStateOf("") }
     var instructions by remember { mutableStateOf("") }
     var temperature by remember { mutableStateOf(1f) }
@@ -188,7 +192,7 @@ fun CreateAssistantScreen() {
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Button(
-                    onClick = { /* handle cancel */ },
+                    onClick = { navController.navigateUp() },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = customColors.buttonColor,
                         contentColor = MaterialTheme.colorScheme.onPrimary
@@ -198,7 +202,7 @@ fun CreateAssistantScreen() {
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(
-                    onClick = { /* handle cancel */ },
+                    onClick = { /* handle create */ },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = customColors.buttonColor,
                         contentColor = MaterialTheme.colorScheme.onPrimary
@@ -216,9 +220,11 @@ fun CreateAssistantScreen() {
 fun AssistantFloatField(label: String, value: Float, onValueChange: (Float) -> Unit) {
     val customColors = LocalCustomColors.current
     Column(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+
     ) {
-        Text(text = label, modifier = Modifier.padding(bottom = 8.dp))
+        Text(text = label, modifier = Modifier.padding(bottom = 4.dp))  // Adjust padding for the label
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
@@ -241,7 +247,9 @@ fun AssistantFloatField(label: String, value: Float, onValueChange: (Float) -> U
                     onValueChange(newValue)
                 },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.width(60.dp)
+                modifier = Modifier
+                    .width(60.dp)
+
             )
         }
     }

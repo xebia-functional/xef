@@ -8,15 +8,14 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import org.xef.xefMobile.model.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.xef.xefMobile.model.*
 import org.xef.xefMobile.services.ApiService
 import retrofit2.HttpException
-
 import java.io.IOException
 
 private val Context.dataStore by preferencesDataStore(name = "settings")
@@ -67,10 +66,14 @@ class AuthViewModel(
     }
 
     private suspend fun updateAuthToken(token: String) {
-        withContext(Dispatchers.IO) {
-            dataStore.edit { preferences ->
-                preferences[stringPreferencesKey("authToken")] = token
+        try {
+            withContext(Dispatchers.IO) {
+                dataStore.edit { preferences ->
+                    preferences[stringPreferencesKey("authToken")] = token
+                }
             }
+        } catch (e: Exception) {
+            _errorMessage.postValue("Failed to update auth token")
         }
     }
 

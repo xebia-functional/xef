@@ -7,6 +7,8 @@ data class RegisterRequest(
 )
 
 data class RegisterResponse(
+    val name: String,
+    val email: String,
     val authToken: String
 )
 
@@ -16,5 +18,6 @@ data class LoginRequest(
 )
 
 data class LoginResponse(
+    val email: String,
     val authToken: String
 )

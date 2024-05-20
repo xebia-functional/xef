@@ -239,7 +239,7 @@ fun XefAndroidApp() {
                     composable(Screens.Home.screen) { HomeScreen() }
                     composable(Screens.Organizations.screen) { }
                     composable(Screens.Assistants.screen) { AssistantScreen(navigationController) }
-                    composable(Screens.CreateAssistant.screen) { CreateAssistantScreen() }
+                    composable(Screens.CreateAssistant.screen) { CreateAssistantScreen(navigationController) }
                     composable(Screens.Projects.screen) { }
                     composable(Screens.Chat.screen) { }
                     composable(Screens.GenericQuestion.screen) { }
