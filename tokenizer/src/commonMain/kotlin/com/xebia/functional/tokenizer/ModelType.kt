@@ -41,6 +41,8 @@ sealed class ModelType(
       GPT_4_32K_0314_FUNCTIONS,
       GPT_4_0613,
       GPT_4_32K_0613_FUNCTIONS,
+      GPT_4O,
+      GPT_4O_2024_05_13,
     )
     val all: List<ModelType> = listOf(
       GPT_3_5_TURBO,
@@ -55,6 +57,8 @@ sealed class ModelType(
       GPT_4_32K,
       GPT_4_32_K_0314,
       GPT_4_32K_0613_FUNCTIONS,
+      GPT_4O,
+      GPT_4O_2024_05_13,
       GPT_4_TURBO_1106_PREVIEW,
       GPT_4_VISION_PREVIEW,
       TEXT_DAVINCI_003,
@@ -140,6 +144,13 @@ sealed class ModelType(
 
   object GPT_4_VISION_PREVIEW :
     ModelType("gpt-4-vision-preview", CL100K_BASE, 128000, tokensPerMessage = 3, tokensPerName = 2, tokenPadding = 5)
+
+  object GPT_4O :
+    ModelType("gpt-4o", CL100K_BASE, 128000, tokensPerMessage = 3, tokensPerName = 2, tokenPadding = 5)
+
+  object GPT_4O_2024_05_13 :
+    ModelType("gpt-4o-2024-05-13", CL100K_BASE, 128000, tokensPerMessage = 3, tokensPerName = 2, tokenPadding = 5)
+
 
   // text
   object TEXT_DAVINCI_003 : ModelType("text-davinci-003", P50K_BASE, 4097)
