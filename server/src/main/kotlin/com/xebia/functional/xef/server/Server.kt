@@ -59,7 +59,7 @@ object Server {
             requestTimeout = 0 // disabled
           }
           install(Auth)
-          install(Logging) { level = LogLevel.ALL }
+          install(Logging) { level = LogLevel.INFO }
           install(ClientContentNegotiation)
         }
 

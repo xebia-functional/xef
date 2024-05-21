@@ -1,6 +1,7 @@
 import { useContext, useEffect, useState, ChangeEvent } from "react";
 import { useAuth } from "@/state/Auth";
 import { LoadingContext } from "@/state/Loading";
+import styles from './Assistants.module.css';
 
 import {
   Alert,
@@ -157,24 +158,25 @@ export function Assistants() {
   };
 
   const handleCreateAssistant = async () => {
-    try {
-      console.log("Creating assistant with name:", selectedAssistant.name);
-      await postAssistant(auth.authToken, { name: selectedAssistant.name });
-      const response = await getAssistants(auth.authToken);
-      setAssistants(response);
-      setAssistantCreated(true);
-    } catch (error) {
-      console.error('Error creating assistant:', error);
-      setShowAlert('Failed to create assistant.');
-    }
+
   };
 
   const models = [
+    { value: 'gpt-4o-2024-05-13', label: 'gpt-4o-2024-05-13' },
+    { value: 'gpt-4o', label: 'gpt-4o' },
+    { value: 'gpt-4-vision-preview', label: 'gpt-4-vision-preview' },
+    { value: 'gpt-4-turbo-preview', label: 'gpt-4-turbo-preview' },
+    { value: 'gpt-4-2024-04-09', label: 'gpt-4-2024-04-09' },
     { value: 'gpt-4-turbo', label: 'gpt-4-turbo' },
+    { value: 'gpt-4-1106-preview', label: 'gpt-4-1106-preview' },
+    { value: 'gpt-4-0613', label: 'gpt-4-0613' },
+    { value: 'gpt-4-0125-preview', label: 'gpt-4-0125-preview' },
     { value: 'gpt-4', label: 'gpt-4' },
+    { value: 'gpt-3.5-turbo-16k-0613', label: 'gpt-3.5-turbo-16k-0613' },
     { value: 'gpt-3.5-turbo-16k', label: 'gpt-3.5-turbo-16k' },
+    { value: 'gpt-3.5-turbo-1106', label: 'gpt-3.5-turbo-1106' },
+    { value: 'gpt-3.5-turbo-0613', label: 'gpt-3.5-turbo-0613' },
     { value: 'gpt-3.5-turbo-0125', label: 'gpt-3.5-turbo-0125' },
-    { value: 'gpt-3.5-turbo', label: 'gpt-3.5-turbo' },
     { value: 'gpt-3.5-turbo', label: 'gpt-3.5-turbo' },
   ];
 
@@ -183,8 +185,23 @@ export function Assistants() {
     textAlign: 'left',
   };
 
+  useEffect(() => {
+      const fetchAssistants = async () => {
+        try {
+          const response = await axios.get('/v1/settings/assistants'); // Endpoint para obtener la lista de asistentes
+          setAssistants(response.data); // Actualizar el estado con los datos de los asistentes
+          setLoading(false); // Indicar que la carga ha finalizado
+        } catch (error) {
+          console.error('Error fetching assistants:', error);
+          setLoading(false); // Indicar que la carga ha finalizado incluso en caso de error
+        }
+      };
+
+      fetchAssistants(); // Llamar a la función para obtener los asistentes cuando el componente se monta
+    }, []); // El segundo argumento [] asegura que esta función solo se ejecute una vez, cuando el componente se monta
+
   return (
-        <Box sx={{ position: 'relative', height: '100%' }}>
+        <Box className={styles.container}>
 
                 <Box sx={{ flexGrow: 1, display: 'flex', gap: 0 }}>
 
@@ -210,7 +227,7 @@ export function Assistants() {
                               <TableBody>
                                 {assistants.map((assistant) => (
                                   <TableRow key={assistant.id}>
-                                    <TableCell>{assistant.createdAt}</TableCell>
+                                    <TableCell>{assistant.id}</TableCell>
                                     <TableCell>{assistant.name}</TableCell>
                                     <TableCell align="right">
                                       <Button onClick={() => {
@@ -281,7 +298,7 @@ export function Assistants() {
                             </option>
                           ))}
                         </TextField >
-                        <Typography style={{ fontWeight: 'bold' }}>Tools</Typography>
+                        <Typography className={styles.boldText}>Tools</Typography>
                         <Divider />
                         <div style={{ display: 'flex', alignItems: 'center' }}>
                               <FormControlLabel
@@ -289,7 +306,7 @@ export function Assistants() {
                                 label="File search"
                                 sx={{ flex: '1', mt: 2, mb: 2 }}
                               />
-                              <Button onClick={handleFileSearchButtonClick} sx={{ ml: 'auto' }}>+ Files</Button>
+                              <Button onClick={handleFileSearchButtonClick}>+ Files</Button>
                             </div>
                             {fileSearchDialogOpen && (
                               <Dialog
@@ -372,7 +389,7 @@ export function Assistants() {
                                   )}
                                 </DialogContent>
 
-                                 <Divider sx={{ width: '90%', margin: 'auto' }} />
+                                <Divider sx={{ width: '90%', margin: 'auto' }} />
                                 <DialogActions>
                                   {fileSearchSelectedFile.length > 0 && (
                                         <Button onClick={() => openFileSelector(handleFileSearchInputChange)}>Add</Button>
@@ -512,9 +529,9 @@ export function Assistants() {
                         <Divider sx={{ marginBottom: 6 }} />
 
                         <div style={{ textAlign: 'left' }}>
-                          <Typography style={{ fontWeight: 'bold' }}>MODEL CONFIGURATION</Typography>
+                          <Typography className={styles.boldText}>MODEL CONFIGURATION</Typography>
                           <Divider sx={{ display: 'block', mt: 2, mb: 2 }}/>
-                          <Typography variant="subtitle1" style={{ fontWeight: 'bold' }}>Response format</Typography>
+                          <Typography variant="subtitle1" className={styles.boldText}>Response format</Typography>
 
                           <FormControlLabel
                             control={<Switch checked={JsonObjectEnabled} onChange={handleJsonObjectChange} />}
@@ -524,7 +541,7 @@ export function Assistants() {
                         </div>
 
                         <div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div className={styles.sliders}>
                             <Typography gutterBottom>Temperature</Typography>
                             <TextField
                               value={temperature}
@@ -550,7 +567,7 @@ export function Assistants() {
                             max={2}
                             valueLabelDisplay="auto"
                           />
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div className={styles.sliders}>
                             <Typography gutterBottom>Top P</Typography>
                             <TextField
                               value={topP}
