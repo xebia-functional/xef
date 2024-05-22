@@ -185,20 +185,22 @@ export function Assistants() {
     textAlign: 'left',
   };
 
-  useEffect(() => {
-      const fetchAssistants = async () => {
-        try {
-          const response = await axios.get('/v1/settings/assistants'); // Endpoint para obtener la lista de asistentes
-          setAssistants(response.data); // Actualizar el estado con los datos de los asistentes
-          setLoading(false); // Indicar que la carga ha finalizado
-        } catch (error) {
-          console.error('Error fetching assistants:', error);
-          setLoading(false); // Indicar que la carga ha finalizado incluso en caso de error
-        }
-      };
+    useEffect(() => {
+        const fetchAssistants = async () => {
+          setLoading(true);
+          try {
+            const fetchedAssistants = await getAssistants(auth.token);
+            setAssistants(fetchedAssistants);
+          } catch (error) {
+            console.error(error);
+          } finally {
+            setLoading(false);
+          }
+    };
 
-      fetchAssistants(); // Llamar a la función para obtener los asistentes cuando el componente se monta
-    }, []); // El segundo argumento [] asegura que esta función solo se ejecute una vez, cuando el componente se monta
+    fetchAssistants();
+  }, [auth.token]);
+
 
   return (
         <Box className={styles.container}>

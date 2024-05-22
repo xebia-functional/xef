@@ -76,15 +76,15 @@ import {
   }
 
   export async function postAssistant(authToken: string, data: CreateAssistantRequest): Promise<AssistantObject> {
-    return executeRequest<AssistantResponse>(authToken, 'POST', '', data);
+    return executeRequest<AssistantObject>(authToken, 'POST', '', data);
   }
 
   export async function getAssistants(authToken: string): Promise<ListAssistantResponse> {
-    return executeRequest<AssistantResponse[]>(authToken, 'GET');
+    return executeRequest<ListAssistantResponse>(authToken, 'GET');
   }
 
   export async function putAssistant(authToken: string, id: string, data: ModifyAssistantRequest): Promise<AssistantObject> {
-    return executeRequest<AssistantResponse>(authToken, 'PUT', `/${id}`, data);
+    return executeRequest<AssistantObject>(authToken, 'PUT', `/${id}`, data);
   }
 
   export async function deleteAssistant(authToken: string, id: string): Promise<DeleteAssistantResponse> {
