@@ -49,7 +49,7 @@ fun CreateAssistantScreen(navController: NavController) {
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
-                .padding(10.dp)
+                .padding(8.dp)
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -224,9 +224,11 @@ fun AssistantFloatField(label: String, value: Float, onValueChange: (Float) -> U
     Column(
         modifier = Modifier
             .fillMaxWidth()
-
     ) {
-        Text(text = label, modifier = Modifier.padding(bottom = 4.dp))  // Adjust padding for the label
+        Text(
+            text = label,
+            modifier = Modifier.padding(bottom = 2.dp)  // Reduce padding for the label
+        )
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
@@ -242,6 +244,7 @@ fun AssistantFloatField(label: String, value: Float, onValueChange: (Float) -> U
                     activeTrackColor = customColors.sliderTrackColor
                 )
             )
+            Spacer(modifier = Modifier.width(2.dp))  // Add a small spacer between the slider and text field
             TextField(
                 value = String.format("%.2f", value),
                 onValueChange = {
@@ -251,7 +254,8 @@ fun AssistantFloatField(label: String, value: Float, onValueChange: (Float) -> U
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier
                     .width(60.dp)
-
+                    .height(50.dp),
+                textStyle = LocalTextStyle.current.copy(fontSize = 12.sp)  // Optionally adjust text size
             )
         }
     }
