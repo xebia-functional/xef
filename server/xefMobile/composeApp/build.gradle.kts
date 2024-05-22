@@ -39,45 +39,56 @@ kotlin {
                 optIn("org.jetbrains.compose.resources.ExperimentalResourceApi")
             }
         }
-        commonMain.dependencies {
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.material3)
-            implementation(compose.components.resources)
-            implementation(compose.components.uiToolingPreview)
-            implementation(libs.voyager.navigator)
-            implementation(libs.composeImageLoader)
-            implementation(libs.napier)
-            implementation(libs.kotlinx.coroutines.core)
-            implementation(libs.ktor.core)
-            implementation(libs.kotlinx.serialization.json)
-            implementation(libs.multiplatformSettings)
-            implementation(libs.ktor.client.json)
-            implementation("io.ktor:ktor-client-content-negotiation:2.3.11")
-            implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.11")
-            implementation("androidx.navigation:navigation-compose:2.7.7")
-            implementation("com.squareup.retrofit2:retrofit:2.11.0")
-            implementation("com.squareup.retrofit2:converter-gson:2.11.0")
+        val commonMain by getting {
+            dependencies {
+                implementation(compose.runtime)
+                implementation(compose.foundation)
+                implementation(compose.material3)
+                implementation(compose.components.resources)
+                implementation(compose.components.uiToolingPreview)
+                implementation(libs.voyager.navigator)
+                implementation(libs.composeImageLoader)
+                implementation(libs.napier)
+                implementation(libs.kotlinx.coroutines.core)
+                implementation(libs.ktor.core)
+                implementation(libs.kotlinx.serialization.json)
+                implementation(libs.multiplatformSettings)
+                implementation(libs.ktor.client.json)
+                implementation("io.ktor:ktor-client-content-negotiation:2.3.11")
+                implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.11")
+                implementation("androidx.navigation:navigation-compose:2.7.7")
+                implementation("com.squareup.retrofit2:retrofit:2.11.0")
+                implementation("com.squareup.retrofit2:converter-gson:2.11.0")
+                implementation("io.ktor:ktor-client-serialization-jvm:2.3.11")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.6.3")
+            }
         }
 
-        commonTest.dependencies {
-            implementation(kotlin("test"))
-            @OptIn(ExperimentalComposeLibrary::class)
-            implementation(compose.uiTest)
-            implementation(libs.kotlinx.coroutines.test)
+        val commonTest by getting {
+            dependencies {
+                implementation(kotlin("test"))
+                @OptIn(ExperimentalComposeLibrary::class)
+                implementation(compose.uiTest)
+                implementation(libs.kotlinx.coroutines.test)
+            }
         }
 
-        androidMain.dependencies {
-            implementation(compose.uiTooling)
-            implementation(libs.androidx.activityCompose)
-            implementation(libs.kotlinx.coroutines.android)
-            implementation(libs.ktor.client.okhttp)
-            implementation("io.ktor:ktor-client-android:2.3.11")
-            implementation(libs.ktor.client.json)
-            implementation("io.ktor:ktor-client-content-negotiation:2.3.11")
-            implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.11")
-            implementation("androidx.navigation:navigation-compose:2.7.7")
-            implementation("androidx.datastore:datastore-preferences:1.1.1")
+        val androidMain by getting {
+            dependencies {
+                implementation(compose.uiTooling)
+                implementation(libs.androidx.activityCompose)
+                implementation(libs.kotlinx.coroutines.android)
+                implementation(libs.ktor.client.okhttp)
+                implementation("io.ktor:ktor-client-android:2.3.11")
+                implementation(libs.ktor.client.json)
+                implementation("io.ktor:ktor-client-content-negotiation:2.3.11")
+                implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.11")
+                implementation("androidx.navigation:navigation-compose:2.7.7")
+                implementation("androidx.datastore:datastore-preferences:1.1.1")
+                implementation("androidx.compose.runtime:runtime-livedata:1.6.7")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.6.3")
+                implementation("io.ktor:ktor-client-serialization-jvm:2.3.11")
+            }
         }
     }
 }
