@@ -1,0 +1,14 @@
+.container {
+  position: relative;
+  height: 100%;
+}
+
+.sliders {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.boldText {
+  font-weight: bold;
+}
