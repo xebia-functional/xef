@@ -24,7 +24,7 @@ fun AssistantScreen(navController: NavController) {
     var assistants by remember { mutableStateOf<List<Assistant>>(emptyList()) }
     var loading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    val authToken = "sk-proj-1pFKviuhl0FpuvRRoJbQT3BlbkFJsDPVuS6Dfmip6HwFdQV0" // Replace this with the actual auth token
+    val authToken = "OPEN_AI_TOKEN" // Replace this with the actual auth token
 
     LaunchedEffect(Unit) {
         coroutineScope.launch {
