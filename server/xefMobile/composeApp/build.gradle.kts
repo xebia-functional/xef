@@ -61,6 +61,7 @@ kotlin {
                 implementation("com.squareup.retrofit2:converter-gson:2.11.0")
                 implementation("io.ktor:ktor-client-serialization-jvm:2.3.11")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.6.3")
+                implementation("com.google.accompanist:accompanist-permissions:0.34.0")
             }
         }
 
@@ -88,6 +89,7 @@ kotlin {
                 implementation("androidx.compose.runtime:runtime-livedata:1.6.7")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.6.3")
                 implementation("io.ktor:ktor-client-serialization-jvm:2.3.11")
+                implementation("com.google.accompanist:accompanist-permissions:0.34.0")
             }
         }
     }

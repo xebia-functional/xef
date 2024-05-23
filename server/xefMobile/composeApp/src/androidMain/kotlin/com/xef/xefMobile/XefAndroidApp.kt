@@ -27,7 +27,6 @@ fun XefAndroidApp(authViewModel: IAuthViewModel) {
         startDestination = Screens.Login.screen,
         modifier = Modifier.padding(top = 16.dp)
     ) {
-        composable(Screens.Start.screen) { StartScreen() }
         composable(Screens.Login.screen) { LoginScreen(authViewModel, navigationController) }
         composable(Screens.Register.screen) { RegisterScreen(authViewModel, navigationController) }
         composable(Screens.Home.screen) { HomeScreen(authViewModel, navigationController) }

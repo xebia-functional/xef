@@ -6,7 +6,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.server.movile.xef.android.ui.screens.LoginScreen
 import com.server.movile.xef.android.ui.screens.RegisterScreen
-import com.server.movile.xef.android.ui.screens.StartScreen
 import com.server.movile.xef.android.ui.screens.menu.AssistantScreen
 import com.server.movile.xef.android.ui.screens.menu.CreateAssistantScreen
 import com.server.movile.xef.android.ui.viewmodels.IAuthViewModel
@@ -21,9 +20,6 @@ fun AppNavigator(authViewModel: IAuthViewModel) {
         }
         composable(Screens.Register.screen) {
             RegisterScreen(authViewModel = authViewModel, navController = navController)
-        }
-        composable(Screens.Start.screen) {
-            StartScreen()
         }
         composable(Screens.Assistants.screen) {
             AssistantScreen(navController = navController)
