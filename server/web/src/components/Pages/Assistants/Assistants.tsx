@@ -2,7 +2,7 @@ import { useContext, useEffect, useState, ChangeEvent } from "react";
 import { useAuth } from "@/state/Auth";
 import { LoadingContext } from "@/state/Loading";
 import styles from './Assistants.module.css';
-
+import { getAssistants } from '../../../utils/api/assistants';
 import {
   Alert,
   Box,
@@ -32,22 +32,54 @@ import {
   Switch
 } from "@mui/material";
 
-type Assistant = {
-  id: number;
-  name: string;
-  createdAt: string;
+type AssistantToolsCode = {
+  type: 'code_interpreter';
 };
 
-const emptyAssistant: Assistant = {
-  id: 0,
-  name: "",
-  createdAt: ""
+type FunctionObject = {
+  name: string;
+  description: string;
+  parameters: Record<string, string>;
+};
+
+type AssistantToolsFunction = {
+  type: 'function';
+  function: FunctionObject;
+};
+
+type AssistantToolsRetrieval = {
+  type: 'retrieval';
+};
+
+type AssistantObjectToolsInner = AssistantToolsCode | AssistantToolsFunction | AssistantToolsRetrieval;
+
+type AssistantObject = {
+  id: string;
+  object: 'assistant';
+  createdAt: number;
+  name?: string;
+  description?: string;
+  model: string;
+  instructions?: string;
+  tools: AssistantObjectToolsInner[];
+  fileIds: string[];
+  metadata: Record<string, string> | null;
+};
+
+const emptyAssistant: AssistantObject = {
+  id: "",
+  object: 'assistant',
+  createdAt: 0,
+  model: "",
+  tools: [],
+  fileIds: [],
+  metadata: null
 };
 
 export function Assistants() {
   const auth = useAuth();
   const [loading, setLoading] = useContext(LoadingContext);
-  const [assistants, setAssistants] = useState<Assistant[]>([]);
+  const [assistants, setAssistants] = useState<AssistantObject[]>([]);
   const [showAlert, setShowAlert] = useState<string>('');
   const [selectedAssistant, setSelectedAssistant] = useState<Assistant>(emptyAssistant);
   const [openEditDialog, setOpenEditDialog] = useState(false);
@@ -163,6 +195,7 @@ export function Assistants() {
 
   const models = [
     { value: 'gpt-4o-2024-05-13', label: 'gpt-4o-2024-05-13' },
+    { value: 'gpt-3.5-turbo', label: 'gpt-3.5-turbo' },
     { value: 'gpt-4o', label: 'gpt-4o' },
     { value: 'gpt-4-vision-preview', label: 'gpt-4-vision-preview' },
     { value: 'gpt-4-turbo-preview', label: 'gpt-4-turbo-preview' },
@@ -177,7 +210,6 @@ export function Assistants() {
     { value: 'gpt-3.5-turbo-1106', label: 'gpt-3.5-turbo-1106' },
     { value: 'gpt-3.5-turbo-0613', label: 'gpt-3.5-turbo-0613' },
     { value: 'gpt-3.5-turbo-0125', label: 'gpt-3.5-turbo-0125' },
-    { value: 'gpt-3.5-turbo', label: 'gpt-3.5-turbo' },
   ];
 
   const largeDialogStyles = {
@@ -186,20 +218,24 @@ export function Assistants() {
   };
 
     useEffect(() => {
-        const fetchAssistants = async () => {
-          setLoading(true);
-          try {
-            const fetchedAssistants = await getAssistants(auth.token);
-            setAssistants(fetchedAssistants);
-          } catch (error) {
-            console.error(error);
-          } finally {
-            setLoading(false);
-          }
-    };
+      const fetchAssistants = async () => {
+        setLoading(true);
+        try {
+          console.log('auth.token:', auth.token); // Log auth.token
+          const response = await getAssistants(auth.token);
+          console.log('response:', response); // Log response
+          setAssistants(response.data);
+          console.log('assistants:', assistants); // Log assistants
+        } catch (error) {
+          console.error(error);
+          // handle error
+        } finally {
+          setLoading(false);
+        }
+      };
 
-    fetchAssistants();
-  }, [auth.token]);
+      fetchAssistants();
+    }, [auth.token]);
 
 
   return (

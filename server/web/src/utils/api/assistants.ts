@@ -64,6 +64,7 @@ import {
         headers: {
           ...assistantApiBaseOptions.requestOptions.headers,
           Authorization: `Bearer ${authToken}`,
+          "OpenAI-Beta": "assistants=v1"
         },
       },
     };
