@@ -1,12 +1,12 @@
 package com.xebia.functional.xef.server.http.routes
 
-import com.xebia.functional.openai.generated.model.AssistantObject
 import com.xebia.functional.openai.generated.model.CreateAssistantRequest
-import com.xebia.functional.openai.generated.model.ListAssistantsResponse
+import com.xebia.functional.openai.generated.model.ModifyAssistantRequest
 import com.xebia.functional.xef.Config
 import com.xebia.functional.xef.OpenAI
 import com.xebia.functional.xef.llm.assistants.Assistant
-import com.xebia.functional.xef.server.models.Token
+import io.github.oshai.kotlinlogging.KLogger
+import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -14,15 +14,16 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Routing.assistantRoutes() {
+fun Routing.assistantRoutes(logger: KLogger) {
   authenticate("auth-bearer") {
     post("/v1/settings/assistants") {
       try {
         val contentType = call.request.contentType()
         if (contentType == ContentType.Application.Json) {
           val request = call.receive<CreateAssistantRequest>()
-          val token = call.getToken()
-          val response = createAssistant(request)
+          val assistant = Assistant(request)
+          val response = assistant.get()
+          logger.info("Created assistant: ${response.name} with id: ${response.id}")
           call.respond(status = HttpStatusCode.Created, response)
         } else {
           call.respond(
@@ -36,69 +37,68 @@ fun Routing.assistantRoutes() {
       }
     }
 
-    //        put("/v1/settings/assistants/{id}") {
-    //            val request = Json.decodeFromString<AssistantRequest>(call.receive<String>())
-    //            val token = call.getToken()
-    //            val id = call.getId()
-    //            val response = updateAssistant(token, request, id)
-    //            call.respond(status = HttpStatusCode.NoContent, response)
-    //        }
-
     get("/v1/settings/assistants") {
       try {
         val token = call.getToken()
-        val assistantResponse = listAssistants(token)
-        call.respond(HttpStatusCode.OK, assistantResponse)
+        val openAI = OpenAI(Config(token = token.value), logRequests = true)
+        val assistantsApi = openAI.assistants
+        val response =
+          assistantsApi.listAssistants(configure = { header("OpenAI-Beta", "assistants=v1") })
+        call.respond(HttpStatusCode.OK, response)
       } catch (e: Exception) {
         val trace = e.stackTraceToString()
+        logger.error("Error creating assistant: $trace")
         call.respond(HttpStatusCode.BadRequest, "Invalid request: $trace")
       }
     }
 
-    //        delete("/v1/settings/assistants/{id}") {
-    //            val token = call.getToken()
-    //            val id = call.parameters["id"]?.toIntOrNull()
-    //            if (id == null) {
-    //                call.respond(HttpStatusCode.BadRequest, "Invalid assistant id")
-    //                return@delete
-    //            }
-    //            val response = deleteAssistant(token, id)
-    //            call.respond(status = HttpStatusCode.NoContent, response)
-    //        }
+    put("/v1/settings/assistants/{id}") {
+      try {
+        val contentType = call.request.contentType()
+        if (contentType == ContentType.Application.Json) {
+          val request = call.receive<ModifyAssistantRequest>()
+          val id = call.parameters["id"]
+          if (id == null) {
+            call.respond(HttpStatusCode.BadRequest, "Invalid assistant id")
+            return@put
+          }
+          val assistant = Assistant(id)
+          val response = assistant.modify(request).get()
+          logger.info("Modified assistant: ${response.name} with id: ${response.id}")
+          call.respond(HttpStatusCode.OK, response)
+        } else {
+          call.respond(
+            HttpStatusCode.UnsupportedMediaType,
+            "Unsupported content type: $contentType"
+          )
+        }
+      } catch (e: Exception) {
+        val trace = e.stackTraceToString()
+        logger.error("Error modifying assistant: $trace")
+        call.respond(HttpStatusCode.BadRequest, "Invalid request: $trace")
+      }
+    }
+
+    delete("/v1/settings/assistants/{id}") {
+      try {
+        val token = call.getToken()
+        val id = call.parameters["id"]
+        if (id == null) {
+          call.respond(HttpStatusCode.BadRequest, "Invalid assistant id")
+          return@delete
+        }
+        val openAI = OpenAI(Config(token = token.value), logRequests = true)
+        val assistantsApi = openAI.assistants
+        val assistant = assistantsApi.getAssistant(id)
+        val response =
+          assistantsApi.deleteAssistant(id, configure = { header("OpenAI-Beta", "assistants=v1") })
+        logger.info("Deleted assistant: ${assistant.name} with id: ${response.id}")
+        call.respond(status = HttpStatusCode.NoContent, response)
+      } catch (e: Exception) {
+        val trace = e.stackTraceToString()
+        logger.error("Error deleting assistant: $trace")
+        call.respond(HttpStatusCode.BadRequest, "Invalid request: $trace")
+      }
+    }
   }
 }
-
-suspend fun createAssistant(request: CreateAssistantRequest): AssistantObject {
-  val assistant = Assistant(request)
-  return assistant.get()
-}
-
-// suspend fun updateAssistant(token: String, request: AssistantRequest, id: Int): String {
-//    // Implement the logic for updating an assistant in OpenAI here
-// }
-
-//suspend fun listAssistants(token: Token): List<AssistantObject> {
-//  val openAI = OpenAI(Config(), logRequests = true)
-//  val assistantsApi = openAI.assistants
-//
-//  val listAssistantsResponse = assistantsApi.listAssistants()
-//  return listAssistantsResponse.data
-//}
-suspend fun listAssistants(token: Token): ListAssistantsResponse {
-  val openAI = OpenAI(Config(), logRequests = true)
-  val assistantsApi = openAI.assistants
-
-  val listAssistantsResponse = assistantsApi.listAssistants()
-  return listAssistantsResponse
-}
-/*suspend fun listAssistants(token: Token): List<AssistantObject> {
-  val openAIConfig = Config(token = token.value)
-  val openAI = OpenAI(openAIConfig, logRequests = true)
-  val assistants = openAI.assistants
-  val listAssistantsResponse = assistants.listAssistants()
-  return listAssistantsResponse.data
-}*/
-
-/*suspend fun deleteAssistant(token: String, id: Int): String {
-    // Implement the logic for deleting an assistant in OpenAI here
-}*/
