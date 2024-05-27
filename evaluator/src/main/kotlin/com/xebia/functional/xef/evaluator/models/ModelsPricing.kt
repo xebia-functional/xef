@@ -15,6 +15,15 @@ data class ModelsPricing(
     // The pricing for the models was updated the May 2st, 2024
     // Be sure to update the pricing for each model
 
+    // GPT-4o Input token price: $5.00, Output token price: $15.00 per 1M Tokens.
+    val gpt4o =
+      ModelsPricing(
+        modelName = "gpt-4o",
+        currency = "USD",
+        input = ModelsPricingItem(5.0, oneMillion),
+        output = ModelsPricingItem(15.0, oneMillion)
+      )
+
     val gpt4Turbo =
       ModelsPricing(
         modelName = "gpt-4-turbo",

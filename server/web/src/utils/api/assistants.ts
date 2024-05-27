@@ -81,7 +81,9 @@ import {
   }
 
   export async function getAssistants(authToken: string): Promise<ListAssistantResponse> {
-    return executeRequest<ListAssistantResponse>(authToken, 'GET');
+    const response = await executeRequest<ListAssistantResponse>(authToken, 'GET');
+      console.log('API response:', response);
+      return response;
   }
 
   export async function putAssistant(authToken: string, id: string, data: ModifyAssistantRequest): Promise<AssistantObject> {

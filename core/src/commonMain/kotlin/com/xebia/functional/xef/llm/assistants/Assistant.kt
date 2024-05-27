@@ -22,14 +22,14 @@ class Assistant(
   val assistantId: String,
   val toolsConfig: List<Tool.Companion.ToolConfig<*, *>> = emptyList(),
   val config: Config = Config(),
-  private val assistantsApi: Assistants = OpenAI(config, logRequests = true).assistants,
+  private val assistantsApi: Assistants = OpenAI(config, logRequests = false).assistants,
 ) {
 
   constructor(
     assistantObject: AssistantObject,
     toolsConfig: List<Tool.Companion.ToolConfig<*, *>> = emptyList(),
     config: Config = Config(),
-    assistantsApi: Assistants = OpenAI(config, logRequests = true).assistants,
+    assistantsApi: Assistants = OpenAI(config, logRequests = false).assistants,
   ) : this(assistantObject.id, toolsConfig, config, assistantsApi)
 
   suspend fun get(): AssistantObject =
@@ -74,16 +74,16 @@ class Assistant(
     @Serializable data class ToolOutput(val schema: JsonObject, val result: JsonElement)
 
     suspend operator fun invoke(
-      model: String,
+      model: CreateAssistantRequestModel,
       name: String? = null,
       description: String? = null,
       instructions: String? = null,
       tools: List<AssistantObjectToolsInner> = arrayListOf(),
-      fileIds: List<String> = arrayListOf(),
+      toolResources: CreateAssistantRequestToolResources? = null,
       metadata: JsonObject? = null,
       toolsConfig: List<Tool.Companion.ToolConfig<*, *>> = emptyList(),
       config: Config = Config(),
-      assistantsApi: Assistants = OpenAI(config, logRequests = true).assistants,
+      assistantsApi: Assistants = OpenAI(config, logRequests = false).assistants,
     ): Assistant =
       Assistant(
         CreateAssistantRequest(
@@ -92,7 +92,7 @@ class Assistant(
           description = description,
           instructions = instructions,
           tools = tools,
-          fileIds = fileIds,
+          toolResources = toolResources,
           metadata = metadata
         ),
         toolsConfig,
@@ -104,7 +104,7 @@ class Assistant(
       request: CreateAssistantRequest,
       toolsConfig: List<Tool.Companion.ToolConfig<*, *>> = emptyList(),
       config: Config = Config(),
-      assistantsApi: Assistants = OpenAI(config, logRequests = true).assistants,
+      assistantsApi: Assistants = OpenAI(config, logRequests = false).assistants,
     ): Assistant {
       val response = assistantsApi.createAssistant(request, configure = ::defaultConfig)
       return Assistant(response, toolsConfig, config, assistantsApi)
@@ -114,13 +114,26 @@ class Assistant(
       request: String,
       toolsConfig: List<Tool.Companion.ToolConfig<*, *>> = emptyList(),
       config: Config = Config(),
-      assistantsApi: Assistants = OpenAI(config, logRequests = true).assistants,
+      assistantsApi: Assistants = OpenAI(config, logRequests = false).assistants,
     ): Assistant {
       val parsed = Yaml.Default.decodeYamlMapFromString(request)
+      val fileIds = parsed["file_ids"]?.let { (it as List<*>).map { it.toString() } }
+      val vectorStoreIds = parsed["vector_store_ids"]?.let { (it as List<*>).map { it.toString() } }
+      val toolResourcesRequest =
+        CreateAssistantRequestToolResources(
+          codeInterpreter =
+            fileIds?.let { CreateAssistantRequestToolResourcesCodeInterpreter(fileIds = it) },
+          fileSearch =
+            vectorStoreIds?.let {
+              CreateAssistantRequestToolResourcesFileSearch(vectorStoreIds = it)
+            }
+        )
       val assistantRequest =
         AssistantRequest(
           assistantId = parsed["assistant_id"]?.literalContentOrNull,
-          model = parsed["model"]?.literalContentOrNull ?: error("model is required"),
+          model =
+            parsed["model"]?.literalContentOrNull?.let { CreateAssistantRequestModel.Custom(it) }
+              ?: error("model is required"),
           name = parsed["name"]?.literalContentOrNull,
           description = parsed["description"]?.literalContentOrNull,
           instructions =
@@ -164,8 +177,7 @@ class Assistant(
                 }
               }
             },
-          fileIds =
-            parsed["file_ids"]?.let { (it as List<*>).map { it.toString() } } ?: emptyList(),
+          toolResources = toolResourcesRequest,
         )
       return if (assistantRequest.assistantId != null) {
         val assistant =
@@ -178,12 +190,24 @@ class Assistant(
 
         assistant.modify(
           ModifyAssistantRequest(
-            model = assistantRequest.model,
+            model = assistantRequest.model.value,
             name = assistantRequest.name,
             description = assistantRequest.description,
             instructions = assistantRequest.instructions,
             tools = assistantTools(assistantRequest),
-            fileIds = assistantRequest.fileIds,
+            toolResources =
+              assistantRequest.toolResources?.let {
+                ModifyAssistantRequestToolResources(
+                  codeInterpreter =
+                    it.codeInterpreter?.let {
+                      ModifyAssistantRequestToolResourcesCodeInterpreter(fileIds = it.fileIds)
+                    },
+                  fileSearch =
+                    ModifyAssistantRequestToolResourcesFileSearch(
+                      vectorStoreIds = it.fileSearch?.vectorStoreIds
+                    )
+                )
+              },
             metadata = null // assistantRequest.metadata
           )
         )
@@ -196,8 +220,11 @@ class Assistant(
               description = assistantRequest.description,
               instructions = assistantRequest.instructions,
               tools = assistantTools(assistantRequest),
-              fileIds = assistantRequest.fileIds,
-              metadata = null // assistantRequest.metadata
+              toolResources = assistantRequest.toolResources,
+              metadata =
+                assistantRequest.metadata
+                  ?.map { (k, v) -> k to JsonPrimitive(v) }
+                  ?.let { JsonObject(it.toMap()) }
             ),
           toolsConfig = toolsConfig,
           config = config,
@@ -215,8 +242,8 @@ class Assistant(
               AssistantToolsCode(type = AssistantToolsCode.Type.code_interpreter)
             )
           is AssistantTool.Retrieval ->
-            AssistantObjectToolsInner.CaseAssistantToolsRetrieval(
-              AssistantToolsRetrieval(type = AssistantToolsRetrieval.Type.retrieval)
+            AssistantObjectToolsInner.CaseAssistantToolsFileSearch(
+              AssistantToolsFileSearch(type = AssistantToolsFileSearch.Type.file_search)
             )
           is AssistantTool.Function ->
             AssistantObjectToolsInner.CaseAssistantToolsFunction(

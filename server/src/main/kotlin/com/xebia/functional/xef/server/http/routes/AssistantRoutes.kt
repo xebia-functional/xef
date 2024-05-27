@@ -23,7 +23,7 @@ fun Routing.assistantRoutes(logger: KLogger) {
           val request = call.receive<CreateAssistantRequest>()
           val assistant = Assistant(request)
           val response = assistant.get()
-          logger.info("Created assistant: ${response.name} with id: ${response.id}")
+          logger.info{"Created assistant: ${response.name} with id: ${response.id}"}
           call.respond(status = HttpStatusCode.Created, response)
         } else {
           call.respond(
@@ -42,12 +42,13 @@ fun Routing.assistantRoutes(logger: KLogger) {
         val token = call.getToken()
         val openAI = OpenAI(Config(token = token.value), logRequests = true)
         val assistantsApi = openAI.assistants
-        val response =
-          assistantsApi.listAssistants(configure = { header("OpenAI-Beta", "assistants=v1") })
+        val response = assistantsApi.listAssistants(configure = {
+          header("OpenAI-Beta", "assistants=v2")
+        })
         call.respond(HttpStatusCode.OK, response)
       } catch (e: Exception) {
         val trace = e.stackTraceToString()
-        logger.error("Error creating assistant: $trace")
+        logger.error{"Error creating assistant: $trace"}
         call.respond(HttpStatusCode.BadRequest, "Invalid request: $trace")
       }
     }
@@ -64,7 +65,7 @@ fun Routing.assistantRoutes(logger: KLogger) {
           }
           val assistant = Assistant(id)
           val response = assistant.modify(request).get()
-          logger.info("Modified assistant: ${response.name} with id: ${response.id}")
+          logger.info{"Modified assistant: ${response.name} with id: ${response.id}"}
           call.respond(HttpStatusCode.OK, response)
         } else {
           call.respond(
@@ -74,7 +75,7 @@ fun Routing.assistantRoutes(logger: KLogger) {
         }
       } catch (e: Exception) {
         val trace = e.stackTraceToString()
-        logger.error("Error modifying assistant: $trace")
+        logger.error{"Error modifying assistant: $trace"}
         call.respond(HttpStatusCode.BadRequest, "Invalid request: $trace")
       }
     }
@@ -90,13 +91,14 @@ fun Routing.assistantRoutes(logger: KLogger) {
         val openAI = OpenAI(Config(token = token.value), logRequests = true)
         val assistantsApi = openAI.assistants
         val assistant = assistantsApi.getAssistant(id)
-        val response =
-          assistantsApi.deleteAssistant(id, configure = { header("OpenAI-Beta", "assistants=v1") })
-        logger.info("Deleted assistant: ${assistant.name} with id: ${response.id}")
+        val response = assistantsApi.deleteAssistant(id, configure = {
+          header("OpenAI-Beta", "assistants=v2")
+        })
+        logger.info{"Deleted assistant: ${assistant.name} with id: ${response.id}"}
         call.respond(status = HttpStatusCode.NoContent, response)
       } catch (e: Exception) {
         val trace = e.stackTraceToString()
-        logger.error("Error deleting assistant: $trace")
+        logger.error{"Error deleting assistant: $trace"}
         call.respond(HttpStatusCode.BadRequest, "Invalid request: $trace")
       }
     }
