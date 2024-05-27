@@ -4,7 +4,7 @@ import com.xebia.functional.xef.OpenAI
 import com.xebia.functional.xef.llm.vision
 
 suspend fun main() {
-  val openAI = OpenAI(logRequests = true)
+  val openAI = OpenAI(logRequests = false)
   val stream =
     openAI.chat.vision(
       prompt = "Describe the image in detail",
