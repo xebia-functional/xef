@@ -26,7 +26,8 @@ data class Config(
     classDiscriminator = "_type_"
   },
   val streamingPrefix: String = "data:",
-  val streamingDelimiter: String = "data: [DONE]"
+  val streamingDelimiter: String = "data: [DONE]",
+  val supportsLogitBias: Boolean = true,
 ) {
   companion object {
     val DEFAULT = Config()
