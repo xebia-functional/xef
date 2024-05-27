@@ -11,14 +11,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
-
 import com.server.movile.xef.android.ui.themes.CustomColors
 import com.xef.xefMobile.ui.viewmodels.PathViewModel
 
@@ -27,7 +26,7 @@ import com.xef.xefMobile.ui.viewmodels.PathViewModel
 fun FilePickerDialog(
     onDismissRequest: () -> Unit,
     customColors: CustomColors,
-    onFilesSelected: () -> Unit // Callback for when files are selected
+    onFilesSelected: () -> Unit
 ) {
     val viewModel: PathViewModel = viewModel()
     val state = viewModel.state
@@ -65,7 +64,7 @@ fun FilePickerDialog(
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                HorizontalDivider()
+                Divider()
             }
         },
         text = {

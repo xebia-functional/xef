@@ -17,13 +17,12 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.server.movile.xef.android.ui.themes.LocalCustomColors
-
+import com.xef.xefMobile.ui.composable.FilePickerDialog
 
 class CreateAssistantActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            // Pass the NavController to CreateAssistantScreen
             val navController = rememberNavController()
             CreateAssistantScreen(navController)
         }
@@ -43,6 +42,7 @@ fun CreateAssistantScreen(navController: NavController) {
     val list = listOf("gpt-4o", "gpt-4", "gpt-3.5-turbo-16K", "gpt-3.5-turbo-0125", "gpt-3.5-turbo")
     var isExpanded by remember { mutableStateOf(false) }
     var selectedText by remember { mutableStateOf(list[0]) }
+    var showFilePicker by remember { mutableStateOf(false) }
 
     val customColors = LocalCustomColors.current
 
@@ -121,14 +121,14 @@ fun CreateAssistantScreen(navController: NavController) {
             }
             Spacer(modifier = Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                OutlinedButton(
-                    onClick = { /* handle cancel */ },
+                TextButton(
+                    onClick = { showFilePicker = true },
                     colors = ButtonDefaults.outlinedButtonColors(
                         containerColor = Color.Transparent,
                         contentColor = customColors.buttonColor
                     )
                 ) {
-                    Text("File Search")
+                    Text("File Search +")
                 }
                 Spacer(modifier = Modifier.weight(1f))
                 Switch(
@@ -142,14 +142,14 @@ fun CreateAssistantScreen(navController: NavController) {
             }
             Spacer(modifier = Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                OutlinedButton(
+                TextButton(
                     onClick = { /* handle cancel */ },
                     colors = ButtonDefaults.outlinedButtonColors(
                         containerColor = Color.Transparent,
                         contentColor = customColors.buttonColor
                     )
                 ) {
-                    Text("Code Interpreter")
+                    Text("Code Interpreter +")
                 }
                 Spacer(modifier = Modifier.weight(1f))
                 Switch(
@@ -163,14 +163,14 @@ fun CreateAssistantScreen(navController: NavController) {
             }
             Spacer(modifier = Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                OutlinedButton(
+                TextButton(
                     onClick = { /* handle cancel */ },
                     colors = ButtonDefaults.outlinedButtonColors(
                         containerColor = Color.Transparent,
                         contentColor = customColors.buttonColor
                     )
                 ) {
-                    Text("Functions")
+                    Text("Functions +")
                 }
                 Spacer(modifier = Modifier.weight(1f))
             }
@@ -213,6 +213,16 @@ fun CreateAssistantScreen(navController: NavController) {
                     Text("Create")
                 }
             }
+        }
+        if (showFilePicker) {
+            FilePickerDialog(
+                onDismissRequest = { showFilePicker = false },
+                customColors = customColors,
+                onFilesSelected = {
+                    // Handle file selection here if needed
+                    showFilePicker = false
+                }
+            )
         }
     }
 }
@@ -264,7 +274,6 @@ fun AssistantFloatField(label: String, value: Float, onValueChange: (Float) -> U
 @Preview(showBackground = false)
 @Composable
 fun CreateAssistantScreenPreview() {
-    // Create a mock NavController for the preview
     val navController = rememberNavController()
     CreateAssistantScreen(navController)
 }

@@ -17,6 +17,7 @@ import com.server.movile.xef.android.ui.screens.menu.CreateAssistantScreen
 import com.server.movile.xef.android.ui.screens.navigationdrawercompose.HomeScreen
 import com.server.movile.xef.android.ui.viewmodels.IAuthViewModel
 import com.xef.xefMobile.ui.screens.Screens
+import com.xef.xefMobile.ui.screens.SettingsScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -49,6 +50,11 @@ fun XefAndroidApp(authViewModel: IAuthViewModel) {
         composable(Screens.CreateAssistant.screen) {
             MainLayout(navController = navigationController, authViewModel = authViewModel, userName = userName.orEmpty()) {
                 CreateAssistantScreen(navigationController)
+            }
+        }
+        composable(Screens.Settings.screen) {
+            MainLayout(navController = navigationController, authViewModel = authViewModel, userName = userName.orEmpty()) {
+                SettingsScreen(navigationController, authViewModel)
             }
         }
         // ... other composable screens ...

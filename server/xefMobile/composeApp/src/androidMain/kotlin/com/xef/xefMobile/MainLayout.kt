@@ -9,6 +9,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,6 +40,18 @@ fun MainLayout(
     val CustomLightBlue = Color(0xFFADD8E6)
     val CustomTextBlue = Color(0xFF0199D7)
     val context = LocalContext.current
+
+    val authToken by authViewModel.authToken.observeAsState()
+
+    LaunchedEffect(authToken) {
+        if (authToken == null) {
+            navController.navigate(Screens.Login.screen) {
+                popUpTo(0) {
+                    inclusive = true
+                }
+            }
+        }
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -211,12 +226,6 @@ fun MainLayout(
                             drawerState.close()
                         }
                         authViewModel.logout()
-                        Toast.makeText(context, "Logged out", Toast.LENGTH_SHORT).show()
-                        navController.navigate(Screens.Login.screen) {
-                            popUpTo(0) {
-                                inclusive = true
-                            }
-                        }
                     })
             }
         },
