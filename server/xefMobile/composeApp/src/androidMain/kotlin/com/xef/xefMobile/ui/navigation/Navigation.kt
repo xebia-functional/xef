@@ -22,7 +22,7 @@ fun AppNavigator(authViewModel: IAuthViewModel) {
             RegisterScreen(authViewModel = authViewModel, navController = navController)
         }
         composable(Screens.Assistants.screen) {
-            AssistantScreen(navController = navController)
+            AssistantScreen(navController = navController, authViewModel = authViewModel)
         }
         composable(Screens.CreateAssistant.screen) {
             CreateAssistantScreen(navController = navController)

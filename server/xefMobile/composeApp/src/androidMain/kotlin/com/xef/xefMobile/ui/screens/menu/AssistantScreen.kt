@@ -11,6 +11,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.server.movile.xef.android.ui.viewmodels.AuthViewModel
+import com.server.movile.xef.android.ui.viewmodels.IAuthViewModel
 import com.xef.xefMobile.model.Assistant
 import com.xef.xefMobile.services.ApiService
 import com.xef.xefMobile.theme.theme.LocalCustomColors
@@ -18,13 +20,14 @@ import com.xef.xefMobile.ui.screens.Screens
 import kotlinx.coroutines.launch
 
 @Composable
-fun AssistantScreen(navController: NavController) {
+fun AssistantScreen(navController: NavController, authViewModel: IAuthViewModel) {
     val customColors = LocalCustomColors.current
     val coroutineScope = rememberCoroutineScope()
     var assistants by remember { mutableStateOf<List<Assistant>>(emptyList()) }
     var loading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    val authToken = "OPEN_AI_TOKEN" // Replace this with the actual auth token
+
+    val authToken = authViewModel.authToken.value ?: error("Auth token not found")
 
     LaunchedEffect(Unit) {
         coroutineScope.launch {
@@ -95,8 +98,4 @@ fun AssistantScreen(navController: NavController) {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun AssistantScreenPreview() {
-    AssistantScreen(navController = rememberNavController())
-}
+

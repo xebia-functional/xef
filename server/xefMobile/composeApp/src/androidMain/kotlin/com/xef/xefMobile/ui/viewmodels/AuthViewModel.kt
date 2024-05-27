@@ -30,7 +30,6 @@ class AuthViewModel(
 
     private val dataStore = context.dataStore
 
-    // MutableLiveData properties to manage state
     private val _authToken = MutableLiveData<String?>()
     override val authToken: LiveData<String?> = _authToken
 
@@ -40,34 +39,47 @@ class AuthViewModel(
     private val _errorMessage = MutableLiveData<String?>()
     override val errorMessage: LiveData<String?> = _errorMessage
 
-    // Initializing by loading the auth token
+    private val _userName = MutableLiveData<String?>()
+    override val userName: LiveData<String?> = _userName
+
     init {
         loadAuthToken()
     }
 
-    // Function to load the authentication token from DataStore
     private fun loadAuthToken() {
         viewModelScope.launch {
             val token = dataStore.data.map { preferences ->
                 preferences[stringPreferencesKey("authToken")]
             }.firstOrNull()
             _authToken.value = token
+
+
+            token?.let {
+                loadUserName()
+            }
         }
     }
 
-    // Function to handle user login
+    private suspend fun loadUserName() {
+        withContext(Dispatchers.IO) {
+            val name = dataStore.data.map { preferences ->
+                preferences[stringPreferencesKey("userName")]
+            }.firstOrNull()
+            _userName.postValue(name)
+        }
+    }
+
     override fun login(email: String, password: String) {
         viewModelScope.launch {
             _isLoading.value = true
             val loginRequest = LoginRequest(email, password)
             try {
-                Log.d("AuthViewModel", "Attempting login with email: $email")
                 val loginResponse = apiService.loginUser(loginRequest)
-                Log.d("AuthViewModel", "Login successful, token: ${loginResponse.authToken}")
                 updateAuthToken(loginResponse.authToken)
+                updateUserName(loginResponse.user.name) // Extract user's name
                 _authToken.value = loginResponse.authToken
+                _userName.value = loginResponse.user.name
             } catch (e: Exception) {
-                Log.e("AuthViewModel", "Login failed: ${e.message}", e)
                 handleException(e)
             } finally {
                 _isLoading.value = false
@@ -75,32 +87,33 @@ class AuthViewModel(
         }
     }
 
-    // Function to update the authentication token in DataStore
     private suspend fun updateAuthToken(token: String) {
-        try {
-            withContext(Dispatchers.IO) {
-                dataStore.edit { preferences ->
-                    preferences[stringPreferencesKey("authToken")] = token
-                }
+        withContext(Dispatchers.IO) {
+            dataStore.edit { preferences ->
+                preferences[stringPreferencesKey("authToken")] = token
             }
-        } catch (e: Exception) {
-            _errorMessage.postValue("Failed to update auth token")
         }
     }
 
-    // Function to handle user registration
+    private suspend fun updateUserName(name: String) {
+        withContext(Dispatchers.IO) {
+            dataStore.edit { preferences ->
+                preferences[stringPreferencesKey("userName")] = name
+            }
+        }
+    }
+
     override fun register(name: String, email: String, password: String) {
         viewModelScope.launch {
             _isLoading.value = true
             val request = RegisterRequest(name, email, password)
             try {
-                Log.d("AuthViewModel", "Attempting registration with email: $email")
                 val registerResponse = apiService.registerUser(request)
-                Log.d("AuthViewModel", "Registration successful, token: ${registerResponse.authToken}")
                 updateAuthToken(registerResponse.authToken)
+                updateUserName(name) // Directly use the name provided during registration
                 _authToken.value = registerResponse.authToken
+                _userName.value = name
             } catch (e: Exception) {
-                Log.e("AuthViewModel", "Registration failed: ${e.message}", e)
                 handleException(e)
             } finally {
                 _isLoading.value = false
@@ -108,7 +121,6 @@ class AuthViewModel(
         }
     }
 
-    // Function to handle exceptions
     private fun handleException(e: Exception) {
         when (e) {
             is IOException -> _errorMessage.postValue("Network error")
@@ -117,20 +129,19 @@ class AuthViewModel(
         }
     }
 
-    // Function to handle user logout
     override fun logout() {
         viewModelScope.launch {
             try {
                 withContext(Dispatchers.IO) {
                     dataStore.edit { preferences ->
                         preferences.remove(stringPreferencesKey("authToken"))
+                        preferences.remove(stringPreferencesKey("userName")) // Add this line
                     }
                 }
                 _authToken.postValue(null)
+                _userName.postValue(null) // Add this line
                 _errorMessage.postValue("Logged out successfully")
-                Log.d("AuthViewModel", "User logged out")
             } catch (e: Exception) {
-                Log.e("AuthViewModel", "Logout failed: ${e.message}", e)
                 _errorMessage.postValue("Failed to sign out")
             }
         }

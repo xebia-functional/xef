@@ -29,6 +29,7 @@ import com.xef.xefMobile.ui.screens.Screens
 fun MainLayout(
     navController: NavController,
     authViewModel: IAuthViewModel,
+    userName: String,
     content: @Composable () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -224,11 +225,24 @@ fun MainLayout(
             topBar = {
                 TopAppBar(
                     title = {
-                        Image(
-                            painter = painterResource(id = R.drawable.xef_brand_name_white),
-                            contentDescription = "Logo",
-                            modifier = Modifier.size(60.dp)
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.xef_brand_name_white),
+                                contentDescription = "Logo",
+                                modifier = Modifier.size(60.dp)
+                            )
+                            Spacer(modifier = Modifier.weight(1f))
+                            Text(
+                                text = userName,
+                                color = Color.White,
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.padding(end = 16.dp)
+                            )
+                        }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = CustomLightBlue,

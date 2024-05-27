@@ -23,6 +23,12 @@ data class LoginRequest(
 
 @Serializable
 data class LoginResponse(
+    val authToken: String,
+    val user: UserResponse
+)
 
-    val authToken: String
+@Serializable
+data class UserResponse(
+    val id: Int,
+    val name: String
 )

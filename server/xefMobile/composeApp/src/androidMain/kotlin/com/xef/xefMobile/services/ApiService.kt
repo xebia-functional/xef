@@ -13,7 +13,7 @@ class ApiService {
     suspend fun registerUser(request: RegisterRequest): RegisterResponse {
         return try {
             HttpClientProvider.client.post {
-                url("http://localhost:8081/register")
+                url("http://10.0.2.2:8081/register")
                 contentType(ContentType.Application.Json)
                 setBody(request)
             }.body()
@@ -26,7 +26,7 @@ class ApiService {
     suspend fun loginUser(request: LoginRequest): LoginResponse {
         return try {
             val response: HttpResponse = HttpClientProvider.client.post {
-                url("http://localhost:8081/login")
+                url("http://10.0.2.2:8081/login")
                 contentType(ContentType.Application.Json)
                 setBody(request)
             }
