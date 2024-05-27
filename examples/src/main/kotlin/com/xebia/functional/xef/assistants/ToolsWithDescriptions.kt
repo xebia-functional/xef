@@ -1,6 +1,9 @@
 package com.xebia.functional.xef.assistants
 
 import com.xebia.functional.xef.conversation.Description
+import com.xebia.functional.xef.llm.assistants.Assistant
+import com.xebia.functional.xef.llm.assistants.AssistantThread
+import com.xebia.functional.xef.llm.assistants.RunDelta
 import com.xebia.functional.xef.llm.assistants.Tool
 import kotlinx.serialization.Serializable
 
@@ -26,4 +29,8 @@ class SumToolWithDescription : Tool<SumInputWithDescription, Int> {
 suspend fun main() {
   val toolConfig = Tool.toolOf(SumToolWithDescription()).functionObject
   println(toolConfig.parameters)
+}
+
+private suspend fun runAssistantAndDisplayResults(thread: AssistantThread, assistant: Assistant) {
+  thread.run(assistant).collect(RunDelta::printEvent)
 }

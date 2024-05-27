@@ -5,7 +5,7 @@ import com.xebia.functional.xef.OpenAI
 import com.xebia.functional.xef.llm.asInputProvider
 
 suspend fun main() {
-  val openAI = OpenAI(logRequests = false)
+  val openAI = OpenAI(logRequests = true)
   val ai = openAI.images
   val image =
     ai.createImage(

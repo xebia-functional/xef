@@ -46,9 +46,6 @@ sealed interface RunDelta {
   /** [RunDeltaEvent.thread_run_expired] */
   @JvmInline @Serializable value class RunExpired(val run: RunObject) : RunDelta
 
-  /** [RunDeltaEvent.thread_run_incomplete] */
-  @JvmInline @Serializable value class RunIncomplete(val run: RunObject) : RunDelta
-
   /** [RunDeltaEvent.thread_run_step_created] */
   @JvmInline @Serializable value class RunStepCreated(val runStep: RunStepObject) : RunDelta
 
@@ -249,8 +246,8 @@ sealed interface RunDelta {
                   val function = it.value.function
                   "Function: ${function.name}(${function.arguments})"
                 }
-                is RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsFileSearchObject -> {
-                  val retrieval = it.value.fileSearch
+                is RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsRetrievalObject -> {
+                  val retrieval = it.value.retrieval
                   "Retrieval: $retrieval"
                 }
               }
