@@ -5,5 +5,3 @@
 **/proguard-rules.pro
 **/build.gradle
 **/settings.gradle
-**/CreateAssistantRequestToolResourcesFileSearch.kt
-**/CreateThreadRequestToolResourcesFileSearch.kt

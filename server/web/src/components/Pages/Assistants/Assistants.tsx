@@ -2,7 +2,7 @@ import { useContext, useEffect, useState, ChangeEvent } from "react";
 import { useAuth } from "@/state/Auth";
 import { LoadingContext } from "@/state/Loading";
 import styles from './Assistants.module.css';
-import { getAssistants } from '@/utils/api/assistants';
+import { getAssistants } from '../../../utils/api/assistants';
 import {
   Alert,
   Box,
@@ -217,38 +217,26 @@ export function Assistants() {
     textAlign: 'left',
   };
 
-async function loadAssistants() {
-  setLoading(true);
-  try {
-    if (auth.token) {
-      console.log('auth.token:', auth.token); // Log auth.token
-      const response = await getAssistants(auth.token);
-      console.log('Full API response:', response); // Log full API response
-      if (response.data) {
-        setAssistants(response.data);
-      } else {
-        console.error('No data in API response');
-      }
-    } else {
-      console.error('auth.token is undefined');
-    }
-  } catch (error) {
-    console.error(error);
-  } finally {
-    setLoading(false);
-  }
-}
+    useEffect(() => {
+      const fetchAssistants = async () => {
+        setLoading(true);
+        try {
+          console.log('auth.token:', auth.token); // Log auth.token
+          const response = await getAssistants(auth.token);
+          console.log('response:', response); // Log response
+          setAssistants(response.data);
+          console.log('assistants:', assistants); // Log assistants
+        } catch (error) {
+          console.error(error);
+          // handle error
+        } finally {
+          setLoading(false);
+        }
+      };
 
-useEffect(() => {
-  if (auth.token) {
-    loadAssistants();
-  }
-}, [auth.token]);
+      fetchAssistants();
+    }, [auth.token]);
 
-//only to see the state of assistants, then im going to delete it
-useEffect(() => {
-  console.log('assistants:', assistants);
-}, [assistants]);
 
   return (
         <Box className={styles.container}>

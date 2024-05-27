@@ -89,7 +89,7 @@ public class KMMGeneratorConfig extends KotlinClientCodegen {
                         entry("ListRunsResponse", List.of("firstId", "lastId")),
                         entry("ListRunStepsResponse", List.of("firstId", "lastId")),
                         entry("ListThreadsResponse", List.of("firstId", "lastId")),
-                        entry("MessageObject", List.of("status", "metadata")),
+                        entry("MessageObject", List.of("metadata")),
                         entry("MessageObjectContentInner", List.of("imageFile", "text")),
                         entry("RunObject", List.of("expiresAt", "requiredAction")),
                         entry("RunStepDetailsToolCallsCodeObjectCodeInterpreterOutputsInner", List.of("logs", "image")),
