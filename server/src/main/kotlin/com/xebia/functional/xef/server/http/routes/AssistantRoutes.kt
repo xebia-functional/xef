@@ -14,7 +14,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Routing.assistantRoutes(logger: KLogger) {
+fun Routing.assistantRoutes(logger: KLogger) { 
   authenticate("auth-bearer") {
     post("/v1/settings/assistants") {
       try {
