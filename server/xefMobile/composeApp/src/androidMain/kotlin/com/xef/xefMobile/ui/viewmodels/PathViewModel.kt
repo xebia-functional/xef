@@ -13,31 +13,29 @@ import kotlinx.coroutines.launch
 
 class PathViewModel : ViewModel() {
 
-    var state by mutableStateOf(PathScreenState())
-        private set
+  var state by mutableStateOf(PathScreenState())
+    private set
 
-    private val uriPathFinder = UriPathFinder()
+  private val uriPathFinder = UriPathFinder()
 
-    fun onFilePathsListChange(list: List<Uri>, context: Context) {
-        viewModelScope.launch {
-            val updatedList = state.filePaths.toMutableList()
-            val pathList = changeUriToPath(list, context)
-            updatedList += pathList
-            state = state.copy(filePaths = updatedList)
-        }
+  fun onFilePathsListChange(list: List<Uri>, context: Context) {
+    viewModelScope.launch {
+      val updatedList = state.filePaths.toMutableList()
+      val pathList = changeUriToPath(list, context)
+      updatedList += pathList
+      state = state.copy(filePaths = updatedList)
     }
+  }
 
-    fun removeFilePath(path: String) {
-        viewModelScope.launch {
-            val updatedList = state.filePaths.toMutableList()
-            updatedList.remove(path)
-            state = state.copy(filePaths = updatedList)
-        }
+  fun removeFilePath(path: String) {
+    viewModelScope.launch {
+      val updatedList = state.filePaths.toMutableList()
+      updatedList.remove(path)
+      state = state.copy(filePaths = updatedList)
     }
+  }
 
-    private fun changeUriToPath(uris: List<Uri>, context: Context): List<String> {
-        return uris.mapNotNull { uri ->
-            uriPathFinder.getPath(context, uri)
-        }
-    }
+  private fun changeUriToPath(uris: List<Uri>, context: Context): List<String> {
+    return uris.mapNotNull { uri -> uriPathFinder.getPath(context, uri) }
+  }
 }
