@@ -13,6 +13,7 @@ import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.serialization.SerializationException
 
 fun Routing.assistantRoutes(logger: KLogger) {
   authenticate("auth-bearer") {
@@ -42,15 +43,20 @@ fun Routing.assistantRoutes(logger: KLogger) {
         val token = call.getToken()
         val openAI = OpenAI(Config(token = token.value), logRequests = true)
         val assistantsApi = openAI.assistants
-        val response =
-          assistantsApi.listAssistants(configure = { header("OpenAI-Beta", "assistants=v2") })
+        val response = assistantsApi.listAssistants(configure = { header("OpenAI-Beta", "assistants=v2") })
+
         call.respond(HttpStatusCode.OK, response)
+      } catch (e: SerializationException) {
+        val trace = e.stackTraceToString()
+        logger.error { "Serialization error: $trace" }
+        call.respond(HttpStatusCode.BadRequest, "Serialization error: $trace")
       } catch (e: Exception) {
         val trace = e.stackTraceToString()
-        logger.error { "Error creating assistant: $trace" }
+        logger.error { "Error retrieving assistants: $trace" }
         call.respond(HttpStatusCode.BadRequest, "Invalid request: $trace")
       }
     }
+
 
     put("/v1/settings/assistants/{id}") {
       try {
