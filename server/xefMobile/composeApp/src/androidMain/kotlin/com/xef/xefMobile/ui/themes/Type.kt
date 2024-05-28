@@ -8,21 +8,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import org.xef.xefMobile.R
 
+val Montserrat =
+  FontFamily(Font(R.font.montserrat_regular), Font(R.font.montserrat_bold, FontWeight.Bold))
 
-val Montserrat = FontFamily(
-    Font(R.font.montserrat_regular),
-    Font(R.font.montserrat_bold, FontWeight.Bold)
-)
-
-val Typography = Typography(
-    displayLarge = TextStyle(
-        fontFamily = Montserrat,
-        fontWeight = FontWeight.Bold,
-        fontSize = 24.sp
-    ),
-    bodyLarge = TextStyle(
-        fontFamily = Montserrat,
-        fontWeight = FontWeight.Bold,
-        fontSize = 15.sp
-    )
-)
+val Typography =
+  Typography(
+    displayLarge =
+      TextStyle(fontFamily = Montserrat, fontWeight = FontWeight.Bold, fontSize = 24.sp),
+    bodyLarge = TextStyle(fontFamily = Montserrat, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+  )

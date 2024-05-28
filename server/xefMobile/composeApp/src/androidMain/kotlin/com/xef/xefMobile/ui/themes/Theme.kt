@@ -10,7 +10,8 @@ val CustomButtonColor = Color(0xFF01A2D1)
 val CustomSliderThumbColor = Color(0xFF03DAC5)
 val CustomSliderTrackColor = Color(0xFF018786)
 
-private val LightColorScheme = lightColorScheme(
+private val LightColorScheme =
+  lightColorScheme(
     primary = md_theme_light_primary,
     onPrimary = md_theme_light_onPrimary,
     primaryContainer = md_theme_light_primaryContainer,
@@ -40,9 +41,10 @@ private val LightColorScheme = lightColorScheme(
     surfaceTint = md_theme_light_surfaceTint,
     outlineVariant = md_theme_light_outlineVariant,
     scrim = md_theme_light_scrim,
-)
+  )
 
-private val DarkColorScheme = darkColorScheme(
+private val DarkColorScheme =
+  darkColorScheme(
     primary = md_theme_dark_primary,
     onPrimary = md_theme_dark_onPrimary,
     primaryContainer = md_theme_dark_primaryContainer,
@@ -72,33 +74,31 @@ private val DarkColorScheme = darkColorScheme(
     surfaceTint = md_theme_dark_surfaceTint,
     outlineVariant = md_theme_dark_outlineVariant,
     scrim = md_theme_dark_scrim,
-)
+  )
 
 internal val LocalThemeIsDark = compositionLocalOf { mutableStateOf(true) }
 
 val LocalCustomColors = staticCompositionLocalOf { CustomColors() }
 
 data class CustomColors(
-    val buttonColor: Color = CustomButtonColor,
-    val sliderThumbColor: Color = CustomSliderThumbColor,
-    val sliderTrackColor: Color = CustomSliderTrackColor
+  val buttonColor: Color = CustomButtonColor,
+  val sliderThumbColor: Color = CustomSliderThumbColor,
+  val sliderTrackColor: Color = CustomSliderTrackColor
 )
 
 @Composable
-internal fun AppTheme(
-    content: @Composable () -> Unit
-) {
-    val systemIsDark = isSystemInDarkTheme()
-    val isDarkState = remember { mutableStateOf(systemIsDark) }
-    CompositionLocalProvider(
-        LocalThemeIsDark provides isDarkState,
-        LocalCustomColors provides CustomColors()
-    ) {
-        val isDark by isDarkState
-        //com.xef.xefMobile.theme.SystemAppearance(isDark)
-        MaterialTheme(
-            colorScheme = if (isDark) DarkColorScheme else LightColorScheme,
-            content = { Surface(content = content) }
-        )
-    }
+internal fun AppTheme(content: @Composable () -> Unit) {
+  val systemIsDark = isSystemInDarkTheme()
+  val isDarkState = remember { mutableStateOf(systemIsDark) }
+  CompositionLocalProvider(
+    LocalThemeIsDark provides isDarkState,
+    LocalCustomColors provides CustomColors()
+  ) {
+    val isDark by isDarkState
+    // com.xef.xefMobile.theme.SystemAppearance(isDark)
+    MaterialTheme(
+      colorScheme = if (isDark) DarkColorScheme else LightColorScheme,
+      content = { Surface(content = content) }
+    )
+  }
 }

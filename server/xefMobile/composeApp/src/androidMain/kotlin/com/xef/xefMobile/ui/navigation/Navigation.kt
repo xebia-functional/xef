@@ -13,19 +13,19 @@ import com.xef.xefMobile.ui.screens.Screens
 
 @Composable
 fun AppNavigator(authViewModel: IAuthViewModel) {
-    val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = Screens.Login.screen) {
-        composable(Screens.Login.screen) {
-            LoginScreen(authViewModel = authViewModel, navController = navController)
-        }
-        composable(Screens.Register.screen) {
-            RegisterScreen(authViewModel = authViewModel, navController = navController)
-        }
-        composable(Screens.Assistants.screen) {
-            AssistantScreen(navController = navController, authViewModel = authViewModel)
-        }
-        composable(Screens.CreateAssistant.screen) {
-            CreateAssistantScreen(navController = navController)
-        }
+  val navController = rememberNavController()
+  NavHost(navController = navController, startDestination = Screens.Login.screen) {
+    composable(Screens.Login.screen) {
+      LoginScreen(authViewModel = authViewModel, navController = navController)
     }
+    composable(Screens.Register.screen) {
+      RegisterScreen(authViewModel = authViewModel, navController = navController)
+    }
+    composable(Screens.Assistants.screen) {
+      AssistantScreen(navController = navController, authViewModel = authViewModel)
+    }
+    composable(Screens.CreateAssistant.screen) {
+      CreateAssistantScreen(navController = navController)
+    }
+  }
 }
