@@ -7,14 +7,12 @@ import com.server.movile.xef.android.ui.viewmodels.AuthViewModel
 import com.xef.xefMobile.services.ApiService
 
 class MainActivity : ComponentActivity() {
-    private lateinit var authViewModel: AuthViewModel
+  private lateinit var authViewModel: AuthViewModel
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        authViewModel = AuthViewModel(this, ApiService())
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    authViewModel = AuthViewModel(this, ApiService())
 
-        setContent {
-            XefAndroidApp(authViewModel = authViewModel)
-        }
-    }
+    setContent { XefAndroidApp(authViewModel = authViewModel) }
+  }
 }

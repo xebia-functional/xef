@@ -23,41 +23,52 @@ import com.xef.xefMobile.ui.screens.SettingsScreen
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun XefAndroidApp(authViewModel: IAuthViewModel) {
-    val navigationController = rememberNavController()
-    val userName by authViewModel.userName.observeAsState("")
+  val navigationController = rememberNavController()
+  val userName by authViewModel.userName.observeAsState("")
 
-    NavHost(
+  NavHost(
+    navController = navigationController,
+    startDestination = Screens.Login.screen,
+    modifier = Modifier.padding(top = 16.dp)
+  ) {
+    composable(Screens.Login.screen) { LoginScreen(authViewModel, navigationController) }
+    composable(Screens.Register.screen) { RegisterScreen(authViewModel, navigationController) }
+    composable(Screens.Home.screen) {
+      MainLayout(
         navController = navigationController,
-        startDestination = Screens.Login.screen,
-        modifier = Modifier.padding(top = 16.dp)
-    ) {
-        composable(Screens.Login.screen) {
-            LoginScreen(authViewModel, navigationController)
-        }
-        composable(Screens.Register.screen) {
-            RegisterScreen(authViewModel, navigationController)
-        }
-        composable(Screens.Home.screen) {
-            MainLayout(navController = navigationController, authViewModel = authViewModel, userName = userName.orEmpty()) {
-                HomeScreen(authViewModel, navigationController)
-            }
-        }
-        composable(Screens.Assistants.screen) {
-            MainLayout(navController = navigationController, authViewModel = authViewModel, userName = userName.orEmpty()) {
-                AssistantScreen(navigationController, authViewModel)
-            }
-        }
-        composable(Screens.CreateAssistant.screen) {
-            MainLayout(navController = navigationController, authViewModel = authViewModel, userName = userName.orEmpty()) {
-                CreateAssistantScreen(navigationController)
-            }
-        }
-        composable(Screens.Settings.screen) {
-            MainLayout(navController = navigationController, authViewModel = authViewModel, userName = userName.orEmpty()) {
-                SettingsScreen(navigationController, authViewModel)
-            }
-        }
-        // ... other composable screens ...
+        authViewModel = authViewModel,
+        userName = userName.orEmpty()
+      ) {
+        HomeScreen(authViewModel, navigationController)
+      }
     }
+    composable(Screens.Assistants.screen) {
+      MainLayout(
+        navController = navigationController,
+        authViewModel = authViewModel,
+        userName = userName.orEmpty()
+      ) {
+        AssistantScreen(navigationController, authViewModel)
+      }
+    }
+    composable(Screens.CreateAssistant.screen) {
+      MainLayout(
+        navController = navigationController,
+        authViewModel = authViewModel,
+        userName = userName.orEmpty()
+      ) {
+        CreateAssistantScreen(navigationController)
+      }
+    }
+    composable(Screens.Settings.screen) {
+      MainLayout(
+        navController = navigationController,
+        authViewModel = authViewModel,
+        userName = userName.orEmpty()
+      ) {
+        SettingsScreen(navigationController, authViewModel)
+      }
+    }
+    // ... other composable screens ...
+  }
 }
-

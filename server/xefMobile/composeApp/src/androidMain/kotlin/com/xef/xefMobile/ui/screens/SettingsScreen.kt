@@ -21,66 +21,52 @@ import org.xef.xefMobile.R
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(navController: NavController, authViewModel: IAuthViewModel) {
-    var apiKey by remember { mutableStateOf("") }
-    val coroutineScope = rememberCoroutineScope()
-    val customColors = Color(0xFFADD8E6)
-    val CustomTextBlue = Color(0xFF0199D7)
+  var apiKey by remember { mutableStateOf("") }
+  val coroutineScope = rememberCoroutineScope()
+  val customColors = Color(0xFFADD8E6)
+  val CustomTextBlue = Color(0xFF0199D7)
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .padding(16.dp)
+  Box(modifier = Modifier.fillMaxSize().background(Color.White).padding(16.dp)) {
+    Column(
+      modifier = Modifier.align(Alignment.Center),
+      horizontalAlignment = Alignment.CenterHorizontally,
+      verticalArrangement = Arrangement.Center
     ) {
-        Column(
-            modifier = Modifier.align(Alignment.Center),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+      Text(text = "Settings", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+      Spacer(modifier = Modifier.height(8.dp))
+      Text(text = "These are xef-server settings.", fontSize = 16.sp, color = Color.Gray)
+      Spacer(modifier = Modifier.height(16.dp))
+      TextField(
+        value = apiKey,
+        onValueChange = { apiKey = it },
+        label = { Text("OpenAI API key") },
+        modifier = Modifier.fillMaxWidth()
+      )
+      Spacer(modifier = Modifier.height(16.dp))
+      Button(
+        onClick = {
+          coroutineScope.launch {
+            // Handle saving the API key
+            // Example: authViewModel.saveApiKey(apiKey)
+          }
+        },
+        colors = ButtonDefaults.buttonColors(containerColor = customColors),
+        modifier = Modifier.fillMaxWidth()
+      ) {
+        Row(
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.Center
         ) {
-            Text(
-                text = "Settings",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "These are xef-server settings.",
-                fontSize = 16.sp,
-                color = Color.Gray
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            TextField(
-                value = apiKey,
-                onValueChange = { apiKey = it },
-                label = { Text("OpenAI API key") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(
-                onClick = {
-                    coroutineScope.launch {
-                        // Handle saving the API key
-                        // Example: authViewModel.saveApiKey(apiKey)
-                    }
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = customColors),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.save_24dp),
-                        contentDescription = "save settings icon",
-                        modifier = Modifier.size(24.dp),
-                        colorFilter = ColorFilter.tint(CustomTextBlue)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = "Save Settings", color = CustomTextBlue)
-                }
-            }
+          Image(
+            painter = painterResource(id = R.drawable.save_24dp),
+            contentDescription = "save settings icon",
+            modifier = Modifier.size(24.dp),
+            colorFilter = ColorFilter.tint(CustomTextBlue)
+          )
+          Spacer(modifier = Modifier.width(8.dp))
+          Text(text = "Save Settings", color = CustomTextBlue)
         }
+      }
     }
+  }
 }
