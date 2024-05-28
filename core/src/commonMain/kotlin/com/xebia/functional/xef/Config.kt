@@ -1,6 +1,5 @@
 package com.xebia.functional.xef
 
-import arrow.core.nonEmptyListOf
 import com.xebia.functional.openai.Config as OpenAIConfig
 import com.xebia.functional.openai.generated.api.OpenAI
 import com.xebia.functional.xef.env.getenv
@@ -51,7 +50,8 @@ fun OpenAI(
   val token =
     config.token
       ?: getenv(KEY_ENV_VAR)
-      ?: throw AIError.Env.OpenAI(nonEmptyListOf("missing $KEY_ENV_VAR env var"))
+      ?: "<not-provided>" // throw AIError.Env.OpenAI(nonEmptyListOf("missing $KEY_ENV_VAR env
+  // var"))
   val clientConfig: HttpClientConfig<*>.() -> Unit = {
     install(ContentNegotiation) { json(config.json) }
     install(HttpTimeout) {
