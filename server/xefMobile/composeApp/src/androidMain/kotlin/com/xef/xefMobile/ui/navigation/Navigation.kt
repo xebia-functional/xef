@@ -10,9 +10,11 @@ import com.server.movile.xef.android.ui.screens.menu.AssistantScreen
 import com.server.movile.xef.android.ui.screens.menu.CreateAssistantScreen
 import com.server.movile.xef.android.ui.viewmodels.IAuthViewModel
 import com.xef.xefMobile.ui.screens.Screens
+import com.xef.xefMobile.ui.screens.SettingsScreen
+import com.xef.xefMobile.ui.viewmodels.SettingsViewModel
 
 @Composable
-fun AppNavigator(authViewModel: IAuthViewModel) {
+fun AppNavigator(authViewModel: IAuthViewModel, settingsViewModel: SettingsViewModel) {
   val navController = rememberNavController()
   NavHost(navController = navController, startDestination = Screens.Login.screen) {
     composable(Screens.Login.screen) {
@@ -22,10 +24,13 @@ fun AppNavigator(authViewModel: IAuthViewModel) {
       RegisterScreen(authViewModel = authViewModel, navController = navController)
     }
     composable(Screens.Assistants.screen) {
-      AssistantScreen(navController = navController, authViewModel = authViewModel)
+      AssistantScreen(navController = navController, authViewModel = authViewModel, settingsViewModel = settingsViewModel)
     }
     composable(Screens.CreateAssistant.screen) {
       CreateAssistantScreen(navController = navController)
+    }
+    composable(Screens.Settings.screen) {
+      SettingsScreen(navController = navController, settingsViewModel = settingsViewModel)
     }
   }
 }

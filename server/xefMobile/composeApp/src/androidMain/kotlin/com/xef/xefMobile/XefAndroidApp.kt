@@ -11,18 +11,20 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.server.movile.xef.android.ui.screens.*
+import com.server.movile.xef.android.ui.screens.LoginScreen
+import com.server.movile.xef.android.ui.screens.RegisterScreen
 import com.server.movile.xef.android.ui.screens.menu.AssistantScreen
 import com.server.movile.xef.android.ui.screens.menu.CreateAssistantScreen
 import com.server.movile.xef.android.ui.screens.navigationdrawercompose.HomeScreen
 import com.server.movile.xef.android.ui.viewmodels.IAuthViewModel
 import com.xef.xefMobile.ui.screens.Screens
 import com.xef.xefMobile.ui.screens.SettingsScreen
+import com.xef.xefMobile.ui.viewmodels.SettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun XefAndroidApp(authViewModel: IAuthViewModel) {
+fun XefAndroidApp(authViewModel: IAuthViewModel, settingsViewModel: SettingsViewModel) {
   val navigationController = rememberNavController()
   val userName by authViewModel.userName.observeAsState("")
 
@@ -48,7 +50,7 @@ fun XefAndroidApp(authViewModel: IAuthViewModel) {
         authViewModel = authViewModel,
         userName = userName.orEmpty()
       ) {
-        AssistantScreen(navigationController, authViewModel)
+        AssistantScreen(navigationController, authViewModel, settingsViewModel)
       }
     }
     composable(Screens.CreateAssistant.screen) {
@@ -66,7 +68,7 @@ fun XefAndroidApp(authViewModel: IAuthViewModel) {
         authViewModel = authViewModel,
         userName = userName.orEmpty()
       ) {
-        SettingsScreen(navigationController, authViewModel)
+        SettingsScreen(navigationController, settingsViewModel = settingsViewModel)
       }
     }
     // ... other composable screens ...
