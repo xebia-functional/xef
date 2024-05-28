@@ -34,6 +34,7 @@ fun Routing.assistantRoutes(logger: KLogger) {
         }
       } catch (e: Exception) {
         val trace = e.stackTraceToString()
+        logger.error { "Error creating assistants: $trace" }
         call.respond(HttpStatusCode.BadRequest, "Invalid request: $trace")
       }
     }
