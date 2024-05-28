@@ -19,28 +19,30 @@ abstract class OllamaTests {
 
   companion object {
     private const val OLLAMA_IMAGE = "ollama/ollama:0.1.26"
-    private const val NEW_IMAGE_NAME = "ollama/ollama:test"
+    // private const val NEW_IMAGE_NAME = "ollama/ollama:test"
 
     val ollama: OllamaContainer by lazy {
       // check if the new image is already present otherwise pull the image
-      if (DockerImageName.parse(NEW_IMAGE_NAME).asCompatibleSubstituteFor(OLLAMA_IMAGE) != null) {
-        OllamaContainer(DockerImageName.parse(NEW_IMAGE_NAME))
-      } else {
-        OllamaContainer(DockerImageName.parse(OLLAMA_IMAGE))
-      }
+      //      if (DockerImageName.parse(NEW_IMAGE_NAME).asCompatibleSubstituteFor(OLLAMA_IMAGE) !=
+      // null) {
+      //        OllamaContainer(DockerImageName.parse(NEW_IMAGE_NAME))
+      //      } else {
+      //        OllamaContainer(DockerImageName.parse(OLLAMA_IMAGE))
+      //      }
+      OllamaContainer(DockerImageName.parse(OLLAMA_IMAGE))
     }
 
     @BeforeAll
     @JvmStatic
     fun setup() {
       ollama.start()
-      ollama.commitToImage(NEW_IMAGE_NAME)
+      // ollama.commitToImage(NEW_IMAGE_NAME)
     }
 
     @AfterAll
     @JvmStatic
     fun teardown() {
-      ollama.commitToImage(NEW_IMAGE_NAME)
+      // ollama.commitToImage(NEW_IMAGE_NAME)
       ollama.stop()
     }
   }
