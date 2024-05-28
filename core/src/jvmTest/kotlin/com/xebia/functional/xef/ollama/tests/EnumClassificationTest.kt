@@ -19,16 +19,18 @@ class EnumClassificationTest : OllamaTests() {
     }
   }
 
-  private fun expectSentiment(
-    expected: Sentiment,
-    sentiments: List<Sentiment>,
-    models: Set<String>
-  ) {
-    assert(sentiments.size == models.size) {
-      "Expected ${models.size} results but got ${sentiments.size}"
-    }
-    sentiments.forEach { sentiment ->
-      assert(sentiment == expected) { "Expected $expected but got $sentiment" }
+  companion object {
+    internal fun expectSentiment(
+      expected: Sentiment,
+      sentiments: List<Sentiment>,
+      models: Set<String>
+    ) {
+      assert(sentiments.size == models.size) {
+        "Expected ${models.size} results but got ${sentiments.size}"
+      }
+      sentiments.forEach { sentiment ->
+        assert(sentiment == expected) { "Expected $expected but got $sentiment" }
+      }
     }
   }
 }
