@@ -33,6 +33,7 @@ fun Routing.assistantRoutes(logger: KLogger) {
         }
       } catch (e: Exception) {
         val trace = e.stackTraceToString()
+        logger.error { "Error creating assistants: $trace" }
         call.respond(HttpStatusCode.BadRequest, "Invalid request: $trace")
       }
     }
@@ -47,7 +48,7 @@ fun Routing.assistantRoutes(logger: KLogger) {
         call.respond(HttpStatusCode.OK, response)
       } catch (e: Exception) {
         val trace = e.stackTraceToString()
-        logger.error { "Error creating assistant: $trace" }
+        logger.error { "Error listing assistants: $trace" }
         call.respond(HttpStatusCode.BadRequest, "Invalid request: $trace")
       }
     }
