@@ -69,18 +69,18 @@ fun AssistantScreen(navController: NavController, authViewModel: IAuthViewModel)
           Spacer(modifier = Modifier.height(8.dp))
         }
       }
-    }
 
-    Button(
-      onClick = { navController.navigate(Screens.CreateAssistant.screen) },
-      colors =
-        ButtonDefaults.buttonColors(
-          containerColor = customColors.buttonColor,
-          contentColor = MaterialTheme.colorScheme.onPrimary
-        ),
-      modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp)
-    ) {
-      Text(text = "Create New Assistant")
+      Button(
+        onClick = { navController.navigate(Screens.CreateAssistant.screen) },
+        colors =
+          ButtonDefaults.buttonColors(
+            containerColor = customColors.buttonColor,
+            contentColor = MaterialTheme.colorScheme.onPrimary
+          ),
+        modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp)
+      ) {
+        Text(text = "Create New Assistant")
+      }
     }
   }
 }

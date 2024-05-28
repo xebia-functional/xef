@@ -61,7 +61,7 @@ fun FilePickerDialog(
       Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(text = "Selected Files", fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(8.dp))
-        Divider()
+        HorizontalDivider()
       }
     },
     text = {

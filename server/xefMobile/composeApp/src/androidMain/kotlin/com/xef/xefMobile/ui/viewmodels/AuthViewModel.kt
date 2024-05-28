@@ -72,7 +72,7 @@ class AuthViewModel(context: Context, private val apiService: ApiService) :
       try {
         val loginResponse = apiService.loginUser(loginRequest)
         updateAuthToken(loginResponse.authToken)
-        updateUserName(loginResponse.user.name)
+        updateUserName(loginResponse.user.name) // Extract user's name
         _authToken.value = loginResponse.authToken
         _userName.value = loginResponse.user.name
       } catch (e: Exception) {
@@ -102,7 +102,7 @@ class AuthViewModel(context: Context, private val apiService: ApiService) :
       try {
         val registerResponse = apiService.registerUser(request)
         updateAuthToken(registerResponse.authToken)
-        updateUserName(name)
+        updateUserName(name) // Directly use the name provided during registration
         _authToken.value = registerResponse.authToken
         _userName.value = name
       } catch (e: Exception) {
@@ -127,11 +127,11 @@ class AuthViewModel(context: Context, private val apiService: ApiService) :
         withContext(Dispatchers.IO) {
           dataStore.edit { preferences ->
             preferences.remove(stringPreferencesKey("authToken"))
-            preferences.remove(stringPreferencesKey("userName"))
+            preferences.remove(stringPreferencesKey("userName")) // Add this line
           }
         }
         _authToken.postValue(null)
-        _userName.postValue(null)
+        _userName.postValue(null) // Add this line
         _errorMessage.postValue("Logged out successfully")
       } catch (e: Exception) {
         _errorMessage.postValue("Failed to sign out")

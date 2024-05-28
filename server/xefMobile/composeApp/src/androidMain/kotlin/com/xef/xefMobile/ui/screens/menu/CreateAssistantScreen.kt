@@ -23,6 +23,7 @@ class CreateAssistantActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContent {
+      // Pass the NavController to CreateAssistantScreen
       val navController = rememberNavController()
       CreateAssistantScreen(navController)
     }
