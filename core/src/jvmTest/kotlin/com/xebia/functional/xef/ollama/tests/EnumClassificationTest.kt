@@ -9,7 +9,7 @@ class EnumClassificationTest : OllamaTests() {
   @Test
   fun `enum classification`() {
     runBlocking {
-      val models = setOf(OllamaModels.Gemma2B)
+      val models = setOf(OllamaModels.LLama3_8B)
       val sentiments =
         ollama<Sentiment>(
           models = models,

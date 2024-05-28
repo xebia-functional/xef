@@ -104,7 +104,7 @@ data class DefaultAI<A : Any>(
         <context>
           ${prompt.messages.joinToString("\n") { it.contentAsString() }}
         <cases>  
-          ${cases.mapIndexed { index, s -> "<case>$s</case>" }.joinToString("\n")}
+          ${cases.map { s -> "<case>$s</case>" }.joinToString("\n")}
         </cases>
         Select the `case` corresponding to the `context`.
         IMPORTANT. Reply exclusively with the selected `case`.
