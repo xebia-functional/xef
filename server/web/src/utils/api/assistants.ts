@@ -46,7 +46,7 @@ import {
 
   const assistantApiBaseOptions: ApiOptions = {
     endpointServer: defaultApiServer,
-    endpointPath: EndpointsEnum.assistant,
+    endpointPath: EndpointsEnum.assistants,
     endpointValue: '',
     requestOptions: {
       headers: baseHeaders,
@@ -64,7 +64,7 @@ import {
         headers: {
           ...assistantApiBaseOptions.requestOptions.headers,
           Authorization: `Bearer ${authToken}`,
-          "OpenAI-Beta": "assistants=v1"
+          "OpenAI-Beta": "assistants=v2"
         },
       },
     };

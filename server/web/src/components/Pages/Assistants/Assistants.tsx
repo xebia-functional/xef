@@ -1,8 +1,10 @@
 import { useContext, useEffect, useState, ChangeEvent } from "react";
-import { useAuth } from "@/state/Auth";
 import { LoadingContext } from "@/state/Loading";
 import styles from './Assistants.module.css';
 import { getAssistants } from '@/utils/api/assistants';
+
+import { SettingsContext } from '@/state/Settings';
+
 import {
   Alert,
   Box,
@@ -77,7 +79,6 @@ const emptyAssistant: AssistantObject = {
 };
 
 export function Assistants() {
-  const auth = useAuth();
   const [loading, setLoading] = useContext(LoadingContext);
   const [assistants, setAssistants] = useState<AssistantObject[]>([]);
   const [showAlert, setShowAlert] = useState<string>('');
@@ -217,20 +218,24 @@ export function Assistants() {
     textAlign: 'left',
   };
 
+  const [settings] = useContext(SettingsContext);
+
+  console.log(settings.apiKey);
+
 async function loadAssistants() {
   setLoading(true);
   try {
-    if (auth.token) {
-      console.log('auth.token:', auth.token); // Log auth.token
-      const response = await getAssistants(auth.token);
-      console.log('Full API response:', response); // Log full API response
+    if (settings.apiKey) {
+      console.log('openai token:', settings.apiKey);
+      const response = await getAssistants(settings.apiKey);
+      console.log('Full API response:', response);
       if (response.data) {
         setAssistants(response.data);
       } else {
         console.error('No data in API response');
       }
     } else {
-      console.error('auth.token is undefined');
+      console.error('openai token is undefined');
     }
   } catch (error) {
     console.error(error);
@@ -240,15 +245,10 @@ async function loadAssistants() {
 }
 
 useEffect(() => {
-  if (auth.token) {
+  if (settings.apiKey) {
     loadAssistants();
   }
-}, [auth.token]);
-
-//only to see the state of assistants, then im going to delete it
-useEffect(() => {
-  console.log('assistants:', assistants);
-}, [assistants]);
+}, [settings.apiKey]);
 
   return (
         <Box className={styles.container}>
