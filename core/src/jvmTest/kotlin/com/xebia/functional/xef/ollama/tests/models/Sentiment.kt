@@ -6,7 +6,4 @@ import kotlinx.serialization.Serializable
 enum class Sentiment {
   POSITIVE,
   NEGATIVE,
-  NEUTRAL,
-  MIXED,
-  UNKNOWN
 }

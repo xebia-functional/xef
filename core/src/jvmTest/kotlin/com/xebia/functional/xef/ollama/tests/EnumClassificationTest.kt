@@ -6,31 +6,28 @@ import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 
 class EnumClassificationTest : OllamaTests() {
+
   @Test
-  fun `enum classification`() {
+  fun `positive sentiment`() {
     runBlocking {
-      val models = setOf(OllamaModels.LLama3_8B)
-      val sentiments =
+      val sentiment =
         ollama<Sentiment>(
-          models = models,
-          prompt = "The sentiment of this text is positive.",
+          model = OllamaModels.Gemma2B,
+          prompt = "The context of the situation is very positive.",
         )
-      expectSentiment(Sentiment.POSITIVE, sentiments, models)
+      assert(sentiment == Sentiment.POSITIVE) { "Expected POSITIVE but got $sentiment" }
     }
   }
 
-  companion object {
-    internal fun expectSentiment(
-      expected: Sentiment,
-      sentiments: List<Sentiment>,
-      models: Set<String>
-    ) {
-      assert(sentiments.size == models.size) {
-        "Expected ${models.size} results but got ${sentiments.size}"
-      }
-      sentiments.forEach { sentiment ->
-        assert(sentiment == expected) { "Expected $expected but got $sentiment" }
-      }
+  @Test
+  fun `negative sentiment`() {
+    runBlocking {
+      val sentiment =
+        ollama<Sentiment>(
+          model = OllamaModels.LLama3_8B,
+          prompt = "The context of the situation is very negative.",
+        )
+      assert(sentiment == Sentiment.NEGATIVE) { "Expected NEGATIVE but got $sentiment" }
     }
   }
 }
