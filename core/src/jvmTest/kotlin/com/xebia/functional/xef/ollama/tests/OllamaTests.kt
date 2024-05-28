@@ -23,10 +23,10 @@ abstract class OllamaTests {
 
     val ollama: OllamaContainer by lazy {
       // check if the new image is already present otherwise pull the image
-      if (DockerImageName.parse(NEW_IMAGE_NAME).asCompatibleSubstituteFor(OLLAMA_IMAGE) == null) {
-        OllamaContainer(DockerImageName.parse(OLLAMA_IMAGE))
-      } else {
+      if (DockerImageName.parse(NEW_IMAGE_NAME).asCompatibleSubstituteFor(OLLAMA_IMAGE) != null) {
         OllamaContainer(DockerImageName.parse(NEW_IMAGE_NAME))
+      } else {
+        OllamaContainer(DockerImageName.parse(OLLAMA_IMAGE))
       }
     }
 
