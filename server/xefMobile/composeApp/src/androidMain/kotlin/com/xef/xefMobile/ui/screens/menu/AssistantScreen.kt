@@ -19,9 +19,14 @@ import com.xef.xefMobile.ui.screens.Screens
 import com.xef.xefMobile.ui.viewmodels.SettingsViewModel
 
 @Composable
-fun AssistantScreen(navController: NavController, authViewModel: IAuthViewModel, settingsViewModel: SettingsViewModel) {
+fun AssistantScreen(
+  navController: NavController,
+  authViewModel: IAuthViewModel,
+  settingsViewModel: SettingsViewModel
+) {
   val customColors = LocalCustomColors.current
-  val viewModel: AssistantViewModel = viewModel(factory = AssistantViewModelFactory(authViewModel, settingsViewModel))
+  val viewModel: AssistantViewModel =
+    viewModel(factory = AssistantViewModelFactory(authViewModel, settingsViewModel))
   val assistants by viewModel.assistants.collectAsState()
   val loading by viewModel.loading.collectAsState()
   val errorMessage by viewModel.errorMessage.collectAsState()
@@ -63,10 +68,11 @@ fun AssistantScreen(navController: NavController, authViewModel: IAuthViewModel,
 
     Button(
       onClick = { navController.navigate(Screens.CreateAssistant.screen) },
-      colors = ButtonDefaults.buttonColors(
-        containerColor = customColors.buttonColor,
-        contentColor = MaterialTheme.colorScheme.onPrimary
-      ),
+      colors =
+        ButtonDefaults.buttonColors(
+          containerColor = customColors.buttonColor,
+          contentColor = MaterialTheme.colorScheme.onPrimary
+        ),
       modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp)
     ) {
       Text(text = "Create New Assistant")
@@ -80,8 +86,7 @@ class AssistantViewModelFactory(
 ) : ViewModelProvider.Factory {
   override fun <T : ViewModel> create(modelClass: Class<T>): T {
     if (modelClass.isAssignableFrom(AssistantViewModel::class.java)) {
-      @Suppress("UNCHECKED_CAST")
-      return AssistantViewModel(authViewModel, settingsViewModel) as T
+      @Suppress("UNCHECKED_CAST") return AssistantViewModel(authViewModel, settingsViewModel) as T
     }
     throw IllegalArgumentException("Unknown ViewModel class")
   }

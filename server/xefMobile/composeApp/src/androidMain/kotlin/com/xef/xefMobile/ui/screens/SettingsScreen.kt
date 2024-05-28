@@ -43,32 +43,19 @@ fun SettingsScreen(navController: NavController, settingsViewModel: SettingsView
   }
 
   // Step 5: Scaffold to provide structure and Snackbar host
-  Scaffold(
-    snackbarHost = { SnackbarHost(snackbarHostState) }
-  ) { innerPadding ->
-    Box(modifier = Modifier
-      .fillMaxSize()
-      .background(Color.White)
-      .padding(innerPadding)
-      .padding(16.dp)) {
+  Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { innerPadding ->
+    Box(
+      modifier = Modifier.fillMaxSize().background(Color.White).padding(innerPadding).padding(16.dp)
+    ) {
       Column(
         modifier = Modifier.align(Alignment.Center),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
       ) {
         // Step 2: UI elements for settings screen
-        Text(
-          text = "Settings",
-          fontSize = 24.sp,
-          fontWeight = FontWeight.Bold,
-          color = Color.Black
-        )
+        Text(text = "Settings", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.Black)
         Spacer(modifier = Modifier.height(8.dp))
-        Text(
-          text = "These are xef-server settings.",
-          fontSize = 16.sp,
-          color = Color.Gray
-        )
+        Text(text = "These are xef-server settings.", fontSize = 16.sp, color = Color.Gray)
         Spacer(modifier = Modifier.height(16.dp))
         TextField(
           value = apiKeyInput,
