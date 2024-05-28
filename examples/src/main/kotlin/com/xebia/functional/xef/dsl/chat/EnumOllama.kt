@@ -10,7 +10,7 @@ suspend fun main() {
   val sentiment =
     AI<Sentiment>(
       prompt = "I love Xef!",
-      model = CreateChatCompletionRequestModel.Custom("gemma:2b"),
+      model = CreateChatCompletionRequestModel.Custom("orca-mini:3b"),
       config = config,
       api = OpenAI(config, logRequests = true).chat,
     )
