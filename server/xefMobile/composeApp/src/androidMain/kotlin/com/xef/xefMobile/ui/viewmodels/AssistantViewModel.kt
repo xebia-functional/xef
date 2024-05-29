@@ -10,14 +10,14 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.util.*
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 class AssistantViewModel(
   private val authViewModel: IAuthViewModel,
@@ -67,17 +67,19 @@ class AssistantViewModel(
     viewModelScope.launch {
       try {
         val token = settingsViewModel.apiKey.value ?: throw Exception("API key not found")
-        val response: HttpResponse = client.post("http://your.api.endpoint/v1/settings/assistants") {
-          contentType(ContentType.Application.Json)
-          header("Authorization", "Bearer $token")
-          body = CreateAssistantRequest(
-            model = model,
-            name = name,
-            instructions = instructions,
-            temperature = temperature.toDouble(),
-            topP = topP.toDouble()
-          )
-        }
+        val response: HttpResponse =
+          client.post("http://your.api.endpoint/v1/settings/assistants") {
+            contentType(ContentType.Application.Json)
+            header("Authorization", "Bearer $token")
+            body =
+              CreateAssistantRequest(
+                model = model,
+                name = name,
+                instructions = instructions,
+                temperature = temperature.toDouble(),
+                topP = topP.toDouble()
+              )
+          }
         if (response.status == HttpStatusCode.Created) {
           onSuccess()
         } else {

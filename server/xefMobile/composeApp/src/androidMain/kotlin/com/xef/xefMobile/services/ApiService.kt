@@ -46,11 +46,12 @@ class ApiService {
 
   suspend fun getAssistants(authToken: String): AssistantsResponse {
     return try {
-      val response: HttpResponse = HttpClientProvider.client.get {
-        url("http://10.0.2.2:8081/v1/settings/assistants")
-        header(HttpHeaders.Authorization, "Bearer $authToken")
-        header("OpenAI-Beta", "assistants=v2")
-      }
+      val response: HttpResponse =
+        HttpClientProvider.client.get {
+          url("http://10.0.2.2:8081/v1/settings/assistants")
+          header(HttpHeaders.Authorization, "Bearer $authToken")
+          header("OpenAI-Beta", "assistants=v2")
+        }
 
       val responseBody: String = response.bodyAsText()
       Log.d("ApiService", "Assistants response body: $responseBody")

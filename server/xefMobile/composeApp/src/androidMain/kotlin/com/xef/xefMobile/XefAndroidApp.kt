@@ -33,12 +33,8 @@ fun XefAndroidApp(authViewModel: IAuthViewModel, settingsViewModel: SettingsView
     startDestination = Screens.Login.screen,
     modifier = Modifier.padding(top = 16.dp)
   ) {
-    composable(Screens.Login.screen) {
-      LoginScreen(authViewModel, navController)
-    }
-    composable(Screens.Register.screen) {
-      RegisterScreen(authViewModel, navController)
-    }
+    composable(Screens.Login.screen) { LoginScreen(authViewModel, navController) }
+    composable(Screens.Register.screen) { RegisterScreen(authViewModel, navController) }
     composable(Screens.Home.screen) {
       MainLayout(
         navController = navController,
@@ -65,8 +61,8 @@ fun XefAndroidApp(authViewModel: IAuthViewModel, settingsViewModel: SettingsView
       ) {
         CreateAssistantScreen(
           navController = navController,
-            authViewModel = authViewModel,
-            settingsViewModel = settingsViewModel
+          authViewModel = authViewModel,
+          settingsViewModel = settingsViewModel
         )
       }
     }

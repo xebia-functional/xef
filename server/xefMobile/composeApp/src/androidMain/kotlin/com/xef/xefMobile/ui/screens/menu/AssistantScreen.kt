@@ -65,14 +65,10 @@ fun AssistantScreen(
 
           Spacer(modifier = Modifier.height(16.dp))
 
-          LazyColumn(
-            modifier = Modifier.fillMaxSize()
-          ) {
+          LazyColumn(modifier = Modifier.fillMaxSize()) {
             items(assistants) { assistant ->
               Column(
-                modifier = Modifier
-                  .fillMaxWidth()
-                  .padding(vertical = 8.dp),
+                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
                 horizontalAlignment = Alignment.Start // Align items to start
               ) {
                 Row(
@@ -91,10 +87,7 @@ fun AssistantScreen(
                     modifier = Modifier.align(Alignment.CenterVertically)
                   )
                 }
-                Text(
-                  text = "ID: ${assistant.id}",
-                  fontSize = 14.sp
-                )
+                Text(text = "ID: ${assistant.id}", fontSize = 14.sp)
               }
               Divider(color = Color.Gray)
             }
@@ -105,10 +98,11 @@ fun AssistantScreen(
 
     Button(
       onClick = { navController.navigate(Screens.CreateAssistant.screen) },
-      colors = ButtonDefaults.buttonColors(
-        containerColor = customColors.buttonColor,
-        contentColor = MaterialTheme.colorScheme.onPrimary
-      ),
+      colors =
+        ButtonDefaults.buttonColors(
+          containerColor = customColors.buttonColor,
+          contentColor = MaterialTheme.colorScheme.onPrimary
+        ),
       modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp)
     ) {
       Text(text = "Create New Assistant")
@@ -122,10 +116,8 @@ class AssistantViewModelFactory(
 ) : ViewModelProvider.Factory {
   override fun <T : ViewModel> create(modelClass: Class<T>): T {
     if (modelClass.isAssignableFrom(AssistantViewModel::class.java)) {
-      @Suppress("UNCHECKED_CAST")
-      return AssistantViewModel(authViewModel, settingsViewModel) as T
+      @Suppress("UNCHECKED_CAST") return AssistantViewModel(authViewModel, settingsViewModel) as T
     }
     throw IllegalArgumentException("Unknown ViewModel class")
   }
 }
-

@@ -32,7 +32,11 @@ fun AppNavigator(authViewModel: IAuthViewModel, settingsViewModel: SettingsViewM
       )
     }
     composable(Screens.CreateAssistant.screen) {
-      CreateAssistantScreen(navController = navController, authViewModel = authViewModel, settingsViewModel = settingsViewModel)
+      CreateAssistantScreen(
+        navController = navController,
+        authViewModel = authViewModel,
+        settingsViewModel = settingsViewModel
+      )
     }
     composable(Screens.Settings.screen) {
       SettingsScreen(navController = navController, settingsViewModel = settingsViewModel)

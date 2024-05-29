@@ -11,17 +11,18 @@ import androidx.lifecycle.viewModelScope
 import com.xef.xefMobile.model.LoginRequest
 import com.xef.xefMobile.model.RegisterRequest
 import com.xef.xefMobile.services.ApiService
+import java.io.IOException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException
-import java.io.IOException
 
 private val Context.dataStore by preferencesDataStore(name = "settings")
 
-class AuthViewModel(context: Context, private val apiService: ApiService) : ViewModel(), IAuthViewModel {
+class AuthViewModel(context: Context, private val apiService: ApiService) :
+  ViewModel(), IAuthViewModel {
 
   private val dataStore = context.dataStore
 
@@ -46,9 +47,10 @@ class AuthViewModel(context: Context, private val apiService: ApiService) : View
 
   private fun loadAuthToken() {
     viewModelScope.launch {
-      val token = dataStore.data
-        .map { preferences -> preferences[stringPreferencesKey("authToken")] }
-        .firstOrNull()
+      val token =
+        dataStore.data
+          .map { preferences -> preferences[stringPreferencesKey("authToken")] }
+          .firstOrNull()
       _authToken.value = token
 
       token?.let { loadUserName() }
@@ -57,9 +59,10 @@ class AuthViewModel(context: Context, private val apiService: ApiService) : View
 
   private suspend fun loadUserName() {
     withContext(Dispatchers.IO) {
-      val name = dataStore.data
-        .map { preferences -> preferences[stringPreferencesKey("userName")] }
-        .firstOrNull()
+      val name =
+        dataStore.data
+          .map { preferences -> preferences[stringPreferencesKey("userName")] }
+          .firstOrNull()
       _userName.postValue(name)
     }
   }
@@ -85,17 +88,13 @@ class AuthViewModel(context: Context, private val apiService: ApiService) : View
 
   private suspend fun updateAuthToken(token: String) {
     withContext(Dispatchers.IO) {
-      dataStore.edit { preferences ->
-        preferences[stringPreferencesKey("authToken")] = token
-      }
+      dataStore.edit { preferences -> preferences[stringPreferencesKey("authToken")] = token }
     }
   }
 
   private suspend fun updateUserName(name: String) {
     withContext(Dispatchers.IO) {
-      dataStore.edit { preferences ->
-        preferences[stringPreferencesKey("userName")] = name
-      }
+      dataStore.edit { preferences -> preferences[stringPreferencesKey("userName")] = name }
     }
   }
 
@@ -118,17 +117,18 @@ class AuthViewModel(context: Context, private val apiService: ApiService) : View
   }
 
   private fun handleException(e: Exception) {
-    val errorMessage = when (e) {
-      is IOException -> "Network error"
-      is HttpException -> {
-        when (e.code()) {
-          401 -> "Incorrect email or password"
-          404 -> "Email not registered"
-          else -> "Unexpected server error"
+    val errorMessage =
+      when (e) {
+        is IOException -> "Network error"
+        is HttpException -> {
+          when (e.code()) {
+            401 -> "Incorrect email or password"
+            404 -> "Email not registered"
+            else -> "Unexpected server error"
+          }
         }
+        else -> "An unexpected error occurred"
       }
-      else -> "An unexpected error occurred"
-    }
     _loginError.postValue(errorMessage)
   }
 

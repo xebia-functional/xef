@@ -41,11 +41,7 @@ fun SettingsScreen(navController: NavController, settingsViewModel: SettingsView
 
   Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { innerPadding ->
     Box(
-      modifier = Modifier
-        .fillMaxSize()
-        .background(Color.White)
-        .padding(innerPadding)
-        .padding(16.dp)
+      modifier = Modifier.fillMaxSize().background(Color.White).padding(innerPadding).padding(16.dp)
     ) {
       Column(
         modifier = Modifier.align(Alignment.Center),

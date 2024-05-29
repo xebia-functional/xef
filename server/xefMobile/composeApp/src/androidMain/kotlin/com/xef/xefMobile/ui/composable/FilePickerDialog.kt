@@ -85,7 +85,7 @@ fun FilePickerDialog(
                 Text(
                   text = path,
                   modifier =
-                  Modifier.fillMaxWidth().clickable { selectedFile = path }.padding(8.dp),
+                    Modifier.fillMaxWidth().clickable { selectedFile = path }.padding(8.dp),
                   color = if (selectedFile == path) Color.Blue else Color.Unspecified
                 )
               }
@@ -101,10 +101,10 @@ fun FilePickerDialog(
             }
           },
           colors =
-          ButtonDefaults.outlinedButtonColors(
-            containerColor = Color.Transparent,
-            contentColor = customColors.buttonColor
-          )
+            ButtonDefaults.outlinedButtonColors(
+              containerColor = Color.Transparent,
+              contentColor = customColors.buttonColor
+            )
         ) {
           Text(text = "Browse files")
         }
@@ -115,10 +115,10 @@ fun FilePickerDialog(
               selectedFile = null
             },
             colors =
-            ButtonDefaults.outlinedButtonColors(
-              containerColor = Color.Transparent,
-              contentColor = customColors.buttonColor
-            )
+              ButtonDefaults.outlinedButtonColors(
+                containerColor = Color.Transparent,
+                contentColor = customColors.buttonColor
+              )
           ) {
             Text(text = "Remove")
           }
@@ -129,14 +129,13 @@ fun FilePickerDialog(
       Button(
         onClick = { onDismissRequest() },
         colors =
-        ButtonDefaults.buttonColors(
-          containerColor = customColors.buttonColor,
-          contentColor = MaterialTheme.colorScheme.onPrimary
-        )
+          ButtonDefaults.buttonColors(
+            containerColor = customColors.buttonColor,
+            contentColor = MaterialTheme.colorScheme.onPrimary
+          )
       ) {
         Text("Done")
       }
     }
   )
 }
-
