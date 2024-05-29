@@ -8,6 +8,7 @@ import com.server.movile.xef.android.ui.screens.LoginScreen
 import com.server.movile.xef.android.ui.screens.RegisterScreen
 import com.server.movile.xef.android.ui.screens.menu.AssistantScreen
 import com.server.movile.xef.android.ui.screens.menu.CreateAssistantScreen
+import com.server.movile.xef.android.ui.screens.navigationdrawercompose.HomeScreen
 import com.server.movile.xef.android.ui.viewmodels.IAuthViewModel
 import com.xef.xefMobile.ui.screens.Screens
 import com.xef.xefMobile.ui.screens.SettingsScreen
@@ -31,10 +32,13 @@ fun AppNavigator(authViewModel: IAuthViewModel, settingsViewModel: SettingsViewM
       )
     }
     composable(Screens.CreateAssistant.screen) {
-      CreateAssistantScreen(navController = navController)
+      CreateAssistantScreen(navController = navController, authViewModel = authViewModel, settingsViewModel = settingsViewModel)
     }
     composable(Screens.Settings.screen) {
       SettingsScreen(navController = navController, settingsViewModel = settingsViewModel)
+    }
+    composable(Screens.Home.screen) {
+      HomeScreen(authViewModel = authViewModel, navController = navController)
     }
   }
 }

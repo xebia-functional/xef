@@ -21,38 +21,37 @@ import org.xef.xefMobile.R
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(navController: NavController, settingsViewModel: SettingsViewModel) {
-  // Step 1: Collect and observe the API key state from the ViewModel
   val apiKey by settingsViewModel.apiKey.collectAsState()
   var apiKeyInput by remember { mutableStateOf(apiKey) }
   val coroutineScope = rememberCoroutineScope()
 
-  // Custom colors for UI elements
   val customColors = Color(0xFFADD8E6)
   val CustomTextBlue = Color(0xFF0199D7)
 
-  // Step 4: Snackbar state management
   var showSnackbar by remember { mutableStateOf(false) }
   val snackbarHostState = remember { SnackbarHostState() }
 
-  // Display Snackbar when showSnackbar becomes true
   LaunchedEffect(showSnackbar) {
     if (showSnackbar) {
       snackbarHostState.showSnackbar("API key saved successfully")
       showSnackbar = false
+      navController.navigate(Screens.Home.screen)
     }
   }
 
-  // Step 5: Scaffold to provide structure and Snackbar host
   Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { innerPadding ->
     Box(
-      modifier = Modifier.fillMaxSize().background(Color.White).padding(innerPadding).padding(16.dp)
+      modifier = Modifier
+        .fillMaxSize()
+        .background(Color.White)
+        .padding(innerPadding)
+        .padding(16.dp)
     ) {
       Column(
         modifier = Modifier.align(Alignment.Center),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
       ) {
-        // Step 2: UI elements for settings screen
         Text(text = "Settings", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.Black)
         Spacer(modifier = Modifier.height(8.dp))
         Text(text = "These are xef-server settings.", fontSize = 16.sp, color = Color.Gray)
@@ -64,13 +63,12 @@ fun SettingsScreen(navController: NavController, settingsViewModel: SettingsView
           modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(16.dp))
-        // Step 3: Button to save the API key
         Button(
           onClick = {
             coroutineScope.launch {
               settingsViewModel.setApiKey(apiKeyInput)
               settingsViewModel.saveApiKey()
-              showSnackbar = true // Trigger Snackbar
+              showSnackbar = true
             }
           },
           colors = ButtonDefaults.buttonColors(containerColor = customColors),

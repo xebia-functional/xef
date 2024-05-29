@@ -26,7 +26,8 @@ import com.xef.xefMobile.ui.viewmodels.PathViewModel
 fun FilePickerDialog(
   onDismissRequest: () -> Unit,
   customColors: CustomColors,
-  onFilesSelected: () -> Unit
+  onFilesSelected: () -> Unit,
+  mimeTypeFilter: String = "*/*" // Default to all files
 ) {
   val viewModel: PathViewModel = viewModel()
   val state = viewModel.state
@@ -84,7 +85,7 @@ fun FilePickerDialog(
                 Text(
                   text = path,
                   modifier =
-                    Modifier.fillMaxWidth().clickable { selectedFile = path }.padding(8.dp),
+                  Modifier.fillMaxWidth().clickable { selectedFile = path }.padding(8.dp),
                   color = if (selectedFile == path) Color.Blue else Color.Unspecified
                 )
               }
@@ -94,16 +95,16 @@ fun FilePickerDialog(
         OutlinedButton(
           onClick = {
             if (permissionState.status.isGranted) {
-              filePickerLauncher.launch("*/*")
+              filePickerLauncher.launch(mimeTypeFilter)
             } else {
               permissionState.launchPermissionRequest()
             }
           },
           colors =
-            ButtonDefaults.outlinedButtonColors(
-              containerColor = Color.Transparent,
-              contentColor = customColors.buttonColor
-            )
+          ButtonDefaults.outlinedButtonColors(
+            containerColor = Color.Transparent,
+            contentColor = customColors.buttonColor
+          )
         ) {
           Text(text = "Browse files")
         }
@@ -114,10 +115,10 @@ fun FilePickerDialog(
               selectedFile = null
             },
             colors =
-              ButtonDefaults.outlinedButtonColors(
-                containerColor = Color.Transparent,
-                contentColor = customColors.buttonColor
-              )
+            ButtonDefaults.outlinedButtonColors(
+              containerColor = Color.Transparent,
+              contentColor = customColors.buttonColor
+            )
           ) {
             Text(text = "Remove")
           }
@@ -128,13 +129,14 @@ fun FilePickerDialog(
       Button(
         onClick = { onDismissRequest() },
         colors =
-          ButtonDefaults.buttonColors(
-            containerColor = customColors.buttonColor,
-            contentColor = MaterialTheme.colorScheme.onPrimary
-          )
+        ButtonDefaults.buttonColors(
+          containerColor = customColors.buttonColor,
+          contentColor = MaterialTheme.colorScheme.onPrimary
+        )
       ) {
         Text("Done")
       }
     }
   )
 }
+

@@ -9,8 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class SettingsViewModel(context: Context) : ViewModel() {
-  private val preferences: SharedPreferences =
-    context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+  private val preferences: SharedPreferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
   private val _apiKey = MutableStateFlow(preferences.getString("api_key", "") ?: "")
   val apiKey: StateFlow<String> = _apiKey
 
@@ -19,6 +18,8 @@ class SettingsViewModel(context: Context) : ViewModel() {
   }
 
   fun saveApiKey() {
-    viewModelScope.launch { preferences.edit().putString("api_key", _apiKey.value).apply() }
+    viewModelScope.launch {
+      preferences.edit().putString("api_key", _apiKey.value).apply()
+    }
   }
 }

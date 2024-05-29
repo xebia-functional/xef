@@ -188,8 +188,11 @@ fun MainLayout(
             )
           },
           onClick = {
-            coroutineScope.launch { drawerState.close() }
-            authViewModel.logout()
+            coroutineScope.launch {
+              drawerState.close()
+              authViewModel.logout()
+              navController.navigate(Screens.Login.screen) { popUpTo(0) { inclusive = true } }
+            }
           }
         )
       }
@@ -219,11 +222,11 @@ fun MainLayout(
             }
           },
           colors =
-            TopAppBarDefaults.topAppBarColors(
-              containerColor = CustomLightBlue,
-              titleContentColor = Color.White,
-              navigationIconContentColor = Color.White
-            ),
+          TopAppBarDefaults.topAppBarColors(
+            containerColor = CustomLightBlue,
+            titleContentColor = Color.White,
+            navigationIconContentColor = Color.White
+          ),
           navigationIcon = {
             IconButton(onClick = { coroutineScope.launch { drawerState.open() } }) {
               Icon(Icons.Rounded.Menu, contentDescription = "MenuButton")

@@ -11,19 +11,17 @@ import androidx.lifecycle.viewModelScope
 import com.xef.xefMobile.model.LoginRequest
 import com.xef.xefMobile.model.RegisterRequest
 import com.xef.xefMobile.services.ApiService
-import java.io.IOException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException
+import java.io.IOException
 
-// Extension function to provide DataStore instance
 private val Context.dataStore by preferencesDataStore(name = "settings")
 
-class AuthViewModel(context: Context, private val apiService: ApiService) :
-  ViewModel(), IAuthViewModel {
+class AuthViewModel(context: Context, private val apiService: ApiService) : ViewModel(), IAuthViewModel {
 
   private val dataStore = context.dataStore
 
@@ -39,16 +37,18 @@ class AuthViewModel(context: Context, private val apiService: ApiService) :
   private val _userName = MutableLiveData<String?>()
   override val userName: LiveData<String?> = _userName
 
+  private val _loginError = MutableLiveData<String?>()
+  override val loginError: LiveData<String?> = _loginError
+
   init {
     loadAuthToken()
   }
 
   private fun loadAuthToken() {
     viewModelScope.launch {
-      val token =
-        dataStore.data
-          .map { preferences -> preferences[stringPreferencesKey("authToken")] }
-          .firstOrNull()
+      val token = dataStore.data
+        .map { preferences -> preferences[stringPreferencesKey("authToken")] }
+        .firstOrNull()
       _authToken.value = token
 
       token?.let { loadUserName() }
@@ -57,10 +57,9 @@ class AuthViewModel(context: Context, private val apiService: ApiService) :
 
   private suspend fun loadUserName() {
     withContext(Dispatchers.IO) {
-      val name =
-        dataStore.data
-          .map { preferences -> preferences[stringPreferencesKey("userName")] }
-          .firstOrNull()
+      val name = dataStore.data
+        .map { preferences -> preferences[stringPreferencesKey("userName")] }
+        .firstOrNull()
       _userName.postValue(name)
     }
   }
@@ -72,9 +71,10 @@ class AuthViewModel(context: Context, private val apiService: ApiService) :
       try {
         val loginResponse = apiService.loginUser(loginRequest)
         updateAuthToken(loginResponse.authToken)
-        updateUserName(loginResponse.user.name) // Extract user's name
+        updateUserName(loginResponse.user.name)
         _authToken.value = loginResponse.authToken
         _userName.value = loginResponse.user.name
+        _loginError.value = null
       } catch (e: Exception) {
         handleException(e)
       } finally {
@@ -85,13 +85,17 @@ class AuthViewModel(context: Context, private val apiService: ApiService) :
 
   private suspend fun updateAuthToken(token: String) {
     withContext(Dispatchers.IO) {
-      dataStore.edit { preferences -> preferences[stringPreferencesKey("authToken")] = token }
+      dataStore.edit { preferences ->
+        preferences[stringPreferencesKey("authToken")] = token
+      }
     }
   }
 
   private suspend fun updateUserName(name: String) {
     withContext(Dispatchers.IO) {
-      dataStore.edit { preferences -> preferences[stringPreferencesKey("userName")] = name }
+      dataStore.edit { preferences ->
+        preferences[stringPreferencesKey("userName")] = name
+      }
     }
   }
 
@@ -102,7 +106,7 @@ class AuthViewModel(context: Context, private val apiService: ApiService) :
       try {
         val registerResponse = apiService.registerUser(request)
         updateAuthToken(registerResponse.authToken)
-        updateUserName(name) // Directly use the name provided during registration
+        updateUserName(name)
         _authToken.value = registerResponse.authToken
         _userName.value = name
       } catch (e: Exception) {
@@ -114,11 +118,18 @@ class AuthViewModel(context: Context, private val apiService: ApiService) :
   }
 
   private fun handleException(e: Exception) {
-    when (e) {
-      is IOException -> _errorMessage.postValue("Network error")
-      is HttpException -> _errorMessage.postValue("Unexpected server error: ${e.code()}")
-      else -> _errorMessage.postValue("An unexpected error occurred: ${e.message}")
+    val errorMessage = when (e) {
+      is IOException -> "Network error"
+      is HttpException -> {
+        when (e.code()) {
+          401 -> "Incorrect email or password"
+          404 -> "Email not registered"
+          else -> "Unexpected server error"
+        }
+      }
+      else -> "An unexpected error occurred"
     }
+    _loginError.postValue(errorMessage)
   }
 
   override fun logout() {
@@ -127,11 +138,11 @@ class AuthViewModel(context: Context, private val apiService: ApiService) :
         withContext(Dispatchers.IO) {
           dataStore.edit { preferences ->
             preferences.remove(stringPreferencesKey("authToken"))
-            preferences.remove(stringPreferencesKey("userName")) // Add this line
+            preferences.remove(stringPreferencesKey("userName"))
           }
         }
         _authToken.postValue(null)
-        _userName.postValue(null) // Add this line
+        _userName.postValue(null)
         _errorMessage.postValue("Logged out successfully")
       } catch (e: Exception) {
         _errorMessage.postValue("Failed to sign out")

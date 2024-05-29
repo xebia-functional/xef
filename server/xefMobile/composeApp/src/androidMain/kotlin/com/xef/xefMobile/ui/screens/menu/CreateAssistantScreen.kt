@@ -11,28 +11,46 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.server.movile.xef.android.ui.themes.LocalCustomColors
+import com.server.movile.xef.android.ui.viewmodels.AssistantViewModel
+import com.server.movile.xef.android.ui.viewmodels.AuthViewModel
+import com.server.movile.xef.android.ui.viewmodels.IAuthViewModel
 import com.xef.xefMobile.ui.composable.FilePickerDialog
+import com.xef.xefMobile.ui.viewmodels.SettingsViewModel
+import com.xef.xefMobile.ui.viewmodels.SettingsViewModelFactory
+import com.xef.xefMobile.ui.viewmodels.factory.AuthViewModelFactory
+
 
 class CreateAssistantActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContent {
-      // Pass the NavController to CreateAssistantScreen
       val navController = rememberNavController()
-      CreateAssistantScreen(navController)
+
+      // Obtain ViewModels
+      val authViewModel: AuthViewModel = viewModel(factory = AuthViewModelFactory(applicationContext))
+      val settingsViewModel: SettingsViewModel = viewModel(factory = SettingsViewModelFactory(applicationContext))
+
+      // Pass the ViewModels to the Composable
+      CreateAssistantScreen(navController, authViewModel, settingsViewModel)
     }
   }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreateAssistantScreen(navController: NavController) {
+fun CreateAssistantScreen(
+  navController: NavController,
+  authViewModel: IAuthViewModel,
+  settingsViewModel: SettingsViewModel
+) {
+  val viewModel: AssistantViewModel = viewModel(factory = AssistantViewModelFactory(authViewModel, settingsViewModel))
+
   var name by remember { mutableStateOf("") }
   var instructions by remember { mutableStateOf("") }
   var temperature by remember { mutableStateOf(1f) }
@@ -44,6 +62,7 @@ fun CreateAssistantScreen(navController: NavController) {
   var isExpanded by remember { mutableStateOf(false) }
   var selectedText by remember { mutableStateOf(list[0]) }
   var showFilePicker by remember { mutableStateOf(false) }
+  var showCodeInterpreterPicker by remember { mutableStateOf(false) }
 
   val customColors = LocalCustomColors.current
 
@@ -109,10 +128,10 @@ fun CreateAssistantScreen(navController: NavController) {
         TextButton(
           onClick = { showFilePicker = true },
           colors =
-            ButtonDefaults.outlinedButtonColors(
-              containerColor = Color.Transparent,
-              contentColor = customColors.buttonColor
-            )
+          ButtonDefaults.outlinedButtonColors(
+            containerColor = Color.Transparent,
+            contentColor = customColors.buttonColor
+          )
         ) {
           Text("File Search +")
         }
@@ -121,21 +140,21 @@ fun CreateAssistantScreen(navController: NavController) {
           checked = fileSearchEnabled,
           onCheckedChange = { fileSearchEnabled = it },
           colors =
-            SwitchDefaults.colors(
-              checkedThumbColor = customColors.sliderThumbColor,
-              checkedTrackColor = customColors.sliderTrackColor
-            )
+          SwitchDefaults.colors(
+            checkedThumbColor = customColors.sliderThumbColor,
+            checkedTrackColor = customColors.sliderTrackColor
+          )
         )
       }
       Spacer(modifier = Modifier.height(8.dp))
       Row(verticalAlignment = Alignment.CenterVertically) {
         TextButton(
-          onClick = { /* handle cancel */},
+          onClick = { showCodeInterpreterPicker = true },
           colors =
-            ButtonDefaults.outlinedButtonColors(
-              containerColor = Color.Transparent,
-              contentColor = customColors.buttonColor
-            )
+          ButtonDefaults.outlinedButtonColors(
+            containerColor = Color.Transparent,
+            contentColor = customColors.buttonColor
+          )
         ) {
           Text("Code Interpreter +")
         }
@@ -144,10 +163,10 @@ fun CreateAssistantScreen(navController: NavController) {
           checked = codeInterpreterEnabled,
           onCheckedChange = { codeInterpreterEnabled = it },
           colors =
-            SwitchDefaults.colors(
-              checkedThumbColor = customColors.sliderThumbColor,
-              checkedTrackColor = customColors.sliderTrackColor
-            )
+          SwitchDefaults.colors(
+            checkedThumbColor = customColors.sliderThumbColor,
+            checkedTrackColor = customColors.sliderTrackColor
+          )
         )
       }
       Spacer(modifier = Modifier.height(8.dp))
@@ -155,10 +174,10 @@ fun CreateAssistantScreen(navController: NavController) {
         TextButton(
           onClick = { /* handle cancel */},
           colors =
-            ButtonDefaults.outlinedButtonColors(
-              containerColor = Color.Transparent,
-              contentColor = customColors.buttonColor
-            )
+          ButtonDefaults.outlinedButtonColors(
+            containerColor = Color.Transparent,
+            contentColor = customColors.buttonColor
+          )
         ) {
           Text("Functions +")
         }
@@ -183,21 +202,36 @@ fun CreateAssistantScreen(navController: NavController) {
         Button(
           onClick = { navController.navigateUp() },
           colors =
-            ButtonDefaults.buttonColors(
-              containerColor = customColors.buttonColor,
-              contentColor = MaterialTheme.colorScheme.onPrimary
-            )
+          ButtonDefaults.buttonColors(
+            containerColor = customColors.buttonColor,
+            contentColor = MaterialTheme.colorScheme.onPrimary
+          )
         ) {
           Text("Cancel")
         }
         Spacer(modifier = Modifier.width(8.dp))
         Button(
-          onClick = { /* handle create */},
-          colors =
-            ButtonDefaults.buttonColors(
-              containerColor = customColors.buttonColor,
-              contentColor = MaterialTheme.colorScheme.onPrimary
+          onClick = {
+            viewModel.createAssistant(
+              name = name,
+              instructions = instructions,
+              temperature = temperature,
+              topP = topP,
+              model = model,
+              onSuccess = {
+                navController.navigateUp() // Navigate back on success
+              },
+              onError = { errorMessage ->
+                // Handle error (e.g., show a toast or dialog)
+                println("Error: $errorMessage")
+              }
             )
+          },
+          colors =
+          ButtonDefaults.buttonColors(
+            containerColor = customColors.buttonColor,
+            contentColor = MaterialTheme.colorScheme.onPrimary
+          )
         ) {
           Text("Create")
         }
@@ -211,6 +245,17 @@ fun CreateAssistantScreen(navController: NavController) {
           // Handle file selection here if needed
           showFilePicker = false
         }
+      )
+    }
+    if (showCodeInterpreterPicker) {
+      FilePickerDialog(
+        onDismissRequest = { showCodeInterpreterPicker = false },
+        customColors = customColors,
+        onFilesSelected = {
+          // Handle file selection here if needed
+          showCodeInterpreterPicker = false
+        },
+        mimeTypeFilter = "text/*" // Only allow text files
       )
     }
   }
@@ -233,10 +278,10 @@ fun AssistantFloatField(label: String, value: Float, onValueChange: (Float) -> U
         steps = 100, // This ensures the slider moves in increments of 0.02
         modifier = Modifier.weight(3f),
         colors =
-          SliderDefaults.colors(
-            thumbColor = customColors.sliderThumbColor,
-            activeTrackColor = customColors.sliderTrackColor
-          )
+        SliderDefaults.colors(
+          thumbColor = customColors.sliderThumbColor,
+          activeTrackColor = customColors.sliderTrackColor
+        )
       )
       Spacer(
         modifier = Modifier.width(2.dp)
@@ -253,11 +298,4 @@ fun AssistantFloatField(label: String, value: Float, onValueChange: (Float) -> U
       )
     }
   }
-}
-
-@Preview(showBackground = false)
-@Composable
-fun CreateAssistantScreenPreview() {
-  val navController = rememberNavController()
-  CreateAssistantScreen(navController)
 }

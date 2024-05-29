@@ -1,10 +1,13 @@
 package com.server.movile.xef.android.ui.screens.menu
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -17,6 +20,9 @@ import com.server.movile.xef.android.ui.viewmodels.AssistantViewModel
 import com.server.movile.xef.android.ui.viewmodels.IAuthViewModel
 import com.xef.xefMobile.ui.screens.Screens
 import com.xef.xefMobile.ui.viewmodels.SettingsViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun AssistantScreen(
@@ -30,6 +36,8 @@ fun AssistantScreen(
   val assistants by viewModel.assistants.collectAsState()
   val loading by viewModel.loading.collectAsState()
   val errorMessage by viewModel.errorMessage.collectAsState()
+
+  val sdf = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()) }
 
   Box(modifier = Modifier.fillMaxSize()) {
     when {
@@ -45,8 +53,8 @@ fun AssistantScreen(
       }
       else -> {
         Column(
-          modifier = Modifier.align(Alignment.TopCenter).padding(20.dp),
-          horizontalAlignment = Alignment.CenterHorizontally
+          modifier = Modifier.fillMaxSize().padding(20.dp),
+          horizontalAlignment = Alignment.CenterHorizontally // Align title to center
         ) {
           Text(
             text = "Assistants",
@@ -57,10 +65,39 @@ fun AssistantScreen(
 
           Spacer(modifier = Modifier.height(16.dp))
 
-          assistants.forEach { assistant ->
-            Text(text = assistant.name, fontWeight = FontWeight.Bold)
-            Text(text = assistant.id)
-            Spacer(modifier = Modifier.height(8.dp))
+          LazyColumn(
+            modifier = Modifier.fillMaxSize()
+          ) {
+            items(assistants) { assistant ->
+              Column(
+                modifier = Modifier
+                  .fillMaxWidth()
+                  .padding(vertical = 8.dp),
+                horizontalAlignment = Alignment.Start // Align items to start
+              ) {
+                Row(
+                  modifier = Modifier.fillMaxWidth(),
+                  horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                  Text(
+                    text = assistant.name.ifBlank { "Untitled assistant" },
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp
+                  )
+                  Text(
+                    text = sdf.format(Date(assistant.createdAt * 1000)),
+                    fontSize = 14.sp,
+                    color = Color.Gray,
+                    modifier = Modifier.align(Alignment.CenterVertically)
+                  )
+                }
+                Text(
+                  text = "ID: ${assistant.id}",
+                  fontSize = 14.sp
+                )
+              }
+              Divider(color = Color.Gray)
+            }
           }
         }
       }
@@ -68,11 +105,10 @@ fun AssistantScreen(
 
     Button(
       onClick = { navController.navigate(Screens.CreateAssistant.screen) },
-      colors =
-        ButtonDefaults.buttonColors(
-          containerColor = customColors.buttonColor,
-          contentColor = MaterialTheme.colorScheme.onPrimary
-        ),
+      colors = ButtonDefaults.buttonColors(
+        containerColor = customColors.buttonColor,
+        contentColor = MaterialTheme.colorScheme.onPrimary
+      ),
       modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp)
     ) {
       Text(text = "Create New Assistant")
@@ -86,8 +122,10 @@ class AssistantViewModelFactory(
 ) : ViewModelProvider.Factory {
   override fun <T : ViewModel> create(modelClass: Class<T>): T {
     if (modelClass.isAssignableFrom(AssistantViewModel::class.java)) {
-      @Suppress("UNCHECKED_CAST") return AssistantViewModel(authViewModel, settingsViewModel) as T
+      @Suppress("UNCHECKED_CAST")
+      return AssistantViewModel(authViewModel, settingsViewModel) as T
     }
     throw IllegalArgumentException("Unknown ViewModel class")
   }
 }
+

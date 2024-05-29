@@ -16,6 +16,9 @@ class MainActivity : ComponentActivity() {
     authViewModel = AuthViewModel(this, ApiService())
     settingsViewModel = SettingsViewModel(this)
 
+    // Log out the user when the app starts
+    authViewModel.logout()
+
     setContent {
       XefAndroidApp(authViewModel = authViewModel, settingsViewModel = settingsViewModel)
     }
