@@ -67,10 +67,10 @@ actual val o200k_base_regex: Regex
   get() =
     Regex(
       listOf(
-          """[^\r\n\$alphaNumerics]?[$upperCaseAndOtherLetters]*[$lowerCaseAndOtherLetters]+('s|'t|'re|'ve|'m|'ll|'d)?""",
-          """[^\r\n\$alphaNumerics]?[$upperCaseAndOtherLetters]+[$lowerCaseAndOtherLetters]*('s|'t|'re|'ve|'m|'ll|'d)?""",
+          """[^\r\n$alphaNumerics]?[$upperCaseAndOtherLetters]*[$lowerCaseAndOtherLetters]+('s|'t|'re|'ve|'m|'ll|'d)?""",
+          """[^\r\n$alphaNumerics]?[$upperCaseAndOtherLetters]+[$lowerCaseAndOtherLetters]*('s|'t|'re|'ve|'m|'ll|'d)?""",
           """[$decimalNumbers]{1,3}""",
-          """ ?[^\s\$alphaNumerics]+[\r\n/]*""",
+          """ ?[^\s$alphaNumerics]+[\r\n/]*""",
           """\s*[\r\n]+""",
           """\s+(?!\S)""",
           """\s+""",
