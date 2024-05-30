@@ -33,8 +33,10 @@ class CreateAssistantActivity : ComponentActivity() {
     setContent {
       val navController = rememberNavController()
 
-      val authViewModel: AuthViewModel = viewModel(factory = AuthViewModelFactory(applicationContext))
-      val settingsViewModel: SettingsViewModel = viewModel(factory = SettingsViewModelFactory(applicationContext))
+      val authViewModel: AuthViewModel =
+        viewModel(factory = AuthViewModelFactory(applicationContext))
+      val settingsViewModel: SettingsViewModel =
+        viewModel(factory = SettingsViewModelFactory(applicationContext))
 
       CreateAssistantScreen(navController, authViewModel, settingsViewModel)
     }
@@ -48,7 +50,8 @@ fun CreateAssistantScreen(
   authViewModel: IAuthViewModel,
   settingsViewModel: SettingsViewModel
 ) {
-  val viewModel: AssistantViewModel = viewModel(factory = AssistantViewModelFactory(authViewModel, settingsViewModel))
+  val viewModel: AssistantViewModel =
+    viewModel(factory = AssistantViewModelFactory(authViewModel, settingsViewModel))
   val snackbarHostState = remember { SnackbarHostState() }
   val coroutineScope = rememberCoroutineScope()
 
@@ -67,16 +70,18 @@ fun CreateAssistantScreen(
 
   val customColors = LocalCustomColors.current
 
-  Scaffold(
-    snackbarHost = { SnackbarHost(snackbarHostState) },
-    modifier = Modifier.fillMaxSize()
-  ) { paddingValues ->
+  Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }, modifier = Modifier.fillMaxSize()) {
+    paddingValues ->
     Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
       Column(
         modifier = Modifier.padding(8.dp).fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
       ) {
-        Text(text = "Create Assistant", fontSize = 24.sp, modifier = Modifier.padding(bottom = 16.dp))
+        Text(
+          text = "Create Assistant",
+          fontSize = 24.sp,
+          modifier = Modifier.padding(bottom = 16.dp)
+        )
 
         TextField(
           value = name,
@@ -132,10 +137,11 @@ fun CreateAssistantScreen(
         Row(verticalAlignment = Alignment.CenterVertically) {
           TextButton(
             onClick = { showFilePicker = true },
-            colors = ButtonDefaults.outlinedButtonColors(
-              containerColor = Color.Transparent,
-              contentColor = customColors.buttonColor
-            )
+            colors =
+              ButtonDefaults.outlinedButtonColors(
+                containerColor = Color.Transparent,
+                contentColor = customColors.buttonColor
+              )
           ) {
             Text("File Search +")
           }
@@ -143,20 +149,22 @@ fun CreateAssistantScreen(
           Switch(
             checked = fileSearchEnabled,
             onCheckedChange = { fileSearchEnabled = it },
-            colors = SwitchDefaults.colors(
-              checkedThumbColor = customColors.sliderThumbColor,
-              checkedTrackColor = customColors.sliderTrackColor
-            )
+            colors =
+              SwitchDefaults.colors(
+                checkedThumbColor = customColors.sliderThumbColor,
+                checkedTrackColor = customColors.sliderTrackColor
+              )
           )
         }
         Spacer(modifier = Modifier.height(8.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
           TextButton(
             onClick = { showCodeInterpreterPicker = true },
-            colors = ButtonDefaults.outlinedButtonColors(
-              containerColor = Color.Transparent,
-              contentColor = customColors.buttonColor
-            )
+            colors =
+              ButtonDefaults.outlinedButtonColors(
+                containerColor = Color.Transparent,
+                contentColor = customColors.buttonColor
+              )
           ) {
             Text("Code Interpreter +")
           }
@@ -164,20 +172,22 @@ fun CreateAssistantScreen(
           Switch(
             checked = codeInterpreterEnabled,
             onCheckedChange = { codeInterpreterEnabled = it },
-            colors = SwitchDefaults.colors(
-              checkedThumbColor = customColors.sliderThumbColor,
-              checkedTrackColor = customColors.sliderTrackColor
-            )
+            colors =
+              SwitchDefaults.colors(
+                checkedThumbColor = customColors.sliderThumbColor,
+                checkedTrackColor = customColors.sliderTrackColor
+              )
           )
         }
         Spacer(modifier = Modifier.height(8.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
           TextButton(
-            onClick = { /* handle cancel */ },
-            colors = ButtonDefaults.outlinedButtonColors(
-              containerColor = Color.Transparent,
-              contentColor = customColors.buttonColor
-            )
+            onClick = { /* handle cancel */},
+            colors =
+              ButtonDefaults.outlinedButtonColors(
+                containerColor = Color.Transparent,
+                contentColor = customColors.buttonColor
+              )
           ) {
             Text("Functions +")
           }
@@ -201,10 +211,11 @@ fun CreateAssistantScreen(
         Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
           Button(
             onClick = { navController.navigateUp() },
-            colors = ButtonDefaults.buttonColors(
-              containerColor = customColors.buttonColor,
-              contentColor = MaterialTheme.colorScheme.onPrimary
-            )
+            colors =
+              ButtonDefaults.buttonColors(
+                containerColor = customColors.buttonColor,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+              )
           ) {
             Text("Cancel")
           }
@@ -226,17 +237,16 @@ fun CreateAssistantScreen(
                   },
                   onError = { errorMessage ->
                     Log.e("CreateAssistantScreen", errorMessage)
-                    coroutineScope.launch {
-                      snackbarHostState.showSnackbar(errorMessage)
-                    }
+                    coroutineScope.launch { snackbarHostState.showSnackbar(errorMessage) }
                   }
                 )
               }
             },
-            colors = ButtonDefaults.buttonColors(
-              containerColor = customColors.buttonColor,
-              contentColor = MaterialTheme.colorScheme.onPrimary
-            )
+            colors =
+              ButtonDefaults.buttonColors(
+                containerColor = customColors.buttonColor,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+              )
           ) {
             Text("Create")
           }

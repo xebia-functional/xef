@@ -11,15 +11,11 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.util.*
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 
 class AssistantViewModel(
   private val authViewModel: IAuthViewModel,
@@ -69,16 +65,18 @@ class AssistantViewModel(
     viewModelScope.launch {
       try {
         val token = settingsViewModel.apiKey.value ?: throw Exception("API key not found")
-        val response: HttpResponse = apiService.createAssistant(
-          authToken = token,
-          request = CreateAssistantRequest(
-            model = model,
-            name = name,
-            instructions = instructions,
-            temperature = temperature.toDouble(),
-            topP = topP.toDouble()
+        val response: HttpResponse =
+          apiService.createAssistant(
+            authToken = token,
+            request =
+              CreateAssistantRequest(
+                model = model,
+                name = name,
+                instructions = instructions,
+                temperature = temperature.toDouble(),
+                topP = topP.toDouble()
+              )
           )
-        )
         if (response.status == HttpStatusCode.Created) {
           onSuccess()
         } else {
