@@ -1,6 +1,7 @@
 package com.server.movile.xef.android.ui.screens.menu
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
@@ -20,10 +21,11 @@ import com.server.movile.xef.android.ui.themes.LocalCustomColors
 import com.server.movile.xef.android.ui.viewmodels.AssistantViewModel
 import com.server.movile.xef.android.ui.viewmodels.AuthViewModel
 import com.server.movile.xef.android.ui.viewmodels.IAuthViewModel
+import com.server.movile.xef.android.ui.viewmodels.factory.AuthViewModelFactory
 import com.xef.xefMobile.ui.composable.FilePickerDialog
 import com.xef.xefMobile.ui.viewmodels.SettingsViewModel
 import com.xef.xefMobile.ui.viewmodels.SettingsViewModelFactory
-import com.xef.xefMobile.ui.viewmodels.factory.AuthViewModelFactory
+import kotlinx.coroutines.launch
 
 class CreateAssistantActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,13 +33,9 @@ class CreateAssistantActivity : ComponentActivity() {
     setContent {
       val navController = rememberNavController()
 
-      // Obtain ViewModels
-      val authViewModel: AuthViewModel =
-        viewModel(factory = AuthViewModelFactory(applicationContext))
-      val settingsViewModel: SettingsViewModel =
-        viewModel(factory = SettingsViewModelFactory(applicationContext))
+      val authViewModel: AuthViewModel = viewModel(factory = AuthViewModelFactory(applicationContext))
+      val settingsViewModel: SettingsViewModel = viewModel(factory = SettingsViewModelFactory(applicationContext))
 
-      // Pass the ViewModels to the Composable
       CreateAssistantScreen(navController, authViewModel, settingsViewModel)
     }
   }
@@ -50,8 +48,9 @@ fun CreateAssistantScreen(
   authViewModel: IAuthViewModel,
   settingsViewModel: SettingsViewModel
 ) {
-  val viewModel: AssistantViewModel =
-    viewModel(factory = AssistantViewModelFactory(authViewModel, settingsViewModel))
+  val viewModel: AssistantViewModel = viewModel(factory = AssistantViewModelFactory(authViewModel, settingsViewModel))
+  val snackbarHostState = remember { SnackbarHostState() }
+  val coroutineScope = rememberCoroutineScope()
 
   var name by remember { mutableStateOf("") }
   var instructions by remember { mutableStateOf("") }
@@ -68,197 +67,202 @@ fun CreateAssistantScreen(
 
   val customColors = LocalCustomColors.current
 
-  Box(modifier = Modifier.fillMaxSize()) {
-    Column(
-      modifier = Modifier.padding(8.dp).fillMaxSize(),
-      horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-      Text(text = "Create Assistant", fontSize = 24.sp, modifier = Modifier.padding(bottom = 16.dp))
-
-      TextField(
-        value = name,
-        onValueChange = { name = it },
-        label = { Text("Name") },
-        modifier = Modifier.fillMaxWidth()
-      )
-      Spacer(modifier = Modifier.height(8.dp))
-      TextField(
-        value = instructions,
-        onValueChange = { instructions = it },
-        label = { Text("Instructions") },
-        modifier = Modifier.fillMaxWidth()
-      )
-      Spacer(modifier = Modifier.height(8.dp))
+  Scaffold(
+    snackbarHost = { SnackbarHost(snackbarHostState) },
+    modifier = Modifier.fillMaxSize()
+  ) { paddingValues ->
+    Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
       Column(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.padding(8.dp).fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally
       ) {
-        ExposedDropdownMenuBox(
-          expanded = isExpanded,
-          onExpandedChange = { isExpanded = !isExpanded },
+        Text(text = "Create Assistant", fontSize = 24.sp, modifier = Modifier.padding(bottom = 16.dp))
+
+        TextField(
+          value = name,
+          onValueChange = { name = it },
+          label = { Text("Name") },
           modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        TextField(
+          value = instructions,
+          onValueChange = { instructions = it },
+          label = { Text("Instructions") },
+          modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Column(
+          modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+          horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-          TextField(
-            modifier = Modifier.fillMaxWidth().menuAnchor(),
-            value = selectedText,
-            onValueChange = {},
-            readOnly = true,
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded) }
-          )
-          ExposedDropdownMenu(expanded = isExpanded, onDismissRequest = { isExpanded = false }) {
-            list.forEachIndexed { index, text ->
-              DropdownMenuItem(
-                text = { Text(text = text) },
-                onClick = {
-                  selectedText = list[index]
-                  isExpanded = false
-                },
-                contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
-              )
+          ExposedDropdownMenuBox(
+            expanded = isExpanded,
+            onExpandedChange = { isExpanded = !isExpanded },
+            modifier = Modifier.fillMaxWidth()
+          ) {
+            TextField(
+              modifier = Modifier.fillMaxWidth().menuAnchor(),
+              value = selectedText,
+              onValueChange = {},
+              readOnly = true,
+              trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded) }
+            )
+            ExposedDropdownMenu(expanded = isExpanded, onDismissRequest = { isExpanded = false }) {
+              list.forEachIndexed { index, text ->
+                DropdownMenuItem(
+                  text = { Text(text = text) },
+                  onClick = {
+                    selectedText = list[index]
+                    isExpanded = false
+                  },
+                  contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                )
+              }
             }
           }
         }
-      }
-      Spacer(modifier = Modifier.height(12.dp))
-      Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(text = "TOOLS")
+        Spacer(modifier = Modifier.height(12.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          Text(text = "TOOLS")
 
-        HorizontalDivider(modifier = Modifier.fillMaxWidth().padding(top = 10.dp))
-      }
-      Spacer(modifier = Modifier.height(8.dp))
-      Row(verticalAlignment = Alignment.CenterVertically) {
-        TextButton(
-          onClick = { showFilePicker = true },
-          colors =
-            ButtonDefaults.outlinedButtonColors(
+          HorizontalDivider(modifier = Modifier.fillMaxWidth().padding(top = 10.dp))
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          TextButton(
+            onClick = { showFilePicker = true },
+            colors = ButtonDefaults.outlinedButtonColors(
               containerColor = Color.Transparent,
               contentColor = customColors.buttonColor
             )
-        ) {
-          Text("File Search +")
-        }
-        Spacer(modifier = Modifier.weight(1f))
-        Switch(
-          checked = fileSearchEnabled,
-          onCheckedChange = { fileSearchEnabled = it },
-          colors =
-            SwitchDefaults.colors(
+          ) {
+            Text("File Search +")
+          }
+          Spacer(modifier = Modifier.weight(1f))
+          Switch(
+            checked = fileSearchEnabled,
+            onCheckedChange = { fileSearchEnabled = it },
+            colors = SwitchDefaults.colors(
               checkedThumbColor = customColors.sliderThumbColor,
               checkedTrackColor = customColors.sliderTrackColor
             )
-        )
-      }
-      Spacer(modifier = Modifier.height(8.dp))
-      Row(verticalAlignment = Alignment.CenterVertically) {
-        TextButton(
-          onClick = { showCodeInterpreterPicker = true },
-          colors =
-            ButtonDefaults.outlinedButtonColors(
+          )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          TextButton(
+            onClick = { showCodeInterpreterPicker = true },
+            colors = ButtonDefaults.outlinedButtonColors(
               containerColor = Color.Transparent,
               contentColor = customColors.buttonColor
             )
-        ) {
-          Text("Code Interpreter +")
-        }
-        Spacer(modifier = Modifier.weight(1f))
-        Switch(
-          checked = codeInterpreterEnabled,
-          onCheckedChange = { codeInterpreterEnabled = it },
-          colors =
-            SwitchDefaults.colors(
+          ) {
+            Text("Code Interpreter +")
+          }
+          Spacer(modifier = Modifier.weight(1f))
+          Switch(
+            checked = codeInterpreterEnabled,
+            onCheckedChange = { codeInterpreterEnabled = it },
+            colors = SwitchDefaults.colors(
               checkedThumbColor = customColors.sliderThumbColor,
               checkedTrackColor = customColors.sliderTrackColor
             )
-        )
-      }
-      Spacer(modifier = Modifier.height(8.dp))
-      Row(verticalAlignment = Alignment.CenterVertically) {
-        TextButton(
-          onClick = { /* handle cancel */},
-          colors =
-            ButtonDefaults.outlinedButtonColors(
+          )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          TextButton(
+            onClick = { /* handle cancel */ },
+            colors = ButtonDefaults.outlinedButtonColors(
               containerColor = Color.Transparent,
               contentColor = customColors.buttonColor
             )
-        ) {
-          Text("Functions +")
+          ) {
+            Text("Functions +")
+          }
+          Spacer(modifier = Modifier.weight(1f))
         }
-        Spacer(modifier = Modifier.weight(1f))
-      }
-      Spacer(modifier = Modifier.height(8.dp))
-      Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(text = "MODEL CONFIGURATION")
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          Text(text = "MODEL CONFIGURATION")
 
-        HorizontalDivider(modifier = Modifier.fillMaxWidth().padding(top = 8.dp))
-      }
-      Spacer(modifier = Modifier.width(8.dp))
-      AssistantFloatField(
-        label = "Temperature",
-        value = temperature,
-        onValueChange = { temperature = it }
-      )
-
-      AssistantFloatField(label = "Top P", value = topP, onValueChange = { topP = it })
-
-      Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
-        Button(
-          onClick = { navController.navigateUp() },
-          colors =
-            ButtonDefaults.buttonColors(
-              containerColor = customColors.buttonColor,
-              contentColor = MaterialTheme.colorScheme.onPrimary
-            )
-        ) {
-          Text("Cancel")
+          HorizontalDivider(modifier = Modifier.fillMaxWidth().padding(top = 8.dp))
         }
         Spacer(modifier = Modifier.width(8.dp))
-        Button(
-          onClick = {
-            viewModel.createAssistant(
-              name = name,
-              instructions = instructions,
-              temperature = temperature,
-              topP = topP,
-              model = model,
-              onSuccess = {
-                navController.navigateUp() // Navigate back on success
-              },
-              onError = { errorMessage ->
-                // Handle error (e.g., show a toast or dialog)
-                println("Error: $errorMessage")
-              }
-            )
-          },
-          colors =
-            ButtonDefaults.buttonColors(
+        AssistantFloatField(
+          label = "Temperature",
+          value = temperature,
+          onValueChange = { temperature = it }
+        )
+
+        AssistantFloatField(label = "Top P", value = topP, onValueChange = { topP = it })
+
+        Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
+          Button(
+            onClick = { navController.navigateUp() },
+            colors = ButtonDefaults.buttonColors(
               containerColor = customColors.buttonColor,
               contentColor = MaterialTheme.colorScheme.onPrimary
             )
-        ) {
-          Text("Create")
+          ) {
+            Text("Cancel")
+          }
+          Spacer(modifier = Modifier.width(8.dp))
+          Button(
+            onClick = {
+              coroutineScope.launch {
+                viewModel.createAssistant(
+                  name = name,
+                  instructions = instructions,
+                  temperature = temperature,
+                  topP = topP,
+                  model = model,
+                  onSuccess = {
+                    coroutineScope.launch {
+                      snackbarHostState.showSnackbar("Assistant created successfully")
+                      navController.navigateUp() // Navigate back on success
+                    }
+                  },
+                  onError = { errorMessage ->
+                    Log.e("CreateAssistantScreen", errorMessage)
+                    coroutineScope.launch {
+                      snackbarHostState.showSnackbar(errorMessage)
+                    }
+                  }
+                )
+              }
+            },
+            colors = ButtonDefaults.buttonColors(
+              containerColor = customColors.buttonColor,
+              contentColor = MaterialTheme.colorScheme.onPrimary
+            )
+          ) {
+            Text("Create")
+          }
         }
       }
-    }
-    if (showFilePicker) {
-      FilePickerDialog(
-        onDismissRequest = { showFilePicker = false },
-        customColors = customColors,
-        onFilesSelected = {
-          // Handle file selection here if needed
-          showFilePicker = false
-        }
-      )
-    }
-    if (showCodeInterpreterPicker) {
-      FilePickerDialog(
-        onDismissRequest = { showCodeInterpreterPicker = false },
-        customColors = customColors,
-        onFilesSelected = {
-          // Handle file selection here if needed
-          showCodeInterpreterPicker = false
-        },
-        mimeTypeFilter = "text/*" // Only allow text files
-      )
+      if (showFilePicker) {
+        FilePickerDialog(
+          onDismissRequest = { showFilePicker = false },
+          customColors = customColors,
+          onFilesSelected = {
+            // Handle file selection here if needed
+            showFilePicker = false
+          }
+        )
+      }
+      if (showCodeInterpreterPicker) {
+        FilePickerDialog(
+          onDismissRequest = { showCodeInterpreterPicker = false },
+          customColors = customColors,
+          onFilesSelected = {
+            // Handle file selection here if needed
+            showCodeInterpreterPicker = false
+          },
+          mimeTypeFilter = "text/*" // Only allow text files
+        )
+      }
     }
   }
 }

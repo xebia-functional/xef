@@ -91,6 +91,10 @@ kotlin {
                 implementation("io.ktor:ktor-client-serialization-jvm:2.3.11")
                 implementation("com.google.accompanist:accompanist-permissions:0.34.0")
                 implementation("androidx.compose.runtime:runtime:1.6.7")
+                implementation("io.ktor:ktor-client-cio-jvm:2.3.11")
+                implementation("io.ktor:ktor-client-cio:2.3.11")
+                implementation("io.ktor:ktor-client-core-jvm:2.3.11")
+                implementation("androidx.compose.material3:material3:1.2.1")
             }
         }
     }

@@ -5,10 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.xef.xefMobile.model.Assistant
 import com.xef.xefMobile.services.ApiService
 import com.xef.xefMobile.ui.viewmodels.SettingsViewModel
-import io.ktor.client.*
-import io.ktor.client.request.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.serialization.kotlinx.json.*
 import io.ktor.util.*
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -18,6 +19,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 
 class AssistantViewModel(
   private val authViewModel: IAuthViewModel,
@@ -32,7 +34,7 @@ class AssistantViewModel(
   private val _errorMessage = MutableStateFlow<String?>(null)
   val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
-  private val client = HttpClient()
+  private val apiService = ApiService()
 
   init {
     fetchAssistants()
@@ -44,7 +46,7 @@ class AssistantViewModel(
       _errorMessage.value = null
       try {
         val token = settingsViewModel.apiKey.value ?: throw Exception("API key not found")
-        val response = ApiService().getAssistants(token)
+        val response = apiService.getAssistants(token)
         _assistants.value = response.data
       } catch (e: Exception) {
         _errorMessage.value = "Failed to load assistants: ${e.message}"
@@ -67,34 +69,25 @@ class AssistantViewModel(
     viewModelScope.launch {
       try {
         val token = settingsViewModel.apiKey.value ?: throw Exception("API key not found")
-        val response: HttpResponse =
-          client.post("http://your.api.endpoint/v1/settings/assistants") {
-            contentType(ContentType.Application.Json)
-            header("Authorization", "Bearer $token")
-            body =
-              CreateAssistantRequest(
-                model = model,
-                name = name,
-                instructions = instructions,
-                temperature = temperature.toDouble(),
-                topP = topP.toDouble()
-              )
-          }
+        val response: HttpResponse = apiService.createAssistant(
+          authToken = token,
+          request = CreateAssistantRequest(
+            model = model,
+            name = name,
+            instructions = instructions,
+            temperature = temperature.toDouble(),
+            topP = topP.toDouble()
+          )
+        )
         if (response.status == HttpStatusCode.Created) {
           onSuccess()
         } else {
           onError("Failed to create assistant: ${response.status}")
         }
       } catch (e: Exception) {
-        onError("Error: ${e.message}")
+        onError("Error: ${e.message ?: "Unknown error"}")
       }
     }
-  }
-
-  private fun formatDate(timestamp: Long): String {
-    val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-    val date = Date(timestamp * 1000) // Convert Unix timestamp to milliseconds
-    return sdf.format(date)
   }
 }
 

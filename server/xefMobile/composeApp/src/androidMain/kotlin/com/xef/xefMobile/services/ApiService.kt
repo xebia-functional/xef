@@ -1,6 +1,7 @@
 package com.xef.xefMobile.services
 
 import android.util.Log
+import com.server.movile.xef.android.ui.viewmodels.CreateAssistantRequest
 import com.xef.xefMobile.model.*
 import com.xef.xefMobile.network.client.HttpClientProvider
 import io.ktor.client.call.*
@@ -58,6 +59,20 @@ class ApiService {
       response.body()
     } catch (e: Exception) {
       Log.e("ApiService", "Fetching assistants failed: ${e.message}", e)
+      throw e
+    }
+  }
+
+  suspend fun createAssistant(authToken: String, request: CreateAssistantRequest): HttpResponse {
+    return try {
+      HttpClientProvider.client.post {
+        url("http://10.0.2.2:8081/v1/settings/assistants")
+        contentType(ContentType.Application.Json)
+        header(HttpHeaders.Authorization, "Bearer $authToken")
+        setBody(request)
+      }
+    } catch (e: Exception) {
+      Log.e("ApiService", "Creating assistant failed: ${e.message}", e)
       throw e
     }
   }
