@@ -3,9 +3,11 @@
 package com.xebia.functional.tokenizer
 
 import com.xebia.functional.tokenizer.internal.SPECIAL_TOKENS_CL100K_BASE
+import com.xebia.functional.tokenizer.internal.SPECIAL_TOKENS_O200K_BASE
 import com.xebia.functional.tokenizer.internal.SPECIAL_TOKENS_P50K_EDIT
 import com.xebia.functional.tokenizer.internal.SPECIAL_TOKENS_X50K_BASE
 import com.xebia.functional.tokenizer.internal.cl100k_base
+import com.xebia.functional.tokenizer.internal.o200k_base
 import com.xebia.functional.tokenizer.internal.p50k_base
 import com.xebia.functional.tokenizer.internal.r50k_base
 import kotlin.io.encoding.Base64
@@ -43,9 +45,19 @@ enum class EncodingType(@Suppress("UNUSED_PARAMETER") name: String) {
       }
     },
     CL100K_BASE("cl100k_base") {
-      override val base: String = cl100k_base
-      override val regex: Regex = cl100k_base_regex
-      override val specialTokensBase: Map<String, Int> = SPECIAL_TOKENS_CL100K_BASE
+        override val base: String = cl100k_base
+        override val regex: Regex = cl100k_base_regex
+        override val specialTokensBase: Map<String, Int> = SPECIAL_TOKENS_CL100K_BASE
+        override val encoding by lazy {
+            EncodingFactory.fromPredefinedParameters(
+                name, regex, base, specialTokensBase
+            )
+        }
+    },
+    O200K_BASE("o200k_base") {
+      override val base: String = o200k_base
+      override val regex: Regex = o200k_base_regex
+      override val specialTokensBase: Map<String, Int> = SPECIAL_TOKENS_O200K_BASE
       override val encoding by lazy {
         EncodingFactory.fromPredefinedParameters(
           name, regex, base, specialTokensBase
@@ -73,6 +85,7 @@ private object EncodingFactory {
     private fun fromParameters(parameters: GptBytePairEncodingParams): Encoding =
         GptBytePairEncoding(parameters)
 
+    @OptIn(ExperimentalEncodingApi::class)
     fun loadMergeableRanks(base: String): Map<ByteArray, Int> =
         buildMap {
             base.lineSequence().forEach { line ->
@@ -82,5 +95,6 @@ private object EncodingFactory {
         }
 }
 
-expect val cl100k_base_regex: Regex
 expect val p50k_regex: Regex
+expect val cl100k_base_regex: Regex
+expect val o200k_base_regex: Regex
