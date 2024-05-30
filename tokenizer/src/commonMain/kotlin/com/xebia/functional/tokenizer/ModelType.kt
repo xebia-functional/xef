@@ -1,7 +1,7 @@
 package com.xebia.functional.tokenizer
 
-import com.xebia.functional.tokenizer.EncodingType.O200K_BASE
 import com.xebia.functional.tokenizer.EncodingType.CL100K_BASE
+import com.xebia.functional.tokenizer.EncodingType.O200K_BASE
 import com.xebia.functional.tokenizer.EncodingType.P50K_BASE
 import com.xebia.functional.tokenizer.EncodingType.R50K_BASE
 import kotlin.jvm.JvmStatic
@@ -151,7 +151,6 @@ sealed class ModelType(
 
   object GPT_4O_2024_05_13 :
     ModelType("gpt-4o-2024-05-13", O200K_BASE, 128000, tokensPerMessage = 3, tokensPerName = 2, tokenPadding = 5)
-
 
   // text
   object TEXT_DAVINCI_003 : ModelType("text-davinci-003", P50K_BASE, 4097)
