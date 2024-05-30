@@ -85,7 +85,7 @@ abstract class OllamaTests {
     val result: A =
       AI(
         prompt = prompt,
-        config = config.copy(),
+        config = config,
         api = api,
         model = CreateChatCompletionRequestModel.Custom(model),
       )
