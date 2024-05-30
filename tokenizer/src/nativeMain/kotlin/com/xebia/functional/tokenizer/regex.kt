@@ -70,7 +70,7 @@ actual val o200k_base_regex: Regex
           """[^\r\n\$alphaChars]?[$upperCaseAndOtherLetters]*[$lowerCaseAndOtherLetters]+('s|'t|'re|'ve|'m|'ll|'d)?""",
           """[^\r\n\$alphaChars]?[$upperCaseAndOtherLetters]+[$lowerCaseAndOtherLetters]*('s|'t|'re|'ve|'m|'ll|'d)?""",
           """[$decimalNumbers]{1,3}""",
-          """ ?[^\s\$alphaChars]+[\r\n/]*""",
+          """ ?[^\s\$alphaNumerics]+[\r\n/]*""",
           """\s*[\r\n]+""",
           """\s+(?!\S)""",
           """\s+""",
