@@ -229,7 +229,7 @@ internal class GptBytePairEncoding(params: GptBytePairEncodingParams) : Encoding
   }
 
   private fun maxTokenCountReached(maxTokenCount: Int?, tokenCount: Int): Boolean =
-    maxTokenCount != null && maxTokenCount <= tokenCount
+    maxTokenCount != null && maxTokenCount.compareTo(tokenCount) <= 0
 
   private fun maxTokenCountNotReached(maxTokenCount: Int?, tokenCount: Int): Boolean =
     !maxTokenCountReached(maxTokenCount, tokenCount)

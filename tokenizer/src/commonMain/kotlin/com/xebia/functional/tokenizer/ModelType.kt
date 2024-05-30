@@ -4,7 +4,6 @@ import com.xebia.functional.tokenizer.EncodingType.O200K_BASE
 import com.xebia.functional.tokenizer.EncodingType.CL100K_BASE
 import com.xebia.functional.tokenizer.EncodingType.P50K_BASE
 import com.xebia.functional.tokenizer.EncodingType.R50K_BASE
-
 import kotlin.jvm.JvmStatic
 
 /**
