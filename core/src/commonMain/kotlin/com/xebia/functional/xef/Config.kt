@@ -50,7 +50,7 @@ fun OpenAI(
   val token =
     config.token
       ?: getenv(KEY_ENV_VAR)
-      ?: "<not-provided>" // throw AIError.Env.OpenAI(nonEmptyListOf("missing $KEY_ENV_VAR env
+      ?: "<not-provided>"
   // var"))
   val clientConfig: HttpClientConfig<*>.() -> Unit = {
     install(ContentNegotiation) { json(config.json) }
