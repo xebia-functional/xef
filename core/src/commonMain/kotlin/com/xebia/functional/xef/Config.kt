@@ -47,10 +47,7 @@ fun OpenAI(
   httpClientConfig: ((HttpClientConfig<*>) -> Unit)? = null,
   logRequests: Boolean = false
 ): OpenAI {
-  val token =
-    config.token
-      ?: getenv(KEY_ENV_VAR)
-      ?: "<not-provided>"
+  val token = config.token ?: getenv(KEY_ENV_VAR) ?: "<not-provided>"
   // var"))
   val clientConfig: HttpClientConfig<*>.() -> Unit = {
     install(ContentNegotiation) { json(config.json) }
