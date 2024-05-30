@@ -37,6 +37,7 @@ sealed class ModelType(
     val DEFAULT_SPLITTER_MODEL = GPT_3_5_TURBO
     val functionSpecific: List<ModelType> = listOf(
       GPT_3_5_TURBO_0613,
+      GPT_3_5_TURBO_0125,
       GPT_3_5_16K_0613_TURBO_FUNCTIONS,
       GPT_4_32K_0314_FUNCTIONS,
       GPT_4_0613,
@@ -48,6 +49,7 @@ sealed class ModelType(
       GPT_3_5_TURBO,
       GPT_3_5_TURBO_0301,
       GPT_3_5_TURBO_0613,
+      GPT_3_5_TURBO_0125,
       GPT_3_5_TURBO_FUNCTIONS,
       GPT_3_5_TURBO_16_K,
       GPT_3_5_TURBO_16_K_1106,
@@ -100,11 +102,16 @@ sealed class ModelType(
   ) : ModelType(name, encodingType, maxContextLength)
 
   object GPT_3_5_TURBO :
-    ModelType("gpt-3.5-turbo", CL100K_BASE, 4097, tokensPerMessage = 4, tokensPerName = 0, tokenPadding = 5)
+    ModelType("gpt-3.5-turbo", CL100K_BASE, 16385, tokensPerMessage = 4, tokensPerName = 0, tokenPadding = 5)
 
+  object GPT_3_5_TURBO_0125 :
+    ModelType("gpt-3.5-turbo-0125", CL100K_BASE, 16385, tokensPerMessage = 4, tokensPerName = 0, tokenPadding = 5)
+
+  @Deprecated("Use GPT_3_5_TURBO_0125 instead")
   object GPT_3_5_TURBO_0301 :
     ModelType("gpt-3.5-turbo-0301", CL100K_BASE, 4097, tokensPerMessage = 4, tokensPerName = 0, tokenPadding = 5)
 
+  @Deprecated("Use GPT_3_5_TURBO_0125 instead")
   object GPT_3_5_TURBO_0613 :
     ModelType("gpt-3.5-turbo-0613", CL100K_BASE, 4097, tokensPerMessage = 3, tokensPerName = 2, tokenPadding = 5)
 
