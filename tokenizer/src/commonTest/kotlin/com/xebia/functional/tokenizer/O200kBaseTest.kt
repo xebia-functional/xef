@@ -6,6 +6,8 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 import kotlin.test.Test
 
+// Ignore test on native since not all characters can be encoded
+@IgnoreOnNative
 class O200kBaseTest {
   private val resource = Resource("src/commonTest/resources/o200k_base_encodings.csv")
   private val ENCODING = O200K_BASE.encoding
