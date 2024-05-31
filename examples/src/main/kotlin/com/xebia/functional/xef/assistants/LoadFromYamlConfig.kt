@@ -12,13 +12,14 @@ suspend fun main() {
   //        FilesApi.PurposeCreateFile.assistants
   //      )
   //      .body()
-  val fileId = "file-q77cZu6e6sC2TsYbUs8UX5Dj"
+  // val fileId = "file-q77cZu6e6sC2TsYbUs8UX5Dj"
   // remove assistant id to create a new one
+  // assistant_id: "asst_ImCKap37lLHBqV1awa0kzjZ3"
   // language=yaml
   val yamlConfig =
     """
-      assistant_id: "asst_ImCKap37lLHBqV1awa0kzjZ3"
-      model: "gpt-4-1106-preview"
+      
+      model: "gpt-4o"
       name: "My Custom Test Assistant"
       description: "A versatile AI assistant capable of conversational and informational tasks."
       instructions: "This assistant is designed to provide informative and engaging conversations, answer queries, and execute code when necessary."
@@ -27,8 +28,6 @@ suspend fun main() {
         - type: "retrieval"
         - type: "function"
           name: "SumTool"
-      file_ids:
-        - "$fileId"
       metadata:
         version: "1.0"
         created_by: "OpenAI"
@@ -42,6 +41,6 @@ suspend fun main() {
   val assistantInfo = assistant.get()
   println("assistant: $assistantInfo")
   val thread = AssistantThread()
-  thread.createMessage(MessageWithFiles("What does this file say?", listOf(fileId)))
+  thread.createMessage(MessageWithFiles("What is 1 + 1? Use SumTool", emptyList()))
   thread.run(assistant).collect(RunDelta::printEvent)
 }

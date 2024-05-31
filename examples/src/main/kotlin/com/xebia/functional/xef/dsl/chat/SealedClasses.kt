@@ -14,6 +14,6 @@ sealed class Response {
 }
 
 suspend fun main() {
-  val response = AI<Response>("Capital of France?")
+  val response = AI<Response>("What is the capital of France?")
   println(response) // City(name=Paris)
 }

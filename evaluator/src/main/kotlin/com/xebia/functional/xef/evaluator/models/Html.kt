@@ -56,10 +56,14 @@ value class Html(val value: String) {
                     const outputDiv = document.createElement('pre');
                     outputDiv.classList.add('output');
                     outputDiv.innerText = 'Output: ' + test.output;
-                    outputDiv.addEventListener('click', function() {
-                        this.classList.toggle('expanded');
-                    });
                     blockDiv.appendChild(outputDiv);
+                    
+                    if (test.usage != undefined) {
+                        const usageDiv = document.createElement('pre');
+                        usageDiv.classList.add('output');
+                        usageDiv.innerText = 'Usage: \n Prompt Tokens: ' + test.usage?.promptTokens + ' (~' + test.usage?.estimatePricePerToken + ' ' + test.usage?.currency + ')\n Completion Tokens: ' + test.usage?.completionTokens + ' (~' + test.usage?.estimatePriceCompletionToken + ' ' + test.usage?.currency + ')\n Total Tokens: ' + test.usage?.totalTokens + '\n Total Price: ~' + test.usage?.estimatePriceTotalToken + ' ' + test.usage?.currency;
+                        blockDiv.appendChild(usageDiv);
+                    }
         
                     const result = document.createElement('div');
                     result.classList.add('score', test.success ? 'score-passed' : 'score-failed');
@@ -99,6 +103,10 @@ value class Html(val value: String) {
               border-bottom: 1px solid #eee;
               padding-bottom: 20px;
           }
+          
+          .test-block pre {
+              margin-bottom: 20px;
+          }
 
           .test-title {
               font-size: 1.2em;
@@ -123,14 +131,9 @@ value class Html(val value: String) {
 
           .output {
               color: #666;
-              cursor: pointer;
-              white-space: nowrap;
+              white-space: normal;
               overflow: hidden;
               text-overflow: ellipsis;
-          }
-
-          .output.expanded {
-              white-space: normal;
           }
 
           .score {

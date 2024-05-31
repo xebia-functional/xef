@@ -53,3 +53,6 @@ fun String.parseEncoding(): List<Int> =
     .split(",")
     .dropLastWhile { it.isEmpty() }
     .map { it.toInt() }
+
+@Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
+expect annotation class IgnoreOnNative()
