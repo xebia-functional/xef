@@ -24,3 +24,8 @@ internal val SPECIAL_TOKENS_CL100K_BASE: Map<String, Int> = HashMap<String, Int>
     put(FIM_SUFFIX, 100260)
     put(ENDOFPROMPT, 100276)
 }
+
+internal val SPECIAL_TOKENS_O200K_BASE: Map<String, Int> = HashMap<String, Int>(2).apply {
+    put(ENDOFTEXT, 199999);
+    put(ENDOFPROMPT, 200018);
+}
