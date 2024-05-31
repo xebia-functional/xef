@@ -18,7 +18,7 @@ object TestExample {
   @JvmStatic
   fun main(args: Array<String>) = SuspendApp {
     val model = CreateChatCompletionRequestModel.gpt_3_5_turbo_16k
-    val chat = OpenAI(logRequests = true).chat
+    val chat = OpenAI(logRequests = false).chat
 
     val spec =
       SuiteSpec(

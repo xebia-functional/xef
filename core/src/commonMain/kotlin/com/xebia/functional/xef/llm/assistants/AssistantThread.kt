@@ -32,13 +32,18 @@ class AssistantThread(
       request =
         CreateMessageRequest(
           role = CreateMessageRequest.Role.user,
-          content = message.content,
-          fileIds = message.fileIds
+          content = CreateMessageRequestContent.CaseString(message.content),
+          attachments = message.fileIds.map { MessageObjectAttachmentsInner(fileId = it) }
         ),
     )
 
   suspend fun createMessage(content: String): MessageObject =
-    createMessage(CreateMessageRequest(role = CreateMessageRequest.Role.user, content = content))
+    createMessage(
+      CreateMessageRequest(
+        role = CreateMessageRequest.Role.user,
+        content = CreateMessageRequestContent.CaseString(content)
+      )
+    )
 
   suspend fun createMessage(request: CreateMessageRequest): MessageObject =
     api.createMessage(threadId, request, configure = ::defaultConfig)
@@ -144,6 +149,7 @@ class AssistantThread(
               RunObject.Status.failed -> RunDelta.RunFailed(run)
               RunObject.Status.completed -> RunDelta.RunCompleted(run)
               RunObject.Status.expired -> RunDelta.RunExpired(run)
+              RunObject.Status.incomplete -> RunDelta.RunIncomplete(run)
             }
           flowCollector.emit(finalEvent)
           run
@@ -206,9 +212,9 @@ class AssistantThread(
 
   companion object {
 
-    /** Support for OpenAI-Beta: assistants=v1 */
+    /** Support for OpenAI-Beta: assistants=v2 */
     fun defaultConfig(httpRequestBuilder: HttpRequestBuilder): Unit {
-      httpRequestBuilder.header("OpenAI-Beta", "assistants=v1")
+      httpRequestBuilder.header("OpenAI-Beta", "assistants=v2")
     }
 
     @JvmName("createWithMessagesAndFiles")
@@ -225,14 +231,15 @@ class AssistantThread(
             .createThread(
               createThreadRequest =
                 CreateThreadRequest(
-                  messages.map {
-                    CreateMessageRequest(
-                      role = CreateMessageRequest.Role.user,
-                      content = it.content,
-                      fileIds = it.fileIds
-                    )
-                  },
-                  metadata
+                  messages =
+                    messages.map {
+                      CreateMessageRequest(
+                        role = CreateMessageRequest.Role.user,
+                        content = CreateMessageRequestContent.CaseString(it.content),
+                        attachments = it.fileIds.map { MessageObjectAttachmentsInner(fileId = it) }
+                      )
+                    },
+                  metadata = metadata
                 ),
               configure = ::defaultConfig
             )
@@ -255,10 +262,14 @@ class AssistantThread(
           .createThread(
             createThreadRequest =
               CreateThreadRequest(
-                messages.map {
-                  CreateMessageRequest(role = CreateMessageRequest.Role.user, content = it)
-                },
-                metadata
+                messages =
+                  messages.map {
+                    CreateMessageRequest(
+                      role = CreateMessageRequest.Role.user,
+                      content = CreateMessageRequestContent.CaseString(it)
+                    )
+                  },
+                metadata = metadata
               ),
             configure = ::defaultConfig
           )
@@ -277,7 +288,12 @@ class AssistantThread(
       api: Assistants = OpenAI(config).assistants
     ): AssistantThread =
       AssistantThread(
-        api.createThread(CreateThreadRequest(messages, metadata), configure = ::defaultConfig).id,
+        api
+          .createThread(
+            CreateThreadRequest(messages = messages, metadata = metadata),
+            configure = ::defaultConfig
+          )
+          .id,
         metric,
         config,
         api
