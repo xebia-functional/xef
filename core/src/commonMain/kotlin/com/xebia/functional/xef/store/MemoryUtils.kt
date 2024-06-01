@@ -1,17 +1,16 @@
 package com.xebia.functional.xef.store
 
-import com.xebia.functional.tokenizer.ModelType
-import com.xebia.functional.xef.llm.tokensFromMessages
+import ai.xef.Chat
 
-fun List<Memory>.reduceByLimitToken(modelType: ModelType, limitTokens: Int): List<Memory> {
-  val tokensFromMessages = modelType.tokensFromMessages(map { it.content.asRequestMessage() })
+fun List<Memory>.reduceByLimitToken(model: Chat, limitTokens: Int): List<Memory> {
+  val tokensFromMessages = model.tokenizer.tokensFromMessages(map { it.content.asRequestMessage() })
   return if (tokensFromMessages <= limitTokens) this
   else
     fold(Pair(0, emptyList<Memory>())) { (accTokens, list), memory ->
         val tokensFromMessage =
-          modelType.tokensFromMessages(listOf(memory.content.asRequestMessage()), false)
+          model.tokenizer.tokensFromMessages(listOf(memory.content.asRequestMessage()))
         val totalTokens = accTokens + tokensFromMessage
-        if (totalTokens + modelType.tokenPadding + modelType.tokenPaddingSum <= limitTokens) {
+        if (totalTokens + model.tokenPadding + model.tokenPaddingSum <= limitTokens) {
           Pair(totalTokens, list + memory)
         } else {
           Pair(accTokens, list)

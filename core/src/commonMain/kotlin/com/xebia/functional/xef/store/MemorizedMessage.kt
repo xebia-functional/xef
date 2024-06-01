@@ -1,26 +1,32 @@
 package com.xebia.functional.xef.store
 
-import com.xebia.functional.openai.generated.model.*
-import com.xebia.functional.xef.prompt.completionRole
+import com.xebia.functional.xef.llm.ChatCompletionRequestMessage
+import com.xebia.functional.xef.llm.ChatCompletionResponseMessage
+import com.xebia.functional.xef.llm.Role
+import com.xebia.functional.xef.llm.ToolCallResults
 
 sealed class MemorizedMessage {
-  val role: ChatCompletionRole
+  val role: Role
     get() =
       when (this) {
-        is Request -> ChatCompletionRole.valueOf(message.completionRole().value)
-        is Response -> ChatCompletionRole.valueOf(message.role.name)
+        is Request -> message.role
+        is Response -> message.role
       }
 
   fun asRequestMessage(): ChatCompletionRequestMessage =
     when (this) {
       is Request -> message
       is Response ->
-        ChatCompletionRequestMessage.CaseChatCompletionRequestAssistantMessage(
-          ChatCompletionRequestAssistantMessage(
-            role = ChatCompletionRequestAssistantMessage.Role.assistant,
-            // TODO: Find a new strategy to save the tool calls as content
-            content = message.content ?: message.toolCalls?.firstOrNull()?.toString()
-          )
+        ChatCompletionRequestMessage(
+          role = role,
+          content = message.content ?: "",
+          toolCallResults = message.toolCalls?.map {
+            ToolCallResults(
+              toolCallId = it.id,
+              toolCallName = it.function.functionName,
+              result = it.function.arguments
+            )
+          }?.firstOrNull()
         )
     }
 
@@ -29,34 +35,30 @@ sealed class MemorizedMessage {
   data class Response(val message: ChatCompletionResponseMessage) : MemorizedMessage()
 }
 
-fun memorizedMessage(role: ChatCompletionRole, content: String): MemorizedMessage =
+fun memorizedMessage(role: Role, content: String): MemorizedMessage =
   when (role) {
-    ChatCompletionRole.Supported.system ->
+    Role.system ->
       MemorizedMessage.Request(
-        ChatCompletionRequestMessage.CaseChatCompletionRequestSystemMessage(
-          ChatCompletionRequestSystemMessage(
-            content = content,
-            role = ChatCompletionRequestSystemMessage.Role.system
-          )
+        ChatCompletionRequestMessage(
+          content = content,
+          role = Role.system,
+          toolCallResults = null
         )
       )
-    ChatCompletionRole.Supported.user ->
+    Role.user ->
       MemorizedMessage.Request(
-        ChatCompletionRequestMessage.CaseChatCompletionRequestUserMessage(
-          ChatCompletionRequestUserMessage(
-            content = ChatCompletionRequestUserMessageContent.CaseString(content),
-            role = ChatCompletionRequestUserMessage.Role.user
-          )
+        ChatCompletionRequestMessage(
+          content = content,
+          role = Role.user,
+          toolCallResults = null
         )
       )
-    ChatCompletionRole.Supported.assistant ->
+    Role.assistant ->
       MemorizedMessage.Response(
         ChatCompletionResponseMessage(
           content = content,
-          role = ChatCompletionResponseMessage.Role.assistant
+          role = Role.assistant
         )
       )
-    ChatCompletionRole.Supported.tool -> error("Tool messages are not supported")
-    ChatCompletionRole.Supported.function -> error("Function messages are not supported")
-    is ChatCompletionRole.Custom -> error("Custom messages are not supported")
+    Role.tool -> error("Tool messages are not supported")
   }

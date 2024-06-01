@@ -71,8 +71,8 @@ kotlin {
               api(libs.kotlinx.serialization.json)
               api(libs.kotlinx.serialization.yaml)
               api(libs.ktor.utils)
-              api(projects.xefTokenizer)
-              api(projects.xefOpenaiClient)
+              //api(projects.xefTokenizer)
+              //api(projects.xefOpenaiClient)
               implementation(libs.bundles.ktor.client)
               implementation(libs.klogging)
               implementation(libs.uuid)
@@ -97,6 +97,8 @@ kotlin {
               api(libs.jakarta.validation)
               implementation(libs.kotlinx.coroutines.reactive)
               api(libs.ktor.client.cio)
+              api(libs.langchain4j.core)
+              api(libs.langchain4j.open.ai)
           }
       }
       val jsMain by getting {

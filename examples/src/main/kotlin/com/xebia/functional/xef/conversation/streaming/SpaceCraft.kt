@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.conversation.streaming
 
-import com.xebia.functional.xef.AI
+import ai.xef.OpenAI
 import com.xebia.functional.xef.conversation.Description
 import com.xebia.functional.xef.llm.StreamedFunction
 import kotlinx.coroutines.flow.Flow
@@ -32,7 +32,8 @@ data class InterstellarCraft(
 )
 
 suspend fun main() {
-  AI<Flow<StreamedFunction<InterstellarCraft>>>(
+  val ai = OpenAI.Chat.gpt4o()
+  ai<Flow<StreamedFunction<InterstellarCraft>>>(
       prompt = "Make a spacecraft with a mission to Mars",
     )
     .collect { element ->

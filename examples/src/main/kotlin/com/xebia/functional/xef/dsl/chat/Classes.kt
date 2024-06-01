@@ -1,7 +1,6 @@
 package com.xebia.functional.xef.dsl.chat
 
-import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
-import com.xebia.functional.xef.AI
+import ai.xef.OpenAI
 import com.xebia.functional.xef.conversation.Description
 import com.xebia.functional.xef.conversation.MessagePolicy
 import com.xebia.functional.xef.conversation.MessagesFromHistory
@@ -26,11 +25,10 @@ data class Book(
 )
 
 suspend fun books(topic: String): Books {
-  val model = CreateChatCompletionRequestModel.gpt_4_turbo_preview
+  val ai = OpenAI.Chat.gpt4o()
 
   val myCustomPrompt =
     Prompt(
-      model = model,
       configuration =
         PromptConfiguration {
           temperature = 0.0
@@ -53,7 +51,7 @@ suspend fun books(topic: String): Books {
       +user("Give me a selection of books about $topic")
     }
 
-  return AI.chat(myCustomPrompt)
+  return ai(myCustomPrompt)
 }
 
 suspend fun main() {

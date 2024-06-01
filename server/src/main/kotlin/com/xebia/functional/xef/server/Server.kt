@@ -1,9 +1,11 @@
 package com.xebia.functional.xef.server
 
+import ai.xef.langchain4j.Langchain4JEmbeddings
 import arrow.continuations.SuspendApp
 import arrow.continuations.ktor.server
 import arrow.fx.coroutines.resourceScope
 import com.typesafe.config.ConfigFactory
+import com.xebia.functional.xef.env.getenv
 import com.xebia.functional.xef.server.db.psql.XefDatabaseConfig
 import com.xebia.functional.xef.server.exceptions.exceptionsHandler
 import com.xebia.functional.xef.server.http.routes.aiRoutes
@@ -11,6 +13,8 @@ import com.xebia.functional.xef.server.http.routes.xefRoutes
 import com.xebia.functional.xef.server.services.hikariDataSource
 import com.xebia.functional.xef.server.services.vectorStoreService
 import com.xebia.functional.xef.store.migrations.runDatabaseMigrations
+import dev.langchain4j.model.embedding.EmbeddingModel
+import dev.langchain4j.model.openai.OpenAiEmbeddingModel
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
@@ -51,7 +55,7 @@ object Server {
 
       Database.connect(xefDatasource)
 
-      vectorStoreService("xef-vector-store", config, logger)
+      vectorStoreService(Langchain4JEmbeddings.openAI(), "xef-vector-store", config, logger)
 
       val ktorClient =
         HttpClient(CIO) {

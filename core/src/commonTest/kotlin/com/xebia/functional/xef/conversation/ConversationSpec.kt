@@ -1,19 +1,13 @@
 package com.xebia.functional.xef.conversation
 
-import com.xebia.functional.openai.generated.model.*
 import com.xebia.functional.xef.data.*
-import com.xebia.functional.xef.llm.models.modelType
-import com.xebia.functional.xef.llm.prompt
-import com.xebia.functional.xef.llm.promptMessage
-import com.xebia.functional.xef.llm.promptMessages
-import com.xebia.functional.xef.llm.tokensFromMessages
+import com.xebia.functional.xef.llm.*
 import com.xebia.functional.xef.metrics.LogsMetric
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.assistant
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.system
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.user
 import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
-import com.xebia.functional.xef.prompt.contentAsString
 import com.xebia.functional.xef.store.ConversationId
 import com.xebia.functional.xef.store.LocalVectorStore
 import io.kotest.core.spec.style.StringSpec
@@ -31,7 +25,6 @@ class ConversationSpec :
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
       val chatApi = TestChatApi()
-      val model = CreateChatCompletionRequestModel.gpt_4
 
       val scope =
         Conversation(
@@ -42,11 +35,11 @@ class ConversationSpec :
 
       val vectorStore = scope.store
 
-      chatApi.promptMessages(prompt = Prompt(model, "question 1"), scope = scope)
+      chatApi.promptMessages(prompt = Prompt("question 1"), scope = scope)
 
-      chatApi.promptMessages(prompt = Prompt(model, "question 2"), scope = scope)
+      chatApi.promptMessages(prompt = Prompt("question 2"), scope = scope)
 
-      val memories = vectorStore.memories(model, conversationId, 10000)
+      val memories = vectorStore.memories(chatApi, conversationId, 10000)
 
       memories.size shouldBe 4
     }
@@ -69,18 +62,16 @@ class ConversationSpec :
       val vectorStore = scope.store
 
       val chatApi = TestChatApi(responses = messages)
-      val model = CreateChatCompletionRequestModel.gpt_3_5_turbo
 
-      val totalTokens =
-        model.modelType().tokensFromMessages(messages.flatMap(::chatCompletionRequestMessages))
+      val totalTokens = chatApi.tokenizer.tokensFromMessages(messages.flatMap(::chatCompletionRequestMessages))
 
       messages.forEach { message ->
-        chatApi.promptMessages(prompt = Prompt(model, message.key), scope = scope)
+        chatApi.promptMessages(prompt = Prompt(message.key), scope = scope)
       }
 
       val lastRequest = chatApi.requests.last()
 
-      val memories = vectorStore.memories(model, conversationId, totalTokens)
+      val memories = vectorStore.memories(chatApi, conversationId, totalTokens)
 
       // The messages in the request doesn't contain the message response
       val messagesSizePlusMessageResponse = lastRequest.messages.size + 1
@@ -105,18 +96,16 @@ class ConversationSpec :
       val vectorStore = scope.store
 
       val chatApi = TestChatApi(responses = messages)
-      val model = CreateChatCompletionRequestModel.gpt_3_5_turbo_16k
 
-      val totalTokens =
-        model.modelType().tokensFromMessages(messages.flatMap(::chatCompletionRequestMessages))
+      val totalTokens = chatApi.tokenizer.tokensFromMessages(messages.flatMap(::chatCompletionRequestMessages))
 
       messages.forEach { message ->
-        chatApi.promptMessages(prompt = Prompt(model, message.key), scope = scope)
+        chatApi.promptMessages(prompt = Prompt(message.key), scope = scope)
       }
 
       val lastRequest = chatApi.requests.last()
 
-      val memories = vectorStore.memories(model, conversationId, totalTokens)
+      val memories = vectorStore.memories(chatApi, conversationId, totalTokens)
 
       // The messages in the request doesn't contain the message response
       val messagesSizePlusMessageResponse = lastRequest.messages.size + 1
@@ -139,11 +128,10 @@ class ConversationSpec :
         )
 
       val chatApi = TestChatApi(message)
-      val model = CreateChatCompletionRequestModel.gpt_3_5_turbo_16k
 
       val response: Answer =
         chatApi.prompt(
-          prompt = Prompt(model, question),
+          prompt = Prompt(question),
           scope = scope,
           serializer = Answer.serializer()
         )
@@ -172,18 +160,17 @@ class ConversationSpec :
         )
 
       val chatApi = TestChatApi(message)
-      val model = CreateChatCompletionRequestModel.gpt_3_5_turbo_0613
 
       val response: Answer =
         chatApi.prompt(
-          prompt = Prompt(model) { +user(Json.encodeToString(Question.serializer(), question)) },
+          prompt = Prompt { +user(Json.encodeToString(Question.serializer(), question)) },
           scope = scope,
           serializer = Answer.serializer()
         )
 
       val lastRequest = chatApi.requests.last()
 
-      lastRequest.messages.last().contentAsString() shouldBe questionJsonString
+      lastRequest.messages.last().content shouldBe questionJsonString
 
       response shouldBe answer
     }
@@ -192,7 +179,6 @@ class ConversationSpec :
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
       val chatApi = TestChatApi()
-      val model = CreateChatCompletionRequestModel.gpt_3_5_turbo
 
       val scope =
         Conversation(
@@ -204,52 +190,52 @@ class ConversationSpec :
       val vectorStore = scope.store
 
       val firstPrompt =
-        Prompt(model) {
+        Prompt {
           +system("question 1")
           +user("question 2")
         }
 
       val firstResponse = chatApi.promptMessage(prompt = firstPrompt, scope = scope)
       val aiFirstMessage =
-        ChatCompletionRequestAssistantMessage(
-          role = ChatCompletionRequestAssistantMessage.Role.assistant,
-          content = firstResponse
+        ChatCompletionRequestMessage(
+          role = Role.assistant,
+          content = firstResponse,
+          toolCallResults = null
         )
 
-      val secondPrompt = Prompt(model) { +user("question 3") }
+      val secondPrompt = Prompt { +user("question 3") }
 
       val secondResponse = chatApi.promptMessage(prompt = secondPrompt, scope = scope)
       val aiSecondMessage =
-        ChatCompletionRequestAssistantMessage(
-          role = ChatCompletionRequestAssistantMessage.Role.assistant,
-          content = secondResponse
+        ChatCompletionRequestMessage(
+          role = Role.assistant,
+          content = secondResponse,
+          toolCallResults = null
         )
 
       val thirdPrompt =
-        Prompt(model) {
+        Prompt {
           +system("question 4")
           +user("question 5")
         }
 
       val thirdResponse = chatApi.promptMessage(prompt = thirdPrompt, scope = scope)
       val aiThirdMessage =
-        ChatCompletionRequestAssistantMessage(
-          role = ChatCompletionRequestAssistantMessage.Role.assistant,
-          content = secondResponse
+        ChatCompletionRequestMessage(
+          role = Role.assistant,
+          content = secondResponse,
+          toolCallResults = null
         )
 
-      val memories = vectorStore.memories(model, conversationId, 10000)
+      val memories = vectorStore.memories(chatApi, conversationId, 10000)
       val expectedMessages: List<String> =
-        (firstPrompt.messages +
-            ChatCompletionRequestMessage.CaseChatCompletionRequestAssistantMessage(aiFirstMessage) +
+        (firstPrompt.messages + aiFirstMessage +
             secondPrompt.messages +
-            ChatCompletionRequestMessage.CaseChatCompletionRequestAssistantMessage(
-              aiSecondMessage
-            ) +
-            thirdPrompt.messages +
-            ChatCompletionRequestMessage.CaseChatCompletionRequestAssistantMessage(aiThirdMessage))
-          .map { it.contentAsString() }
-      val actualMessages = memories.map { it.content.asRequestMessage().contentAsString() }
+            aiSecondMessage
+             +
+            thirdPrompt.messages + aiThirdMessage)
+          .map { it.content }
+      val actualMessages = memories.map { it.content.asRequestMessage().content }
       actualMessages shouldBe expectedMessages
     }
 
@@ -257,14 +243,13 @@ class ConversationSpec :
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
       val chatApi = TestChatApi()
-      val model = CreateChatCompletionRequestModel.gpt_3_5_turbo
 
       val vectorStore = LocalVectorStore(TestEmbeddings())
 
       val scope1 = Conversation(vectorStore, LogsMetric(), conversationId = conversationId)
 
       val firstPrompt =
-        Prompt(model) {
+        Prompt {
           +user("question in scope 1")
           +assistant("answer in scope 1")
         }
@@ -274,14 +259,14 @@ class ConversationSpec :
       val scope2 = Conversation(vectorStore, LogsMetric(), conversationId = conversationId)
 
       val secondPrompt =
-        Prompt(model) {
+        Prompt {
           +user("question in scope 2")
           +assistant("answer in scope 2")
         }
 
       chatApi.promptMessages(prompt = secondPrompt, scope = scope2)
 
-      val memories = vectorStore.memories(model, conversationId, 10000)
+      val memories = vectorStore.memories(chatApi, conversationId, 10000)
 
       memories.map { it.index } shouldBe listOf(1, 2, 3, 4, 5, 6)
     }
@@ -290,14 +275,13 @@ class ConversationSpec :
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
       val chatApi = TestChatApi()
-      val model = CreateChatCompletionRequestModel.gpt_3_5_turbo
 
       val vectorStore = LocalVectorStore(TestEmbeddings())
 
       val scope = Conversation(vectorStore, LogsMetric(), conversationId = conversationId)
 
       val prompt =
-        Prompt(model) {
+        Prompt {
             +system("system message")
             +user("question in scope 1")
           }
@@ -310,7 +294,7 @@ class ConversationSpec :
 
       chatApi.promptMessages(prompt = prompt, scope = scope)
 
-      val messagesStored = scope.store.memories(model, conversationId, Int.MAX_VALUE)
+      val messagesStored = scope.store.memories(chatApi, conversationId, Int.MAX_VALUE)
 
       messagesStored.size shouldBe 3
     }
@@ -319,14 +303,13 @@ class ConversationSpec :
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
       val chatApi = TestChatApi()
-      val model = CreateChatCompletionRequestModel.gpt_3_5_turbo
 
       val vectorStore = LocalVectorStore(TestEmbeddings())
 
       val scope = Conversation(vectorStore, LogsMetric(), conversationId = conversationId)
 
       val prompt =
-        Prompt(model) {
+        Prompt {
             +system("system message")
             +user("question in scope 1")
           }
@@ -339,25 +322,24 @@ class ConversationSpec :
 
       chatApi.promptMessages(prompt = prompt, scope = scope)
 
-      val messagesStored = scope.store.memories(model, conversationId, Int.MAX_VALUE)
+      val messagesStored = scope.store.memories(chatApi, conversationId, Int.MAX_VALUE)
 
       println(messagesStored)
 
-      messagesStored.filter { it.content.role == ChatCompletionRole.system } shouldBe messagesStored
+      messagesStored.filter { it.content.role == Role.system } shouldBe messagesStored
     }
 
     "when using MessagesToHistory.NOT_SYSTEM_MESSAGES policy, the scope's store shouldn't contains system messages" {
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
       val chatApi = TestChatApi()
-      val model = CreateChatCompletionRequestModel.gpt_3_5_turbo
 
       val vectorStore = LocalVectorStore(TestEmbeddings())
 
       val scope = Conversation(vectorStore, LogsMetric(), conversationId = conversationId)
 
       val prompt =
-        Prompt(model) {
+        Prompt {
             +system("system message")
             +user("question in scope 1")
           }
@@ -370,23 +352,22 @@ class ConversationSpec :
 
       chatApi.promptMessages(prompt = prompt, scope = scope)
 
-      val messagesStored = scope.store.memories(model, conversationId, Int.MAX_VALUE)
+      val messagesStored = scope.store.memories(chatApi, conversationId, Int.MAX_VALUE)
 
-      messagesStored.filter { it.content.role != ChatCompletionRole.system } shouldBe messagesStored
+      messagesStored.filter { it.content.role != Role.system } shouldBe messagesStored
     }
 
     "when using MessagesToHistory.NONE policy, the scope's store shouldn't contains messages" {
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
       val chatApi = TestChatApi()
-      val model = CreateChatCompletionRequestModel.gpt_3_5_turbo
 
       val vectorStore = LocalVectorStore(TestEmbeddings())
 
       val scope = Conversation(vectorStore, LogsMetric(), conversationId = conversationId)
 
       val prompt =
-        Prompt(model) {
+        Prompt {
             +system("system message")
             +user("question in scope 1")
           }
@@ -400,8 +381,8 @@ class ConversationSpec :
       chatApi.promptMessages(prompt = prompt, scope = scope)
 
       val messagesStored =
-        scope.store.memories(model, conversationId, Int.MAX_VALUE).filter {
-          it.content.role == ChatCompletionRole.system
+        scope.store.memories(chatApi, conversationId, Int.MAX_VALUE).filter {
+          it.content.role == Role.system
         }
 
       messagesStored.size shouldBe 0
@@ -411,14 +392,13 @@ class ConversationSpec :
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
       val chatApi = TestChatApi()
-      val model = CreateChatCompletionRequestModel.gpt_3_5_turbo
 
       val vectorStore = LocalVectorStore(TestEmbeddings())
 
       val scope = Conversation(vectorStore, LogsMetric(), conversationId = conversationId)
 
       val firstPrompt =
-        Prompt(model) {
+        Prompt {
           +system("system message")
           +user("question in scope 1")
         }
@@ -426,7 +406,7 @@ class ConversationSpec :
       chatApi.promptMessages(prompt = firstPrompt, scope = scope)
 
       val secondPrompt =
-        Prompt(model) {
+        Prompt {
             +user("question in scope 2")
             +assistant("answer in scope 2")
             +user("question in scope 3")
@@ -447,14 +427,13 @@ class ConversationSpec :
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
       val chatApi = TestChatApi()
-      val model = CreateChatCompletionRequestModel.gpt_3_5_turbo
 
       val vectorStore = LocalVectorStore(TestEmbeddings())
 
       val scope = Conversation(vectorStore, LogsMetric(), conversationId = conversationId)
 
       val firstPrompt =
-        Prompt(model) {
+        Prompt {
           +system("system message")
           +user("question in scope 1")
         }
@@ -462,7 +441,7 @@ class ConversationSpec :
       chatApi.promptMessages(prompt = firstPrompt, scope = scope)
 
       val secondPrompt =
-        Prompt(model) {
+        Prompt {
             +user("question in scope 2")
             +assistant("answer in scope 2")
             +user("question in scope 3")
@@ -482,16 +461,14 @@ class ConversationSpec :
 
 private fun chatCompletionRequestMessages(it: Map.Entry<String, String>) =
   listOf(
-    ChatCompletionRequestMessage.CaseChatCompletionRequestUserMessage(
-      ChatCompletionRequestUserMessage(
-        role = ChatCompletionRequestUserMessage.Role.user,
-        content = ChatCompletionRequestUserMessageContent.CaseString(it.key)
-      )
+    ChatCompletionRequestMessage(
+      role = Role.user,
+      content = it.key,
+      toolCallResults = null
     ),
-    ChatCompletionRequestMessage.CaseChatCompletionRequestAssistantMessage(
-      ChatCompletionRequestAssistantMessage(
-        role = ChatCompletionRequestAssistantMessage.Role.assistant,
-        content = it.value
-      )
-    ),
+    ChatCompletionRequestMessage(
+      role = Role.assistant,
+      content = it.value,
+      toolCallResults = null
+    )
   )

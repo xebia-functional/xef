@@ -1,15 +1,12 @@
 package com.xebia.functional.xef.store
 
+import ai.xef.Chat
+import ai.xef.Embeddings
 import arrow.atomic.AtomicInt
-import com.xebia.functional.openai.generated.api.Embeddings
-import com.xebia.functional.openai.generated.model.ChatCompletionRole
-import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
-import com.xebia.functional.openai.generated.model.CreateEmbeddingRequestModel
-import com.xebia.functional.openai.generated.model.Embedding
+import com.xebia.functional.xef.llm.Embedding
+import com.xebia.functional.xef.llm.Role
 import com.xebia.functional.xef.llm.embedDocuments
 import com.xebia.functional.xef.llm.embedQuery
-import com.xebia.functional.xef.llm.models.modelType
-import com.xebia.functional.xef.prompt.contentAsString
 import com.xebia.functional.xef.store.postgresql.*
 import kotlinx.uuid.UUID
 import kotlinx.uuid.generateUUID
@@ -22,7 +19,6 @@ class PGVectorStore(
   private val collectionName: String,
   private val distanceStrategy: PGDistanceStrategy,
   private val preDeleteCollection: Boolean,
-  private val embeddingRequestModel: CreateEmbeddingRequestModel,
   private val chunkSize: Int = 400
 ) : VectorStore {
 
@@ -38,16 +34,16 @@ class PGVectorStore(
         update(addNewMemory) {
           bind(UUID.generateUUID().toString())
           bind(memory.conversationId.value)
-          bind(memory.content.role.value.lowercase())
-          bind(memory.content.asRequestMessage().contentAsString())
+          bind(memory.content.role.name.lowercase())
+          bind(memory.content.asRequestMessage().content)
           bind(memory.index)
         }
       }
     }
   }
 
-  override suspend fun memories(model: CreateChatCompletionRequestModel, conversationId: ConversationId, limitTokens: Int): List<Memory> =
-    getMemoryByConversationId(conversationId).reduceByLimitToken(model.modelType(), limitTokens).reversed()
+  override suspend fun memories(model: Chat, conversationId: ConversationId, limitTokens: Int): List<Memory> =
+    getMemoryByConversationId(conversationId).reduceByLimitToken(model, limitTokens).reversed()
 
   private fun JDBCSyntax.getCollection(collectionName: String): PGCollection =
     queryOneOrNull(getCollection, { bind(collectionName) }) {
@@ -86,7 +82,7 @@ class PGVectorStore(
 
   override suspend fun addTexts(texts: List<String>): Unit =
     dataSource.connection {
-      val embeddings = embeddings.embedDocuments(texts, chunkSize, embeddingRequestModel)
+      val embeddings = embeddings.embedDocuments(texts, chunkSize)
       val collection = getCollection(collectionName)
       texts.zip(embeddings) { text, embedding ->
         val uuid = UUID.generateUUID()
@@ -108,7 +104,7 @@ class PGVectorStore(
       if (!hasEmbeddings) return emptyList()
 
       val embeddings =
-        embeddings.embedQuery(query, embeddingRequestModel).ifEmpty {
+        embeddings.embedQuery(query).ifEmpty {
           throw IllegalStateException(
             "Embedding for text: '$query', has not been properly generated"
           )
@@ -153,7 +149,7 @@ class PGVectorStore(
         val index = int()
         Memory(
           conversationId = ConversationId(cId),
-          content = memorizedMessage(ChatCompletionRole.valueOf(role.lowercase()), content),
+          content = memorizedMessage(Role.valueOf(role.lowercase()), content),
           index = index
         )
       }

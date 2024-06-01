@@ -1,8 +1,8 @@
 package com.xebia.functional.xef.evaluator.metrics
 
-import com.xebia.functional.xef.AI
+import com.xebia.functional.xef.ClassifierAI
 
-enum class ContextualRelevancy : AI.PromptClassifier {
+enum class ContextualRelevancy : ClassifierAI.PromptClassifier {
   high,
   mid,
   low;

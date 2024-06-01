@@ -1,8 +1,9 @@
 package com.xebia.functional.xef.evaluator.metrics
 
 import com.xebia.functional.xef.AI
+import com.xebia.functional.xef.ClassifierAI
 
-enum class AnswerAccuracy : AI.PromptClassifier {
+enum class AnswerAccuracy : ClassifierAI.PromptClassifier {
   yes,
   no;
 

@@ -1,6 +1,8 @@
 package com.xebia.functional.xef.prompt
 
-import com.xebia.functional.openai.generated.model.*
+import com.xebia.functional.xef.llm.ChatCompletionRequestMessage
+import com.xebia.functional.xef.llm.FunctionObject
+import com.xebia.functional.xef.llm.Role
 import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
 import kotlin.jvm.JvmSynthetic
 
@@ -24,14 +26,12 @@ interface PromptBuilder {
   private fun ChatCompletionRequestMessage.addContent(
     message: ChatCompletionRequestMessage
   ): ChatCompletionRequestMessage {
-    val content = "${contentAsString()}\n${message.contentAsString()}"
-    return when (completionRole()) {
-      ChatCompletionRole.Supported.system -> system(content)
-      ChatCompletionRole.Supported.user -> user(content)
-      ChatCompletionRole.Supported.assistant -> assistant(content)
-      ChatCompletionRole.Supported.tool -> error("Tool role is not supported")
-      ChatCompletionRole.Supported.function -> error("Function role is not supported")
-      is ChatCompletionRole.Custom -> error("Custom roles are not supported")
+    val content = "${content}\n${message.content}"
+    return when (role) {
+      Role.system -> system(content)
+      Role.user -> user(content)
+      Role.assistant -> assistant(content)
+      Role.tool -> error("Tool role is not supported")
     }
   }
 
@@ -74,100 +74,35 @@ interface PromptBuilder {
   private fun List<ChatCompletionRequestMessage>.lastMessageWithSameRole(
     message: ChatCompletionRequestMessage
   ): ChatCompletionRequestMessage? =
-    lastOrNull()?.let { if (it.completionRole() == message.completionRole()) it else null }
+    lastOrNull()?.let { if (it.role == message.role) it else null }
 
   companion object {
 
     operator fun invoke(
-      model: CreateChatCompletionRequestModel,
       functions: List<FunctionObject>,
       configuration: PromptConfiguration
-    ): PlatformPromptBuilder = PlatformPromptBuilder.create(model, functions, configuration)
+    ): PlatformPromptBuilder = PlatformPromptBuilder.create(functions, configuration)
 
     fun assistant(value: String): ChatCompletionRequestMessage =
-      ChatCompletionRequestMessage.CaseChatCompletionRequestAssistantMessage(
-        ChatCompletionRequestAssistantMessage(
-          role = ChatCompletionRequestAssistantMessage.Role.assistant,
-          content = value
-        )
+      ChatCompletionRequestMessage(
+        role = Role.assistant,
+        content = value,
+        toolCallResults = null
       )
 
     fun user(value: String): ChatCompletionRequestMessage =
-      ChatCompletionRequestMessage.CaseChatCompletionRequestUserMessage(
-        ChatCompletionRequestUserMessage(
-          role = ChatCompletionRequestUserMessage.Role.user,
-          content = ChatCompletionRequestUserMessageContent.CaseString(value)
-        )
+      ChatCompletionRequestMessage(
+        role = Role.user,
+        content = value,
+        toolCallResults = null
       )
 
     fun system(value: String): ChatCompletionRequestMessage =
-      ChatCompletionRequestMessage.CaseChatCompletionRequestSystemMessage(
-        ChatCompletionRequestSystemMessage(
-          role = ChatCompletionRequestSystemMessage.Role.system,
-          content = value
-        )
+      ChatCompletionRequestMessage(
+        role = Role.system,
+        content = value,
+        toolCallResults = null
       )
 
-    fun image(url: String, text: String): ChatCompletionRequestMessage =
-      ChatCompletionRequestMessage.CaseChatCompletionRequestUserMessage(
-        ChatCompletionRequestUserMessage(
-          role = ChatCompletionRequestUserMessage.Role.user,
-          content =
-            ChatCompletionRequestUserMessageContent.CaseChatCompletionRequestMessageContentParts(
-              listOf(
-                ChatCompletionRequestMessageContentPart
-                  .CaseChatCompletionRequestMessageContentPartImage(
-                    ChatCompletionRequestMessageContentPartImage(
-                      type = ChatCompletionRequestMessageContentPartImage.Type.image_url,
-                      imageUrl = ChatCompletionRequestMessageContentPartImageImageUrl(url)
-                    )
-                  ),
-                ChatCompletionRequestMessageContentPart
-                  .CaseChatCompletionRequestMessageContentPartText(
-                    ChatCompletionRequestMessageContentPartText(
-                      type = ChatCompletionRequestMessageContentPartText.Type.text,
-                      text = text
-                    )
-                  )
-              )
-            )
-        )
-      )
   }
 }
-
-fun ChatCompletionRequestMessage.contentAsString(): String =
-  when (this) {
-    is ChatCompletionRequestMessage.CaseChatCompletionRequestUserMessage ->
-      when (val content = value.content) {
-        is ChatCompletionRequestUserMessageContent.CaseString -> content.value
-        is ChatCompletionRequestUserMessageContent.CaseChatCompletionRequestMessageContentParts ->
-          content.value.joinToString {
-            when (it) {
-              is ChatCompletionRequestMessageContentPart.CaseChatCompletionRequestMessageContentPartImage ->
-                it.value.imageUrl.url
-              is ChatCompletionRequestMessageContentPart.CaseChatCompletionRequestMessageContentPartText ->
-                it.value.text
-            }
-          }
-      }
-    is ChatCompletionRequestMessage.CaseChatCompletionRequestAssistantMessage -> value.content ?: ""
-    is ChatCompletionRequestMessage.CaseChatCompletionRequestToolMessage -> value.content
-    is ChatCompletionRequestMessage.CaseChatCompletionRequestFunctionMessage -> value.content ?: ""
-    is ChatCompletionRequestMessage.CaseChatCompletionRequestSystemMessage -> value.content
-  }
-
-internal fun ChatCompletionRequestMessage.completionRole(): ChatCompletionRole =
-  when (this) {
-    /* this conversion is needed because we don't have a hierarchy for nested roles */
-    is ChatCompletionRequestMessage.CaseChatCompletionRequestUserMessage ->
-      ChatCompletionRole.valueOf(value.role.name)
-    is ChatCompletionRequestMessage.CaseChatCompletionRequestAssistantMessage ->
-      ChatCompletionRole.valueOf(value.role.name)
-    is ChatCompletionRequestMessage.CaseChatCompletionRequestToolMessage ->
-      ChatCompletionRole.valueOf(value.role.name)
-    is ChatCompletionRequestMessage.CaseChatCompletionRequestFunctionMessage ->
-      ChatCompletionRole.valueOf(value.role.name)
-    is ChatCompletionRequestMessage.CaseChatCompletionRequestSystemMessage ->
-      ChatCompletionRole.valueOf(value.role.name)
-  }

@@ -1,12 +1,9 @@
 package com.xebia.functional.xef.conversation.conversations
 
-import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
-import com.xebia.functional.xef.AI
-import com.xebia.functional.xef.OpenAI
+import ai.xef.OpenAI
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.MessagesFromHistory
 import com.xebia.functional.xef.conversation.MessagesToHistory
-import com.xebia.functional.xef.llm.promptMessage
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.system
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.user
@@ -25,27 +22,27 @@ suspend fun main() {
   //  - # cd server/docker/opentelemetry
   //  - # docker-compose up
 
-  val openAI = OpenAI()
+  val gpt4o = OpenAI.Chat.gpt4o()
+  val embeddings = OpenAI.Embeddings.text_embeddings_3_small()
 
   Conversation(
     //    metric = com.xebia.functional.xef.opentelemetry.OpenTelemetryMetric(),
-    store = LocalVectorStore(openAI.embeddings),
+    store = LocalVectorStore(embeddings),
   ) {
     metric.customSpan("Animal Example") {
       val configNoneFromConversation = PromptConfiguration {
         messagePolicy { addMessagesFromConversation = MessagesFromHistory.NONE }
       }
-      val model = CreateChatCompletionRequestModel.gpt_3_5_turbo_16k_0613
       val animal: Animal =
-        AI(
-          Prompt(model) { +user("A unique animal species.") }
+        gpt4o(
+          prompt = Prompt { +user("A unique animal species.") }
             .copy(configuration = configNoneFromConversation),
           conversation = this@Conversation
         )
 
       val invention: Invention =
-        AI(
-          Prompt(model) { +user("A groundbreaking invention from the 20th century.") }
+        gpt4o(
+          Prompt { +user("A groundbreaking invention from the 20th century.") }
             .copy(configuration = configNoneFromConversation),
           conversation = this@Conversation
         )
@@ -54,7 +51,7 @@ suspend fun main() {
       println("Invention: $invention")
 
       val storyPrompt =
-        Prompt(model) {
+        Prompt {
             +system("You are a writer for a science fiction magazine.")
             +user("Write a short story of 200 words that involves the animal and the invention")
           }
@@ -65,16 +62,16 @@ suspend fun main() {
               }
           )
 
-      val story: String = openAI.chat.promptMessage(storyPrompt, scope = this@Conversation)
+      val story: String = gpt4o(storyPrompt, conversation = this@Conversation)
 
       println("\nStory 1:\n$story\n")
 
       val storyPrompt2 =
-        Prompt(model) {
+        Prompt {
           +user("Write a short story of 100 words that involves the animal in a city called Cadiz")
         }
 
-      val story2: String = openAI.chat.promptMessage(storyPrompt2, scope = this@Conversation)
+      val story2: String = gpt4o(storyPrompt2, conversation = this@Conversation)
 
       println("\nStory 2:\n$story2\n")
     }

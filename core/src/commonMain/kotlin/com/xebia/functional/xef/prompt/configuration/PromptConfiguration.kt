@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.prompt.configuration
 
-import com.xebia.functional.openai.generated.model.ChatCompletionRole
 import com.xebia.functional.xef.conversation.MessagePolicy
+import com.xebia.functional.xef.llm.Role
 import kotlin.jvm.JvmField
 import kotlin.jvm.JvmOverloads
 import kotlinx.serialization.Serializable
@@ -11,7 +11,7 @@ data class PromptConfiguration
 @JvmOverloads
 constructor(
   var maxDeserializationAttempts: Int = 3,
-  var user: String = ChatCompletionRole.user.value,
+  var user: String = Role.user.name,
   var temperature: Double = 0.4,
   var numberOfPredictions: Int = 1,
   var docsInContext: Int = 5,

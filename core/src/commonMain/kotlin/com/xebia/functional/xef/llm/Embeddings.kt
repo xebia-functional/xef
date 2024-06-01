@@ -1,37 +1,45 @@
 package com.xebia.functional.xef.llm
 
+import ai.xef.Embeddings
 import arrow.fx.coroutines.parMap
-import com.xebia.functional.openai.generated.api.Embeddings
-import com.xebia.functional.openai.generated.model.CreateEmbeddingRequest
-import com.xebia.functional.openai.generated.model.CreateEmbeddingRequestInput
-import com.xebia.functional.openai.generated.model.CreateEmbeddingRequestModel
-import com.xebia.functional.openai.generated.model.Embedding
+
+
+data class EmbeddingRequest(
+  val text: List<String>,
+  val model: Embeddings
+)
+
+data class EmbeddingResponse(
+  val embedding: List<Embedding>,
+  val usage: Usage
+)
+
+data class Embedding(
+  val embedding: List<Float>
+)
 
 suspend fun Embeddings.embedDocuments(
   texts: List<String>,
   chunkSize: Int = 400,
-  embeddingRequestModel: CreateEmbeddingRequestModel =
-    CreateEmbeddingRequestModel.text_embedding_ada_002
 ): List<Embedding> =
   if (texts.isEmpty()) emptyList()
   else
     texts
       .chunked(chunkSize)
-      .parMap {
+      .parMap(concurrency = 3) {
         createEmbedding(
-            CreateEmbeddingRequest(
-              model = embeddingRequestModel,
-              input = CreateEmbeddingRequestInput.CaseStrings(it)
+            EmbeddingRequest(
+              model = this@embedDocuments,
+              text = it
             )
           )
-          .data
+          .embedding
       }
       .flatten()
 
 suspend fun Embeddings.embedQuery(
   text: String,
-  embeddingRequestModel: CreateEmbeddingRequestModel
 ): List<Embedding> =
   if (text.isNotEmpty())
-    embedDocuments(texts = listOf(text), embeddingRequestModel = embeddingRequestModel)
+    embedDocuments(texts = listOf(text))
   else emptyList()

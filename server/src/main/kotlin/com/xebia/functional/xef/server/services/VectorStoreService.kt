@@ -1,5 +1,6 @@
 package com.xebia.functional.xef.server.services
 
+import ai.xef.Embeddings
 import arrow.fx.coroutines.ResourceScope
 import com.typesafe.config.Config
 import com.xebia.functional.xef.store.VectorStore
@@ -25,6 +26,7 @@ enum class XefVectorStoreType {
 
 @OptIn(ExperimentalSerializationApi::class)
 suspend fun ResourceScope.vectorStoreService(
+  embeddings: Embeddings,
   configNamespace: String,
   config: Config,
   logger: KLogger
@@ -33,7 +35,7 @@ suspend fun ResourceScope.vectorStoreService(
     val vectorStoreConfig = config.getConfig(configNamespace)
 
     when (XefVectorStoreType.loadFromConfiguration(vectorStoreConfig)) {
-      XefVectorStoreType.LOCAL -> LocalVectorStoreService()
+      XefVectorStoreType.LOCAL -> LocalVectorStoreService(embeddings)
       XefVectorStoreType.PSQL -> {
         val postgresVectorStoreConfig =
           Hocon.decodeFromConfig(PostgreSQLVectorStoreConfig.serializer(), vectorStoreConfig)
@@ -52,7 +54,8 @@ suspend fun ResourceScope.vectorStoreService(
             logger,
             dataSource,
             postgresVectorStoreConfig.collectionName,
-            postgresVectorStoreConfig.vectorSize
+            postgresVectorStoreConfig.vectorSize,
+            embeddings
           )
           .also { it.addCollection() }
       }

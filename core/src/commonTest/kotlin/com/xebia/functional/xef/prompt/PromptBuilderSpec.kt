@@ -1,6 +1,5 @@
 package com.xebia.functional.xef.prompt
 
-import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.assistant
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.system
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.user
@@ -9,10 +8,9 @@ import io.kotest.matchers.shouldBe
 
 class PromptBuilderSpec :
   StringSpec({
-    val model = CreateChatCompletionRequestModel.gpt_4
     "buildPrompt should return the expected messages" {
       val messages =
-        Prompt(model) {
+        Prompt {
             +system("Test System")
             +user("Test Query")
             +assistant("Test Assistant")
@@ -29,7 +27,7 @@ class PromptBuilderSpec :
       val instructions = listOf("instruction 1", "instruction 2")
 
       val messages =
-        Prompt(model) {
+        Prompt {
             +system("Test System")
             +user("Test Query")
             instructions.forEach { +assistant(it) }
@@ -54,7 +52,7 @@ class PromptBuilderSpec :
 
     "Prompt should flatten the messages with the same role" {
       val messages =
-        Prompt(model) {
+        Prompt {
             +system("Test System")
             +user("User message 1")
             +user("User message 2")

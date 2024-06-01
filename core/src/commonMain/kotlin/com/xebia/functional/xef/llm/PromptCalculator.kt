@@ -1,28 +1,25 @@
 package com.xebia.functional.xef.llm
 
-import com.xebia.functional.openai.generated.model.ChatCompletionRequestMessage
-import com.xebia.functional.tokenizer.truncateText
+import ai.xef.Chat
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.MessagesFromHistory
-import com.xebia.functional.xef.llm.models.modelType
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.assistant
-import com.xebia.functional.xef.prompt.contentAsString
 import com.xebia.functional.xef.store.Memory
 
 internal object PromptCalculator {
 
-  suspend fun adaptPromptToConversationAndModel(prompt: Prompt, scope: Conversation): Prompt =
+  suspend fun adaptPromptToConversationAndModel(model: Chat, prompt: Prompt, scope: Conversation): Prompt =
     when (prompt.configuration.messagePolicy.addMessagesFromConversation) {
-      MessagesFromHistory.ALL -> adaptPromptFromConversation(prompt, scope)
+      MessagesFromHistory.ALL -> adaptPromptFromConversation(model, prompt, scope)
       MessagesFromHistory.NONE -> prompt
     }
 
-  private suspend fun adaptPromptFromConversation(prompt: Prompt, scope: Conversation): Prompt {
+  private suspend fun adaptPromptFromConversation(model: Chat, prompt: Prompt, scope: Conversation): Prompt {
 
     // calculate tokens for history and context
-    val remainingTokensForContexts = calculateRemainingTokensForContext(prompt)
+    val remainingTokensForContexts = calculateRemainingTokensForContext(model, prompt)
 
     val maxHistoryTokens = calculateMaxHistoryTokens(prompt, remainingTokensForContexts)
 
@@ -32,16 +29,16 @@ internal object PromptCalculator {
 
     val memories: List<Memory> =
       scope.memories(
-        prompt,
+        model,
         maxHistoryTokens + prompt.configuration.messagePolicy.historyPaddingTokens
       )
 
-    val historyAllowed = calculateMessagesFromHistory(prompt, memories, maxHistoryTokens)
+    val historyAllowed = calculateMessagesFromHistory(model, memories, maxHistoryTokens)
 
     // calculate messages for context based on tokens
     val ctxInfo: List<String> =
       scope.store.similaritySearch(
-        prompt.messages.joinToString("\n") { it.contentAsString() ?: "" },
+        prompt.messages.joinToString("\n") { it.content },
         prompt.configuration.docsInContext,
       )
 
@@ -49,11 +46,9 @@ internal object PromptCalculator {
       if (ctxInfo.isNotEmpty()) {
         val ctx: String = ctxInfo.joinToString("\n")
 
-        val ctxTruncated: String =
-          prompt.model.modelType().encodingType.encoding.truncateText(ctx, maxContextTokens)
+        val ctxTruncated: String = model.tokenizer.truncateText(ctx, maxContextTokens)
 
         Prompt(
-            model = prompt.model,
             functions = prompt.functions,
             configuration = prompt.configuration
           ) {
@@ -71,7 +66,7 @@ internal object PromptCalculator {
     memories.map { it.content.asRequestMessage() }
 
   private fun calculateMessagesFromHistory(
-    prompt: Prompt,
+    model: Chat,
     memories: List<Memory>,
     maxHistoryTokens: Int
   ) =
@@ -80,12 +75,11 @@ internal object PromptCalculator {
 
       // since we have the approximate tokens in memory, we need to fit the messages back to the
       // number of tokens if necessary
-      val modelType = prompt.model.modelType()
-      val historyTokens = modelType.tokensFromMessages(history)
+      val historyTokens = model.tokenizer.tokensFromMessages(history)
       if (historyTokens <= maxHistoryTokens) history
       else {
         val historyMessagesWithTokens =
-          history.map { Pair(it, modelType.tokensFromMessages(listOf(it))) }
+          history.map { Pair(it, model.tokenizer.tokensFromMessages(listOf(it))) }
 
         val totalTokenWithMessages =
           historyMessagesWithTokens.foldRight(Pair(0, emptyList<ChatCompletionRequestMessage>())) {
@@ -113,11 +107,11 @@ internal object PromptCalculator {
     return maxHistoryTokens
   }
 
-  private fun calculateRemainingTokensForContext(prompt: Prompt): Int {
-    val maxContextLength: Int = prompt.model.modelType().maxContextLength
+  private fun calculateRemainingTokensForContext(model: Chat, prompt: Prompt): Int {
+    val maxContextLength: Int = model.maxContextLength
     val remainingTokens: Int = maxContextLength - prompt.configuration.maxTokens
 
-    val messagesTokens = prompt.model.modelType().tokensFromMessages(prompt.messages)
+    val messagesTokens = model.tokenizer.tokensFromMessages(prompt.messages)
 
     if (messagesTokens >= remainingTokens) {
       throw AIError.PromptExceedsMaxRemainingTokenLength(messagesTokens, remainingTokens)
@@ -127,6 +121,6 @@ internal object PromptCalculator {
     return remainingTokensForContexts
   }
 
-  private suspend fun Conversation.memories(prompt: Prompt, limitTokens: Int): List<Memory> =
-    conversationId?.let { store.memories(prompt.model, it, limitTokens) } ?: emptyList()
+  private suspend fun Conversation.memories(model: Chat, limitTokens: Int): List<Memory> =
+    conversationId?.let { store.memories(model, it, limitTokens) } ?: emptyList()
 }

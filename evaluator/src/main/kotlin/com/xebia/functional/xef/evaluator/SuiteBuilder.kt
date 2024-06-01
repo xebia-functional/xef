@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.evaluator
 
-import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
-import com.xebia.functional.xef.AI
+import ai.xef.OpenAI.Chat
+import com.xebia.functional.xef.ClassifierAI
 import com.xebia.functional.xef.evaluator.models.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -10,7 +10,7 @@ import kotlinx.serialization.serializer
 
 class SuiteBuilder(
   private val description: String,
-  private val model: CreateChatCompletionRequestModel
+  private val model: Chat
 ) {
 
   private val items = mutableListOf<ItemSpec>()
@@ -26,11 +26,13 @@ class SuiteBuilder(
 data class SuiteSpec(
   val description: String,
   val items: List<ItemSpec>,
-  val model: CreateChatCompletionRequestModel
+  val model: Chat
 ) {
 
-  suspend inline fun <reified E> evaluate(success: List<E>): SuiteResults<E> where
-  E : AI.PromptClassifier,
+  suspend inline fun <reified E> evaluate(
+    success: List<E>
+  ): SuiteResults<E> where
+  E : ClassifierAI.PromptClassifier,
   E : Enum<E> {
     val items =
       items.map { item ->
@@ -38,7 +40,7 @@ data class SuiteSpec(
         val outputResults =
           item.outputs.map { output ->
             val classification =
-              AI.classify<E>(item.input, item.context, output.value, model = model)
+              model.classify(item.input, item.context, output.value)
             println(" |_ ${output.description.value} = classification $classification")
             OutputResult(
               output.description.value,
@@ -51,7 +53,7 @@ data class SuiteSpec(
           }
         ItemResult(item.input, outputResults)
       }
-    val suiteResults = SuiteResults(description, model.value, E::class.simpleName, items)
+    val suiteResults = SuiteResults(description, model.modelName, E::class.simpleName, items)
     return suiteResults
   }
 
@@ -59,17 +61,17 @@ data class SuiteSpec(
     @JvmSynthetic
     suspend operator fun invoke(
       description: String,
-      model: CreateChatCompletionRequestModel,
+      model: Chat,
       block: suspend SuiteBuilder.() -> Unit
     ): SuiteSpec = SuiteBuilder(description, model).apply { block() }.build()
 
     inline fun <reified E> toHtml(result: SuiteResults<E>, suiteName: String): Html where
-    E : AI.PromptClassifier,
+    E : ClassifierAI.PromptClassifier,
     E : Enum<E> =
       Html.get(Json.encodeToString(SuiteResults.serializer(serializer<E>()), result), suiteName)
 
     inline fun <reified E> toMarkdown(result: SuiteResults<E>, suiteName: String): Markdown where
-    E : AI.PromptClassifier,
+    E : ClassifierAI.PromptClassifier,
     E : Enum<E> = Markdown.get(result, suiteName)
   }
 }

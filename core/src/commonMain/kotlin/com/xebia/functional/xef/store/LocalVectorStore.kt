@@ -1,16 +1,14 @@
 package com.xebia.functional.xef.store
 
+import ai.xef.Chat
+import ai.xef.Embeddings
 import arrow.atomic.Atomic
 import arrow.atomic.AtomicInt
 import arrow.atomic.getAndUpdate
 import arrow.atomic.update
-import com.xebia.functional.openai.generated.api.Embeddings
-import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
-import com.xebia.functional.openai.generated.model.CreateEmbeddingRequestModel
-import com.xebia.functional.openai.generated.model.Embedding
+import com.xebia.functional.xef.llm.Embedding
 import com.xebia.functional.xef.llm.embedDocuments
 import com.xebia.functional.xef.llm.embedQuery
-import com.xebia.functional.xef.llm.models.modelType
 import kotlin.math.sqrt
 
 private data class State(
@@ -29,13 +27,10 @@ class LocalVectorStore
 private constructor(
   private val embeddings: Embeddings,
   private val state: AtomicState,
-  private val embeddingRequestModel: CreateEmbeddingRequestModel
 ) : VectorStore {
   constructor(
-    embeddings: Embeddings,
-    embeddingRequestModel: CreateEmbeddingRequestModel =
-      CreateEmbeddingRequestModel.text_embedding_ada_002
-  ) : this(embeddings, Atomic(State.empty()), embeddingRequestModel)
+    embeddings: Embeddings
+  ) : this(embeddings, Atomic(State.empty()))
 
   override val indexValue: AtomicInt = AtomicInt(0)
 
@@ -63,7 +58,7 @@ private constructor(
   }
 
   override suspend fun memories(
-    model: CreateChatCompletionRequestModel,
+    model: Chat,
     conversationId: ConversationId,
     limitTokens: Int
   ): List<Memory> {
@@ -71,13 +66,13 @@ private constructor(
     return memories
       .orEmpty()
       .sortedByDescending { it.index }
-      .reduceByLimitToken(model.modelType(), limitTokens)
+      .reduceByLimitToken(model, limitTokens)
       .reversed()
   }
 
   override suspend fun addTexts(texts: List<String>) {
     val embeddingsList =
-      embeddings.embedDocuments(texts, embeddingRequestModel = embeddingRequestModel)
+      embeddings.embedDocuments(texts)
     state.getAndUpdate { prevState ->
       val newEmbeddings = prevState.precomputedEmbeddings + texts.zip(embeddingsList)
       State(prevState.orderedMemories, prevState.documents + texts, newEmbeddings)
@@ -86,7 +81,7 @@ private constructor(
 
   override suspend fun similaritySearch(query: String, limit: Int): List<String> {
     val queryEmbedding =
-      embeddings.embedQuery(query, embeddingRequestModel = embeddingRequestModel).firstOrNull()
+      embeddings.embedQuery(query).firstOrNull()
     return queryEmbedding?.let { similaritySearchByVector(it, limit) }.orEmpty()
   }
 

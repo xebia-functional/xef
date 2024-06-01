@@ -39,6 +39,7 @@ progressbar = "0.10.0"
 jmf = "2.1.1e"
 mp3-wav-converter = "1.0.4"
 yamlkt="0.13.0"
+langchain4j="0.31.0"
 
 
 [libraries]
@@ -115,6 +116,8 @@ opentelemetry-extension-kotlin = { module = "io.opentelemetry:opentelemetry-exte
 progressbar = { module = "me.tongfei:progressbar", version.ref = "progressbar" }
 jmf = { module = "javax.media:jmf", version.ref = "jmf" }
 mp3-wav-converter = { module = "com.sipgate:mp3-wav", version.ref = "mp3-wav-converter" }
+langchain4j-core = { module = "dev.langchain4j:langchain4j", version.ref = "langchain4j" }
+langchain4j-open-ai = { module = "dev.langchain4j:langchain4j-open-ai", version.ref = "langchain4j" }
 
 
 

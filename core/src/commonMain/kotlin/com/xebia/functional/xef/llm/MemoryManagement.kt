@@ -1,6 +1,5 @@
 package com.xebia.functional.xef.llm
 
-import com.xebia.functional.openai.generated.model.*
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.MessagesToHistory
 import com.xebia.functional.xef.store.ConversationId
@@ -65,10 +64,10 @@ suspend fun VectorStore.addMemoriesByHistory(history: MessagesToHistory, memorie
       addMemories(memories)
     }
     MessagesToHistory.ONLY_SYSTEM_MESSAGES -> {
-      addMemories(memories.filter { it.content.role == ChatCompletionRole.system })
+      addMemories(memories.filter { it.content.role == Role.system })
     }
     MessagesToHistory.NOT_SYSTEM_MESSAGES -> {
-      addMemories(memories.filter { it.content.role != ChatCompletionRole.system })
+      addMemories(memories.filter { it.content.role != Role.system })
     }
     MessagesToHistory.NONE -> {}
   }

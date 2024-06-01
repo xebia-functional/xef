@@ -1,13 +1,14 @@
 package com.xebia.functional.xef.evaluator.models
 
 import com.xebia.functional.xef.AI
+import com.xebia.functional.xef.ClassifierAI
 import com.xebia.functional.xef.evaluator.metrics.ContextualRelevancy
 
 @JvmInline
 value class Markdown(val value: String) {
   companion object {
     fun <E> get(result: SuiteResults<E>, suiteName: String): Markdown where
-    E : AI.PromptClassifier,
+    E : ClassifierAI.PromptClassifier,
     E : Enum<E> {
       val content =
         """|
