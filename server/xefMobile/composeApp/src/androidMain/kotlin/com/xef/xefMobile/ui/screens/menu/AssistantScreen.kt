@@ -1,5 +1,6 @@
 package com.server.movile.xef.android.ui.screens.menu
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -61,14 +62,16 @@ fun AssistantScreen(
             fontWeight = FontWeight.Bold,
             fontSize = 24.sp,
           )
-          Divider(modifier = Modifier.fillMaxWidth().padding(top = 8.dp))
+          HorizontalDivider(modifier = Modifier.fillMaxWidth().padding(top = 8.dp))
 
           Spacer(modifier = Modifier.height(16.dp))
 
           LazyColumn(modifier = Modifier.fillMaxSize()) {
             items(assistants) { assistant ->
               Column(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp).clickable {
+                  navController.navigate(Screens.CreateAssistantWithArgs.createRoute(assistant.id))
+                },
                 horizontalAlignment = Alignment.Start // Align items to start
               ) {
                 Row(
@@ -89,7 +92,7 @@ fun AssistantScreen(
                 }
                 Text(text = "ID: ${assistant.id}", fontSize = 14.sp)
               }
-              Divider(color = Color.Gray)
+              HorizontalDivider(color = Color.Gray)
             }
           }
         }
@@ -98,11 +101,10 @@ fun AssistantScreen(
 
     Button(
       onClick = { navController.navigate(Screens.CreateAssistant.screen) },
-      colors =
-        ButtonDefaults.buttonColors(
-          containerColor = customColors.buttonColor,
-          contentColor = MaterialTheme.colorScheme.onPrimary
-        ),
+      colors = ButtonDefaults.buttonColors(
+        containerColor = customColors.buttonColor,
+        contentColor = MaterialTheme.colorScheme.onPrimary
+      ),
       modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp)
     ) {
       Text(text = "Create New Assistant")

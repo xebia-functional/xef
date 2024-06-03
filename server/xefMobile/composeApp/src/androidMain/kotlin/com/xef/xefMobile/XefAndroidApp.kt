@@ -8,9 +8,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.server.movile.xef.android.ui.screens.LoginScreen
 import com.server.movile.xef.android.ui.screens.RegisterScreen
 import com.server.movile.xef.android.ui.screens.menu.AssistantScreen
@@ -53,6 +55,24 @@ fun XefAndroidApp(authViewModel: IAuthViewModel, settingsViewModel: SettingsView
         AssistantScreen(navController, authViewModel, settingsViewModel)
       }
     }
+    composable(
+      route = Screens.CreateAssistantWithArgs.screen,
+      arguments = listOf(navArgument("assistantId") { type = NavType.StringType })
+    ) { backStackEntry ->
+      val assistantId = backStackEntry.arguments?.getString("assistantId")
+      MainLayout(
+        navController = navController,
+        authViewModel = authViewModel,
+        userName = userName.orEmpty()
+      ) {
+        CreateAssistantScreen(
+          navController = navController,
+          authViewModel = authViewModel,
+          settingsViewModel = settingsViewModel,
+          assistantId = assistantId
+        )
+      }
+    }
     composable(Screens.CreateAssistant.screen) {
       MainLayout(
         navController = navController,
@@ -62,7 +82,8 @@ fun XefAndroidApp(authViewModel: IAuthViewModel, settingsViewModel: SettingsView
         CreateAssistantScreen(
           navController = navController,
           authViewModel = authViewModel,
-          settingsViewModel = settingsViewModel
+          settingsViewModel = settingsViewModel,
+          assistantId = null
         )
       }
     }

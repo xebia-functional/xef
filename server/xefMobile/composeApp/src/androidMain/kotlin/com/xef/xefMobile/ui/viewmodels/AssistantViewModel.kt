@@ -27,6 +27,9 @@ class AssistantViewModel(
   private val _errorMessage = MutableStateFlow<String?>(null)
   val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
+  private val _selectedAssistant = MutableStateFlow<Assistant?>(null)
+  val selectedAssistant: StateFlow<Assistant?> = _selectedAssistant.asStateFlow()
+
   private val apiService = ApiService()
 
   init {
@@ -41,12 +44,22 @@ class AssistantViewModel(
         val token = settingsViewModel.apiKey.value ?: throw Exception("API key not found")
         val response = apiService.getAssistants(token)
         _assistants.value = response.data
+        _loading.value = false
       } catch (e: Exception) {
         _errorMessage.value = "Failed to load assistants: ${e.message}"
-      } finally {
         _loading.value = false
       }
     }
+  }
+
+  fun loadAssistantDetails(id: String) {
+    viewModelScope.launch {
+      _selectedAssistant.value = getAssistantById(id)
+    }
+  }
+
+  private fun getAssistantById(id: String): Assistant? {
+    return assistants.value.find { it.id == id }
   }
 
   @OptIn(InternalAPI::class)
@@ -84,7 +97,7 @@ class AssistantViewModel(
           apiService.createAssistant(authToken = token, request = request)
 
         if (response.status == HttpStatusCode.Created) {
-          fetchAssistants() // Refresh the list of assistants after successful creation
+          fetchAssistants()
           onSuccess()
         } else {
           onError("Failed to create assistant: ${response.status}")
@@ -100,7 +113,7 @@ class AssistantViewModel(
 data class CreateAssistantRequest(
   val model: String,
   val name: String,
-  val description: String,
+  val description: String?,
   val instructions: String,
   val tools: List<Tool>,
   val metadata: Map<String, String>,

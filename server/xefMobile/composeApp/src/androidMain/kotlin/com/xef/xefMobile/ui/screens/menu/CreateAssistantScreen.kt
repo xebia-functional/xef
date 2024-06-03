@@ -23,6 +23,7 @@ import com.server.movile.xef.android.ui.viewmodels.AuthViewModel
 import com.server.movile.xef.android.ui.viewmodels.IAuthViewModel
 import com.server.movile.xef.android.ui.viewmodels.factory.AuthViewModelFactory
 import com.xef.xefMobile.ui.composable.FilePickerDialog
+import com.xef.xefMobile.ui.screens.Screens
 import com.xef.xefMobile.ui.viewmodels.SettingsViewModel
 import com.xef.xefMobile.ui.viewmodels.SettingsViewModelFactory
 import kotlinx.coroutines.launch
@@ -30,6 +31,7 @@ import kotlinx.coroutines.launch
 class CreateAssistantActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+    val assistantId = intent.getStringExtra("assistantId")
     setContent {
       val navController = rememberNavController()
 
@@ -38,7 +40,7 @@ class CreateAssistantActivity : ComponentActivity() {
       val settingsViewModel: SettingsViewModel =
         viewModel(factory = SettingsViewModelFactory(applicationContext))
 
-      CreateAssistantScreen(navController, authViewModel, settingsViewModel)
+      CreateAssistantScreen(navController, authViewModel, settingsViewModel, assistantId)
     }
   }
 }
@@ -48,12 +50,15 @@ class CreateAssistantActivity : ComponentActivity() {
 fun CreateAssistantScreen(
   navController: NavController,
   authViewModel: IAuthViewModel,
-  settingsViewModel: SettingsViewModel
+  settingsViewModel: SettingsViewModel,
+  assistantId: String?
 ) {
   val viewModel: AssistantViewModel =
     viewModel(factory = AssistantViewModelFactory(authViewModel, settingsViewModel))
   val snackbarHostState = remember { SnackbarHostState() }
   val coroutineScope = rememberCoroutineScope()
+
+  val selectedAssistant by viewModel.selectedAssistant.collectAsState()
 
   var name by remember { mutableStateOf("") }
   var instructions by remember { mutableStateOf("") }
@@ -62,23 +67,7 @@ fun CreateAssistantScreen(
   var fileSearchEnabled by remember { mutableStateOf(false) }
   var codeInterpreterEnabled by remember { mutableStateOf(false) }
   var model by remember { mutableStateOf("gpt-4-turbo") }
-  val list =
-    listOf(
-      "gpt-4o",
-      "gpt-4o-2024-05-13",
-      "gpt-4",
-      "gpt-4-vision-preview",
-      "gpt-4-turbo-preview",
-      "gpt-4-2024-04-09",
-      "gpt-4-turbo",
-      "gpt-4-1106-preview",
-      "gpt-4-0613",
-      "gpt-4-0125-preview",
-      "gpt-4",
-      "gpt-3.5-turbo-16K",
-      "gpt-3.5-turbo-0125",
-      "gpt-3.5-turbo"
-    )
+  val list = listOf("gpt-4o", "gpt-4o-2024-05-13", "gpt-4", "gpt-4-vision-preview", "gpt-4-turbo-preview", "gpt-4-2024-04-09", "gpt-4-turbo", "gpt-4-1106-preview", "gpt-4-0613", "gpt-4-0125-preview", "gpt-4", "gpt-3.5-turbo-16K", "gpt-3.5-turbo-0125", "gpt-3.5-turbo")
   var isExpanded by remember { mutableStateOf(false) }
   var selectedText by remember { mutableStateOf(list[0]) }
   var showFilePicker by remember { mutableStateOf(false) }
@@ -87,8 +76,28 @@ fun CreateAssistantScreen(
 
   val customColors = LocalCustomColors.current
 
-  Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }, modifier = Modifier.fillMaxSize()) {
-    paddingValues ->
+  // Load assistant details if assistantId is provided
+  LaunchedEffect(assistantId) {
+    if (assistantId != null) {
+      viewModel.loadAssistantDetails(assistantId)
+    }
+  }
+
+  // Observe selectedAssistant and update state variables accordingly
+  LaunchedEffect(selectedAssistant) {
+    selectedAssistant?.let { assistant ->
+      name = assistant.name
+      instructions = assistant.instructions
+      temperature = assistant.temperature
+      topP = assistant.topP
+      model = assistant.model
+      selectedText = assistant.model // Ensure dropdown reflects the correct model
+      fileSearchEnabled = assistant.tools.any { it.type == "file_search" }
+      codeInterpreterEnabled = assistant.tools.any { it.type == "code_interpreter" }
+    }
+  }
+
+  Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }, modifier = Modifier.fillMaxSize()) { paddingValues ->
     Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
       Column(
         modifier = Modifier.padding(8.dp).fillMaxSize(),
@@ -137,6 +146,7 @@ fun CreateAssistantScreen(
                   text = { Text(text = text) },
                   onClick = {
                     selectedText = list[index]
+                    model = list[index] // Ensure model state is updated
                     isExpanded = false
                   },
                   contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
@@ -162,11 +172,10 @@ fun CreateAssistantScreen(
         Row(verticalAlignment = Alignment.CenterVertically) {
           TextButton(
             onClick = { showFilePicker = true },
-            colors =
-              ButtonDefaults.outlinedButtonColors(
-                containerColor = Color.Transparent,
-                contentColor = customColors.buttonColor
-              )
+            colors = ButtonDefaults.outlinedButtonColors(
+              containerColor = Color.Transparent,
+              contentColor = customColors.buttonColor
+            )
           ) {
             Text("File Search +")
           }
@@ -174,22 +183,20 @@ fun CreateAssistantScreen(
           Switch(
             checked = fileSearchEnabled,
             onCheckedChange = { fileSearchEnabled = it },
-            colors =
-              SwitchDefaults.colors(
-                checkedThumbColor = customColors.sliderThumbColor,
-                checkedTrackColor = customColors.sliderTrackColor
-              )
+            colors = SwitchDefaults.colors(
+              checkedThumbColor = customColors.sliderThumbColor,
+              checkedTrackColor = customColors.sliderTrackColor
+            )
           )
         }
         Spacer(modifier = Modifier.height(8.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
           TextButton(
             onClick = { showCodeInterpreterPicker = true },
-            colors =
-              ButtonDefaults.outlinedButtonColors(
-                containerColor = Color.Transparent,
-                contentColor = customColors.buttonColor
-              )
+            colors = ButtonDefaults.outlinedButtonColors(
+              containerColor = Color.Transparent,
+              contentColor = customColors.buttonColor
+            )
           ) {
             Text("Code Interpreter +")
           }
@@ -197,22 +204,20 @@ fun CreateAssistantScreen(
           Switch(
             checked = codeInterpreterEnabled,
             onCheckedChange = { codeInterpreterEnabled = it },
-            colors =
-              SwitchDefaults.colors(
-                checkedThumbColor = customColors.sliderThumbColor,
-                checkedTrackColor = customColors.sliderTrackColor
-              )
+            colors = SwitchDefaults.colors(
+              checkedThumbColor = customColors.sliderThumbColor,
+              checkedTrackColor = customColors.sliderTrackColor
+            )
           )
         }
         Spacer(modifier = Modifier.height(8.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
           TextButton(
-            onClick = { /* handle cancel */},
-            colors =
-              ButtonDefaults.outlinedButtonColors(
-                containerColor = Color.Transparent,
-                contentColor = customColors.buttonColor
-              )
+            onClick = { /* handle cancel */ },
+            colors = ButtonDefaults.outlinedButtonColors(
+              containerColor = Color.Transparent,
+              contentColor = customColors.buttonColor
+            )
           ) {
             Text("Functions +")
           }
@@ -236,11 +241,10 @@ fun CreateAssistantScreen(
         Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
           Button(
             onClick = { navController.navigateUp() },
-            colors =
-              ButtonDefaults.buttonColors(
-                containerColor = customColors.buttonColor,
-                contentColor = MaterialTheme.colorScheme.onPrimary
-              )
+            colors = ButtonDefaults.buttonColors(
+              containerColor = customColors.buttonColor,
+              contentColor = MaterialTheme.colorScheme.onPrimary
+            )
           ) {
             Text("Cancel")
           }
@@ -259,7 +263,7 @@ fun CreateAssistantScreen(
                   onSuccess = {
                     coroutineScope.launch {
                       snackbarHostState.showSnackbar("Assistant created successfully")
-                      navController.navigateUp() // Navigate back on success
+                      navController.navigate(Screens.Assistants.screen)
                     }
                   },
                   onError = { errorMessage ->
@@ -269,11 +273,10 @@ fun CreateAssistantScreen(
                 )
               }
             },
-            colors =
-              ButtonDefaults.buttonColors(
-                containerColor = customColors.buttonColor,
-                contentColor = MaterialTheme.colorScheme.onPrimary
-              )
+            colors = ButtonDefaults.buttonColors(
+              containerColor = customColors.buttonColor,
+              contentColor = MaterialTheme.colorScheme.onPrimary
+            )
           ) {
             Text("Create")
           }
@@ -320,11 +323,10 @@ fun AssistantFloatField(label: String, value: Float, onValueChange: (Float) -> U
         valueRange = 0f..1f,
         steps = 100, // This ensures the slider moves in increments of 0.02
         modifier = Modifier.weight(3f),
-        colors =
-          SliderDefaults.colors(
-            thumbColor = customColors.sliderThumbColor,
-            activeTrackColor = customColors.sliderTrackColor
-          )
+        colors = SliderDefaults.colors(
+          thumbColor = customColors.sliderThumbColor,
+          activeTrackColor = customColors.sliderTrackColor
+        )
       )
       Spacer(
         modifier = Modifier.width(2.dp)
@@ -342,3 +344,4 @@ fun AssistantFloatField(label: String, value: Float, onValueChange: (Float) -> U
     }
   }
 }
+
