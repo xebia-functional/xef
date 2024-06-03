@@ -42,7 +42,7 @@ export function Sidebar({ drawerWidth, open }: SidebarProps) {
         <List>
           <ListItem disablePadding>
             <ListItemButton component={RouterLink} to="/">
-              <img src={homeIcon} alt="Home" className={styles.marginRightIcon} />
+              <img src={homeIcon} alt="Home" className={styles.marginRightIcons} />
               <ListItemText primary="Home" />
             </ListItemButton>
           </ListItem>
