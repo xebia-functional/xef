@@ -10,8 +10,10 @@ import kotlin.jvm.JvmSynthetic
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.*
 
+@Serializable
 sealed class StreamedFunction<out A> {
   data class Property(val path: List<String>, val name: String, val value: String) :
     StreamedFunction<Nothing>()

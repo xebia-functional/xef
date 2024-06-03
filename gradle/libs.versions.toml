@@ -115,7 +115,7 @@ opentelemetry-extension-kotlin = { module = "io.opentelemetry:opentelemetry-exte
 progressbar = { module = "me.tongfei:progressbar", version.ref = "progressbar" }
 jmf = { module = "javax.media:jmf", version.ref = "jmf" }
 mp3-wav-converter = { module = "com.sipgate:mp3-wav", version.ref = "mp3-wav-converter" }
-
+kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
 
 
 [bundles]

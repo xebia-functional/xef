@@ -26,8 +26,10 @@ fun chatFunction(descriptor: SerialDescriptor): FunctionObject {
 fun chatFunctions(descriptors: List<SerialDescriptor>): List<FunctionObject> =
   descriptors.map(::chatFunction)
 
-fun chatFunction(fnName: String, schema: JsonObject): FunctionObject =
-  FunctionObject(fnName, "Generated function for $fnName", schema)
+fun chatFunction(fnName: String, schema: JsonObject): FunctionObject {
+  val description = schema["description"]?.jsonPrimitive?.contentOrNull ?: "Generated function for $fnName"
+  return FunctionObject(fnName, description, schema)
+}
 
 @AiDsl
 suspend fun <A> Chat.prompt(

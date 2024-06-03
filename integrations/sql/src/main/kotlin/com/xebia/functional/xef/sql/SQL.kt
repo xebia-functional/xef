@@ -1,5 +1,6 @@
 package com.xebia.functional.xef.sql
 
+import arrow.core.getOrElse
 import com.xebia.functional.openai.generated.api.Chat
 import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.conversation.AiDsl

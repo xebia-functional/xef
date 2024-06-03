@@ -1,6 +1,7 @@
 @file:Suppress("DSL_SCOPE_VIOLATION")
 
 import org.jetbrains.dokka.gradle.DokkaTask
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 repositories {
     mavenCentral()
@@ -33,6 +34,12 @@ detekt {
     source.setFrom(files("src/commonMain/kotlin", "src/jvmMain/kotlin"))
     config.setFrom("../config/detekt/detekt.yml")
     autoCorrect = true
+}
+
+tasks.withType<KotlinCompile>().configureEach {
+    kotlinOptions {
+        freeCompilerArgs = freeCompilerArgs + "-Xcontext-receivers"
+    }
 }
 
 kotlin {
@@ -97,6 +104,7 @@ kotlin {
               api(libs.jakarta.validation)
               implementation(libs.kotlinx.coroutines.reactive)
               api(libs.ktor.client.cio)
+              implementation(libs.kotlin.reflect)
           }
       }
       val jsMain by getting {
