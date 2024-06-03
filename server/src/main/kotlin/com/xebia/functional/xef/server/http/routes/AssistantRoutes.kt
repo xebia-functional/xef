@@ -21,9 +21,17 @@ fun Routing.assistantRoutes(logger: KLogger) {
       try {
         val contentType = call.request.contentType()
         if (contentType == ContentType.Application.Json) {
+          val token = call.getToken().value
+          val openAI = OpenAI(Config(token = token), logRequests = true)
+          val assistantsApi = openAI.assistants
+
           val request = call.receive<CreateAssistantRequest>()
-          val assistant = Assistant(request)
+
+          logger.info { "Sending request to create assistant with data: $request" }
+
+          val assistant = Assistant(request, assistantsApi = assistantsApi)
           val response = assistant.get()
+
           logger.info { "Created assistant: ${response.name} with id: ${response.id}" }
           call.respond(status = HttpStatusCode.Created, response)
         } else {
@@ -32,6 +40,10 @@ fun Routing.assistantRoutes(logger: KLogger) {
             "Unsupported content type: $contentType"
           )
         }
+      } catch (e: SerializationException) {
+        val trace = e.stackTraceToString()
+        logger.error { "Serialization error: $trace" }
+        call.respond(HttpStatusCode.BadRequest, "Serialization error: $trace")
       } catch (e: Exception) {
         val trace = e.stackTraceToString()
         logger.error { "Error creating assistants: $trace" }
