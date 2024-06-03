@@ -5,11 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.xef.xefMobile.model.Assistant
 import com.xef.xefMobile.services.ApiService
 import com.xef.xefMobile.ui.viewmodels.SettingsViewModel
-import io.ktor.client.engine.cio.*
-import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
 import io.ktor.util.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -36,7 +33,7 @@ class AssistantViewModel(
     fetchAssistants()
   }
 
-  private fun fetchAssistants() {
+  fun fetchAssistants() {
     viewModelScope.launch {
       _loading.value = true
       _errorMessage.value = null
@@ -59,25 +56,33 @@ class AssistantViewModel(
     temperature: Float,
     topP: Float,
     model: String,
+    fileSearchEnabled: Boolean,
+    codeInterpreterEnabled: Boolean,
     onSuccess: () -> Unit,
     onError: (String) -> Unit
   ) {
     viewModelScope.launch {
       try {
         val token = settingsViewModel.apiKey.value ?: throw Exception("API key not found")
-        val response: HttpResponse =
-          apiService.createAssistant(
-            authToken = token,
-            request =
-              CreateAssistantRequest(
-                model = model,
-                name = name,
-                instructions = instructions,
-                temperature = temperature.toDouble(),
-                topP = topP.toDouble()
-              )
-          )
+        val tools = mutableListOf<Tool>()
+        if (fileSearchEnabled) tools.add(Tool(type = "file_search"))
+        if (codeInterpreterEnabled) tools.add(Tool(type = "code_interpreter"))
+
+        val request = CreateAssistantRequest(
+          model = model,
+          name = name,
+          description = "This is an example assistant for testing purposes.",
+          instructions = instructions,
+          tools = tools,
+          metadata = mapOf("key1" to "value1", "key2" to "value2", "key3" to "value3"),
+          temperature = temperature,
+          top_p = topP
+        )
+
+        val response: HttpResponse = apiService.createAssistant(authToken = token, request = request)
+
         if (response.status == HttpStatusCode.Created) {
+          fetchAssistants() // Refresh the list of assistants after successful creation
           onSuccess()
         } else {
           onError("Failed to create assistant: ${response.status}")
@@ -93,7 +98,13 @@ class AssistantViewModel(
 data class CreateAssistantRequest(
   val model: String,
   val name: String,
+  val description: String,
   val instructions: String,
-  val temperature: Double,
-  val topP: Double
+  val tools: List<Tool>,
+  val metadata: Map<String, String>,
+  val temperature: Float,
+  val top_p: Float
 )
+
+@Serializable
+data class Tool(val type: String)

@@ -23,6 +23,7 @@ import com.server.movile.xef.android.ui.viewmodels.AuthViewModel
 import com.server.movile.xef.android.ui.viewmodels.IAuthViewModel
 import com.server.movile.xef.android.ui.viewmodels.factory.AuthViewModelFactory
 import com.xef.xefMobile.ui.composable.FilePickerDialog
+
 import com.xef.xefMobile.ui.viewmodels.SettingsViewModel
 import com.xef.xefMobile.ui.viewmodels.SettingsViewModelFactory
 import kotlinx.coroutines.launch
@@ -62,16 +63,16 @@ fun CreateAssistantScreen(
   var fileSearchEnabled by remember { mutableStateOf(false) }
   var codeInterpreterEnabled by remember { mutableStateOf(false) }
   var model by remember { mutableStateOf("gpt-4-turbo") }
-  val list = listOf("gpt-4o", "gpt-4", "gpt-3.5-turbo-16K", "gpt-3.5-turbo-0125", "gpt-3.5-turbo")
+  val list = listOf("gpt-4o", "gpt-4o-2024-05-13", "gpt-4", "gpt-4-vision-preview", "gpt-4-turbo-preview", "gpt-4-2024-04-09", "gpt-4-turbo", "gpt-4-1106-preview", "gpt-4-0613", "gpt-4-0125-preview", "gpt-4",  "gpt-3.5-turbo-16K", "gpt-3.5-turbo-0125", "gpt-3.5-turbo")
   var isExpanded by remember { mutableStateOf(false) }
   var selectedText by remember { mutableStateOf(list[0]) }
   var showFilePicker by remember { mutableStateOf(false) }
   var showCodeInterpreterPicker by remember { mutableStateOf(false) }
+  var showAllItems by remember { mutableStateOf(false) }
 
   val customColors = LocalCustomColors.current
 
-  Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }, modifier = Modifier.fillMaxSize()) {
-    paddingValues ->
+  Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }, modifier = Modifier.fillMaxSize()) { paddingValues ->
     Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
       Column(
         modifier = Modifier.padding(8.dp).fillMaxSize(),
@@ -114,12 +115,22 @@ fun CreateAssistantScreen(
               trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded) }
             )
             ExposedDropdownMenu(expanded = isExpanded, onDismissRequest = { isExpanded = false }) {
-              list.forEachIndexed { index, text ->
+              val itemsToShow = if (showAllItems) list else list.take(5)
+              itemsToShow.forEachIndexed { index, text ->
                 DropdownMenuItem(
                   text = { Text(text = text) },
                   onClick = {
                     selectedText = list[index]
                     isExpanded = false
+                  },
+                  contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                )
+              }
+              if (!showAllItems) {
+                DropdownMenuItem(
+                  text = { Text(text = "Show more") },
+                  onClick = {
+                    showAllItems = true
                   },
                   contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
                 )
@@ -138,10 +149,10 @@ fun CreateAssistantScreen(
           TextButton(
             onClick = { showFilePicker = true },
             colors =
-              ButtonDefaults.outlinedButtonColors(
-                containerColor = Color.Transparent,
-                contentColor = customColors.buttonColor
-              )
+            ButtonDefaults.outlinedButtonColors(
+              containerColor = Color.Transparent,
+              contentColor = customColors.buttonColor
+            )
           ) {
             Text("File Search +")
           }
@@ -150,10 +161,10 @@ fun CreateAssistantScreen(
             checked = fileSearchEnabled,
             onCheckedChange = { fileSearchEnabled = it },
             colors =
-              SwitchDefaults.colors(
-                checkedThumbColor = customColors.sliderThumbColor,
-                checkedTrackColor = customColors.sliderTrackColor
-              )
+            SwitchDefaults.colors(
+              checkedThumbColor = customColors.sliderThumbColor,
+              checkedTrackColor = customColors.sliderTrackColor
+            )
           )
         }
         Spacer(modifier = Modifier.height(8.dp))
@@ -161,10 +172,10 @@ fun CreateAssistantScreen(
           TextButton(
             onClick = { showCodeInterpreterPicker = true },
             colors =
-              ButtonDefaults.outlinedButtonColors(
-                containerColor = Color.Transparent,
-                contentColor = customColors.buttonColor
-              )
+            ButtonDefaults.outlinedButtonColors(
+              containerColor = Color.Transparent,
+              contentColor = customColors.buttonColor
+            )
           ) {
             Text("Code Interpreter +")
           }
@@ -173,10 +184,10 @@ fun CreateAssistantScreen(
             checked = codeInterpreterEnabled,
             onCheckedChange = { codeInterpreterEnabled = it },
             colors =
-              SwitchDefaults.colors(
-                checkedThumbColor = customColors.sliderThumbColor,
-                checkedTrackColor = customColors.sliderTrackColor
-              )
+            SwitchDefaults.colors(
+              checkedThumbColor = customColors.sliderThumbColor,
+              checkedTrackColor = customColors.sliderTrackColor
+            )
           )
         }
         Spacer(modifier = Modifier.height(8.dp))
@@ -184,10 +195,10 @@ fun CreateAssistantScreen(
           TextButton(
             onClick = { /* handle cancel */},
             colors =
-              ButtonDefaults.outlinedButtonColors(
-                containerColor = Color.Transparent,
-                contentColor = customColors.buttonColor
-              )
+            ButtonDefaults.outlinedButtonColors(
+              containerColor = Color.Transparent,
+              contentColor = customColors.buttonColor
+            )
           ) {
             Text("Functions +")
           }
@@ -212,10 +223,10 @@ fun CreateAssistantScreen(
           Button(
             onClick = { navController.navigateUp() },
             colors =
-              ButtonDefaults.buttonColors(
-                containerColor = customColors.buttonColor,
-                contentColor = MaterialTheme.colorScheme.onPrimary
-              )
+            ButtonDefaults.buttonColors(
+              containerColor = customColors.buttonColor,
+              contentColor = MaterialTheme.colorScheme.onPrimary
+            )
           ) {
             Text("Cancel")
           }
@@ -228,7 +239,9 @@ fun CreateAssistantScreen(
                   instructions = instructions,
                   temperature = temperature,
                   topP = topP,
-                  model = model,
+                  model = selectedText,
+                  fileSearchEnabled = fileSearchEnabled,
+                  codeInterpreterEnabled = codeInterpreterEnabled,
                   onSuccess = {
                     coroutineScope.launch {
                       snackbarHostState.showSnackbar("Assistant created successfully")
@@ -243,10 +256,10 @@ fun CreateAssistantScreen(
               }
             },
             colors =
-              ButtonDefaults.buttonColors(
-                containerColor = customColors.buttonColor,
-                contentColor = MaterialTheme.colorScheme.onPrimary
-              )
+            ButtonDefaults.buttonColors(
+              containerColor = customColors.buttonColor,
+              contentColor = MaterialTheme.colorScheme.onPrimary
+            )
           ) {
             Text("Create")
           }
@@ -290,14 +303,14 @@ fun AssistantFloatField(label: String, value: Float, onValueChange: (Float) -> U
       Slider(
         value = value,
         onValueChange = onValueChange,
-        valueRange = 0f..2f,
+        valueRange = 0f..1f,
         steps = 100, // This ensures the slider moves in increments of 0.02
         modifier = Modifier.weight(3f),
         colors =
-          SliderDefaults.colors(
-            thumbColor = customColors.sliderThumbColor,
-            activeTrackColor = customColors.sliderTrackColor
-          )
+        SliderDefaults.colors(
+          thumbColor = customColors.sliderThumbColor,
+          activeTrackColor = customColors.sliderTrackColor
+        )
       )
       Spacer(
         modifier = Modifier.width(2.dp)
