@@ -1,5 +1,6 @@
 package com.server.movile.xef.android.ui.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.xef.xefMobile.model.Assistant
@@ -36,7 +37,7 @@ class AssistantViewModel(
     fetchAssistants()
   }
 
-  fun fetchAssistants() {
+  fun fetchAssistants(onComplete: (() -> Unit)? = null) {
     viewModelScope.launch {
       _loading.value = true
       _errorMessage.value = null
@@ -45,16 +46,26 @@ class AssistantViewModel(
         val response = apiService.getAssistants(token)
         _assistants.value = response.data
         _loading.value = false
+        onComplete?.invoke()
       } catch (e: Exception) {
         _errorMessage.value = "Failed to load assistants: ${e.message}"
         _loading.value = false
+        onComplete?.invoke()
       }
     }
   }
 
   fun loadAssistantDetails(id: String) {
-    viewModelScope.launch {
-      _selectedAssistant.value = getAssistantById(id)
+    fetchAssistants {
+      viewModelScope.launch {
+        val assistant = getAssistantById(id)
+        if (assistant != null) {
+          _selectedAssistant.value = assistant
+          Log.d("AssistantViewModel", "Assistant details loaded: $assistant")
+        } else {
+          Log.d("AssistantViewModel", "Assistant not found with id: $id")
+        }
+      }
     }
   }
 
@@ -108,6 +119,8 @@ class AssistantViewModel(
     }
   }
 }
+
+
 
 @Serializable
 data class CreateAssistantRequest(

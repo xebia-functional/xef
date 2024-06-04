@@ -58,7 +58,8 @@ fun CreateAssistantScreen(
   val snackbarHostState = remember { SnackbarHostState() }
   val coroutineScope = rememberCoroutineScope()
 
-  val selectedAssistant by viewModel.selectedAssistant.collectAsState()
+  // Observe changes in selectedAssistant
+  val selectedAssistant by viewModel.selectedAssistant.collectAsState(initial = null)
 
   var name by remember { mutableStateOf("") }
   var instructions by remember { mutableStateOf("") }
@@ -76,15 +77,15 @@ fun CreateAssistantScreen(
 
   val customColors = LocalCustomColors.current
 
-  // Load assistant details if assistantId is provided
   LaunchedEffect(assistantId) {
     if (assistantId != null) {
+      Log.d("CreateAssistantScreen", "Loading assistant details for id: $assistantId")
       viewModel.loadAssistantDetails(assistantId)
     }
   }
 
-  // Observe selectedAssistant and update state variables accordingly
   LaunchedEffect(selectedAssistant) {
+    Log.d("CreateAssistantScreen", "Selected assistant changed: $selectedAssistant")
     selectedAssistant?.let { assistant ->
       name = assistant.name
       instructions = assistant.instructions
@@ -96,6 +97,7 @@ fun CreateAssistantScreen(
       codeInterpreterEnabled = assistant.tools.any { it.type == "code_interpreter" }
     }
   }
+
 
   Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }, modifier = Modifier.fillMaxSize()) { paddingValues ->
     Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
@@ -233,10 +235,16 @@ fun CreateAssistantScreen(
         AssistantFloatField(
           label = "Temperature",
           value = temperature,
-          onValueChange = { temperature = it }
+          onValueChange = { temperature = it },
+          valueRange = 0f..2f
         )
 
-        AssistantFloatField(label = "Top P", value = topP, onValueChange = { topP = it })
+        AssistantFloatField(
+          label = "Top P",
+          value = topP,
+          onValueChange = { topP = it },
+          valueRange = 0f..1f
+        )
 
         Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
           Button(
@@ -309,7 +317,7 @@ fun CreateAssistantScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AssistantFloatField(label: String, value: Float, onValueChange: (Float) -> Unit) {
+fun AssistantFloatField(label: String, value: Float, onValueChange: (Float) -> Unit, valueRange: ClosedFloatingPointRange<Float>) {
   val customColors = LocalCustomColors.current
   Column(modifier = Modifier.fillMaxWidth()) {
     Text(
@@ -320,8 +328,8 @@ fun AssistantFloatField(label: String, value: Float, onValueChange: (Float) -> U
       Slider(
         value = value,
         onValueChange = onValueChange,
-        valueRange = 0f..1f,
-        steps = 100, // This ensures the slider moves in increments of 0.02
+        valueRange = valueRange, // Adjust the range here
+        steps = 200, // Adjust the steps here
         modifier = Modifier.weight(3f),
         colors = SliderDefaults.colors(
           thumbColor = customColors.sliderThumbColor,
@@ -330,7 +338,7 @@ fun AssistantFloatField(label: String, value: Float, onValueChange: (Float) -> U
       )
       Spacer(
         modifier = Modifier.width(2.dp)
-      ) // Add a small spacer between the slider and text field
+      )
       TextField(
         value = String.format("%.2f", value),
         onValueChange = {
@@ -339,9 +347,8 @@ fun AssistantFloatField(label: String, value: Float, onValueChange: (Float) -> U
         },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         modifier = Modifier.width(60.dp).height(50.dp),
-        textStyle = LocalTextStyle.current.copy(fontSize = 12.sp) // Optionally adjust text size
+        textStyle = LocalTextStyle.current.copy(fontSize = 12.sp)
       )
     }
   }
 }
-
