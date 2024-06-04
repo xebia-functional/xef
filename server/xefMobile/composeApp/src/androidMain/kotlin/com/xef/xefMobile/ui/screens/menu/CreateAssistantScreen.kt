@@ -68,7 +68,23 @@ fun CreateAssistantScreen(
   var fileSearchEnabled by remember { mutableStateOf(false) }
   var codeInterpreterEnabled by remember { mutableStateOf(false) }
   var model by remember { mutableStateOf("gpt-4-turbo") }
-  val list = listOf("gpt-4o", "gpt-4o-2024-05-13", "gpt-4", "gpt-4-vision-preview", "gpt-4-turbo-preview", "gpt-4-2024-04-09", "gpt-4-turbo", "gpt-4-1106-preview", "gpt-4-0613", "gpt-4-0125-preview", "gpt-4", "gpt-3.5-turbo-16K", "gpt-3.5-turbo-0125", "gpt-3.5-turbo")
+  val list =
+    listOf(
+      "gpt-4o",
+      "gpt-4o-2024-05-13",
+      "gpt-4",
+      "gpt-4-vision-preview",
+      "gpt-4-turbo-preview",
+      "gpt-4-2024-04-09",
+      "gpt-4-turbo",
+      "gpt-4-1106-preview",
+      "gpt-4-0613",
+      "gpt-4-0125-preview",
+      "gpt-4",
+      "gpt-3.5-turbo-16K",
+      "gpt-3.5-turbo-0125",
+      "gpt-3.5-turbo"
+    )
   var isExpanded by remember { mutableStateOf(false) }
   var selectedText by remember { mutableStateOf(list[0]) }
   var showFilePicker by remember { mutableStateOf(false) }
@@ -98,8 +114,8 @@ fun CreateAssistantScreen(
     }
   }
 
-
-  Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }, modifier = Modifier.fillMaxSize()) { paddingValues ->
+  Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }, modifier = Modifier.fillMaxSize()) {
+    paddingValues ->
     Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
       Column(
         modifier = Modifier.padding(8.dp).fillMaxSize(),
@@ -174,10 +190,11 @@ fun CreateAssistantScreen(
         Row(verticalAlignment = Alignment.CenterVertically) {
           TextButton(
             onClick = { showFilePicker = true },
-            colors = ButtonDefaults.outlinedButtonColors(
-              containerColor = Color.Transparent,
-              contentColor = customColors.buttonColor
-            )
+            colors =
+              ButtonDefaults.outlinedButtonColors(
+                containerColor = Color.Transparent,
+                contentColor = customColors.buttonColor
+              )
           ) {
             Text("File Search +")
           }
@@ -185,20 +202,22 @@ fun CreateAssistantScreen(
           Switch(
             checked = fileSearchEnabled,
             onCheckedChange = { fileSearchEnabled = it },
-            colors = SwitchDefaults.colors(
-              checkedThumbColor = customColors.sliderThumbColor,
-              checkedTrackColor = customColors.sliderTrackColor
-            )
+            colors =
+              SwitchDefaults.colors(
+                checkedThumbColor = customColors.sliderThumbColor,
+                checkedTrackColor = customColors.sliderTrackColor
+              )
           )
         }
         Spacer(modifier = Modifier.height(8.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
           TextButton(
             onClick = { showCodeInterpreterPicker = true },
-            colors = ButtonDefaults.outlinedButtonColors(
-              containerColor = Color.Transparent,
-              contentColor = customColors.buttonColor
-            )
+            colors =
+              ButtonDefaults.outlinedButtonColors(
+                containerColor = Color.Transparent,
+                contentColor = customColors.buttonColor
+              )
           ) {
             Text("Code Interpreter +")
           }
@@ -206,20 +225,22 @@ fun CreateAssistantScreen(
           Switch(
             checked = codeInterpreterEnabled,
             onCheckedChange = { codeInterpreterEnabled = it },
-            colors = SwitchDefaults.colors(
-              checkedThumbColor = customColors.sliderThumbColor,
-              checkedTrackColor = customColors.sliderTrackColor
-            )
+            colors =
+              SwitchDefaults.colors(
+                checkedThumbColor = customColors.sliderThumbColor,
+                checkedTrackColor = customColors.sliderTrackColor
+              )
           )
         }
         Spacer(modifier = Modifier.height(8.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
           TextButton(
-            onClick = { /* handle cancel */ },
-            colors = ButtonDefaults.outlinedButtonColors(
-              containerColor = Color.Transparent,
-              contentColor = customColors.buttonColor
-            )
+            onClick = { /* handle cancel */},
+            colors =
+              ButtonDefaults.outlinedButtonColors(
+                containerColor = Color.Transparent,
+                contentColor = customColors.buttonColor
+              )
           ) {
             Text("Functions +")
           }
@@ -249,10 +270,11 @@ fun CreateAssistantScreen(
         Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
           Button(
             onClick = { navController.navigateUp() },
-            colors = ButtonDefaults.buttonColors(
-              containerColor = customColors.buttonColor,
-              contentColor = MaterialTheme.colorScheme.onPrimary
-            )
+            colors =
+              ButtonDefaults.buttonColors(
+                containerColor = customColors.buttonColor,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+              )
           ) {
             Text("Cancel")
           }
@@ -281,10 +303,11 @@ fun CreateAssistantScreen(
                 )
               }
             },
-            colors = ButtonDefaults.buttonColors(
-              containerColor = customColors.buttonColor,
-              contentColor = MaterialTheme.colorScheme.onPrimary
-            )
+            colors =
+              ButtonDefaults.buttonColors(
+                containerColor = customColors.buttonColor,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+              )
           ) {
             Text("Create")
           }
@@ -317,7 +340,12 @@ fun CreateAssistantScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AssistantFloatField(label: String, value: Float, onValueChange: (Float) -> Unit, valueRange: ClosedFloatingPointRange<Float>) {
+fun AssistantFloatField(
+  label: String,
+  value: Float,
+  onValueChange: (Float) -> Unit,
+  valueRange: ClosedFloatingPointRange<Float>
+) {
   val customColors = LocalCustomColors.current
   Column(modifier = Modifier.fillMaxWidth()) {
     Text(
@@ -331,14 +359,13 @@ fun AssistantFloatField(label: String, value: Float, onValueChange: (Float) -> U
         valueRange = valueRange, // Adjust the range here
         steps = 200, // Adjust the steps here
         modifier = Modifier.weight(3f),
-        colors = SliderDefaults.colors(
-          thumbColor = customColors.sliderThumbColor,
-          activeTrackColor = customColors.sliderTrackColor
-        )
+        colors =
+          SliderDefaults.colors(
+            thumbColor = customColors.sliderThumbColor,
+            activeTrackColor = customColors.sliderTrackColor
+          )
       )
-      Spacer(
-        modifier = Modifier.width(2.dp)
-      )
+      Spacer(modifier = Modifier.width(2.dp))
       TextField(
         value = String.format("%.2f", value),
         onValueChange = {

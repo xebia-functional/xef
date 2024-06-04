@@ -69,9 +69,12 @@ fun AssistantScreen(
           LazyColumn(modifier = Modifier.fillMaxSize()) {
             items(assistants) { assistant ->
               Column(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp).clickable {
-                  navController.navigate(Screens.CreateAssistantWithArgs.createRoute(assistant.id))
-                },
+                modifier =
+                  Modifier.fillMaxWidth().padding(vertical = 8.dp).clickable {
+                    navController.navigate(
+                      Screens.CreateAssistantWithArgs.createRoute(assistant.id)
+                    )
+                  },
                 horizontalAlignment = Alignment.Start // Align items to start
               ) {
                 Row(
@@ -101,10 +104,11 @@ fun AssistantScreen(
 
     Button(
       onClick = { navController.navigate(Screens.CreateAssistant.screen) },
-      colors = ButtonDefaults.buttonColors(
-        containerColor = customColors.buttonColor,
-        contentColor = MaterialTheme.colorScheme.onPrimary
-      ),
+      colors =
+        ButtonDefaults.buttonColors(
+          containerColor = customColors.buttonColor,
+          contentColor = MaterialTheme.colorScheme.onPrimary
+        ),
       modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp)
     ) {
       Text(text = "Create New Assistant")
