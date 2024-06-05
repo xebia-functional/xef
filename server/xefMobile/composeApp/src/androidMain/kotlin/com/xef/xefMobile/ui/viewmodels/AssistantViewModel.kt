@@ -123,7 +123,8 @@ class AssistantViewModel(
     viewModelScope.launch {
       try {
         val token = settingsViewModel.apiKey.value ?: throw Exception("API key not found")
-        val response: HttpResponse = apiService.deleteAssistant(authToken = token, assistantId = assistantId)
+        val response: HttpResponse =
+          apiService.deleteAssistant(authToken = token, assistantId = assistantId)
 
         if (response.status == HttpStatusCode.NoContent) {
           fetchAssistants()

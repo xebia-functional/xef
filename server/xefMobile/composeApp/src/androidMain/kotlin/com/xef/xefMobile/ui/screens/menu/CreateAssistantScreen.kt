@@ -76,11 +76,23 @@ fun CreateAssistantScreen(
   var fileSearchEnabled by remember { mutableStateOf(false) }
   var codeInterpreterEnabled by remember { mutableStateOf(false) }
   var model by remember { mutableStateOf("gpt-4-turbo") }
-  val list = listOf(
-    "gpt-4o", "gpt-4o-2024-05-13", "gpt-4", "gpt-4-vision-preview", "gpt-4-turbo-preview",
-    "gpt-4-2024-04-09", "gpt-4-turbo", "gpt-4-1106-preview", "gpt-4-0613", "gpt-4-0125-preview",
-    "gpt-4", "gpt-3.5-turbo-16K", "gpt-3.5-turbo-0125", "gpt-3.5-turbo"
-  )
+  val list =
+    listOf(
+      "gpt-4o",
+      "gpt-4o-2024-05-13",
+      "gpt-4",
+      "gpt-4-vision-preview",
+      "gpt-4-turbo-preview",
+      "gpt-4-2024-04-09",
+      "gpt-4-turbo",
+      "gpt-4-1106-preview",
+      "gpt-4-0613",
+      "gpt-4-0125-preview",
+      "gpt-4",
+      "gpt-3.5-turbo-16K",
+      "gpt-3.5-turbo-0125",
+      "gpt-3.5-turbo"
+    )
   var isExpanded by remember { mutableStateOf(false) }
   var selectedText by remember { mutableStateOf(list[0]) }
   var showFilePicker by remember { mutableStateOf(false) }
@@ -110,7 +122,8 @@ fun CreateAssistantScreen(
     }
   }
 
-  Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }, modifier = Modifier.fillMaxSize()) { paddingValues ->
+  Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }, modifier = Modifier.fillMaxSize()) {
+    paddingValues ->
     Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
       LazyColumn(
         modifier = Modifier.padding(8.dp).fillMaxSize(),
@@ -135,9 +148,7 @@ fun CreateAssistantScreen(
           }
         }
 
-        item {
-          Spacer(modifier = Modifier.height(12.dp))
-        }
+        item { Spacer(modifier = Modifier.height(12.dp)) }
 
         item {
           Box(modifier = Modifier.fillMaxWidth()) {
@@ -150,9 +161,7 @@ fun CreateAssistantScreen(
           }
         }
 
-        item {
-          Spacer(modifier = Modifier.height(12.dp))
-        }
+        item { Spacer(modifier = Modifier.height(12.dp)) }
 
         item {
           Box(modifier = Modifier.fillMaxWidth()) {
@@ -168,7 +177,10 @@ fun CreateAssistantScreen(
                 readOnly = true,
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded) }
               )
-              ExposedDropdownMenu(expanded = isExpanded, onDismissRequest = { isExpanded = false }) {
+              ExposedDropdownMenu(
+                expanded = isExpanded,
+                onDismissRequest = { isExpanded = false }
+              ) {
                 val itemsToShow = if (showAllItems) list else list.take(5)
                 itemsToShow.forEachIndexed { index, text ->
                   DropdownMenuItem(
@@ -193,9 +205,7 @@ fun CreateAssistantScreen(
           }
         }
 
-        item {
-          Spacer(modifier = Modifier.height(12.dp))
-        }
+        item { Spacer(modifier = Modifier.height(12.dp)) }
 
         item {
           ToolsSection(
@@ -211,9 +221,7 @@ fun CreateAssistantScreen(
           )
         }
 
-        item {
-          Spacer(modifier = Modifier.height(12.dp))
-        }
+        item { Spacer(modifier = Modifier.height(12.dp)) }
 
         item {
           Column {
@@ -222,9 +230,7 @@ fun CreateAssistantScreen(
           }
         }
 
-        item {
-          Spacer(modifier = Modifier.height(12.dp))
-        }
+        item { Spacer(modifier = Modifier.height(12.dp)) }
 
         item {
           AssistantFloatField(
@@ -256,10 +262,11 @@ fun CreateAssistantScreen(
             ) {
               Button(
                 onClick = { navController.navigateUp() },
-                colors = ButtonDefaults.buttonColors(
-                  containerColor = customColors.buttonColor,
-                  contentColor = MaterialTheme.colorScheme.onPrimary
-                )
+                colors =
+                  ButtonDefaults.buttonColors(
+                    containerColor = customColors.buttonColor,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                  )
               ) {
                 Text("Cancel")
               }
@@ -288,10 +295,11 @@ fun CreateAssistantScreen(
                     )
                   }
                 },
-                colors = ButtonDefaults.buttonColors(
-                  containerColor = customColors.buttonColor,
-                  contentColor = MaterialTheme.colorScheme.onPrimary
-                )
+                colors =
+                  ButtonDefaults.buttonColors(
+                    containerColor = customColors.buttonColor,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                  )
               ) {
                 Text("Create")
               }
@@ -338,9 +346,7 @@ fun CreateAssistantScreen(
       FilePickerDialog(
         onDismissRequest = { showFilePicker = false },
         customColors = customColors,
-        onFilesSelected = {
-          showFilePicker = false
-        }
+        onFilesSelected = { showFilePicker = false }
       )
     }
 
@@ -348,9 +354,7 @@ fun CreateAssistantScreen(
       FilePickerDialog(
         onDismissRequest = { showCodeInterpreterPicker = false },
         customColors = customColors,
-        onFilesSelected = {
-          showCodeInterpreterPicker = false
-        },
+        onFilesSelected = { showCodeInterpreterPicker = false },
         mimeTypeFilter = "text/*"
       )
     }
@@ -367,10 +371,7 @@ fun AssistantFloatField(
 ) {
   val customColors = LocalCustomColors.current
   Column(modifier = Modifier.fillMaxWidth()) {
-    Text(
-      text = label,
-      modifier = Modifier.padding(bottom = 2.dp)
-    )
+    Text(text = label, modifier = Modifier.padding(bottom = 2.dp))
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
       Slider(
         value = value,
@@ -378,10 +379,11 @@ fun AssistantFloatField(
         valueRange = valueRange,
         steps = 200,
         modifier = Modifier.weight(3f),
-        colors = SliderDefaults.colors(
-          thumbColor = customColors.sliderThumbColor,
-          activeTrackColor = customColors.sliderTrackColor
-        )
+        colors =
+          SliderDefaults.colors(
+            thumbColor = customColors.sliderThumbColor,
+            activeTrackColor = customColors.sliderTrackColor
+          )
       )
       Spacer(modifier = Modifier.width(2.dp))
       TextField(
@@ -437,7 +439,8 @@ fun ToolsSection(
         Spacer(modifier = Modifier.weight(1f))
         IconButton(onClick = { expanded = !expanded }) {
           Icon(
-            imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+            imageVector =
+              if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
             contentDescription = if (expanded) "Collapse" else "Expand"
           )
         }
@@ -450,10 +453,11 @@ fun ToolsSection(
       Row(verticalAlignment = Alignment.CenterVertically) {
         TextButton(
           onClick = { onShowFilePickerChange(true) },
-          colors = ButtonDefaults.outlinedButtonColors(
-            containerColor = Color.Transparent,
-            contentColor = customColors.buttonColor
-          )
+          colors =
+            ButtonDefaults.outlinedButtonColors(
+              containerColor = Color.Transparent,
+              contentColor = customColors.buttonColor
+            )
         ) {
           Text("File Search +")
         }
@@ -461,20 +465,22 @@ fun ToolsSection(
         Switch(
           checked = fileSearchEnabled,
           onCheckedChange = onFileSearchEnabledChange,
-          colors = SwitchDefaults.colors(
-            checkedThumbColor = customColors.sliderThumbColor,
-            checkedTrackColor = customColors.sliderTrackColor
-          )
+          colors =
+            SwitchDefaults.colors(
+              checkedThumbColor = customColors.sliderThumbColor,
+              checkedTrackColor = customColors.sliderTrackColor
+            )
         )
       }
       Spacer(modifier = Modifier.height(8.dp))
       Row(verticalAlignment = Alignment.CenterVertically) {
         TextButton(
           onClick = { onShowCodeInterpreterPickerChange(true) },
-          colors = ButtonDefaults.outlinedButtonColors(
-            containerColor = Color.Transparent,
-            contentColor = customColors.buttonColor
-          )
+          colors =
+            ButtonDefaults.outlinedButtonColors(
+              containerColor = Color.Transparent,
+              contentColor = customColors.buttonColor
+            )
         ) {
           Text("Code Interpreter +")
         }
@@ -482,10 +488,11 @@ fun ToolsSection(
         Switch(
           checked = codeInterpreterEnabled,
           onCheckedChange = onCodeInterpreterEnabledChange,
-          colors = SwitchDefaults.colors(
-            checkedThumbColor = customColors.sliderThumbColor,
-            checkedTrackColor = customColors.sliderTrackColor
-          )
+          colors =
+            SwitchDefaults.colors(
+              checkedThumbColor = customColors.sliderThumbColor,
+              checkedTrackColor = customColors.sliderTrackColor
+            )
         )
       }
       Spacer(modifier = Modifier.height(8.dp))
