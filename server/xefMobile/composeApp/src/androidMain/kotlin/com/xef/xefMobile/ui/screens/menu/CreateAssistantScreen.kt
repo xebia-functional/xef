@@ -245,6 +245,7 @@ fun CreateAssistantScreen(
         }
 
         item {
+          Spacer(modifier = Modifier.height(12.dp))
           Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
@@ -316,7 +317,7 @@ fun CreateAssistantScreen(
                 },
                 modifier = Modifier.size(48.dp).clip(CircleShape),
                 colors = IconButtonDefaults.iconButtonColors(
-                  containerColor = Color.Red,
+                  containerColor = Color.Gray,
                   contentColor = Color.White
                 )
               ) {
