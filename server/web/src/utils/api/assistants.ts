@@ -82,7 +82,6 @@ import {
 
   export async function getAssistants(authToken: string): Promise<ListAssistantResponse> {
     const response = await executeRequest<ListAssistantResponse>(authToken, 'GET');
-      console.log('API response:', response);
       return response;
   }
 
@@ -93,3 +92,8 @@ import {
   export async function deleteAssistant(authToken: string, id: string): Promise<DeleteAssistantResponse> {
     await executeRequest<void>(authToken, 'DELETE', `/${id}`);
   }
+
+  export function getAssistantById(assistants: AssistantObject[], id: string): AssistantObject | undefined {
+    return assistants.find(assistant => assistant.id === id);
+  }
+
