@@ -109,8 +109,8 @@ const emptyAssistantObject: AssistantObject = {
     tools: [],
     metadata: null,
     toolResources: null,
-    temperature: 0,
-    top_p: 0,
+    temperature: 1,
+    top_p: 1,
     responseFormat: null
 };
 
@@ -749,7 +749,7 @@ const groupedAssistants = groupAssistantsByDate(assistants);
                             <div className={styles.sliders}>
                               <Typography gutterBottom>Temperature</Typography>
                               <TextField
-                                value={1}
+                                value={selectedAssistant.id ? selectedAssistant.temperature : createdAssistant.temperature}
                                 onChange={(e) => handleTemperatureInputChange(e, selectedAssistant && selectedAssistant.id ? selectedAssistant.id : null)}
                                 type="number"
                                 InputProps={{
@@ -764,7 +764,7 @@ const groupedAssistants = groupAssistantsByDate(assistants);
                               />
                             </div>
                             <Slider
-                              value={1}
+                              value={selectedAssistant.id ? selectedAssistant.temperature : createdAssistant.temperature}
                               onChange={(e, newValue) => handleTemperatureChange(e, newValue, selectedAssistant && selectedAssistant.id ? selectedAssistant.id : null)}
                               step={0.01}
                               marks
@@ -776,7 +776,7 @@ const groupedAssistants = groupAssistantsByDate(assistants);
                             <div className={styles.sliders}>
                               <Typography gutterBottom>Top P</Typography>
                               <TextField
-                                value={1}
+                                value={selectedAssistant.id ? selectedAssistant.top_p : createdAssistant.top_p}
                                 onChange={(e) => handleTopPInputChange(e, selectedAssistant && selectedAssistant.id ? selectedAssistant.id : null)}
                                 type="number"
                                 InputProps={{
@@ -791,7 +791,7 @@ const groupedAssistants = groupAssistantsByDate(assistants);
                               />
                             </div>
                             <Slider
-                              value={1}
+                              value={selectedAssistant.id ? selectedAssistant.top_p : createdAssistant.top_p}
                               onChange={(e, newValue) => handleTopPChange(e, newValue, selectedAssistant && selectedAssistant.id ? selectedAssistant.id : null)}
                               step={0.01}
                               marks
