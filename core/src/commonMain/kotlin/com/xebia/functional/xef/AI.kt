@@ -42,7 +42,7 @@ sealed interface AI {
       val items = getItems()
 
       return """
-       |Based on the <input>, identify whether the user is asking about one or more of the following items. Only
+       |Based on the <input>, identify whether the user is asking about one or more of the following items
        |
        |${
         items.joinToString("\n") { item -> "<${item.name}>${item.description}</${item.name}>" }
