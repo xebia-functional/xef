@@ -118,6 +118,24 @@ class AssistantViewModel(
       }
     }
   }
+
+  fun deleteAssistant(assistantId: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
+    viewModelScope.launch {
+      try {
+        val token = settingsViewModel.apiKey.value ?: throw Exception("API key not found")
+        val response: HttpResponse = apiService.deleteAssistant(authToken = token, assistantId = assistantId)
+
+        if (response.status == HttpStatusCode.NoContent) {
+          fetchAssistants()
+          onSuccess()
+        } else {
+          onError("Failed to delete assistant: ${response.status}")
+        }
+      } catch (e: Exception) {
+        onError("Error: ${e.message ?: "Unknown error"}")
+      }
+    }
+  }
 }
 
 @Serializable

@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -14,7 +15,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -32,6 +35,7 @@ import com.xef.xefMobile.ui.screens.Screens
 import com.xef.xefMobile.ui.viewmodels.SettingsViewModel
 import com.xef.xefMobile.ui.viewmodels.SettingsViewModelFactory
 import kotlinx.coroutines.launch
+import org.xef.xefMobile.R
 
 class CreateAssistantActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,7 +67,6 @@ fun CreateAssistantScreen(
   val snackbarHostState = remember { SnackbarHostState() }
   val coroutineScope = rememberCoroutineScope()
 
-  // Observe changes in selectedAssistant
   val selectedAssistant by viewModel.selectedAssistant.collectAsState(initial = null)
 
   var name by remember { mutableStateOf("") }
@@ -74,20 +77,9 @@ fun CreateAssistantScreen(
   var codeInterpreterEnabled by remember { mutableStateOf(false) }
   var model by remember { mutableStateOf("gpt-4-turbo") }
   val list = listOf(
-    "gpt-4o",
-    "gpt-4o-2024-05-13",
-    "gpt-4",
-    "gpt-4-vision-preview",
-    "gpt-4-turbo-preview",
-    "gpt-4-2024-04-09",
-    "gpt-4-turbo",
-    "gpt-4-1106-preview",
-    "gpt-4-0613",
-    "gpt-4-0125-preview",
-    "gpt-4",
-    "gpt-3.5-turbo-16K",
-    "gpt-3.5-turbo-0125",
-    "gpt-3.5-turbo"
+    "gpt-4o", "gpt-4o-2024-05-13", "gpt-4", "gpt-4-vision-preview", "gpt-4-turbo-preview",
+    "gpt-4-2024-04-09", "gpt-4-turbo", "gpt-4-1106-preview", "gpt-4-0613", "gpt-4-0125-preview",
+    "gpt-4", "gpt-3.5-turbo-16K", "gpt-3.5-turbo-0125", "gpt-3.5-turbo"
   )
   var isExpanded by remember { mutableStateOf(false) }
   var selectedText by remember { mutableStateOf(list[0]) }
@@ -112,7 +104,7 @@ fun CreateAssistantScreen(
       temperature = assistant.temperature
       topP = assistant.topP
       model = assistant.model
-      selectedText = assistant.model // Ensure dropdown reflects the correct model
+      selectedText = assistant.model
       fileSearchEnabled = assistant.tools.any { it.type == "file_search" }
       codeInterpreterEnabled = assistant.tools.any { it.type == "code_interpreter" }
     }
@@ -183,7 +175,7 @@ fun CreateAssistantScreen(
                     text = { Text(text = text) },
                     onClick = {
                       selectedText = list[index]
-                      model = list[index] // Ensure model state is updated
+                      model = list[index]
                       isExpanded = false
                     },
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
@@ -253,74 +245,113 @@ fun CreateAssistantScreen(
         }
 
         item {
-          Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
-            Button(
-              onClick = { navController.navigateUp() },
-              colors = ButtonDefaults.buttonColors(
-                containerColor = customColors.buttonColor,
-                contentColor = MaterialTheme.colorScheme.onPrimary
-              )
+          Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+          ) {
+            Row(
+              horizontalArrangement = Arrangement.Center,
+              modifier = Modifier.weight(1f)
             ) {
-              Text("Cancel")
-            }
-            Spacer(modifier = Modifier.width(8.dp))
-            Button(
-              onClick = {
-                coroutineScope.launch {
-                  viewModel.createAssistant(
-                    name = name,
-                    instructions = instructions,
-                    temperature = temperature,
-                    topP = topP,
-                    model = selectedText,
-                    fileSearchEnabled = fileSearchEnabled,
-                    codeInterpreterEnabled = codeInterpreterEnabled,
-                    onSuccess = {
-                      coroutineScope.launch {
-                        snackbarHostState.showSnackbar("Assistant created successfully")
-                        navController.navigate(Screens.Assistants.screen)
+              Button(
+                onClick = { navController.navigateUp() },
+                colors = ButtonDefaults.buttonColors(
+                  containerColor = customColors.buttonColor,
+                  contentColor = MaterialTheme.colorScheme.onPrimary
+                )
+              ) {
+                Text("Cancel")
+              }
+              Spacer(modifier = Modifier.width(8.dp))
+              Button(
+                onClick = {
+                  coroutineScope.launch {
+                    viewModel.createAssistant(
+                      name = name,
+                      instructions = instructions,
+                      temperature = temperature,
+                      topP = topP,
+                      model = selectedText,
+                      fileSearchEnabled = fileSearchEnabled,
+                      codeInterpreterEnabled = codeInterpreterEnabled,
+                      onSuccess = {
+                        coroutineScope.launch {
+                          snackbarHostState.showSnackbar("Assistant created successfully")
+                          navController.navigate(Screens.Assistants.screen)
+                        }
+                      },
+                      onError = { errorMessage ->
+                        Log.e("CreateAssistantScreen", errorMessage)
+                        coroutineScope.launch { snackbarHostState.showSnackbar(errorMessage) }
                       }
-                    },
-                    onError = { errorMessage ->
-                      Log.e("CreateAssistantScreen", errorMessage)
-                      coroutineScope.launch { snackbarHostState.showSnackbar(errorMessage) }
-                    }
-                  )
-                }
-              },
-              colors = ButtonDefaults.buttonColors(
-                containerColor = customColors.buttonColor,
-                contentColor = MaterialTheme.colorScheme.onPrimary
-              )
-            ) {
-              Text("Create")
+                    )
+                  }
+                },
+                colors = ButtonDefaults.buttonColors(
+                  containerColor = customColors.buttonColor,
+                  contentColor = MaterialTheme.colorScheme.onPrimary
+                )
+              ) {
+                Text("Create")
+              }
+            }
+            if (assistantId != null) {
+              IconButton(
+                onClick = {
+                  coroutineScope.launch {
+                    viewModel.deleteAssistant(
+                      assistantId,
+                      onSuccess = {
+                        coroutineScope.launch {
+                          snackbarHostState.showSnackbar("Assistant deleted successfully")
+                          navController.navigate(Screens.Assistants.screen)
+                        }
+                      },
+                      onError = { errorMessage ->
+                        Log.e("CreateAssistantScreen", errorMessage)
+                        coroutineScope.launch { snackbarHostState.showSnackbar(errorMessage) }
+                      }
+                    )
+                  }
+                },
+                modifier = Modifier.size(48.dp).clip(CircleShape),
+                colors = IconButtonDefaults.iconButtonColors(
+                  containerColor = Color.Red,
+                  contentColor = Color.White
+                )
+              ) {
+                Icon(
+                  painter = painterResource(id = R.drawable.delete_24dp),
+                  contentDescription = "Delete Assistant",
+                  tint = Color.White,
+                  modifier = Modifier.size(24.dp)
+                )
+              }
             }
           }
         }
       }
+    }
 
-      if (showFilePicker) {
-        FilePickerDialog(
-          onDismissRequest = { showFilePicker = false },
-          customColors = customColors,
-          onFilesSelected = {
-            // Handle file selection here if needed
-            showFilePicker = false
-          }
-        )
-      }
+    if (showFilePicker) {
+      FilePickerDialog(
+        onDismissRequest = { showFilePicker = false },
+        customColors = customColors,
+        onFilesSelected = {
+          showFilePicker = false
+        }
+      )
+    }
 
-      if (showCodeInterpreterPicker) {
-        FilePickerDialog(
-          onDismissRequest = { showCodeInterpreterPicker = false },
-          customColors = customColors,
-          onFilesSelected = {
-            // Handle file selection here if needed
-            showCodeInterpreterPicker = false
-          },
-          mimeTypeFilter = "text/*" // Only allow text files
-        )
-      }
+    if (showCodeInterpreterPicker) {
+      FilePickerDialog(
+        onDismissRequest = { showCodeInterpreterPicker = false },
+        customColors = customColors,
+        onFilesSelected = {
+          showCodeInterpreterPicker = false
+        },
+        mimeTypeFilter = "text/*"
+      )
     }
   }
 }
@@ -337,20 +368,19 @@ fun AssistantFloatField(
   Column(modifier = Modifier.fillMaxWidth()) {
     Text(
       text = label,
-      modifier = Modifier.padding(bottom = 2.dp) // Reduce padding for the label
+      modifier = Modifier.padding(bottom = 2.dp)
     )
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
       Slider(
         value = value,
         onValueChange = onValueChange,
-        valueRange = valueRange, // Adjust the range here
-        steps = 200, // Adjust the steps here
+        valueRange = valueRange,
+        steps = 200,
         modifier = Modifier.weight(3f),
-        colors =
-          SliderDefaults.colors(
-            thumbColor = customColors.sliderThumbColor,
-            activeTrackColor = customColors.sliderTrackColor
-          )
+        colors = SliderDefaults.colors(
+          thumbColor = customColors.sliderThumbColor,
+          activeTrackColor = customColors.sliderTrackColor
+        )
       )
       Spacer(modifier = Modifier.width(2.dp))
       TextField(

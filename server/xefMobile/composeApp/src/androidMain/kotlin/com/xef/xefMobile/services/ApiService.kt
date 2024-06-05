@@ -76,4 +76,17 @@ class ApiService {
       throw e
     }
   }
+
+  suspend fun deleteAssistant(authToken: String, assistantId: String): HttpResponse {
+    return try {
+      HttpClientProvider.client.delete {
+        url("https://ace-asp-ghastly.ngrok-free.app/v1/settings/assistants/$assistantId")
+        header(HttpHeaders.Authorization, "Bearer $authToken")
+        header("OpenAI-Beta", "assistants=v2")
+      }
+    } catch (e: Exception) {
+      Log.e("ApiService", "Deleting assistant failed: ${e.message}", e)
+      throw e
+    }
+  }
 }
