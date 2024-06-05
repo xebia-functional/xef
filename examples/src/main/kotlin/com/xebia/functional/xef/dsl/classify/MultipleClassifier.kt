@@ -33,12 +33,7 @@ enum class Sports : AI.PromptMultipleClassifier {
 }
 
 /**
- * This is a simple example of how to use the `AI.classify` function to classify the accuracy of an
- * answer. In this case, it's using the `AnswerAccuracy` enum class to classify if the answer is
- * consistent or not.
- *
- * You can extend the `AI.PromptClassifier` interface to create your own classification. Override
- * the `template` function to define the prompt to be used in the classification.
+ * This is a simple example of how to use the `AI.multipleClassify` function to classify a prompt
  */
 suspend fun main() {
 
