@@ -120,8 +120,6 @@ class AssistantViewModel(
   }
 }
 
-
-
 @Serializable
 data class CreateAssistantRequest(
   val model: String,

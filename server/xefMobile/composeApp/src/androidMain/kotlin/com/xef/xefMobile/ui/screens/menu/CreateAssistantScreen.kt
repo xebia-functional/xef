@@ -346,14 +346,13 @@ fun AssistantFloatField(
         valueRange = valueRange, // Adjust the range here
         steps = 200, // Adjust the steps here
         modifier = Modifier.weight(3f),
-        colors = SliderDefaults.colors(
-          thumbColor = customColors.sliderThumbColor,
-          activeTrackColor = customColors.sliderTrackColor
-        )
+        colors =
+          SliderDefaults.colors(
+            thumbColor = customColors.sliderThumbColor,
+            activeTrackColor = customColors.sliderTrackColor
+          )
       )
-      Spacer(
-        modifier = Modifier.width(2.dp)
-      )
+      Spacer(modifier = Modifier.width(2.dp))
       TextField(
         value = String.format("%.2f", value),
         onValueChange = {
