@@ -15,7 +15,7 @@ class ApiService {
     return try {
       HttpClientProvider.client
         .post {
-          url("http://10.0.2.2:8081/register")
+          url("https://ace-asp-ghastly.ngrok-free.app/register")
           contentType(ContentType.Application.Json)
           setBody(request)
         }
@@ -30,7 +30,7 @@ class ApiService {
     return try {
       val response: HttpResponse =
         HttpClientProvider.client.post {
-          url("http://10.0.2.2:8081/login")
+          url("https://ace-asp-ghastly.ngrok-free.app/login")
           contentType(ContentType.Application.Json)
           setBody(request)
         }
@@ -49,7 +49,7 @@ class ApiService {
     return try {
       val response: HttpResponse =
         HttpClientProvider.client.get {
-          url("http://10.0.2.2:8081/v1/settings/assistants")
+          url("https://ace-asp-ghastly.ngrok-free.app/v1/settings/assistants")
           header(HttpHeaders.Authorization, "Bearer $authToken")
           header("OpenAI-Beta", "assistants=v2")
         }
@@ -66,7 +66,7 @@ class ApiService {
   suspend fun createAssistant(authToken: String, request: CreateAssistantRequest): HttpResponse {
     return try {
       HttpClientProvider.client.post {
-        url("http://10.0.2.2:8081/v1/settings/assistants")
+        url("https://ace-asp-ghastly.ngrok-free.app/v1/settings/assistants")
         contentType(ContentType.Application.Json)
         header(HttpHeaders.Authorization, "Bearer $authToken")
         setBody(request)

@@ -96,14 +96,7 @@ fun RegisterScreen(authViewModel: IAuthViewModel, navController: NavController) 
 
     Button(
       onClick = {
-        errorMessage =
-          when {
-            name.isBlank() -> "Name is empty"
-            email.isBlank() -> "Email is empty"
-            password.isEmpty() -> "Password is empty"
-            password != rePassword -> "Passwords do not match"
-            else -> null
-          }
+        errorMessage = validateInputs(name, email, password, rePassword)
         if (errorMessage == null) {
           authViewModel.register(name, email, password)
         }
@@ -121,4 +114,26 @@ fun RegisterScreen(authViewModel: IAuthViewModel, navController: NavController) 
       Text("Back")
     }
   }
+}
+
+fun validateInputs(name: String, email: String, password: String, rePassword: String): String? {
+  if (name.isBlank()) return "Name is empty"
+  if (email.isBlank()) return "Email is empty"
+  if (!isValidEmail(email)) return "Email is not valid"
+  if (password.isEmpty()) return "Password is empty"
+  if (password != rePassword) return "Passwords do not match"
+  if (!isValidPassword(password)) return "Password does not meet criteria"
+
+  return null
+}
+
+fun isValidEmail(email: String): Boolean {
+  val emailPattern = "^[A-Za-z0-9+_.-]+@(.+)$"
+  return email.matches(emailPattern.toRegex())
+}
+
+fun isValidPassword(password: String): Boolean {
+  // Minimum 8 characters, at least one letter and one number
+  val passwordPattern = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$"
+  return password.matches(passwordPattern.toRegex())
 }
