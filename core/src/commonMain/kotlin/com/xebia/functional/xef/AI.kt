@@ -5,6 +5,7 @@ import com.xebia.functional.openai.generated.api.Images
 import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
+import com.xebia.functional.xef.conversation.Description
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
 import kotlin.coroutines.cancellation.CancellationException
@@ -14,13 +15,72 @@ import kotlin.reflect.typeOf
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.SerialKind
 import kotlinx.serialization.serializer
 
 sealed interface AI {
 
+  @Serializable
+  @Description("The selected items indexes")
+  data class SelectedItems(
+    @Description("The selected items indexes") val selectedItems: List<Int>,
+  )
+
+  data class Classification(
+    val name: String,
+    val description: String,
+  )
+
   interface PromptClassifier {
     fun template(input: String, output: String, context: String): String
+  }
+
+  interface PromptMultipleClassifier {
+    fun getItems(): List<Classification>
+
+    fun template(input: String): String {
+      val items = getItems()
+
+      return """
+       |Based on the <input>, identify whether the user is asking about one or more of the following items
+       |
+       |${
+        items.joinToString("\n") { item -> "<${item.name}>${item.description}</${item.name}>" }
+      }
+       | 
+       |<items>
+       |${
+        items.mapIndexed { index, item -> "\t<item index=\"$index\">${item.name}</item>" }
+          .joinToString("\n")
+      }
+       |</items>
+       |<input>
+       |$input
+       |</input>
+    """
+    }
+
+    @OptIn(ExperimentalSerializationApi::class)
+    fun KType.enumValuesName(
+      serializer: KSerializer<Any?> = serializer(this)
+    ): List<Classification> {
+      return if (serializer.descriptor.kind != SerialKind.ENUM) {
+        emptyList()
+      } else {
+        (0 until serializer.descriptor.elementsCount).map { index ->
+          val name =
+            serializer.descriptor
+              .getElementName(index)
+              .removePrefix(serializer.descriptor.serialName)
+          val description =
+            (serializer.descriptor.getElementAnnotations(index).first { it is Description }
+                as Description)
+              .value
+          Classification(name, description)
+        }
+      }
+    }
   }
 
   companion object {
@@ -87,7 +147,7 @@ sealed interface AI {
       input: String,
       output: String,
       context: String,
-      model: CreateChatCompletionRequestModel = CreateChatCompletionRequestModel.gpt_4_1106_preview,
+      model: CreateChatCompletionRequestModel = CreateChatCompletionRequestModel.gpt_4o,
       target: KType = typeOf<E>(),
       config: Config = Config(),
       api: Chat = OpenAI(config).chat,
@@ -102,6 +162,28 @@ sealed interface AI {
         api = api,
         conversation = conversation
       )
+    }
+
+    @AiDsl
+    @Throws(IllegalArgumentException::class, CancellationException::class)
+    suspend inline fun <reified E> multipleClassify(
+      input: String,
+      model: CreateChatCompletionRequestModel = CreateChatCompletionRequestModel.gpt_4o,
+      config: Config = Config(),
+      api: Chat = OpenAI(config).chat,
+      conversation: Conversation = Conversation()
+    ): List<E> where E : PromptMultipleClassifier, E : Enum<E> {
+      val values = enumValues<E>()
+      val value = values.firstOrNull() ?: error("No enum values found")
+      val selected: SelectedItems =
+        invoke(
+          prompt = value.template(input),
+          model = model,
+          config = config,
+          api = api,
+          conversation = conversation
+        )
+      return selected.selectedItems.mapNotNull { values.elementAtOrNull(it) }
     }
 
     @AiDsl
