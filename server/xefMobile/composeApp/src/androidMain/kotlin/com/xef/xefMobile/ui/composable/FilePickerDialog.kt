@@ -47,9 +47,7 @@ fun FilePickerDialog(
 
   var selectedFile by remember { mutableStateOf<String?>(null) }
 
-  LaunchedEffect(Unit) {
-    permissionState.launchMultiplePermissionRequest()
-  }
+  LaunchedEffect(Unit) { permissionState.launchMultiplePermissionRequest() }
 
   val filePickerLauncher = rememberLauncherForActivityResult(
     contract = ActivityResultContracts.OpenDocument()
@@ -113,7 +111,11 @@ fun FilePickerDialog(
               permissionState.launchMultiplePermissionRequest()
             }
           },
-          colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.Transparent, contentColor = customColors.buttonColor)
+          colors =
+            ButtonDefaults.outlinedButtonColors(
+              containerColor = Color.Transparent,
+              contentColor = customColors.buttonColor
+            )
         ) {
           Text(text = "Browse files")
         }
@@ -123,7 +125,11 @@ fun FilePickerDialog(
               viewModel.removeFilePath(selectedFile!!)
               selectedFile = null
             },
-            colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.Transparent, contentColor = customColors.buttonColor)
+            colors =
+              ButtonDefaults.outlinedButtonColors(
+                containerColor = Color.Transparent,
+                contentColor = customColors.buttonColor
+              )
           ) {
             Text(text = "Remove")
           }
@@ -133,7 +139,11 @@ fun FilePickerDialog(
     confirmButton = {
       Button(
         onClick = { onDismissRequest() },
-        colors = ButtonDefaults.buttonColors(containerColor = customColors.buttonColor, contentColor = MaterialTheme.colorScheme.onPrimary)
+        colors =
+          ButtonDefaults.buttonColors(
+            containerColor = customColors.buttonColor,
+            contentColor = MaterialTheme.colorScheme.onPrimary
+          )
       ) {
         Text("Done")
       }
