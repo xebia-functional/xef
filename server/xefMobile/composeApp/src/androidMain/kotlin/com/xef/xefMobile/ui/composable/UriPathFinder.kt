@@ -42,7 +42,8 @@ class UriPathFinder {
       id.removePrefix("raw:")
     } else {
       try {
-        val contentUri = ContentUris.withAppendedId(Uri.parse("content://downloads/public_downloads"), id.toLong())
+        val contentUri =
+          ContentUris.withAppendedId(Uri.parse("content://downloads/public_downloads"), id.toLong())
         getDataColumn(context, contentUri, null, null)
       } catch (e: NumberFormatException) {
         null
@@ -56,22 +57,27 @@ class UriPathFinder {
     val type = split[0]
     val id = split[1]
 
-    val contentUri: Uri? = when (type) {
-      "image" -> MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-      "video" -> MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-      "audio" -> MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
-      else -> null
-    }
+    val contentUri: Uri? =
+      when (type) {
+        "image" -> MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+        "video" -> MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+        "audio" -> MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+        else -> null
+      }
 
-    return contentUri?.let {
-      getDataColumn(context, it, "_id=?", arrayOf(id))
-    }
+    return contentUri?.let { getDataColumn(context, it, "_id=?", arrayOf(id)) }
   }
 
-  private fun getDataColumn(context: Context, uri: Uri?, selection: String?, selectionArgs: Array<String>?): String? {
-    val cursor = uri?.let {
-      context.contentResolver.query(it, arrayOf("_data"), selection, selectionArgs, null)
-    }
+  private fun getDataColumn(
+    context: Context,
+    uri: Uri?,
+    selection: String?,
+    selectionArgs: Array<String>?
+  ): String? {
+    val cursor =
+      uri?.let {
+        context.contentResolver.query(it, arrayOf("_data"), selection, selectionArgs, null)
+      }
     return cursor?.use {
       if (it.moveToFirst()) {
         val columnIndex = it.getColumnIndexOrThrow("_data")
@@ -82,7 +88,11 @@ class UriPathFinder {
     }
   }
 
-  private fun isExternalStorageDocument(uri: Uri) = "com.android.externalstorage.documents" == uri.authority
-  private fun isDownloadsDocument(uri: Uri) = "com.android.providers.downloads.documents" == uri.authority
+  private fun isExternalStorageDocument(uri: Uri) =
+    "com.android.externalstorage.documents" == uri.authority
+
+  private fun isDownloadsDocument(uri: Uri) =
+    "com.android.providers.downloads.documents" == uri.authority
+
   private fun isMediaDocument(uri: Uri) = "com.android.providers.media.documents" == uri.authority
 }
