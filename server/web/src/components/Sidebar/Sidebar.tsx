@@ -6,7 +6,6 @@ import {
   ListItemButton,
   ListItemText,
 } from '@mui/material';
-import { HomeRounded } from '@mui/icons-material';
 import organizationsIcon from '../../assets/organizations-icon.svg';
 import assistantsIcon from '../../assets/assistants-icon.svg';
 import projectsIcon from '../../assets/projects-icon.svg';
@@ -41,43 +40,43 @@ export function Sidebar({ drawerWidth, open }: SidebarProps) {
         }}>
         <List>
           <ListItem disablePadding>
-            <ListItemButton component={RouterLink} to="/">
+            <ListItemButton component={RouterLink} to="/" className={styles.buttons}>
               <img src={homeIcon} alt="Home" className={styles.marginRightIcons} />
               <ListItemText primary="Home" />
             </ListItemButton>
           </ListItem>
           <ListItem disablePadding>
-            <ListItemButton component={RouterLink} to="organizations">
+            <ListItemButton component={RouterLink} to="organizations" className={styles.buttons}>
                <img src={organizationsIcon} alt="Organizations" className={styles.marginRightIcons} />
               <ListItemText primary="Organizations" />
             </ListItemButton>
           </ListItem>
           <ListItem disablePadding>
-            <ListItemButton component={RouterLink} to="/assistants">
+            <ListItemButton component={RouterLink} to="/assistants" className={styles.buttons}>
                <img src={assistantsIcon} alt="Assistants" className={styles.marginRightIcons} />
               <ListItemText primary="Assistants" />
             </ListItemButton>
           </ListItem>
           <ListItem disablePadding>
-            <ListItemButton component={RouterLink} to="projects">
+            <ListItemButton component={RouterLink} to="projects" className={styles.buttons}>
               <img src={projectsIcon} alt="Projects" className={styles.marginRightIcons} />
               <ListItemText primary="Projects" />
             </ListItemButton>
           </ListItem>
           <ListItem disablePadding>
-            <ListItemButton component={RouterLink} to="2">
+            <ListItemButton component={RouterLink} to="2" className={styles.buttons}>
                <img src={chatIcon} alt="Chat" className={styles.marginRightIcons} />
               <ListItemText primary="Chat" />
             </ListItemButton>
           </ListItem>
           <ListItem disablePadding>
-            <ListItemButton component={RouterLink} to="generic-question">
+            <ListItemButton component={RouterLink} to="generic-question" className={styles.buttons}>
               <img src={genericQuestionIcon} alt="Generic question" className={styles.marginRightIcons} />
               <ListItemText primary="Generic question" />
             </ListItemButton>
           </ListItem>
           <ListItem disablePadding>
-            <ListItemButton component={RouterLink} to="settings">
+            <ListItemButton component={RouterLink} to="settings" className={styles.buttons}>
               <img src={settingsIcon} alt="Settings" className={styles.marginRightIcons} />
               <ListItemText primary="Settings" />
             </ListItemButton>
