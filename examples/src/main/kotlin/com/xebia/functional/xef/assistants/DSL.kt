@@ -5,7 +5,6 @@ import com.xebia.functional.xef.llm.assistants.Assistant
 import com.xebia.functional.xef.llm.assistants.AssistantThread
 import com.xebia.functional.xef.llm.assistants.RunDelta
 import com.xebia.functional.xef.llm.assistants.Tool
-import com.xebia.functional.xef.metrics.Metric
 import kotlinx.serialization.Serializable
 
 @Serializable data class SumInput(val left: Int, val right: Int)
@@ -42,8 +41,8 @@ suspend fun main() {
   //  - # cd server/docker/opentelemetry
   //  - # docker-compose up
 
-  val metric = Metric.EMPTY
-  // val metric = com.xebia.functional.xef.opentelemetry.OpenTelemetryMetric()
+  // val metric = Metric.EMPTY
+  val metric = com.xebia.functional.xef.opentelemetry.OpenTelemetryMetric()
 
   val assistant =
     Assistant(

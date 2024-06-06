@@ -1,6 +1,7 @@
 package com.xebia.functional.xef.llm
 
 import com.xebia.functional.openai.generated.model.CreateChatCompletionResponse
+import com.xebia.functional.openai.generated.model.MessageObject
 import com.xebia.functional.openai.generated.model.RunObject
 import com.xebia.functional.openai.generated.model.RunStepObject
 import com.xebia.functional.xef.conversation.Conversation
@@ -60,33 +61,42 @@ suspend fun Prompt.addMetrics(conversation: Conversation) {
     conversation.metric.parameter("openai.chat_completion.functions", functions.map { it.name })
 }
 
-suspend fun RunObject.addMetrics(metric: Metric): RunObject {
-  metric.assistantCreateRun(this)
+suspend fun RunObject.addMetrics(metric: Metric, source: String): RunObject {
+  metric.assistantCreateRun(this, source)
   return this
 }
 
-suspend fun RunStepObject.addMetrics(metric: Metric): RunStepObject {
-  metric.assistantCreateRunStep(this)
+suspend fun RunStepObject.addMetrics(metric: Metric, source: String): RunStepObject {
+  metric.assistantCreateRunStep(this, source)
+  return this
+}
+
+suspend fun MessageObject.addMetrics(metric: Metric, source: String): MessageObject {
+  metric.assistantCreatedMessage(this, source)
   return this
 }
 
 suspend fun RunDelta.addMetrics(metric: Metric): RunDelta {
   when (this) {
-    is RunDelta.RunCancelled -> run.addMetrics(metric)
-    is RunDelta.RunCancelling -> run.addMetrics(metric)
-    is RunDelta.RunCompleted -> run.addMetrics(metric)
-    is RunDelta.RunCreated -> run.addMetrics(metric)
-    is RunDelta.RunExpired -> run.addMetrics(metric)
-    is RunDelta.RunFailed -> run.addMetrics(metric)
-    is RunDelta.RunInProgress -> run.addMetrics(metric)
-    is RunDelta.RunQueued -> run.addMetrics(metric)
-    is RunDelta.RunRequiresAction -> run.addMetrics(metric)
-    is RunDelta.RunStepCancelled -> runStep.addMetrics(metric)
-    is RunDelta.RunStepCompleted -> runStep.addMetrics(metric)
-    is RunDelta.RunStepCreated -> runStep.addMetrics(metric)
-    is RunDelta.RunStepExpired -> runStep.addMetrics(metric)
-    is RunDelta.RunStepFailed -> runStep.addMetrics(metric)
-    is RunDelta.RunStepInProgress -> runStep.addMetrics(metric)
+    is RunDelta.RunCancelled -> run.addMetrics(metric, "RunCancelled")
+    is RunDelta.RunCancelling -> run.addMetrics(metric, "RunCancelling")
+    is RunDelta.RunCompleted -> run.addMetrics(metric, "RunCompleted")
+    is RunDelta.RunCreated -> run.addMetrics(metric, "RunCreated")
+    is RunDelta.RunExpired -> run.addMetrics(metric, "RunExpired")
+    is RunDelta.RunFailed -> run.addMetrics(metric, "RunFailed")
+    is RunDelta.RunInProgress -> run.addMetrics(metric, "RunInProgress")
+    is RunDelta.RunQueued -> run.addMetrics(metric, "RunQueued")
+    is RunDelta.RunRequiresAction -> run.addMetrics(metric, "RunRequiresAction")
+    is RunDelta.RunStepCancelled -> runStep.addMetrics(metric, "RunStepCancelled")
+    is RunDelta.RunStepCompleted -> runStep.addMetrics(metric, "RunStepCompleted")
+    is RunDelta.RunStepCreated -> runStep.addMetrics(metric, "RunStepCreated")
+    is RunDelta.RunStepExpired -> runStep.addMetrics(metric, "RunStepExpired")
+    is RunDelta.RunStepFailed -> runStep.addMetrics(metric, "RunStepFailed")
+    is RunDelta.RunStepInProgress -> runStep.addMetrics(metric, "RunStepInProgress")
+    is RunDelta.MessageCreated -> message.addMetrics(metric, "MessageCreated")
+    is RunDelta.MessageIncomplete -> message.addMetrics(metric, "MessageIncomplete")
+    is RunDelta.MessageCompleted -> message.addMetrics(metric, "MessageCompleted")
+    is RunDelta.MessageInProgress -> message.addMetrics(metric, "MessageInProgress")
     else -> {} // ignore other cases
   }
   return this

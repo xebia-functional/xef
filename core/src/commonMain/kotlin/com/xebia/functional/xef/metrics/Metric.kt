@@ -16,26 +16,11 @@ interface Metric {
 
   suspend fun parameter(key: String, values: List<String>)
 
-  suspend fun assistantCreateRun(runObject: RunObject)
+  suspend fun assistantCreateRun(runObject: RunObject, source: String)
 
-  suspend fun assistantCreateRun(runId: String, block: suspend Metric.() -> RunObject): RunObject
+  suspend fun assistantCreateRunStep(runObject: RunStepObject, source: String)
 
-  suspend fun assistantCreateRunStep(runObject: RunStepObject)
-
-  suspend fun assistantCreatedMessage(
-    runId: String,
-    block: suspend Metric.() -> List<MessageObject>
-  ): List<MessageObject>
-
-  suspend fun assistantCreateRunStep(
-    runId: String,
-    block: suspend Metric.() -> RunStepObject
-  ): RunStepObject
-
-  suspend fun assistantToolOutputsRun(
-    runId: String,
-    block: suspend Metric.() -> RunObject
-  ): RunObject
+  suspend fun assistantCreatedMessage(messageObject: MessageObject, source: String)
 
   companion object {
     val EMPTY: Metric =
@@ -46,29 +31,14 @@ interface Metric {
         override suspend fun <A> promptSpan(prompt: Prompt, block: suspend Metric.() -> A): A =
           block()
 
-        override suspend fun assistantCreateRun(runObject: RunObject) {}
+        override suspend fun assistantCreateRun(runObject: RunObject, source: String) {}
 
-        override suspend fun assistantCreateRun(
-          runId: String,
-          block: suspend Metric.() -> RunObject
-        ): RunObject = block()
-
-        override suspend fun assistantCreateRunStep(runObject: RunStepObject) {}
+        override suspend fun assistantCreateRunStep(runObject: RunStepObject, source: String) {}
 
         override suspend fun assistantCreatedMessage(
-          runId: String,
-          block: suspend Metric.() -> List<MessageObject>
-        ): List<MessageObject> = block()
-
-        override suspend fun assistantCreateRunStep(
-          runId: String,
-          block: suspend Metric.() -> RunStepObject
-        ): RunStepObject = block()
-
-        override suspend fun assistantToolOutputsRun(
-          runId: String,
-          block: suspend Metric.() -> RunObject
-        ): RunObject = block()
+          messageObject: MessageObject,
+          source: String
+        ) {}
 
         override suspend fun event(message: String) {}
 

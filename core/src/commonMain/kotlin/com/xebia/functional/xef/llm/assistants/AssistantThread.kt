@@ -76,7 +76,7 @@ class AssistantThread(
     createRun(CreateRunRequest(assistantId = assistant.assistantId))
 
   suspend fun createRun(request: CreateRunRequest): RunObject =
-    api.createRun(threadId, request, configure = ::defaultConfig).addMetrics(metric)
+    api.createRun(threadId, request, configure = ::defaultConfig).addMetrics(metric, "RunCreated")
 
   fun createRunStream(assistant: Assistant, request: CreateRunRequest): Flow<RunDelta> = flow {
     api
@@ -122,38 +122,69 @@ class AssistantThread(
               )
             }
         )
-      val run =
-        metric.assistantToolOutputsRun(event.run.id) {
-          api
-            .submitToolOuputsToRunStream(
-              threadId = threadId,
-              runId = event.run.id,
-              submitToolOutputsRunRequest = toolOutputsRequest,
-              configure = ::defaultConfig
-            )
-            .collect {
-              val delta = RunDelta.fromServerSentEvent(it)
-              if (delta is RunDelta.RunStepCompleted) {
-                flowCollector.emit(RunDelta.RunSubmitToolOutputs(toolOutputsRequest))
-              }
-              flowCollector.emit(delta)
-            }
-          val run = getRun(event.run.id)
-          val finalEvent =
-            when (run.status) {
-              RunObject.Status.queued -> RunDelta.RunQueued(run)
-              RunObject.Status.in_progress -> RunDelta.RunInProgress(run)
-              RunObject.Status.requires_action -> RunDelta.RunRequiresAction(run)
-              RunObject.Status.cancelling -> RunDelta.RunCancelling(run)
-              RunObject.Status.cancelled -> RunDelta.RunCancelled(run)
-              RunObject.Status.failed -> RunDelta.RunFailed(run)
-              RunObject.Status.completed -> RunDelta.RunCompleted(run)
-              RunObject.Status.expired -> RunDelta.RunExpired(run)
-              RunObject.Status.incomplete -> RunDelta.RunIncomplete(run)
-            }
-          flowCollector.emit(finalEvent)
-          run
+
+      api
+        .submitToolOuputsToRunStream(
+          threadId = threadId,
+          runId = event.run.id,
+          submitToolOutputsRunRequest = toolOutputsRequest,
+          configure = ::defaultConfig
+        )
+        .collect {
+          val delta = RunDelta.fromServerSentEvent(it)
+
+          when (delta) {
+            is RunDelta.RunCreated -> Pair(delta.run, "RunCreated")
+            is RunDelta.RunQueued -> Pair(delta.run, "RunQueued")
+            is RunDelta.RunFailed -> Pair(delta.run, "RunFailed")
+            is RunDelta.RunCancelled -> Pair(delta.run, "RunCancelled")
+            is RunDelta.RunCancelling -> Pair(delta.run, "RunCancelling")
+            is RunDelta.RunExpired -> Pair(delta.run, "RunExpired")
+            is RunDelta.RunInProgress -> Pair(delta.run, "RunInProgress")
+            is RunDelta.RunIncomplete -> Pair(delta.run, "RunIncomplete")
+            else -> null
+          }?.let { metric.assistantCreateRun(it.first, it.second) }
+
+          when (delta) {
+            is RunDelta.RunStepCreated -> Pair(delta.runStep, "RunStepCreated")
+            is RunDelta.RunStepInProgress -> Pair(delta.runStep, "RunStepInProgress")
+            is RunDelta.RunStepCompleted -> Pair(delta.runStep, "RunStepCompleted")
+            is RunDelta.RunStepFailed -> Pair(delta.runStep, "RunStepFailed")
+            is RunDelta.RunStepCancelled -> Pair(delta.runStep, "RunStepCancelled")
+            is RunDelta.RunStepExpired -> Pair(delta.runStep, "RunStepExpired")
+            else -> null
+          }?.let { metric.assistantCreateRunStep(it.first, it.second) }
+
+          when (delta) {
+            is RunDelta.MessageCreated -> Pair(delta.message, "MessageCreated")
+            is RunDelta.MessageInProgress -> Pair(delta.message, "MessageInProgress")
+            is RunDelta.MessageIncomplete -> Pair(delta.message, "MessageIncomplete")
+            is RunDelta.MessageCompleted -> Pair(delta.message, "MessageCompleted")
+            else -> null
+          }?.let { metric.assistantCreatedMessage(it.first, it.second) }
+
+          if (delta is RunDelta.RunStepCompleted) {
+            flowCollector.emit(RunDelta.RunSubmitToolOutputs(toolOutputsRequest))
+          }
+          flowCollector.emit(delta)
         }
+
+      val run = getRun(event.run.id)
+      val finalEvent =
+        when (run.status) {
+          RunObject.Status.queued -> Pair(RunDelta.RunQueued(run), "RunQueued")
+          RunObject.Status.in_progress -> Pair(RunDelta.RunInProgress(run), "RunInProgress")
+          RunObject.Status.requires_action ->
+            Pair(RunDelta.RunRequiresAction(run), "RunRequiresAction")
+          RunObject.Status.cancelling -> Pair(RunDelta.RunCancelling(run), "RunCancelling")
+          RunObject.Status.cancelled -> Pair(RunDelta.RunCancelled(run), "RunCancelled")
+          RunObject.Status.failed -> Pair(RunDelta.RunFailed(run), "RunFailed")
+          RunObject.Status.completed -> Pair(RunDelta.RunCompleted(run), "RunCompleted")
+          RunObject.Status.expired -> Pair(RunDelta.RunExpired(run), "RunExpired")
+          RunObject.Status.incomplete -> Pair(RunDelta.RunIncomplete(run), "RunIncomplete")
+        }
+      flowCollector.emit(finalEvent.first)
+      metric.assistantCreateRun(run, finalEvent.second)
 
       if (run.status == RunObject.Status.requires_action) {
         takeRequiredAction(
