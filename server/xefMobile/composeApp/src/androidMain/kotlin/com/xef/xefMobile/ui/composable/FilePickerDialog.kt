@@ -1,5 +1,6 @@
 package com.xef.xefMobile.ui.composable
 
+import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -18,6 +19,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.server.movile.xef.android.ui.themes.CustomColors
 import com.xef.xefMobile.ui.viewmodels.PathViewModel
 
@@ -33,28 +35,37 @@ fun FilePickerDialog(
   val state = viewModel.state
   val context = LocalContext.current
 
-  val permissionState =
-    rememberPermissionState(permission = android.Manifest.permission.READ_EXTERNAL_STORAGE)
+  // Define the permissions needed based on the Android version
+  val permissions = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+    listOf(
+      android.Manifest.permission.READ_MEDIA_IMAGES,
+      android.Manifest.permission.READ_MEDIA_VIDEO,
+      android.Manifest.permission.READ_MEDIA_AUDIO
+    )
+  } else {
+    listOf(android.Manifest.permission.READ_EXTERNAL_STORAGE)
+  }
+
+  val permissionState = rememberMultiplePermissionsState(permissions)
 
   var selectedFile by remember { mutableStateOf<String?>(null) }
 
-  SideEffect {
-    if (!permissionState.status.isGranted) {
-      permissionState.launchPermissionRequest()
-    }
+  LaunchedEffect(Unit) {
+    permissionState.launchMultiplePermissionRequest()
   }
 
-  val filePickerLauncher =
-    rememberLauncherForActivityResult(
-      contract = ActivityResultContracts.GetMultipleContents(),
-      onResult = { uris ->
-        viewModel.onFilePathsListChange(uris, context)
-        if (uris.isNotEmpty()) {
-          onFilesSelected() // Call the callback when files are selected
-          selectedFile = state.filePaths.firstOrNull()
-        }
-      }
-    )
+  // File picker launcher
+  val filePickerLauncher = rememberLauncherForActivityResult(
+    contract = ActivityResultContracts.OpenDocument()
+  ) { uri ->
+    uri?.let {
+      val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+      context.contentResolver.takePersistableUriPermission(it, takeFlags)
+      viewModel.onFilePathsListChange(listOf(it), context)
+      onFilesSelected() // Call the callback when files are selected
+      selectedFile = state.filePaths.firstOrNull()
+    }
+  }
 
   AlertDialog(
     onDismissRequest = onDismissRequest,
@@ -62,7 +73,7 @@ fun FilePickerDialog(
       Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(text = "Selected Files", fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(8.dp))
-        HorizontalDivider()
+        Divider()
       }
     },
     text = {
@@ -83,10 +94,9 @@ fun FilePickerDialog(
             LazyColumn {
               items(state.filePaths) { path ->
                 Text(
-                  text = path,
-                  modifier =
-                    Modifier.fillMaxWidth().clickable { selectedFile = path }.padding(8.dp),
-                  color = if (selectedFile == path) Color.Blue else Color.Unspecified
+                  text = path.toString(),
+                  modifier = Modifier.fillMaxWidth().clickable { selectedFile = path.toString() }.padding(8.dp),
+                  color = if (selectedFile == path.toString()) Color.Blue else Color.Unspecified
                 )
               }
             }
@@ -94,17 +104,13 @@ fun FilePickerDialog(
         }
         OutlinedButton(
           onClick = {
-            if (permissionState.status.isGranted) {
-              filePickerLauncher.launch(mimeTypeFilter)
+            if (permissionState.allPermissionsGranted) {
+              filePickerLauncher.launch(arrayOf(mimeTypeFilter))
             } else {
-              permissionState.launchPermissionRequest()
+              permissionState.launchMultiplePermissionRequest()
             }
           },
-          colors =
-            ButtonDefaults.outlinedButtonColors(
-              containerColor = Color.Transparent,
-              contentColor = customColors.buttonColor
-            )
+          colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.Transparent, contentColor = customColors.buttonColor)
         ) {
           Text(text = "Browse files")
         }
@@ -114,11 +120,7 @@ fun FilePickerDialog(
               viewModel.removeFilePath(selectedFile!!)
               selectedFile = null
             },
-            colors =
-              ButtonDefaults.outlinedButtonColors(
-                containerColor = Color.Transparent,
-                contentColor = customColors.buttonColor
-              )
+            colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.Transparent, contentColor = customColors.buttonColor)
           ) {
             Text(text = "Remove")
           }
@@ -128,11 +130,7 @@ fun FilePickerDialog(
     confirmButton = {
       Button(
         onClick = { onDismissRequest() },
-        colors =
-          ButtonDefaults.buttonColors(
-            containerColor = customColors.buttonColor,
-            contentColor = MaterialTheme.colorScheme.onPrimary
-          )
+        colors = ButtonDefaults.buttonColors(containerColor = customColors.buttonColor, contentColor = MaterialTheme.colorScheme.onPrimary)
       ) {
         Text("Done")
       }
