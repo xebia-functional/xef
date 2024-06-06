@@ -252,14 +252,8 @@ fun CreateAssistantScreen(
 
         item {
           Spacer(modifier = Modifier.height(12.dp))
-          Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-          ) {
-            Row(
-              horizontalArrangement = Arrangement.Center,
-              modifier = Modifier.weight(1f)
-            ) {
+          Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.weight(1f)) {
               Button(
                 onClick = { navController.navigateUp() },
                 colors =
@@ -324,10 +318,11 @@ fun CreateAssistantScreen(
                   }
                 },
                 modifier = Modifier.size(48.dp).clip(CircleShape),
-                colors = IconButtonDefaults.iconButtonColors(
-                  containerColor = Color.Gray,
-                  contentColor = Color.White
-                )
+                colors =
+                  IconButtonDefaults.iconButtonColors(
+                    containerColor = Color.Gray,
+                    contentColor = Color.White
+                  )
               ) {
                 Icon(
                   painter = painterResource(id = R.drawable.delete_24dp),
