@@ -17,8 +17,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.server.movile.xef.android.ui.themes.CustomColors
 import com.xef.xefMobile.ui.viewmodels.PathViewModel
@@ -29,13 +27,12 @@ fun FilePickerDialog(
   onDismissRequest: () -> Unit,
   customColors: CustomColors,
   onFilesSelected: () -> Unit,
-  mimeTypeFilter: String = "*/*" // Default to all files
+  mimeTypeFilter: String = "*/*"
 ) {
   val viewModel: PathViewModel = viewModel()
   val state = viewModel.state
   val context = LocalContext.current
 
-  // Define the permissions needed based on the Android version
   val permissions = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
     listOf(
       android.Manifest.permission.READ_MEDIA_IMAGES,
@@ -54,7 +51,6 @@ fun FilePickerDialog(
     permissionState.launchMultiplePermissionRequest()
   }
 
-  // File picker launcher
   val filePickerLauncher = rememberLauncherForActivityResult(
     contract = ActivityResultContracts.OpenDocument()
   ) { uri ->
@@ -62,7 +58,7 @@ fun FilePickerDialog(
       val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
       context.contentResolver.takePersistableUriPermission(it, takeFlags)
       viewModel.onFilePathsListChange(listOf(it), context)
-      onFilesSelected() // Call the callback when files are selected
+      onFilesSelected()
       selectedFile = state.filePaths.firstOrNull()
     }
   }
@@ -78,12 +74,16 @@ fun FilePickerDialog(
     },
     text = {
       Column(
-        modifier = Modifier.fillMaxSize().padding(15.dp),
+        modifier = Modifier
+          .fillMaxSize()
+          .padding(15.dp),
         verticalArrangement = Arrangement.SpaceEvenly,
         horizontalAlignment = Alignment.CenterHorizontally
       ) {
         Box(
-          modifier = Modifier.fillMaxWidth().fillMaxHeight(0.76f),
+          modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight(0.76f),
           contentAlignment = Alignment.Center
         ) {
           if (state.filePaths.isEmpty()) {
@@ -94,9 +94,12 @@ fun FilePickerDialog(
             LazyColumn {
               items(state.filePaths) { path ->
                 Text(
-                  text = path.toString(),
-                  modifier = Modifier.fillMaxWidth().clickable { selectedFile = path.toString() }.padding(8.dp),
-                  color = if (selectedFile == path.toString()) Color.Blue else Color.Unspecified
+                  text = path,
+                  modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { selectedFile = path }
+                    .padding(8.dp),
+                  color = if (selectedFile == path) Color.Blue else Color.Unspecified
                 )
               }
             }
