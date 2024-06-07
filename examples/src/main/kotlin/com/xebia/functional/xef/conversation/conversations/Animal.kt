@@ -31,7 +31,7 @@ suspend fun main() {
     //    metric = com.xebia.functional.xef.opentelemetry.OpenTelemetryMetric(),
     store = LocalVectorStore(openAI.embeddings),
   ) {
-    metric.customSpan("Animal Example") {
+    metric.customSpan("Animal Example", emptyMap()) {
       val configNoneFromConversation = PromptConfiguration {
         messagePolicy { addMessagesFromConversation = MessagesFromHistory.NONE }
       }

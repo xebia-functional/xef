@@ -18,10 +18,17 @@ class LogsMetric(private val level: Level = Level.INFO) : Metric {
 
   private val logger = KotlinLogging.logger {}
 
-  override suspend fun <A> customSpan(name: String, block: suspend Metric.() -> A): A {
+  override suspend fun <A> customSpan(
+    name: String,
+    parameters: Map<String, String>,
+    block: suspend Metric.() -> A
+  ): A {
     val millis = getTimeMillis()
     logger.at(level) { message = "${writeIndent(numberOfBlocks.get())}> Custom-Span: $name" }
     numberOfBlocks.incrementAndGet()
+    parameters.map { (key, value) ->
+      logger.at(level) { message = "${writeIndent(numberOfBlocks.get())}|-- $key = $value" }
+    }
     val output = block()
     logger.at(level) {
       message = "${writeIndent(numberOfBlocks.get())}|-- Finished in ${getTimeMillis() - millis} ms"
@@ -43,7 +50,7 @@ class LogsMetric(private val level: Level = Level.INFO) : Metric {
     return output
   }
 
-  override suspend fun assistantCreateRun(runObject: RunObject) {
+  override suspend fun assistantCreateRun(runObject: RunObject, source: String) {
     logger.at(level) {
       this.message = "${writeIndent(numberOfBlocks.get())}|-- AssistantId: ${runObject.assistantId}"
     }
@@ -58,16 +65,7 @@ class LogsMetric(private val level: Level = Level.INFO) : Metric {
     }
   }
 
-  override suspend fun assistantCreateRun(
-    runId: String,
-    block: suspend Metric.() -> RunObject
-  ): RunObject {
-    val output = block()
-    assistantCreateRun(output)
-    return output
-  }
-
-  override suspend fun assistantCreateRunStep(runObject: RunStepObject) {
+  override suspend fun assistantCreateRunStep(runObject: RunStepObject, source: String) {
     logger.at(level) {
       this.message = "${writeIndent(numberOfBlocks.get())}|-- AssistantId: ${runObject.assistantId}"
     }
@@ -82,44 +80,23 @@ class LogsMetric(private val level: Level = Level.INFO) : Metric {
     }
   }
 
-  override suspend fun assistantCreatedMessage(
-    runId: String,
-    block: suspend Metric.() -> List<MessageObject>
-  ): List<MessageObject> {
-    val output = block()
+  override suspend fun assistantCreatedMessage(messageObject: MessageObject, source: String) {
     logger.at(level) {
-      this.message = "${writeIndent(numberOfBlocks.get())}|-- Size: ${output.size}"
-    }
-    return output
-  }
-
-  override suspend fun assistantCreateRunStep(
-    runId: String,
-    block: suspend Metric.() -> RunStepObject
-  ): RunStepObject {
-    val output = block()
-    logger.at(level) {
-      this.message = "${writeIndent(numberOfBlocks.get())}|-- AssistantId: ${output.assistantId}"
+      this.message =
+        "${writeIndent(numberOfBlocks.get())}|-- AssistantId: ${messageObject.assistantId}"
     }
     logger.at(level) {
-      this.message = "${writeIndent(numberOfBlocks.get())}|-- ThreadId: ${output.threadId}"
+      this.message = "${writeIndent(numberOfBlocks.get())}|-- ThreadId: ${messageObject.threadId}"
     }
     logger.at(level) {
-      this.message = "${writeIndent(numberOfBlocks.get())}|-- RunId: ${output.runId}"
+      this.message = "${writeIndent(numberOfBlocks.get())}|-- RunId: ${messageObject.id}"
     }
     logger.at(level) {
-      this.message = "${writeIndent(numberOfBlocks.get())}|-- Status: ${output.status.name}"
+      if (messageObject.status != null) {
+        this.message =
+          "${writeIndent(numberOfBlocks.get())}|-- Status: ${messageObject.status!!.name}"
+      }
     }
-    return output
-  }
-
-  override suspend fun assistantToolOutputsRun(
-    runId: String,
-    block: suspend Metric.() -> RunObject
-  ): RunObject {
-    val output = block()
-    assistantCreateRun(output)
-    return output
   }
 
   override suspend fun event(message: String) {

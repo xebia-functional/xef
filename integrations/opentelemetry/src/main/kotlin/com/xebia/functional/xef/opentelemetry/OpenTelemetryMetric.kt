@@ -18,11 +18,24 @@ class OpenTelemetryMetric(
 
   private val assistantState = OpenTelemetryAssistantState(getTracer())
 
-  override suspend fun <A> customSpan(name: String, block: suspend Metric.() -> A): A =
-    state.span(name) { block() }
+  override suspend fun <A> customSpan(
+    name: String,
+    parameters: Map<String, String>,
+    block: suspend Metric.() -> A
+  ): A = state.span(name, parameters) { block() }
 
   override suspend fun <A> promptSpan(prompt: Prompt, block: suspend Metric.() -> A): A =
-    state.span("Prompt: ${prompt.messages.lastOrNull()?.contentAsString() ?: "empty"}") { block() }
+    state.span(
+      "Prompt: ${prompt.messages.lastOrNull()?.contentAsString() ?: "empty"}",
+      mapOf(
+        "prompt" to (prompt.messages.lastOrNull()?.contentAsString() ?: "empty"),
+        "functions" to (prompt.functions.joinToString { it.name }),
+        "configuration" to prompt.configuration.toString(),
+        "model" to prompt.model.toString()
+      )
+    ) {
+      block()
+    }
 
   override suspend fun event(message: String) {
     state.event(message)
@@ -36,30 +49,15 @@ class OpenTelemetryMetric(
     state.setAttribute(key, values)
   }
 
-  override suspend fun assistantCreateRun(runObject: RunObject) = assistantState.runSpan(runObject)
+  override suspend fun assistantCreateRun(runObject: RunObject, source: String) =
+    assistantState.runSpan(runObject, source)
 
-  override suspend fun assistantCreateRun(
-    runId: String,
-    block: suspend Metric.() -> RunObject
-  ): RunObject = assistantState.runSpan(runId) { block() }
+  override suspend fun assistantCreateRunStep(runObject: RunStepObject, source: String) =
+    assistantState.runStepSpan(runObject, source)
 
-  override suspend fun assistantCreateRunStep(runObject: RunStepObject) =
-    assistantState.runStepSpan(runObject)
-
-  override suspend fun assistantCreatedMessage(
-    runId: String,
-    block: suspend Metric.() -> List<MessageObject>
-  ): List<MessageObject> = assistantState.createdMessagesSpan(runId) { block() }
-
-  override suspend fun assistantCreateRunStep(
-    runId: String,
-    block: suspend Metric.() -> RunStepObject
-  ): RunStepObject = assistantState.runStepSpan(runId) { block() }
-
-  override suspend fun assistantToolOutputsRun(
-    runId: String,
-    block: suspend Metric.() -> RunObject
-  ): RunObject = assistantState.toolOutputRunSpan(runId) { block() }
+  override suspend fun assistantCreatedMessage(messageObject: MessageObject, source: String) {
+    assistantState.createdMessagesSpan(messageObject, source)
+  }
 
   private fun getTracer(scopeName: String? = null): Tracer =
     openTelemetry.getTracer(scopeName ?: config.defaultScopeName)

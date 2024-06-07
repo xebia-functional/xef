@@ -11,7 +11,11 @@ import kotlinx.coroutines.withContext
 
 class OpenTelemetryState(private val tracer: Tracer) {
 
-  suspend fun <A> span(name: String, block: suspend (Span) -> A): A {
+  suspend fun <A> span(
+    name: String,
+    parameters: Map<String, String>,
+    block: suspend (Span) -> A
+  ): A {
     val parentOrRoot = currentCoroutineContext().getOpenTelemetryContext()
 
     val currentSpan =
@@ -19,7 +23,10 @@ class OpenTelemetryState(private val tracer: Tracer) {
 
     return try {
       withContext(currentSpan.asContextElement()) {
-        currentSpan.makeCurrent().use { block(currentSpan) }
+        currentSpan.makeCurrent().use {
+          parameters.map { (key, value) -> currentSpan.setAttribute(key, value) }
+          block(currentSpan)
+        }
       }
     } finally {
       currentSpan.end()
