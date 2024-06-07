@@ -97,7 +97,12 @@ suspend fun RunDelta.addMetrics(metric: Metric): RunDelta {
     is RunDelta.MessageIncomplete -> message.addMetrics(metric, "MessageIncomplete")
     is RunDelta.MessageCompleted -> message.addMetrics(metric, "MessageCompleted")
     is RunDelta.MessageInProgress -> message.addMetrics(metric, "MessageInProgress")
-    else -> {} // ignore other cases
+    is RunDelta.MessageDelta,
+    is RunDelta.RunIncomplete,
+    is RunDelta.RunStepDelta,
+    is RunDelta.RunSubmitToolOutputs,
+    is RunDelta.ThreadCreated,
+    is RunDelta.Unknown -> {}
   }
   return this
 }
