@@ -133,35 +133,7 @@ class AssistantThread(
         .collect {
           val delta = RunDelta.fromServerSentEvent(it)
 
-          when (delta) {
-            is RunDelta.RunCreated -> Pair(delta.run, "RunCreated")
-            is RunDelta.RunQueued -> Pair(delta.run, "RunQueued")
-            is RunDelta.RunFailed -> Pair(delta.run, "RunFailed")
-            is RunDelta.RunCancelled -> Pair(delta.run, "RunCancelled")
-            is RunDelta.RunCancelling -> Pair(delta.run, "RunCancelling")
-            is RunDelta.RunExpired -> Pair(delta.run, "RunExpired")
-            is RunDelta.RunInProgress -> Pair(delta.run, "RunInProgress")
-            is RunDelta.RunIncomplete -> Pair(delta.run, "RunIncomplete")
-            else -> null
-          }?.let { metric.assistantCreateRun(it.first, it.second) }
-
-          when (delta) {
-            is RunDelta.RunStepCreated -> Pair(delta.runStep, "RunStepCreated")
-            is RunDelta.RunStepInProgress -> Pair(delta.runStep, "RunStepInProgress")
-            is RunDelta.RunStepCompleted -> Pair(delta.runStep, "RunStepCompleted")
-            is RunDelta.RunStepFailed -> Pair(delta.runStep, "RunStepFailed")
-            is RunDelta.RunStepCancelled -> Pair(delta.runStep, "RunStepCancelled")
-            is RunDelta.RunStepExpired -> Pair(delta.runStep, "RunStepExpired")
-            else -> null
-          }?.let { metric.assistantCreateRunStep(it.first, it.second) }
-
-          when (delta) {
-            is RunDelta.MessageCreated -> Pair(delta.message, "MessageCreated")
-            is RunDelta.MessageInProgress -> Pair(delta.message, "MessageInProgress")
-            is RunDelta.MessageIncomplete -> Pair(delta.message, "MessageIncomplete")
-            is RunDelta.MessageCompleted -> Pair(delta.message, "MessageCompleted")
-            else -> null
-          }?.let { metric.assistantCreatedMessage(it.first, it.second) }
+          delta.launchMetricsIfNecessary()
 
           if (delta is RunDelta.RunStepCompleted) {
             flowCollector.emit(RunDelta.RunSubmitToolOutputs(toolOutputsRequest))
@@ -240,6 +212,48 @@ class AssistantThread(
       is RunStepObjectStepDetails.CaseRunStepDetailsMessageCreationObject -> emptyList()
       is RunStepObjectStepDetails.CaseRunStepDetailsToolCallsObject -> step.value.toolCalls
     }
+
+  private suspend fun RunDelta.launchMetricsIfNecessary() {
+    launchRunMetricsIfNecessary()
+    launchRunStepsMetricsIfNecessary()
+    launchMessageMetricsIfNecessary()
+  }
+
+  private suspend fun RunDelta.launchRunMetricsIfNecessary() {
+    when (this) {
+      is RunDelta.RunCreated -> Pair(run, "RunCreated")
+      is RunDelta.RunQueued -> Pair(run, "RunQueued")
+      is RunDelta.RunFailed -> Pair(run, "RunFailed")
+      is RunDelta.RunCancelled -> Pair(run, "RunCancelled")
+      is RunDelta.RunCancelling -> Pair(run, "RunCancelling")
+      is RunDelta.RunExpired -> Pair(run, "RunExpired")
+      is RunDelta.RunInProgress -> Pair(run, "RunInProgress")
+      is RunDelta.RunIncomplete -> Pair(run, "RunIncomplete")
+      else -> null
+    }?.let { metric.assistantCreateRun(it.first, it.second) }
+  }
+
+  private suspend fun RunDelta.launchRunStepsMetricsIfNecessary() {
+    when (this) {
+      is RunDelta.RunStepCreated -> Pair(runStep, "RunStepCreated")
+      is RunDelta.RunStepInProgress -> Pair(runStep, "RunStepInProgress")
+      is RunDelta.RunStepCompleted -> Pair(runStep, "RunStepCompleted")
+      is RunDelta.RunStepFailed -> Pair(runStep, "RunStepFailed")
+      is RunDelta.RunStepCancelled -> Pair(runStep, "RunStepCancelled")
+      is RunDelta.RunStepExpired -> Pair(runStep, "RunStepExpired")
+      else -> null
+    }?.let { metric.assistantCreateRunStep(it.first, it.second) }
+  }
+
+  private suspend fun RunDelta.launchMessageMetricsIfNecessary() {
+    when (this) {
+      is RunDelta.MessageCreated -> Pair(message, "MessageCreated")
+      is RunDelta.MessageInProgress -> Pair(message, "MessageInProgress")
+      is RunDelta.MessageIncomplete -> Pair(message, "MessageIncomplete")
+      is RunDelta.MessageCompleted -> Pair(message, "MessageCompleted")
+      else -> null
+    }?.let { metric.assistantCreatedMessage(it.first, it.second) }
+  }
 
   companion object {
 
