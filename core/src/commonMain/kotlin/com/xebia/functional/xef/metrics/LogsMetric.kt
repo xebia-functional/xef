@@ -18,10 +18,17 @@ class LogsMetric(private val level: Level = Level.INFO) : Metric {
 
   private val logger = KotlinLogging.logger {}
 
-  override suspend fun <A> customSpan(name: String, block: suspend Metric.() -> A): A {
+  override suspend fun <A> customSpan(
+    name: String,
+    parameters: Map<String, String>,
+    block: suspend Metric.() -> A
+  ): A {
     val millis = getTimeMillis()
     logger.at(level) { message = "${writeIndent(numberOfBlocks.get())}> Custom-Span: $name" }
     numberOfBlocks.incrementAndGet()
+    parameters.map { (key, value) ->
+      logger.at(level) { message = "${writeIndent(numberOfBlocks.get())}|-- $key = $value" }
+    }
     val output = block()
     logger.at(level) {
       message = "${writeIndent(numberOfBlocks.get())}|-- Finished in ${getTimeMillis() - millis} ms"

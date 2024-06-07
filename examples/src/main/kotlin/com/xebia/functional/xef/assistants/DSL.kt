@@ -41,12 +41,12 @@ suspend fun main() {
   //  - # cd server/docker/opentelemetry
   //  - # docker-compose up
 
-  // val metric = Metric.EMPTY
-  val metric = com.xebia.functional.xef.opentelemetry.OpenTelemetryMetric()
+  val metric = com.xebia.functional.xef.metrics.Metric.EMPTY
+  // val metric = com.xebia.functional.xef.opentelemetry.OpenTelemetryMetric()
 
   val assistant =
     Assistant(
-      assistantId = "asst_BwQvmWIbGUMDvCuXOtAFH8B6",
+      assistantId = "asst_UxczzpJkysC0l424ood87DAk",
       toolsConfig = listOf(Tool.toolOf(SumTool()))
     )
   val thread = AssistantThread(api = OpenAI(logRequests = false).assistants, metric = metric)

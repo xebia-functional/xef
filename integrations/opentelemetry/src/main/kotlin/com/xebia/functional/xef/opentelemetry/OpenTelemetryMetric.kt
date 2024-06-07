@@ -18,11 +18,24 @@ class OpenTelemetryMetric(
 
   private val assistantState = OpenTelemetryAssistantState(getTracer())
 
-  override suspend fun <A> customSpan(name: String, block: suspend Metric.() -> A): A =
-    state.span(name) { block() }
+  override suspend fun <A> customSpan(
+    name: String,
+    parameters: Map<String, String>,
+    block: suspend Metric.() -> A
+  ): A = state.span(name, parameters) { block() }
 
   override suspend fun <A> promptSpan(prompt: Prompt, block: suspend Metric.() -> A): A =
-    state.span("Prompt: ${prompt.messages.lastOrNull()?.contentAsString() ?: "empty"}") { block() }
+    state.span(
+      "Prompt: ${prompt.messages.lastOrNull()?.contentAsString() ?: "empty"}",
+      mapOf(
+        "prompt" to (prompt.messages.lastOrNull()?.contentAsString() ?: "empty"),
+        "functions" to (prompt.functions.joinToString { it.name }),
+        "configuration" to prompt.configuration.toString(),
+        "model" to prompt.model.toString()
+      )
+    ) {
+      block()
+    }
 
   override suspend fun event(message: String) {
     state.event(message)

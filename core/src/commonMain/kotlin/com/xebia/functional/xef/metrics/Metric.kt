@@ -6,7 +6,11 @@ import com.xebia.functional.openai.generated.model.RunStepObject
 import com.xebia.functional.xef.prompt.Prompt
 
 interface Metric {
-  suspend fun <A> customSpan(name: String, block: suspend Metric.() -> A): A
+  suspend fun <A> customSpan(
+    name: String,
+    parameters: Map<String, String>,
+    block: suspend Metric.() -> A
+  ): A
 
   suspend fun <A> promptSpan(prompt: Prompt, block: suspend Metric.() -> A): A
 
@@ -25,8 +29,11 @@ interface Metric {
   companion object {
     val EMPTY: Metric =
       object : Metric {
-        override suspend fun <A> customSpan(name: String, block: suspend Metric.() -> A): A =
-          block()
+        override suspend fun <A> customSpan(
+          name: String,
+          parameters: Map<String, String>,
+          block: suspend Metric.() -> A
+        ): A = block()
 
         override suspend fun <A> promptSpan(prompt: Prompt, block: suspend Metric.() -> A): A =
           block()
