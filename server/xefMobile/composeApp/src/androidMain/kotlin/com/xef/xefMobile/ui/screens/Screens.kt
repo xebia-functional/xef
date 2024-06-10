@@ -22,4 +22,8 @@ sealed class Screens(val screen: String) {
   object Settings : Screens("settingsScreen")
 
   object CreateAssistant : Screens("createAssistantScreen")
+
+  object CreateAssistantWithArgs : Screens("createAssistantScreen/{assistantId}") {
+    fun createRoute(assistantId: String) = "createAssistantScreen/$assistantId"
+  }
 }

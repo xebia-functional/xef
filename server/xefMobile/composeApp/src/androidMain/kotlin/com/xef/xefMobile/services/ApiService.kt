@@ -1,6 +1,7 @@
 package com.xef.xefMobile.services
 
 import android.util.Log
+import com.server.movile.xef.android.ui.viewmodels.CreateAssistantRequest
 import com.xef.xefMobile.model.*
 import com.xef.xefMobile.network.client.HttpClientProvider
 import io.ktor.client.call.*
@@ -14,7 +15,7 @@ class ApiService {
     return try {
       HttpClientProvider.client
         .post {
-          url("http://10.0.2.2:8081/register")
+          url("https://ace-asp-ghastly.ngrok-free.app/register")
           contentType(ContentType.Application.Json)
           setBody(request)
         }
@@ -29,7 +30,7 @@ class ApiService {
     return try {
       val response: HttpResponse =
         HttpClientProvider.client.post {
-          url("http://10.0.2.2:8081/login")
+          url("https://ace-asp-ghastly.ngrok-free.app/login")
           contentType(ContentType.Application.Json)
           setBody(request)
         }
@@ -48,17 +49,43 @@ class ApiService {
     return try {
       val response: HttpResponse =
         HttpClientProvider.client.get {
-          url("http://10.0.2.2:8081/v1/settings/assistants")
+          url("https://ace-asp-ghastly.ngrok-free.app/v1/settings/assistants")
           header(HttpHeaders.Authorization, "Bearer $authToken")
-          header("OpenAI-Beta", "assistants=v1")
+          header("OpenAI-Beta", "assistants=v2")
         }
 
       val responseBody: String = response.bodyAsText()
       Log.d("ApiService", "Assistants response body: $responseBody")
-
       response.body()
     } catch (e: Exception) {
       Log.e("ApiService", "Fetching assistants failed: ${e.message}", e)
+      throw e
+    }
+  }
+
+  suspend fun createAssistant(authToken: String, request: CreateAssistantRequest): HttpResponse {
+    return try {
+      HttpClientProvider.client.post {
+        url("https://ace-asp-ghastly.ngrok-free.app/v1/settings/assistants")
+        contentType(ContentType.Application.Json)
+        header(HttpHeaders.Authorization, "Bearer $authToken")
+        setBody(request)
+      }
+    } catch (e: Exception) {
+      Log.e("ApiService", "Creating assistant failed: ${e.message}", e)
+      throw e
+    }
+  }
+
+  suspend fun deleteAssistant(authToken: String, assistantId: String): HttpResponse {
+    return try {
+      HttpClientProvider.client.delete {
+        url("https://ace-asp-ghastly.ngrok-free.app/v1/settings/assistants/$assistantId")
+        header(HttpHeaders.Authorization, "Bearer $authToken")
+        header("OpenAI-Beta", "assistants=v2")
+      }
+    } catch (e: Exception) {
+      Log.e("ApiService", "Deleting assistant failed: ${e.message}", e)
       throw e
     }
   }

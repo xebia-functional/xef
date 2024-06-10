@@ -58,10 +58,15 @@ fun Routing.assistantRoutes(logger: KLogger) {
         val assistantsApi = openAI.assistants
         val response =
           assistantsApi.listAssistants(configure = { header("OpenAI-Beta", "assistants=v2") })
+
         call.respond(HttpStatusCode.OK, response)
+      } catch (e: SerializationException) {
+        val trace = e.stackTraceToString()
+        logger.error { "Serialization error: $trace" }
+        call.respond(HttpStatusCode.BadRequest, "Serialization error: $trace")
       } catch (e: Exception) {
         val trace = e.stackTraceToString()
-        logger.error { "Error listing assistants: $trace" }
+        logger.error { "Error retrieving assistants: $trace" }
         call.respond(HttpStatusCode.BadRequest, "Invalid request: $trace")
       }
     }
