@@ -14,7 +14,6 @@ constructor(
   var user: String = ChatCompletionRole.user.value,
   var temperature: Double = 0.4,
   var numberOfPredictions: Int = 1,
-  var docsInContext: Int = 5,
   var maxTokens: Int = 500,
   var messagePolicy: MessagePolicy = MessagePolicy(),
   var seed: Int? = null,
