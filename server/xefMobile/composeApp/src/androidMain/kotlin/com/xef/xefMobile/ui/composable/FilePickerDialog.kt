@@ -27,10 +27,11 @@ fun FilePickerDialog(
   onDismissRequest: () -> Unit,
   customColors: CustomColors,
   onFilesSelected: () -> Unit,
-  mimeTypeFilter: String = "*/*"
+  mimeTypeFilter: String = "*/*",
+  isForCodeInterpreter: Boolean = false
 ) {
   val viewModel: PathViewModel = viewModel()
-  val state = viewModel.state
+  val state = if (isForCodeInterpreter) viewModel.codeInterpreterState else viewModel.fileSearchState
   val context = LocalContext.current
 
   val permissions = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
@@ -47,7 +48,9 @@ fun FilePickerDialog(
 
   var selectedFile by remember { mutableStateOf<String?>(null) }
 
-  LaunchedEffect(Unit) { permissionState.launchMultiplePermissionRequest() }
+  LaunchedEffect(Unit) {
+    permissionState.launchMultiplePermissionRequest()
+  }
 
   val filePickerLauncher = rememberLauncherForActivityResult(
     contract = ActivityResultContracts.OpenDocument()
@@ -55,7 +58,11 @@ fun FilePickerDialog(
     uri?.let {
       val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
       context.contentResolver.takePersistableUriPermission(it, takeFlags)
-      viewModel.onFilePathsListChange(listOf(it), context)
+      if (isForCodeInterpreter) {
+        viewModel.onCodeInterpreterPathsChange(listOf(it), context)
+      } else {
+        viewModel.onFileSearchPathsChange(listOf(it), context)
+      }
       onFilesSelected()
       selectedFile = state.filePaths.firstOrNull()
     }
@@ -111,25 +118,21 @@ fun FilePickerDialog(
               permissionState.launchMultiplePermissionRequest()
             }
           },
-          colors =
-            ButtonDefaults.outlinedButtonColors(
-              containerColor = Color.Transparent,
-              contentColor = customColors.buttonColor
-            )
+          colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.Transparent, contentColor = customColors.buttonColor)
         ) {
           Text(text = "Browse files")
         }
         if (selectedFile != null) {
           OutlinedButton(
             onClick = {
-              viewModel.removeFilePath(selectedFile!!)
+              if (isForCodeInterpreter) {
+                viewModel.removeCodeInterpreterPath(selectedFile!!)
+              } else {
+                viewModel.removeFileSearchPath(selectedFile!!)
+              }
               selectedFile = null
             },
-            colors =
-              ButtonDefaults.outlinedButtonColors(
-                containerColor = Color.Transparent,
-                contentColor = customColors.buttonColor
-              )
+            colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.Transparent, contentColor = customColors.buttonColor)
           ) {
             Text(text = "Remove")
           }
@@ -139,14 +142,11 @@ fun FilePickerDialog(
     confirmButton = {
       Button(
         onClick = { onDismissRequest() },
-        colors =
-          ButtonDefaults.buttonColors(
-            containerColor = customColors.buttonColor,
-            contentColor = MaterialTheme.colorScheme.onPrimary
-          )
+        colors = ButtonDefaults.buttonColors(containerColor = customColors.buttonColor, contentColor = MaterialTheme.colorScheme.onPrimary)
       ) {
         Text("Done")
       }
     }
   )
 }
+
