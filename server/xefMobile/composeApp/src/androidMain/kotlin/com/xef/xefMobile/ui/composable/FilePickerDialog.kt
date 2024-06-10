@@ -34,15 +34,16 @@ fun FilePickerDialog(
   val state = if (isForCodeInterpreter) viewModel.codeInterpreterState else viewModel.fileSearchState
   val context = LocalContext.current
 
-  val permissions = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-    listOf(
-      android.Manifest.permission.READ_MEDIA_IMAGES,
-      android.Manifest.permission.READ_MEDIA_VIDEO,
-      android.Manifest.permission.READ_MEDIA_AUDIO
-    )
-  } else {
-    listOf(android.Manifest.permission.READ_EXTERNAL_STORAGE)
-  }
+  val permissions =
+    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+      listOf(
+        android.Manifest.permission.READ_MEDIA_IMAGES,
+        android.Manifest.permission.READ_MEDIA_VIDEO,
+        android.Manifest.permission.READ_MEDIA_AUDIO
+      )
+    } else {
+      listOf(android.Manifest.permission.READ_EXTERNAL_STORAGE)
+    }
 
   val permissionState = rememberMultiplePermissionsState(permissions)
 
@@ -79,16 +80,12 @@ fun FilePickerDialog(
     },
     text = {
       Column(
-        modifier = Modifier
-          .fillMaxSize()
-          .padding(15.dp),
+        modifier = Modifier.fillMaxSize().padding(15.dp),
         verticalArrangement = Arrangement.SpaceEvenly,
         horizontalAlignment = Alignment.CenterHorizontally
       ) {
         Box(
-          modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxHeight(0.76f),
+          modifier = Modifier.fillMaxWidth().fillMaxHeight(0.76f),
           contentAlignment = Alignment.Center
         ) {
           if (state.filePaths.isEmpty()) {
@@ -100,10 +97,8 @@ fun FilePickerDialog(
               items(state.filePaths) { path ->
                 Text(
                   text = path,
-                  modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { selectedFile = path }
-                    .padding(8.dp),
+                  modifier =
+                    Modifier.fillMaxWidth().clickable { selectedFile = path }.padding(8.dp),
                   color = if (selectedFile == path) Color.Blue else Color.Unspecified
                 )
               }
