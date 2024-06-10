@@ -59,4 +59,3 @@ class PathViewModel : ViewModel() {
     return uris.mapNotNull { uri -> uriPathFinder.getPath(context, uri) }
   }
 }
-

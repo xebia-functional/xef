@@ -158,18 +158,20 @@ class AssistantViewModel(
         if (fileSearchEnabled) tools.add(Tool(type = "file_search"))
         if (codeInterpreterEnabled) tools.add(Tool(type = "code_interpreter"))
 
-        val request = ModifyAssistantRequest(
-          model = model,
-          name = name,
-          description = "This is an example assistant for testing purposes.",
-          instructions = instructions,
-          tools = tools,
-          metadata = mapOf("key1" to "value1", "key2" to "value2", "key3" to "value3"),
-          temperature = temperature,
-          top_p = topP
-        )
+        val request =
+          ModifyAssistantRequest(
+            model = model,
+            name = name,
+            description = "This is an example assistant for testing purposes.",
+            instructions = instructions,
+            tools = tools,
+            metadata = mapOf("key1" to "value1", "key2" to "value2", "key3" to "value3"),
+            temperature = temperature,
+            top_p = topP
+          )
 
-        val response: HttpResponse = apiService.updateAssistant(authToken = token, id = id, request = request)
+        val response: HttpResponse =
+          apiService.updateAssistant(authToken = token, id = id, request = request)
 
         if (response.status == HttpStatusCode.OK) {
           fetchAssistants()

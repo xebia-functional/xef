@@ -62,7 +62,8 @@ fun CreateAssistantScreen(
   settingsViewModel: SettingsViewModel,
   assistantId: String?
 ) {
-  val viewModel: AssistantViewModel = viewModel(factory = AssistantViewModelFactory(authViewModel, settingsViewModel))
+  val viewModel: AssistantViewModel =
+    viewModel(factory = AssistantViewModelFactory(authViewModel, settingsViewModel))
   val snackbarHostState = remember { SnackbarHostState() }
   val coroutineScope = rememberCoroutineScope()
 
@@ -75,11 +76,23 @@ fun CreateAssistantScreen(
   var fileSearchEnabled by remember { mutableStateOf(false) }
   var codeInterpreterEnabled by remember { mutableStateOf(false) }
   var model by remember { mutableStateOf("gpt-4-turbo") }
-  val list = listOf(
-    "gpt-4o", "gpt-4o-2024-05-13", "gpt-4", "gpt-4-vision-preview", "gpt-4-turbo-preview",
-    "gpt-4-2024-04-09", "gpt-4-turbo", "gpt-4-1106-preview", "gpt-4-0613", "gpt-4-0125-preview",
-    "gpt-4", "gpt-3.5-turbo-16K", "gpt-3.5-turbo-0125", "gpt-3.5-turbo"
-  )
+  val list =
+    listOf(
+      "gpt-4o",
+      "gpt-4o-2024-05-13",
+      "gpt-4",
+      "gpt-4-vision-preview",
+      "gpt-4-turbo-preview",
+      "gpt-4-2024-04-09",
+      "gpt-4-turbo",
+      "gpt-4-1106-preview",
+      "gpt-4-0613",
+      "gpt-4-0125-preview",
+      "gpt-4",
+      "gpt-3.5-turbo-16K",
+      "gpt-3.5-turbo-0125",
+      "gpt-3.5-turbo"
+    )
   var isExpanded by remember { mutableStateOf(false) }
   var selectedText by remember { mutableStateOf(list[0]) }
   var showFilePicker by remember { mutableStateOf(false) }
@@ -109,7 +122,8 @@ fun CreateAssistantScreen(
     }
   }
 
-  Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }, modifier = Modifier.fillMaxSize()) { paddingValues ->
+  Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }, modifier = Modifier.fillMaxSize()) {
+    paddingValues ->
     Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
       LazyColumn(
         modifier = Modifier.padding(8.dp).fillMaxSize(),
@@ -242,10 +256,11 @@ fun CreateAssistantScreen(
             Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.weight(1f)) {
               Button(
                 onClick = { navController.navigateUp() },
-                colors = ButtonDefaults.buttonColors(
-                  containerColor = customColors.buttonColor,
-                  contentColor = MaterialTheme.colorScheme.onPrimary
-                )
+                colors =
+                  ButtonDefaults.buttonColors(
+                    containerColor = customColors.buttonColor,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                  )
               ) {
                 Text("Cancel")
               }
@@ -297,10 +312,11 @@ fun CreateAssistantScreen(
                     }
                   }
                 },
-                colors = ButtonDefaults.buttonColors(
-                  containerColor = customColors.buttonColor,
-                  contentColor = MaterialTheme.colorScheme.onPrimary
-                )
+                colors =
+                  ButtonDefaults.buttonColors(
+                    containerColor = customColors.buttonColor,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                  )
               ) {
                 Text(if (assistantId == null) "Create" else "Update")
               }
@@ -325,10 +341,11 @@ fun CreateAssistantScreen(
                   }
                 },
                 modifier = Modifier.size(48.dp).clip(CircleShape),
-                colors = IconButtonDefaults.iconButtonColors(
-                  containerColor = Color.Gray,
-                  contentColor = Color.White
-                )
+                colors =
+                  IconButtonDefaults.iconButtonColors(
+                    containerColor = Color.Gray,
+                    contentColor = Color.White
+                  )
               ) {
                 Icon(
                   painter = painterResource(id = R.drawable.delete_24dp),
@@ -364,7 +381,6 @@ fun CreateAssistantScreen(
     }
   }
 }
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

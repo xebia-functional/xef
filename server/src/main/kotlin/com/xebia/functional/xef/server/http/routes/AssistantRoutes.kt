@@ -103,7 +103,6 @@ fun Routing.assistantRoutes(logger: KLogger) {
       }
     }
 
-
     delete("/v1/settings/assistants/{id}") {
       try {
         val token = call.getToken()
@@ -114,7 +113,8 @@ fun Routing.assistantRoutes(logger: KLogger) {
         }
         val openAI = OpenAI(Config(token = token.value), logRequests = true)
         val assistantsApi = openAI.assistants
-        val response = assistantsApi.deleteAssistant(id, configure = { header("OpenAI-Beta", "assistants=v2") })
+        val response =
+          assistantsApi.deleteAssistant(id, configure = { header("OpenAI-Beta", "assistants=v2") })
         logger.info { "Deleted assistant: with id: ${response.id}" }
         call.respond(status = HttpStatusCode.NoContent, response)
       } catch (e: Exception) {

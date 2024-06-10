@@ -7,8 +7,7 @@ import kotlinx.serialization.Serializable
 data class Assistant(
   val id: String,
   val name: String,
-  @SerialName("created_at")
-  val createdAt: Long,
+  @SerialName("created_at") val createdAt: Long,
   val description: String?,
   val model: String,
   val instructions: String,

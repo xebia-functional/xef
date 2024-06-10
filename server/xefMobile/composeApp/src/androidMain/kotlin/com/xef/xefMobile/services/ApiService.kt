@@ -91,7 +91,11 @@ class ApiService {
     }
   }
 
-  suspend fun updateAssistant(authToken: String, id: String, request: ModifyAssistantRequest): HttpResponse {
+  suspend fun updateAssistant(
+    authToken: String,
+    id: String,
+    request: ModifyAssistantRequest
+  ): HttpResponse {
     return try {
       HttpClientProvider.client.put {
         url("https://ace-asp-ghastly.ngrok-free.app/v1/settings/assistants/$id")

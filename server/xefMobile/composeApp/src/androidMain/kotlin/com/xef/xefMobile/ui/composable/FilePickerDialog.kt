@@ -31,7 +31,8 @@ fun FilePickerDialog(
   isForCodeInterpreter: Boolean = false
 ) {
   val viewModel: PathViewModel = viewModel()
-  val state = if (isForCodeInterpreter) viewModel.codeInterpreterState else viewModel.fileSearchState
+  val state =
+    if (isForCodeInterpreter) viewModel.codeInterpreterState else viewModel.fileSearchState
   val context = LocalContext.current
 
   val permissions =
@@ -49,25 +50,23 @@ fun FilePickerDialog(
 
   var selectedFile by remember { mutableStateOf<String?>(null) }
 
-  LaunchedEffect(Unit) {
-    permissionState.launchMultiplePermissionRequest()
-  }
+  LaunchedEffect(Unit) { permissionState.launchMultiplePermissionRequest() }
 
-  val filePickerLauncher = rememberLauncherForActivityResult(
-    contract = ActivityResultContracts.OpenDocument()
-  ) { uri ->
-    uri?.let {
-      val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-      context.contentResolver.takePersistableUriPermission(it, takeFlags)
-      if (isForCodeInterpreter) {
-        viewModel.onCodeInterpreterPathsChange(listOf(it), context)
-      } else {
-        viewModel.onFileSearchPathsChange(listOf(it), context)
+  val filePickerLauncher =
+    rememberLauncherForActivityResult(contract = ActivityResultContracts.OpenDocument()) { uri ->
+      uri?.let {
+        val takeFlags: Int =
+          Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+        context.contentResolver.takePersistableUriPermission(it, takeFlags)
+        if (isForCodeInterpreter) {
+          viewModel.onCodeInterpreterPathsChange(listOf(it), context)
+        } else {
+          viewModel.onFileSearchPathsChange(listOf(it), context)
+        }
+        onFilesSelected()
+        selectedFile = state.filePaths.firstOrNull()
       }
-      onFilesSelected()
-      selectedFile = state.filePaths.firstOrNull()
     }
-  }
 
   AlertDialog(
     onDismissRequest = onDismissRequest,
@@ -113,7 +112,11 @@ fun FilePickerDialog(
               permissionState.launchMultiplePermissionRequest()
             }
           },
-          colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.Transparent, contentColor = customColors.buttonColor)
+          colors =
+            ButtonDefaults.outlinedButtonColors(
+              containerColor = Color.Transparent,
+              contentColor = customColors.buttonColor
+            )
         ) {
           Text(text = "Browse files")
         }
@@ -127,7 +130,11 @@ fun FilePickerDialog(
               }
               selectedFile = null
             },
-            colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.Transparent, contentColor = customColors.buttonColor)
+            colors =
+              ButtonDefaults.outlinedButtonColors(
+                containerColor = Color.Transparent,
+                contentColor = customColors.buttonColor
+              )
           ) {
             Text(text = "Remove")
           }
@@ -137,11 +144,14 @@ fun FilePickerDialog(
     confirmButton = {
       Button(
         onClick = { onDismissRequest() },
-        colors = ButtonDefaults.buttonColors(containerColor = customColors.buttonColor, contentColor = MaterialTheme.colorScheme.onPrimary)
+        colors =
+          ButtonDefaults.buttonColors(
+            containerColor = customColors.buttonColor,
+            contentColor = MaterialTheme.colorScheme.onPrimary
+          )
       ) {
         Text("Done")
       }
     }
   )
 }
-
