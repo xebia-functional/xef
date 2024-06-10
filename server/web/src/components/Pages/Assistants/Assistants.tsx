@@ -1,11 +1,14 @@
 import { useContext, useEffect, useState, ChangeEvent } from "react";
 import { LoadingContext } from "@/state/Loading";
 import styles from './Assistants.module.css';
-import { getAssistants, getAssistantById, postAssistant } from '@/utils/api/assistants';
+import { getAssistants, getAssistantById, postAssistant, deleteAssistant, putAssistant } from '@/utils/api/assistants';
 
 import { SettingsContext } from '@/state/Settings';
 import React from 'react';
 import moment from 'moment';
+import infoIcon from '../../../assets/info-icon.svg';
+import deleteIcon from '../../../assets/delete-icon.svg';
+import { Tooltip } from '@mui/material';
 
 import {
   Alert,
@@ -98,6 +101,19 @@ type CreateAssistantRequest = {
    responseFormat?: any | null;
  }
 
+ type ModifyAssistantRequest = {
+    model: string;
+    name?: string;
+    description?: string;
+    instructions?: string;
+    tools?: AssistantObjectToolsInner[];
+    toolResources?: CreateAssistantRequestToolResources | null;
+    metadata?: Record<string, string> | null;
+    temperature?: number;
+    top_p?: number;
+    responseFormat?: any | null;
+  }
+
 const emptyAssistantObject: AssistantObject = {
     id: "",
     object: "assistant",
@@ -122,6 +138,14 @@ const emptyAssistantRequest: CreateAssistantRequest = {
   top_p: 1,
 };
 
+const emptyModifyAssistantRequest: ModifyAssistantRequest = {
+  name: '',
+  instructions: '',
+  model: '',
+  temperature: 1,
+  top_p: 1,
+};
+
 export function Assistants() {
   const [loading, setLoading] = useContext(LoadingContext);
   const [assistants, setAssistants] = useState<AssistantObject[]>([]);
@@ -134,6 +158,7 @@ export function Assistants() {
   const [codeInterpreterEnabled, setCodeInterpreterEnabled] = useState(false);
   const [JsonObjectEnabled, setJsonObjectEnabled] = useState(false);
   const [createdAssistant, setCreatedAssistant] = useState<CreateAssistantRequest>(emptyAssistantRequest);
+  const [editedAssistant, setEditedAssistant] = useState<ModifyAssistantRequest>(emptyModifyAssistantRequest);
 
   const [fileSearchSelectedFile, fileSearchSetSelectedFile] = useState<File[]>([]);
   const [fileSearchDialogOpen, setFileSearchDialogOpen] = useState(false);
@@ -251,8 +276,6 @@ export function Assistants() {
   };
 
   const handleCreateAssistant = async () => {
-    console.log("handleCreateAssistant: Inicio");
-
     const newAssistant: CreateAssistantRequest = {
       name: createdAssistant.name || 'Untitled assistant',
       instructions: createdAssistant.instructions || '',
@@ -263,24 +286,18 @@ export function Assistants() {
 
     try {
       setLoading(true);
-      console.log("handleCreateAssistant: Enviando solicitud al servidor con los siguientes datos:", newAssistant);
-
       const createdAssistantResponse = await postAssistant(settings.apiKey, newAssistant);
-      console.log("handleCreateAssistant: Respuesta del servidor:", createdAssistantResponse);
-
       setAssistants([...assistants, createdAssistantResponse]);
       setCreatedAssistant(true);
       setShowCreatePanel(false);
       setSelectedAssistant(emptyAssistantObject);
       await loadAssistants();
     } catch (error) {
-      console.error('Error creando asistente:', error);
+      console.error('Error creating assistant:', error);
     } finally {
       setLoading(false);
-      console.log("handleCreateAssistant: Fin");
     }
   };
-
 
   const models = [
     { value: 'gpt-4o-2024-05-13', label: 'gpt-4o-2024-05-13' },
@@ -342,12 +359,6 @@ async function loadAssistants() {
       }
     };
 
-  useEffect(() => {
-    if (settings.apiKey) {
-      loadAssistants();
-    }
-  }, [settings.apiKey]);
-
 const groupAssistantsByDate = (assistants) => {
   return assistants.reduce((acc, assistant) => {
     const date = moment(assistant.created_at * 1000).format('YYYY-MM-DD');
@@ -360,6 +371,54 @@ const groupAssistantsByDate = (assistants) => {
 };
 
 const groupedAssistants = groupAssistantsByDate(assistants);
+
+const handleDeleteAssistant = async (id: string) => {
+  try {
+    setLoading(true);
+    const deleteResponse = await deleteAssistant(settings.apiKey, id);
+    const updatedAssistants = assistants.filter(assistant => assistant.id !== id);
+    console.log('Updated assistants:', updatedAssistants);
+    setAssistants(updatedAssistants);
+    setSelectedAssistant(emptyAssistantObject);
+    setShowAlert('Assistant deleted successfully');
+
+  } catch (error) {
+    console.error('Error deleting assistant:', error);
+  } finally {
+    setLoading(false);
+  }
+};
+
+const handleUpdateAssistant = async () => {
+  const updatedAssistant: ModifyAssistantRequest = {
+    name: selectedAssistant.name || 'Untitled assistant',
+    instructions: selectedAssistant.instructions || '',
+    model: selectedAssistant.model || 'gpt-4o',
+    temperature: selectedAssistant.temperature || 1,
+    top_p: selectedAssistant.top_p || 1,
+  };
+
+  try {
+    setLoading(true);
+    const updatedAssistantResponse = await putAssistant(settings.apiKey, selectedAssistant.id, updatedAssistant);
+    setAssistants(assistants.map(assistant =>
+      assistant.id === selectedAssistant.id ? updatedAssistantResponse : assistant
+    ));
+    setShowAlert('Assistant updated successfully');
+    setShowCreatePanel(false);
+    setSelectedAssistant(emptyAssistantObject);
+  } catch (error) {
+    console.error('Error updating assistant:', error);
+  } finally {
+    setLoading(false);
+  }
+};
+
+useEffect(() => {
+    if (settings.apiKey) {
+      loadAssistants();
+    }
+  }, [settings.apiKey]);
 
   return (
         <Box className={styles.container}>
@@ -385,8 +444,8 @@ const groupedAssistants = groupAssistantsByDate(assistants);
 
                 <Box sx={{ display: 'flex', width: '100%', height: '100%' }}>
                     {/* Container of Assistants */}
-                    <Grid container justifyContent="center" alignItems="flex-start" sx={{ p: 2, width: '100%', maxWidth: 400, height: '75vh', overflowY: 'auto' }}>
-                      <div style={{ width: '85%', textAlign: 'center' }}>
+                    <Grid container justifyContent="center" alignItems="flex-start" sx={{ p: 1, width: '100%', maxWidth: 350, height: '75vh', overflowY: 'auto' }}>
+                      <div style={{ width: '100%', textAlign: 'center' }}>
 
                         {loading ? (
                           <Typography>Loading...</Typography>
@@ -394,13 +453,15 @@ const groupedAssistants = groupAssistantsByDate(assistants);
                           assistants.length === 0 && !createdAssistant ? (
                             <Typography>No assistants available.</Typography>
                           ) : (
-                            <List sx={{ mt: 3 }}>
+                            <List>
                               {Object.keys(groupedAssistants).map((date) => (
                                 <React.Fragment key={date}>
-                                  <Typography variant="subtitle2" sx={{ mt: 2, color: 'grey.600', textAlign: 'left' }}>
-                                    {moment(date).format('YYYY-MM-DD')}
-                                  </Typography>
-                                  <Divider sx={{ mb: 2 }} />
+                                  <Box sx={{ width: '100%', textAlign: 'left', mt: 1 }}>
+                                      <Typography variant="caption" sx={{ color: 'grey.600', fontWeight: 'bold' }}>
+                                        {moment(date).format('YYYY-MM-DD')}
+                                      </Typography>
+                                  </Box>
+                                  <Divider sx={{ mb: 2, mt:1}} />
                                   {groupedAssistants[date].map((assistant, index) => (
                                     <React.Fragment key={assistant.id}>
                                       <ListItem button sx={{ mt: index === 0 ? 0 : 2 }} onClick={() => handleSelectAssistant(assistant.id)}>
@@ -413,13 +474,13 @@ const groupedAssistants = groupAssistantsByDate(assistants);
                                           </Grid>
 
                                           <Grid item xs={4} sm={3} md={2} lg={2} xl={2} sx={{ minWidth: 0 }}>
-                                              <Typography className={styles.smallText} variant="body2" style={{ marginBottom: '8px', color: 'textSecondary' }}>
+                                              <Typography className={styles.smallText} variant="body2" sx={{ marginBottom: '8px', color: 'grey.600' }}>
                                                 {moment(assistant.created_at * 1000).format('HH:mm')}
                                               </Typography>
-                                           </Grid>
+                                          </Grid>
                                         </Grid>
                                       </ListItem>
-                                      {index < groupedAssistants[date].length - 1 && <Divider />}
+                                      {index < groupedAssistants[date].length - 1 && <Divider sx={{ mb: 2, mt:1}} />}
                                     </React.Fragment>
                                   ))}
                                 </React.Fragment>
@@ -504,7 +565,7 @@ const groupedAssistants = groupAssistantsByDate(assistants);
                                   </option>
                                 ))}
                             </TextField>
-                            <Typography className={styles.boldText}>Tools</Typography>
+                            <Typography className={styles.boldText} align="left">Tools</Typography>
                             <Divider />
                             <div style={{ display: 'flex', alignItems: 'center' }}>
                                   <FormControlLabel
@@ -739,11 +800,16 @@ const groupedAssistants = groupAssistantsByDate(assistants);
                               <Divider sx={{ display: 'block', mt: 2, mb: 2 }}/>
                               <Typography variant="subtitle1" className={styles.boldText}>Response format</Typography>
 
-                              <FormControlLabel
-                                control={<Switch checked={JsonObjectEnabled} onChange={handleJsonObjectChange} />}
-                                label="JSON object"
-                                sx={{ display: 'block', mt: 1, mb: 3 }}
-                              />
+                              <Box sx={{ display: 'flex', alignItems: 'center', mt: 1, mb: 3 }}>
+                                <FormControlLabel
+                                  control={<Switch checked={JsonObjectEnabled} onChange={handleJsonObjectChange} />}
+                                  label="JSON object"
+                                  sx={{ marginRight: '3px' }}
+                                />
+                                <Tooltip title="Constrains the model response to JSON format. You must specify the JSON format in your message. Only allowed when all tools on the Run are functions.">
+                                  <img src={infoIcon} alt="Info" style={{ width: '15px', height: '15px' }}/>
+                                </Tooltip>
+                              </Box>
                             </div>
 
                             <div className={styles.sliders}>
@@ -800,9 +866,19 @@ const groupedAssistants = groupAssistantsByDate(assistants);
                               valueLabelDisplay="auto"
                             />
 
-                            <div style={{ textAlign: 'right', marginTop: '2px' }}>
-                              <Button variant="contained" color="primary" onClick={handleCreateAssistant}>
-                                {selectedAssistant.id ? 'Update' : 'Save'}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '2px' }}>
+                              {selectedAssistant.id && (
+                                <Button variant="contained" color="primary" onClick={() => handleDeleteAssistant(selectedAssistant.id)}>
+                                  <img src={deleteIcon} alt="delete assistant" style={{ width: '20px', height: '20px' }}/>
+                                </Button>
+                              )}
+                              <Button
+                                  variant="contained"
+                                  color="primary"
+                                  onClick={selectedAssistant.id ? handleUpdateAssistant : handleCreateAssistant}
+                                  style={{ marginLeft: 'auto' }}
+                              >
+                                  {selectedAssistant.id ? 'Update' : 'Save'}
                               </Button>
                             </div>
                           </Box>
