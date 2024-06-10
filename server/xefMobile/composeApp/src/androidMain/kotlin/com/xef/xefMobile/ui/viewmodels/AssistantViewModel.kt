@@ -137,6 +137,51 @@ class AssistantViewModel(
       }
     }
   }
+
+  @OptIn(InternalAPI::class)
+  fun updateAssistant(
+    id: String,
+    name: String,
+    instructions: String,
+    temperature: Float,
+    topP: Float,
+    model: String,
+    fileSearchEnabled: Boolean,
+    codeInterpreterEnabled: Boolean,
+    onSuccess: () -> Unit,
+    onError: (String) -> Unit
+  ) {
+    viewModelScope.launch {
+      try {
+        val token = settingsViewModel.apiKey.value ?: throw Exception("API key not found")
+        val tools = mutableListOf<Tool>()
+        if (fileSearchEnabled) tools.add(Tool(type = "file_search"))
+        if (codeInterpreterEnabled) tools.add(Tool(type = "code_interpreter"))
+
+        val request = ModifyAssistantRequest(
+          model = model,
+          name = name,
+          description = "This is an example assistant for testing purposes.",
+          instructions = instructions,
+          tools = tools,
+          metadata = mapOf("key1" to "value1", "key2" to "value2", "key3" to "value3"),
+          temperature = temperature,
+          top_p = topP
+        )
+
+        val response: HttpResponse = apiService.updateAssistant(authToken = token, id = id, request = request)
+
+        if (response.status == HttpStatusCode.OK) {
+          fetchAssistants()
+          onSuccess()
+        } else {
+          onError("Failed to update assistant: ${response.status}")
+        }
+      } catch (e: Exception) {
+        onError("Error: ${e.message ?: "Unknown error"}")
+      }
+    }
+  }
 }
 
 @Serializable
@@ -149,6 +194,18 @@ data class CreateAssistantRequest(
   val metadata: Map<String, String>,
   val temperature: Float,
   val top_p: Float
+)
+
+@Serializable
+data class ModifyAssistantRequest(
+  val model: String? = null,
+  val name: String? = null,
+  val description: String? = null,
+  val instructions: String? = null,
+  val tools: List<Tool>? = null,
+  val metadata: Map<String, String>? = null,
+  val temperature: Float? = null,
+  val top_p: Float? = null
 )
 
 @Serializable data class Tool(val type: String)

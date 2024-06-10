@@ -2,6 +2,7 @@ package com.xef.xefMobile.services
 
 import android.util.Log
 import com.server.movile.xef.android.ui.viewmodels.CreateAssistantRequest
+import com.server.movile.xef.android.ui.viewmodels.ModifyAssistantRequest
 import com.xef.xefMobile.model.*
 import com.xef.xefMobile.network.client.HttpClientProvider
 import io.ktor.client.call.*
@@ -86,6 +87,20 @@ class ApiService {
       }
     } catch (e: Exception) {
       Log.e("ApiService", "Deleting assistant failed: ${e.message}", e)
+      throw e
+    }
+  }
+
+  suspend fun updateAssistant(authToken: String, id: String, request: ModifyAssistantRequest): HttpResponse {
+    return try {
+      HttpClientProvider.client.put {
+        url("https://ace-asp-ghastly.ngrok-free.app/v1/settings/assistants/$id")
+        contentType(ContentType.Application.Json)
+        header(HttpHeaders.Authorization, "Bearer $authToken")
+        setBody(request)
+      }
+    } catch (e: Exception) {
+      Log.e("ApiService", "Updating assistant failed: ${e.message}", e)
       throw e
     }
   }

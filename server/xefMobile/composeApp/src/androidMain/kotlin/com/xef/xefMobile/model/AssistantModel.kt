@@ -8,7 +8,7 @@ data class Assistant(
   val id: String,
   val name: String,
   @SerialName("created_at")
-  val createdAt: Long, // Use the correct field name from the JSON response
+  val createdAt: Long,
   val description: String?,
   val model: String,
   val instructions: String,

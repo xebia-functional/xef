@@ -81,7 +81,12 @@ fun Routing.assistantRoutes(logger: KLogger) {
             call.respond(HttpStatusCode.BadRequest, "Invalid assistant id")
             return@put
           }
-          val assistant = Assistant(id)
+
+          val token = call.getToken().value
+          val openAI = OpenAI(Config(token = token), logRequests = true)
+          val assistantsApi = openAI.assistants
+          val assistant = Assistant(id, assistantsApi = assistantsApi)
+
           val response = assistant.modify(request).get()
           logger.info { "Modified assistant: ${response.name} with id: ${response.id}" }
           call.respond(HttpStatusCode.OK, response)
@@ -97,6 +102,7 @@ fun Routing.assistantRoutes(logger: KLogger) {
         call.respond(HttpStatusCode.BadRequest, "Invalid request: $trace")
       }
     }
+
 
     delete("/v1/settings/assistants/{id}") {
       try {

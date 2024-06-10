@@ -117,7 +117,7 @@ fun CreateAssistantScreen(
       ) {
         item {
           Text(
-            text = "Create Assistant",
+            text = if (assistantId == null) "Create Assistant" else "Update Assistant",
             fontSize = 24.sp,
             modifier = Modifier.padding(bottom = 16.dp)
           )
@@ -242,8 +242,7 @@ fun CreateAssistantScreen(
             Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.weight(1f)) {
               Button(
                 onClick = { navController.navigateUp() },
-                colors =
-                ButtonDefaults.buttonColors(
+                colors = ButtonDefaults.buttonColors(
                   containerColor = customColors.buttonColor,
                   contentColor = MaterialTheme.colorScheme.onPrimary
                 )
@@ -254,34 +253,56 @@ fun CreateAssistantScreen(
               Button(
                 onClick = {
                   coroutineScope.launch {
-                    viewModel.createAssistant(
-                      name = name,
-                      instructions = instructions,
-                      temperature = temperature,
-                      topP = topP,
-                      model = selectedText,
-                      fileSearchEnabled = fileSearchEnabled,
-                      codeInterpreterEnabled = codeInterpreterEnabled,
-                      onSuccess = {
-                        coroutineScope.launch {
-                          snackbarHostState.showSnackbar("Assistant created successfully")
-                          navController.navigate(Screens.Assistants.screen)
+                    if (assistantId == null) {
+                      viewModel.createAssistant(
+                        name = name,
+                        instructions = instructions,
+                        temperature = temperature,
+                        topP = topP,
+                        model = selectedText,
+                        fileSearchEnabled = fileSearchEnabled,
+                        codeInterpreterEnabled = codeInterpreterEnabled,
+                        onSuccess = {
+                          coroutineScope.launch {
+                            snackbarHostState.showSnackbar("Assistant created successfully")
+                            navController.navigate(Screens.Assistants.screen)
+                          }
+                        },
+                        onError = { errorMessage ->
+                          Log.e("CreateAssistantScreen", errorMessage)
+                          coroutineScope.launch { snackbarHostState.showSnackbar(errorMessage) }
                         }
-                      },
-                      onError = { errorMessage ->
-                        Log.e("CreateAssistantScreen", errorMessage)
-                        coroutineScope.launch { snackbarHostState.showSnackbar(errorMessage) }
-                      }
-                    )
+                      )
+                    } else {
+                      viewModel.updateAssistant(
+                        id = assistantId,
+                        name = name,
+                        instructions = instructions,
+                        temperature = temperature,
+                        topP = topP,
+                        model = selectedText,
+                        fileSearchEnabled = fileSearchEnabled,
+                        codeInterpreterEnabled = codeInterpreterEnabled,
+                        onSuccess = {
+                          coroutineScope.launch {
+                            snackbarHostState.showSnackbar("Assistant updated successfully")
+                            navController.navigate(Screens.Assistants.screen)
+                          }
+                        },
+                        onError = { errorMessage ->
+                          Log.e("CreateAssistantScreen", errorMessage)
+                          coroutineScope.launch { snackbarHostState.showSnackbar(errorMessage) }
+                        }
+                      )
+                    }
                   }
                 },
-                colors =
-                ButtonDefaults.buttonColors(
+                colors = ButtonDefaults.buttonColors(
                   containerColor = customColors.buttonColor,
                   contentColor = MaterialTheme.colorScheme.onPrimary
                 )
               ) {
-                Text("Create")
+                Text(if (assistantId == null) "Create" else "Update")
               }
             }
             if (assistantId != null) {
@@ -304,8 +325,7 @@ fun CreateAssistantScreen(
                   }
                 },
                 modifier = Modifier.size(48.dp).clip(CircleShape),
-                colors =
-                IconButtonDefaults.iconButtonColors(
+                colors = IconButtonDefaults.iconButtonColors(
                   containerColor = Color.Gray,
                   contentColor = Color.White
                 )
@@ -344,6 +364,7 @@ fun CreateAssistantScreen(
     }
   }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
