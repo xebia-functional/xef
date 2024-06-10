@@ -13,25 +13,45 @@ import kotlinx.coroutines.launch
 
 class PathViewModel : ViewModel() {
 
-  var state by mutableStateOf(PathScreenState())
+  var fileSearchState by mutableStateOf(PathScreenState())
+    private set
+
+  var codeInterpreterState by mutableStateOf(PathScreenState())
     private set
 
   private val uriPathFinder = UriPathFinder()
 
-  fun onFilePathsListChange(list: List<Uri>, context: Context) {
+  fun onFileSearchPathsChange(list: List<Uri>, context: Context) {
     viewModelScope.launch {
-      val updatedList = state.filePaths.toMutableList()
+      val updatedList = fileSearchState.filePaths.toMutableList()
       val pathList = changeUriToPath(list, context)
       updatedList += pathList
-      state = state.copy(filePaths = updatedList)
+      fileSearchState = fileSearchState.copy(filePaths = updatedList)
     }
   }
 
-  fun removeFilePath(path: String) {
+  fun onCodeInterpreterPathsChange(list: List<Uri>, context: Context) {
     viewModelScope.launch {
-      val updatedList = state.filePaths.toMutableList()
+      val updatedList = codeInterpreterState.filePaths.toMutableList()
+      val pathList = changeUriToPath(list, context)
+      updatedList += pathList
+      codeInterpreterState = codeInterpreterState.copy(filePaths = updatedList)
+    }
+  }
+
+  fun removeFileSearchPath(path: String) {
+    viewModelScope.launch {
+      val updatedList = fileSearchState.filePaths.toMutableList()
       updatedList.remove(path)
-      state = state.copy(filePaths = updatedList)
+      fileSearchState = fileSearchState.copy(filePaths = updatedList)
+    }
+  }
+
+  fun removeCodeInterpreterPath(path: String) {
+    viewModelScope.launch {
+      val updatedList = codeInterpreterState.filePaths.toMutableList()
+      updatedList.remove(path)
+      codeInterpreterState = codeInterpreterState.copy(filePaths = updatedList)
     }
   }
 

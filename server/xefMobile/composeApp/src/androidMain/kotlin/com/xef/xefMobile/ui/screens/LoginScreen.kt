@@ -23,6 +23,7 @@ import com.xef.xefMobile.ui.screens.Screens
 @Composable
 fun LoginScreen(authViewModel: IAuthViewModel, navController: NavController) {
   val authToken by authViewModel.authToken.observeAsState()
+  val loginError by authViewModel.loginError.observeAsState()
   var email by remember { mutableStateOf("") }
   var password by remember { mutableStateOf("") }
   var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -52,6 +53,9 @@ fun LoginScreen(authViewModel: IAuthViewModel, navController: NavController) {
     if (errorMessage != null) {
       Text(text = errorMessage!!, color = Color.Red, textAlign = TextAlign.Center)
       Spacer(modifier = Modifier.height(8.dp))
+    } else if (loginError != null) {
+      Text(text = loginError!!, color = Color.Red, textAlign = TextAlign.Center)
+      Spacer(modifier = Modifier.height(8.dp))
     }
 
     OutlinedTextField(
@@ -75,12 +79,10 @@ fun LoginScreen(authViewModel: IAuthViewModel, navController: NavController) {
       onClick = {
         when {
           email.isBlank() -> {
-            errorMessage = "Email field is empty"
-            Log.d("LoginScreen", "Email field is empty")
+            errorMessage = "Please enter your email."
           }
           password.isBlank() -> {
-            errorMessage = "Password field is empty"
-            Log.d("LoginScreen", "Password field is empty")
+            errorMessage = "Please enter your password."
           }
           else -> {
             errorMessage = null
