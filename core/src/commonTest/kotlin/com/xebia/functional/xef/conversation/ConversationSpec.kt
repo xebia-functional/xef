@@ -1,6 +1,7 @@
 package com.xebia.functional.xef.conversation
 
 import com.xebia.functional.openai.generated.model.*
+import com.xebia.functional.xef.Tool
 import com.xebia.functional.xef.data.*
 import com.xebia.functional.xef.llm.models.modelType
 import com.xebia.functional.xef.llm.prompt
@@ -145,7 +146,8 @@ class ConversationSpec :
         chatApi.prompt(
           prompt = Prompt(model, question),
           scope = scope,
-          serializer = Answer.serializer()
+          serializer = Tool.fromKotlin(),
+          functions = emptyList()
         )
 
       val lastRequest = chatApi.requests.last()
@@ -178,7 +180,8 @@ class ConversationSpec :
         chatApi.prompt(
           prompt = Prompt(model) { +user(Json.encodeToString(Question.serializer(), question)) },
           scope = scope,
-          serializer = Answer.serializer()
+          serializer = Tool.fromKotlin(),
+          functions = emptyList()
         )
 
       val lastRequest = chatApi.requests.last()

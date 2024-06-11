@@ -2,6 +2,8 @@ package com.xebia.functional.xef.evaluator
 
 import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.AI
+import com.xebia.functional.xef.AIConfig
+import com.xebia.functional.xef.PromptClassifier
 import com.xebia.functional.xef.evaluator.models.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -30,15 +32,16 @@ data class SuiteSpec(
 ) {
 
   suspend inline fun <reified E> evaluate(success: List<E>): SuiteResults<E> where
-  E : AI.PromptClassifier,
+  E : PromptClassifier,
   E : Enum<E> {
     val items =
       items.map { item ->
         println("Evaluating item: ${item.input}")
         val outputResults =
           item.outputs.map { output ->
-            val classification =
-              AI.classify<E>(item.input, item.context, output.value, model = model)
+            val config = AIConfig(model = model)
+            val classification: E =
+              AI.classify<E>(item.input, item.context, output.value, config = config)
             println(" |_ ${output.description.value} = classification $classification")
             OutputResult(
               output.description.value,
@@ -56,7 +59,7 @@ data class SuiteSpec(
   }
 
   companion object {
-    @JvmSynthetic
+
     suspend operator fun invoke(
       description: String,
       model: CreateChatCompletionRequestModel,
@@ -64,12 +67,12 @@ data class SuiteSpec(
     ): SuiteSpec = SuiteBuilder(description, model).apply { block() }.build()
 
     inline fun <reified E> toHtml(result: SuiteResults<E>, suiteName: String): Html where
-    E : AI.PromptClassifier,
+    E : PromptClassifier,
     E : Enum<E> =
       Html.get(Json.encodeToString(SuiteResults.serializer(serializer<E>()), result), suiteName)
 
     inline fun <reified E> toMarkdown(result: SuiteResults<E>, suiteName: String): Markdown where
-    E : AI.PromptClassifier,
+    E : PromptClassifier,
     E : Enum<E> = Markdown.get(result, suiteName)
   }
 }

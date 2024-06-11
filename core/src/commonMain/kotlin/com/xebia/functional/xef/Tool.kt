@@ -1,0 +1,203 @@
+package com.xebia.functional.xef
+
+import com.xebia.functional.openai.generated.model.FunctionObject
+import com.xebia.functional.xef.llm.FunctionCall
+import com.xebia.functional.xef.llm.StreamedFunction
+import com.xebia.functional.xef.llm.chatFunction
+import kotlin.reflect.KClass
+import kotlin.reflect.KType
+import kotlin.reflect.typeOf
+import kotlinx.coroutines.flow.Flow
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.SealedClassSerializer
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.SetSerializer
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.serializer
+
+sealed class Tool<out A>(open val function: FunctionObject, open val invoke: (FunctionCall) -> A) {
+
+  data class Enumeration<out E>(
+    override val function: FunctionObject,
+    override val invoke: (FunctionCall) -> E,
+    val cases: List<Tool<E>>,
+    val enumSerializer: (String) -> E
+  ) : Tool<E>(function = function, invoke = invoke)
+
+  class FlowOfStrings :
+    Tool<Nothing>(function = FunctionObject("", ""), invoke = { error("Not invoked") })
+
+  class FlowOfStreamedFunctions<out A>(
+    override val function: FunctionObject,
+    override val invoke: (FunctionCall) -> A
+  ) : Tool<A>(function = function, invoke = invoke)
+
+  data class Sealed<A>(
+    override val function: FunctionObject,
+    override val invoke: (FunctionCall) -> A,
+    val cases: List<Case>,
+  ) : Tool<A>(function = function, invoke = invoke) {
+    data class Case(val className: String, val tool: Tool<*>)
+  }
+
+  data class Contextual<A>(
+    override val function: FunctionObject,
+    override val invoke: (FunctionCall) -> A,
+  ) : Tool<A>(function = function, invoke = invoke)
+
+  data class Class<A>(
+    override val function: FunctionObject,
+    override val invoke: (FunctionCall) -> A,
+  ) : Tool<A>(function = function, invoke = invoke)
+
+  data class Primitive<A>(
+    override val function: FunctionObject,
+    override val invoke: (FunctionCall) -> A
+  ) : Tool<A>(function = function, invoke = invoke)
+
+  companion object {
+
+    inline fun <reified A> fromKotlin(): Tool<A> = fromKotlin(typeOf<A>())
+
+    @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
+    fun <A : Any> fromKotlin(type: KType): Tool<A> {
+      val targetClass = type.getTargetClass<A>()
+      val descriptor = targetClass.serializer().descriptor
+      val kind = descriptor.kind
+      return when {
+        kind == PolymorphicKind.SEALED -> sealedTool(targetClass, descriptor)
+        kind == SerialKind.ENUM -> enumerationTool(targetClass, descriptor)
+        type == typeOf<Flow<String>>() -> flowOfStringsTool()
+        isFlowOfStreamedFunctions(targetClass, type) -> flowOfStreamedFunctionsTool(type)
+        requiresWrapping(type) -> wrappedValueTool(type, targetClass)
+        else -> defaultClassTool(targetClass)
+      }
+    }
+
+    private fun isFlowOfStreamedFunctions(targetClass: KClass<*>, type: KType): Boolean =
+      targetClass == Flow::class && type.arguments[0].type?.classifier == StreamedFunction::class
+
+    private fun <A : Any> wrappedValueTool(type: KType, targetClass: KClass<A>): Tool<A> {
+      val collectionTypeArg = type.arguments.firstOrNull()?.type?.classifier as? KClass<*>
+      return if (collectionTypeArg != null) {
+        collectionTool(collectionTypeArg, targetClass)
+      } else {
+        primitiveTool(targetClass)
+      }
+    }
+
+    private fun <A : Any> KType.getTargetClass(): KClass<A> =
+      (classifier as? KClass<*> ?: error("Expected KClass got $classifier")) as KClass<A>
+
+    @OptIn(InternalSerializationApi::class)
+    private fun <A : Any> defaultClassTool(targetClass: KClass<A>): Tool<A> {
+      val typeSerializer = targetClass.serializer()
+      val functionObject = chatFunction(typeSerializer.descriptor)
+      return Class(functionObject) {
+        Config.DEFAULT.json.decodeFromString(typeSerializer, it.arguments)
+      }
+    }
+
+    @OptIn(InternalSerializationApi::class)
+    private fun <A : Any> primitiveTool(targetClass: KClass<A>): Tool<A> {
+      val functionSerializer = Value.serializer(targetClass.serializer())
+      val functionObject = chatFunction(functionSerializer.descriptor)
+      return Primitive(functionObject) {
+        Config.DEFAULT.json.decodeFromString(functionSerializer, it.arguments).value
+      }
+    }
+
+    @OptIn(InternalSerializationApi::class)
+    private fun <A> collectionTool(collectionTypeArg: KClass<*>, targetClass: KClass<*>): Class<A> {
+      val innerSerializer = collectionTypeArg.serializer()
+      val functionSerializer =
+        when (targetClass) {
+          List::class -> {
+            Value.serializer(ListSerializer(innerSerializer))
+          }
+          Set::class -> {
+            Value.serializer(SetSerializer(innerSerializer))
+          }
+          else -> {
+            error("Unsupported collection type: $targetClass, expected List or Set")
+          }
+        }
+      val functionObject = chatFunction(functionSerializer.descriptor)
+      return Class(functionObject) {
+        Config.DEFAULT.json.decodeFromString(functionSerializer, it.arguments).value as A
+      }
+    }
+
+    @OptIn(InternalSerializationApi::class)
+    private fun <A : Any> flowOfStreamedFunctionsTool(
+      type: KType,
+    ): FlowOfStreamedFunctions<A> {
+      val targetType = type.arguments[0].type?.arguments?.get(0)?.type
+      val typeSerializer =
+        (targetType?.classifier as? KClass<*>)?.serializer()
+          ?: error("No serializer found for $targetType")
+      val functionSerializer = fromKotlin<A>(targetType)
+      val functionObject = chatFunction(typeSerializer.descriptor)
+      return FlowOfStreamedFunctions(functionObject) { functionSerializer.invoke(it) }
+    }
+
+    private fun flowOfStringsTool(): FlowOfStrings = FlowOfStrings()
+
+    @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
+    private fun <A> enumerationTool(
+      targetClass: KClass<*>,
+      descriptor: SerialDescriptor
+    ): Enumeration<A> {
+      val enumSerializer = { value: String ->
+        Config.DEFAULT.json.decodeFromString(targetClass.serializer(), value) as A
+      }
+      val functionObject = chatFunction(descriptor)
+      val cases =
+        descriptor.elementDescriptors.map {
+          val enumValue = it.serialName
+          val enumFunction = chatFunction(it)
+          Primitive(enumFunction) { enumSerializer(enumValue) }
+        }
+      return Enumeration(functionObject, { error("should not get called") }, cases, enumSerializer)
+    }
+
+    @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
+    private fun <A> sealedTool(targetClass: KClass<*>, descriptor: SerialDescriptor): Sealed<A> {
+      val sealedClassSerializer =
+        targetClass.serializer() as? SealedClassSerializer
+          ?: error("expected SealedClassSerializer got ${targetClass.serializer()}")
+      val casesDescriptors =
+        sealedClassSerializer.descriptor.elementDescriptors.toList()[1].elementDescriptors.toList()
+      val cases =
+        casesDescriptors.map {
+          val caseFunction = chatFunction(it)
+          Sealed.Case(
+            tool = Class<A>(caseFunction) { error("should not get called") },
+            className = it.serialName
+          )
+        }
+      return Sealed(
+        chatFunction(descriptor),
+        { Config.DEFAULT.json.decodeFromString(sealedClassSerializer, it.arguments) as A },
+        cases
+      )
+    }
+
+    private fun requiresWrapping(type: KType): Boolean {
+      val targetClass =
+        type.classifier as? KClass<*> ?: error("expected KClass got ${type.classifier}")
+      return when (targetClass) {
+        List::class,
+        Int::class,
+        String::class,
+        Boolean::class,
+        Double::class,
+        Float::class,
+        Char::class,
+        Byte::class -> true
+        else -> false
+      }
+    }
+  }
+}

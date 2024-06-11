@@ -100,6 +100,15 @@ interface PromptBuilder {
         )
       )
 
+    fun tool(toolCallId: String, value: String): ChatCompletionRequestMessage =
+      ChatCompletionRequestMessage.CaseChatCompletionRequestToolMessage(
+        ChatCompletionRequestToolMessage(
+          role = ChatCompletionRequestToolMessage.Role.tool,
+          content = value,
+          toolCallId = toolCallId
+        )
+      )
+
     fun system(value: String): ChatCompletionRequestMessage =
       ChatCompletionRequestMessage.CaseChatCompletionRequestSystemMessage(
         ChatCompletionRequestSystemMessage(

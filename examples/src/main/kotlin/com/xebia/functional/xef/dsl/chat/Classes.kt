@@ -53,7 +53,7 @@ suspend fun books(topic: String): Books {
       +user("Give me a selection of books about $topic")
     }
 
-  return AI.chat(myCustomPrompt)
+  return AI(myCustomPrompt)
 }
 
 suspend fun main() {

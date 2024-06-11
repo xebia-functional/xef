@@ -5,6 +5,7 @@ import com.xebia.functional.openai.generated.model.CreateChatCompletionRequest
 import com.xebia.functional.openai.generated.model.CreateChatCompletionResponse
 import com.xebia.functional.openai.generated.model.CreateChatCompletionResponseChoicesInner
 import com.xebia.functional.xef.AIError
+import com.xebia.functional.xef.Tool
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.models.MessageWithUsage
@@ -16,41 +17,44 @@ import com.xebia.functional.xef.store.Memory
 import kotlinx.coroutines.flow.*
 
 @AiDsl
-fun Chat.promptStreaming(prompt: Prompt, scope: Conversation = Conversation()): Flow<String> =
-  flow {
-    val messagesForRequestPrompt = PromptCalculator.adaptPromptToConversationAndModel(prompt, scope)
+fun Chat.promptStreaming(
+  prompt: Prompt,
+  scope: Conversation = Conversation(),
+  tools: List<Tool<*>>
+): Flow<String> = flow {
+  val messagesForRequestPrompt = PromptCalculator.adaptPromptToConversationAndModel(prompt, scope)
 
-    val request =
-      CreateChatCompletionRequest(
-        stream = true,
-        user = prompt.configuration.user,
-        messages = messagesForRequestPrompt.messages,
-        n = prompt.configuration.numberOfPredictions,
-        temperature = prompt.configuration.temperature,
-        maxTokens = prompt.configuration.maxTokens,
-        model = prompt.model,
-        seed = prompt.configuration.seed,
-      )
+  val request =
+    CreateChatCompletionRequest(
+      stream = true,
+      user = prompt.configuration.user,
+      messages = messagesForRequestPrompt.messages,
+      n = prompt.configuration.numberOfPredictions,
+      temperature = prompt.configuration.temperature,
+      maxTokens = prompt.configuration.maxTokens,
+      model = prompt.model,
+      seed = prompt.configuration.seed,
+    )
 
-    val buffer = StringBuilder()
+  val buffer = StringBuilder()
 
-    this@promptStreaming.createChatCompletionStream(request)
-      .mapNotNull {
-        val content = it.choices.firstOrNull()?.delta?.content
-        if (content != null) {
-          buffer.append(content)
-        }
-        content
+  this@promptStreaming.createChatCompletionStream(request)
+    .mapNotNull {
+      val content = it.choices.firstOrNull()?.delta?.content
+      if (content != null) {
+        buffer.append(content)
       }
-      .onEach { emit(it) }
-      .onCompletion {
-        val aiResponseMessage = PromptBuilder.assistant(buffer.toString())
-        val newMessages = prompt.messages + listOf(aiResponseMessage)
-        newMessages.addToMemory(scope, prompt.configuration.messagePolicy.addMessagesToConversation)
-        buffer.clear()
-      }
-      .collect()
-  }
+      content
+    }
+    .onEach { emit(it) }
+    .onCompletion {
+      val aiResponseMessage = PromptBuilder.assistant(buffer.toString())
+      val newMessages = prompt.messages + listOf(aiResponseMessage)
+      newMessages.addToMemory(scope, prompt.configuration.messagePolicy.addMessagesToConversation)
+      buffer.clear()
+    }
+    .collect()
+}
 
 @AiDsl
 suspend fun Chat.promptMessage(prompt: Prompt, scope: Conversation = Conversation()): String =

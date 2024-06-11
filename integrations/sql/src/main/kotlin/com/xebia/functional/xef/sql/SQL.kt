@@ -2,6 +2,7 @@ package com.xebia.functional.xef.sql
 
 import com.xebia.functional.openai.generated.api.Chat
 import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
+import com.xebia.functional.xef.Tool
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.Description
@@ -120,7 +121,8 @@ class SQLImpl(private val chatApi: Chat, private val model: CreateChatCompletion
         return chatApi.prompt(
             prompt = prompt,
             scope = this,
-            serializer = serializer<QueriesAnswer>()
+            serializer = Tool.fromKotlin(),
+            functions = emptyList()
         )
     }
 

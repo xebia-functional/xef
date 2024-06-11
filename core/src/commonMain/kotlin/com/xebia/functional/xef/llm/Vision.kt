@@ -4,6 +4,7 @@ import com.xebia.functional.openai.UploadFile
 import com.xebia.functional.openai.generated.api.Chat
 import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
 import com.xebia.functional.openai.generated.model.Image
+import com.xebia.functional.xef.Tool
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.image
@@ -22,10 +23,16 @@ suspend inline fun <reified A> Chat.visionStructured(
   conversation: Conversation = Conversation(),
   model: CreateChatCompletionRequestModel = CreateChatCompletionRequestModel.gpt_4_vision_preview,
   functionsModel: CreateChatCompletionRequestModel =
-    CreateChatCompletionRequestModel.gpt_3_5_turbo_0125
+    CreateChatCompletionRequestModel.gpt_3_5_turbo_0125,
+  tools: List<Tool<*>> = emptyList()
 ): A {
   val response = vision(prompt, url, model, conversation).toList().joinToString("") { it }
-  return prompt(Prompt(functionsModel) { +user(response) }, conversation, serializer())
+  return prompt(
+    Prompt(model = functionsModel) { +user(response) },
+    scope = conversation,
+    serializer = Tool.fromKotlin(),
+    functions = tools
+  )
 }
 
 fun Chat.vision(
@@ -34,7 +41,11 @@ fun Chat.vision(
   model: CreateChatCompletionRequestModel = CreateChatCompletionRequestModel.gpt_4_vision_preview,
   conversation: Conversation = Conversation()
 ): Flow<String> =
-  promptStreaming(prompt = Prompt(model) { +image(url, prompt) }, scope = conversation)
+  promptStreaming(
+    prompt = Prompt(model) { +image(url, prompt) },
+    scope = conversation,
+    tools = emptyList()
+  )
 
 suspend fun Image.asInputProvider(): UploadFile {
   val url = url
