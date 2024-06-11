@@ -18,4 +18,19 @@ sealed class AIEvent<out A> {
       val totalTokens: Int,
     )
   }
+
+  fun debugPrint(): Unit =
+    when (this) {
+      // emoji for start is: 🚀
+      Start -> println("🚀 Starting...")
+      is Result -> println("🎉 $value")
+      is ToolExecutionRequest ->
+        println("🔧 Executing tool: ${tool.function.name} with input: $input")
+      is ToolExecutionResponse ->
+        println("🔨 Tool response: ${tool.function.name} resulted in: $output")
+      is Stop -> {
+        println("🛑 Stopping...")
+        println("📊 Usage: $usage")
+      }
+    }
 }

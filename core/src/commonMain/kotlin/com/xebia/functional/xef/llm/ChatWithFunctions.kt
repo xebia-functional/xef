@@ -100,7 +100,7 @@ private suspend fun <A> Chat.promptWithFunctions(
       } else {
         val callRequestedMessages = listOf(assistantRequestedCallMessage(calls))
         val resultMessages = callResultMessages(calls, tools, collector)
-        resultMessages.forEach { usageTracker.toolInvocations++ }
+        repeat(resultMessages.size) { usageTracker.toolInvocations++ }
         val promptWithToolOutputs =
           prompt.copy(messages = prompt.messages + callRequestedMessages + resultMessages)
         // recurse until the assistant decides to call the serializer
@@ -256,7 +256,7 @@ fun <A> Chat.promptStreaming(
   prompt: Prompt,
   scope: Conversation,
   function: FunctionObject,
-  serializer: (json: String) -> A,
+  serializer: suspend (json: String) -> A,
 ): Flow<StreamedFunction<A>> = flow {
   val promptWithFunctions = prompt.copy(functions = listOf(function))
   val adaptedPrompt = PromptCalculator.adaptPromptToConversationAndModel(promptWithFunctions, scope)

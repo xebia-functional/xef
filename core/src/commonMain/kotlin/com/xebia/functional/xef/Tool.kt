@@ -1,11 +1,14 @@
 package com.xebia.functional.xef
 
 import com.xebia.functional.openai.generated.model.FunctionObject
+import com.xebia.functional.xef.conversation.Description
 import com.xebia.functional.xef.llm.FunctionCall
 import com.xebia.functional.xef.llm.StreamedFunction
 import com.xebia.functional.xef.llm.chatFunction
+import kotlin.jvm.JvmName
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction1
+import kotlin.reflect.KSuspendFunction1
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf
 import kotlinx.coroutines.flow.Flow
@@ -17,11 +20,14 @@ import kotlinx.serialization.builtins.SetSerializer
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.serializer
 
-sealed class Tool<out A>(open val function: FunctionObject, open val invoke: (FunctionCall) -> A) {
+sealed class Tool<out A>(
+  open val function: FunctionObject,
+  open val invoke: suspend (FunctionCall) -> A
+) {
 
   data class Enumeration<out E>(
     override val function: FunctionObject,
-    override val invoke: (FunctionCall) -> E,
+    override val invoke: suspend (FunctionCall) -> E,
     val cases: List<Tool<E>>,
     val enumSerializer: (String) -> E
   ) : Tool<E>(function = function, invoke = invoke)
@@ -31,17 +37,17 @@ sealed class Tool<out A>(open val function: FunctionObject, open val invoke: (Fu
 
   class FlowOfStreamedFunctions<out A>(
     override val function: FunctionObject,
-    override val invoke: (FunctionCall) -> A
+    override val invoke: suspend (FunctionCall) -> A
   ) : Tool<A>(function = function, invoke = invoke)
 
   class FlowOfAIEvents<out A>(
     override val function: FunctionObject,
-    override val invoke: (FunctionCall) -> A
+    override val invoke: suspend (FunctionCall) -> A
   ) : Tool<A>(function = function, invoke = invoke)
 
   data class Sealed<A>(
     override val function: FunctionObject,
-    override val invoke: (FunctionCall) -> A,
+    override val invoke: suspend (FunctionCall) -> A,
     val cases: List<Case>,
   ) : Tool<A>(function = function, invoke = invoke) {
     data class Case(val className: String, val tool: Tool<*>)
@@ -49,17 +55,17 @@ sealed class Tool<out A>(open val function: FunctionObject, open val invoke: (Fu
 
   data class Contextual<A>(
     override val function: FunctionObject,
-    override val invoke: (FunctionCall) -> A,
+    override val invoke: suspend (FunctionCall) -> A,
   ) : Tool<A>(function = function, invoke = invoke)
 
   data class Callable<A>(
     override val function: FunctionObject,
-    override val invoke: (FunctionCall) -> A,
+    override val invoke: suspend (FunctionCall) -> A,
   ) : Tool<A>(function = function, invoke = invoke)
 
   data class Primitive<A>(
     override val function: FunctionObject,
-    override val invoke: (FunctionCall) -> A
+    override val invoke: suspend (FunctionCall) -> A
   ) : Tool<A>(function = function, invoke = invoke)
 
   companion object {
@@ -227,10 +233,61 @@ sealed class Tool<out A>(open val function: FunctionObject, open val invoke: (Fu
       }
     }
 
-    inline fun <reified A, B> toolOf(fn: KFunction1<A, B>): Tool<B> {
+    @JvmName("fromKotlinFunction1")
+    inline operator fun <reified A, reified B, reified F : (A) -> B> invoke(
+      name: String,
+      description: Description,
+      fn: F,
+    ): Tool<B> {
       val tool = fromKotlin<A>()
       return Callable(
-        function = tool.function.copy(name = fn.name, description = fn.name),
+        function = tool.function.copy(name = name, description = description.value),
+        invoke = {
+          val input = tool.invoke(it)
+          fn(input)
+        }
+      )
+    }
+
+    @JvmName("fromKotlinSuspendFunction1")
+    inline fun <reified A, reified B> suspend(
+      name: String,
+      description: Description,
+      noinline fn: suspend (A) -> B,
+    ): Tool<B> {
+      val tool = fromKotlin<A>()
+      return Callable(
+        function = tool.function.copy(name = name, description = description.value),
+        invoke = {
+          val input = tool.invoke(it)
+          fn(input)
+        }
+      )
+    }
+
+    @JvmName("fromKotlinKFunction1")
+    inline operator fun <reified A, reified B, reified F : KFunction1<A, B>> invoke(
+      fn: F,
+      description: Description = Description(fn.name)
+    ): Tool<B> {
+      val tool = fromKotlin<A>()
+      return Callable(
+        function = tool.function.copy(name = fn.name, description = description.value),
+        invoke = {
+          val input = tool.invoke(it)
+          fn(input)
+        }
+      )
+    }
+
+    @JvmName("fromKotlinKSuspendFunction1")
+    inline operator fun <reified A, B> invoke(
+      fn: KSuspendFunction1<A, B>,
+      description: Description = Description(fn.name)
+    ): Tool<B> {
+      val tool = fromKotlin<A>()
+      return Callable(
+        function = tool.function.copy(name = fn.name, description = description.value),
         invoke = {
           val input = tool.invoke(it)
           fn(input)
