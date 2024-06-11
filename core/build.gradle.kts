@@ -106,7 +106,10 @@ kotlin {
       }
       val jvmTest by getting {
           dependencies {
-              implementation(libs.kotest.junit5)
+              implementation(libs.ollama.testcontainers)
+              implementation(libs.junit.jupiter.api)
+              implementation(libs.junit.jupiter.engine)
+              implementation(libs.logback)
           }
       }
       val linuxX64Main by getting {

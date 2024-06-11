@@ -7,6 +7,7 @@ import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.Description
 import com.xebia.functional.xef.prompt.Prompt
+import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
@@ -193,7 +194,19 @@ sealed interface AI {
       config: Config = Config(),
       api: Chat = OpenAI(config).chat,
       conversation: Conversation = Conversation()
-    ): A = chat(Prompt(model, prompt), target, config, api, conversation)
+    ): A =
+      chat(
+        prompt =
+          Prompt(
+            model = model,
+            value = prompt,
+            configuration = PromptConfiguration { supportsLogitBias = config.supportsLogitBias }
+          ),
+        target = target,
+        config = config,
+        api = api,
+        conversation = conversation
+      )
 
     @AiDsl
     suspend inline operator fun <reified A : Any> invoke(

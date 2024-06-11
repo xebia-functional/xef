@@ -9,6 +9,8 @@ import com.xebia.functional.xef.llm.models.modelType
 import com.xebia.functional.xef.llm.prompt
 import com.xebia.functional.xef.llm.promptStreaming
 import com.xebia.functional.xef.prompt.Prompt
+import com.xebia.functional.xef.prompt.PromptBuilder.Companion.user
+import com.xebia.functional.xef.prompt.contentAsString
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf
@@ -50,7 +52,7 @@ data class DefaultAI<A : Any>(
     val serializer = serializer()
     return when (serializer.descriptor.kind) {
       SerialKind.ENUM -> {
-        runWithEnumSingleTokenSerializer(serializer, prompt)
+        runWithEnumSerializer(serializer, prompt)
       }
       // else -> runWithSerializer(prompt, serializer)
       PolymorphicKind.OPEN ->
@@ -82,11 +84,61 @@ data class DefaultAI<A : Any>(
     }
   }
 
-  @OptIn(ExperimentalSerializationApi::class)
-  suspend fun runWithEnumSingleTokenSerializer(serializer: KSerializer<A>, prompt: Prompt): A {
+  private suspend fun runWithEnumSerializer(serializer: KSerializer<A>, prompt: Prompt): A =
+    if (prompt.configuration.supportsLogitBias) {
+      runWithEnumSingleTokenSerializer(serializer, prompt)
+    } else {
+      runWithEnumRegexResponseSerializer(serializer, prompt)
+    }
+
+  private suspend fun runWithEnumRegexResponseSerializer(
+    serializer: KSerializer<A>,
+    prompt: Prompt
+  ): A {
+    val cases = casesFromEnumSerializer(serializer)
+    val classificationMessage =
+      user(
+        """
+      <instructions>
+        You are an AI, expected to classify the `context` into one of the `cases`:
+        <context>
+          ${prompt.messages.joinToString("\n") { it.contentAsString() }}
+        <cases>  
+          ${cases.map { s -> "<case>$s</case>" }.joinToString("\n")}
+        </cases>
+        Select the `case` corresponding to the `context`.
+        IMPORTANT. Reply exclusively with the selected `case`.
+      </instructions>
+    """
+          .trimIndent()
+      )
+    val result =
+      api.createChatCompletion(
+        CreateChatCompletionRequest(
+          messages = prompt.messages + classificationMessage,
+          model = model,
+          maxTokens = prompt.configuration.maxTokens,
+          temperature = 0.0
+        )
+      )
+    val casesRegexes = cases.map { ".*$it.*" }
+    val responseContent = result.choices[0].message.content ?: ""
+    val choice =
+      casesRegexes
+        .zip(cases)
+        .firstOrNull {
+          Regex(it.first, RegexOption.IGNORE_CASE).containsMatchIn(responseContent.trim())
+        }
+        ?.second
+    return serializeWithEnumSerializer(choice, enumSerializer)
+  }
+
+  private suspend fun runWithEnumSingleTokenSerializer(
+    serializer: KSerializer<A>,
+    prompt: Prompt
+  ): A {
     val encoding = model.modelType(forFunctions = false).encoding
-    val cases =
-      serializer.descriptor.elementDescriptors.map { it.serialName.substringAfterLast(".") }
+    val cases = casesFromEnumSerializer(serializer)
     val logitBias =
       cases
         .flatMap {
@@ -108,7 +160,17 @@ data class DefaultAI<A : Any>(
         )
       )
     val choice = result.choices[0].message.content
-    val enumSerializer = enumSerializer
+    return serializeWithEnumSerializer(choice, enumSerializer)
+  }
+
+  @OptIn(ExperimentalSerializationApi::class)
+  private fun casesFromEnumSerializer(serializer: KSerializer<A>): List<String> =
+    serializer.descriptor.elementDescriptors.map { it.serialName.substringAfterLast(".") }
+
+  private fun serializeWithEnumSerializer(
+    choice: String?,
+    enumSerializer: ((case: String) -> A)?
+  ): A {
     return if (choice != null && enumSerializer != null) {
       enumSerializer(choice)
     } else {
