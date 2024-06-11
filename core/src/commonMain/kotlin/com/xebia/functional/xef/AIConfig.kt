@@ -9,7 +9,7 @@ data class AIConfig(
   val tools: List<Tool<*>> = emptyList(),
   val model: CreateChatCompletionRequestModel = CreateChatCompletionRequestModel.gpt_4o,
   val config: Config = Config(),
-  val openAI: OpenAI = OpenAI(config),
+  val openAI: OpenAI = OpenAI(config, logRequests = false),
   val api: Chat = openAI.chat,
-  val conversation: Conversation = Conversation(),
+  val conversation: Conversation = Conversation()
 )

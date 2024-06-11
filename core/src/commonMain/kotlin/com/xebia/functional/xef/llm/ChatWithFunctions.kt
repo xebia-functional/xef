@@ -6,6 +6,7 @@ import arrow.fx.coroutines.parMapNotNull
 import com.xebia.functional.openai.generated.api.Chat
 import com.xebia.functional.openai.generated.model.*
 import com.xebia.functional.xef.AIError
+import com.xebia.functional.xef.AIEvent
 import com.xebia.functional.xef.Config
 import com.xebia.functional.xef.Tool
 import com.xebia.functional.xef.conversation.AiDsl
@@ -14,6 +15,7 @@ import com.xebia.functional.xef.llm.models.functions.buildJsonSchema
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.tool
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -33,51 +35,123 @@ fun chatFunctions(descriptors: List<SerialDescriptor>): List<FunctionObject> =
 fun chatFunction(fnName: String, schema: JsonObject): FunctionObject =
   FunctionObject(fnName, "Generated function for $fnName", schema)
 
+data class UsageTracker(
+  var llmCalls: Int = 0,
+  var toolInvocations: Int = 0,
+  var totalErrors: Int = 0,
+  var inputTokens: Int = 0,
+  var outputTokens: Int = 0,
+  var totalTokens: Int = 0,
+)
+
 @AiDsl
 suspend fun <A> Chat.prompt(
   prompt: Prompt,
   scope: Conversation,
   serializer: Tool<A>,
-  functions: List<Tool<*>>
+  tools: List<Tool<*>>,
+  collector: ProducerScope<AIEvent<*>>? = null,
+  usageTracker: UsageTracker = UsageTracker()
 ): A =
   promptWithFunctions(
-    prompt = prompt,
-    scope = scope,
-    functions = listOf(serializer.function),
-    invokeTool = { call ->
-      val function =
-        functions.firstOrNull { it.function.name == call.functionName }
-          ?: error("No function found for ${call.functionName}")
-      function.invoke(call).toString()
+      prompt = prompt,
+      scope = scope,
+      serializer = serializer,
+      tools = listOf(serializer) + tools,
+      collector = collector,
+      usageTracker = usageTracker
+    )
+    .also {
+      collector?.send(
+        AIEvent.Stop(
+          AIEvent.Stop.Usage(
+            llmCalls = usageTracker.llmCalls,
+            toolCalls = usageTracker.toolInvocations,
+            inputTokens = usageTracker.inputTokens,
+            outputTokens = usageTracker.outputTokens,
+            totalTokens = usageTracker.totalTokens
+          )
+        )
+      )
     }
-  ) { call ->
-    serializer.invoke(call)
-  }
 
 private suspend fun <A> Chat.promptWithFunctions(
   prompt: Prompt,
   scope: Conversation,
-  functions: List<FunctionObject>,
-  invokeTool: ((FunctionCall) -> String)? = null,
-  serialize: (FunctionCall) -> A,
-): A =
-  promptWithResponse(prompt, scope, functions) { response ->
-    val calls = functionCalls(response)
-    if (calls.size == 1) {
-      val call = calls.first()
-      serialize(call)
-    } else {
-      val resultMessages =
-        functionCalls(response).parMapNotNull { call ->
-          val result = invokeTool?.invoke(call)
-          result?.let { tool(call.callId, it) }
-        }
-      val promptWithToolOutputs = prompt.copy(messages = prompt.messages + resultMessages)
-      promptWithFunctions(promptWithToolOutputs, scope, functions, invokeTool, serialize)
+  serializer: Tool<A>,
+  tools: List<Tool<*>>,
+  collector: ProducerScope<AIEvent<*>>?,
+  usageTracker: UsageTracker
+): A {
+  usageTracker.llmCalls++
+  val result =
+    promptWithResponse(prompt, scope, tools.map { it.function }) { response ->
+      val responseUsage = response.usage
+      usageTracker.inputTokens += responseUsage?.promptTokens ?: 0
+      usageTracker.outputTokens += responseUsage?.completionTokens ?: 0
+      usageTracker.totalTokens += responseUsage?.totalTokens ?: 0
+      val calls = functionCalls(response)
+      val serializerCall = calls.firstOrNull { it.functionName == serializer.function.name }
+      if (serializerCall != null) {
+        usageTracker.toolInvocations++
+        val result = serializer.invoke(serializerCall)
+        collector?.send(AIEvent.Result(result))
+        result
+      } else {
+        val callRequestedMessages = listOf(assistantRequestedCallMessage(calls))
+        val resultMessages = callResultMessages(calls, tools, collector)
+        resultMessages.forEach { usageTracker.toolInvocations++ }
+        val promptWithToolOutputs =
+          prompt.copy(messages = prompt.messages + callRequestedMessages + resultMessages)
+        // recurse until the assistant decides to call the serializer
+        promptWithFunctions(
+          promptWithToolOutputs,
+          scope,
+          serializer,
+          tools,
+          collector,
+          usageTracker
+        )
+      }
     }
+  return result
+}
+
+private suspend fun callResultMessages(
+  calls: List<FunctionCall>,
+  functions: List<Tool<*>>,
+  collector: ProducerScope<AIEvent<*>>?
+): List<ChatCompletionRequestMessage> =
+  calls.parMapNotNull { call ->
+    val tool = functions.firstOrNull { it.function.name == call.functionName }
+    tool?.let { collector?.send(AIEvent.ToolExecutionRequest(it, call.arguments)) }
+    val invokeTool = tool?.invoke
+    val result = invokeTool?.invoke(call).toString()
+    tool?.let { collector?.send(AIEvent.ToolExecutionResponse(it, result)) }
+    tool(call.callId, result)
   }
 
-@OptIn(ExperimentalSerializationApi::class)
+private fun assistantRequestedCallMessage(
+  calls: List<FunctionCall>
+): ChatCompletionRequestMessage.CaseChatCompletionRequestAssistantMessage =
+  ChatCompletionRequestMessage.CaseChatCompletionRequestAssistantMessage(
+    ChatCompletionRequestAssistantMessage(
+      role = ChatCompletionRequestAssistantMessage.Role.assistant,
+      toolCalls =
+        calls.map {
+          ChatCompletionMessageToolCall(
+            id = it.callId,
+            function =
+              ChatCompletionMessageToolCallFunction(
+                name = it.functionName,
+                arguments = it.arguments
+              ),
+            type = ChatCompletionMessageToolCall.Type.function
+          )
+        }
+    )
+  )
+
 @AiDsl
 suspend fun <A> Chat.prompt(
   prompt: Prompt,
@@ -166,6 +240,7 @@ private fun chatCompletionToolChoiceOption(adaptedPrompt: Prompt): ChatCompletio
     ChatCompletionToolChoiceOption.CaseChatCompletionNamedToolChoice(
       ChatCompletionNamedToolChoice(
         type = ChatCompletionNamedToolChoice.Type.function,
+        // TODO review access to first
         function = ChatCompletionNamedToolChoiceFunction(adaptedPrompt.functions.first().name)
       )
     )

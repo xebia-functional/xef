@@ -7,6 +7,7 @@ import com.xebia.functional.xef.llm.prompt
 import com.xebia.functional.xef.llm.promptStreaming
 import com.xebia.functional.xef.prompt.Prompt
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.channelFlow
 
 class AI<out A>(private val config: AIConfig, val serializer: Tool<A>) {
 
@@ -16,7 +17,7 @@ class AI<out A>(private val config: AIConfig, val serializer: Tool<A>) {
   @PublishedApi
   internal suspend operator fun invoke(prompt: Prompt): A =
     when (val serializer = serializer) {
-      is Tool.Class -> config.api.prompt(prompt, config.conversation, serializer, config.tools)
+      is Tool.Callable -> config.api.prompt(prompt, config.conversation, serializer, config.tools)
       is Tool.Contextual -> config.api.prompt(prompt, config.conversation, serializer, config.tools)
       is Tool.Enumeration<A> -> runWithEnumSingleTokenSerializer(serializer, prompt)
       is Tool.FlowOfStreamedFunctions<*> -> {
@@ -26,6 +27,18 @@ class AI<out A>(private val config: AIConfig, val serializer: Tool<A>) {
       is Tool.Primitive -> config.api.prompt(prompt, config.conversation, serializer, config.tools)
       is Tool.Sealed ->
         config.api.prompt(prompt, config.conversation, serializer, serializer.cases, config.tools)
+      is Tool.FlowOfAIEvents ->
+        channelFlow {
+          send(AIEvent.Start)
+          config.api.prompt(
+            prompt = prompt,
+            scope = config.conversation,
+            serializer = serializer,
+            tools = config.tools,
+            collector = this
+          )
+        }
+          as A
     }
 
   private suspend fun runWithEnumSingleTokenSerializer(

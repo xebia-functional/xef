@@ -122,7 +122,7 @@ class SQLImpl(private val chatApi: Chat, private val model: CreateChatCompletion
             prompt = prompt,
             scope = this,
             serializer = Tool.fromKotlin(),
-            functions = emptyList()
+            tools = emptyList()
         )
     }
 

@@ -31,7 +31,7 @@ suspend inline fun <reified A> Chat.visionStructured(
     Prompt(model = functionsModel) { +user(response) },
     scope = conversation,
     serializer = Tool.fromKotlin(),
-    functions = tools
+    tools = tools
   )
 }
 

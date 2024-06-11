@@ -5,6 +5,7 @@ import com.xebia.functional.xef.llm.FunctionCall
 import com.xebia.functional.xef.llm.StreamedFunction
 import com.xebia.functional.xef.llm.chatFunction
 import kotlin.reflect.KClass
+import kotlin.reflect.KFunction1
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf
 import kotlinx.coroutines.flow.Flow
@@ -33,6 +34,11 @@ sealed class Tool<out A>(open val function: FunctionObject, open val invoke: (Fu
     override val invoke: (FunctionCall) -> A
   ) : Tool<A>(function = function, invoke = invoke)
 
+  class FlowOfAIEvents<out A>(
+    override val function: FunctionObject,
+    override val invoke: (FunctionCall) -> A
+  ) : Tool<A>(function = function, invoke = invoke)
+
   data class Sealed<A>(
     override val function: FunctionObject,
     override val invoke: (FunctionCall) -> A,
@@ -46,7 +52,7 @@ sealed class Tool<out A>(open val function: FunctionObject, open val invoke: (Fu
     override val invoke: (FunctionCall) -> A,
   ) : Tool<A>(function = function, invoke = invoke)
 
-  data class Class<A>(
+  data class Callable<A>(
     override val function: FunctionObject,
     override val invoke: (FunctionCall) -> A,
   ) : Tool<A>(function = function, invoke = invoke)
@@ -69,11 +75,15 @@ sealed class Tool<out A>(open val function: FunctionObject, open val invoke: (Fu
         kind == PolymorphicKind.SEALED -> sealedTool(targetClass, descriptor)
         kind == SerialKind.ENUM -> enumerationTool(targetClass, descriptor)
         type == typeOf<Flow<String>>() -> flowOfStringsTool()
+        isFlowOfAIEvents(targetClass, type) -> flowOfAIEventsTool(type)
         isFlowOfStreamedFunctions(targetClass, type) -> flowOfStreamedFunctionsTool(type)
         requiresWrapping(type) -> wrappedValueTool(type, targetClass)
         else -> defaultClassTool(targetClass)
       }
     }
+
+    private fun isFlowOfAIEvents(targetClass: KClass<*>, type: KType): Boolean =
+      targetClass == Flow::class && type.arguments[0].type?.classifier == AIEvent::class
 
     private fun isFlowOfStreamedFunctions(targetClass: KClass<*>, type: KType): Boolean =
       targetClass == Flow::class && type.arguments[0].type?.classifier == StreamedFunction::class
@@ -94,46 +104,60 @@ sealed class Tool<out A>(open val function: FunctionObject, open val invoke: (Fu
     private fun <A : Any> defaultClassTool(targetClass: KClass<A>): Tool<A> {
       val typeSerializer = targetClass.serializer()
       val functionObject = chatFunction(typeSerializer.descriptor)
-      return Class(functionObject) {
+      return Callable(functionObject) {
         Config.DEFAULT.json.decodeFromString(typeSerializer, it.arguments)
       }
     }
 
     @OptIn(InternalSerializationApi::class)
     private fun <A : Any> primitiveTool(targetClass: KClass<A>): Tool<A> {
-      val functionSerializer = Value.serializer(targetClass.serializer())
+      val functionSerializer = Input.serializer(targetClass.serializer())
       val functionObject = chatFunction(functionSerializer.descriptor)
       return Primitive(functionObject) {
-        Config.DEFAULT.json.decodeFromString(functionSerializer, it.arguments).value
+        Config.DEFAULT.json.decodeFromString(functionSerializer, it.arguments).argument
       }
     }
 
     @OptIn(InternalSerializationApi::class)
-    private fun <A> collectionTool(collectionTypeArg: KClass<*>, targetClass: KClass<*>): Class<A> {
+    private fun <A> collectionTool(
+      collectionTypeArg: KClass<*>,
+      targetClass: KClass<*>
+    ): Callable<A> {
       val innerSerializer = collectionTypeArg.serializer()
       val functionSerializer =
         when (targetClass) {
           List::class -> {
-            Value.serializer(ListSerializer(innerSerializer))
+            Input.serializer(ListSerializer(innerSerializer))
           }
           Set::class -> {
-            Value.serializer(SetSerializer(innerSerializer))
+            Input.serializer(SetSerializer(innerSerializer))
           }
           else -> {
             error("Unsupported collection type: $targetClass, expected List or Set")
           }
         }
       val functionObject = chatFunction(functionSerializer.descriptor)
-      return Class(functionObject) {
-        Config.DEFAULT.json.decodeFromString(functionSerializer, it.arguments).value as A
+      return Callable(functionObject) {
+        Config.DEFAULT.json.decodeFromString(functionSerializer, it.arguments).argument as A
       }
+    }
+
+    @OptIn(InternalSerializationApi::class)
+    private fun <A : Any> flowOfAIEventsTool(type: KType): FlowOfAIEvents<A> {
+      val targetType = flowInnerContainerTypeArg(type)
+      val typeSerializer =
+        (targetType?.classifier as? KClass<*>)?.serializer()
+          ?: error("No serializer found for $targetType")
+      val functionSerializer = fromKotlin<A>(targetType)
+      val functionObject = chatFunction(typeSerializer.descriptor)
+      return FlowOfAIEvents(functionObject) { functionSerializer.invoke(it) }
     }
 
     @OptIn(InternalSerializationApi::class)
     private fun <A : Any> flowOfStreamedFunctionsTool(
       type: KType,
     ): FlowOfStreamedFunctions<A> {
-      val targetType = type.arguments[0].type?.arguments?.get(0)?.type
+      val targetType = flowInnerContainerTypeArg(type)
       val typeSerializer =
         (targetType?.classifier as? KClass<*>)?.serializer()
           ?: error("No serializer found for $targetType")
@@ -141,6 +165,9 @@ sealed class Tool<out A>(open val function: FunctionObject, open val invoke: (Fu
       val functionObject = chatFunction(typeSerializer.descriptor)
       return FlowOfStreamedFunctions(functionObject) { functionSerializer.invoke(it) }
     }
+
+    private fun flowInnerContainerTypeArg(type: KType): KType? =
+      type.arguments[0].type?.arguments?.get(0)?.type
 
     private fun flowOfStringsTool(): FlowOfStrings = FlowOfStrings()
 
@@ -173,7 +200,7 @@ sealed class Tool<out A>(open val function: FunctionObject, open val invoke: (Fu
         casesDescriptors.map {
           val caseFunction = chatFunction(it)
           Sealed.Case(
-            tool = Class<A>(caseFunction) { error("should not get called") },
+            tool = Callable<A>(caseFunction) { error("should not get called") },
             className = it.serialName
           )
         }
@@ -198,6 +225,17 @@ sealed class Tool<out A>(open val function: FunctionObject, open val invoke: (Fu
         Byte::class -> true
         else -> false
       }
+    }
+
+    inline fun <reified A, B> toolOf(fn: KFunction1<A, B>): Tool<B> {
+      val tool = fromKotlin<A>()
+      return Callable(
+        function = tool.function.copy(name = fn.name, description = fn.name),
+        invoke = {
+          val input = tool.invoke(it)
+          fn(input)
+        }
+      )
     }
   }
 }
