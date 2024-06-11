@@ -25,15 +25,26 @@ class AI<out A>(private val config: AIConfig, val serializer: Tool<A>) {
       }
       is Tool.FlowOfStrings -> runStreamingWithStringSerializer(prompt) as A
       is Tool.Primitive -> config.api.prompt(prompt, config.conversation, serializer, config.tools)
-      is Tool.Sealed ->
-        config.api.prompt(prompt, config.conversation, serializer, serializer.cases, config.tools)
+      is Tool.Sealed -> config.api.prompt(prompt, config.conversation, serializer, config.tools)
+      is Tool.FlowOfAIEventsSealed ->
+        channelFlow {
+          send(AIEvent.Start)
+          config.api.prompt(
+            prompt = prompt,
+            scope = config.conversation,
+            serializer = serializer.sealedSerializer,
+            tools = config.tools,
+            collector = this
+          )
+        }
+          as A
       is Tool.FlowOfAIEvents ->
         channelFlow {
           send(AIEvent.Start)
           config.api.prompt(
             prompt = prompt,
             scope = config.conversation,
-            serializer = serializer,
+            serializer = serializer.serializer,
             tools = config.tools,
             collector = this
           )

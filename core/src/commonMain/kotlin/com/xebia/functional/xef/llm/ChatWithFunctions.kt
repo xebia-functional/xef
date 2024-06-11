@@ -7,7 +7,6 @@ import com.xebia.functional.openai.generated.api.Chat
 import com.xebia.functional.openai.generated.model.*
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.AIEvent
-import com.xebia.functional.xef.Config
 import com.xebia.functional.xef.Tool
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
@@ -20,7 +19,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -53,27 +51,35 @@ suspend fun <A> Chat.prompt(
   collector: ProducerScope<AIEvent<*>>? = null,
   usageTracker: UsageTracker = UsageTracker()
 ): A =
-  promptWithFunctions(
-      prompt = prompt,
-      scope = scope,
-      serializer = serializer,
-      tools = listOf(serializer) + tools,
-      collector = collector,
-      usageTracker = usageTracker
-    )
-    .also {
-      collector?.send(
-        AIEvent.Stop(
-          AIEvent.Stop.Usage(
-            llmCalls = usageTracker.llmCalls,
-            toolCalls = usageTracker.toolInvocations,
-            inputTokens = usageTracker.inputTokens,
-            outputTokens = usageTracker.outputTokens,
-            totalTokens = usageTracker.totalTokens
-          )
-        )
+  when (serializer) {
+    is Tool.Sealed -> promptSealed(prompt, scope, serializer, tools, collector, usageTracker)
+    is Tool.FlowOfAIEventsSealed -> {
+      promptSealed(prompt, scope, serializer.sealedSerializer, tools, collector, usageTracker)
+    }
+    else -> {
+      promptWithFunctions(
+        prompt = prompt,
+        scope = scope,
+        serializer = serializer,
+        tools = listOf(serializer) + tools,
+        collector = collector,
+        usageTracker = usageTracker,
+        acceptedSerializerNames = listOf(serializer.function.name)
       )
     }
+  }.also {
+    collector?.send(
+      AIEvent.Stop(
+        AIEvent.Stop.Usage(
+          llmCalls = usageTracker.llmCalls,
+          toolCalls = usageTracker.toolInvocations,
+          inputTokens = usageTracker.inputTokens,
+          outputTokens = usageTracker.outputTokens,
+          totalTokens = usageTracker.totalTokens
+        )
+      )
+    )
+  }
 
 private suspend fun <A> Chat.promptWithFunctions(
   prompt: Prompt,
@@ -81,7 +87,9 @@ private suspend fun <A> Chat.promptWithFunctions(
   serializer: Tool<A>,
   tools: List<Tool<*>>,
   collector: ProducerScope<AIEvent<*>>?,
-  usageTracker: UsageTracker
+  usageTracker: UsageTracker,
+  acceptedSerializerNames: List<String>,
+  invokeSerializer: suspend (FunctionCall) -> A = { serializer.invoke(it) }
 ): A {
   usageTracker.llmCalls++
   val result =
@@ -91,10 +99,10 @@ private suspend fun <A> Chat.promptWithFunctions(
       usageTracker.outputTokens += responseUsage?.completionTokens ?: 0
       usageTracker.totalTokens += responseUsage?.totalTokens ?: 0
       val calls = functionCalls(response)
-      val serializerCall = calls.firstOrNull { it.functionName == serializer.function.name }
+      val serializerCall = calls.firstOrNull { it.functionName in acceptedSerializerNames }
       if (serializerCall != null) {
         usageTracker.toolInvocations++
-        val result = serializer.invoke(serializerCall)
+        val result = invokeSerializer(serializerCall)
         collector?.send(AIEvent.Result(result))
         result
       } else {
@@ -110,7 +118,8 @@ private suspend fun <A> Chat.promptWithFunctions(
           serializer,
           tools,
           collector,
-          usageTracker
+          usageTracker,
+          acceptedSerializerNames,
         )
       }
     }
@@ -153,32 +162,30 @@ private fun assistantRequestedCallMessage(
   )
 
 @AiDsl
-suspend fun <A> Chat.prompt(
+private suspend fun <A> Chat.promptSealed(
   prompt: Prompt,
   scope: Conversation,
-  serializer: Tool<A>,
-  descriptors: List<Tool.Sealed.Case>,
-  tools: List<Tool<*>>
-): A =
-  promptWithResponse(prompt, scope, descriptors.map { it.tool.function }) { response ->
-    val calls = functionCalls(response)
-    val call = calls.firstOrNull() ?: error("No function call found")
-    val newJson = descriptorChoice(call, descriptors)
-    serializer.invoke(call.copy(arguments = Json.encodeToString(newJson)))
+  serializer: Tool.Sealed<A>,
+  tools: List<Tool<*>>,
+  collector: ProducerScope<AIEvent<*>>? = null,
+  usageTracker: UsageTracker = UsageTracker()
+): A {
+  val allTools = serializer.cases.map { it.tool } + tools
+  val acceptedSerializerNames = serializer.cases.map { it.tool.function.name }
+  return promptWithFunctions(
+    prompt,
+    scope,
+    serializer,
+    allTools,
+    collector,
+    usageTracker,
+    acceptedSerializerNames
+  ) { call ->
+    val case =
+      serializer.cases.firstOrNull { it.tool.function.name == call.functionName }
+        ?: error("No case found for call: $call")
+    case.tool.invoke(call) as A
   }
-
-private fun descriptorChoice(call: FunctionCall, descriptors: List<Tool.Sealed.Case>): JsonObject {
-  // adds a `type` field with the call.functionName serial name equivalent to the call arguments
-  val jsonWithDiscriminator = Json.decodeFromString(JsonElement.serializer(), call.arguments)
-  val descriptor =
-    descriptors.firstOrNull { it.tool.function.name.endsWith(call.functionName) }
-      ?: error("No descriptor found for ${call.functionName}")
-  val newJson =
-    JsonObject(
-      jsonWithDiscriminator.jsonObject +
-        (Config.TYPE_DISCRIMINATOR to JsonPrimitive(descriptor.className))
-    )
-  return newJson
 }
 
 private fun functionCalls(response: CreateChatCompletionResponse): List<FunctionCall> =

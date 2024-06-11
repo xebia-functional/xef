@@ -147,7 +147,7 @@ class ConversationSpec :
           prompt = Prompt(model, question),
           scope = scope,
           serializer = Tool.fromKotlin(),
-          functions = emptyList()
+          tools = emptyList()
         )
 
       val lastRequest = chatApi.requests.last()
@@ -181,7 +181,7 @@ class ConversationSpec :
           prompt = Prompt(model) { +user(Json.encodeToString(Question.serializer(), question)) },
           scope = scope,
           serializer = Tool.fromKotlin(),
-          functions = emptyList()
+          tools = emptyList()
         )
 
       val lastRequest = chatApi.requests.last()
