@@ -1,99 +1,108 @@
 import {
-    ApiOptions,
-    EndpointsEnum,
-    apiConfigConstructor,
-    apiFetch,
-    baseHeaders,
-    defaultApiServer,
-  } from '@/utils/api';
+  ApiOptions,
+  EndpointsEnum,
+  apiConfigConstructor,
+  apiFetch,
+  baseHeaders,
+  defaultApiServer,
+} from '@/utils/api';
 
-  export type CreateAssistantRequest = {
-    model: string;
-    name?: string;
-    description?: string;
-    instructions?: string;
-    tools?: AssistantTool[];
-    fileIds?: string[];
-    metadata?: Record<string, string>;
-  };
+export type CreateAssistantRequest = {
+  model: string;
+  name?: string;
+  description?: string;
+  instructions?: string;
+  tools?: AssistantTool[];
+  fileIds?: string[];
+  metadata?: Record<string, string>;
+};
 
-  export type ModifyAssistantRequest = {
-    model?: string;
-    name?: string;
-    description?: string;
-    instructions?: string;
-    tools?: AssistantTool[];
-    fileIds?: string[];
-    metadata?: Record<string, string>;
-  };
+export type ModifyAssistantRequest = {
+  model?: string;
+  name?: string;
+  description?: string;
+  instructions?: string;
+  tools?: AssistantTool[];
+  fileIds?: string[];
+  metadata?: Record<string, string>;
+};
 
-  type CodeInterpreter = {
-    type: 'code_interpreter';
-  };
+type CodeInterpreter = {
+  type: 'code_interpreter';
+};
 
-  type Retrieval = {
-    type: 'retrieval';
-  };
+type Retrieval = {
+  type: 'retrieval';
+};
 
-  type Function = {
-    type: 'function';
-    name: string;
-    description: string;
-    parameters: string;
-  };
+type Function = {
+  type: 'function';
+  name: string;
+  description: string;
+  parameters: string;
+};
 
-  type AssistantTool = CodeInterpreter | Retrieval | Function;
+type AssistantTool = CodeInterpreter | Retrieval | Function;
 
-  const assistantApiBaseOptions: ApiOptions = {
-    endpointServer: defaultApiServer,
-    endpointPath: EndpointsEnum.assistants,
-    endpointValue: '',
+const assistantApiBaseOptions: ApiOptions = {
+  endpointServer: defaultApiServer,
+  endpointPath: EndpointsEnum.assistants,
+  endpointValue: '',
+  requestOptions: {
+    headers: baseHeaders,
+  },
+};
+
+async function executeRequest<T>(authToken: string, method: string, endpointValue: string = '', body?: any): Promise<T> {
+  const apiOptions: ApiOptions = {
+    ...assistantApiBaseOptions,
+    endpointValue: endpointValue,
+    body: body ? JSON.stringify(body) : undefined,
     requestOptions: {
-      headers: baseHeaders,
+      method: method,
+      ...assistantApiBaseOptions.requestOptions,
+      headers: {
+        ...assistantApiBaseOptions.requestOptions.headers,
+        Authorization: `Bearer ${authToken}`,
+        "OpenAI-Beta": "assistants=v2"
+      },
     },
   };
 
-  async function executeRequest<T>(authToken: string, method: string, endpointValue: string = '', body?: any): Promise<T> {
-    const apiOptions: ApiOptions = {
-      ...assistantApiBaseOptions,
-      endpointValue: endpointValue,
-      body: body ? JSON.stringify(body) : undefined,
-      requestOptions: {
-        method: method,
-        ...assistantApiBaseOptions.requestOptions,
-        headers: {
-          ...assistantApiBaseOptions.requestOptions.headers,
-          Authorization: `Bearer ${authToken}`,
-          "OpenAI-Beta": "assistants=v2"
-        },
-      },
-    };
-    const apiConfig = apiConfigConstructor(apiOptions);
-    const response = await apiFetch<T>(apiConfig);
-    if (!response.data) {
-      throw new Error('No data returned from the API');
-    }
-    return response.data;
+  const apiConfig = apiConfigConstructor(apiOptions);
+
+  // Si la solicitud es DELETE, no esperamos datos en la respuesta
+  if (method === 'DELETE') {
+    await apiFetch<void>(apiConfig);
+    return;
   }
 
-  export async function postAssistant(authToken: string, data: CreateAssistantRequest): Promise<AssistantObject> {
-    return executeRequest<AssistantObject>(authToken, 'POST', '', data);
+  const response = await apiFetch<T>(apiConfig);
+
+  if (!response.data) {
+    throw new Error('No data returned from the API');
   }
 
-  export async function getAssistants(authToken: string): Promise<ListAssistantResponse> {
-    const response = await executeRequest<ListAssistantResponse>(authToken, 'GET');
-      return response;
-  }
+  return response.data;
+}
 
-  export async function putAssistant(authToken: string, id: string, data: ModifyAssistantRequest): Promise<AssistantObject> {
-    return executeRequest<AssistantObject>(authToken, 'PUT', `/${id}`, data);
-  }
+export async function postAssistant(authToken: string, data: CreateAssistantRequest): Promise<AssistantObject> {
+  return executeRequest<AssistantObject>(authToken, 'POST', '', data);
+}
 
-  export async function deleteAssistant(authToken: string, id: string): Promise<DeleteAssistantResponse> {
-    await executeRequest<void>(authToken, 'DELETE', `/${id}`);
-  }
+export async function getAssistants(authToken: string): Promise<ListAssistantResponse> {
+  const response = await executeRequest<ListAssistantResponse>(authToken, 'GET');
+  return response;
+}
 
-  export function getAssistantById(assistants: AssistantObject[], id: string): AssistantObject | undefined {
-    return assistants.find(assistant => assistant.id === id);
-  }
+export async function putAssistant(authToken: string, id: string, data: ModifyAssistantRequest): Promise<AssistantObject> {
+  return executeRequest<AssistantObject>(authToken, 'PUT', `/${id}`, data);
+}
 
+export async function deleteAssistant(authToken: string, id: string): Promise<void> {
+  await executeRequest<void>(authToken, 'DELETE', `/${id}`);
+}
+
+export function getAssistantById(assistants: AssistantObject[], id: string): AssistantObject | undefined {
+  return assistants.find(assistant => assistant.id === id);
+}

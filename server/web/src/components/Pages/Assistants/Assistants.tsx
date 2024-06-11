@@ -115,13 +115,13 @@ type CreateAssistantRequest = {
   }
 
 const emptyAssistantObject: AssistantObject = {
-    id: "",
+    id: null,
     object: "assistant",
     createdAt: 0,
-    name: "",
-    description: "",
-    model: "",
-    instructions: "",
+    name: null,
+    description: null,
+    model: null,
+    instructions: '',
     tools: [],
     metadata: null,
     toolResources: null,
@@ -131,17 +131,17 @@ const emptyAssistantObject: AssistantObject = {
 };
 
 const emptyAssistantRequest: CreateAssistantRequest = {
-  name: '',
+  name: null,
   instructions: '',
-  model: '',
+  model: null,
   temperature: 1,
   top_p: 1,
 };
 
 const emptyModifyAssistantRequest: ModifyAssistantRequest = {
-  name: '',
+  name: null,
   instructions: '',
-  model: '',
+  model: null,
   temperature: 1,
   top_p: 1,
 };
@@ -159,6 +159,8 @@ export function Assistants() {
   const [JsonObjectEnabled, setJsonObjectEnabled] = useState(false);
   const [createdAssistant, setCreatedAssistant] = useState<CreateAssistantRequest>(emptyAssistantRequest);
   const [editedAssistant, setEditedAssistant] = useState<ModifyAssistantRequest>(emptyModifyAssistantRequest);
+  const [temperatureSliderValue, setTemperatureSliderValue] = useState<number>(1);
+  const [topPSliderValue, setTopPSliderValue] = useState<number>(1);
 
   const [fileSearchSelectedFile, fileSearchSetSelectedFile] = useState<File[]>([]);
   const [fileSearchDialogOpen, setFileSearchDialogOpen] = useState(false);
@@ -188,6 +190,7 @@ export function Assistants() {
     } else {
       setCreatedAssistant((prev) => ({ ...prev, temperature: value }));
     }
+    setTemperatureSliderValue(value);
   };
 
   const handleTopPChange = (event: Event, newValue: number | number[], id: string | null = null) => {
@@ -197,6 +200,7 @@ export function Assistants() {
     } else {
       setCreatedAssistant((prev) => ({ ...prev, top_p: value }));
     }
+    setTopPSliderValue(value);
   };
 
   const handleTemperatureInputChange = (event: React.ChangeEvent<HTMLInputElement>, id: string | null = null) => {
@@ -207,6 +211,7 @@ export function Assistants() {
       } else {
         setCreatedAssistant((prev) => ({ ...prev, temperature: value }));
       }
+      setTemperatureSliderValue(value);
     }
   };
 
@@ -218,6 +223,7 @@ export function Assistants() {
       } else {
         setCreatedAssistant((prev) => ({ ...prev, top_p: value }));
       }
+      setTopPSliderValue(value);
     }
   };
 
@@ -381,6 +387,7 @@ const handleDeleteAssistant = async (id: string) => {
     setAssistants(updatedAssistants);
     setSelectedAssistant(emptyAssistantObject);
     setShowAlert('Assistant deleted successfully');
+    await loadAssistants();
 
   } catch (error) {
     console.error('Error deleting assistant:', error);
@@ -518,16 +525,15 @@ useEffect(() => {
                             </Typography>
 
                             <TextField
-                                fullWidth
-                                label="Name"
-                                value={selectedAssistant.id ? selectedAssistant.name : createdAssistant.name}
-                                placeholder="Enter a user friendly name"
-                                onChange={(e) =>
-                                  selectedAssistant.id
-                                    ? setSelectedAssistant({ ...selectedAssistant, name: e.target.value })
-                                    : setCreatedAssistant({ ...createdAssistant, name: e.target.value })
-                                }
-                                margin="normal"
+                              fullWidth
+                              label="Name"
+                              value={selectedAssistant.id ? selectedAssistant.name : createdAssistant.name || ''}
+                              onChange={(e) =>
+                                selectedAssistant.id
+                                  ? setSelectedAssistant({ ...selectedAssistant, name: e.target.value })
+                                  : setCreatedAssistant({ ...createdAssistant, name: e.target.value })
+                              }
+                              margin="normal"
                             />
                             <TextField
                                 fullWidth
@@ -536,7 +542,7 @@ useEffect(() => {
                                 multiline
                                 rows={4}
                                 margin="normal"
-                                value={selectedAssistant.id ? selectedAssistant.instructions : createdAssistant.instructions}
+                                value={selectedAssistant.id ? selectedAssistant.instructions : createdAssistant.instructions || ''}
                                 onChange={(e) =>
                                   selectedAssistant.id
                                     ? setSelectedAssistant({ ...selectedAssistant, instructions: e.target.value })
@@ -811,60 +817,6 @@ useEffect(() => {
                                 </Tooltip>
                               </Box>
                             </div>
-
-                            <div className={styles.sliders}>
-                              <Typography gutterBottom>Temperature</Typography>
-                              <TextField
-                                value={selectedAssistant.id ? selectedAssistant.temperature : createdAssistant.temperature}
-                                onChange={(e) => handleTemperatureInputChange(e, selectedAssistant && selectedAssistant.id ? selectedAssistant.id : null)}
-                                type="number"
-                                InputProps={{
-                                  inputProps: {
-                                    min: 0,
-                                    max: 2,
-                                    step: 0.01,
-                                    inputMode: 'numeric'
-                                  },
-                                  sx: { '& input': { padding: '4px 7px' } }
-                                }}
-                              />
-                            </div>
-                            <Slider
-                              value={selectedAssistant.id ? selectedAssistant.temperature : createdAssistant.temperature}
-                              onChange={(e, newValue) => handleTemperatureChange(e, newValue, selectedAssistant && selectedAssistant.id ? selectedAssistant.id : null)}
-                              step={0.01}
-                              marks
-                              min={0}
-                              max={2}
-                              valueLabelDisplay="auto"
-                            />
-
-                            <div className={styles.sliders}>
-                              <Typography gutterBottom>Top P</Typography>
-                              <TextField
-                                value={selectedAssistant.id ? selectedAssistant.top_p : createdAssistant.top_p}
-                                onChange={(e) => handleTopPInputChange(e, selectedAssistant && selectedAssistant.id ? selectedAssistant.id : null)}
-                                type="number"
-                                InputProps={{
-                                  inputProps: {
-                                    min: 0,
-                                    max: 1,
-                                    step: 0.01,
-                                    inputMode: 'numeric'
-                                  },
-                                  sx: { '& input': { padding: '4px 7px' } }
-                                }}
-                              />
-                            </div>
-                            <Slider
-                              value={selectedAssistant.id ? selectedAssistant.top_p : createdAssistant.top_p}
-                              onChange={(e, newValue) => handleTopPChange(e, newValue, selectedAssistant && selectedAssistant.id ? selectedAssistant.id : null)}
-                              step={0.01}
-                              marks
-                              min={0}
-                              max={1}
-                              valueLabelDisplay="auto"
-                            />
 
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '2px' }}>
                               {selectedAssistant.id && (
