@@ -11,10 +11,11 @@ import kotlinx.serialization.Serializable
 val ballCupLocation = 47
 
 suspend fun ballLocationInfoFromLastCupTried(input: Int): String {
-  val tip = if (input < ballCupLocation) "higher" else "lower"
-  val recommendedCup =
-    if (input < ballCupLocation) (input + 1)..ballCupLocation else ballCupLocation until input
-  return "The ball is not under cup number $input. Try a cup with a $tip number. We recommend trying cup ${recommendedCup.random()}, ${recommendedCup.random()}, ${recommendedCup.random()} next"
+  return when {
+    input < ballCupLocation -> "${(input..ballCupLocation).random()} may have the ball."
+    input > ballCupLocation -> "${(ballCupLocation..input).random()} may have the ball."
+    else -> "The ball is under cup number $input."
+  }
 }
 
 fun lookUnderCupNumber(cupNumber: Int): String =
@@ -35,7 +36,9 @@ suspend fun main() {
             listOf(
               Tool(
                 ::ballLocationInfoFromLastCupTried,
-                Description("Get a tip on where the ball is based on the last cup number tried.")
+                Description(
+                  "Get a tip on where the ball is based on the last cup number tried. Request this tool in parallel with different cup numbers to get multiple tips."
+                )
               ),
               Tool(::lookUnderCupNumber, Description("Look under a cup to find the ball."))
             )

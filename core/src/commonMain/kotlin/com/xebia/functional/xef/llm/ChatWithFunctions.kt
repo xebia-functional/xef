@@ -92,6 +92,7 @@ private suspend fun <A> Chat.promptWithFunctions(
   invokeSerializer: suspend (FunctionCall) -> A = { serializer.invoke(it) }
 ): A {
   usageTracker.llmCalls++
+  validateMaxToolCallsPerRound(prompt, usageTracker)
   val result =
     promptWithResponse(prompt, scope, tools.map { it.function }) { response ->
       val responseUsage = response.usage
@@ -107,7 +108,7 @@ private suspend fun <A> Chat.promptWithFunctions(
         result
       } else {
         val callRequestedMessages = listOf(assistantRequestedCallMessage(calls))
-        val resultMessages = callResultMessages(calls, tools, collector)
+        val resultMessages = callResultMessages(prompt, calls, tools, collector)
         repeat(resultMessages.size) { usageTracker.toolInvocations++ }
         val promptWithToolOutputs =
           prompt.copy(messages = prompt.messages + callRequestedMessages + resultMessages)
@@ -126,12 +127,21 @@ private suspend fun <A> Chat.promptWithFunctions(
   return result
 }
 
+private fun validateMaxToolCallsPerRound(prompt: Prompt, usageTracker: UsageTracker) {
+  if (usageTracker.toolInvocations >= prompt.configuration.maxToolCallsPerRound) {
+    error(
+      "Too many tool calls in this round: ${usageTracker.toolInvocations}, max allowed: ${prompt.configuration.maxToolCallsPerRound}"
+    )
+  }
+}
+
 private suspend fun callResultMessages(
+  prompt: Prompt,
   calls: List<FunctionCall>,
   functions: List<Tool<*>>,
   collector: ProducerScope<AIEvent<*>>?
 ): List<ChatCompletionRequestMessage> =
-  calls.parMapNotNull { call ->
+  calls.parMapNotNull(concurrency = prompt.configuration.concurrentToolCallsPerRound) { call ->
     val tool = functions.firstOrNull { it.function.name == call.functionName }
     tool?.let { collector?.send(AIEvent.ToolExecutionRequest(it, call.arguments)) }
     val invokeTool = tool?.invoke
@@ -251,7 +261,11 @@ private fun chatCompletionToolChoiceOption(adaptedPrompt: Prompt): ChatCompletio
         function = ChatCompletionNamedToolChoiceFunction(adaptedPrompt.functions.first().name)
       )
     )
-  else ChatCompletionToolChoiceOption.CaseString("required")
+  else {
+    if (adaptedPrompt.model is CreateChatCompletionRequestModel.Custom)
+      ChatCompletionToolChoiceOption.CaseString("auto")
+    else ChatCompletionToolChoiceOption.CaseString("required")
+  }
 
 private fun chatCompletionTools(adaptedPrompt: Prompt): List<ChatCompletionTool> =
   adaptedPrompt.functions.map {

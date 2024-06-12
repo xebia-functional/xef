@@ -24,7 +24,7 @@ sealed class Response {
 
 fun informationOnPlanet(planet: Planet): String =
   when (planet.name) {
-    "Mars" -> "It's a secret but Mars has 100 moons."
+    "Mars" -> "It's a secret but we just discovered that Mars has 100 moons."
     else -> "I don't have information on the number of moons for ${planet.name}."
   }
 
@@ -34,7 +34,7 @@ suspend fun main() {
 
   val other =
     AI<Flow<AIEvent<Response>>>(
-      prompt = "How many moons does Mars have?",
+      prompt = "How many moons does Mars have based on the recent discovery?",
       config = AIConfig(tools = listOf(Tool(::informationOnPlanet)))
     )
   other.collect { it.debugPrint() }

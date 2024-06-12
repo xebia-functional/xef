@@ -1,5 +1,6 @@
 package com.xebia.functional.xef.dsl.chat
 
+import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.AI
 import com.xebia.functional.xef.AIConfig
 import com.xebia.functional.xef.AIEvent
@@ -26,6 +27,7 @@ suspend fun main() {
       prompt = "Where is the ball? use the available tools to find out.",
       config =
         AIConfig(
+          model = CreateChatCompletionRequestModel.gpt_3_5_turbo,
           tools =
             listOf(
               Tool.suspend(
