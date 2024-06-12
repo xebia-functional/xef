@@ -37,7 +37,7 @@ class TestChatApi(private val responses: Map<String, String> = emptyMap()) : Cha
                         type = ChatCompletionMessageToolCall.Type.function,
                         function =
                           ChatCompletionMessageToolCallFunction(
-                            "fake-function-name",
+                            "Answer",
                             """{ "bar": "fake-answer" }"""
                           )
                       )

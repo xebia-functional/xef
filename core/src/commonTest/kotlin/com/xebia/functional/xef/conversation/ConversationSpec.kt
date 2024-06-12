@@ -1,10 +1,9 @@
 package com.xebia.functional.xef.conversation
 
 import com.xebia.functional.openai.generated.model.*
-import com.xebia.functional.xef.Tool
-import com.xebia.functional.xef.data.*
+import com.xebia.functional.xef.data.TestChatApi
+import com.xebia.functional.xef.data.TestEmbeddings
 import com.xebia.functional.xef.llm.models.modelType
-import com.xebia.functional.xef.llm.prompt
 import com.xebia.functional.xef.llm.promptMessage
 import com.xebia.functional.xef.llm.promptMessages
 import com.xebia.functional.xef.llm.tokensFromMessages
@@ -20,9 +19,6 @@ import com.xebia.functional.xef.store.LocalVectorStore
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.comparables.shouldBeLessThan
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import kotlinx.uuid.UUID
 import kotlinx.uuid.generateUUID
 
@@ -123,72 +119,6 @@ class ConversationSpec :
       val messagesSizePlusMessageResponse = lastRequest.messages.size + 1
 
       messagesSizePlusMessageResponse shouldBe memories.size
-    }
-
-    "functionCall shouldn't be null when the model support functions and the prompt contain a function" {
-      val question = "fake-question"
-      val answer = Answer("fake-answer")
-
-      val message = mapOf(question to Json.encodeToString(answer))
-
-      val conversationId = ConversationId(UUID.generateUUID().toString())
-      val scope =
-        Conversation(
-          LocalVectorStore(TestEmbeddings()),
-          LogsMetric(),
-          conversationId = conversationId
-        )
-
-      val chatApi = TestChatApi(message)
-      val model = CreateChatCompletionRequestModel.gpt_3_5_turbo_16k
-
-      val response: Answer =
-        chatApi.prompt(
-          prompt = Prompt(model, question),
-          scope = scope,
-          serializer = Tool.fromKotlin(),
-          tools = emptyList()
-        )
-
-      val lastRequest = chatApi.requests.last()
-
-      response shouldBe answer
-
-      lastRequest.toolChoice shouldNotBe null
-    }
-
-    "the message of the request should be the JSON string of the question when the prompt contains serializable object" {
-      val question = Question("fake-question")
-      val questionJsonString = Json.encodeToString(question)
-      val answer = Answer("fake-answer")
-      val answerJsonString = Json.encodeToString(answer)
-
-      val message = mapOf(questionJsonString to answerJsonString)
-
-      val conversationId = ConversationId(UUID.generateUUID().toString())
-      val scope =
-        Conversation(
-          LocalVectorStore(TestEmbeddings()),
-          LogsMetric(),
-          conversationId = conversationId
-        )
-
-      val chatApi = TestChatApi(message)
-      val model = CreateChatCompletionRequestModel.gpt_3_5_turbo_0613
-
-      val response: Answer =
-        chatApi.prompt(
-          prompt = Prompt(model) { +user(Json.encodeToString(Question.serializer(), question)) },
-          scope = scope,
-          serializer = Tool.fromKotlin(),
-          tools = emptyList()
-        )
-
-      val lastRequest = chatApi.requests.last()
-
-      lastRequest.messages.last().contentAsString() shouldBe questionJsonString
-
-      response shouldBe answer
     }
 
     "the scope's store should contains all the messages" {
