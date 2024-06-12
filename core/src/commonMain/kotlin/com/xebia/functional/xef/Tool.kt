@@ -134,10 +134,10 @@ sealed class Tool<out A>(
 
     @OptIn(InternalSerializationApi::class)
     private fun <A : Any> primitiveTool(targetClass: KClass<A>): Tool<A> {
-      val functionSerializer = Input.serializer(targetClass.serializer())
+      val functionSerializer = Value.serializer(targetClass.serializer())
       val functionObject = chatFunction(functionSerializer.descriptor)
       return Primitive(functionObject) {
-        Config.DEFAULT.json.decodeFromString(functionSerializer, it.arguments).argument
+        Config.DEFAULT.json.decodeFromString(functionSerializer, it.arguments).value
       }
     }
 
@@ -150,10 +150,10 @@ sealed class Tool<out A>(
       val functionSerializer =
         when (targetClass) {
           List::class -> {
-            Input.serializer(ListSerializer(innerSerializer))
+            Value.serializer(ListSerializer(innerSerializer))
           }
           Set::class -> {
-            Input.serializer(SetSerializer(innerSerializer))
+            Value.serializer(SetSerializer(innerSerializer))
           }
           else -> {
             error("Unsupported collection type: $targetClass, expected List or Set")
@@ -161,7 +161,7 @@ sealed class Tool<out A>(
         }
       val functionObject = chatFunction(functionSerializer.descriptor)
       return Callable(functionObject) {
-        Config.DEFAULT.json.decodeFromString(functionSerializer, it.arguments).argument as A
+        Config.DEFAULT.json.decodeFromString(functionSerializer, it.arguments).value as A
       }
     }
 
