@@ -6,6 +6,7 @@ import com.xebia.functional.xef.server.models.LoginRequest
 import com.xebia.functional.xef.server.models.LoginResponse
 import com.xebia.functional.xef.server.models.RegisterRequest
 import com.xebia.functional.xef.server.models.exceptions.XefExceptions.UserException
+import com.xebia.functional.xef.server.models.toUserResponse
 import com.xebia.functional.xef.server.utils.HashUtils
 import io.github.oshai.kotlinlogging.KLogger
 import kotlinx.uuid.UUID
@@ -33,7 +34,7 @@ class UserRepositoryService(private val logger: KLogger) {
           authToken = UUID.generateUUID(passwordHashed).toString()
         }
       }
-      LoginResponse(user.authToken)
+      LoginResponse(user.authToken, user.toUserResponse())
     }
   }
 
@@ -47,7 +48,7 @@ class UserRepositoryService(private val logger: KLogger) {
       if (!HashUtils.checkPassword(request.password, user.salt, user.passwordHash))
         throw Exception("Invalid password")
 
-      LoginResponse(user.authToken)
+      LoginResponse(user.authToken, user.toUserResponse())
     }
   }
 }

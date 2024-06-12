@@ -8,7 +8,7 @@ import { Footer } from '@/components/Footer';
 
 import styles from './App.module.css';
 
-const drawerWidth = 300;
+const drawerWidth = 200;
 
 export function App() {
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);

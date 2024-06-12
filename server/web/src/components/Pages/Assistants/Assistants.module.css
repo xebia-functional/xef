@@ -1,0 +1,19 @@
+.container {
+  position: relative;
+  height: 100%;
+}
+
+.sliders {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.boldText {
+  font-weight: bold;
+  font-size: 0.8rem;
+}
+
+.smallText {
+  font-size: 0.7rem;
+}
