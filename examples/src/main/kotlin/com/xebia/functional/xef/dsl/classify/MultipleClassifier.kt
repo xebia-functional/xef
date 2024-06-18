@@ -1,13 +1,14 @@
 package com.xebia.functional.xef.dsl.classify
 
-import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.AI
+import com.xebia.functional.xef.Classification
+import com.xebia.functional.xef.PromptMultipleClassifier
 import com.xebia.functional.xef.conversation.Description
 import kotlin.reflect.typeOf
 import kotlinx.serialization.Serializable
 
 @Serializable
-enum class Sports : AI.PromptMultipleClassifier {
+enum class Sports : PromptMultipleClassifier {
   @Description(
     "Football is a team sport that is played on a rectangular field with goalposts at each end. The objective of the game is to score points by moving the ball into the opposing team's goal. The team with the most points at the end of the game wins."
   )
@@ -29,7 +30,7 @@ enum class Sports : AI.PromptMultipleClassifier {
   )
   CHESS;
 
-  override fun getItems(): List<AI.Classification> = typeOf<Sports>().enumValuesName()
+  override fun getItems(): List<Classification> = typeOf<Sports>().enumValuesName()
 }
 
 /**
@@ -38,10 +39,5 @@ enum class Sports : AI.PromptMultipleClassifier {
 suspend fun main() {
 
   println(AI.multipleClassify<Sports>("Sport played with a racket"))
-  println(
-    AI.multipleClassify<Sports>(
-      input = "The game is played with a ball",
-      model = CreateChatCompletionRequestModel.gpt_4o
-    )
-  )
+  println(AI.multipleClassify<Sports>(input = "The game is played with a ball"))
 }
