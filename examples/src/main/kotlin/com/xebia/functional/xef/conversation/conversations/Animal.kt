@@ -2,6 +2,7 @@ package com.xebia.functional.xef.conversation.conversations
 
 import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.AI
+import com.xebia.functional.xef.AIConfig
 import com.xebia.functional.xef.OpenAI
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.MessagesFromHistory
@@ -31,23 +32,24 @@ suspend fun main() {
     //    metric = com.xebia.functional.xef.opentelemetry.OpenTelemetryMetric(),
     store = LocalVectorStore(openAI.embeddings),
   ) {
-    metric.customSpan("Animal Example") {
+    metric.customSpan("Animal Example", emptyMap()) {
       val configNoneFromConversation = PromptConfiguration {
         messagePolicy { addMessagesFromConversation = MessagesFromHistory.NONE }
       }
       val model = CreateChatCompletionRequestModel.gpt_3_5_turbo_16k_0613
+      val config = AIConfig(model = model, openAI = openAI, conversation = this@Conversation)
       val animal: Animal =
         AI(
           Prompt(model) { +user("A unique animal species.") }
             .copy(configuration = configNoneFromConversation),
-          conversation = this@Conversation
+          config = config
         )
 
       val invention: Invention =
         AI(
           Prompt(model) { +user("A groundbreaking invention from the 20th century.") }
             .copy(configuration = configNoneFromConversation),
-          conversation = this@Conversation
+          config = config
         )
 
       println("\nAnimal: $animal")
