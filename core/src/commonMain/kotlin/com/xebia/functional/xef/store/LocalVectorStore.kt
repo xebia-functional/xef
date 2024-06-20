@@ -76,11 +76,11 @@ private constructor(
   }
 
   override suspend fun addDocuments(texts: List<VectorStore.Document>) {
-    val docsAsJson = texts.map { it.content }
+    val docsContent = texts.map { it.content }
     val embeddingsList =
-      embeddings.embedDocuments(docsAsJson, embeddingRequestModel = embeddingRequestModel)
+      embeddings.embedDocuments(docsContent, embeddingRequestModel = embeddingRequestModel)
     state.getAndUpdate { prevState ->
-      val newEmbeddings = prevState.precomputedEmbeddings + docsAsJson.zip(embeddingsList)
+      val newEmbeddings = prevState.precomputedEmbeddings + docsContent.zip(embeddingsList)
       State(prevState.orderedMemories, prevState.documents + texts, newEmbeddings)
     }
   }
