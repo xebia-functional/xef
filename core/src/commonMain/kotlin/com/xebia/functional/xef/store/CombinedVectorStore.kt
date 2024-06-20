@@ -27,7 +27,7 @@ class CombinedVectorStore(private val top: VectorStore, private val bottom: Vect
       .reversed()
   }
 
-  override suspend fun similaritySearch(query: String, limit: Int): List<String> {
+  override suspend fun similaritySearch(query: String, limit: Int): List<VectorStore.Document> {
     val topResults = top.similaritySearch(query, limit)
     return when {
       topResults.size >= limit -> topResults
@@ -35,7 +35,10 @@ class CombinedVectorStore(private val top: VectorStore, private val bottom: Vect
     }
   }
 
-  override suspend fun similaritySearchByVector(embedding: Embedding, limit: Int): List<String> {
+  override suspend fun similaritySearchByVector(
+    embedding: Embedding,
+    limit: Int
+  ): List<VectorStore.Document> {
     val topResults = top.similaritySearchByVector(embedding, limit)
     return when {
       topResults.size >= limit -> topResults
