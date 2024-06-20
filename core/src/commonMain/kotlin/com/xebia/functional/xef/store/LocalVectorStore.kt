@@ -15,7 +15,7 @@ import kotlin.math.sqrt
 
 private data class State(
   val orderedMemories: Map<ConversationId, List<Memory>>,
-  val documents: List<String>,
+  val documents: List<VectorStore.Document>,
   val precomputedEmbeddings: Map<String, Embedding>
 ) {
   companion object {
@@ -75,26 +75,30 @@ private constructor(
       .reversed()
   }
 
-  override suspend fun addTexts(texts: List<String>) {
+  override suspend fun addDocuments(texts: List<VectorStore.Document>) {
+    val docsAsJson = texts.map { it.content }
     val embeddingsList =
-      embeddings.embedDocuments(texts, embeddingRequestModel = embeddingRequestModel)
+      embeddings.embedDocuments(docsAsJson, embeddingRequestModel = embeddingRequestModel)
     state.getAndUpdate { prevState ->
-      val newEmbeddings = prevState.precomputedEmbeddings + texts.zip(embeddingsList)
+      val newEmbeddings = prevState.precomputedEmbeddings + docsAsJson.zip(embeddingsList)
       State(prevState.orderedMemories, prevState.documents + texts, newEmbeddings)
     }
   }
 
-  override suspend fun similaritySearch(query: String, limit: Int): List<String> {
+  override suspend fun similaritySearch(query: String, limit: Int): List<VectorStore.Document> {
     val queryEmbedding =
       embeddings.embedQuery(query, embeddingRequestModel = embeddingRequestModel).firstOrNull()
     return queryEmbedding?.let { similaritySearchByVector(it, limit) }.orEmpty()
   }
 
-  override suspend fun similaritySearchByVector(embedding: Embedding, limit: Int): List<String> {
+  override suspend fun similaritySearchByVector(
+    embedding: Embedding,
+    limit: Int
+  ): List<VectorStore.Document> {
     val state0 = state.get()
     return state0.documents
       .asSequence()
-      .mapNotNull { doc -> state0.precomputedEmbeddings[doc]?.let { doc to it } }
+      .mapNotNull { doc -> state0.precomputedEmbeddings[doc.content]?.let { doc to it } }
       .map { (doc, e) -> doc to embedding.cosineSimilarity(e) }
       .sortedByDescending { (_, similarity) -> similarity }
       .take(limit)
@@ -103,9 +107,9 @@ private constructor(
   }
 
   private fun Embedding.cosineSimilarity(other: Embedding): Double {
-    val dotProduct = this.embedding.zip(other.embedding).sumOf { (a, b) -> (a * b).toDouble() }
-    val magnitudeA = sqrt(this.embedding.sumOf { (it * it).toDouble() })
-    val magnitudeB = sqrt(other.embedding.sumOf { (it * it).toDouble() })
+    val dotProduct = this.embedding.zip(other.embedding).sumOf { (a, b) -> (a * b) }
+    val magnitudeA = sqrt(this.embedding.sumOf { (it * it) })
+    val magnitudeB = sqrt(other.embedding.sumOf { (it * it) })
     return dotProduct / (magnitudeA * magnitudeB)
   }
 }

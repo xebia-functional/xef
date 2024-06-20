@@ -4,6 +4,7 @@ import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestMo
 import com.xebia.functional.openai.generated.model.CreateEmbeddingRequestModel
 import com.xebia.functional.openai.generated.model.Embedding
 import com.xebia.functional.xef.store.PGVectorStore
+import com.xebia.functional.xef.store.VectorStore
 import com.xebia.functional.xef.store.migrations.runDatabaseMigrations
 import com.xebia.functional.xef.store.postgresql.PGDistanceStrategy
 import com.zaxxer.hikari.HikariConfig
@@ -17,7 +18,6 @@ import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.assertThrows
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.utility.DockerImageName
-import kotlin.coroutines.coroutineContext
 
 val postgres: PostgreSQLContainer<Nothing> =
   PostgreSQLContainer(
@@ -67,10 +67,12 @@ class PGVectorStoreSpec :
       postgresVector.createCollection()
     }
 
+    val docs = listOf(VectorStore.Document(content = "foo", source = "tests"), VectorStore.Document(content = "bar", source = "tests"))
+
     "initialDbSetup should configure the DB properly" { pg().initialDbSetup() }
 
     "addTexts should fail with a CollectionNotFoundError if collection isn't present in the DB" {
-      assertThrows<IllegalStateException> { pg().addTexts(listOf("foo", "bar")) }.message shouldBe
+      assertThrows<IllegalStateException> { pg().addDocuments(docs) }.message shouldBe
         "Collection 'test_collection' not found"
     }
 
@@ -82,13 +84,13 @@ class PGVectorStoreSpec :
     "createCollection should create collection" { pg().createCollection() }
 
     "addTexts should not fail now that we created the collection" {
-      pg().addTexts(listOf("foo", "bar"))
+      pg().addDocuments(docs)
     }
 
     "similaritySearchByVector should return both documents" {
-      pg().addTexts(listOf("bar", "foo"))
+      pg().addDocuments(docs.reversed())
       pg().similaritySearchByVector(Embedding(0, listOf(4.0, 5.0, 6.0), Embedding.Object.embedding), 2) shouldBe
-        listOf("bar", "foo")
+        docs.reversed()
     }
 
     "similaritySearch should return 2 documents" {
@@ -104,7 +106,7 @@ class PGVectorStoreSpec :
       pg().similaritySearchByVector(
         Embedding(0, listOf(1.0, 2.0, 3.0), Embedding.Object.embedding),
         1
-      ) shouldBe listOf("foo")
+      ) shouldBe listOf(docs[0])
     }
 
     "the added memories sorted by index should be obtained in the same order" {
