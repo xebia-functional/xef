@@ -1,6 +1,5 @@
 package com.xebia.functional.xef.conversation
 
-import com.xebia.functional.openai.generated.model.*
 import com.xebia.functional.xef.data.*
 import com.xebia.functional.xef.llm.models.modelType
 import com.xebia.functional.xef.llm.prompt
@@ -16,6 +15,7 @@ import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
 import com.xebia.functional.xef.prompt.contentAsString
 import com.xebia.functional.xef.store.ConversationId
 import com.xebia.functional.xef.store.LocalVectorStore
+import io.github.nomisrev.openapi.*
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.comparables.shouldBeLessThan
 import io.kotest.matchers.shouldBe

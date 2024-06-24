@@ -1,7 +1,0 @@
-{{#description}}
-    /* {{{.}}} */
-{{/description}}
-    {{#deprecated}}
-    @Deprecated(message = "This property is deprecated.")
-    {{/deprecated}}
-    @SerialName(value = "{{{vendorExtensions.x-base-name-literal}}}") {{#isInherited}}override {{/isInherited}}val {{{name}}}: {{#isArray}}{{#isList}}{{#uniqueItems}}kotlin.collections.Set{{/uniqueItems}}{{^uniqueItems}}kotlin.collections.List{{/uniqueItems}}{{/isList}}{{^isList}}kotlin.Array{{/isList}}<{{^items.isEnum}}{{^items.isPrimitiveType}}{{^items.isModel}}@Contextual {{/items.isModel}}{{/items.isPrimitiveType}}{{{items.dataType}}}{{/items.isEnum}}{{#items.isEnum}}{{classname}}.{{{nameInCamelCase}}}{{/items.isEnum}}>{{/isArray}}{{^isEnum}}{{^isArray}}{{{dataType}}}{{/isArray}}{{/isEnum}}{{#isEnum}}{{^isArray}}{{classname}}.{{{nameInCamelCase}}}{{/isArray}}{{/isEnum}}{{#isNullable}}?{{/isNullable}}{{#defaultValue}} = {{^isNumber}}{{{defaultValue}}}{{/isNumber}}{{#isNumber}}({{{defaultValue}}}).toDouble(){{/isNumber}}{{/defaultValue}}

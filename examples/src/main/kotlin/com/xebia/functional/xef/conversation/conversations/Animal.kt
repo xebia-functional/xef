@@ -1,6 +1,5 @@
 package com.xebia.functional.xef.conversation.conversations
 
-import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.AI
 import com.xebia.functional.xef.OpenAI
 import com.xebia.functional.xef.conversation.Conversation
@@ -12,6 +11,7 @@ import com.xebia.functional.xef.prompt.PromptBuilder.Companion.system
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.user
 import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
 import com.xebia.functional.xef.store.LocalVectorStore
+import io.github.nomisrev.openapi.CreateChatCompletionRequestModel
 import kotlinx.serialization.Serializable
 
 @Serializable data class Animal(val name: String, val habitat: String, val diet: String)

@@ -1,8 +1,8 @@
 package xef
 
-import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
-import com.xebia.functional.openai.generated.model.CreateEmbeddingRequestModel
-import com.xebia.functional.openai.generated.model.Embedding
+import io.github.nomisrev.openapi.CreateChatCompletionRequestModel
+import io.github.nomisrev.openapi.CreateEmbeddingRequestModel
+import io.github.nomisrev.openapi.Embedding
 import com.xebia.functional.xef.store.PGVectorStore
 import com.xebia.functional.xef.store.migrations.runDatabaseMigrations
 import com.xebia.functional.xef.store.postgresql.PGDistanceStrategy

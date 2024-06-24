@@ -1,11 +1,11 @@
 package com.xebia.functional.xef.assistants
 
-import com.xebia.functional.openai.generated.model.CreateRunRequest
 import com.xebia.functional.xef.OpenAI
 import com.xebia.functional.xef.llm.assistants.Assistant
 import com.xebia.functional.xef.llm.assistants.AssistantThread
 import com.xebia.functional.xef.llm.assistants.Tool
 import com.xebia.functional.xef.metrics.Metric
+import io.github.nomisrev.openapi.CreateRunRequest
 
 suspend fun main() {
 

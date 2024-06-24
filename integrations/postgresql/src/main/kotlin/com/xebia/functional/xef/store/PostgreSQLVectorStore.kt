@@ -2,10 +2,10 @@ package com.xebia.functional.xef.store
 
 import arrow.atomic.AtomicInt
 import com.xebia.functional.openai.generated.api.Embeddings
-import com.xebia.functional.openai.generated.model.ChatCompletionRole
-import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
-import com.xebia.functional.openai.generated.model.CreateEmbeddingRequestModel
-import com.xebia.functional.openai.generated.model.Embedding
+import io.github.nomisrev.openapi.ChatCompletionRole
+import io.github.nomisrev.openapi.CreateChatCompletionRequestModel
+import io.github.nomisrev.openapi.CreateEmbeddingRequestModel
+import io.github.nomisrev.openapi.Embedding
 import com.xebia.functional.xef.llm.embedDocuments
 import com.xebia.functional.xef.llm.embedQuery
 import com.xebia.functional.xef.llm.models.modelType

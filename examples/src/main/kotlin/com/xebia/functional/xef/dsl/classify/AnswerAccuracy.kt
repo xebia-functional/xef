@@ -1,8 +1,8 @@
 package com.xebia.functional.xef.dsl.classify
 
-import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.AI
 import com.xebia.functional.xef.evaluator.metrics.AnswerAccuracy
+import io.github.nomisrev.openapi.CreateChatCompletionRequestModel
 
 /**
  * This is a simple example of how to use the `AI.classify` function to classify the accuracy of an

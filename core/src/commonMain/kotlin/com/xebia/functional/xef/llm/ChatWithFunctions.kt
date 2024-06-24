@@ -2,13 +2,13 @@ package com.xebia.functional.xef.llm
 
 import arrow.core.nonFatalOrThrow
 import arrow.core.raise.catch
-import com.xebia.functional.openai.generated.api.Chat
-import com.xebia.functional.openai.generated.model.*
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.models.functions.buildJsonSchema
 import com.xebia.functional.xef.prompt.Prompt
+import io.github.nomisrev.openapi.*
+import io.github.nomisrev.openapi.ChatCompletionToolChoiceOption.NoneOrAuto
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.*
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -85,7 +85,8 @@ suspend fun <A> Chat.prompt(
     val request = createChatCompletionRequest(adaptedPrompt)
     tryDeserialize(serializer, promptWithFunctions.configuration.maxDeserializationAttempts) {
       val requestedMemories = prompt.messages.toMemory(scope)
-      createChatCompletion(request)
+      completions
+        .createChatCompletion(request)
         .addMetrics(scope)
         .choices
         .addChoiceWithFunctionsToMemory(
@@ -120,15 +121,15 @@ private fun chatCompletionToolChoiceOption(adaptedPrompt: Prompt): ChatCompletio
   if (adaptedPrompt.functions.size == 1)
     ChatCompletionToolChoiceOption.CaseChatCompletionNamedToolChoice(
       ChatCompletionNamedToolChoice(
-        type = ChatCompletionNamedToolChoice.Type.function,
-        function = ChatCompletionNamedToolChoiceFunction(adaptedPrompt.functions.first().name)
+        type = ChatCompletionNamedToolChoice.Type.Function,
+        function = ChatCompletionNamedToolChoice.Function(adaptedPrompt.functions.first().name)
       )
     )
-  else ChatCompletionToolChoiceOption.CaseString("auto")
+  else ChatCompletionToolChoiceOption.CaseNoneOrAuto(NoneOrAuto.Auto)
 
 private fun chatCompletionTools(adaptedPrompt: Prompt): List<ChatCompletionTool> =
   adaptedPrompt.functions.map {
-    ChatCompletionTool(type = ChatCompletionTool.Type.function, function = it)
+    ChatCompletionTool(type = ChatCompletionTool.Type.Function, function = it)
   }
 
 @AiDsl

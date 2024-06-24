@@ -2,12 +2,12 @@ package com.xebia.functional.xef.dsl.audio
 
 import com.sipgate.mp3wav.Converter
 import com.xebia.functional.openai.UploadFile
-import com.xebia.functional.openai.generated.model.CreateSpeechRequest
-import com.xebia.functional.openai.generated.model.CreateSpeechRequestModel
-import com.xebia.functional.openai.generated.model.CreateTranscriptionRequestModel
 import com.xebia.functional.xef.AI
 import com.xebia.functional.xef.Config
 import com.xebia.functional.xef.OpenAI
+import io.github.nomisrev.openapi.CreateSpeechRequest
+import io.github.nomisrev.openapi.CreateSpeechRequestModel
+import io.github.nomisrev.openapi.CreateTranscriptionRequestModel
 import io.ktor.client.statement.*
 import io.ktor.utils.io.jvm.javaio.*
 import java.io.File

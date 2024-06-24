@@ -1,11 +1,10 @@
 package com.xebia.functional.xef.llm
 
-import com.xebia.functional.openai.generated.api.Chat
-import com.xebia.functional.openai.generated.model.*
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.StreamedFunction.Companion.PropertyType.*
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.PromptBuilder
+import io.github.nomisrev.openapi.*
 import kotlin.jvm.JvmSynthetic
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.onCompletion
@@ -48,7 +47,7 @@ sealed class StreamedFunction<out A> {
     ) {
       val messages = mutableListOf<ChatCompletionRequestMessage>()
       // this function call is mutable and will be updated as the stream progresses
-      var functionCall = ChatCompletionMessageToolCallFunction("", "")
+      var functionCall = ChatCompletionMessageToolCall.Function("", "")
       // the current property is mutable and will be updated as the stream progresses
       var currentProperty: String? = null
       // we keep track to not emit the same property multiple times
@@ -61,7 +60,7 @@ sealed class StreamedFunction<out A> {
       // as the LLM is sending us chunks with malformed JSON
       if (schema != null) {
         val example = createExampleFromSchema(schema)
-        chat
+        chat.completions
           .createChatCompletionStream(request)
           .onCompletion {
             val newMessages = prompt.messages + messages
@@ -128,7 +127,7 @@ sealed class StreamedFunction<out A> {
     }
 
     private suspend fun <A> FlowCollector<StreamedFunction<A>>.streamResult(
-      functionCall: ChatCompletionMessageToolCallFunction,
+      functionCall: ChatCompletionMessageToolCall.Function,
       messages: MutableList<ChatCompletionRequestMessage>,
       serializer: (json: String) -> A
     ) {
@@ -290,13 +289,13 @@ sealed class StreamedFunction<out A> {
     }
 
     private fun mergeArgumentsWithDelta(
-      functionCall: ChatCompletionMessageToolCallFunction,
+      functionCall: ChatCompletionMessageToolCall.Function,
       functionCall0: ChatCompletionMessageToolCallChunk
-    ): ChatCompletionMessageToolCallFunction =
+    ): ChatCompletionMessageToolCall.Function =
       functionCall.copy(arguments = functionCall.arguments + (functionCall0.function?.arguments))
 
     private fun getLastReferencedPropertyInArguments(
-      functionCall: ChatCompletionMessageToolCallFunction
+      functionCall: ChatCompletionMessageToolCall.Function
     ): String? =
       """"(.*?)":"""
         .toRegex()

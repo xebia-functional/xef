@@ -1,12 +1,12 @@
 package com.xebia.functional.xef.llm
 
-import com.xebia.functional.openai.generated.api.Chat
-import com.xebia.functional.openai.generated.model.CreateChatCompletionRequest
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.PromptBuilder
+import io.github.nomisrev.openapi.Chat
+import io.github.nomisrev.openapi.CreateChatCompletionRequest
 import kotlinx.coroutines.flow.*
 
 @AiDsl
@@ -28,7 +28,8 @@ fun Chat.promptStreaming(prompt: Prompt, scope: Conversation = Conversation()): 
 
     val buffer = StringBuilder()
 
-    this@promptStreaming.createChatCompletionStream(request)
+    completions
+      .createChatCompletionStream(request)
       .mapNotNull {
         val content = it.choices.firstOrNull()?.delta?.content
         if (content != null) {
@@ -72,7 +73,8 @@ suspend fun Chat.promptMessages(
         seed = adaptedPrompt.configuration.seed,
       )
 
-    createChatCompletion(request)
+    completions
+      .createChatCompletion(request)
       .addMetrics(scope)
       .choices
       .addChoiceToMemory(

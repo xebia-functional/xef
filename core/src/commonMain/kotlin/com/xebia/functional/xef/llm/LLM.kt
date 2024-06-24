@@ -1,10 +1,10 @@
 package com.xebia.functional.xef.llm
 
-import com.xebia.functional.openai.generated.model.ChatCompletionRequestMessage
 import com.xebia.functional.tokenizer.Encoding
 import com.xebia.functional.tokenizer.ModelType
 import com.xebia.functional.xef.prompt.completionRole
 import com.xebia.functional.xef.prompt.contentAsString
+import io.github.nomisrev.openapi.ChatCompletionRequestMessage
 
 fun ModelType.tokensFromMessages(
   messages: List<ChatCompletionRequestMessage>,

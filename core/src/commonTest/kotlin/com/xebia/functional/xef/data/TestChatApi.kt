@@ -1,8 +1,8 @@
 package com.xebia.functional.xef.data
 
 import com.xebia.functional.openai.generated.api.Chat
-import com.xebia.functional.openai.generated.model.*
 import com.xebia.functional.xef.prompt.contentAsString
+import io.github.nomisrev.openapi.*
 import io.ktor.client.request.*
 import kotlinx.coroutines.flow.Flow
 

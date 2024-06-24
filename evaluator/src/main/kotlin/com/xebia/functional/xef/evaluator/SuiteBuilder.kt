@@ -1,8 +1,8 @@
 package com.xebia.functional.xef.evaluator
 
-import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.AI
 import com.xebia.functional.xef.evaluator.models.*
+import io.github.nomisrev.openapi.CreateChatCompletionRequestModel
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json

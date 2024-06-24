@@ -16,6 +16,11 @@ plugins {
     alias(libs.plugins.arrow.gradle.publish)
     alias(libs.plugins.semver.gradle)
     alias(libs.plugins.detekt)
+    id("io.github.nomisrev.openapi-kt-plugin") version "0.0.2"
+}
+
+openApiConfig {
+    spec.set(file("openai-api.yaml"))
 }
 
 dependencies {
@@ -66,13 +71,14 @@ kotlin {
           languageSettings.optIn("kotlin.ExperimentalStdlibApi")
       }
       val commonMain by getting {
+          kotlin.srcDir(project.file("build/generated/openapi/src/commonMain/kotlin"))
+
           dependencies {
               api(libs.bundles.arrow)
               api(libs.kotlinx.serialization.json)
               api(libs.kotlinx.serialization.yaml)
               api(libs.ktor.utils)
               api(projects.xefTokenizer)
-              api(projects.xefOpenaiClient)
               implementation(libs.bundles.ktor.client)
               implementation(libs.klogging)
               implementation(libs.uuid)

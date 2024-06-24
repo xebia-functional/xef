@@ -1,7 +1,6 @@
 package com.xebia.functional.xef.evaluator
 
 import arrow.continuations.SuspendApp
-import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.OpenAI
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.evaluator.metrics.AnswerAccuracy
@@ -10,6 +9,7 @@ import com.xebia.functional.xef.evaluator.models.OutputResponse
 import com.xebia.functional.xef.llm.promptMessage
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.user
+import io.github.nomisrev.openapi.CreateChatCompletionRequestModel
 
 object TestExample {
 

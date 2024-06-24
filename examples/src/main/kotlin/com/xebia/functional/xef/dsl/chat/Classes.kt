@@ -1,6 +1,5 @@
 package com.xebia.functional.xef.dsl.chat
 
-import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.AI
 import com.xebia.functional.xef.conversation.Description
 import com.xebia.functional.xef.conversation.MessagePolicy
@@ -11,6 +10,7 @@ import com.xebia.functional.xef.prompt.PromptBuilder.Companion.assistant
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.system
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.user
 import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
+import io.github.nomisrev.openapi.CreateChatCompletionRequestModel
 import kotlinx.serialization.Serializable
 
 @Serializable

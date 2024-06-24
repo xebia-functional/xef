@@ -1,8 +1,7 @@
 package com.xebia.functional.xef.llm.assistants
 
-import com.xebia.functional.openai.ServerSentEvent
-import com.xebia.functional.openai.generated.model.*
 import com.xebia.functional.xef.Config
+import io.github.nomisrev.openapi.*
 import kotlin.jvm.JvmInline
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -72,7 +71,7 @@ sealed interface RunDelta {
 
   @Serializable
   data class RunStepDeltaObjectInner(
-    @SerialName("step_details") val stepDetails: RunStepObjectStepDetails
+    @SerialName("step_details") val stepDetails: RunStepObject.StepDetails
   )
 
   /** [RunDeltaEvent.thread_run_step_completed] */
@@ -234,19 +233,19 @@ sealed interface RunDelta {
       }
       is RunStepCompleted -> {
         when (val details = runStep.stepDetails) {
-          is RunStepObjectStepDetails.CaseRunStepDetailsMessageCreationObject ->
+          is RunStepObject.StepDetails.CaseRunStepDetailsMessageCreationObject ->
             println("Creating msg: ${details.value.messageCreation.messageId}")
-          is RunStepObjectStepDetails.CaseRunStepDetailsToolCallsObject ->
+          is RunStepObject.StepDetails.CaseRunStepDetailsToolCallsObject ->
             println(
               "Tool calls: ${details.value.toolCalls.map { 
               when (it) {
-                is RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsCodeObject -> 
+                is RunStepDetailsToolCallsObject.ToolCalls.CaseRunStepDetailsToolCallsCodeObject -> 
                   "Code: ${it.value.codeInterpreter.input}"
-                is RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsFunctionObject -> {
+                is RunStepDetailsToolCallsObject.ToolCalls.CaseRunStepDetailsToolCallsFunctionObject -> {
                   val function = it.value.function
                   "Function: ${function.name}(${function.arguments})"
                 }
-                is RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsRetrievalObject -> {
+                is RunStepDetailsToolCallsObject.ToolCalls.CaseRunStepDetailsToolCallsRetrievalObject -> {
                   val retrieval = it.value.retrieval
                   "Retrieval: $retrieval"
                 }

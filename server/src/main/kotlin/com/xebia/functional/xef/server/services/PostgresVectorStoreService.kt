@@ -1,6 +1,5 @@
 package com.xebia.functional.xef.server.services
 
-import com.xebia.functional.openai.generated.model.CreateEmbeddingRequestModel
 import com.xebia.functional.xef.Config
 import com.xebia.functional.xef.OpenAI
 import com.xebia.functional.xef.store.PGVectorStore
@@ -8,6 +7,7 @@ import com.xebia.functional.xef.store.VectorStore
 import com.xebia.functional.xef.store.postgresql.PGDistanceStrategy
 import com.xebia.functional.xef.store.postgresql.addNewCollection
 import com.xebia.functional.xef.store.postgresql.connection
+import io.github.nomisrev.openapi.CreateEmbeddingRequestModel
 import io.github.oshai.kotlinlogging.KLogger
 import javax.sql.DataSource
 import kotlinx.uuid.UUID

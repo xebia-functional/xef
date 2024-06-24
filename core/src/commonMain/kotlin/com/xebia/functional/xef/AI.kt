@@ -1,11 +1,11 @@
 package com.xebia.functional.xef
 
-import com.xebia.functional.openai.generated.api.Chat
-import com.xebia.functional.openai.generated.api.Images
-import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.prompt.Prompt
+import io.github.nomisrev.openapi.Chat
+import io.github.nomisrev.openapi.CreateChatCompletionRequest
+import io.github.nomisrev.openapi.Images
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
@@ -26,7 +26,7 @@ sealed interface AI {
 
     fun <A : Any> chat(
       target: KType,
-      model: CreateChatCompletionRequestModel,
+      model: CreateChatCompletionRequest.Model,
       api: Chat,
       conversation: Conversation,
       enumSerializer: ((case: String) -> A)?,
@@ -86,7 +86,7 @@ sealed interface AI {
       input: String,
       output: String,
       context: String,
-      model: CreateChatCompletionRequestModel = CreateChatCompletionRequestModel.gpt_4_1106_preview,
+      model: CreateChatCompletionRequest.Model = CreateChatCompletionRequest.Model.Gpt41106Preview,
       target: KType = typeOf<E>(),
       config: Config = Config(),
       api: Chat = OpenAI(config).chat,
@@ -107,7 +107,7 @@ sealed interface AI {
     suspend inline operator fun <reified A : Any> invoke(
       prompt: String,
       target: KType = typeOf<A>(),
-      model: CreateChatCompletionRequestModel = CreateChatCompletionRequestModel.gpt_3_5_turbo_0125,
+      model: CreateChatCompletionRequest.Model = CreateChatCompletionRequest.Model.Gpt35Turbo0125,
       config: Config = Config(),
       api: Chat = OpenAI(config).chat,
       conversation: Conversation = Conversation()

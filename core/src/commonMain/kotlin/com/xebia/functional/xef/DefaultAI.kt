@@ -1,24 +1,25 @@
 package com.xebia.functional.xef
 
-import com.xebia.functional.openai.generated.api.Chat
-import com.xebia.functional.openai.generated.model.CreateChatCompletionRequest
-import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.StreamedFunction
 import com.xebia.functional.xef.llm.models.modelType
 import com.xebia.functional.xef.llm.prompt
 import com.xebia.functional.xef.llm.promptStreaming
 import com.xebia.functional.xef.prompt.Prompt
+import io.github.nomisrev.openapi.Chat
+import io.github.nomisrev.openapi.CreateChatCompletionRequest
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 
 data class DefaultAI<A : Any>(
   val target: KType,
-  val model: CreateChatCompletionRequestModel,
+  val model: CreateChatCompletionRequest.Model,
   val api: Chat,
   val serializer: () -> KSerializer<A>,
   val conversation: Conversation,
@@ -88,17 +89,19 @@ data class DefaultAI<A : Any>(
     val cases =
       serializer.descriptor.elementDescriptors.map { it.serialName.substringAfterLast(".") }
     val logitBias =
-      cases
-        .flatMap {
-          val result = encoding.encode(it)
-          if (result.size > 1) {
-            error("Cannot encode enum case $it into one token")
+      JsonObject(
+        cases
+          .flatMap {
+            val result = encoding.encode(it)
+            if (result.size > 1) {
+              error("Cannot encode enum case $it into one token")
+            }
+            result
           }
-          result
-        }
-        .associate { "$it" to 100 }
+          .associate { "$it" to JsonPrimitive(100) }
+      )
     val result =
-      api.createChatCompletion(
+      api.completions.createChatCompletion(
         CreateChatCompletionRequest(
           messages = prompt.messages,
           model = model,

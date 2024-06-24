@@ -1,13 +1,10 @@
 package com.xebia.functional.xef.llm
 
-import com.xebia.functional.openai.UploadFile
-import com.xebia.functional.openai.generated.api.Chat
-import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
-import com.xebia.functional.openai.generated.model.Image
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.image
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.user
+import io.github.nomisrev.openapi.*
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
@@ -20,9 +17,9 @@ suspend inline fun <reified A> Chat.visionStructured(
   prompt: String,
   url: String,
   conversation: Conversation = Conversation(),
-  model: CreateChatCompletionRequestModel = CreateChatCompletionRequestModel.gpt_4_vision_preview,
-  functionsModel: CreateChatCompletionRequestModel =
-    CreateChatCompletionRequestModel.gpt_3_5_turbo_0125
+  model: CreateChatCompletionRequest.Model = CreateChatCompletionRequest.Model.Gpt4VisionPreview,
+  functionsModel: CreateChatCompletionRequest.Model =
+    CreateChatCompletionRequest.Model.Gpt35Turbo0125
 ): A {
   val response = vision(prompt, url, model, conversation).toList().joinToString("") { it }
   return prompt(Prompt(functionsModel) { +user(response) }, conversation, serializer())
@@ -31,7 +28,7 @@ suspend inline fun <reified A> Chat.visionStructured(
 fun Chat.vision(
   prompt: String,
   url: String,
-  model: CreateChatCompletionRequestModel = CreateChatCompletionRequestModel.gpt_4_vision_preview,
+  model: CreateChatCompletionRequest.Model = CreateChatCompletionRequest.Model.Gpt4VisionPreview,
   conversation: Conversation = Conversation()
 ): Flow<String> =
   promptStreaming(prompt = Prompt(model) { +image(url, prompt) }, scope = conversation)

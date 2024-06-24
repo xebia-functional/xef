@@ -1,17 +1,13 @@
 package com.xebia.functional.xef.llm
 
 import arrow.fx.coroutines.parMap
-import com.xebia.functional.openai.generated.api.Embeddings
-import com.xebia.functional.openai.generated.model.CreateEmbeddingRequest
-import com.xebia.functional.openai.generated.model.CreateEmbeddingRequestInput
-import com.xebia.functional.openai.generated.model.CreateEmbeddingRequestModel
-import com.xebia.functional.openai.generated.model.Embedding
+import io.github.nomisrev.openapi.*
 
 suspend fun Embeddings.embedDocuments(
   texts: List<String>,
   chunkSize: Int = 400,
-  embeddingRequestModel: CreateEmbeddingRequestModel =
-    CreateEmbeddingRequestModel.text_embedding_ada_002
+  embeddingRequestModel: CreateEmbeddingRequest.Model =
+    CreateEmbeddingRequest.Model.TextEmbeddingAda002
 ): List<Embedding> =
   if (texts.isEmpty()) emptyList()
   else
@@ -21,7 +17,7 @@ suspend fun Embeddings.embedDocuments(
         createEmbedding(
             CreateEmbeddingRequest(
               model = embeddingRequestModel,
-              input = CreateEmbeddingRequestInput.CaseStrings(it)
+              input = CreateEmbeddingRequest.Input.CaseStrings(it)
             )
           )
           .data
@@ -30,7 +26,7 @@ suspend fun Embeddings.embedDocuments(
 
 suspend fun Embeddings.embedQuery(
   text: String,
-  embeddingRequestModel: CreateEmbeddingRequestModel
+  embeddingRequestModel: CreateEmbeddingRequest.Model
 ): List<Embedding> =
   if (text.isNotEmpty())
     embedDocuments(texts = listOf(text), embeddingRequestModel = embeddingRequestModel)

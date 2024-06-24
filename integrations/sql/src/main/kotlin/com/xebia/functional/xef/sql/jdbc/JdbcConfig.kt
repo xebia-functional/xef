@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.sql.jdbc
 
 import com.xebia.functional.openai.generated.api.Chat
-import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
+import io.github.nomisrev.openapi.CreateChatCompletionRequestModel
 
 class JdbcConfig(
   val vendor: String,

@@ -1,8 +1,8 @@
 package com.xebia.functional.xef.store
 
-import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
-import com.xebia.functional.openai.generated.model.Embedding
 import com.xebia.functional.xef.llm.models.modelType
+import io.github.nomisrev.openapi.CreateChatCompletionRequest
+import io.github.nomisrev.openapi.Embedding
 
 /**
  * A way of composing two [VectorStore] instances together, this class will **first search** [top],
@@ -14,7 +14,7 @@ class CombinedVectorStore(private val top: VectorStore, private val bottom: Vect
   VectorStore by top {
 
   override suspend fun memories(
-    model: CreateChatCompletionRequestModel,
+    model: CreateChatCompletionRequest.Model,
     conversationId: ConversationId,
     limitTokens: Int
   ): List<Memory> {

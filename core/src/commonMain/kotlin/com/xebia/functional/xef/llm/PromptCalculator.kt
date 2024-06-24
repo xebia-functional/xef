@@ -1,6 +1,5 @@
 package com.xebia.functional.xef.llm
 
-import com.xebia.functional.openai.generated.model.ChatCompletionRequestMessage
 import com.xebia.functional.tokenizer.truncateText
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.Conversation
@@ -10,6 +9,7 @@ import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.assistant
 import com.xebia.functional.xef.prompt.contentAsString
 import com.xebia.functional.xef.store.Memory
+import io.github.nomisrev.openapi.ChatCompletionRequestMessage
 
 internal object PromptCalculator {
 

@@ -1,7 +1,7 @@
 package xef
 
 import com.xebia.functional.openai.generated.api.Embeddings
-import com.xebia.functional.openai.generated.model.*
+import io.github.nomisrev.openapi.*
 import io.ktor.client.request.*
 
 class TestEmbeddings : Embeddings, AutoCloseable {

@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.llm.assistants
 
-import com.xebia.functional.openai.generated.model.FunctionObject
 import com.xebia.functional.xef.llm.chatFunction
+import io.github.nomisrev.openapi.FunctionObject
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
 

@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.store
 
-import com.xebia.functional.openai.generated.model.*
 import com.xebia.functional.xef.prompt.completionRole
+import io.github.nomisrev.openapi.*
 
 sealed class MemorizedMessage {
   val role: ChatCompletionRole
@@ -17,7 +17,7 @@ sealed class MemorizedMessage {
       is Response ->
         ChatCompletionRequestMessage.CaseChatCompletionRequestAssistantMessage(
           ChatCompletionRequestAssistantMessage(
-            role = ChatCompletionRequestAssistantMessage.Role.assistant,
+            role = ChatCompletionRequestAssistantMessage.Role.Assistant,
             // TODO: Find a new strategy to save the tool calls as content
             content = message.content ?: message.toolCalls?.firstOrNull()?.toString()
           )
@@ -31,32 +31,31 @@ sealed class MemorizedMessage {
 
 fun memorizedMessage(role: ChatCompletionRole, content: String): MemorizedMessage =
   when (role) {
-    ChatCompletionRole.Supported.system ->
+    ChatCompletionRole.System ->
       MemorizedMessage.Request(
         ChatCompletionRequestMessage.CaseChatCompletionRequestSystemMessage(
           ChatCompletionRequestSystemMessage(
             content = content,
-            role = ChatCompletionRequestSystemMessage.Role.system
+            role = ChatCompletionRequestSystemMessage.Role.System
           )
         )
       )
-    ChatCompletionRole.Supported.user ->
+    ChatCompletionRole.User ->
       MemorizedMessage.Request(
         ChatCompletionRequestMessage.CaseChatCompletionRequestUserMessage(
           ChatCompletionRequestUserMessage(
-            content = ChatCompletionRequestUserMessageContent.CaseString(content),
-            role = ChatCompletionRequestUserMessage.Role.user
+            content = ChatCompletionRequestUserMessage.Content.CaseString(content),
+            role = ChatCompletionRequestUserMessage.Role.User
           )
         )
       )
-    ChatCompletionRole.Supported.assistant ->
+    ChatCompletionRole.Assistant ->
       MemorizedMessage.Response(
         ChatCompletionResponseMessage(
           content = content,
-          role = ChatCompletionResponseMessage.Role.assistant
+          role = ChatCompletionResponseMessage.Role.Assistant
         )
       )
-    ChatCompletionRole.Supported.tool -> error("Tool messages are not supported")
-    ChatCompletionRole.Supported.function -> error("Function messages are not supported")
-    is ChatCompletionRole.Custom -> error("Custom messages are not supported")
+    ChatCompletionRole.Tool -> error("Tool messages are not supported")
+    ChatCompletionRole.Function -> error("Function messages are not supported")
   }

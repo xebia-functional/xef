@@ -1,9 +1,9 @@
 package com.xebia.functional.xef.metrics
 
-import com.xebia.functional.openai.generated.model.MessageObject
-import com.xebia.functional.openai.generated.model.RunObject
-import com.xebia.functional.openai.generated.model.RunStepObject
 import com.xebia.functional.xef.prompt.Prompt
+import io.github.nomisrev.openapi.MessageObject
+import io.github.nomisrev.openapi.RunObject
+import io.github.nomisrev.openapi.RunStepObject
 
 interface Metric {
   suspend fun <A> customSpan(name: String, block: suspend Metric.() -> A): A

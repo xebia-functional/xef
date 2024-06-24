@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.sql
 
 import com.xebia.functional.openai.generated.api.Chat
-import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
+import io.github.nomisrev.openapi.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.Description

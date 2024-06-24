@@ -1,10 +1,10 @@
 package xef
 
 import arrow.atomic.AtomicInt
-import com.xebia.functional.openai.generated.model.ChatCompletionRequestAssistantMessage
-import com.xebia.functional.openai.generated.model.ChatCompletionRequestMessage
-import com.xebia.functional.openai.generated.model.ChatCompletionRequestUserMessage
-import com.xebia.functional.openai.generated.model.ChatCompletionRequestUserMessageContent
+import io.github.nomisrev.openapi.ChatCompletionRequestAssistantMessage
+import io.github.nomisrev.openapi.ChatCompletionRequestMessage
+import io.github.nomisrev.openapi.ChatCompletionRequestUserMessage
+import io.github.nomisrev.openapi.ChatCompletionRequestUserMessageContent
 import com.xebia.functional.xef.store.ConversationId
 import com.xebia.functional.xef.store.MemorizedMessage
 import com.xebia.functional.xef.store.Memory

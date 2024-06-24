@@ -1,11 +1,10 @@
 package com.xebia.functional.xef.llm.assistants
 
-import com.xebia.functional.openai.generated.api.Assistants
-import com.xebia.functional.openai.generated.model.*
 import com.xebia.functional.xef.Config
 import com.xebia.functional.xef.OpenAI
 import com.xebia.functional.xef.llm.assistants.AssistantThread.Companion.defaultConfig
 import com.xebia.functional.xef.llm.models.functions.buildJsonSchema
+import io.github.nomisrev.openapi.*
 import io.ktor.util.logging.*
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -74,11 +73,11 @@ class Assistant(
     @Serializable data class ToolOutput(val schema: JsonObject, val result: JsonElement)
 
     suspend operator fun invoke(
-      model: String,
+      model: CreateAssistantRequest.Model,
       name: String? = null,
       description: String? = null,
       instructions: String? = null,
-      tools: List<AssistantObjectToolsInner> = arrayListOf(),
+      tools: List<CreateAssistantRequest.Tools> = arrayListOf(),
       fileIds: List<String> = arrayListOf(),
       metadata: JsonObject? = null,
       toolsConfig: List<Tool.Companion.ToolConfig<*, *>> = emptyList(),
@@ -150,7 +149,7 @@ class Assistant(
                             functionObject.name,
                             functionObject.description ?: "",
                             functionObject.parameters?.let { el ->
-                              Json.encodeToString(JsonObject.serializer(), el)
+                              Json.encodeToString(JsonElement.serializer(), el)
                             } ?: ""
                           )
                         } else {
@@ -178,11 +177,17 @@ class Assistant(
 
         assistant.modify(
           ModifyAssistantRequest(
-            model = assistantRequest.model,
+            model = ModifyAssistantRequest.Model.CaseString(assistantRequest.model),
             name = assistantRequest.name,
             description = assistantRequest.description,
             instructions = assistantRequest.instructions,
-            tools = assistantTools(assistantRequest),
+            tools =
+              assistantTools(
+                assistantRequest,
+                code = ModifyAssistantRequest.Tools::CaseAssistantToolsCode,
+                retrieval = ModifyAssistantRequest.Tools::CaseAssistantToolsRetrieval,
+                function = ModifyAssistantRequest.Tools::CaseAssistantToolsFunction
+              ),
             fileIds = assistantRequest.fileIds,
             metadata = null // assistantRequest.metadata
           )
@@ -191,11 +196,17 @@ class Assistant(
         Assistant(
           request =
             CreateAssistantRequest(
-              model = assistantRequest.model,
+              model = CreateAssistantRequest.Model.CaseString(assistantRequest.model),
               name = assistantRequest.name,
               description = assistantRequest.description,
               instructions = assistantRequest.instructions,
-              tools = assistantTools(assistantRequest),
+              tools =
+                assistantTools(
+                  assistantRequest,
+                  code = CreateAssistantRequest.Tools::CaseAssistantToolsCode,
+                  retrieval = CreateAssistantRequest.Tools::CaseAssistantToolsRetrieval,
+                  function = CreateAssistantRequest.Tools::CaseAssistantToolsFunction
+                ),
               fileIds = assistantRequest.fileIds,
               metadata = null // assistantRequest.metadata
             ),
@@ -205,23 +216,22 @@ class Assistant(
         )
     }
 
-    private fun assistantTools(
-      assistantRequest: AssistantRequest
-    ): List<AssistantObjectToolsInner> =
+    private fun <A> assistantTools(
+      assistantRequest: AssistantRequest,
+      code: (AssistantToolsCode) -> A,
+      retrieval: (AssistantToolsRetrieval) -> A,
+      function: (AssistantToolsFunction) -> A
+    ): List<A> =
       assistantRequest.tools.orEmpty().map {
         when (it) {
           is AssistantTool.CodeInterpreter ->
-            AssistantObjectToolsInner.CaseAssistantToolsCode(
-              AssistantToolsCode(type = AssistantToolsCode.Type.code_interpreter)
-            )
+            code(AssistantToolsCode(type = AssistantToolsCode.Type.CodeInterpreter))
           is AssistantTool.Retrieval ->
-            AssistantObjectToolsInner.CaseAssistantToolsRetrieval(
-              AssistantToolsRetrieval(type = AssistantToolsRetrieval.Type.retrieval)
-            )
+            retrieval(AssistantToolsRetrieval(type = AssistantToolsRetrieval.Type.Retrieval))
           is AssistantTool.Function ->
-            AssistantObjectToolsInner.CaseAssistantToolsFunction(
+            function(
               AssistantToolsFunction(
-                type = AssistantToolsFunction.Type.function,
+                type = AssistantToolsFunction.Type.Function,
                 function =
                   FunctionObject(
                     name = it.name,

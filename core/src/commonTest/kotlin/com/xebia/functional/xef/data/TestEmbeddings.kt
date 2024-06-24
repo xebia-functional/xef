@@ -1,9 +1,9 @@
 package com.xebia.functional.xef.data
 
 import com.xebia.functional.openai.generated.api.Embeddings
-import com.xebia.functional.openai.generated.model.CreateEmbeddingRequest
-import com.xebia.functional.openai.generated.model.CreateEmbeddingResponse
-import com.xebia.functional.openai.generated.model.CreateEmbeddingResponseUsage
+import io.github.nomisrev.openapi.CreateEmbeddingRequest
+import io.github.nomisrev.openapi.CreateEmbeddingResponse
+import io.github.nomisrev.openapi.CreateEmbeddingResponseUsage
 import io.ktor.client.request.*
 
 class TestEmbeddings : Embeddings, AutoCloseable {

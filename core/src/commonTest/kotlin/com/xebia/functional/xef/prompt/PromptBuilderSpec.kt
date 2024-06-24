@@ -1,9 +1,9 @@
 package com.xebia.functional.xef.prompt
 
-import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.assistant
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.system
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.user
+import io.github.nomisrev.openapi.CreateChatCompletionRequestModel
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
