@@ -50,7 +50,7 @@ suspend fun main() {
       assistantId = "asst_UxczzpJkysC0l424ood87DAk",
       toolsConfig = listOf(Tool.toolOf(SumTool()))
     )
-  val thread = AssistantThread(api = OpenAI(logRequests = false).assistants, metric = metric)
+  val thread = AssistantThread(threads = OpenAI(logRequests = false).threads, metric = metric)
   println("Welcome to the Math tutor, ask me anything about math:")
   while (true) {
     println()

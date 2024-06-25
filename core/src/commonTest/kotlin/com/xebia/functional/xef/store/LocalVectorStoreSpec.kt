@@ -3,13 +3,13 @@ package com.xebia.functional.xef.store
 import com.xebia.functional.xef.data.TestEmbeddings
 import com.xebia.functional.xef.llm.models.modelType
 import com.xebia.functional.xef.llm.tokensFromMessages
-import io.github.nomisrev.openapi.CreateChatCompletionRequestModel
+import io.github.nomisrev.openapi.CreateChatCompletionRequest
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
 class LocalVectorStoreSpec :
   StringSpec({
-    val model = CreateChatCompletionRequestModel.gpt_3_5_turbo
+    val model = CreateChatCompletionRequest.Model.Gpt35Turbo
     "memories function should return all of messages in the right order when the limit is greater than the number of stored messages" {
       val localVectorStore = LocalVectorStore(TestEmbeddings())
 

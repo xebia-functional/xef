@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.sql.jdbc
 
-import com.xebia.functional.openai.generated.api.Chat
-import io.github.nomisrev.openapi.CreateChatCompletionRequestModel
+import io.github.nomisrev.openapi.Chat
+import io.github.nomisrev.openapi.CreateChatCompletionRequest
 
 class JdbcConfig(
   val vendor: String,
@@ -11,7 +11,7 @@ class JdbcConfig(
   val port: Int,
   val database: String,
   val chatApi: Chat,
-  val model: CreateChatCompletionRequestModel
+  val model: CreateChatCompletionRequest.Model
 ) {
   fun toJDBCUrl(): String = "jdbc:$vendor://$host:$port/$database"
 }

@@ -9,19 +9,19 @@ import com.xebia.functional.xef.evaluator.models.OutputResponse
 import com.xebia.functional.xef.llm.promptMessage
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.user
-import io.github.nomisrev.openapi.CreateChatCompletionRequestModel
+import io.github.nomisrev.openapi.CreateChatCompletionRequest
 
 object TestExample {
 
   @JvmStatic
   fun main(args: Array<String>) = SuspendApp {
-    val model = CreateChatCompletionRequestModel.gpt_3_5_turbo_16k
+    val model = CreateChatCompletionRequest.Model.Gpt35Turbo16k
     val chat = OpenAI(logRequests = true).chat
 
     val spec =
       SuiteSpec(
         description = "Check GTP3.5 and fake outputs",
-        model = CreateChatCompletionRequestModel.gpt_4_turbo_preview
+        model = CreateChatCompletionRequest.Model.Gpt4TurboPreview
       ) {
         val gpt35Description = OutputDescription("Using GPT3.5")
         val fakeOutputs = OutputDescription("Fake outputs with errors")

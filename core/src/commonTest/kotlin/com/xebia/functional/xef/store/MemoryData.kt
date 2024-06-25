@@ -4,7 +4,6 @@ import arrow.atomic.AtomicInt
 import io.github.nomisrev.openapi.ChatCompletionRequestAssistantMessage
 import io.github.nomisrev.openapi.ChatCompletionRequestMessage
 import io.github.nomisrev.openapi.ChatCompletionRequestUserMessage
-import io.github.nomisrev.openapi.ChatCompletionRequestUserMessageContent
 
 class MemoryData {
   val defaultConversationId = ConversationId("default-id")
@@ -19,15 +18,15 @@ class MemoryData {
     (0 until n).flatMap {
       val m1 =
         ChatCompletionRequestUserMessage(
-          role = ChatCompletionRequestUserMessage.Role.user,
+          role = ChatCompletionRequestUserMessage.Role.User,
           content =
-            ChatCompletionRequestUserMessageContent.CaseString(
+            ChatCompletionRequestUserMessage.Content.CaseString(
               "Question $it${append?.let { ": $it" } ?: ""}"
             )
         )
       val m2 =
         ChatCompletionRequestAssistantMessage(
-          role = ChatCompletionRequestAssistantMessage.Role.assistant,
+          role = ChatCompletionRequestAssistantMessage.Role.Assistant,
           content = "Response $it${append?.let { ": $it" } ?: ""}"
         )
       listOf(

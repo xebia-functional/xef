@@ -73,7 +73,7 @@ class Assistant(
     @Serializable data class ToolOutput(val schema: JsonObject, val result: JsonElement)
 
     suspend operator fun invoke(
-      model: CreateAssistantRequest.Model,
+      model: String,
       name: String? = null,
       description: String? = null,
       instructions: String? = null,
@@ -177,7 +177,7 @@ class Assistant(
 
         assistant.modify(
           ModifyAssistantRequest(
-            model = ModifyAssistantRequest.Model.CaseString(assistantRequest.model),
+            model = assistantRequest.model,
             name = assistantRequest.name,
             description = assistantRequest.description,
             instructions = assistantRequest.instructions,
@@ -196,7 +196,7 @@ class Assistant(
         Assistant(
           request =
             CreateAssistantRequest(
-              model = CreateAssistantRequest.Model.CaseString(assistantRequest.model),
+              model = assistantRequest.model,
               name = assistantRequest.name,
               description = assistantRequest.description,
               instructions = assistantRequest.instructions,

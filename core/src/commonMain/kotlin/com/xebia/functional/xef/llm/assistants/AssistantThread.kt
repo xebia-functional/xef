@@ -17,14 +17,14 @@ class AssistantThread(
   val threadId: String,
   val metric: Metric = Metric.EMPTY,
   private val config: Config = Config(),
-  private val api: OpenAPI = OpenAI(config)
+  private val threads: Threads = OpenAI(config).threads
 ) {
 
   suspend fun delete(): Boolean =
-    api.threads.deleteThread(threadId = threadId, configure = ::defaultConfig).deleted
+    threads.deleteThread(threadId = threadId, configure = ::defaultConfig).deleted
 
   suspend fun modify(request: ModifyThreadRequest): AssistantThread =
-    AssistantThread(api.threads.modifyThread(threadId, request, configure = ::defaultConfig).id)
+    AssistantThread(threads.modifyThread(threadId, request, configure = ::defaultConfig).id)
 
   suspend fun createMessage(message: MessageWithFiles): MessageObject =
     createMessage(
@@ -40,10 +40,10 @@ class AssistantThread(
     createMessage(CreateMessageRequest(role = CreateMessageRequest.Role.User, content = content))
 
   suspend fun createMessage(request: CreateMessageRequest): MessageObject =
-    api.threads.messages.createMessage(threadId, request, configure = ::defaultConfig)
+    threads.messages.createMessage(threadId, request, configure = ::defaultConfig)
 
   suspend fun getMessage(messageId: String): MessageObject =
-    api.threads.messages.getMessage(threadId, messageId, configure = ::defaultConfig)
+    threads.messages.getMessage(threadId, messageId, configure = ::defaultConfig)
 
   data class ThreadMessagesFilter(
     val limit: Int? = 20,
@@ -55,7 +55,7 @@ class AssistantThread(
   suspend fun listMessages(
     filter: ThreadMessagesFilter = ThreadMessagesFilter()
   ): List<MessageObject> =
-    api.threads.messages
+    threads.messages
       .listMessages(
         threadId = threadId,
         limit = filter.limit,
@@ -70,10 +70,10 @@ class AssistantThread(
     createRun(CreateRunRequest(assistantId = assistant.assistantId))
 
   suspend fun createRun(request: CreateRunRequest): RunObject =
-    api.threads.runs.createRun(threadId, request, configure = ::defaultConfig).addMetrics(metric)
+    threads.runs.createRun(threadId, request, configure = ::defaultConfig).addMetrics(metric)
 
   fun createRunStream(assistant: Assistant, request: CreateRunRequest): Flow<RunDelta> = flow {
-    api.threads.runs
+    threads.runs
       .createRunStream(threadId, request, configure = ::defaultConfig)
       .map { RunDelta.fromServerSentEvent(it) }
       .map { it.addMetrics(metric) }
@@ -102,7 +102,7 @@ class AssistantThread(
       event.run.status == RunObject.Status.RequiresAction &&
         event.run.requiredAction?.type == RunObject.RequiredAction.Type.SubmitToolOutputs
     ) {
-      val calls = event.run.requiredAction?.submitToolOutputs?.toolCalls.orEmpty()
+      val calls = event.run.requiredAction.submitToolOutputs.toolCalls
       val callsResult: List<Pair<String, Assistant.Companion.ToolOutput>> =
         calls.parMapNotNull { toolCall -> assistantThread.executeToolCall(toolCall, assistant) }
       val results: Map<String, Assistant.Companion.ToolOutput> = callsResult.toMap()
@@ -118,7 +118,7 @@ class AssistantThread(
         )
       val run =
         metric.assistantToolOutputsRun(event.run.id) {
-          api.threads.runs.submitToolOutputs
+          threads.runs.submitToolOutputs
             .submitToolOuputsToRunStream(
               threadId = threadId,
               runId = event.run.id,
@@ -168,13 +168,9 @@ class AssistantThread(
       val function = toolCall.function
       val functionName = function.name
       val functionArguments = function.arguments
-      return if (functionName != null && functionArguments != null) {
-        val result = assistant.getToolRegistered(functionName, functionArguments)
-        val callId = toolCall.id
-        if (callId != null) {
-          callId to result
-        } else null
-      } else null
+      val result = assistant.getToolRegistered(functionName, functionArguments)
+      val callId = toolCall.id
+      return callId to result
     } catch (e: Throwable) {
       toolCall.id to
         Assistant.Companion.ToolOutput(
@@ -185,16 +181,16 @@ class AssistantThread(
   }
 
   suspend fun getRun(runId: String): RunObject =
-    api.threads.runs.getRun(threadId, runId, configure = ::defaultConfig)
+    threads.runs.getRun(threadId, runId, configure = ::defaultConfig)
 
   fun run(assistant: Assistant): Flow<RunDelta> =
     createRunStream(assistant, CreateRunRequest(assistantId = assistant.assistantId))
 
   suspend fun cancelRun(runId: String): RunObject =
-    api.threads.runs.cancel.cancelRun(threadId, runId, configure = ::defaultConfig)
+    threads.runs.cancel.cancelRun(threadId, runId, configure = ::defaultConfig)
 
   suspend fun runSteps(runId: String): List<RunStepObject> =
-    api.threads.runs.steps.listRunSteps(threadId, runId, configure = ::defaultConfig).data
+    threads.runs.steps.listRunSteps(threadId, runId, configure = ::defaultConfig).data
 
   private fun RunStepObject.StepDetails.toolCalls(): List<RunStepDetailsToolCallsObject.ToolCalls> =
     when (val step = this) {
@@ -215,11 +211,11 @@ class AssistantThread(
       metadata: JsonObject? = null,
       metric: Metric = Metric.EMPTY,
       config: Config = Config(),
-      api: OpenAPI = OpenAI(config)
+      threads: Threads = OpenAI(config).threads
     ): AssistantThread =
       AssistantThread(
         threadId =
-          api.threads
+          threads
             .createThread(
               body =
                 CreateThreadRequest(
@@ -237,7 +233,7 @@ class AssistantThread(
             .id,
         metric = metric,
         config = config,
-        api = api
+        threads = threads
       )
 
     @JvmName("createWithMessages")
@@ -246,10 +242,10 @@ class AssistantThread(
       metadata: JsonObject? = null,
       metric: Metric = Metric.EMPTY,
       config: Config = Config(),
-      api: OpenAPI = OpenAI(config)
+      threads: Threads = OpenAI(config).threads
     ): AssistantThread =
       AssistantThread(
-        api.threads
+        threads
           .createThread(
             body =
               CreateThreadRequest(
@@ -263,7 +259,7 @@ class AssistantThread(
           .id,
         metric,
         config,
-        api
+        threads
       )
 
     @JvmName("createWithRequests")
@@ -272,41 +268,41 @@ class AssistantThread(
       metadata: JsonObject? = null,
       metric: Metric = Metric.EMPTY,
       config: Config = Config(),
-      api: OpenAPI = OpenAI(config)
+      threads: Threads = OpenAI(config).threads
     ): AssistantThread =
       AssistantThread(
-        api.threads
+        threads
           .createThread(CreateThreadRequest(messages, metadata), configure = ::defaultConfig)
           .id,
         metric,
         config,
-        api
+        threads
       )
 
     suspend operator fun invoke(
       request: CreateThreadRequest,
       metric: Metric = Metric.EMPTY,
       config: Config = Config(),
-      api: OpenAPI = OpenAI(config)
+      threads: Threads = OpenAI(config).threads
     ): AssistantThread =
       AssistantThread(
-        api.threads.createThread(request, configure = ::defaultConfig).id,
+        threads.createThread(request, configure = ::defaultConfig).id,
         metric,
         config,
-        api
+        threads
       )
 
     suspend operator fun invoke(
       request: CreateThreadAndRunRequest,
       metric: Metric = Metric.EMPTY,
       config: Config = Config(),
-      api: OpenAPI = OpenAI(config)
+      threads: Threads = OpenAI(config).threads
     ): AssistantThread =
       AssistantThread(
-        api.threads.runs.createThreadAndRun(request, configure = ::defaultConfig).id,
+        threads.runs.createThreadAndRun(request, configure = ::defaultConfig).id,
         metric,
         config,
-        api
+        threads
       )
   }
 }

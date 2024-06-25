@@ -4,7 +4,6 @@ import arrow.atomic.AtomicInt
 import io.github.nomisrev.openapi.ChatCompletionRequestAssistantMessage
 import io.github.nomisrev.openapi.ChatCompletionRequestMessage
 import io.github.nomisrev.openapi.ChatCompletionRequestUserMessage
-import io.github.nomisrev.openapi.ChatCompletionRequestUserMessageContent
 import com.xebia.functional.xef.store.ConversationId
 import com.xebia.functional.xef.store.MemorizedMessage
 import com.xebia.functional.xef.store.Memory
@@ -22,13 +21,13 @@ class MemoryData {
         (0 until n).flatMap {
             val m1 = ChatCompletionRequestMessage.CaseChatCompletionRequestUserMessage(
                 ChatCompletionRequestUserMessage(
-                    role = ChatCompletionRequestUserMessage.Role.user,
-                    content = ChatCompletionRequestUserMessageContent.CaseString("Question $it${append?.let { ": $it" } ?: ""}")
+                    role = ChatCompletionRequestUserMessage.Role.User,
+                    content = ChatCompletionRequestUserMessage.Content.CaseString("Question $it${append?.let { ": $it" } ?: ""}")
                 )
             )
             val m2 = ChatCompletionRequestMessage.CaseChatCompletionRequestAssistantMessage(
                 ChatCompletionRequestAssistantMessage(
-                    role = ChatCompletionRequestAssistantMessage.Role.assistant,
+                    role = ChatCompletionRequestAssistantMessage.Role.Assistant,
                     content = "Answer $it${append?.let { ": $it" } ?: ""}"
                 )
             )

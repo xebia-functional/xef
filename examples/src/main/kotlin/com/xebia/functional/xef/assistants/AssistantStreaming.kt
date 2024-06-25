@@ -17,7 +17,7 @@ suspend fun main() {
       assistantId = "asst_UxczzpJkysC0l424ood87DAk",
       toolsConfig = listOf(Tool.toolOf(SumTool()))
     )
-  val thread = AssistantThread(api = OpenAI().assistants, metric = metric)
+  val thread = AssistantThread(threads = OpenAI().threads, metric = metric)
   println("Welcome to the Math tutor, ask me anything about math:")
   val userInput = "What is 1+1, explain all the steps and tools you used to solve it."
   thread.createMessage(userInput)

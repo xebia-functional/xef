@@ -10,7 +10,7 @@ import com.xebia.functional.xef.prompt.PromptBuilder.Companion.assistant
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.system
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.user
 import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
-import io.github.nomisrev.openapi.CreateChatCompletionRequestModel
+import io.github.nomisrev.openapi.CreateChatCompletionRequest
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -26,7 +26,7 @@ data class Book(
 )
 
 suspend fun books(topic: String): Books {
-  val model = CreateChatCompletionRequestModel.gpt_4_turbo_preview
+  val model = CreateChatCompletionRequest.Model.Gpt4TurboPreview
 
   val myCustomPrompt =
     Prompt(

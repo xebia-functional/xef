@@ -3,16 +3,17 @@ package com.xebia.functional.xef.dsl.images
 import com.xebia.functional.xef.OpenAI
 import com.xebia.functional.xef.llm.asInputProvider
 import io.github.nomisrev.openapi.CreateImageRequest
+import io.github.nomisrev.openapi.CreateImageVariationRequest
 
 suspend fun main() {
   val openAI = OpenAI(logRequests = true)
   val ai = openAI.images
-  val image =
-    ai.createImage(
-      createImageRequest = CreateImageRequest(prompt = "Event horizon in a black hole")
-    )
+  val image = ai.generations.createImage(CreateImageRequest("Event horizon in a black hole"))
   val generatedImage = image.data.first()
   println("Image: $generatedImage")
-  val variant = ai.createImageVariation(generatedImage.asInputProvider())
+  val variant =
+    ai.variations.createImageVariation(
+      CreateImageVariationRequest(generatedImage.asInputProvider())
+    )
   println("Variant: $variant")
 }

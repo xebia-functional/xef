@@ -2,7 +2,7 @@ package com.xebia.functional.xef.evaluator
 
 import com.xebia.functional.xef.AI
 import com.xebia.functional.xef.evaluator.models.*
-import io.github.nomisrev.openapi.CreateChatCompletionRequestModel
+import io.github.nomisrev.openapi.CreateChatCompletionRequest
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -10,7 +10,7 @@ import kotlinx.serialization.serializer
 
 class SuiteBuilder(
   private val description: String,
-  private val model: CreateChatCompletionRequestModel
+  private val model: CreateChatCompletionRequest.Model
 ) {
 
   private val items = mutableListOf<ItemSpec>()
@@ -26,7 +26,7 @@ class SuiteBuilder(
 data class SuiteSpec(
   val description: String,
   val items: List<ItemSpec>,
-  val model: CreateChatCompletionRequestModel
+  val model: CreateChatCompletionRequest.Model
 ) {
 
   suspend inline fun <reified E> evaluate(success: List<E>): SuiteResults<E> where
@@ -58,7 +58,7 @@ data class SuiteSpec(
     @JvmSynthetic
     suspend operator fun invoke(
       description: String,
-      model: CreateChatCompletionRequestModel,
+      model: CreateChatCompletionRequest.Model,
       block: suspend SuiteBuilder.() -> Unit
     ): SuiteSpec = SuiteBuilder(description, model).apply { block() }.build()
 

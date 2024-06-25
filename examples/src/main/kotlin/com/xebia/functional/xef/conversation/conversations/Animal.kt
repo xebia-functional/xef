@@ -11,7 +11,7 @@ import com.xebia.functional.xef.prompt.PromptBuilder.Companion.system
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.user
 import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
 import com.xebia.functional.xef.store.LocalVectorStore
-import io.github.nomisrev.openapi.CreateChatCompletionRequestModel
+import io.github.nomisrev.openapi.CreateChatCompletionRequest
 import kotlinx.serialization.Serializable
 
 @Serializable data class Animal(val name: String, val habitat: String, val diet: String)
@@ -35,7 +35,7 @@ suspend fun main() {
       val configNoneFromConversation = PromptConfiguration {
         messagePolicy { addMessagesFromConversation = MessagesFromHistory.NONE }
       }
-      val model = CreateChatCompletionRequestModel.gpt_3_5_turbo_16k_0613
+      val model = CreateChatCompletionRequest.Model.Gpt35Turbo16k0613
       val animal: Animal =
         AI(
           Prompt(model) { +user("A unique animal species.") }

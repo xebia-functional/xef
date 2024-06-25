@@ -7,7 +7,7 @@ import com.xebia.functional.xef.store.VectorStore
 import com.xebia.functional.xef.store.postgresql.PGDistanceStrategy
 import com.xebia.functional.xef.store.postgresql.addNewCollection
 import com.xebia.functional.xef.store.postgresql.connection
-import io.github.nomisrev.openapi.CreateEmbeddingRequestModel
+import io.github.nomisrev.openapi.CreateEmbeddingRequest
 import io.github.oshai.kotlinlogging.KLogger
 import javax.sql.DataSource
 import kotlinx.uuid.UUID
@@ -21,8 +21,8 @@ class PostgresVectorStoreService(
   private val preDeleteCollection: Boolean = false,
   private val chunkSize: Int = 400,
   private val distanceStrategy: PGDistanceStrategy = PGDistanceStrategy.Euclidean,
-  private val embeddingRequestModel: CreateEmbeddingRequestModel =
-    CreateEmbeddingRequestModel.text_embedding_3_small
+  private val embeddingRequestModel: CreateEmbeddingRequest.Model =
+    CreateEmbeddingRequest.Model.TextEmbedding3Small
 ) : VectorStoreService() {
 
   fun addCollection() {
