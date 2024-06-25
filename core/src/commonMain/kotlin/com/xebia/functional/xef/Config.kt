@@ -2,7 +2,7 @@ package com.xebia.functional.xef
 
 import arrow.core.nonEmptyListOf
 import com.xebia.functional.xef.env.getenv
-import io.github.nomisrev.openapi.OpenAPI
+import io.github.nomisrev.openapi.OpenAI
 import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
@@ -45,7 +45,7 @@ fun OpenAI(
   httpClientEngine: HttpClientEngine? = null,
   httpClientConfig: ((HttpClientConfig<*>) -> Unit)? = null,
   logRequests: Boolean = false
-): OpenAPI {
+): OpenAI {
   val token =
     config.token
       ?: getenv(KEY_ENV_VAR)
@@ -72,5 +72,5 @@ fun OpenAI(
     }
   }
   val client = httpClientEngine?.let { HttpClient(it, clientConfig) } ?: HttpClient(clientConfig)
-  return OpenAPI(client)
+  return OpenAI(client)
 }

@@ -20,7 +20,9 @@ plugins {
 }
 
 openApiConfig {
-    spec.set(file("openai-api.yaml"))
+    spec("OpenAI", "openai-api.yaml") {
+        packageName = "io.github.nomisrev.openapi"
+    }
 }
 
 dependencies {
@@ -52,11 +54,11 @@ kotlin {
                     classpath = compileDependencyFiles + runtimeDependencyFiles + output.allOutputs
                     testClassesDirs = output.classesDirs
                     testLogging { events("passed") }
-              }
-          }
-          val test by compilations.getting
-          integrationTest.associateWith(test)
-      }
+                }
+            }
+            val test by compilations.getting
+            integrationTest.associateWith(test)
+        }
     }
     js(IR) {
         browser()
@@ -67,74 +69,74 @@ kotlin {
     macosArm64()
     mingwX64()
     sourceSets {
-      all {
-          languageSettings.optIn("kotlin.ExperimentalStdlibApi")
-      }
-      val commonMain by getting {
-          kotlin.srcDir(project.file("build/generated/openapi/src/commonMain/kotlin"))
+        all {
+            languageSettings.optIn("kotlin.ExperimentalStdlibApi")
+        }
+        val commonMain by getting {
+            kotlin.srcDir(project.file("build/generated/openapi/src/commonMain/kotlin"))
 
-          dependencies {
-              api(libs.bundles.arrow)
-              api(libs.kotlinx.serialization.json)
-              api(libs.kotlinx.serialization.yaml)
-              api(libs.ktor.utils)
-              api(projects.xefTokenizer)
-              implementation(libs.bundles.ktor.client)
-              implementation(libs.klogging)
-              implementation(libs.uuid)
-              implementation(libs.ktor.client.logging)
-              implementation(libs.klogging)
-          }
-      }
-      val commonTest by getting {
-          dependencies {
-              implementation(libs.kotest.property)
-              implementation(libs.kotest.framework)
-              implementation(libs.kotest.assertions)
-          }
-      }
-      val jvmMain by getting {
-          dependencies {
-              implementation(libs.ktor.http)
-              implementation(libs.rss.reader)
-              api(libs.jackson)
-              api(libs.jackson.schema)
-              api(libs.jackson.schema.jakarta)
-              api(libs.jakarta.validation)
-              implementation(libs.kotlinx.coroutines.reactive)
-              api(libs.ktor.client.cio)
-          }
-      }
-      val jsMain by getting {
-          dependencies {
-              api(libs.ktor.client.js)
-          }
-      }
-      val jvmTest by getting {
-          dependencies {
-              implementation(libs.kotest.junit5)
-          }
-      }
-      val linuxX64Main by getting {
-          dependencies {
-              implementation(libs.ktor.client.cio)
-          }
-      }
-      val macosX64Main by getting {
-          dependencies {
-              implementation(libs.ktor.client.cio)
-          }
-      }
-      val macosArm64Main by getting {
-          dependencies {
-              implementation(libs.ktor.client.cio)
-          }
-      }
-      val mingwX64Main by getting {
-          dependencies {
-              implementation(libs.ktor.client.winhttp)
-          }
-      }
+            dependencies {
+                api(libs.bundles.arrow)
+                api(libs.kotlinx.serialization.json)
+                api(libs.kotlinx.serialization.yaml)
+                api(libs.ktor.utils)
+                api(projects.xefTokenizer)
+                implementation(libs.bundles.ktor.client)
+                implementation(libs.klogging)
+                implementation(libs.uuid)
+                implementation(libs.ktor.client.logging)
+                implementation(libs.klogging)
+            }
+        }
+        val commonTest by getting {
+            dependencies {
+                implementation(libs.kotest.property)
+                implementation(libs.kotest.framework)
+                implementation(libs.kotest.assertions)
+            }
+        }
+        val jvmMain by getting {
+            dependencies {
+                implementation(libs.ktor.http)
+                implementation(libs.rss.reader)
+                api(libs.jackson)
+                api(libs.jackson.schema)
+                api(libs.jackson.schema.jakarta)
+                api(libs.jakarta.validation)
+                implementation(libs.kotlinx.coroutines.reactive)
+                api(libs.ktor.client.cio)
+            }
+        }
+        val jsMain by getting {
+            dependencies {
+                api(libs.ktor.client.js)
+            }
+        }
+        val jvmTest by getting {
+            dependencies {
+                implementation(libs.kotest.junit5)
+            }
+        }
+        val linuxX64Main by getting {
+            dependencies {
+                implementation(libs.ktor.client.cio)
+            }
+        }
+        val macosX64Main by getting {
+            dependencies {
+                implementation(libs.ktor.client.cio)
+            }
+        }
+        val macosArm64Main by getting {
+            dependencies {
+                implementation(libs.ktor.client.cio)
+            }
+        }
+        val mingwX64Main by getting {
+            dependencies {
+                implementation(libs.ktor.client.winhttp)
+            }
+        }
     }
 }
 
