@@ -9,8 +9,8 @@ import com.xebia.functional.xef.prompt.PromptBuilder.Companion.system
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.user
 import com.xebia.functional.xef.sql.ResultSetOps.toQueryResult
 import com.xebia.functional.xef.sql.jdbc.JdbcConfig
-import io.github.nomisrev.openapi.Chat
-import io.github.nomisrev.openapi.CreateChatCompletionRequest
+import com.xebia.functional.xef.openapi.Chat
+import com.xebia.functional.xef.openapi.CreateChatCompletionRequest
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.serializer

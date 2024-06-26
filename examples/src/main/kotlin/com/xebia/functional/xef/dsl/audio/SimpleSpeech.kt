@@ -4,10 +4,10 @@ import com.sipgate.mp3wav.Converter
 import com.xebia.functional.xef.AI
 import com.xebia.functional.xef.Config
 import com.xebia.functional.xef.OpenAI
-import io.github.nomisrev.openapi.CreateSpeechRequest
-import io.github.nomisrev.openapi.CreateTranscriptionRequest
-import io.github.nomisrev.openapi.CreateTranslationRequest
-import io.github.nomisrev.openapi.UploadFile
+import com.xebia.functional.xef.openapi.CreateSpeechRequest
+import com.xebia.functional.xef.openapi.CreateTranscriptionRequest
+import com.xebia.functional.xef.openapi.CreateTranslationRequest
+import com.xebia.functional.xef.openapi.UploadFile
 import io.ktor.client.statement.*
 import io.ktor.utils.io.jvm.javaio.*
 import java.io.File

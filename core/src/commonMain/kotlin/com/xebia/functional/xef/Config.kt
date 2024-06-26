@@ -2,7 +2,7 @@ package com.xebia.functional.xef
 
 import arrow.core.nonEmptyListOf
 import com.xebia.functional.xef.env.getenv
-import io.github.nomisrev.openapi.OpenAI
+import com.xebia.functional.xef.openapi.OpenAI
 import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.client.plugins.*

@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.llm.assistants
 
 import com.xebia.functional.xef.Config
-import io.github.nomisrev.openapi.*
+import com.xebia.functional.xef.openapi.*
 import kotlin.jvm.JvmInline
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

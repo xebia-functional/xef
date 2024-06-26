@@ -5,7 +5,7 @@ import com.xebia.functional.xef.store.migrations.runDatabaseMigrations
 import com.xebia.functional.xef.store.postgresql.PGDistanceStrategy
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import io.github.nomisrev.openapi.*
+import com.xebia.functional.xef.openapi.*
 import io.kotest.core.Tuple3
 import io.kotest.core.extensions.install
 import io.kotest.core.spec.style.StringSpec

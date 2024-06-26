@@ -1,11 +1,11 @@
 package com.xebia.functional.xef.metrics
 
 import arrow.atomic.AtomicInt
+import com.xebia.functional.xef.openapi.MessageObject
+import com.xebia.functional.xef.openapi.RunObject
+import com.xebia.functional.xef.openapi.RunStepObject
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.contentAsString
-import io.github.nomisrev.openapi.MessageObject
-import io.github.nomisrev.openapi.RunObject
-import io.github.nomisrev.openapi.RunStepObject
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.oshai.kotlinlogging.Level
 import io.ktor.util.date.*

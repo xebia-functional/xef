@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.store
 
+import com.xebia.functional.xef.openapi.*
 import com.xebia.functional.xef.prompt.completionRole
-import io.github.nomisrev.openapi.*
 
 sealed class MemorizedMessage {
   val role: ChatCompletionRole

@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.llm
 
 import arrow.fx.coroutines.parMap
-import io.github.nomisrev.openapi.*
+import com.xebia.functional.xef.openapi.*
 
 suspend fun Embeddings.embedDocuments(
   texts: List<String>,

@@ -6,9 +6,9 @@ import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.models.functions.buildJsonSchema
+import com.xebia.functional.xef.openapi.*
+import com.xebia.functional.xef.openapi.ChatCompletionToolChoiceOption.NoneOrAuto
 import com.xebia.functional.xef.prompt.Prompt
-import io.github.nomisrev.openapi.*
-import io.github.nomisrev.openapi.ChatCompletionToolChoiceOption.NoneOrAuto
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.*
 import kotlinx.serialization.ExperimentalSerializationApi

@@ -1,9 +1,9 @@
 package xef
 
 import arrow.atomic.AtomicInt
-import io.github.nomisrev.openapi.ChatCompletionRequestAssistantMessage
-import io.github.nomisrev.openapi.ChatCompletionRequestMessage
-import io.github.nomisrev.openapi.ChatCompletionRequestUserMessage
+import com.xebia.functional.xef.openapi.ChatCompletionRequestAssistantMessage
+import com.xebia.functional.xef.openapi.ChatCompletionRequestMessage
+import com.xebia.functional.xef.openapi.ChatCompletionRequestUserMessage
 import com.xebia.functional.xef.store.ConversationId
 import com.xebia.functional.xef.store.MemorizedMessage
 import com.xebia.functional.xef.store.Memory

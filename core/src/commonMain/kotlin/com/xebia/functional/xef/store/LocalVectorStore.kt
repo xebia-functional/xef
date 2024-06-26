@@ -7,7 +7,7 @@ import arrow.atomic.update
 import com.xebia.functional.xef.llm.embedDocuments
 import com.xebia.functional.xef.llm.embedQuery
 import com.xebia.functional.xef.llm.models.modelType
-import io.github.nomisrev.openapi.*
+import com.xebia.functional.xef.openapi.*
 import kotlin.math.sqrt
 
 private data class State(

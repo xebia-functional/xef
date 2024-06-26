@@ -1,10 +1,10 @@
 package com.xebia.functional.xef.llm
 
 import com.xebia.functional.xef.conversation.Conversation
+import com.xebia.functional.xef.openapi.*
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.image
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.user
-import io.github.nomisrev.openapi.*
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*

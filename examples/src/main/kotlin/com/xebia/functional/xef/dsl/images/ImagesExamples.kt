@@ -2,8 +2,8 @@ package com.xebia.functional.xef.dsl.images
 
 import com.xebia.functional.xef.OpenAI
 import com.xebia.functional.xef.llm.asInputProvider
-import io.github.nomisrev.openapi.CreateImageRequest
-import io.github.nomisrev.openapi.CreateImageVariationRequest
+import com.xebia.functional.xef.openapi.CreateImageRequest
+import com.xebia.functional.xef.openapi.CreateImageVariationRequest
 
 suspend fun main() {
   val openAI = OpenAI(logRequests = true)

@@ -3,10 +3,10 @@ package com.xebia.functional.xef.llm
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
+import com.xebia.functional.xef.openapi.Chat
+import com.xebia.functional.xef.openapi.CreateChatCompletionRequest
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.PromptBuilder
-import io.github.nomisrev.openapi.Chat
-import io.github.nomisrev.openapi.CreateChatCompletionRequest
 import kotlinx.coroutines.flow.*
 
 @AiDsl

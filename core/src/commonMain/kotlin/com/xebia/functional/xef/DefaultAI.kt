@@ -5,9 +5,9 @@ import com.xebia.functional.xef.llm.StreamedFunction
 import com.xebia.functional.xef.llm.models.modelType
 import com.xebia.functional.xef.llm.prompt
 import com.xebia.functional.xef.llm.promptStreaming
+import com.xebia.functional.xef.openapi.Chat
+import com.xebia.functional.xef.openapi.CreateChatCompletionRequest
 import com.xebia.functional.xef.prompt.Prompt
-import io.github.nomisrev.openapi.Chat
-import io.github.nomisrev.openapi.CreateChatCompletionRequest
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf

@@ -2,10 +2,10 @@ package com.xebia.functional.xef
 
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
+import com.xebia.functional.xef.openapi.Chat
+import com.xebia.functional.xef.openapi.CreateChatCompletionRequest
+import com.xebia.functional.xef.openapi.Images
 import com.xebia.functional.xef.prompt.Prompt
-import io.github.nomisrev.openapi.Chat
-import io.github.nomisrev.openapi.CreateChatCompletionRequest
-import io.github.nomisrev.openapi.Images
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.reflect.KClass
 import kotlin.reflect.KType

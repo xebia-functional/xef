@@ -5,7 +5,7 @@ import com.xebia.functional.xef.Config
 import com.xebia.functional.xef.OpenAI
 import com.xebia.functional.xef.llm.addMetrics
 import com.xebia.functional.xef.metrics.Metric
-import io.github.nomisrev.openapi.*
+import com.xebia.functional.xef.openapi.*
 import io.ktor.client.request.*
 import kotlin.jvm.JvmName
 import kotlinx.coroutines.flow.*

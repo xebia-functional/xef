@@ -5,11 +5,11 @@ import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.MessagesFromHistory
 import com.xebia.functional.xef.llm.models.modelType
+import com.xebia.functional.xef.openapi.ChatCompletionRequestMessage
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.assistant
 import com.xebia.functional.xef.prompt.contentAsString
 import com.xebia.functional.xef.store.Memory
-import io.github.nomisrev.openapi.ChatCompletionRequestMessage
 
 internal object PromptCalculator {
 

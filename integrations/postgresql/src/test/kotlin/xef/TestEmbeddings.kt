@@ -1,6 +1,6 @@
 package xef
 
-import io.github.nomisrev.openapi.*
+import com.xebia.functional.xef.openapi.*
 import io.ktor.client.request.*
 
 class TestEmbeddings : Embeddings, AutoCloseable {

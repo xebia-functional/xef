@@ -7,9 +7,9 @@ import com.xebia.functional.xef.evaluator.metrics.AnswerAccuracy
 import com.xebia.functional.xef.evaluator.models.OutputDescription
 import com.xebia.functional.xef.evaluator.models.OutputResponse
 import com.xebia.functional.xef.llm.promptMessage
+import com.xebia.functional.xef.openapi.CreateChatCompletionRequest
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.user
-import io.github.nomisrev.openapi.CreateChatCompletionRequest
 
 object TestExample {
 

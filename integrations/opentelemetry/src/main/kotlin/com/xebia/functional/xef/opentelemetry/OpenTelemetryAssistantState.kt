@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.opentelemetry
 
-import io.github.nomisrev.openapi.*
+import com.xebia.functional.xef.openapi.*
 import io.opentelemetry.api.trace.Span
 import io.opentelemetry.api.trace.SpanKind
 import io.opentelemetry.api.trace.Tracer

@@ -1,8 +1,8 @@
 package com.xebia.functional.xef.llm.models
 
 import com.xebia.functional.tokenizer.ModelType
-import io.github.nomisrev.openapi.CreateChatCompletionRequest
-import io.github.nomisrev.openapi.CreateEmbeddingRequest
+import com.xebia.functional.xef.openapi.CreateChatCompletionRequest
+import com.xebia.functional.xef.openapi.CreateEmbeddingRequest
 
 fun CreateChatCompletionRequest.Model.modelType(forFunctions: Boolean = false): ModelType {
   val stringValue = value

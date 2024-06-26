@@ -2,11 +2,11 @@ package com.xebia.functional.xef.llm
 
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.MessagesToHistory
+import com.xebia.functional.xef.openapi.*
 import com.xebia.functional.xef.store.ConversationId
 import com.xebia.functional.xef.store.MemorizedMessage
 import com.xebia.functional.xef.store.Memory
 import com.xebia.functional.xef.store.VectorStore
-import io.github.nomisrev.openapi.*
 
 internal suspend fun List<ChatCompletionRequestMessage>.addToMemory(
   scope: Conversation,

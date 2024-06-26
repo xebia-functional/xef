@@ -21,7 +21,7 @@ plugins {
 
 openApiConfig {
     spec("OpenAI", "openai-api.yaml") {
-        packageName = "io.github.nomisrev.openapi"
+        packageName = "com.xebia.functional.xef.openapi"
     }
 }
 

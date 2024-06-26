@@ -6,12 +6,12 @@ import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.MessagesFromHistory
 import com.xebia.functional.xef.conversation.MessagesToHistory
 import com.xebia.functional.xef.llm.promptMessage
+import com.xebia.functional.xef.openapi.CreateChatCompletionRequest
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.system
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.user
 import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
 import com.xebia.functional.xef.store.LocalVectorStore
-import io.github.nomisrev.openapi.CreateChatCompletionRequest
 import kotlinx.serialization.Serializable
 
 @Serializable data class Animal(val name: String, val habitat: String, val diet: String)

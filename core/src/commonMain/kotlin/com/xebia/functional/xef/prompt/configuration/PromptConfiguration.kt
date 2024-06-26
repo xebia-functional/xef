@@ -1,7 +1,7 @@
 package com.xebia.functional.xef.prompt.configuration
 
 import com.xebia.functional.xef.conversation.MessagePolicy
-import io.github.nomisrev.openapi.ChatCompletionRole
+import com.xebia.functional.xef.openapi.ChatCompletionRole
 import kotlin.jvm.JvmField
 import kotlin.jvm.JvmOverloads
 import kotlinx.serialization.Serializable

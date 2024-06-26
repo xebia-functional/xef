@@ -1,8 +1,8 @@
 package com.xebia.functional.xef.data
 
-import io.github.nomisrev.openapi.CreateEmbeddingRequest
-import io.github.nomisrev.openapi.CreateEmbeddingResponse
-import io.github.nomisrev.openapi.Embeddings
+import com.xebia.functional.xef.openapi.CreateEmbeddingRequest
+import com.xebia.functional.xef.openapi.CreateEmbeddingResponse
+import com.xebia.functional.xef.openapi.Embeddings
 import io.ktor.client.request.*
 
 class TestEmbeddings : Embeddings, AutoCloseable {

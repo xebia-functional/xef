@@ -3,7 +3,7 @@ package com.xebia.functional.xef.store
 import com.xebia.functional.xef.data.TestEmbeddings
 import com.xebia.functional.xef.llm.models.modelType
 import com.xebia.functional.xef.llm.tokensFromMessages
-import io.github.nomisrev.openapi.CreateChatCompletionRequest
+import com.xebia.functional.xef.openapi.CreateChatCompletionRequest
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 

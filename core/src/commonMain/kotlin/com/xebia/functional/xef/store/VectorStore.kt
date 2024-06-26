@@ -1,8 +1,8 @@
 package com.xebia.functional.xef.store
 
 import arrow.atomic.AtomicInt
-import io.github.nomisrev.openapi.CreateChatCompletionRequest
-import io.github.nomisrev.openapi.Embedding
+import com.xebia.functional.xef.openapi.CreateChatCompletionRequest
+import com.xebia.functional.xef.openapi.Embedding
 import kotlin.jvm.JvmStatic
 
 interface VectorStore {

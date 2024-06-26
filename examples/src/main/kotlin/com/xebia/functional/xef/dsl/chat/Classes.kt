@@ -5,12 +5,12 @@ import com.xebia.functional.xef.conversation.Description
 import com.xebia.functional.xef.conversation.MessagePolicy
 import com.xebia.functional.xef.conversation.MessagesFromHistory
 import com.xebia.functional.xef.conversation.MessagesToHistory
+import com.xebia.functional.xef.openapi.CreateChatCompletionRequest
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.assistant
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.system
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.user
 import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
-import io.github.nomisrev.openapi.CreateChatCompletionRequest
 import kotlinx.serialization.Serializable
 
 @Serializable

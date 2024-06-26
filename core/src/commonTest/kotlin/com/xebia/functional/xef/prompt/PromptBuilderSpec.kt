@@ -1,9 +1,9 @@
 package com.xebia.functional.xef.prompt
 
+import com.xebia.functional.xef.openapi.CreateChatCompletionRequest
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.assistant
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.system
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.user
-import io.github.nomisrev.openapi.CreateChatCompletionRequest
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 

@@ -7,6 +7,7 @@ import com.xebia.functional.xef.llm.promptMessage
 import com.xebia.functional.xef.llm.promptMessages
 import com.xebia.functional.xef.llm.tokensFromMessages
 import com.xebia.functional.xef.metrics.LogsMetric
+import com.xebia.functional.xef.openapi.*
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.assistant
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.system
@@ -15,7 +16,6 @@ import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
 import com.xebia.functional.xef.prompt.contentAsString
 import com.xebia.functional.xef.store.ConversationId
 import com.xebia.functional.xef.store.LocalVectorStore
-import io.github.nomisrev.openapi.*
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.comparables.shouldBeLessThan
 import io.kotest.matchers.shouldBe

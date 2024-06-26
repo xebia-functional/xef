@@ -4,7 +4,7 @@ import com.xebia.functional.xef.Config
 import com.xebia.functional.xef.OpenAI
 import com.xebia.functional.xef.llm.assistants.AssistantThread.Companion.defaultConfig
 import com.xebia.functional.xef.llm.models.functions.buildJsonSchema
-import io.github.nomisrev.openapi.*
+import com.xebia.functional.xef.openapi.*
 import io.ktor.util.logging.*
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable

@@ -3,12 +3,12 @@ package com.xebia.functional.xef.llm
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.assistants.RunDelta
 import com.xebia.functional.xef.metrics.Metric
+import com.xebia.functional.xef.openapi.CreateChatCompletionResponse
+import com.xebia.functional.xef.openapi.RunObject
+import com.xebia.functional.xef.openapi.RunStepObject
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.completionRole
 import com.xebia.functional.xef.prompt.contentAsString
-import io.github.nomisrev.openapi.CreateChatCompletionResponse
-import io.github.nomisrev.openapi.RunObject
-import io.github.nomisrev.openapi.RunStepObject
 
 suspend fun CreateChatCompletionResponse.addMetrics(
   conversation: Conversation

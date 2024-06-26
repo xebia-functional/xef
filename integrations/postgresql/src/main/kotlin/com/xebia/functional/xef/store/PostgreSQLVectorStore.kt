@@ -6,7 +6,7 @@ import com.xebia.functional.xef.llm.embedQuery
 import com.xebia.functional.xef.llm.models.modelType
 import com.xebia.functional.xef.prompt.contentAsString
 import com.xebia.functional.xef.store.postgresql.*
-import io.github.nomisrev.openapi.*
+import com.xebia.functional.xef.openapi.*
 import kotlinx.uuid.UUID
 import kotlinx.uuid.generateUUID
 import javax.sql.DataSource

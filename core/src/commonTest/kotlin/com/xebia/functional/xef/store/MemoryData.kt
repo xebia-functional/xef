@@ -1,9 +1,9 @@
 package com.xebia.functional.xef.store
 
 import arrow.atomic.AtomicInt
-import io.github.nomisrev.openapi.ChatCompletionRequestAssistantMessage
-import io.github.nomisrev.openapi.ChatCompletionRequestMessage
-import io.github.nomisrev.openapi.ChatCompletionRequestUserMessage
+import com.xebia.functional.xef.openapi.ChatCompletionRequestAssistantMessage
+import com.xebia.functional.xef.openapi.ChatCompletionRequestMessage
+import com.xebia.functional.xef.openapi.ChatCompletionRequestUserMessage
 
 class MemoryData {
   val defaultConversationId = ConversationId("default-id")

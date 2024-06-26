@@ -5,7 +5,7 @@ import com.xebia.functional.xef.llm.assistants.Assistant
 import com.xebia.functional.xef.llm.assistants.AssistantThread
 import com.xebia.functional.xef.llm.assistants.Tool
 import com.xebia.functional.xef.metrics.Metric
-import io.github.nomisrev.openapi.CreateRunRequest
+import com.xebia.functional.xef.openapi.CreateRunRequest
 
 suspend fun main() {
 

@@ -1,8 +1,8 @@
 package com.xebia.functional.xef.store
 
 import com.xebia.functional.xef.llm.models.modelType
-import io.github.nomisrev.openapi.CreateChatCompletionRequest
-import io.github.nomisrev.openapi.Embedding
+import com.xebia.functional.xef.openapi.CreateChatCompletionRequest
+import com.xebia.functional.xef.openapi.Embedding
 
 /**
  * A way of composing two [VectorStore] instances together, this class will **first search** [top],

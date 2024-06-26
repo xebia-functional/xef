@@ -1,8 +1,8 @@
 package com.xebia.functional.xef.prompt
 
+import com.xebia.functional.xef.openapi.*
+import com.xebia.functional.xef.openapi.ChatCompletionRequestMessage
 import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
-import io.github.nomisrev.openapi.*
-import io.github.nomisrev.openapi.ChatCompletionRequestMessage
 import kotlin.jvm.JvmSynthetic
 
 interface PromptBuilder {
