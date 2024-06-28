@@ -34,7 +34,7 @@ class JvmInlineAnnotation(config: Config) : Rule(config) {
         CorrectableCodeSmell(
           issue,
           Entity.from(klass),
-          "Kotlin inline value classes are not compatible with other jvm lanugages.",
+          "Kotlin inline value classes are not compatible with other jvm languages.",
           emptyList(),
           listOf(Entity.from(klass)),
           false
