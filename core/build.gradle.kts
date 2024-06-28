@@ -16,7 +16,7 @@ plugins {
     alias(libs.plugins.arrow.gradle.publish)
     alias(libs.plugins.semver.gradle)
     alias(libs.plugins.detekt)
-    id("io.github.nomisrev.openapi-kt-plugin") version "0.0.2"
+    alias(libs.plugins.openapi.kt)
 }
 
 openApiConfig {
