@@ -8,149 +8,107 @@ import io.opentelemetry.context.Context
 
 class OpenTelemetryAssistantState(private val tracer: Tracer) {
 
+  private val runStartedSource = "RunCreated"
+
+  private val runFinishedSources =
+    setOf("RunCompleted", "RunCancelled", "RunFailed", "RunIncomplete", "RunExpired")
+
+  private val runStepStartedSource = "RunStepCreated"
+
+  private val runStepFinishedSources =
+    setOf("RunStepCompleted", "RunStepCancelled", "RunStepFailed", "RunStepExpired")
+
+  private val messageStartedSource = "MessageCreated"
+
+  private val messageFinishedSources = setOf("MessageCompleted", "MessageIncomplete")
+
   private val runIds: MutableMap<String, Context> = mutableMapOf()
 
-  fun runSpan(runObject: RunObject) {
+  private val runSpans: MutableMap<String, Span> = mutableMapOf()
+
+  private val runStepsSpans: MutableMap<String, Span> = mutableMapOf()
+
+  private val messagesSpans: MutableMap<String, Span> = mutableMapOf()
+
+  fun runSpan(runObject: RunObject, source: String) {
 
     val parentOrRoot: Context = runObject.id.getOrCreateContext()
 
     val currentSpan =
-      tracer
-        .spanBuilder(runObject.status.name)
-        .setParent(parentOrRoot)
-        .setSpanKind(SpanKind.CLIENT)
-        .startSpan()
+      tracer.spanBuilder(source).setParent(parentOrRoot).setSpanKind(SpanKind.CLIENT).startSpan()
+
+    if (source == runStartedSource) {
+      runSpans[runObject.id] = currentSpan
+    }
 
     try {
       currentSpan.makeCurrent().use { runObject.setParameters(currentSpan) }
     } finally {
-      currentSpan.end()
-    }
-  }
-
-  suspend fun runSpan(runId: String, block: suspend () -> RunObject): RunObject {
-
-    val parentOrRoot: Context = runId.getOrCreateContext()
-
-    val currentSpan =
-      tracer
-        .spanBuilder("New Run: $runId")
-        .setParent(parentOrRoot)
-        .setSpanKind(SpanKind.CLIENT)
-        .startSpan()
-
-    return try {
-      val output = block()
-      currentSpan.makeCurrent().use {
-        currentSpan.updateName(output.status.name)
-        output.setParameters(currentSpan)
-      }
-      output
-    } finally {
-      currentSpan.end()
-    }
-  }
-
-  suspend fun toolOutputRunSpan(runId: String, block: suspend () -> RunObject): RunObject {
-
-    val parentOrRoot: Context = runId.getOrCreateContext()
-
-    val currentSpan =
-      tracer
-        .spanBuilder("New ToolOutput: $runId")
-        .setParent(parentOrRoot)
-        .setSpanKind(SpanKind.CLIENT)
-        .startSpan()
-
-    return try {
-      val output = block()
-      currentSpan.makeCurrent().use {
-        currentSpan.updateName("ToolOutput: ${output.status.name}")
-        output.setParameters(currentSpan)
-      }
-      output
-    } finally {
-      currentSpan.end()
-    }
-  }
-
-  fun runStepSpan(runObject: RunStepObject) {
-
-    val parentOrRoot: Context = runObject.runId.getOrCreateContext()
-
-    val currentSpan =
-      tracer
-        .spanBuilder("step ${runObject.status.name} ${runObject.id}")
-        .setParent(parentOrRoot)
-        .setSpanKind(SpanKind.CLIENT)
-        .startSpan()
-
-    try {
-      currentSpan.makeCurrent().use { runObject.setParameters(currentSpan) }
-    } finally {
-      currentSpan.end()
-    }
-  }
-
-  suspend fun runStepSpan(runId: String, block: suspend () -> RunStepObject): RunStepObject {
-
-    val parentOrRoot: Context = runId.getOrCreateContext()
-
-    val currentSpan =
-      tracer
-        .spanBuilder("New RunStep: $runId")
-        .setParent(parentOrRoot)
-        .setSpanKind(SpanKind.CLIENT)
-        .startSpan()
-
-    return try {
-      val output = block()
-      currentSpan.makeCurrent().use {
-        when (val detail = output.stepDetails) {
-          is RunStepObject.StepDetails.CaseRunStepDetailsMessageCreationObject ->
-            currentSpan.updateName("Creating message: ${output.status.name}")
-          is RunStepObject.StepDetails.CaseRunStepDetailsToolCallsObject ->
-            currentSpan.updateName(
-              "Tools: ${detail.value.toolCalls.joinToString {
-                when (it) {
-                  is RunStepDetailsToolCallsObject.ToolCalls.CaseRunStepDetailsToolCallsCodeObject -> it.value.type.name
-                  is RunStepDetailsToolCallsObject.ToolCalls.CaseRunStepDetailsToolCallsFunctionObject -> it.value.function.name ?: ""
-                  is RunStepDetailsToolCallsObject.ToolCalls.CaseRunStepDetailsToolCallsRetrievalObject -> it.value.type.name
-                }
-              }}: ${output.status.name}"
-            )
+      if (runFinishedSources.contains(source) && runSpans[runObject.id] != null) {
+        runSpans[runObject.id]!!.let {
+          runObject.setParameters(it)
+          it.updateName("RunCreated -> $source ${runObject.id}")
+          it.end()
+          runSpans.remove(runObject.id)
         }
-        output.setParameters(currentSpan)
+      } else if (source != runStartedSource) {
+        currentSpan.end()
       }
-      output
-    } finally {
-      currentSpan.end()
     }
   }
 
-  suspend fun createdMessagesSpan(
-    runId: String,
-    block: suspend () -> List<MessageObject>
-  ): List<MessageObject> {
+  fun runStepSpan(runStepObject: RunStepObject, source: String) {
+
+    val parentOrRoot: Context = runStepObject.runId.getOrCreateContext()
+
+    val currentSpan =
+      tracer.spanBuilder(source).setParent(parentOrRoot).setSpanKind(SpanKind.CLIENT).startSpan()
+
+    if (source == runStepStartedSource) {
+      runStepsSpans[runStepObject.id] = currentSpan
+    }
+
+    try {
+      currentSpan.makeCurrent().use { runStepObject.setParameters(currentSpan, source) }
+    } finally {
+      if (runStepFinishedSources.contains(source) && runStepsSpans[runStepObject.id] != null) {
+        runStepsSpans[runStepObject.id]!!.let {
+          runStepObject.setParameters(it, source)
+          it.updateName("RunStepCreated -> $source ${runStepObject.id}")
+          it.end()
+          runStepsSpans.remove(runStepObject.id)
+        }
+      } else if (source != runStepStartedSource) {
+        currentSpan.end()
+      }
+    }
+  }
+
+  fun createdMessagesSpan(messageObject: MessageObject, source: String) {
+    val runId = messageObject.runId ?: return
 
     val parentOrRoot: Context = runId.getOrCreateContext()
 
     val currentSpan =
-      tracer
-        .spanBuilder("New Run: $runId")
-        .setParent(parentOrRoot)
-        .setSpanKind(SpanKind.CLIENT)
-        .startSpan()
+      tracer.spanBuilder(source).setParent(parentOrRoot).setSpanKind(SpanKind.CLIENT).startSpan()
 
-    return try {
-      val output = block()
-      currentSpan.makeCurrent().use {
-        currentSpan.updateName("Messages: ${output.size}")
-        output.setParameters(currentSpan)
-      }
-      output
+    if (source == messageStartedSource) {
+      messagesSpans[messageObject.id] = currentSpan
+    }
+
+    try {
+      currentSpan.makeCurrent().use { messageObject.setParameters(currentSpan, source) }
     } finally {
-      currentSpan.end()
+      if (messageFinishedSources.contains(source) && messagesSpans[messageObject.id] != null) {
+        messagesSpans[messageObject.id]!!.let {
+          messageObject.setParameters(it, source)
+          it.updateName("MessageCreated -> $source ${messageObject.id}")
+          it.end()
+          messagesSpans.remove(messageObject.id)
+        }
+      } else if (source != messageStartedSource) {
+        currentSpan.end()
+      }
     }
   }
 
@@ -167,7 +125,6 @@ class OpenTelemetryAssistantState(private val tracer: Tracer) {
 
   private fun RunObject.setParameters(span: Span) {
     span.setAttribute("openai.assistant.model", model)
-    if (fileIds.isNotEmpty()) span.setAttribute("openai.assistant.fileIds", fileIds.joinToString())
     span.setAttribute("openai.assistant.tools.count", tools.count().toString())
     span.setAttribute("openai.assistant.thread.id", threadId)
     span.setAttribute("openai.assistant.assistant.id", assistantId)
@@ -180,7 +137,8 @@ class OpenTelemetryAssistantState(private val tracer: Tracer) {
     }
   }
 
-  private fun RunStepObject.setParameters(span: Span) {
+  private fun RunStepObject.setParameters(span: Span, source: String) {
+    span.setAttribute("openai.assistant.source", source)
     span.setAttribute("openai.assistant.type", type.name)
     span.setAttribute("openai.assistant.thread.id", threadId)
     span.setAttribute("openai.assistant.assistant.id", assistantId)
@@ -215,7 +173,7 @@ class OpenTelemetryAssistantState(private val tracer: Tracer) {
                 toolCall.value.function.arguments ?: ""
               )
             }
-            is RunStepDetailsToolCallsObject.ToolCalls.CaseRunStepDetailsToolCallsRetrievalObject -> {
+            is RunStepDetailsToolCallsObject.ToolCalls.CaseRunStepDetailsToolCallsFileSearchObject -> {
               span.setAttribute("openai.assistant.toolCalls.$index.type", toolCall.value.type.name)
               span.setAttribute("openai.assistant.toolCalls.$index.function.name", "retrieval")
             }
@@ -225,25 +183,24 @@ class OpenTelemetryAssistantState(private val tracer: Tracer) {
     }
   }
 
-  private fun List<MessageObject>.setParameters(span: Span) {
-    span.setAttribute("openai.assistant.messages.count", size.toString())
-    forEach {
-      span.setAttribute("openai.assistant.messages.${indexOf(it)}.role", it.role.name)
-      when (val inner = it.content.firstOrNull()) {
-        is MessageObject.Content.CaseMessageContentImageFileObject -> {
-          span.setAttribute(
-            "openai.assistant.messages.${indexOf(it)}.content",
-            inner.value.imageFile.fileId
-          )
-        }
-        is MessageObject.Content.CaseMessageContentTextObject -> {
-          span.setAttribute(
-            "openai.assistant.messages.${indexOf(it)}.content",
-            inner.value.text.value
-          )
-        }
-        null -> {}
+  private fun MessageObject.setParameters(span: Span, source: String) {
+    span.setAttribute("openai.assistant.message.source", source)
+    span.setAttribute("openai.assistant.message.role", role.name)
+    span.setAttribute("openai.assistant.message.thread.id", threadId)
+    assistantId?.let { span.setAttribute("openai.assistant.message.assistant.id", it) }
+    runId?.let { span.setAttribute("openai.assistant.message.run.id", it) }
+    span.setAttribute("openai.assistant.message.id", id)
+    status?.let { span.setAttribute("openai.assistant.message.status", it.name) }
+    when (val inner = content.firstOrNull()) {
+      is MessageObject.Content.CaseMessageContentImageFileObject -> {
+        span.setAttribute("openai.assistant.message.content", inner.value.imageFile.fileId)
       }
+      is MessageObject.Content.CaseMessageContentTextObject -> {
+        span.setAttribute("openai.assistant.message.content", inner.value.text.value)
+      }
+      is MessageObject.Content.CaseMessageContentImageUrlObject ->
+        span.setAttribute("openai.assistant.message.content", inner.value.imageUrl.url)
+      null -> {}
     }
   }
 }

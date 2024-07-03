@@ -20,7 +20,7 @@ plugins {
 }
 
 openApiConfig {
-    spec("OpenAI", "openai-api.yaml") {
+    spec("OpenAI", file("openai-api.yaml")) {
         packageName = "com.xebia.functional.xef.openapi"
     }
 }

@@ -42,7 +42,7 @@ sealed class StreamedFunction<out A> {
       prompt: Prompt,
       request: CreateChatCompletionRequest,
       scope: Conversation,
-      serializer: (json: String) -> A,
+      serializer: suspend (json: String) -> A,
       function: FunctionObject
     ) {
       val messages = mutableListOf<ChatCompletionRequestMessage>()
@@ -129,7 +129,7 @@ sealed class StreamedFunction<out A> {
     private suspend fun <A> FlowCollector<StreamedFunction<A>>.streamResult(
       functionCall: ChatCompletionMessageToolCall.Function,
       messages: MutableList<ChatCompletionRequestMessage>,
-      serializer: (json: String) -> A
+      serializer: suspend (json: String) -> A
     ) {
       val arguments = functionCall.arguments
       messages.add(PromptBuilder.assistant("Function call: $functionCall"))

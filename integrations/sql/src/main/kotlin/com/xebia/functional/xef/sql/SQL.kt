@@ -1,16 +1,17 @@
 package com.xebia.functional.xef.sql
 
+import com.xebia.functional.xef.openapi.Chat
+import com.xebia.functional.xef.Tool
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.Description
 import com.xebia.functional.xef.llm.*
+import com.xebia.functional.xef.openapi.CreateChatCompletionRequest
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.system
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.user
 import com.xebia.functional.xef.sql.ResultSetOps.toQueryResult
 import com.xebia.functional.xef.sql.jdbc.JdbcConfig
-import com.xebia.functional.xef.openapi.Chat
-import com.xebia.functional.xef.openapi.CreateChatCompletionRequest
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.serializer
@@ -120,7 +121,8 @@ class SQLImpl(private val chatApi: Chat, private val model: CreateChatCompletion
         return chatApi.prompt(
             prompt = prompt,
             scope = this,
-            serializer = serializer<QueriesAnswer>()
+            serializer = Tool.fromKotlin(),
+            tools = emptyList()
         )
     }
 

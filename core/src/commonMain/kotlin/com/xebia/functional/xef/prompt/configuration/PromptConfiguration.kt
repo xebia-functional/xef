@@ -11,10 +11,11 @@ data class PromptConfiguration
 @JvmOverloads
 constructor(
   var maxDeserializationAttempts: Int = 3,
+  var maxToolCallsPerRound: Int = 10000,
+  var concurrentToolCallsPerRound: Int = 5,
   var user: String = ChatCompletionRole.User.value,
   var temperature: Double = 0.4,
   var numberOfPredictions: Int = 1,
-  var docsInContext: Int = 5,
   var maxTokens: Int = 500,
   var messagePolicy: MessagePolicy = MessagePolicy(),
   var seed: Int? = null,

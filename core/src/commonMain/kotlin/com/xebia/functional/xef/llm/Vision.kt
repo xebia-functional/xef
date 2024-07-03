@@ -1,5 +1,6 @@
 package com.xebia.functional.xef.llm
 
+import com.xebia.functional.xef.Tool
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.openapi.*
 import com.xebia.functional.xef.prompt.Prompt
@@ -19,10 +20,16 @@ suspend inline fun <reified A> Chat.visionStructured(
   conversation: Conversation = Conversation(),
   model: CreateChatCompletionRequest.Model = CreateChatCompletionRequest.Model.Gpt4VisionPreview,
   functionsModel: CreateChatCompletionRequest.Model =
-    CreateChatCompletionRequest.Model.Gpt35Turbo0125
+    CreateChatCompletionRequest.Model.Gpt35Turbo0125,
+  tools: List<Tool<*>> = emptyList()
 ): A {
   val response = vision(prompt, url, model, conversation).toList().joinToString("") { it }
-  return prompt(Prompt(functionsModel) { +user(response) }, conversation, serializer())
+  return prompt(
+    Prompt(model = functionsModel) { +user(response) },
+    scope = conversation,
+    serializer = Tool.fromKotlin(),
+    tools = tools
+  )
 }
 
 fun Chat.vision(
@@ -31,7 +38,11 @@ fun Chat.vision(
   model: CreateChatCompletionRequest.Model = CreateChatCompletionRequest.Model.Gpt4VisionPreview,
   conversation: Conversation = Conversation()
 ): Flow<String> =
-  promptStreaming(prompt = Prompt(model) { +image(url, prompt) }, scope = conversation)
+  promptStreaming(
+    prompt = Prompt(model) { +image(url, prompt) },
+    scope = conversation,
+    tools = emptyList()
+  )
 
 suspend fun Image.asInputProvider(): UploadFile {
   val url = url

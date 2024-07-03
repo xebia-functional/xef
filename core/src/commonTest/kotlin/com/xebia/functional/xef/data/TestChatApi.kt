@@ -1,11 +1,12 @@
 package com.xebia.functional.xef.data
 
 import com.xebia.functional.xef.openapi.*
+import com.xebia.functional.xef.openapi.Chat
 import com.xebia.functional.xef.prompt.contentAsString
 import io.ktor.client.request.*
 import kotlinx.coroutines.flow.Flow
 
-class TestChatApi(private val responses: Map<String, String> = emptyMap()) : Chat {
+class TestChatApi(private val responses: Map<String, String> = emptyMap()) : Chat, AutoCloseable {
 
   var requests: MutableList<CreateChatCompletionRequest> = mutableListOf()
 
@@ -36,7 +37,7 @@ class TestChatApi(private val responses: Map<String, String> = emptyMap()) : Cha
                             type = ChatCompletionMessageToolCall.Type.Function,
                             function =
                               ChatCompletionMessageToolCall.Function(
-                                "fake-function-name",
+                                "Answer",
                                 """{ "bar": "fake-answer" }"""
                               )
                           )
@@ -59,4 +60,6 @@ class TestChatApi(private val responses: Map<String, String> = emptyMap()) : Cha
         TODO("Not yet implemented")
       }
     }
+
+  override fun close() {}
 }

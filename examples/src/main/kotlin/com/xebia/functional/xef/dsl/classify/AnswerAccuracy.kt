@@ -2,7 +2,6 @@ package com.xebia.functional.xef.dsl.classify
 
 import com.xebia.functional.xef.AI
 import com.xebia.functional.xef.evaluator.metrics.AnswerAccuracy
-import com.xebia.functional.xef.openapi.CreateChatCompletionRequest
 
 /**
  * This is a simple example of how to use the `AI.classify` function to classify the accuracy of an
@@ -20,8 +19,7 @@ suspend fun main() {
     AI.classify<AnswerAccuracy>(
       input = "Do I love Xef?",
       output = "I have three opened PRs",
-      context = "The answer responds the question",
-      model = CreateChatCompletionRequest.Model.Gpt35Turbo0125
+      context = "The answer responds the question"
     )
   )
 }

@@ -1,5 +1,6 @@
 package com.xebia.functional.xef.assistants
 
+import com.xebia.functional.xef.Config
 import com.xebia.functional.xef.OpenAI
 import com.xebia.functional.xef.llm.assistants.Assistant
 import com.xebia.functional.xef.llm.assistants.AssistantThread
@@ -14,10 +15,12 @@ suspend fun main() {
 
   val assistant =
     Assistant(
-      assistantId = "asst_UxczzpJkysC0l424ood87DAk",
+      assistantId = "asst_BwQvmWIbGUMDvCuXOtAFH8B6",
       toolsConfig = listOf(Tool.toolOf(SumTool()))
     )
-  val thread = AssistantThread(threads = OpenAI().threads, metric = metric)
+  val config = Config(org = null)
+  val api = OpenAI(config = config, logRequests = false).threads
+  val thread = AssistantThread(api = api, metric = metric)
   println("Welcome to the Math tutor, ask me anything about math:")
   val userInput = "What is 1+1, explain all the steps and tools you used to solve it."
   thread.createMessage(userInput)

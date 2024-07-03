@@ -1,14 +1,11 @@
 package com.xebia.functional.xef.llm
 
-import com.xebia.functional.tokenizer.truncateText
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.MessagesFromHistory
 import com.xebia.functional.xef.llm.models.modelType
 import com.xebia.functional.xef.openapi.ChatCompletionRequestMessage
 import com.xebia.functional.xef.prompt.Prompt
-import com.xebia.functional.xef.prompt.PromptBuilder.Companion.assistant
-import com.xebia.functional.xef.prompt.contentAsString
 import com.xebia.functional.xef.store.Memory
 
 internal object PromptCalculator {
@@ -26,8 +23,6 @@ internal object PromptCalculator {
 
     val maxHistoryTokens = calculateMaxHistoryTokens(prompt, remainingTokensForContexts)
 
-    val maxContextTokens = calculateMaxContextTokens(prompt, remainingTokensForContexts)
-
     // calculate messages for history based on tokens
 
     val memories: List<Memory> =
@@ -38,33 +33,7 @@ internal object PromptCalculator {
 
     val historyAllowed = calculateMessagesFromHistory(prompt, memories, maxHistoryTokens)
 
-    // calculate messages for context based on tokens
-    val ctxInfo: List<String> =
-      scope.store.similaritySearch(
-        prompt.messages.joinToString("\n") { it.contentAsString() ?: "" },
-        prompt.configuration.docsInContext,
-      )
-
-    val contextAllowed: List<ChatCompletionRequestMessage> =
-      if (ctxInfo.isNotEmpty()) {
-        val ctx: String = ctxInfo.joinToString("\n")
-
-        val ctxTruncated: String =
-          prompt.model.modelType().encodingType.encoding.truncateText(ctx, maxContextTokens)
-
-        Prompt(
-            model = prompt.model,
-            functions = prompt.functions,
-            configuration = prompt.configuration
-          ) {
-            +assistant(ctxTruncated)
-          }
-          .messages
-      } else {
-        emptyList()
-      }
-
-    return prompt.copy(messages = contextAllowed + historyAllowed + prompt.messages)
+    return prompt.copy(messages = historyAllowed + prompt.messages)
   }
 
   private fun messagesFromMemory(memories: List<Memory>): List<ChatCompletionRequestMessage> =

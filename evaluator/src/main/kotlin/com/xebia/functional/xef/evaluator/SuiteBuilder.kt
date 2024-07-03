@@ -1,6 +1,8 @@
 package com.xebia.functional.xef.evaluator
 
 import com.xebia.functional.xef.AI
+import com.xebia.functional.xef.AIConfig
+import com.xebia.functional.xef.PromptClassifier
 import com.xebia.functional.xef.evaluator.models.*
 import com.xebia.functional.xef.openapi.CreateChatCompletionRequest
 import kotlinx.serialization.SerialName
@@ -30,20 +32,22 @@ data class SuiteSpec(
 ) {
 
   suspend inline fun <reified E> evaluate(success: List<E>): SuiteResults<E> where
-  E : AI.PromptClassifier,
+  E : PromptClassifier,
   E : Enum<E> {
     val items =
       items.map { item ->
         println("Evaluating item: ${item.input}")
         val outputResults =
           item.outputs.map { output ->
-            val classification =
-              AI.classify<E>(item.input, item.context, output.value, model = model)
+            val config = AIConfig(model = model)
+            val classification: E =
+              AI.classify<E>(item.input, item.context, output.value, config = config)
             println(" |_ ${output.description.value} = classification $classification")
             OutputResult(
               output.description.value,
               item.context,
               output.value,
+              output.tokens,
               classification,
               success.contains(classification)
             )
@@ -55,7 +59,7 @@ data class SuiteSpec(
   }
 
   companion object {
-    @JvmSynthetic
+
     suspend operator fun invoke(
       description: String,
       model: CreateChatCompletionRequest.Model,
@@ -63,14 +67,13 @@ data class SuiteSpec(
     ): SuiteSpec = SuiteBuilder(description, model).apply { block() }.build()
 
     inline fun <reified E> toHtml(result: SuiteResults<E>, suiteName: String): Html where
-    E : AI.PromptClassifier,
+    E : PromptClassifier,
     E : Enum<E> =
       Html.get(Json.encodeToString(SuiteResults.serializer(serializer<E>()), result), suiteName)
 
-    inline fun <reified E> toMarkdown(
-      result: SuiteResults<E>,
-      suiteName: String,
-    ): Markdown where E : AI.PromptClassifier, E : Enum<E> = Markdown.get(result, suiteName)
+    inline fun <reified E> toMarkdown(result: SuiteResults<E>, suiteName: String): Markdown where
+    E : PromptClassifier,
+    E : Enum<E> = Markdown.get(result, suiteName)
   }
 }
 

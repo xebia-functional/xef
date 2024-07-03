@@ -6,6 +6,7 @@ import com.xebia.functional.xef.OpenAI
 import com.xebia.functional.xef.llm.addMetrics
 import com.xebia.functional.xef.metrics.Metric
 import com.xebia.functional.xef.openapi.*
+import com.xebia.functional.xef.openapi.Threads.Messages.ListMessagesOrder
 import io.ktor.client.request.*
 import kotlin.jvm.JvmName
 import kotlinx.coroutines.flow.*
@@ -17,37 +18,42 @@ class AssistantThread(
   val threadId: String,
   val metric: Metric = Metric.EMPTY,
   private val config: Config = Config(),
-  private val threads: Threads = OpenAI(config).threads
+  private val api: Threads = OpenAI(config).threads
 ) {
 
   suspend fun delete(): Boolean =
-    threads.deleteThread(threadId = threadId, configure = ::defaultConfig).deleted
+    api.deleteThread(threadId = threadId, configure = ::defaultConfig).deleted
 
   suspend fun modify(request: ModifyThreadRequest): AssistantThread =
-    AssistantThread(threads.modifyThread(threadId, request, configure = ::defaultConfig).id)
+    AssistantThread(api.modifyThread(threadId, request, configure = ::defaultConfig).id)
 
   suspend fun createMessage(message: MessageWithFiles): MessageObject =
     createMessage(
       request =
         CreateMessageRequest(
           role = CreateMessageRequest.Role.User,
-          content = message.content,
-          fileIds = message.fileIds
+          content = CreateMessageRequest.Content.CaseString(message.content),
+          attachments = message.fileIds.map { CreateMessageRequest.Attachments(fileId = it) }
         ),
     )
 
   suspend fun createMessage(content: String): MessageObject =
-    createMessage(CreateMessageRequest(role = CreateMessageRequest.Role.User, content = content))
+    createMessage(
+      CreateMessageRequest(
+        role = CreateMessageRequest.Role.User,
+        content = CreateMessageRequest.Content.CaseString(content)
+      )
+    )
 
   suspend fun createMessage(request: CreateMessageRequest): MessageObject =
-    threads.messages.createMessage(threadId, request, configure = ::defaultConfig)
+    api.messages.createMessage(threadId, request, configure = ::defaultConfig)
 
   suspend fun getMessage(messageId: String): MessageObject =
-    threads.messages.getMessage(threadId, messageId, configure = ::defaultConfig)
+    api.messages.getMessage(threadId, messageId, configure = ::defaultConfig)
 
   data class ThreadMessagesFilter(
     val limit: Int? = 20,
-    val order: Threads.Messages.ListMessagesOrder = Threads.Messages.ListMessagesOrder.Desc,
+    val order: ListMessagesOrder? = ListMessagesOrder.Desc,
     val after: String? = null,
     val before: String? = null
   )
@@ -55,7 +61,7 @@ class AssistantThread(
   suspend fun listMessages(
     filter: ThreadMessagesFilter = ThreadMessagesFilter()
   ): List<MessageObject> =
-    threads.messages
+    api.messages
       .listMessages(
         threadId = threadId,
         limit = filter.limit,
@@ -70,10 +76,12 @@ class AssistantThread(
     createRun(CreateRunRequest(assistantId = assistant.assistantId))
 
   suspend fun createRun(request: CreateRunRequest): RunObject =
-    threads.runs.createRun(threadId, request, configure = ::defaultConfig).addMetrics(metric)
+    api.runs
+      .createRun(threadId, request, configure = ::defaultConfig)
+      .addMetrics(metric, "RunCreated")
 
   fun createRunStream(assistant: Assistant, request: CreateRunRequest): Flow<RunDelta> = flow {
-    threads.runs
+    api.runs
       .createRunStream(threadId, request, configure = ::defaultConfig)
       .map { RunDelta.fromServerSentEvent(it) }
       .map { it.addMetrics(metric) }
@@ -102,7 +110,7 @@ class AssistantThread(
       event.run.status == RunObject.Status.RequiresAction &&
         event.run.requiredAction?.type == RunObject.RequiredAction.Type.SubmitToolOutputs
     ) {
-      val calls = event.run.requiredAction.submitToolOutputs.toolCalls
+      val calls = event.run.requiredAction?.submitToolOutputs?.toolCalls.orEmpty()
       val callsResult: List<Pair<String, Assistant.Companion.ToolOutput>> =
         calls.parMapNotNull { toolCall -> assistantThread.executeToolCall(toolCall, assistant) }
       val results: Map<String, Assistant.Companion.ToolOutput> = callsResult.toMap()
@@ -116,37 +124,41 @@ class AssistantThread(
               )
             }
         )
-      val run =
-        metric.assistantToolOutputsRun(event.run.id) {
-          threads.runs.submitToolOutputs
-            .submitToolOuputsToRunStream(
-              threadId = threadId,
-              runId = event.run.id,
-              body = toolOutputsRequest,
-              configure = ::defaultConfig
-            )
-            .collect {
-              val delta = RunDelta.fromServerSentEvent(it)
-              if (delta is RunDelta.RunStepCompleted) {
-                flowCollector.emit(RunDelta.RunSubmitToolOutputs(toolOutputsRequest))
-              }
-              flowCollector.emit(delta)
-            }
-          val run = getRun(event.run.id)
-          val finalEvent =
-            when (run.status) {
-              RunObject.Status.Queued -> RunDelta.RunQueued(run)
-              RunObject.Status.InProgress -> RunDelta.RunInProgress(run)
-              RunObject.Status.RequiresAction -> RunDelta.RunRequiresAction(run)
-              RunObject.Status.Cancelling -> RunDelta.RunCancelling(run)
-              RunObject.Status.Cancelled -> RunDelta.RunCancelled(run)
-              RunObject.Status.Failed -> RunDelta.RunFailed(run)
-              RunObject.Status.Completed -> RunDelta.RunCompleted(run)
-              RunObject.Status.Expired -> RunDelta.RunExpired(run)
-            }
-          flowCollector.emit(finalEvent)
-          run
+
+      api.runs.submitToolOutputs
+        .submitToolOuputsToRunStream(
+          threadId = threadId,
+          runId = event.run.id,
+          body = toolOutputsRequest,
+          configure = ::defaultConfig
+        )
+        .collect {
+          val delta = RunDelta.fromServerSentEvent(it)
+
+          delta.launchMetricsIfNecessary()
+
+          if (delta is RunDelta.RunStepCompleted) {
+            flowCollector.emit(RunDelta.RunSubmitToolOutputs(toolOutputsRequest))
+          }
+          flowCollector.emit(delta)
         }
+
+      val run = getRun(event.run.id)
+      val finalEvent =
+        when (run.status) {
+          RunObject.Status.Queued -> Pair(RunDelta.RunQueued(run), "RunQueued")
+          RunObject.Status.InProgress -> Pair(RunDelta.RunInProgress(run), "RunInProgress")
+          RunObject.Status.RequiresAction ->
+            Pair(RunDelta.RunRequiresAction(run), "RunRequiresAction")
+          RunObject.Status.Cancelling -> Pair(RunDelta.RunCancelling(run), "RunCancelling")
+          RunObject.Status.Cancelled -> Pair(RunDelta.RunCancelled(run), "RunCancelled")
+          RunObject.Status.Failed -> Pair(RunDelta.RunFailed(run), "RunFailed")
+          RunObject.Status.Completed -> Pair(RunDelta.RunCompleted(run), "RunCompleted")
+          RunObject.Status.Expired -> Pair(RunDelta.RunExpired(run), "RunExpired")
+          RunObject.Status.Incomplete -> Pair(RunDelta.RunIncomplete(run), "RunIncomplete")
+        }
+      flowCollector.emit(finalEvent.first)
+      metric.assistantCreateRun(run, finalEvent.second)
 
       if (run.status == RunObject.Status.RequiresAction) {
         takeRequiredAction(
@@ -181,16 +193,16 @@ class AssistantThread(
   }
 
   suspend fun getRun(runId: String): RunObject =
-    threads.runs.getRun(threadId, runId, configure = ::defaultConfig)
+    api.runs.getRun(threadId, runId, configure = ::defaultConfig)
 
   fun run(assistant: Assistant): Flow<RunDelta> =
     createRunStream(assistant, CreateRunRequest(assistantId = assistant.assistantId))
 
   suspend fun cancelRun(runId: String): RunObject =
-    threads.runs.cancel.cancelRun(threadId, runId, configure = ::defaultConfig)
+    api.runs.cancel.cancelRun(threadId, runId, configure = ::defaultConfig)
 
   suspend fun runSteps(runId: String): List<RunStepObject> =
-    threads.runs.steps.listRunSteps(threadId, runId, configure = ::defaultConfig).data
+    api.runs.steps.listRunSteps(threadId, runId, configure = ::defaultConfig).data
 
   private fun RunStepObject.StepDetails.toolCalls(): List<RunStepDetailsToolCallsObject.ToolCalls> =
     when (val step = this) {
@@ -198,11 +210,53 @@ class AssistantThread(
       is RunStepObject.StepDetails.CaseRunStepDetailsToolCallsObject -> step.value.toolCalls
     }
 
+  private suspend fun RunDelta.launchMetricsIfNecessary() {
+    launchRunMetricsIfNecessary()
+    launchRunStepsMetricsIfNecessary()
+    launchMessageMetricsIfNecessary()
+  }
+
+  private suspend fun RunDelta.launchRunMetricsIfNecessary() {
+    when (this) {
+      is RunDelta.RunCreated -> Pair(run, "RunCreated")
+      is RunDelta.RunQueued -> Pair(run, "RunQueued")
+      is RunDelta.RunFailed -> Pair(run, "RunFailed")
+      is RunDelta.RunCancelled -> Pair(run, "RunCancelled")
+      is RunDelta.RunCancelling -> Pair(run, "RunCancelling")
+      is RunDelta.RunExpired -> Pair(run, "RunExpired")
+      is RunDelta.RunInProgress -> Pair(run, "RunInProgress")
+      is RunDelta.RunIncomplete -> Pair(run, "RunIncomplete")
+      else -> null
+    }?.let { metric.assistantCreateRun(it.first, it.second) }
+  }
+
+  private suspend fun RunDelta.launchRunStepsMetricsIfNecessary() {
+    when (this) {
+      is RunDelta.RunStepCreated -> Pair(runStep, "RunStepCreated")
+      is RunDelta.RunStepInProgress -> Pair(runStep, "RunStepInProgress")
+      is RunDelta.RunStepCompleted -> Pair(runStep, "RunStepCompleted")
+      is RunDelta.RunStepFailed -> Pair(runStep, "RunStepFailed")
+      is RunDelta.RunStepCancelled -> Pair(runStep, "RunStepCancelled")
+      is RunDelta.RunStepExpired -> Pair(runStep, "RunStepExpired")
+      else -> null
+    }?.let { metric.assistantCreateRunStep(it.first, it.second) }
+  }
+
+  private suspend fun RunDelta.launchMessageMetricsIfNecessary() {
+    when (this) {
+      is RunDelta.MessageCreated -> Pair(message, "MessageCreated")
+      is RunDelta.MessageInProgress -> Pair(message, "MessageInProgress")
+      is RunDelta.MessageIncomplete -> Pair(message, "MessageIncomplete")
+      is RunDelta.MessageCompleted -> Pair(message, "MessageCompleted")
+      else -> null
+    }?.let { metric.assistantCreatedMessage(it.first, it.second) }
+  }
+
   companion object {
 
-    /** Support for OpenAI-Beta: assistants=v1 */
+    /** Support for OpenAI-Beta: assistants=v2 */
     fun defaultConfig(httpRequestBuilder: HttpRequestBuilder): Unit {
-      httpRequestBuilder.header("OpenAI-Beta", "assistants=v1")
+      httpRequestBuilder.header("OpenAI-Beta", "assistants=v2")
     }
 
     @JvmName("createWithMessagesAndFiles")
@@ -211,29 +265,31 @@ class AssistantThread(
       metadata: JsonObject? = null,
       metric: Metric = Metric.EMPTY,
       config: Config = Config(),
-      threads: Threads = OpenAI(config).threads
+      api: Threads = OpenAI(config).threads
     ): AssistantThread =
       AssistantThread(
         threadId =
-          threads
+          api
             .createThread(
               body =
                 CreateThreadRequest(
-                  messages.map {
-                    CreateMessageRequest(
-                      role = CreateMessageRequest.Role.User,
-                      content = it.content,
-                      fileIds = it.fileIds
-                    )
-                  },
-                  metadata
+                  messages =
+                    messages.map {
+                      CreateMessageRequest(
+                        role = CreateMessageRequest.Role.User,
+                        content = CreateMessageRequest.Content.CaseString(it.content),
+                        attachments =
+                          it.fileIds.map { CreateMessageRequest.Attachments(fileId = it) }
+                      )
+                    },
+                  metadata = metadata
                 ),
               configure = ::defaultConfig
             )
             .id,
         metric = metric,
         config = config,
-        threads = threads
+        api = api
       )
 
     @JvmName("createWithMessages")
@@ -242,24 +298,28 @@ class AssistantThread(
       metadata: JsonObject? = null,
       metric: Metric = Metric.EMPTY,
       config: Config = Config(),
-      threads: Threads = OpenAI(config).threads
+      api: Threads = OpenAI(config).threads
     ): AssistantThread =
       AssistantThread(
-        threads
+        api
           .createThread(
             body =
               CreateThreadRequest(
-                messages.map {
-                  CreateMessageRequest(role = CreateMessageRequest.Role.User, content = it)
-                },
-                metadata
+                messages =
+                  messages.map {
+                    CreateMessageRequest(
+                      role = CreateMessageRequest.Role.User,
+                      content = CreateMessageRequest.Content.CaseString(it)
+                    )
+                  },
+                metadata = metadata
               ),
             configure = ::defaultConfig
           )
           .id,
         metric,
         config,
-        threads
+        api
       )
 
     @JvmName("createWithRequests")
@@ -268,41 +328,44 @@ class AssistantThread(
       metadata: JsonObject? = null,
       metric: Metric = Metric.EMPTY,
       config: Config = Config(),
-      threads: Threads = OpenAI(config).threads
+      api: Threads = OpenAI(config).threads
     ): AssistantThread =
       AssistantThread(
-        threads
-          .createThread(CreateThreadRequest(messages, metadata), configure = ::defaultConfig)
+        api
+          .createThread(
+            CreateThreadRequest(messages = messages, metadata = metadata),
+            configure = ::defaultConfig
+          )
           .id,
         metric,
         config,
-        threads
+        api
       )
 
     suspend operator fun invoke(
       request: CreateThreadRequest,
       metric: Metric = Metric.EMPTY,
       config: Config = Config(),
-      threads: Threads = OpenAI(config).threads
+      api: Threads = OpenAI(config).threads
     ): AssistantThread =
       AssistantThread(
-        threads.createThread(request, configure = ::defaultConfig).id,
+        api.createThread(request, configure = ::defaultConfig).id,
         metric,
         config,
-        threads
+        api
       )
 
     suspend operator fun invoke(
       request: CreateThreadAndRunRequest,
       metric: Metric = Metric.EMPTY,
       config: Config = Config(),
-      threads: Threads = OpenAI(config).threads
+      api: Threads = OpenAI(config).threads
     ): AssistantThread =
       AssistantThread(
-        threads.runs.createThreadAndRun(request, configure = ::defaultConfig).id,
+        api.runs.createThreadAndRun(request, configure = ::defaultConfig).id,
         metric,
         config,
-        threads
+        api
       )
   }
 }

@@ -65,3 +65,7 @@ fun getGradleCommand(platform: String): String {
 configureBuildAndTestTask("buildAndTestMultip", ModulePlatformType.MULTI)
 configureBuildAndTestTask("buildAndTestSinglep", ModulePlatformType.SINGLE)
 
+tasks.register<DownloadOpenAI>("downloadOpenAI") {
+    input.set(file("openai-openapi-commit"))
+    output.set(file("openapi.yaml"))
+}
