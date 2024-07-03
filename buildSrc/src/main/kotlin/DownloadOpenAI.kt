@@ -1,9 +1,6 @@
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.RegularFileProperty
-import org.gradle.api.tasks.CacheableTask
-import org.gradle.api.tasks.InputFile
-import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.*
 import org.gradle.api.tasks.options.Option
 import java.net.URL
 import java.nio.channels.Channels
@@ -17,6 +14,7 @@ abstract class DownloadOpenAI : DefaultTask() {
 
     @get:InputFile
     @get:Option(description = "Commit hash of the fetched OpenAI OpenAPI Yaml file")
+    @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val input: RegularFileProperty
 
     @get:OutputFile
@@ -29,11 +27,15 @@ abstract class DownloadOpenAI : DefaultTask() {
         downloadAPI(commit)
     }
 
-    private fun readCommit(): String =
-        input.get().asFile.readText().trim { it <= ' ' }
+    private fun readCommit(): String {
+        val asFile = input.get().asFile
+        val readText = asFile.readText()
+        require(readText.isNotEmpty()) { "${asFile.path} Commit hash is empty" }
+        return readText.trim { it <= ' ' }
+    }
 
     private fun downloadAPI(commit: String) {
-        val url = URL("https://raw.githubusercontent.com/openai/openai-openapi/%s/openapi.yaml".formatted(commit))
+        val url = URL("https://raw.githubusercontent.com/openai/openai-openapi/$commit/openapi.yaml")
         Channels.newChannel(url.openStream()).use { channel ->
             output.asFile.get().outputStream().use { output ->
                 output.channel.transferFrom(channel, 0, Long.MAX_VALUE)
