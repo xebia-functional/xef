@@ -84,9 +84,10 @@ class PGVectorStore(
       }
     }
 
-  override suspend fun addTexts(texts: List<String>): Unit =
+  override suspend fun addDocuments(texts: List<VectorStore.Document>): Unit =
     dataSource.connection {
-      val embeddings = embeddings.embedDocuments(texts, chunkSize, embeddingRequestModel)
+      val docsContent = texts.map { it.content }
+      val embeddings = embeddings.embedDocuments(docsContent, chunkSize, embeddingRequestModel)
       val collection = getCollection(collectionName)
       texts.zip(embeddings) { text, embedding ->
         val uuid = UUID.generateUUID()
@@ -94,12 +95,12 @@ class PGVectorStore(
           bind(uuid.toString())
           bind(collection.uuid.toString())
           bind(embedding.embedding.toString())
-          bind(text)
+          bind(text.toJson())
         }
       }
     }
 
-  override suspend fun similaritySearch(query: String, limit: Int): List<String> =
+  override suspend fun similaritySearch(query: String, limit: Int): List<VectorStore.Document> =
     dataSource.connection {
       val collection = getCollection(collectionName)
 
@@ -123,10 +124,12 @@ class PGVectorStore(
         }
       ) {
         string()
+      }.map { json ->
+        VectorStore.Document.fromJson(json)
       }
     }
 
-  override suspend fun similaritySearchByVector(embedding: Embedding, limit: Int): List<String> =
+  override suspend fun similaritySearchByVector(embedding: Embedding, limit: Int): List<VectorStore.Document> =
     dataSource.connection {
       val collection = getCollection(collectionName)
       queryAsList(
@@ -138,6 +141,8 @@ class PGVectorStore(
         }
       ) {
         string()
+      }.map { json ->
+        VectorStore.Document.fromJson(json)
       }
     }
 

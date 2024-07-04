@@ -3,9 +3,21 @@ package com.xebia.functional.xef.store
 import arrow.atomic.AtomicInt
 import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
 import com.xebia.functional.openai.generated.model.Embedding
+import com.xebia.functional.xef.Config
 import kotlin.jvm.JvmStatic
+import kotlinx.serialization.Serializable
 
 interface VectorStore {
+
+  @Serializable
+  data class Document(val content: String, val source: String) {
+    fun toJson(): String = Config.DEFAULT.json.encodeToString(serializer(), this)
+
+    companion object {
+      fun fromJson(json: String): Document =
+        Config.DEFAULT.json.decodeFromString(serializer(), json)
+    }
+  }
 
   val indexValue: AtomicInt
 
@@ -27,9 +39,9 @@ interface VectorStore {
    * @param texts list of text to add to the vector store
    * @return a list of IDs from adding the texts to the vector store
    */
-  suspend fun addTexts(texts: List<String>)
+  suspend fun addDocuments(texts: List<Document>)
 
-  suspend fun addText(texts: String) = addTexts(listOf(texts))
+  suspend fun addDocument(texts: Document) = addDocuments(listOf(texts))
 
   /**
    * Return the docs most similar to the query
@@ -38,7 +50,7 @@ interface VectorStore {
    * @param limit number of documents to return
    * @return a list of Documents most similar to query
    */
-  suspend fun similaritySearch(query: String, limit: Int): List<String>
+  suspend fun similaritySearch(query: String, limit: Int): List<Document>
 
   /**
    * Return the docs most similar to the embedding
@@ -47,7 +59,7 @@ interface VectorStore {
    * @param limit number of documents to return
    * @return list of Documents most similar to the embedding
    */
-  suspend fun similaritySearchByVector(embedding: Embedding, limit: Int): List<String>
+  suspend fun similaritySearchByVector(embedding: Embedding, limit: Int): List<Document>
 
   companion object {
     @JvmStatic
@@ -65,14 +77,15 @@ interface VectorStore {
           limitTokens: Int
         ): List<Memory> = emptyList()
 
-        override suspend fun addTexts(texts: List<String>) {}
+        override suspend fun addDocuments(texts: List<Document>) {}
 
-        override suspend fun similaritySearch(query: String, limit: Int): List<String> = emptyList()
+        override suspend fun similaritySearch(query: String, limit: Int): List<Document> =
+          emptyList()
 
         override suspend fun similaritySearchByVector(
           embedding: Embedding,
           limit: Int
-        ): List<String> = emptyList()
+        ): List<Document> = emptyList()
       }
   }
 }
