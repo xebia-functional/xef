@@ -39,7 +39,7 @@ progressbar = "0.10.0"
 jmf = "2.1.1e"
 mp3-wav-converter = "1.0.4"
 yamlkt="0.13.0"
-openapi-kt="0.0.4"
+openapi-kt="0.0.6"
 
 [libraries]
 arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }

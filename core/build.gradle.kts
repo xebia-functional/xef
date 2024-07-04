@@ -73,8 +73,6 @@ kotlin {
             languageSettings.optIn("kotlin.ExperimentalStdlibApi")
         }
         val commonMain by getting {
-            kotlin.srcDir(project.file("build/generated/openapi/src/commonMain/kotlin"))
-
             dependencies {
                 api(libs.bundles.arrow)
                 api(libs.kotlinx.serialization.json)
