@@ -48,9 +48,6 @@ project(":xef-sql").projectDir = file("integrations/sql")
 
 include("xef-opentelemetry")
 project(":xef-opentelemetry").projectDir = file("integrations/opentelemetry")
-
-include("xef-mlflow")
-project(":xef-mlflow").projectDir = file("integrations/mlflow")
 //</editor-fold>
 
 include("xef-examples")
