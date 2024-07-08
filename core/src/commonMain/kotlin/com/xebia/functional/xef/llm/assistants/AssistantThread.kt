@@ -9,7 +9,10 @@ import com.xebia.functional.xef.llm.addMetrics
 import com.xebia.functional.xef.metrics.Metric
 import io.ktor.client.request.*
 import kotlin.jvm.JvmName
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -186,6 +189,7 @@ class AssistantThread(
         } else null
       } else null
     } catch (e: Throwable) {
+      if (e is AssertionError) throw e
       toolCall.id to
         Assistant.Companion.ToolOutput(
           schema = JsonObject(emptyMap()),
