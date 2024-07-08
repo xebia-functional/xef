@@ -1,8 +1,8 @@
 package com.xebia.functional.xef.gcp
 
-import com.xebia.functional.openai.apis.EmbeddingsApi
-import com.xebia.functional.openai.models.CreateEmbeddingRequest
-import com.xebia.functional.openai.models.ext.embedding.create.CreateEmbeddingRequestInput
+import com.xebia.functional.xef.openapi.apis.EmbeddingsApi
+import com.xebia.functional.xef.openapi.models.CreateEmbeddingRequest
+import com.xebia.functional.xef.openapi.models.ext.embedding.create.CreateEmbeddingRequestInput
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.conversation.AutoClose
 import com.xebia.functional.xef.conversation.autoClose

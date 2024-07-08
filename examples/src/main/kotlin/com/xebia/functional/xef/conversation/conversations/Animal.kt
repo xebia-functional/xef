@@ -1,6 +1,5 @@
 package com.xebia.functional.xef.conversation.conversations
 
-import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.AI
 import com.xebia.functional.xef.AIConfig
 import com.xebia.functional.xef.OpenAI
@@ -8,6 +7,8 @@ import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.MessagesFromHistory
 import com.xebia.functional.xef.conversation.MessagesToHistory
 import com.xebia.functional.xef.llm.promptMessage
+import com.xebia.functional.xef.openapi.CreateChatCompletionRequest
+import com.xebia.functional.xef.openapi.OpenAI
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.system
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.user
@@ -36,7 +37,7 @@ suspend fun main() {
       val configNoneFromConversation = PromptConfiguration {
         messagePolicy { addMessagesFromConversation = MessagesFromHistory.NONE }
       }
-      val model = CreateChatCompletionRequestModel.gpt_3_5_turbo_16k_0613
+      val model = CreateChatCompletionRequest.Model.Gpt35Turbo16k0613
       val config = AIConfig(model = model, openAI = openAI, conversation = this@Conversation)
       val animal: Animal =
         AI(

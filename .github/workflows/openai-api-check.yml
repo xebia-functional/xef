@@ -50,7 +50,7 @@ jobs:
             const octokit = new Octokit();
             const owner = ''xebia-functional'';
             const repo = ''xef'';
-            const filePath = ''openai-client/generator/config/openai-api-commit'';
+            const filePath = ''core/openai-api-commit'';
             const branch = ''main'';
             const response = await octokit.repos.getContent({
               owner,
@@ -78,7 +78,7 @@ jobs:
             const octokit = new Octokit();
             const owner = ''xebia-functional'';
             const repo = ''xef'';
-            const filePath = ''openai-client/generator/config/openai-api-commit'';
+            const filePath = ''core/openai-api-commit'';
             const existing = await octokit.pulls.list({
               owner,
               repo,
@@ -121,7 +121,7 @@ jobs:
       - name: Update commit
         if: env.CURRENT_API_COMMIT != env.LATEST_API_COMMIT
         run: |
-          echo $LATEST_API_COMMIT > $GITHUB_WORKSPACE/openai-client/generator/config/openai-api-commit
+          echo $LATEST_API_COMMIT > $GITHUB_WORKSPACE/core/openai-api-commit
       - name: Set up Java
         if: env.CURRENT_API_COMMIT != env.LATEST_API_COMMIT
         uses: actions/setup-java@v4

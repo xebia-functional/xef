@@ -3,14 +3,17 @@ package com.xebia.functional.xef.llm
 import arrow.core.nonFatalOrThrow
 import arrow.core.raise.catch
 import arrow.fx.coroutines.parMapNotNull
-import com.xebia.functional.openai.generated.api.Chat
-import com.xebia.functional.openai.generated.model.*
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.AIEvent
 import com.xebia.functional.xef.Tool
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.models.functions.buildJsonSchema
+import com.xebia.functional.xef.openapi.*
+import com.xebia.functional.xef.openapi.Chat
+import com.xebia.functional.xef.openapi.ChatCompletionToolChoiceOption.NoneOrAutoOrRequired.Auto
+import com.xebia.functional.xef.openapi.ChatCompletionToolChoiceOption.NoneOrAutoOrRequired.Required
+import com.xebia.functional.xef.openapi.FunctionObject
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.tool
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -155,17 +158,17 @@ private fun assistantRequestedCallMessage(
 ): ChatCompletionRequestMessage.CaseChatCompletionRequestAssistantMessage =
   ChatCompletionRequestMessage.CaseChatCompletionRequestAssistantMessage(
     ChatCompletionRequestAssistantMessage(
-      role = ChatCompletionRequestAssistantMessage.Role.assistant,
+      role = ChatCompletionRequestAssistantMessage.Role.Assistant,
       toolCalls =
         calls.map {
           ChatCompletionMessageToolCall(
             id = it.callId,
             function =
-              ChatCompletionMessageToolCallFunction(
+              ChatCompletionMessageToolCall.Function(
                 name = it.functionName,
                 arguments = it.arguments
               ),
-            type = ChatCompletionMessageToolCall.Type.function
+            type = ChatCompletionMessageToolCall.Type.Function
           )
         }
     )
@@ -229,7 +232,7 @@ private suspend fun <A> Chat.promptWithResponse(
     val request = createChatCompletionRequest(adaptedPrompt)
     tryDeserialize(serializer, promptWithFunctions.configuration.maxDeserializationAttempts) {
       val requestedMemories = prompt.messages.toMemory(scope)
-      val response = createChatCompletion(request).addMetrics(scope)
+      val response = completions.createChatCompletion(request).addMetrics(scope)
       response.choices.addChoiceWithFunctionsToMemory(
         scope,
         requestedMemories,
@@ -256,20 +259,20 @@ private fun chatCompletionToolChoiceOption(adaptedPrompt: Prompt): ChatCompletio
   if (adaptedPrompt.functions.size == 1)
     ChatCompletionToolChoiceOption.CaseChatCompletionNamedToolChoice(
       ChatCompletionNamedToolChoice(
-        type = ChatCompletionNamedToolChoice.Type.function,
+        type = ChatCompletionNamedToolChoice.Type.Function,
         // TODO review access to first
-        function = ChatCompletionNamedToolChoiceFunction(adaptedPrompt.functions.first().name)
+        function = ChatCompletionNamedToolChoice.Function(adaptedPrompt.functions.first().name)
       )
     )
   else {
-    if (adaptedPrompt.model is CreateChatCompletionRequestModel.Custom)
-      ChatCompletionToolChoiceOption.CaseString("auto")
-    else ChatCompletionToolChoiceOption.CaseString("required")
+    if (adaptedPrompt.model is CreateChatCompletionRequest.Model.OpenCase)
+      ChatCompletionToolChoiceOption.CaseNoneOrAutoOrRequired(Auto)
+    else ChatCompletionToolChoiceOption.CaseNoneOrAutoOrRequired(Required)
   }
 
 private fun chatCompletionTools(adaptedPrompt: Prompt): List<ChatCompletionTool> =
   adaptedPrompt.functions.map {
-    ChatCompletionTool(type = ChatCompletionTool.Type.function, function = it)
+    ChatCompletionTool(type = ChatCompletionTool.Type.Function, function = it)
   }
 
 @AiDsl

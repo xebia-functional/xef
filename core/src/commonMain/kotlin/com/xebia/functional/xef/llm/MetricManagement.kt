@@ -1,12 +1,12 @@
 package com.xebia.functional.xef.llm
 
-import com.xebia.functional.openai.generated.model.CreateChatCompletionResponse
-import com.xebia.functional.openai.generated.model.MessageObject
-import com.xebia.functional.openai.generated.model.RunObject
-import com.xebia.functional.openai.generated.model.RunStepObject
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.assistants.RunDelta
 import com.xebia.functional.xef.metrics.Metric
+import com.xebia.functional.xef.openapi.CreateChatCompletionResponse
+import com.xebia.functional.xef.openapi.MessageObject
+import com.xebia.functional.xef.openapi.RunObject
+import com.xebia.functional.xef.openapi.RunStepObject
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.completionRole
 import com.xebia.functional.xef.prompt.contentAsString

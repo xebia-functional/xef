@@ -1,13 +1,11 @@
 package xef
 
-import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
-import com.xebia.functional.openai.generated.model.CreateEmbeddingRequestModel
-import com.xebia.functional.openai.generated.model.Embedding
 import com.xebia.functional.xef.store.PGVectorStore
 import com.xebia.functional.xef.store.migrations.runDatabaseMigrations
 import com.xebia.functional.xef.store.postgresql.PGDistanceStrategy
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import com.xebia.functional.xef.openapi.*
 import io.kotest.core.Tuple3
 import io.kotest.core.extensions.install
 import io.kotest.core.spec.style.StringSpec
@@ -39,7 +37,7 @@ class PGVectorStoreSpec :
         )
       )
 
-    val embeddingsRequestModel = CreateEmbeddingRequestModel.text_embedding_ada_002
+    val embeddingsRequestModel = CreateEmbeddingRequest.Model.TextEmbeddingAda002
 
     fun StringSpecScope.pg() =
       PGVectorStore(
@@ -87,7 +85,7 @@ class PGVectorStoreSpec :
 
     "similaritySearchByVector should return both documents" {
       pg().addTexts(listOf("bar", "foo"))
-      pg().similaritySearchByVector(Embedding(0, listOf(4.0, 5.0, 6.0), Embedding.Object.embedding), 2) shouldBe
+      pg().similaritySearchByVector(Embedding(0, listOf(4.0, 5.0, 6.0), Embedding.Object.Embedding), 2) shouldBe
         listOf("bar", "foo")
     }
 
@@ -102,14 +100,14 @@ class PGVectorStoreSpec :
 
     "similaritySearchByVector should return document" {
       pg().similaritySearchByVector(
-        Embedding(0, listOf(1.0, 2.0, 3.0), Embedding.Object.embedding),
+        Embedding(0, listOf(1.0, 2.0, 3.0), Embedding.Object.Embedding),
         1
       ) shouldBe listOf("foo")
     }
 
     "the added memories sorted by index should be obtained in the same order" {
       val memoryData = MemoryData()
-      val model = CreateChatCompletionRequestModel.gpt_4
+      val model = CreateChatCompletionRequest.Model.Gpt4
       val memories = memoryData.generateRandomMessages(10)
       pg().addMemories(memories)
       memories.map { Tuple3(it.index, it.conversationId, it.content.asRequestMessage()) } shouldBe

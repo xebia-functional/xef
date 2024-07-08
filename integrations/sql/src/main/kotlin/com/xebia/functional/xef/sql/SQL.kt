@@ -1,12 +1,12 @@
 package com.xebia.functional.xef.sql
 
-import com.xebia.functional.openai.generated.api.Chat
-import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
+import com.xebia.functional.xef.openapi.Chat
 import com.xebia.functional.xef.Tool
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.Description
 import com.xebia.functional.xef.llm.*
+import com.xebia.functional.xef.openapi.CreateChatCompletionRequest
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.system
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.user
@@ -44,7 +44,7 @@ interface SQL {
     suspend fun Conversation.promptQuery(prompt: String, tableNames: List<String>, context: String?): AnswerResponse
 }
 
-class SQLImpl(private val chatApi: Chat, private val model: CreateChatCompletionRequestModel, private val db: Database) : SQL {
+class SQLImpl(private val chatApi: Chat, private val model: CreateChatCompletionRequest.Model, private val db: Database) : SQL {
     private val logger = KotlinLogging.logger {}
 
     override suspend fun Conversation.promptQuery(

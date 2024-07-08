@@ -1,9 +1,5 @@
 package com.xebia.functional.xef.llm
 
-import com.xebia.functional.openai.generated.api.Chat
-import com.xebia.functional.openai.generated.model.CreateChatCompletionRequest
-import com.xebia.functional.openai.generated.model.CreateChatCompletionResponse
-import com.xebia.functional.openai.generated.model.CreateChatCompletionResponseChoicesInner
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.Tool
 import com.xebia.functional.xef.conversation.AiDsl
@@ -11,6 +7,9 @@ import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.llm.models.MessageWithUsage
 import com.xebia.functional.xef.llm.models.MessagesUsage
 import com.xebia.functional.xef.llm.models.MessagesWithUsage
+import com.xebia.functional.xef.openapi.Chat
+import com.xebia.functional.xef.openapi.CreateChatCompletionRequest
+import com.xebia.functional.xef.openapi.CreateChatCompletionResponse
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.PromptBuilder
 import com.xebia.functional.xef.store.Memory
@@ -38,7 +37,8 @@ fun Chat.promptStreaming(
 
   val buffer = StringBuilder()
 
-  this@promptStreaming.createChatCompletionStream(request)
+  completions
+    .createChatCompletionStream(request)
     .mapNotNull {
       val content = it.choices.firstOrNull()?.delta?.content
       if (content != null) {
@@ -88,7 +88,7 @@ suspend fun Chat.promptMessagesAndUsage(
 private suspend fun <T> Chat.promptResponse(
   prompt: Prompt,
   scope: Conversation = Conversation(),
-  block: suspend Chat.(CreateChatCompletionResponseChoicesInner) -> T?
+  block: suspend Chat.(CreateChatCompletionResponse.Choices) -> T?
 ): Pair<List<T>, CreateChatCompletionResponse> =
   scope.metric.promptSpan(prompt) {
     val promptMemories: List<Memory> = prompt.messages.toMemory(scope)
@@ -107,7 +107,7 @@ private suspend fun <T> Chat.promptResponse(
         seed = adaptedPrompt.configuration.seed,
       )
 
-    val createResponse: CreateChatCompletionResponse = createChatCompletion(request)
+    val createResponse = completions.createChatCompletion(request)
     Pair(
       createResponse
         .addMetrics(scope)

@@ -1,6 +1,5 @@
 package com.xebia.functional.xef.conversation
 
-import com.xebia.functional.openai.generated.model.*
 import com.xebia.functional.xef.data.TestChatApi
 import com.xebia.functional.xef.data.TestEmbeddings
 import com.xebia.functional.xef.llm.models.modelType
@@ -8,6 +7,7 @@ import com.xebia.functional.xef.llm.promptMessage
 import com.xebia.functional.xef.llm.promptMessages
 import com.xebia.functional.xef.llm.tokensFromMessages
 import com.xebia.functional.xef.metrics.LogsMetric
+import com.xebia.functional.xef.openapi.*
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.assistant
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.system
@@ -28,7 +28,7 @@ class ConversationSpec :
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
       val chatApi = TestChatApi()
-      val model = CreateChatCompletionRequestModel.gpt_4
+      val model = CreateChatCompletionRequest.Model.Gpt4
 
       val scope =
         Conversation(
@@ -66,7 +66,7 @@ class ConversationSpec :
       val vectorStore = scope.store
 
       val chatApi = TestChatApi(responses = messages)
-      val model = CreateChatCompletionRequestModel.gpt_3_5_turbo
+      val model = CreateChatCompletionRequest.Model.Gpt35Turbo
 
       val totalTokens =
         model.modelType().tokensFromMessages(messages.flatMap(::chatCompletionRequestMessages))
@@ -102,7 +102,7 @@ class ConversationSpec :
       val vectorStore = scope.store
 
       val chatApi = TestChatApi(responses = messages)
-      val model = CreateChatCompletionRequestModel.gpt_3_5_turbo_16k
+      val model = CreateChatCompletionRequest.Model.Gpt35Turbo16k
 
       val totalTokens =
         model.modelType().tokensFromMessages(messages.flatMap(::chatCompletionRequestMessages))
@@ -125,7 +125,7 @@ class ConversationSpec :
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
       val chatApi = TestChatApi()
-      val model = CreateChatCompletionRequestModel.gpt_3_5_turbo
+      val model = CreateChatCompletionRequest.Model.Gpt35Turbo
 
       val scope =
         Conversation(
@@ -145,7 +145,7 @@ class ConversationSpec :
       val firstResponse = chatApi.promptMessage(prompt = firstPrompt, scope = scope)
       val aiFirstMessage =
         ChatCompletionRequestAssistantMessage(
-          role = ChatCompletionRequestAssistantMessage.Role.assistant,
+          role = ChatCompletionRequestAssistantMessage.Role.Assistant,
           content = firstResponse
         )
 
@@ -154,7 +154,7 @@ class ConversationSpec :
       val secondResponse = chatApi.promptMessage(prompt = secondPrompt, scope = scope)
       val aiSecondMessage =
         ChatCompletionRequestAssistantMessage(
-          role = ChatCompletionRequestAssistantMessage.Role.assistant,
+          role = ChatCompletionRequestAssistantMessage.Role.Assistant,
           content = secondResponse
         )
 
@@ -167,7 +167,7 @@ class ConversationSpec :
       val thirdResponse = chatApi.promptMessage(prompt = thirdPrompt, scope = scope)
       val aiThirdMessage =
         ChatCompletionRequestAssistantMessage(
-          role = ChatCompletionRequestAssistantMessage.Role.assistant,
+          role = ChatCompletionRequestAssistantMessage.Role.Assistant,
           content = secondResponse
         )
 
@@ -190,7 +190,7 @@ class ConversationSpec :
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
       val chatApi = TestChatApi()
-      val model = CreateChatCompletionRequestModel.gpt_3_5_turbo
+      val model = CreateChatCompletionRequest.Model.Gpt35Turbo
 
       val vectorStore = LocalVectorStore(TestEmbeddings())
 
@@ -223,7 +223,7 @@ class ConversationSpec :
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
       val chatApi = TestChatApi()
-      val model = CreateChatCompletionRequestModel.gpt_3_5_turbo
+      val model = CreateChatCompletionRequest.Model.Gpt35Turbo
 
       val vectorStore = LocalVectorStore(TestEmbeddings())
 
@@ -252,7 +252,7 @@ class ConversationSpec :
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
       val chatApi = TestChatApi()
-      val model = CreateChatCompletionRequestModel.gpt_3_5_turbo
+      val model = CreateChatCompletionRequest.Model.Gpt35Turbo
 
       val vectorStore = LocalVectorStore(TestEmbeddings())
 
@@ -276,14 +276,14 @@ class ConversationSpec :
 
       println(messagesStored)
 
-      messagesStored.filter { it.content.role == ChatCompletionRole.system } shouldBe messagesStored
+      messagesStored.filter { it.content.role == ChatCompletionRole.System } shouldBe messagesStored
     }
 
     "when using MessagesToHistory.NOT_SYSTEM_MESSAGES policy, the scope's store shouldn't contains system messages" {
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
       val chatApi = TestChatApi()
-      val model = CreateChatCompletionRequestModel.gpt_3_5_turbo
+      val model = CreateChatCompletionRequest.Model.Gpt35Turbo
 
       val vectorStore = LocalVectorStore(TestEmbeddings())
 
@@ -305,14 +305,14 @@ class ConversationSpec :
 
       val messagesStored = scope.store.memories(model, conversationId, Int.MAX_VALUE)
 
-      messagesStored.filter { it.content.role != ChatCompletionRole.system } shouldBe messagesStored
+      messagesStored.filter { it.content.role != ChatCompletionRole.System } shouldBe messagesStored
     }
 
     "when using MessagesToHistory.NONE policy, the scope's store shouldn't contains messages" {
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
       val chatApi = TestChatApi()
-      val model = CreateChatCompletionRequestModel.gpt_3_5_turbo
+      val model = CreateChatCompletionRequest.Model.Gpt35Turbo
 
       val vectorStore = LocalVectorStore(TestEmbeddings())
 
@@ -334,7 +334,7 @@ class ConversationSpec :
 
       val messagesStored =
         scope.store.memories(model, conversationId, Int.MAX_VALUE).filter {
-          it.content.role == ChatCompletionRole.system
+          it.content.role == ChatCompletionRole.System
         }
 
       messagesStored.size shouldBe 0
@@ -344,7 +344,7 @@ class ConversationSpec :
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
       val chatApi = TestChatApi()
-      val model = CreateChatCompletionRequestModel.gpt_3_5_turbo
+      val model = CreateChatCompletionRequest.Model.Gpt35Turbo
 
       val vectorStore = LocalVectorStore(TestEmbeddings())
 
@@ -380,7 +380,7 @@ class ConversationSpec :
       val conversationId = ConversationId(UUID.generateUUID().toString())
 
       val chatApi = TestChatApi()
-      val model = CreateChatCompletionRequestModel.gpt_3_5_turbo
+      val model = CreateChatCompletionRequest.Model.Gpt35Turbo
 
       val vectorStore = LocalVectorStore(TestEmbeddings())
 
@@ -417,13 +417,13 @@ private fun chatCompletionRequestMessages(it: Map.Entry<String, String>) =
   listOf(
     ChatCompletionRequestMessage.CaseChatCompletionRequestUserMessage(
       ChatCompletionRequestUserMessage(
-        role = ChatCompletionRequestUserMessage.Role.user,
-        content = ChatCompletionRequestUserMessageContent.CaseString(it.key)
+        role = ChatCompletionRequestUserMessage.Role.User,
+        content = ChatCompletionRequestUserMessage.Content.CaseString(it.key)
       )
     ),
     ChatCompletionRequestMessage.CaseChatCompletionRequestAssistantMessage(
       ChatCompletionRequestAssistantMessage(
-        role = ChatCompletionRequestAssistantMessage.Role.assistant,
+        role = ChatCompletionRequestAssistantMessage.Role.Assistant,
         content = it.value
       )
     ),

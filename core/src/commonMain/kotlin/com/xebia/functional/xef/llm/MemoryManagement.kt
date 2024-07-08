@@ -1,8 +1,8 @@
 package com.xebia.functional.xef.llm
 
-import com.xebia.functional.openai.generated.model.*
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.conversation.MessagesToHistory
+import com.xebia.functional.xef.openapi.*
 import com.xebia.functional.xef.store.ConversationId
 import com.xebia.functional.xef.store.MemorizedMessage
 import com.xebia.functional.xef.store.Memory
@@ -32,11 +32,11 @@ internal fun List<ChatCompletionRequestMessage>.toMemory(scope: Conversation): L
   } else emptyList()
 }
 
-internal suspend fun List<CreateChatCompletionResponseChoicesInner>.addChoiceWithFunctionsToMemory(
+internal suspend fun List<CreateChatCompletionResponse.Choices>.addChoiceWithFunctionsToMemory(
   scope: Conversation,
   previousMemories: List<Memory>,
   history: MessagesToHistory
-): List<CreateChatCompletionResponseChoicesInner> = also {
+): List<CreateChatCompletionResponse.Choices> = also {
   val cid = scope.conversationId
   if (history != MessagesToHistory.NONE && isNotEmpty() && cid != null) {
     val aiMemory = this.map { it.message.toMemory(cid, scope.store.incrementIndexAndGet()) }
@@ -45,11 +45,11 @@ internal suspend fun List<CreateChatCompletionResponseChoicesInner>.addChoiceWit
   }
 }
 
-internal suspend fun List<CreateChatCompletionResponseChoicesInner>.addChoiceToMemory(
+internal suspend fun List<CreateChatCompletionResponse.Choices>.addChoiceToMemory(
   scope: Conversation,
   previousMemories: List<Memory>,
   history: MessagesToHistory
-): List<CreateChatCompletionResponseChoicesInner> = also {
+): List<CreateChatCompletionResponse.Choices> = also {
   val cid = scope.conversationId
   if (history != MessagesToHistory.NONE && isNotEmpty() && cid != null) {
     val aiMemory =
@@ -65,10 +65,10 @@ suspend fun VectorStore.addMemoriesByHistory(history: MessagesToHistory, memorie
       addMemories(memories)
     }
     MessagesToHistory.ONLY_SYSTEM_MESSAGES -> {
-      addMemories(memories.filter { it.content.role == ChatCompletionRole.system })
+      addMemories(memories.filter { it.content.role == ChatCompletionRole.System })
     }
     MessagesToHistory.NOT_SYSTEM_MESSAGES -> {
-      addMemories(memories.filter { it.content.role != ChatCompletionRole.system })
+      addMemories(memories.filter { it.content.role != ChatCompletionRole.System })
     }
     MessagesToHistory.NONE -> {}
   }

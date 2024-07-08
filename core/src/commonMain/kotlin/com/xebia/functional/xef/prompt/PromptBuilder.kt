@@ -1,6 +1,7 @@
 package com.xebia.functional.xef.prompt
 
-import com.xebia.functional.openai.generated.model.*
+import com.xebia.functional.xef.openapi.*
+import com.xebia.functional.xef.openapi.ChatCompletionRequestMessage
 import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
 import kotlin.jvm.JvmSynthetic
 
@@ -26,12 +27,11 @@ interface PromptBuilder {
   ): ChatCompletionRequestMessage {
     val content = "${contentAsString()}\n${message.contentAsString()}"
     return when (completionRole()) {
-      ChatCompletionRole.Supported.system -> system(content)
-      ChatCompletionRole.Supported.user -> user(content)
-      ChatCompletionRole.Supported.assistant -> assistant(content)
-      ChatCompletionRole.Supported.tool -> error("Tool role is not supported")
-      ChatCompletionRole.Supported.function -> error("Function role is not supported")
-      is ChatCompletionRole.Custom -> error("Custom roles are not supported")
+      ChatCompletionRole.System -> system(content)
+      ChatCompletionRole.User -> user(content)
+      ChatCompletionRole.Assistant -> assistant(content)
+      ChatCompletionRole.Tool -> error("Tool role is not supported")
+      ChatCompletionRole.Function -> error("Function role is not supported")
     }
   }
 
@@ -79,7 +79,7 @@ interface PromptBuilder {
   companion object {
 
     operator fun invoke(
-      model: CreateChatCompletionRequestModel,
+      model: CreateChatCompletionRequest.Model,
       functions: List<FunctionObject>,
       configuration: PromptConfiguration
     ): PlatformPromptBuilder = PlatformPromptBuilder.create(model, functions, configuration)
@@ -87,7 +87,7 @@ interface PromptBuilder {
     fun assistant(value: String): ChatCompletionRequestMessage =
       ChatCompletionRequestMessage.CaseChatCompletionRequestAssistantMessage(
         ChatCompletionRequestAssistantMessage(
-          role = ChatCompletionRequestAssistantMessage.Role.assistant,
+          role = ChatCompletionRequestAssistantMessage.Role.Assistant,
           content = value
         )
       )
@@ -95,15 +95,15 @@ interface PromptBuilder {
     fun user(value: String): ChatCompletionRequestMessage =
       ChatCompletionRequestMessage.CaseChatCompletionRequestUserMessage(
         ChatCompletionRequestUserMessage(
-          role = ChatCompletionRequestUserMessage.Role.user,
-          content = ChatCompletionRequestUserMessageContent.CaseString(value)
+          role = ChatCompletionRequestUserMessage.Role.User,
+          content = ChatCompletionRequestUserMessage.Content.CaseString(value)
         )
       )
 
     fun tool(toolCallId: String, value: String): ChatCompletionRequestMessage =
       ChatCompletionRequestMessage.CaseChatCompletionRequestToolMessage(
         ChatCompletionRequestToolMessage(
-          role = ChatCompletionRequestToolMessage.Role.tool,
+          role = ChatCompletionRequestToolMessage.Role.Tool,
           content = value,
           toolCallId = toolCallId
         )
@@ -112,7 +112,7 @@ interface PromptBuilder {
     fun system(value: String): ChatCompletionRequestMessage =
       ChatCompletionRequestMessage.CaseChatCompletionRequestSystemMessage(
         ChatCompletionRequestSystemMessage(
-          role = ChatCompletionRequestSystemMessage.Role.system,
+          role = ChatCompletionRequestSystemMessage.Role.System,
           content = value
         )
       )
@@ -120,21 +120,21 @@ interface PromptBuilder {
     fun image(url: String, text: String): ChatCompletionRequestMessage =
       ChatCompletionRequestMessage.CaseChatCompletionRequestUserMessage(
         ChatCompletionRequestUserMessage(
-          role = ChatCompletionRequestUserMessage.Role.user,
+          role = ChatCompletionRequestUserMessage.Role.User,
           content =
-            ChatCompletionRequestUserMessageContent.CaseChatCompletionRequestMessageContentParts(
+            ChatCompletionRequestUserMessage.Content.CaseChatCompletionRequestMessageContentParts(
               listOf(
                 ChatCompletionRequestMessageContentPart
                   .CaseChatCompletionRequestMessageContentPartImage(
                     ChatCompletionRequestMessageContentPartImage(
-                      type = ChatCompletionRequestMessageContentPartImage.Type.image_url,
-                      imageUrl = ChatCompletionRequestMessageContentPartImageImageUrl(url)
+                      type = ChatCompletionRequestMessageContentPartImage.Type.ImageUrl,
+                      imageUrl = ChatCompletionRequestMessageContentPartImage.ImageUrl(url)
                     )
                   ),
                 ChatCompletionRequestMessageContentPart
                   .CaseChatCompletionRequestMessageContentPartText(
                     ChatCompletionRequestMessageContentPartText(
-                      type = ChatCompletionRequestMessageContentPartText.Type.text,
+                      type = ChatCompletionRequestMessageContentPartText.Type.Text,
                       text = text
                     )
                   )
@@ -149,8 +149,8 @@ fun ChatCompletionRequestMessage.contentAsString(): String =
   when (this) {
     is ChatCompletionRequestMessage.CaseChatCompletionRequestUserMessage ->
       when (val content = value.content) {
-        is ChatCompletionRequestUserMessageContent.CaseString -> content.value
-        is ChatCompletionRequestUserMessageContent.CaseChatCompletionRequestMessageContentParts ->
+        is ChatCompletionRequestUserMessage.Content.CaseString -> content.value
+        is ChatCompletionRequestUserMessage.Content.CaseChatCompletionRequestMessageContentParts ->
           content.value.joinToString {
             when (it) {
               is ChatCompletionRequestMessageContentPart.CaseChatCompletionRequestMessageContentPartImage ->

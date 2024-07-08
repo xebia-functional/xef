@@ -1,10 +1,9 @@
 package xef
 
 import arrow.atomic.AtomicInt
-import com.xebia.functional.openai.generated.model.ChatCompletionRequestAssistantMessage
-import com.xebia.functional.openai.generated.model.ChatCompletionRequestMessage
-import com.xebia.functional.openai.generated.model.ChatCompletionRequestUserMessage
-import com.xebia.functional.openai.generated.model.ChatCompletionRequestUserMessageContent
+import com.xebia.functional.xef.openapi.ChatCompletionRequestAssistantMessage
+import com.xebia.functional.xef.openapi.ChatCompletionRequestMessage
+import com.xebia.functional.xef.openapi.ChatCompletionRequestUserMessage
 import com.xebia.functional.xef.store.ConversationId
 import com.xebia.functional.xef.store.MemorizedMessage
 import com.xebia.functional.xef.store.Memory
@@ -22,13 +21,13 @@ class MemoryData {
         (0 until n).flatMap {
             val m1 = ChatCompletionRequestMessage.CaseChatCompletionRequestUserMessage(
                 ChatCompletionRequestUserMessage(
-                    role = ChatCompletionRequestUserMessage.Role.user,
-                    content = ChatCompletionRequestUserMessageContent.CaseString("Question $it${append?.let { ": $it" } ?: ""}")
+                    role = ChatCompletionRequestUserMessage.Role.User,
+                    content = ChatCompletionRequestUserMessage.Content.CaseString("Question $it${append?.let { ": $it" } ?: ""}")
                 )
             )
             val m2 = ChatCompletionRequestMessage.CaseChatCompletionRequestAssistantMessage(
                 ChatCompletionRequestAssistantMessage(
-                    role = ChatCompletionRequestAssistantMessage.Role.assistant,
+                    role = ChatCompletionRequestAssistantMessage.Role.Assistant,
                     content = "Answer $it${append?.let { ": $it" } ?: ""}"
                 )
             )

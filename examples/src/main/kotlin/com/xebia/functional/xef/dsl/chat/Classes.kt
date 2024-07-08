@@ -1,11 +1,11 @@
 package com.xebia.functional.xef.dsl.chat
 
-import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.AI
 import com.xebia.functional.xef.conversation.Description
 import com.xebia.functional.xef.conversation.MessagePolicy
 import com.xebia.functional.xef.conversation.MessagesFromHistory
 import com.xebia.functional.xef.conversation.MessagesToHistory
+import com.xebia.functional.xef.openapi.CreateChatCompletionRequest
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.assistant
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.system
@@ -26,7 +26,7 @@ data class Book(
 )
 
 suspend fun books(topic: String): Books {
-  val model = CreateChatCompletionRequestModel.gpt_4_turbo_preview
+  val model = CreateChatCompletionRequest.Model.Gpt4TurboPreview
 
   val myCustomPrompt =
     Prompt(

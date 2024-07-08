@@ -1,11 +1,11 @@
 package com.xebia.functional.xef.dsl.chat
 
-import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.AI
 import com.xebia.functional.xef.AIConfig
 import com.xebia.functional.xef.AIEvent
 import com.xebia.functional.xef.Tool
 import com.xebia.functional.xef.conversation.Description
+import com.xebia.functional.xef.openapi.CreateChatCompletionRequest
 import kotlinx.coroutines.flow.Flow
 
 suspend fun ballLocationInfoFromLastCupTriedImpl(input: Int): String {
@@ -27,7 +27,7 @@ suspend fun main() {
       prompt = "Where is the ball? use the available tools to find out.",
       config =
         AIConfig(
-          model = CreateChatCompletionRequestModel.gpt_3_5_turbo,
+          model = CreateChatCompletionRequest.Model.Gpt35Turbo,
           tools =
             listOf(
               Tool.suspend(

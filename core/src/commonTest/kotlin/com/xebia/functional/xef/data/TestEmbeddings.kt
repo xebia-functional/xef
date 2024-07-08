@@ -1,9 +1,8 @@
 package com.xebia.functional.xef.data
 
-import com.xebia.functional.openai.generated.api.Embeddings
-import com.xebia.functional.openai.generated.model.CreateEmbeddingRequest
-import com.xebia.functional.openai.generated.model.CreateEmbeddingResponse
-import com.xebia.functional.openai.generated.model.CreateEmbeddingResponseUsage
+import com.xebia.functional.xef.openapi.CreateEmbeddingRequest
+import com.xebia.functional.xef.openapi.CreateEmbeddingResponse
+import com.xebia.functional.xef.openapi.Embeddings
 import io.ktor.client.request.*
 
 class TestEmbeddings : Embeddings, AutoCloseable {
@@ -19,8 +18,8 @@ class TestEmbeddings : Embeddings, AutoCloseable {
       CreateEmbeddingResponse(
         data = emptyList(),
         model = "",
-        `object` = CreateEmbeddingResponse.Object.list,
-        usage = CreateEmbeddingResponseUsage(0, 0)
+        `object` = CreateEmbeddingResponse.Object.List,
+        usage = CreateEmbeddingResponse.Usage(0, 0)
       )
     return response
   }

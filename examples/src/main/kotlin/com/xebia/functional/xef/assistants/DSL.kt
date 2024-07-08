@@ -5,6 +5,7 @@ import com.xebia.functional.xef.llm.assistants.Assistant
 import com.xebia.functional.xef.llm.assistants.AssistantThread
 import com.xebia.functional.xef.llm.assistants.RunDelta
 import com.xebia.functional.xef.llm.assistants.Tool
+import com.xebia.functional.xef.openapi.OpenAI
 import kotlinx.serialization.Serializable
 
 @Serializable data class SumInput(val left: Int, val right: Int)
@@ -49,7 +50,7 @@ suspend fun main() {
       assistantId = "asst_UxczzpJkysC0l424ood87DAk",
       toolsConfig = listOf(Tool.toolOf(SumTool()))
     )
-  val thread = AssistantThread(api = OpenAI(logRequests = false).assistants, metric = metric)
+  val thread = AssistantThread(api = OpenAI(logRequests = false).threads, metric = metric)
   println("Welcome to the Math tutor, ask me anything about math:")
   while (true) {
     println()

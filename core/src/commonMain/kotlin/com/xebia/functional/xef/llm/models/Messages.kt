@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.llm.models
 
-import com.xebia.functional.openai.generated.model.CompletionUsage
+import com.xebia.functional.xef.openapi.CompletionUsage
 
 data class MessagesWithUsage(val messages: List<String>, val usage: MessagesUsage?)
 

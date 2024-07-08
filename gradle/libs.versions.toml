@@ -39,7 +39,7 @@ progressbar = "0.10.0"
 jmf = "2.1.1e"
 mp3-wav-converter = "1.0.4"
 yamlkt="0.13.0"
-
+openapi-kt="0.0.6"
 
 [libraries]
 arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
@@ -143,3 +143,4 @@ semver-gradle = { id="com.javiersc.semver", version.ref="semverGradle" }
 resources = { id="com.goncalossilva.resources", version.ref="resources-kmp" }
 detekt = { id="io.gitlab.arturbosch.detekt", version.ref="detekt"}
 node-gradle = { id = "com.github.node-gradle.node", version.ref = "node-gradle" }
+openapi-kt = { id= "io.github.nomisrev.openapi-kt-plugin", version.ref = "openapi-kt" }

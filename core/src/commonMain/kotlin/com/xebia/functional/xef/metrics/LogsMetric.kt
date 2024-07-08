@@ -1,9 +1,9 @@
 package com.xebia.functional.xef.metrics
 
 import arrow.atomic.AtomicInt
-import com.xebia.functional.openai.generated.model.MessageObject
-import com.xebia.functional.openai.generated.model.RunObject
-import com.xebia.functional.openai.generated.model.RunStepObject
+import com.xebia.functional.xef.openapi.MessageObject
+import com.xebia.functional.xef.openapi.RunObject
+import com.xebia.functional.xef.openapi.RunStepObject
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.contentAsString
 import io.github.oshai.kotlinlogging.KotlinLogging

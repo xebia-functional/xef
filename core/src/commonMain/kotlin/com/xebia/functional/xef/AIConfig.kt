@@ -1,13 +1,13 @@
 package com.xebia.functional.xef
 
-import com.xebia.functional.openai.generated.api.Chat
-import com.xebia.functional.openai.generated.api.OpenAI
-import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.conversation.Conversation
+import com.xebia.functional.xef.openapi.Chat
+import com.xebia.functional.xef.openapi.CreateChatCompletionRequest
+import com.xebia.functional.xef.openapi.OpenAI
 
 data class AIConfig(
   val tools: List<Tool<*>> = emptyList(),
-  val model: CreateChatCompletionRequestModel = CreateChatCompletionRequestModel.gpt_4o,
+  val model: CreateChatCompletionRequest.Model = CreateChatCompletionRequest.Model.Gpt4o,
   val config: Config = Config(),
   val openAI: OpenAI = OpenAI(config, logRequests = false),
   val api: Chat = openAI.chat,

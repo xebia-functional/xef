@@ -1,8 +1,8 @@
 package com.xebia.functional.xef.prompt
 
-import com.xebia.functional.openai.generated.model.ChatCompletionRequestMessage
-import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
-import com.xebia.functional.openai.generated.model.FunctionObject
+import com.xebia.functional.xef.openapi.ChatCompletionRequestMessage
+import com.xebia.functional.xef.openapi.CreateChatCompletionRequest
+import com.xebia.functional.xef.openapi.FunctionObject
 import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
 import kotlin.jvm.JvmOverloads
 import kotlin.jvm.JvmSynthetic
@@ -14,19 +14,19 @@ import kotlin.jvm.JvmSynthetic
 data class Prompt
 @JvmOverloads
 constructor(
-  val model: CreateChatCompletionRequestModel,
+  val model: CreateChatCompletionRequest.Model,
   val messages: List<ChatCompletionRequestMessage>,
   val functions: List<FunctionObject> = emptyList(),
   val configuration: PromptConfiguration = PromptConfiguration.DEFAULTS
 ) {
 
   constructor(
-    model: CreateChatCompletionRequestModel,
+    model: CreateChatCompletionRequest.Model,
     value: String
   ) : this(model, listOf(PromptBuilder.user(value)), emptyList())
 
   constructor(
-    model: CreateChatCompletionRequestModel,
+    model: CreateChatCompletionRequest.Model,
     value: String,
     configuration: PromptConfiguration
   ) : this(model, listOf(PromptBuilder.user(value)), emptyList(), configuration)
@@ -34,7 +34,7 @@ constructor(
   companion object {
     @JvmSynthetic
     operator fun invoke(
-      model: CreateChatCompletionRequestModel,
+      model: CreateChatCompletionRequest.Model,
       functions: List<FunctionObject> = emptyList(),
       configuration: PromptConfiguration = PromptConfiguration.DEFAULTS,
       block: PlatformPromptBuilder.() -> Unit

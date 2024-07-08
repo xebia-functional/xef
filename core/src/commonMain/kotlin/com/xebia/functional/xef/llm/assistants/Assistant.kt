@@ -1,11 +1,11 @@
 package com.xebia.functional.xef.llm.assistants
 
-import com.xebia.functional.openai.generated.api.Assistants
-import com.xebia.functional.openai.generated.model.*
 import com.xebia.functional.xef.Config
 import com.xebia.functional.xef.OpenAI
 import com.xebia.functional.xef.llm.assistants.AssistantThread.Companion.defaultConfig
 import com.xebia.functional.xef.llm.models.functions.buildJsonSchema
+import com.xebia.functional.xef.openapi.*
+import com.xebia.functional.xef.openapi.Assistants
 import io.ktor.util.logging.*
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -75,12 +75,12 @@ class Assistant(
     @Serializable data class ToolOutput(val schema: JsonObject, val result: JsonElement)
 
     suspend operator fun invoke(
-      model: CreateAssistantRequestModel,
+      model: CreateAssistantRequest.Model,
       name: String? = null,
       description: String? = null,
       instructions: String? = null,
-      tools: List<AssistantObjectToolsInner> = arrayListOf(),
-      toolResources: CreateAssistantRequestToolResources? = null,
+      tools: List<CreateAssistantRequest.Tools> = arrayListOf(),
+      toolResources: CreateAssistantRequest.ToolResources? = null,
       metadata: JsonObject? = null,
       toolsConfig: List<Tool.Companion.ToolConfig<*, *>> = emptyList(),
       config: Config = Config(),
@@ -121,19 +121,19 @@ class Assistant(
       val fileIds = parsed["file_ids"]?.let { (it as List<*>).map { it.toString() } }
       val vectorStoreIds = parsed["vector_store_ids"]?.let { (it as List<*>).map { it.toString() } }
       val toolResourcesRequest =
-        CreateAssistantRequestToolResources(
+        CreateAssistantRequest.ToolResources(
           codeInterpreter =
-            fileIds?.let { CreateAssistantRequestToolResourcesCodeInterpreter(fileIds = it) },
+            fileIds?.let { CreateAssistantRequest.ToolResources.CodeInterpreter(fileIds = it) },
           fileSearch =
             vectorStoreIds?.let {
-              CreateAssistantRequestToolResourcesFileSearch(vectorStoreIds = it)
+              CreateAssistantRequest.ToolResources.FileSearch(vectorStoreIds = it)
             }
         )
       val assistantRequest =
         AssistantRequest(
           assistantId = parsed["assistant_id"]?.literalContentOrNull,
           model =
-            parsed["model"]?.literalContentOrNull?.let { CreateAssistantRequestModel.Custom(it) }
+            parsed["model"]?.literalContentOrNull?.let { CreateAssistantRequest.Model.OpenCase(it) }
               ?: error("model is required"),
           name = parsed["name"]?.literalContentOrNull,
           description = parsed["description"]?.literalContentOrNull,
@@ -164,7 +164,7 @@ class Assistant(
                             functionObject.name,
                             functionObject.description ?: "",
                             functionObject.parameters?.let { el ->
-                              Json.encodeToString(JsonObject.serializer(), el)
+                              Json.encodeToString(JsonElement.serializer(), el)
                             } ?: ""
                           )
                         } else {
@@ -195,16 +195,22 @@ class Assistant(
             name = assistantRequest.name,
             description = assistantRequest.description,
             instructions = assistantRequest.instructions,
-            tools = assistantTools(assistantRequest),
+            tools =
+              assistantTools(
+                assistantRequest,
+                code = ModifyAssistantRequest.Tools::CaseAssistantToolsCode,
+                fileSearch = ModifyAssistantRequest.Tools::CaseAssistantToolsFileSearch,
+                function = ModifyAssistantRequest.Tools::CaseAssistantToolsFunction
+              ),
             toolResources =
               assistantRequest.toolResources?.let {
-                ModifyAssistantRequestToolResources(
+                ModifyAssistantRequest.ToolResources(
                   codeInterpreter =
                     it.codeInterpreter?.let {
-                      ModifyAssistantRequestToolResourcesCodeInterpreter(fileIds = it.fileIds)
+                      ModifyAssistantRequest.ToolResources.CodeInterpreter(fileIds = it.fileIds)
                     },
                   fileSearch =
-                    ModifyAssistantRequestToolResourcesFileSearch(
+                    ModifyAssistantRequest.ToolResources.FileSearch(
                       vectorStoreIds = it.fileSearch?.vectorStoreIds
                     )
                 )
@@ -220,7 +226,13 @@ class Assistant(
               name = assistantRequest.name,
               description = assistantRequest.description,
               instructions = assistantRequest.instructions,
-              tools = assistantTools(assistantRequest),
+              tools =
+                assistantTools(
+                  assistantRequest,
+                  code = CreateAssistantRequest.Tools::CaseAssistantToolsCode,
+                  fileSearch = CreateAssistantRequest.Tools::CaseAssistantToolsFileSearch,
+                  function = CreateAssistantRequest.Tools::CaseAssistantToolsFunction
+                ),
               toolResources = assistantRequest.toolResources,
               metadata =
                 assistantRequest.metadata
@@ -233,23 +245,24 @@ class Assistant(
         )
     }
 
-    private fun assistantTools(
-      assistantRequest: AssistantRequest
-    ): List<AssistantObjectToolsInner> =
+    private fun <A> assistantTools(
+      assistantRequest: AssistantRequest,
+      code: (AssistantToolsCode) -> A,
+      fileSearch: (AssistantToolsFileSearch) -> A,
+      function: (AssistantToolsFunction) -> A
+    ): List<A> =
       assistantRequest.tools.orEmpty().map {
         when (it) {
           is AssistantTool.CodeInterpreter ->
-            AssistantObjectToolsInner.CaseAssistantToolsCode(
-              AssistantToolsCode(type = AssistantToolsCode.Type.code_interpreter)
-            )
+            code(AssistantToolsCode(type = AssistantToolsCode.Type.CodeInterpreter))
+
+          // TODO Retrieval seems to be renamed to file search??
           is AssistantTool.Retrieval ->
-            AssistantObjectToolsInner.CaseAssistantToolsFileSearch(
-              AssistantToolsFileSearch(type = AssistantToolsFileSearch.Type.file_search)
-            )
+            fileSearch(AssistantToolsFileSearch(type = AssistantToolsFileSearch.Type.FileSearch))
           is AssistantTool.Function ->
-            AssistantObjectToolsInner.CaseAssistantToolsFunction(
+            function(
               AssistantToolsFunction(
-                type = AssistantToolsFunction.Type.function,
+                type = AssistantToolsFunction.Type.Function,
                 function =
                   FunctionObject(
                     name = it.name,

@@ -1,7 +1,6 @@
 package com.xebia.functional.xef.llm.assistants
 
-import com.xebia.functional.openai.generated.model.CreateAssistantRequestModel
-import com.xebia.functional.openai.generated.model.CreateAssistantRequestToolResources
+import com.xebia.functional.xef.openapi.CreateAssistantRequest
 import kotlinx.serialization.Required
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -9,7 +8,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class AssistantRequest(
   @SerialName(value = "assistant_id") val assistantId: String? = null,
-  @SerialName(value = "model") @Required val model: CreateAssistantRequestModel,
+  @SerialName(value = "model") @Required val model: CreateAssistantRequest.Model,
 
   /* The name of the assistant. The maximum length is 256 characters.  */
   @SerialName(value = "name") val name: String? = null,
@@ -23,7 +22,7 @@ data class AssistantRequest(
   /* A list of tool enabled on the assistant. There can be a maximum of 128 tools per assistant. Tools can be of types `code_interpreter`, `retrieval`, or `function`.  */
   @SerialName(value = "tools") val tools: List<AssistantTool>? = arrayListOf(),
   @SerialName(value = "tool_resources")
-  val toolResources: CreateAssistantRequestToolResources? = null,
+  val toolResources: CreateAssistantRequest.ToolResources? = null,
 
   /* Set of 16 key-value pairs that can be attached to an object. This can be useful for storing additional information about the object in a structured format. Keys can be a maximum of 64 characters long and values can be a maxium of 512 characters long.  */
   @SerialName(value = "metadata") val metadata: Map<String, String>? = null

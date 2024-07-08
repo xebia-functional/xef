@@ -1,7 +1,6 @@
 package com.xebia.functional.xef.evaluator
 
 import arrow.continuations.SuspendApp
-import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.OpenAI
 import com.xebia.functional.xef.conversation.Conversation
 import com.xebia.functional.xef.evaluator.metrics.AnswerAccuracy
@@ -9,6 +8,8 @@ import com.xebia.functional.xef.evaluator.models.ModelsPricing
 import com.xebia.functional.xef.evaluator.models.OutputDescription
 import com.xebia.functional.xef.evaluator.models.OutputResponse
 import com.xebia.functional.xef.llm.promptMessageAndUsage
+import com.xebia.functional.xef.openapi.CreateChatCompletionRequest
+import com.xebia.functional.xef.openapi.OpenAI
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.user
 import java.io.File
@@ -17,13 +18,13 @@ object TestExample {
 
   @JvmStatic
   fun main(args: Array<String>) = SuspendApp {
-    val model = CreateChatCompletionRequestModel.gpt_3_5_turbo_16k
+    val model = CreateChatCompletionRequest.Model.Gpt35Turbo16k
     val chat = OpenAI(logRequests = false).chat
 
     val spec =
       SuiteSpec(
         description = "Check GTP3.5 and fake outputs",
-        model = CreateChatCompletionRequestModel.gpt_4_turbo_preview
+        model = CreateChatCompletionRequest.Model.Gpt4TurboPreview
       ) {
         val gpt35Description = OutputDescription("Using GPT3.5")
         val fakeOutputs = OutputDescription("Fake outputs with errors")

@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.opentelemetry
 
-import com.xebia.functional.openai.generated.model.*
+import com.xebia.functional.xef.openapi.*
 import io.opentelemetry.api.trace.Span
 import io.opentelemetry.api.trace.SpanKind
 import io.opentelemetry.api.trace.Tracer
@@ -146,23 +146,23 @@ class OpenTelemetryAssistantState(private val tracer: Tracer) {
     span.setAttribute("openai.assistant.runStep.id", id)
     span.setAttribute("openai.assistant.status", status.name)
     when (val detail = stepDetails) {
-      is RunStepObjectStepDetails.CaseRunStepDetailsMessageCreationObject -> {
+      is RunStepObject.StepDetails.CaseRunStepDetailsMessageCreationObject -> {
         span.setAttribute(
           "openai.assistant.messageCreation.id",
           detail.value.messageCreation.messageId
         )
       }
-      is RunStepObjectStepDetails.CaseRunStepDetailsToolCallsObject -> {
+      is RunStepObject.StepDetails.CaseRunStepDetailsToolCallsObject -> {
         detail.value.toolCalls.forEachIndexed { index, toolCall ->
           when (toolCall) {
-            is RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsCodeObject -> {
+            is RunStepDetailsToolCallsObject.ToolCalls.CaseRunStepDetailsToolCallsCodeObject -> {
               span.setAttribute("openai.assistant.toolCalls.$index.type", toolCall.value.type.name)
               span.setAttribute(
                 "openai.assistant.toolCalls.$index.function.name",
                 "code_interpreter"
               )
             }
-            is RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsFunctionObject -> {
+            is RunStepDetailsToolCallsObject.ToolCalls.CaseRunStepDetailsToolCallsFunctionObject -> {
               span.setAttribute("openai.assistant.toolCalls.$index.type", toolCall.value.type.name)
               span.setAttribute(
                 "openai.assistant.toolCalls.$index.function.name",
@@ -173,7 +173,7 @@ class OpenTelemetryAssistantState(private val tracer: Tracer) {
                 toolCall.value.function.arguments ?: ""
               )
             }
-            is RunStepDetailsToolCallsObjectToolCallsInner.CaseRunStepDetailsToolCallsFileSearchObject -> {
+            is RunStepDetailsToolCallsObject.ToolCalls.CaseRunStepDetailsToolCallsFileSearchObject -> {
               span.setAttribute("openai.assistant.toolCalls.$index.type", toolCall.value.type.name)
               span.setAttribute("openai.assistant.toolCalls.$index.function.name", "retrieval")
             }
@@ -192,13 +192,13 @@ class OpenTelemetryAssistantState(private val tracer: Tracer) {
     span.setAttribute("openai.assistant.message.id", id)
     status?.let { span.setAttribute("openai.assistant.message.status", it.name) }
     when (val inner = content.firstOrNull()) {
-      is MessageObjectContentInner.CaseMessageContentImageFileObject -> {
+      is MessageObject.Content.CaseMessageContentImageFileObject -> {
         span.setAttribute("openai.assistant.message.content", inner.value.imageFile.fileId)
       }
-      is MessageObjectContentInner.CaseMessageContentTextObject -> {
+      is MessageObject.Content.CaseMessageContentTextObject -> {
         span.setAttribute("openai.assistant.message.content", inner.value.text.value)
       }
-      is MessageObjectContentInner.CaseMessageContentImageUrlObject ->
+      is MessageObject.Content.CaseMessageContentImageUrlObject ->
         span.setAttribute("openai.assistant.message.content", inner.value.imageUrl.url)
       null -> {}
     }

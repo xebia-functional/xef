@@ -4,13 +4,10 @@ import arrow.atomic.Atomic
 import arrow.atomic.AtomicInt
 import arrow.atomic.getAndUpdate
 import arrow.atomic.update
-import com.xebia.functional.openai.generated.api.Embeddings
-import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
-import com.xebia.functional.openai.generated.model.CreateEmbeddingRequestModel
-import com.xebia.functional.openai.generated.model.Embedding
 import com.xebia.functional.xef.llm.embedDocuments
 import com.xebia.functional.xef.llm.embedQuery
 import com.xebia.functional.xef.llm.models.modelType
+import com.xebia.functional.xef.openapi.*
 import kotlin.math.sqrt
 
 private data class State(
@@ -29,12 +26,12 @@ class LocalVectorStore
 private constructor(
   private val embeddings: Embeddings,
   private val state: AtomicState,
-  private val embeddingRequestModel: CreateEmbeddingRequestModel
+  private val embeddingRequestModel: CreateEmbeddingRequest.Model
 ) : VectorStore {
   constructor(
     embeddings: Embeddings,
-    embeddingRequestModel: CreateEmbeddingRequestModel =
-      CreateEmbeddingRequestModel.text_embedding_ada_002
+    embeddingRequestModel: CreateEmbeddingRequest.Model =
+      CreateEmbeddingRequest.Model.TextEmbeddingAda002
   ) : this(embeddings, Atomic(State.empty()), embeddingRequestModel)
 
   override val indexValue: AtomicInt = AtomicInt(0)
@@ -63,7 +60,7 @@ private constructor(
   }
 
   override suspend fun memories(
-    model: CreateChatCompletionRequestModel,
+    model: CreateChatCompletionRequest.Model,
     conversationId: ConversationId,
     limitTokens: Int
   ): List<Memory> {

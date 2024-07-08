@@ -1,13 +1,15 @@
 package com.xebia.functional.xef
 
-import com.xebia.functional.openai.generated.model.CreateChatCompletionRequest
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.llm.models.modelType
 import com.xebia.functional.xef.llm.prompt
 import com.xebia.functional.xef.llm.promptStreaming
+import com.xebia.functional.xef.openapi.CreateChatCompletionRequest
 import com.xebia.functional.xef.prompt.Prompt
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 
 class AI<out A>(private val config: AIConfig, val serializer: Tool<A>) {
 
@@ -59,17 +61,19 @@ class AI<out A>(private val config: AIConfig, val serializer: Tool<A>) {
     val encoding = prompt.model.modelType(forFunctions = false).encoding
     val cases = serializer.cases
     val logitBias =
-      cases
-        .flatMap {
-          val result = encoding.encode(it.function.name)
-          if (result.size > 1) {
-            error("Cannot encode enum case $it into one token")
+      JsonObject(
+        cases
+          .flatMap {
+            val result = encoding.encode(it.function.name)
+            if (result.size > 1) {
+              error("Cannot encode enum case $it into one token")
+            }
+            result
           }
-          result
-        }
-        .associate { "$it" to 100 }
+          .associate { "$it" to JsonPrimitive(100) }
+      )
     val result =
-      config.api.createChatCompletion(
+      config.api.completions.createChatCompletion(
         CreateChatCompletionRequest(
           messages = prompt.messages,
           model = prompt.model,

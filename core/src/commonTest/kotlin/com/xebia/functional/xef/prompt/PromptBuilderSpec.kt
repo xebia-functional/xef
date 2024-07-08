@@ -1,6 +1,6 @@
 package com.xebia.functional.xef.prompt
 
-import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
+import com.xebia.functional.xef.openapi.CreateChatCompletionRequest
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.assistant
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.system
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.user
@@ -9,7 +9,7 @@ import io.kotest.matchers.shouldBe
 
 class PromptBuilderSpec :
   StringSpec({
-    val model = CreateChatCompletionRequestModel.gpt_4
+    val model = CreateChatCompletionRequest.Model.Gpt4
     "buildPrompt should return the expected messages" {
       val messages =
         Prompt(model) {

@@ -1,10 +1,9 @@
 package com.xebia.functional.xef.store
 
 import arrow.atomic.AtomicInt
-import com.xebia.functional.openai.generated.model.ChatCompletionRequestAssistantMessage
-import com.xebia.functional.openai.generated.model.ChatCompletionRequestMessage
-import com.xebia.functional.openai.generated.model.ChatCompletionRequestUserMessage
-import com.xebia.functional.openai.generated.model.ChatCompletionRequestUserMessageContent
+import com.xebia.functional.xef.openapi.ChatCompletionRequestAssistantMessage
+import com.xebia.functional.xef.openapi.ChatCompletionRequestMessage
+import com.xebia.functional.xef.openapi.ChatCompletionRequestUserMessage
 
 class MemoryData {
   val defaultConversationId = ConversationId("default-id")
@@ -19,15 +18,15 @@ class MemoryData {
     (0 until n).flatMap {
       val m1 =
         ChatCompletionRequestUserMessage(
-          role = ChatCompletionRequestUserMessage.Role.user,
+          role = ChatCompletionRequestUserMessage.Role.User,
           content =
-            ChatCompletionRequestUserMessageContent.CaseString(
+            ChatCompletionRequestUserMessage.Content.CaseString(
               "Question $it${append?.let { ": $it" } ?: ""}"
             )
         )
       val m2 =
         ChatCompletionRequestAssistantMessage(
-          role = ChatCompletionRequestAssistantMessage.Role.assistant,
+          role = ChatCompletionRequestAssistantMessage.Role.Assistant,
           content = "Response $it${append?.let { ": $it" } ?: ""}"
         )
       listOf(

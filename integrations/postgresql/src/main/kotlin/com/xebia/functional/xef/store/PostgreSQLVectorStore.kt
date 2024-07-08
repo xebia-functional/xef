@@ -1,16 +1,12 @@
 package com.xebia.functional.xef.store
 
 import arrow.atomic.AtomicInt
-import com.xebia.functional.openai.generated.api.Embeddings
-import com.xebia.functional.openai.generated.model.ChatCompletionRole
-import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
-import com.xebia.functional.openai.generated.model.CreateEmbeddingRequestModel
-import com.xebia.functional.openai.generated.model.Embedding
 import com.xebia.functional.xef.llm.embedDocuments
 import com.xebia.functional.xef.llm.embedQuery
 import com.xebia.functional.xef.llm.models.modelType
 import com.xebia.functional.xef.prompt.contentAsString
 import com.xebia.functional.xef.store.postgresql.*
+import com.xebia.functional.xef.openapi.*
 import kotlinx.uuid.UUID
 import kotlinx.uuid.generateUUID
 import javax.sql.DataSource
@@ -22,7 +18,7 @@ class PGVectorStore(
   private val collectionName: String,
   private val distanceStrategy: PGDistanceStrategy,
   private val preDeleteCollection: Boolean,
-  private val embeddingRequestModel: CreateEmbeddingRequestModel,
+  private val embeddingRequestModel: CreateEmbeddingRequest.Model,
   private val chunkSize: Int = 400
 ) : VectorStore {
 
@@ -38,7 +34,7 @@ class PGVectorStore(
         update(addNewMemory) {
           bind(UUID.generateUUID().toString())
           bind(memory.conversationId.value)
-          bind(memory.content.role.value.lowercase())
+          bind(memory.content.role.name)
           bind(memory.content.asRequestMessage().contentAsString())
           bind(memory.index)
         }
@@ -46,7 +42,7 @@ class PGVectorStore(
     }
   }
 
-  override suspend fun memories(model: CreateChatCompletionRequestModel, conversationId: ConversationId, limitTokens: Int): List<Memory> =
+  override suspend fun memories(model: CreateChatCompletionRequest.Model, conversationId: ConversationId, limitTokens: Int): List<Memory> =
     getMemoryByConversationId(conversationId).reduceByLimitToken(model.modelType(), limitTokens).reversed()
 
   private fun JDBCSyntax.getCollection(collectionName: String): PGCollection =
@@ -153,7 +149,7 @@ class PGVectorStore(
         val index = int()
         Memory(
           conversationId = ConversationId(cId),
-          content = memorizedMessage(ChatCompletionRole.valueOf(role.lowercase()), content),
+          content = memorizedMessage(ChatCompletionRole.valueOf(role), content),
           index = index
         )
       }

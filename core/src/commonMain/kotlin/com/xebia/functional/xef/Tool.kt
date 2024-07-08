@@ -1,10 +1,10 @@
 package com.xebia.functional.xef
 
-import com.xebia.functional.openai.generated.model.FunctionObject
 import com.xebia.functional.xef.conversation.Description
 import com.xebia.functional.xef.llm.FunctionCall
 import com.xebia.functional.xef.llm.StreamedFunction
 import com.xebia.functional.xef.llm.chatFunction
+import com.xebia.functional.xef.openapi.FunctionObject
 import kotlin.jvm.JvmName
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction1

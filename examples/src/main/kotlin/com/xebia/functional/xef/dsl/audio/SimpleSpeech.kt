@@ -1,13 +1,13 @@
 package com.xebia.functional.xef.dsl.audio
 
 import com.sipgate.mp3wav.Converter
-import com.xebia.functional.openai.UploadFile
-import com.xebia.functional.openai.generated.model.CreateSpeechRequest
-import com.xebia.functional.openai.generated.model.CreateSpeechRequestModel
-import com.xebia.functional.openai.generated.model.CreateTranscriptionRequestModel
 import com.xebia.functional.xef.AI
 import com.xebia.functional.xef.Config
 import com.xebia.functional.xef.OpenAI
+import com.xebia.functional.xef.openapi.CreateSpeechRequest
+import com.xebia.functional.xef.openapi.CreateTranscriptionRequest
+import com.xebia.functional.xef.openapi.CreateTranslationRequest
+import com.xebia.functional.xef.openapi.UploadFile
 import io.ktor.client.statement.*
 import io.ktor.utils.io.jvm.javaio.*
 import java.io.File
@@ -28,11 +28,11 @@ suspend fun main() {
           .trimIndent()
       )
     val channel =
-      audio.createSpeech(
+      audio.speech.createSpeech(
         CreateSpeechRequest(
-          model = CreateSpeechRequestModel.tts_1,
+          model = CreateSpeechRequest.Model.Tts1,
           input = modelResponse,
-          voice = CreateSpeechRequest.Voice.nova
+          voice = CreateSpeechRequest.Voice.Nova
         )
       )
     val wavConverter = Converter(channel.bodyAsChannel().toInputStream())
@@ -51,19 +51,23 @@ suspend fun main() {
         bodyBuilder = { file.readBytes().forEach { writeByte(it) } }
       )
     val transcription =
-      audio.createTranscription(
-        model = CreateTranscriptionRequestModel.whisper_1,
-        prompt = "Translate to spanish",
-        file = uploadFile,
-        language = "es",
+      audio.transcriptions.createTranscription(
+        CreateTranscriptionRequest(
+          file = uploadFile,
+          model = CreateTranscriptionRequest.Model.Whisper1,
+          prompt = "Translate to spanish",
+          language = "es"
+        )
       )
     println("transcription in `es`:")
     println(transcription)
     val translation =
-      audio.createTranslation(
-        model = CreateTranscriptionRequestModel.whisper_1,
-        prompt = "Translate",
-        file = uploadFile,
+      audio.translations.createTranslation(
+        CreateTranslationRequest(
+          file = uploadFile,
+          model = CreateTranslationRequest.Model.Whisper1,
+          prompt = "Translate"
+        )
       )
     println("translation to english:")
     println(translation)

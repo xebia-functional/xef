@@ -1,12 +1,12 @@
 package com.xebia.functional.xef.prompt
 
-import com.xebia.functional.openai.generated.model.ChatCompletionRequestMessage
-import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
-import com.xebia.functional.openai.generated.model.FunctionObject
+import com.xebia.functional.xef.openapi.ChatCompletionRequestMessage
+import com.xebia.functional.xef.openapi.CreateChatCompletionRequest
+import com.xebia.functional.xef.openapi.FunctionObject
 import com.xebia.functional.xef.prompt.configuration.PromptConfiguration
 
 class PlatformPromptBuilder(
-  private val model: CreateChatCompletionRequestModel,
+  private val model: CreateChatCompletionRequest.Model,
   private val functions: List<FunctionObject>,
   private val configuration: PromptConfiguration
 ) : PromptBuilder {
@@ -21,7 +21,7 @@ class PlatformPromptBuilder(
 
   companion object {
     fun create(
-      model: CreateChatCompletionRequestModel,
+      model: CreateChatCompletionRequest.Model,
       functions: List<FunctionObject>,
       configuration: PromptConfiguration
     ): PlatformPromptBuilder = PlatformPromptBuilder(model, functions, configuration)
