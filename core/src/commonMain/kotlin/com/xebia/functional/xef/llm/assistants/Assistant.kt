@@ -62,6 +62,7 @@ class Assistant(
         Json.encodeToJsonElement(toolSerializer.outputSerializer as KSerializer<Any?>, output)
       ToolOutput(schema, result)
     } catch (e: Exception) {
+      if (e is AssertionError) throw e
       val message = "Error calling to tool registered $name: ${e.message}"
       val logger = KtorSimpleLogger("Functions")
       logger.error(message, e)
