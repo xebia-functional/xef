@@ -19,7 +19,6 @@ dependencies {
     implementation(projects.xefEvaluator)
     implementation(projects.xefFilesystem)
     implementation(projects.xefPdf)
-    implementation(projects.xefSql)
     implementation(projects.xefTokenizer)
     implementation(projects.xefReasoning)
     implementation(projects.xefOpentelemetry)
