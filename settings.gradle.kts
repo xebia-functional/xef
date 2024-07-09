@@ -59,12 +59,6 @@ project(":xef-reasoning").projectDir = file("reasoning")
 include("xef-evaluator")
 project(":xef-evaluator").projectDir = file("evaluator")
 
-
-//<editor-fold desc="Kotlin">
-include("xef-server")
-project(":xef-server").projectDir = file("server")
-//</editor-fold>
-
 //<editor-fold desc="Kotlin">
 include("detekt-rules")
 project(":detekt-rules").projectDir = file("detekt-rules")
