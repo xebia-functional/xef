@@ -56,6 +56,8 @@ dependencies {
     testImplementation(libs.kotest.testcontainers)
     testImplementation(libs.testcontainers.postgresql)
     testRuntimeOnly(libs.kotest.junit5)
+    implementation(libs.logback)
+    implementation(libs.klogging)
 }
 
 spotless {

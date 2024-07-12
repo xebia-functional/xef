@@ -10,3 +10,11 @@
   position: relative;
   width: 100%;
 }
+
+.marginRightIcons {
+  margin-right: 8px;
+}
+
+.buttons {
+  margin-top: 10px;
+}

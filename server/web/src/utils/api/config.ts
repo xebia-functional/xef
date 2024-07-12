@@ -27,6 +27,7 @@ export enum EndpointsEnum {
   register = 'register',
   organization = 'v1/settings/org',
   Projects = 'v1/settings/projects',
+  assistants = 'v1/settings/assistants',
 }
 
 export type EndpointsTypes = {
