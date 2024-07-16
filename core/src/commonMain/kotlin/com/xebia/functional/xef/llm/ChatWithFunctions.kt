@@ -7,9 +7,12 @@ import com.xebia.functional.openai.generated.api.Chat
 import com.xebia.functional.openai.generated.model.*
 import com.xebia.functional.xef.AIError
 import com.xebia.functional.xef.AIEvent
+import com.xebia.functional.xef.Config
 import com.xebia.functional.xef.Tool
 import com.xebia.functional.xef.conversation.AiDsl
 import com.xebia.functional.xef.conversation.Conversation
+import com.xebia.functional.xef.conversation.Description
+import com.xebia.functional.xef.conversation.Schema
 import com.xebia.functional.xef.llm.models.functions.buildJsonSchema
 import com.xebia.functional.xef.prompt.Prompt
 import com.xebia.functional.xef.prompt.PromptBuilder.Companion.tool
@@ -21,17 +24,31 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.json.*
 
-@OptIn(ExperimentalSerializationApi::class)
 fun chatFunction(descriptor: SerialDescriptor): FunctionObject {
-  val fnName = descriptor.serialName.substringAfterLast(".")
-  return chatFunction(fnName, buildJsonSchema(descriptor))
+  val functionName = functionName(descriptor)
+  return FunctionObject(
+    name = functionName,
+    description = functionDescription(descriptor, functionName),
+    parameters = functionSchema(descriptor)
+  )
 }
 
-fun chatFunctions(descriptors: List<SerialDescriptor>): List<FunctionObject> =
-  descriptors.map(::chatFunction)
+@OptIn(ExperimentalSerializationApi::class)
+fun functionSchema(descriptor: SerialDescriptor): JsonObject =
+  descriptor.annotations.filterIsInstance<Schema>().firstOrNull()?.value?.let {
+    Config.DEFAULT.json.decodeFromString(JsonObject.serializer(), it)
+  } ?: buildJsonSchema(descriptor)
 
-fun chatFunction(fnName: String, schema: JsonObject): FunctionObject =
-  FunctionObject(fnName, "Generated function for $fnName", schema)
+@OptIn(ExperimentalSerializationApi::class)
+fun functionDescription(descriptor: SerialDescriptor, fnName: String): String =
+  (descriptor.annotations.filterIsInstance<Description>().firstOrNull()?.value
+    ?: defaultFunctionDescription(fnName))
+
+fun defaultFunctionDescription(fnName: String): String = "Generated function for $fnName"
+
+@OptIn(ExperimentalSerializationApi::class)
+fun functionName(descriptor: SerialDescriptor): String =
+  descriptor.serialName.substringAfterLast(".")
 
 data class UsageTracker(
   var llmCalls: Int = 0,
