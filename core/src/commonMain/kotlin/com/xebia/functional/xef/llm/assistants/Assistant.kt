@@ -9,7 +9,6 @@ import com.xebia.functional.xef.llm.models.functions.buildJsonSchema
 import io.ktor.util.logging.*
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -52,14 +51,17 @@ class Assistant(
       val toolConfig = toolsConfig.firstOrNull { it.functionObject.name == name }
 
       val toolSerializer = toolConfig?.serializers ?: error("Function $name not registered")
-      val input = Json.decodeFromString(toolSerializer.inputSerializer, args)
+      val input = config.json.decodeFromString(toolSerializer.inputSerializer, args)
 
       val tool: Tool<Any?, Any?> = toolConfig.tool as Tool<Any?, Any?>
 
       val schema = buildJsonSchema(toolSerializer.outputSerializer.descriptor)
       val output: Any? = tool(input)
       val result =
-        Json.encodeToJsonElement(toolSerializer.outputSerializer as KSerializer<Any?>, output)
+        config.json.encodeToJsonElement(
+          toolSerializer.outputSerializer as KSerializer<Any?>,
+          output
+        )
       ToolOutput(schema, result)
     } catch (e: Exception) {
       if (e is AssertionError) throw e
@@ -164,7 +166,7 @@ class Assistant(
                             functionObject.name,
                             functionObject.description ?: "",
                             functionObject.parameters?.let { el ->
-                              Json.encodeToString(JsonObject.serializer(), el)
+                              config.json.encodeToString(JsonObject.serializer(), el)
                             } ?: ""
                           )
                         } else {
@@ -195,7 +197,7 @@ class Assistant(
             name = assistantRequest.name,
             description = assistantRequest.description,
             instructions = assistantRequest.instructions,
-            tools = assistantTools(assistantRequest),
+            tools = assistantTools(assistantRequest, config),
             toolResources =
               assistantRequest.toolResources?.let {
                 ModifyAssistantRequestToolResources(
@@ -220,7 +222,7 @@ class Assistant(
               name = assistantRequest.name,
               description = assistantRequest.description,
               instructions = assistantRequest.instructions,
-              tools = assistantTools(assistantRequest),
+              tools = assistantTools(assistantRequest, config),
               toolResources = assistantRequest.toolResources,
               metadata =
                 assistantRequest.metadata
@@ -234,7 +236,8 @@ class Assistant(
     }
 
     private fun assistantTools(
-      assistantRequest: AssistantRequest
+      assistantRequest: AssistantRequest,
+      config: Config
     ): List<AssistantObjectToolsInner> =
       assistantRequest.tools.orEmpty().map {
         when (it) {
@@ -254,7 +257,7 @@ class Assistant(
                   FunctionObject(
                     name = it.name,
                     parameters =
-                      Json.parseToJsonElement(it.parameters) as? JsonObject
+                      config.json.parseToJsonElement(it.parameters) as? JsonObject
                         ?: JsonObject(emptyMap()),
                     description = it.description
                   )
