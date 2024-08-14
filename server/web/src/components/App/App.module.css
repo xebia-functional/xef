@@ -2,6 +2,8 @@
   overflow-x: hidden;
   margin-top: 64px;
   padding-bottom: 56px;
+  overflow-y: hidden;
+  height: 100%;
 }
 
 .mainContainer {

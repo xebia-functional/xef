@@ -6,7 +6,7 @@ import com.xebia.functional.xef.server.db.tables.User
 import com.xebia.functional.xef.server.db.tables.XefTokens
 import kotlinx.serialization.Serializable
 
-@Serializable data class LoginResponse(val authToken: String)
+@Serializable data class LoginResponse(val authToken: String, val user: UserResponse)
 
 @Serializable data class UserResponse(val id: Int, val name: String)
 

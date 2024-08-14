@@ -34,6 +34,7 @@ dependencies {
     implementation(libs.jmf)
     implementation(libs.mp3.wav.converter)
     api(libs.ktor.client)
+
 }
 
 spotless {
