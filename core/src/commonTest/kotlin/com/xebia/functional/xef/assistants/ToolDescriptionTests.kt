@@ -1,6 +1,5 @@
 package com.xebia.functional.xef.assistants
 
-import com.xebia.functional.xef.functions.FunctionSchemaTests.Request
 import com.xebia.functional.xef.llm.assistants.Tool
 import com.xebia.functional.xef.llm.defaultFunctionDescription
 import io.kotest.core.spec.style.StringSpec

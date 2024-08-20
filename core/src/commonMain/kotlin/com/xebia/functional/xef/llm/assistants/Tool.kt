@@ -27,7 +27,7 @@ fun interface Tool<Input, out Output> {
       val outputSerializer = serializer<O>()
       val toolSerializer = ToolSerializer(inputSerializer, outputSerializer)
       val fn = chatFunction(inputSerializer.descriptor)
-      val fnName = this::class.simpleName ?: error("unnamed class")
+      val fnName = tool::class.simpleName ?: error("unnamed class")
       val fnDescription = defaultFunctionDescription(fnName)
       return ToolConfig(
         functionObject = fn.copy(name = fnName, description = fnDescription),
