@@ -2,6 +2,7 @@ package com.xebia.functional.xef.llm.assistants
 
 import com.xebia.functional.openai.generated.model.FunctionObject
 import com.xebia.functional.xef.llm.chatFunction
+import com.xebia.functional.xef.llm.defaultFunctionDescription
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
 
@@ -22,14 +23,16 @@ fun interface Tool<Input, out Output> {
     )
 
     inline fun <reified I, reified O> toolOf(tool: Tool<I, O>): ToolConfig<I, O> {
-      val serializer = serializer<I>()
+      val inputSerializer = serializer<I>()
       val outputSerializer = serializer<O>()
-      val toolSerializer = ToolSerializer(serializer, outputSerializer)
-      val fn = chatFunction(serializer.descriptor)
+      val toolSerializer = ToolSerializer(inputSerializer, outputSerializer)
+      val fn = chatFunction(inputSerializer.descriptor)
+      val fnName = this::class.simpleName ?: error("unnamed class")
+      val fnDescription = defaultFunctionDescription(fnName)
       return ToolConfig(
-        fn.copy(name = tool::class.simpleName ?: error("unnamed class")),
-        toolSerializer,
-        tool
+        functionObject = fn.copy(name = fnName, description = fnDescription),
+        serializers = toolSerializer,
+        tool = tool
       )
     }
   }
