@@ -1,7 +1,21 @@
 package com.xebia.functional.xef.llm.assistants
 
 import com.xebia.functional.openai.generated.api.Assistants
-import com.xebia.functional.openai.generated.model.*
+import com.xebia.functional.openai.generated.model.AssistantObject
+import com.xebia.functional.openai.generated.model.AssistantObjectToolsInner
+import com.xebia.functional.openai.generated.model.AssistantToolsCode
+import com.xebia.functional.openai.generated.model.AssistantToolsFileSearch
+import com.xebia.functional.openai.generated.model.AssistantToolsFunction
+import com.xebia.functional.openai.generated.model.CreateAssistantRequest
+import com.xebia.functional.openai.generated.model.CreateAssistantRequestModel
+import com.xebia.functional.openai.generated.model.CreateAssistantRequestToolResources
+import com.xebia.functional.openai.generated.model.CreateAssistantRequestToolResourcesCodeInterpreter
+import com.xebia.functional.openai.generated.model.CreateAssistantRequestToolResourcesFileSearch
+import com.xebia.functional.openai.generated.model.FunctionObject
+import com.xebia.functional.openai.generated.model.ModifyAssistantRequest
+import com.xebia.functional.openai.generated.model.ModifyAssistantRequestToolResources
+import com.xebia.functional.openai.generated.model.ModifyAssistantRequestToolResourcesCodeInterpreter
+import com.xebia.functional.openai.generated.model.ModifyAssistantRequestToolResourcesFileSearch
 import com.xebia.functional.xef.Config
 import com.xebia.functional.xef.OpenAI
 import com.xebia.functional.xef.llm.assistants.AssistantThread.Companion.defaultConfig
@@ -51,14 +65,14 @@ class Assistant(
       val toolConfig = toolsConfig.firstOrNull { it.functionObject.name == name }
 
       val toolSerializer = toolConfig?.serializers ?: error("Function $name not registered")
-      val input = config.json.decodeFromString(toolSerializer.inputSerializer, args)
+      val input = toolConfig.json.decodeFromString(toolSerializer.inputSerializer, args)
 
       val tool: Tool<Any?, Any?> = toolConfig.tool as Tool<Any?, Any?>
 
       val schema = buildJsonSchema(toolSerializer.outputSerializer.descriptor)
       val output: Any? = tool(input)
       val result =
-        config.json.encodeToJsonElement(
+        toolConfig.json.encodeToJsonElement(
           toolSerializer.outputSerializer as KSerializer<Any?>,
           output
         )

@@ -4,6 +4,7 @@ import com.xebia.functional.openai.generated.model.FunctionObject
 import com.xebia.functional.xef.llm.chatFunction
 import com.xebia.functional.xef.llm.defaultFunctionDescription
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 
 fun interface Tool<Input, out Output> {
@@ -14,7 +15,8 @@ fun interface Tool<Input, out Output> {
     data class ToolConfig<Input, out Output>(
       val functionObject: FunctionObject,
       val serializers: ToolSerializer,
-      val tool: Tool<Input, Output>
+      val tool: Tool<Input, Output>,
+      val json: Json = Json.Default
     )
 
     data class ToolSerializer(
