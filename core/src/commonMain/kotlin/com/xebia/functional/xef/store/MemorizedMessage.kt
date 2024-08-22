@@ -2,6 +2,7 @@ package com.xebia.functional.xef.store
 
 import com.xebia.functional.openai.generated.model.*
 import com.xebia.functional.xef.prompt.completionRole
+import kotlinx.serialization.json.Json
 
 sealed class MemorizedMessage {
   val role: ChatCompletionRole
@@ -19,7 +20,14 @@ sealed class MemorizedMessage {
           ChatCompletionRequestAssistantMessage(
             role = ChatCompletionRequestAssistantMessage.Role.assistant,
             // TODO: Find a new strategy to save the tool calls as content
-            content = message.content ?: message.toolCalls?.firstOrNull()?.toString()
+            content =
+              ChatCompletionRequestAssistantMessageContent.CaseString(
+                message.content
+                  ?: message.toolCalls?.firstOrNull()?.let {
+                    Json.Default.encodeToString(ChatCompletionMessageToolCall.serializer(), it)
+                  }
+                  ?: ""
+              ),
           )
         )
     }
@@ -35,7 +43,7 @@ fun memorizedMessage(role: ChatCompletionRole, content: String): MemorizedMessag
       MemorizedMessage.Request(
         ChatCompletionRequestMessage.CaseChatCompletionRequestSystemMessage(
           ChatCompletionRequestSystemMessage(
-            content = content,
+            content = ChatCompletionRequestSystemMessageContent.CaseString(content),
             role = ChatCompletionRequestSystemMessage.Role.system
           )
         )
@@ -53,6 +61,7 @@ fun memorizedMessage(role: ChatCompletionRole, content: String): MemorizedMessag
       MemorizedMessage.Response(
         ChatCompletionResponseMessage(
           content = content,
+          refusal = null,
           role = ChatCompletionResponseMessage.Role.assistant
         )
       )

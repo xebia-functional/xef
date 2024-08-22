@@ -192,14 +192,14 @@ class OpenTelemetryAssistantState(private val tracer: Tracer) {
     span.setAttribute("openai.assistant.message.id", id)
     status?.let { span.setAttribute("openai.assistant.message.status", it.name) }
     when (val inner = content.firstOrNull()) {
-      is MessageObjectContentInner.CaseMessageContentImageFileObject -> {
+      is MessageObjectContentInner.CaseMessageContentImageFileObject ->
         span.setAttribute("openai.assistant.message.content", inner.value.imageFile.fileId)
-      }
-      is MessageObjectContentInner.CaseMessageContentTextObject -> {
+      is MessageObjectContentInner.CaseMessageContentTextObject ->
         span.setAttribute("openai.assistant.message.content", inner.value.text.value)
-      }
       is MessageObjectContentInner.CaseMessageContentImageUrlObject ->
         span.setAttribute("openai.assistant.message.content", inner.value.imageUrl.url)
+      is MessageObjectContentInner.CaseMessageContentRefusalObject ->
+        span.setAttribute("openai.assistant.message.content", inner.value.refusal)
       null -> {}
     }
   }
