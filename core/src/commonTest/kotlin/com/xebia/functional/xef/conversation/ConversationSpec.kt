@@ -146,7 +146,7 @@ class ConversationSpec :
       val aiFirstMessage =
         ChatCompletionRequestAssistantMessage(
           role = ChatCompletionRequestAssistantMessage.Role.assistant,
-          content = firstResponse
+          content = ChatCompletionRequestAssistantMessageContent.CaseString(firstResponse)
         )
 
       val secondPrompt = Prompt(model) { +user("question 3") }
@@ -155,7 +155,7 @@ class ConversationSpec :
       val aiSecondMessage =
         ChatCompletionRequestAssistantMessage(
           role = ChatCompletionRequestAssistantMessage.Role.assistant,
-          content = secondResponse
+          content = ChatCompletionRequestAssistantMessageContent.CaseString(secondResponse)
         )
 
       val thirdPrompt =
@@ -168,7 +168,7 @@ class ConversationSpec :
       val aiThirdMessage =
         ChatCompletionRequestAssistantMessage(
           role = ChatCompletionRequestAssistantMessage.Role.assistant,
-          content = secondResponse
+          content = ChatCompletionRequestAssistantMessageContent.CaseString(secondResponse)
         )
 
       val memories = vectorStore.memories(model, conversationId, 10000)
@@ -424,7 +424,7 @@ private fun chatCompletionRequestMessages(it: Map.Entry<String, String>) =
     ChatCompletionRequestMessage.CaseChatCompletionRequestAssistantMessage(
       ChatCompletionRequestAssistantMessage(
         role = ChatCompletionRequestAssistantMessage.Role.assistant,
-        content = it.value
+        content = ChatCompletionRequestAssistantMessageContent.CaseString(it.value)
       )
     ),
   )
