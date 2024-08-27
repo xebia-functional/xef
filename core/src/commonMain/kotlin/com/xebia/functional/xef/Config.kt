@@ -12,10 +12,84 @@ import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
+import kotlin.math.pow
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.serialization.json.Json
+
+sealed interface HttpClientRetryPolicy {
+  data object NoRetry : HttpClientRetryPolicy
+
+  data class ExponentialBackoff(
+    val backoffFactor: Double,
+    val interval: Duration,
+    val maxDelay: Duration,
+    val maxRetries: Int
+  ) : HttpClientRetryPolicy
+
+  data class Incremental(val interval: Duration, val maxDelay: Duration, val maxRetries: Int) :
+    HttpClientRetryPolicy
+
+  private fun configureHttpRequestRetryPlugin(
+    maxNumberOfRetries: Int,
+    delayBlock: HttpRequestRetry.DelayContext.(Int) -> Long
+  ): HttpRequestRetry.Configuration.() -> Unit = {
+    maxRetries = maxNumberOfRetries
+    retryIf { _, response -> !response.status.isSuccess() }
+    retryOnExceptionIf { _, _ -> true }
+    delayMillis(block = delayBlock)
+  }
+
+  fun applyConfiguration(): (HttpClientConfig<*>) -> Unit = { httpClientConfig ->
+    when (val policy = this) {
+      is ExponentialBackoff ->
+        httpClientConfig.install(
+          HttpRequestRetry,
+          configure =
+            configureHttpRequestRetryPlugin(policy.maxRetries) { retry ->
+              minOf(
+                policy.backoffFactor.pow(retry).toLong() * policy.interval.inWholeMilliseconds,
+                policy.maxDelay.inWholeMilliseconds
+              )
+            }
+        )
+      is Incremental ->
+        httpClientConfig.install(
+          HttpRequestRetry,
+          configure =
+            configureHttpRequestRetryPlugin(policy.maxRetries) { retry ->
+              minOf(
+                retry * policy.interval.inWholeMilliseconds,
+                policy.maxDelay.inWholeMilliseconds
+              )
+            }
+        )
+      NoRetry -> Unit
+    }
+  }
+}
+
+data class HttpClientTimeoutPolicy(
+  val connectTimeout: Duration,
+  val requestTimeout: Duration,
+  val socketTimeout: Duration
+) {
+  val applyConfiguration: (HttpClientConfig<*>) -> Unit = { httpClientConfig ->
+    httpClientConfig.install(HttpTimeout) {
+      requestTimeoutMillis = requestTimeout.inWholeMilliseconds
+      connectTimeoutMillis = connectTimeout.inWholeMilliseconds
+      socketTimeoutMillis = socketTimeout.inWholeMilliseconds
+    }
+  }
+}
 
 data class Config(
   val baseUrl: String = getenv(HOST_ENV_VAR) ?: "https://api.openai.com/v1/",
+  val httpClientRetryPolicy: HttpClientRetryPolicy =
+    HttpClientRetryPolicy.Incremental(250.milliseconds, 5.seconds, 5),
+  val httpClientTimeoutPolicy: HttpClientTimeoutPolicy =
+    HttpClientTimeoutPolicy(45.seconds, 45.seconds, 45.seconds),
   val token: String? = null,
   val org: String? = getenv(ORG_ENV_VAR),
   val json: Json = Json {
@@ -54,18 +128,9 @@ fun OpenAI(
       ?: throw AIError.Env.OpenAI(nonEmptyListOf("missing $KEY_ENV_VAR env var"))
   val clientConfig: HttpClientConfig<*>.() -> Unit = {
     install(ContentNegotiation) { json(config.json) }
-    install(HttpTimeout) {
-      requestTimeoutMillis = 45 * 1000
-      connectTimeoutMillis = 45 * 1000
-      socketTimeoutMillis = 45 * 1000
-    }
-    install(HttpRequestRetry) {
-      maxRetries = 5
-      retryIf { _, response -> !response.status.isSuccess() }
-      retryOnExceptionIf { _, _ -> true }
-      delayMillis { retry -> retry * 1000L }
-    }
-    install(Logging) { level = if (logRequests) LogLevel.ALL else LogLevel.NONE }
+    install(Logging) { level = if (logRequests) LogLevel.ALL else LogLevel.INFO }
+    config.httpClientRetryPolicy.applyConfiguration().invoke(this)
+    config.httpClientTimeoutPolicy.applyConfiguration.invoke(this)
     httpClientConfig?.invoke(this)
     defaultRequest {
       url(config.baseUrl)
