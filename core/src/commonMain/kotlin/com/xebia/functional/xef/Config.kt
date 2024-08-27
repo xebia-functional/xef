@@ -85,6 +85,35 @@ data class HttpClientTimeoutPolicy(
   }
 }
 
+class ConfigBuilder internal constructor(config: Config) {
+  var baseUrl: String = config.baseUrl
+  var httpClientRetryPolicy: HttpClientRetryPolicy = config.httpClientRetryPolicy
+  var httpClientTimeoutPolicy: HttpClientTimeoutPolicy = config.httpClientTimeoutPolicy
+  var apiToken: String? = config.apiToken
+  var organization: String? = config.organization
+  var json: Json = config.json
+  var streamingPrefix: String = config.streamingPrefix
+  var streamingDelimiter: String = config.streamingDelimiter
+
+  fun build(): Config =
+    Config(
+      baseUrl = baseUrl,
+      httpClientRetryPolicy = httpClientRetryPolicy,
+      httpClientTimeoutPolicy = httpClientTimeoutPolicy,
+      apiToken = apiToken,
+      organization = organization,
+      json = json,
+      streamingPrefix = streamingPrefix,
+      streamingDelimiter = streamingDelimiter
+    )
+}
+
+fun Config(from: Config = Config.Default, builderAction: ConfigBuilder.() -> Unit): Config {
+  val builder = ConfigBuilder(from)
+  builder.builderAction()
+  return builder.build()
+}
+
 data class Config(
   val baseUrl: String,
   val httpClientRetryPolicy: HttpClientRetryPolicy,

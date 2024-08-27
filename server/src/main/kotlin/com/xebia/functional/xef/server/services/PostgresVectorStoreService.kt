@@ -38,7 +38,14 @@ class PostgresVectorStoreService(
   }
 
   override fun getVectorStore(token: String?, org: String?): VectorStore {
-    val embeddingsApi = OpenAI(Config.Default.copy(apiToken = token, organization = org)).embeddings
+    val embeddingsApi =
+      OpenAI(
+          Config {
+            apiToken = token
+            organization = org
+          }
+        )
+        .embeddings
 
     return PGVectorStore(
       vectorSize = vectorSize,
