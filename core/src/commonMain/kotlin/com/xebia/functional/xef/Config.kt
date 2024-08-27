@@ -129,8 +129,18 @@ data class Config(
     val Default =
       Config(
         baseUrl = getenv(HOST_ENV_VAR) ?: "https://api.openai.com/v1/",
-        httpClientRetryPolicy = HttpClientRetryPolicy.Incremental(250.milliseconds, 5.seconds, 5),
-        httpClientTimeoutPolicy = HttpClientTimeoutPolicy(45.seconds, 45.seconds, 45.seconds),
+        httpClientRetryPolicy =
+          HttpClientRetryPolicy.Incremental(
+            interval = 250.milliseconds,
+            maxDelay = 5.seconds,
+            maxRetries = 5
+          ),
+        httpClientTimeoutPolicy =
+          HttpClientTimeoutPolicy(
+            connectTimeout = 45.seconds,
+            requestTimeout = 45.seconds,
+            socketTimeout = 45.seconds
+          ),
         json =
           Json {
             ignoreUnknownKeys = true
