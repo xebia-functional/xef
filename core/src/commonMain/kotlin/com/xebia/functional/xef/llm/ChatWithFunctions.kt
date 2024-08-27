@@ -36,7 +36,7 @@ fun chatFunction(descriptor: SerialDescriptor): FunctionObject {
 @OptIn(ExperimentalSerializationApi::class)
 fun functionSchema(descriptor: SerialDescriptor): JsonObject =
   descriptor.annotations.filterIsInstance<Schema>().firstOrNull()?.value?.let {
-    Config.DEFAULT.json.decodeFromString(JsonObject.serializer(), it)
+    Config.Default.json.decodeFromString(JsonObject.serializer(), it)
   } ?: buildJsonSchema(descriptor)
 
 @OptIn(ExperimentalSerializationApi::class)

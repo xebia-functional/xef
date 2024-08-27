@@ -14,7 +14,7 @@ import java.io.File
 import javax.media.bean.playerbean.MediaPlayer
 
 suspend fun main() {
-  val config = Config()
+  val config = Config.Default
   val audio = OpenAI(config).audio
   println("ask me something!")
   while (true) {

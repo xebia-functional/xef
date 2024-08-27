@@ -16,6 +16,7 @@ import kotlin.math.pow
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 
 sealed interface HttpClientRetryPolicy {
@@ -85,25 +86,36 @@ data class HttpClientTimeoutPolicy(
 }
 
 data class Config(
-  val baseUrl: String = getenv(HOST_ENV_VAR) ?: "https://api.openai.com/v1/",
-  val httpClientRetryPolicy: HttpClientRetryPolicy =
-    HttpClientRetryPolicy.Incremental(250.milliseconds, 5.seconds, 5),
-  val httpClientTimeoutPolicy: HttpClientTimeoutPolicy =
-    HttpClientTimeoutPolicy(45.seconds, 45.seconds, 45.seconds),
-  val token: String? = null,
-  val org: String? = getenv(ORG_ENV_VAR),
-  val json: Json = Json {
-    ignoreUnknownKeys = true
-    prettyPrint = false
-    isLenient = true
-    explicitNulls = false
-    classDiscriminator = TYPE_DISCRIMINATOR
-  },
-  val streamingPrefix: String = "data:",
-  val streamingDelimiter: String = "data: [DONE]"
+  val baseUrl: String,
+  val httpClientRetryPolicy: HttpClientRetryPolicy,
+  val httpClientTimeoutPolicy: HttpClientTimeoutPolicy,
+  val apiToken: String?,
+  val organization: String?,
+  val json: Json,
+  val streamingPrefix: String,
+  val streamingDelimiter: String
 ) {
   companion object {
-    val DEFAULT = Config()
+    @OptIn(ExperimentalSerializationApi::class)
+    val Default =
+      Config(
+        baseUrl = getenv(HOST_ENV_VAR) ?: "https://api.openai.com/v1/",
+        httpClientRetryPolicy = HttpClientRetryPolicy.Incremental(250.milliseconds, 5.seconds, 5),
+        httpClientTimeoutPolicy = HttpClientTimeoutPolicy(45.seconds, 45.seconds, 45.seconds),
+        json =
+          Json {
+            ignoreUnknownKeys = true
+            prettyPrint = false
+            isLenient = true
+            explicitNulls = false
+            classDiscriminator = TYPE_DISCRIMINATOR
+          },
+        organization = getenv(ORG_ENV_VAR),
+        streamingDelimiter = "data: [DONE]",
+        streamingPrefix = "data:",
+        apiToken = null
+      )
+
     const val TYPE_DISCRIMINATOR = "_type_"
   }
 }
@@ -117,13 +129,13 @@ private const val KEY_ENV_VAR = "OPENAI_TOKEN"
  * Just simple fun on top of generated API.
  */
 fun OpenAI(
-  config: Config = Config(),
+  config: Config = Config.Default,
   httpClientEngine: HttpClientEngine? = null,
   httpClientConfig: ((HttpClientConfig<*>) -> Unit)? = null,
   logRequests: Boolean = false
 ): OpenAI {
   val token =
-    config.token
+    config.apiToken
       ?: getenv(KEY_ENV_VAR)
       ?: throw AIError.Env.OpenAI(nonEmptyListOf("missing $KEY_ENV_VAR env var"))
   val clientConfig: HttpClientConfig<*>.() -> Unit = {
@@ -134,7 +146,7 @@ fun OpenAI(
     httpClientConfig?.invoke(this)
     defaultRequest {
       url(config.baseUrl)
-      config.org?.let { headers.append("OpenAI-Organization", it) }
+      config.organization?.let { headers.append("OpenAI-Organization", it) }
       bearerAuth(token)
     }
   }
@@ -144,7 +156,7 @@ fun OpenAI(
     OpenAIConfig(
       baseUrl = config.baseUrl,
       token = token,
-      org = config.org,
+      org = config.organization,
       json = config.json,
       streamingPrefix = config.streamingPrefix,
       streamingDelimiter = config.streamingDelimiter
