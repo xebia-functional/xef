@@ -26,6 +26,10 @@ interface Metric {
 
   suspend fun assistantCreatedMessage(messageObject: MessageObject, source: String)
 
+  suspend fun createCounter(name: String): CounterMetric?
+
+  suspend fun getCounter(name: String): CounterMetric?
+
   companion object {
     val EMPTY: Metric =
       object : Metric {
@@ -52,6 +56,10 @@ interface Metric {
         override suspend fun parameter(key: String, value: String) {}
 
         override suspend fun parameter(key: String, values: List<String>) {}
+
+        override suspend fun createCounter(name: String): CounterMetric? = null
+
+        override suspend fun getCounter(name: String): CounterMetric? = null
       }
   }
 }

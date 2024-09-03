@@ -42,7 +42,9 @@ suspend fun main() {
   //  - # docker-compose up
 
   val metric = com.xebia.functional.xef.metrics.Metric.EMPTY
-  // val metric = com.xebia.functional.xef.opentelemetry.OpenTelemetryMetric()
+  //    val metric = com.xebia.functional.xef.opentelemetry.OpenTelemetryMetric()
+  //  val metric = com.xebia.functional.xef.metrics.LogsMetric()
+  val questionsCounter = metric.createCounter("questions-counter")
 
   val assistant =
     Assistant(
@@ -54,6 +56,7 @@ suspend fun main() {
   while (true) {
     println()
     val userInput = readln()
+    questionsCounter?.increment(1)
     thread.createMessage(userInput)
     runAssistantAndDisplayResults(thread, assistant)
   }
