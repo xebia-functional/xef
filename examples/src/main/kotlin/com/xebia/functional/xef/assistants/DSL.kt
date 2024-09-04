@@ -42,8 +42,6 @@ suspend fun main() {
   //  - # docker-compose up
 
   val metric = com.xebia.functional.xef.metrics.Metric.EMPTY
-  //    val metric = com.xebia.functional.xef.opentelemetry.OpenTelemetryMetric()
-  //  val metric = com.xebia.functional.xef.metrics.LogsMetric()
   val questionsCounter = metric.createCounter("questions-counter")
 
   val assistant =
