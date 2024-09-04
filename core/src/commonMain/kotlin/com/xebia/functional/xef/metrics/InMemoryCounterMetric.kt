@@ -11,8 +11,8 @@ class InMemoryCounterMetric(val name: String, val logger: KLogger) : CounterMetr
     logger.info { "Counter $name incremented to ${count.get()}" }
   }
 
-  override fun decrement(n: Long) {
-    count.decrementAndGet()
-    logger.info { "Counter $name decremented to ${count.get()}" }
+  override fun increment(n: Long, attributes: Map<String, String>) {
+    count.addAndGet(n)
+    logger.info { "Counter $name incremented to ${count.get()} with those attributes: ${attributes.entries.joinToString( ",")}" }
   }
 }
