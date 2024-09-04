@@ -18,6 +18,8 @@ class LogsMetric(private val level: Level = Level.INFO) : Metric {
 
   private val logger = KotlinLogging.logger {}
 
+  private val countersMap: MutableMap<String, CounterMetric> = mutableMapOf()
+
   override suspend fun <A> customSpan(
     name: String,
     parameters: Map<String, String>,
@@ -111,5 +113,17 @@ class LogsMetric(private val level: Level = Level.INFO) : Metric {
     logger.at(level) { message = "${writeIndent(numberOfBlocks.get())}|-- $key = $values" }
   }
 
-  private fun writeIndent(times: Int = 1) = (1..indentSize * times).fold("") { a, b -> "$a " }
+  override suspend fun createCounter(name: String): CounterMetric {
+    logger.at(level) { message = "${writeIndent(numberOfBlocks.get())}> Created counter: $name" }
+    val counter = InMemoryCounterMetric(name, logger)
+    countersMap[name] = counter
+    return counter
+  }
+
+  override suspend fun getCounter(name: String): CounterMetric {
+    logger.at(level) { message = "${writeIndent(numberOfBlocks.get())}> Get counter: $name" }
+    return countersMap[name] ?: InMemoryCounterMetric(name, logger)
+  }
+
+  private fun writeIndent(times: Int = 1) = (1..indentSize * times).fold("") { a, _ -> "$a " }
 }
