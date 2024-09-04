@@ -7,7 +7,7 @@ class InMemoryCounterMetric(val name: String, val logger: KLogger) : CounterMetr
   private val count = AtomicLong(0)
 
   override fun increment(n: Long) {
-    count.incrementAndGet()
+    count.addAndGet(n)
     logger.info { "Counter $name incremented to ${count.get()}" }
   }
 
