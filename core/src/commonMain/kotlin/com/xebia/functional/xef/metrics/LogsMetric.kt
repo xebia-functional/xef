@@ -115,14 +115,14 @@ class LogsMetric(private val level: Level = Level.INFO) : Metric {
 
   override suspend fun createCounter(name: String): CounterMetric {
     logger.at(level) { message = "${writeIndent(numberOfBlocks.get())}> Created counter: $name" }
-    val counter = InMemoryCounterMetric()
+    val counter = InMemoryCounterMetric(name, logger)
     countersMap[name] = counter
     return counter
   }
 
   override suspend fun getCounter(name: String): CounterMetric {
     logger.at(level) { message = "${writeIndent(numberOfBlocks.get())}> Get counter: $name" }
-    return countersMap[name] ?: InMemoryCounterMetric()
+    return countersMap[name] ?: InMemoryCounterMetric(name, logger)
   }
 
   private fun writeIndent(times: Int = 1) = (1..indentSize * times).fold("") { a, _ -> "$a " }
