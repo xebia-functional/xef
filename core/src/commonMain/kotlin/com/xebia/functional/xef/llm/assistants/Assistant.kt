@@ -34,14 +34,14 @@ import net.mamoe.yamlkt.toYamlElement
 class Assistant(
   val assistantId: String,
   val toolsConfig: List<Tool.Companion.ToolConfig<*, *>> = emptyList(),
-  val config: Config = Config(),
+  val config: Config = Config.Default,
   private val assistantsApi: Assistants = OpenAI(config, logRequests = false).assistants,
 ) {
 
   constructor(
     assistantObject: AssistantObject,
     toolsConfig: List<Tool.Companion.ToolConfig<*, *>> = emptyList(),
-    config: Config = Config(),
+    config: Config = Config.Default,
     assistantsApi: Assistants = OpenAI(config, logRequests = false).assistants,
   ) : this(assistantObject.id, toolsConfig, config, assistantsApi)
 
@@ -99,7 +99,7 @@ class Assistant(
       toolResources: CreateAssistantRequestToolResources? = null,
       metadata: JsonObject? = null,
       toolsConfig: List<Tool.Companion.ToolConfig<*, *>> = emptyList(),
-      config: Config = Config(),
+      config: Config = Config.Default,
       assistantsApi: Assistants = OpenAI(config, logRequests = false).assistants,
     ): Assistant =
       Assistant(
@@ -120,7 +120,7 @@ class Assistant(
     suspend operator fun invoke(
       request: CreateAssistantRequest,
       toolsConfig: List<Tool.Companion.ToolConfig<*, *>> = emptyList(),
-      config: Config = Config(),
+      config: Config = Config.Default,
       assistantsApi: Assistants = OpenAI(config, logRequests = false).assistants,
     ): Assistant {
       val response = assistantsApi.createAssistant(request, configure = ::defaultConfig)
@@ -130,7 +130,7 @@ class Assistant(
     suspend fun fromConfig(
       request: String,
       toolsConfig: List<Tool.Companion.ToolConfig<*, *>> = emptyList(),
-      config: Config = Config(),
+      config: Config = Config.Default,
       assistantsApi: Assistants = OpenAI(config, logRequests = false).assistants,
     ): Assistant {
       val parsed = Yaml.Default.decodeYamlMapFromString(request)

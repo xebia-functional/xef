@@ -9,10 +9,10 @@ class LocalVectorStoreService : VectorStoreService() {
   override fun getVectorStore(token: String?, org: String?): VectorStore =
     LocalVectorStore(
       OpenAI(
-          Config(
-            token = token,
-            org = org,
-          )
+          Config {
+            apiToken = token
+            organization = org
+          }
         )
         .embeddings
     )

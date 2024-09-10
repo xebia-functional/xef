@@ -20,7 +20,7 @@ import kotlinx.serialization.json.JsonPrimitive
 class AssistantThread(
   val threadId: String,
   val metric: Metric = Metric.EMPTY,
-  private val config: Config = Config(),
+  private val config: Config = Config.Default,
   private val api: Assistants = OpenAI(config).assistants
 ) {
 
@@ -271,7 +271,7 @@ class AssistantThread(
       messages: List<MessageWithFiles>,
       metadata: JsonObject? = null,
       metric: Metric = Metric.EMPTY,
-      config: Config = Config(),
+      config: Config = Config.Default,
       api: Assistants = OpenAI(config).assistants
     ): AssistantThread =
       AssistantThread(
@@ -303,7 +303,7 @@ class AssistantThread(
       messages: List<String>,
       metadata: JsonObject? = null,
       metric: Metric = Metric.EMPTY,
-      config: Config = Config(),
+      config: Config = Config.Default,
       api: Assistants = OpenAI(config).assistants
     ): AssistantThread =
       AssistantThread(
@@ -333,7 +333,7 @@ class AssistantThread(
       messages: List<CreateMessageRequest> = emptyList(),
       metadata: JsonObject? = null,
       metric: Metric = Metric.EMPTY,
-      config: Config = Config(),
+      config: Config = Config.Default,
       api: Assistants = OpenAI(config).assistants
     ): AssistantThread =
       AssistantThread(
@@ -351,7 +351,7 @@ class AssistantThread(
     suspend operator fun invoke(
       request: CreateThreadRequest,
       metric: Metric = Metric.EMPTY,
-      config: Config = Config(),
+      config: Config = Config.Default,
       api: Assistants = OpenAI(config).assistants
     ): AssistantThread =
       AssistantThread(
@@ -364,7 +364,7 @@ class AssistantThread(
     suspend operator fun invoke(
       request: CreateThreadAndRunRequest,
       metric: Metric = Metric.EMPTY,
-      config: Config = Config(),
+      config: Config = Config.Default,
       api: Assistants = OpenAI(config).assistants
     ): AssistantThread =
       AssistantThread(

@@ -18,7 +18,7 @@ suspend fun main() {
       assistantId = "asst_BwQvmWIbGUMDvCuXOtAFH8B6",
       toolsConfig = listOf(Tool.toolOf(SumTool()))
     )
-  val config = Config(org = null)
+  val config = Config { organization = null }
   val api = OpenAI(config = config, logRequests = false).assistants
   val thread = AssistantThread(api = api, metric = metric)
   println("Welcome to the Math tutor, ask me anything about math:")

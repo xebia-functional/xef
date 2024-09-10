@@ -144,7 +144,7 @@ sealed interface RunDelta {
         RunDeltaEvent.values().find {
           type.replace(".", "").replace("_", "").equals(it.name, ignoreCase = true)
         }
-      val json = Config.DEFAULT.json
+      val json = Config.Default.json
       return when (event) {
         RunDeltaEvent.ThreadCreated ->
           ThreadCreated(json.decodeFromJsonElement(ThreadObject.serializer(), data))

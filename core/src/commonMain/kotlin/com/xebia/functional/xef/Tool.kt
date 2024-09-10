@@ -128,7 +128,7 @@ sealed class Tool<out A>(
       val typeSerializer = targetClass.serializer()
       val functionObject = chatFunction(typeSerializer.descriptor)
       return Callable(functionObject) {
-        Config.DEFAULT.json.decodeFromString(typeSerializer, it.arguments)
+        Config.Default.json.decodeFromString(typeSerializer, it.arguments)
       }
     }
 
@@ -137,7 +137,7 @@ sealed class Tool<out A>(
       val functionSerializer = Value.serializer(targetClass.serializer())
       val functionObject = chatFunction(functionSerializer.descriptor)
       return Primitive(functionObject) {
-        Config.DEFAULT.json.decodeFromString(functionSerializer, it.arguments).value
+        Config.Default.json.decodeFromString(functionSerializer, it.arguments).value
       }
     }
 
@@ -161,7 +161,7 @@ sealed class Tool<out A>(
         }
       val functionObject = chatFunction(functionSerializer.descriptor)
       return Callable(functionObject) {
-        Config.DEFAULT.json.decodeFromString(functionSerializer, it.arguments).value as A
+        Config.Default.json.decodeFromString(functionSerializer, it.arguments).value as A
       }
     }
 
@@ -205,7 +205,7 @@ sealed class Tool<out A>(
       descriptor: SerialDescriptor
     ): Enumeration<A> {
       val enumSerializer = { value: String ->
-        Config.DEFAULT.json.decodeFromString(targetClass.serializer(), value) as A
+        Config.Default.json.decodeFromString(targetClass.serializer(), value) as A
       }
       val functionObject = chatFunction(descriptor)
       val cases =
@@ -251,7 +251,7 @@ sealed class Tool<out A>(
       sealedClassSerializer: SealedClassSerializer<out Any>
     ): A {
       val newJson = descriptorChoice(it, functionObjectMap)
-      return Config.DEFAULT.json.decodeFromString(
+      return Config.Default.json.decodeFromString(
         sealedClassSerializer,
         Json.encodeToString(newJson)
       ) as A
@@ -263,7 +263,7 @@ sealed class Tool<out A>(
     ): JsonObject {
       // adds a `type` field with the call.functionName serial name equivalent to the call arguments
       val jsonWithDiscriminator =
-        Config.DEFAULT.json.decodeFromString(JsonElement.serializer(), call.arguments)
+        Config.Default.json.decodeFromString(JsonElement.serializer(), call.arguments)
       val descriptor =
         descriptors.values.firstOrNull { it.name.endsWith(call.functionName) }
           ?: error("No descriptor found for ${call.functionName}")

@@ -8,7 +8,7 @@ import com.xebia.functional.xef.conversation.Conversation
 data class AIConfig(
   val tools: List<Tool<*>> = emptyList(),
   val model: CreateChatCompletionRequestModel = CreateChatCompletionRequestModel.gpt_4o,
-  val config: Config = Config(),
+  val config: Config = Config.Default,
   val openAI: OpenAI = OpenAI(config, logRequests = false),
   val api: Chat = openAI.chat,
   val conversation: Conversation = Conversation()
