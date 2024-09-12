@@ -1,6 +1,10 @@
 package com.xebia.functional.xef.assistants
 
-import com.xebia.functional.xef.llm.assistants.*
+import com.xebia.functional.xef.llm.assistants.Assistant
+import com.xebia.functional.xef.llm.assistants.AssistantThread
+import com.xebia.functional.xef.llm.assistants.MessageWithFiles
+import com.xebia.functional.xef.llm.assistants.RunDelta
+import com.xebia.functional.xef.llm.assistants.Tool
 
 suspend fun main() {
   //  val filesApi = fromEnvironment(::FilesApi)
@@ -34,6 +38,8 @@ suspend fun main() {
         use_case: "Customer support"
         language: "English"
         additional_info: "This assistant is continuously updated with the latest information."
+      temperature: "0.0"
+      top_p: "1.0"
     """
       .trimIndent()
   val tools = listOf(Tool.toolOf(SumTool()))
