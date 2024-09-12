@@ -98,6 +98,8 @@ class Assistant(
       tools: List<AssistantObjectToolsInner> = arrayListOf(),
       toolResources: CreateAssistantRequestToolResources? = null,
       metadata: JsonObject? = null,
+      temperature: Double? = null,
+      topP: Double? = null,
       toolsConfig: List<Tool.Companion.ToolConfig<*, *>> = emptyList(),
       config: Config = Config(),
       assistantsApi: Assistants = OpenAI(config, logRequests = false).assistants,
@@ -110,7 +112,9 @@ class Assistant(
           instructions = instructions,
           tools = tools,
           toolResources = toolResources,
-          metadata = metadata
+          metadata = metadata,
+          temperature = temperature,
+          topP = topP
         ),
         toolsConfig,
         config,
@@ -195,6 +199,8 @@ class Assistant(
               }
             },
           toolResources = toolResourcesRequest,
+          temperature = parsed["temperature"]?.literalContentOrNull?.toDoubleOrNull(),
+          topP = parsed["top_p"]?.literalContentOrNull?.toDoubleOrNull(),
         )
       return if (assistantRequest.assistantId != null) {
         val assistant =
@@ -225,7 +231,9 @@ class Assistant(
                     )
                 )
               },
-            metadata = null // assistantRequest.metadata
+            metadata = null, // assistantRequest.metadata
+            temperature = assistantRequest.temperature,
+            topP = assistantRequest.topP
           )
         )
       } else
@@ -241,7 +249,9 @@ class Assistant(
               metadata =
                 assistantRequest.metadata
                   ?.map { (k, v) -> k to JsonPrimitive(v) }
-                  ?.let { JsonObject(it.toMap()) }
+                  ?.let { JsonObject(it.toMap()) },
+              temperature = assistantRequest.temperature,
+              topP = assistantRequest.topP
             ),
           toolsConfig = toolsConfig,
           config = config,
