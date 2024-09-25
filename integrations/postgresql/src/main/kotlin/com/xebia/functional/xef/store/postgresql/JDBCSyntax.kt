@@ -104,6 +104,10 @@ class JDBCSyntax(val conn: Connection) : Connection by conn {
       if (double == null) preparedStatement.setNull(index++, Types.REAL)
       else preparedStatement.setDouble(index++, double)
 
+    fun bind(bool: Boolean?): Unit =
+      if (bool == null) preparedStatement.setNull(index++, Types.REAL)
+      else preparedStatement.setBoolean(index++, bool)
+
     fun bind(string: String?): Unit =
       if (string == null) preparedStatement.setNull(index++, Types.VARCHAR)
       else preparedStatement.setString(index++, string)
@@ -116,6 +120,7 @@ class JDBCSyntax(val conn: Connection) : Connection by conn {
     fun bytes(): ByteArray? = resultSet.getBytes(index++)
     fun long(): Long? = resultSet.getLong(index++).takeUnless { resultSet.wasNull() }
     fun double(): Double? = resultSet.getDouble(index++).takeUnless { resultSet.wasNull() }
+    fun bool(): Boolean? = resultSet.getBoolean(index++).takeUnless { resultSet.wasNull() }
     fun nextRow(): Boolean = resultSet.next()
   }
 
@@ -129,6 +134,9 @@ class JDBCSyntax(val conn: Connection) : Connection by conn {
 
     fun double(): Double =
       raise.ensureNotNull(resultSet.getDouble(index++).takeUnless { resultSet.wasNull() })
+
+    fun bool(): Boolean =
+      raise.ensureNotNull(resultSet.getBoolean(index++).takeUnless { resultSet.wasNull() })
 
     fun nextRow(): Boolean = resultSet.next()
   }
