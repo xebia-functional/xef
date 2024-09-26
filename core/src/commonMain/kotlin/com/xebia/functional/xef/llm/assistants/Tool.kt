@@ -10,6 +10,12 @@ import kotlinx.serialization.serializer
 fun interface Tool<Input, out Output> {
   suspend operator fun invoke(input: Input): Output
 
+  data class JsonConfig(val inputJson: Json, val outputJson: Json) {
+    companion object {
+      val Default = JsonConfig(inputJson = Json.Default, outputJson = Json.Default)
+    }
+  }
+
   companion object {
 
     data class ToolConfig<Input, out Output>(
@@ -25,15 +31,9 @@ fun interface Tool<Input, out Output> {
 
     data class ToolSerializer(val serializer: KSerializer<*>, val json: Json)
 
-    data class ToolJson(val inputJson: Json, val outputJson: Json) {
-      companion object {
-        val Default = ToolJson(inputJson = Json.Default, outputJson = Json.Default)
-      }
-    }
-
     inline fun <reified I, reified O> toolOf(
       tool: Tool<I, O>,
-      jsonConfig: ToolJson = ToolJson.Default
+      jsonConfig: JsonConfig = JsonConfig.Default
     ): ToolConfig<I, O> {
       val inputSerializer = ToolSerializer(serializer<I>(), jsonConfig.inputJson)
       val outputSerializer = ToolSerializer(serializer<O>(), jsonConfig.outputJson)
