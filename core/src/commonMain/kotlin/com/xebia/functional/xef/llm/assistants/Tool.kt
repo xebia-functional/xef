@@ -14,26 +14,36 @@ fun interface Tool<Input, out Output> {
 
     data class ToolConfig<Input, out Output>(
       val functionObject: FunctionObject,
-      val serializers: ToolSerializer,
-      val tool: Tool<Input, Output>,
-      val json: Json = Json.Default
+      val serialization: ToolSerialization,
+      val tool: Tool<Input, Output>
     )
 
-    data class ToolSerializer(
-      val inputSerializer: KSerializer<*>,
-      val outputSerializer: KSerializer<*>
+    data class ToolSerialization(
+      val inputSerializer: ToolSerializer,
+      val outputSerializer: ToolSerializer
     )
 
-    inline fun <reified I, reified O> toolOf(tool: Tool<I, O>): ToolConfig<I, O> {
-      val inputSerializer = serializer<I>()
-      val outputSerializer = serializer<O>()
-      val toolSerializer = ToolSerializer(inputSerializer, outputSerializer)
-      val fn = chatFunction(inputSerializer.descriptor)
+    data class ToolSerializer(val serializer: KSerializer<*>, val json: Json)
+
+    data class ToolJson(val inputJson: Json, val outputJson: Json) {
+      companion object {
+        val Default = ToolJson(inputJson = Json.Default, outputJson = Json.Default)
+      }
+    }
+
+    inline fun <reified I, reified O> toolOf(
+      tool: Tool<I, O>,
+      jsonConfig: ToolJson = ToolJson.Default
+    ): ToolConfig<I, O> {
+      val inputSerializer = ToolSerializer(serializer<I>(), jsonConfig.inputJson)
+      val outputSerializer = ToolSerializer(serializer<O>(), jsonConfig.outputJson)
+      val toolSerializer = ToolSerialization(inputSerializer, outputSerializer)
+      val fn = chatFunction(inputSerializer.serializer.descriptor)
       val fnName = tool::class.simpleName ?: error("unnamed class")
       val fnDescription = defaultFunctionDescription(fnName)
       return ToolConfig(
         functionObject = fn.copy(name = fnName, description = fnDescription),
-        serializers = toolSerializer,
+        serialization = toolSerializer,
         tool = tool
       )
     }

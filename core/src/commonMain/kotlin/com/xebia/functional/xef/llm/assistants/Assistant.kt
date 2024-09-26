@@ -63,17 +63,17 @@ class Assistant(
   suspend inline fun getToolRegistered(name: String, args: String): ToolOutput =
     try {
       val toolConfig = toolsConfig.firstOrNull { it.functionObject.name == name }
+      val (inputSerializer, outputSerializer) =
+        toolConfig?.serialization ?: error("Function $name not registered")
 
-      val toolSerializer = toolConfig?.serializers ?: error("Function $name not registered")
-      val input = toolConfig.json.decodeFromString(toolSerializer.inputSerializer, args)
-
+      val input = inputSerializer.json.decodeFromString(inputSerializer.serializer, args)
       val tool: Tool<Any?, Any?> = toolConfig.tool as Tool<Any?, Any?>
 
-      val schema = buildJsonSchema(toolSerializer.outputSerializer.descriptor)
+      val schema = buildJsonSchema(outputSerializer.serializer.descriptor)
       val output: Any? = tool(input)
       val result =
-        toolConfig.json.encodeToJsonElement(
-          toolSerializer.outputSerializer as KSerializer<Any?>,
+        outputSerializer.json.encodeToJsonElement(
+          outputSerializer.serializer as KSerializer<Any?>,
           output
         )
       ToolOutput(schema, result)
