@@ -28,7 +28,7 @@ abstract class CachedTool<Input, Output>(
    *
    * @return true if the cache should be used.
    */
-  open fun shouldUseCache(input: Input): Boolean = true
+  open suspend fun shouldUseCache(input: Input): Boolean = true
 
   /**
    * Criteria to check if the result should be cached based on the given [input] and [output]. By
@@ -36,7 +36,7 @@ abstract class CachedTool<Input, Output>(
    *
    * @return true if the result should be cached.
    */
-  open fun shouldCacheOutput(input: Input, output: Output): Boolean = true
+  open suspend fun shouldCacheOutput(input: Input, output: Output): Boolean = true
 
   /**
    * Caches the result of [onCacheMissed] if [shouldCacheOutput] returns true. Otherwise, returns
