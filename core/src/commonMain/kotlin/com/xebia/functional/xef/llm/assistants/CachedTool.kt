@@ -9,10 +9,28 @@ data class CachedToolKey<K>(val value: K, val seed: String)
 
 data class CachedToolValue<V>(val value: V, val timestamp: Long)
 
+data class CachedToolConfig(
+  val timeCachePolicy: Duration,
+  val cacheExpirationPolicy: CacheExpirationPolicy
+) {
+  enum class CacheExpirationPolicy {
+    /** Removes the expired entry when found */
+    REMOVE_EXPIRED_ENTRY,
+    /** Removes all expired entries when one expired entry found */
+    REMOVE_ALL_EXPIRED_ENTRIES
+  }
+  companion object {
+    val Default = CachedToolConfig(
+      timeCachePolicy = 1.days,
+      cacheExpirationPolicy = CacheExpirationPolicy.REMOVE_ALL_EXPIRED_ENTRIES
+    )
+  }
+}
+
 abstract class CachedTool<Input, Output>(
   private val cache: Atomic<MutableMap<CachedToolKey<Input>, CachedToolValue<Output>>>,
   private val seed: String,
-  private val timeCachePolicy: Duration = 1.days
+  private val config: CachedToolConfig = CachedToolConfig.Default
 ) : Tool<Input, Output> {
 
   /**
@@ -49,44 +67,51 @@ abstract class CachedTool<Input, Output>(
     else onCacheMissed(input)
 
   /**
-   * Exposes the cache as a [Map] of [Input] to [Output] filtered by instance [seed] and
-   * [timeCachePolicy]. Removes expired cache entries.
+   * Exposes the cache as a [Map] of [Input] to [Output] filtered by instance [seed]. Removes expired cache entries.
    *
    * @return the map of input to output.
    */
   suspend fun getCache(): Map<Input, Output> {
-    val lastTimeInCache = timeInMillis() - timeCachePolicy.inWholeMilliseconds
     val withoutExpired =
       cache.modify { cachedToolInfo ->
-        // Filter entries belonging to the current seed and have not expired
-        val validEntries =
-          cachedToolInfo
-            .filter { (key, value) ->
-              if (key.seed == seed) lastTimeInCache <= value.timestamp else true
-            }
-            .toMutableMap()
-        // Remove expired entries for the current seed only
-        cachedToolInfo.keys.removeAll { key -> key.seed == seed && !validEntries.containsKey(key) }
+        // Filter entries not expired
+        val validEntries = cachedToolInfo.filterExpired()
+        // Filter entries belonging to the current seed
+        val withoutExpired = validEntries.filter { (key, _) -> key.seed == seed }
         // Modifies state A, and returns state B
-        Pair(cachedToolInfo, validEntries)
+        Pair(validEntries, withoutExpired)
       }
     return withoutExpired.map { it.key.value to it.value.value }.toMap()
   }
 
-  private suspend fun cache(input: CachedToolKey<Input>, block: suspend () -> Output): Output {
-    val cachedToolInfo = cache.get()[input]
-    if (cachedToolInfo != null) {
-      val lastTimeInCache = timeInMillis() - timeCachePolicy.inWholeMilliseconds
-      if (lastTimeInCache > cachedToolInfo.timestamp) {
-        cache.get().remove(input)
-      } else {
-        return cachedToolInfo.value
+  private suspend fun cache(input: CachedToolKey<Input>, block: suspend () -> Output): Output =
+    cache.modify { cachedToolInfo ->
+      cachedToolInfo[input]?.let { output ->
+        if (output.isExpired()) {
+          val updatedCache = when (config.cacheExpirationPolicy) {
+            CachedToolConfig.CacheExpirationPolicy.REMOVE_EXPIRED_ENTRY -> cachedToolInfo.apply { remove(input) }
+            CachedToolConfig.CacheExpirationPolicy.REMOVE_ALL_EXPIRED_ENTRIES -> cachedToolInfo.filterExpired()
+          }
+          Pair(updatedCache, null)
+        }
+        else Pair(cachedToolInfo, output.value)
+      } ?: Pair(cachedToolInfo, null)
+    } ?: run {
+      val response = block()
+      if (shouldCacheOutput(input.value, response)) {
+        cache.update { cachedToolInfo ->
+          cachedToolInfo[input] = CachedToolValue(response, timeInMillis())
+          cachedToolInfo
+        }
       }
+      response
     }
-    val response = block()
-    if (shouldCacheOutput(input.value, response)) {
-      cache.get()[input] = CachedToolValue(response, timeInMillis())
-    }
-    return response
+
+  private fun MutableMap<CachedToolKey<Input>, CachedToolValue<Output>>.filterExpired() =
+    this.filter { (_, value) -> !value.isExpired() }.toMutableMap()
+
+  private fun CachedToolValue<Output>.isExpired(): Boolean {
+    val lastTimeInCache = timeInMillis() - config.timeCachePolicy.inWholeMilliseconds
+    return lastTimeInCache > timestamp
   }
 }
