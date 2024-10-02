@@ -43,9 +43,6 @@ project(":xef-pdf").projectDir = file("integrations/pdf")
 include("xef-postgresql")
 project(":xef-postgresql").projectDir = file("integrations/postgresql")
 
-include("xef-sql")
-project(":xef-sql").projectDir = file("integrations/sql")
-
 include("xef-opentelemetry")
 project(":xef-opentelemetry").projectDir = file("integrations/opentelemetry")
 

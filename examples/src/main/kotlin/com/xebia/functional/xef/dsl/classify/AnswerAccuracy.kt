@@ -1,6 +1,5 @@
 package com.xebia.functional.xef.dsl.classify
 
-import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
 import com.xebia.functional.xef.AI
 import com.xebia.functional.xef.evaluator.metrics.AnswerAccuracy
 
@@ -20,8 +19,7 @@ suspend fun main() {
     AI.classify<AnswerAccuracy>(
       input = "Do I love Xef?",
       output = "I have three opened PRs",
-      context = "The answer responds the question",
-      model = CreateChatCompletionRequestModel.gpt_3_5_turbo_0125
+      context = "The answer responds the question"
     )
   )
 }

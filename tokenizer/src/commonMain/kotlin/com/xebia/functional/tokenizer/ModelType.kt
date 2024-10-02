@@ -1,6 +1,7 @@
 package com.xebia.functional.tokenizer
 
 import com.xebia.functional.tokenizer.EncodingType.CL100K_BASE
+import com.xebia.functional.tokenizer.EncodingType.O200K_BASE
 import com.xebia.functional.tokenizer.EncodingType.P50K_BASE
 import com.xebia.functional.tokenizer.EncodingType.R50K_BASE
 import kotlin.jvm.JvmStatic
@@ -43,6 +44,7 @@ sealed class ModelType(
       GPT_4_0613,
       GPT_4_32K_0613_FUNCTIONS,
       GPT_4O,
+      GPT_4O_MINI,
       GPT_4O_2024_05_13,
     )
     val all: List<ModelType> = listOf(
@@ -60,6 +62,7 @@ sealed class ModelType(
       GPT_4_32_K_0314,
       GPT_4_32K_0613_FUNCTIONS,
       GPT_4O,
+      GPT_4O_MINI,
       GPT_4O_2024_05_13,
       GPT_4_TURBO_1106_PREVIEW,
       GPT_4_VISION_PREVIEW,
@@ -153,11 +156,13 @@ sealed class ModelType(
     ModelType("gpt-4-vision-preview", CL100K_BASE, 128000, tokensPerMessage = 3, tokensPerName = 2, tokenPadding = 5)
 
   object GPT_4O :
-    ModelType("gpt-4o", CL100K_BASE, 128000, tokensPerMessage = 3, tokensPerName = 2, tokenPadding = 5)
+    ModelType("gpt-4o", O200K_BASE, 128000, tokensPerMessage = 3, tokensPerName = 2, tokenPadding = 5)
+
+  object GPT_4O_MINI :
+    ModelType("gpt-4o-mini", O200K_BASE, 128000, tokensPerMessage = 3, tokensPerName = 2, tokenPadding = 5)
 
   object GPT_4O_2024_05_13 :
-    ModelType("gpt-4o-2024-05-13", CL100K_BASE, 128000, tokensPerMessage = 3, tokensPerName = 2, tokenPadding = 5)
-
+    ModelType("gpt-4o-2024-05-13", O200K_BASE, 128000, tokensPerMessage = 3, tokensPerName = 2, tokenPadding = 5)
 
   // text
   object TEXT_DAVINCI_003 : ModelType("text-davinci-003", P50K_BASE, 4097)

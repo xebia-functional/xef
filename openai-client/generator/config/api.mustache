@@ -8,6 +8,7 @@ import com.xebia.functional.openai.UploadFile
 import com.xebia.functional.openai.appendGen
 import com.xebia.functional.openai.generated.api.{{classname}}.*
 import com.xebia.functional.openai.streamEvents
+import com.xebia.functional.openai.errors.serializeOrThrowWithResponseInfo
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.timeout
@@ -105,7 +106,7 @@ fun {{classname}}(client: HttpClient, config: Config): {{apiPackage}}.{{classnam
         {{/headerParams}}
         contentType(ContentType.Application.Json)
         {{#queryParams}}
-            parameter("{{baseName}}", {{#isContainer}}toMultiValue(this, "{{collectionFormat}}"){{/isContainer}}{{^isContainer}}{{{paramName}}}{{/isContainer}})
+            parameter("{{baseName}}", {{#isContainer}}{{{paramName}}}{{/isContainer}}{{^isContainer}}{{{paramName}}}{{/isContainer}})
         {{/queryParams}}
         url { path("{{#lambda.dropslash}}{{path}}{{/lambda.dropslash}}"{{#pathParams}}.replace("{" + "{{baseName}}" + "}", {{#isContainer}}{{paramName}}.joinToString(","){{/isContainer}}{{^isContainer}}"${{{paramName}}}"{{/isContainer}}){{/pathParams}}) }
         setBody({{#hasBodyParam}}{{#bodyParam}}{{#isArray}}{{operationIdCamelCase}}Request({{{paramName}}}{{^isList}}.asList(){{/isList}}){{/isArray}}{{^isArray}}{{#isMap}}{{operationIdCamelCase}}Request({{{paramName}}}){{/isMap}}{{^isMap}}{{{paramName}}}{{/isMap}}{{/isArray}}{{/bodyParam}}{{/hasBodyParam}}
@@ -135,7 +136,7 @@ fun {{classname}}(client: HttpClient, config: Config): {{apiPackage}}.{{classnam
                 io.ktor.client.utils.EmptyContent
             {{/hasFormParams}}
         {{/hasBodyParam}})
-      }{{#returnProperty}}{{^isFile}}.body(){{/isFile}}{{/returnProperty}}
+      }{{#returnProperty}}{{^isFile}}.serializeOrThrowWithResponseInfo(){{/isFile}}{{/returnProperty}}
 
     {{#vendorExtensions.x-streaming}}
     override fun {{operationId}}Stream({{#allParams}}{{{paramName}}}: {{#isEnum}}{{# isContainer}}kotlin.collections.List<{{enumName}}{{operationIdCamelCase}}>{{/isContainer}}{{^isContainer}}{{enumName}}{{operationIdCamelCase}}{{/isContainer}}{{/isEnum}}{{^isEnum}}{{{dataType}}}{{/isEnum}}{{#required}}{{#defaultValue}} = {{^isNumber}}{{#isEnum}}{{enumName}}{{operationIdCamelCase}}.{{enumDefaultValue}}{{/isEnum}}{{^isEnum}}{{{defaultValue}}}{{/isEnum}}{{/isNumber}}{{#isNumber}}{{{defaultValue}}}.toDouble(){{/isNumber}}{{/defaultValue}}{{/required}}{{^required}}?{{#defaultValue}} = {{^isNumber}}{{#isEnum}}{{enumName}}{{operationIdCamelCase}}.{{enumDefaultValue}}{{/isEnum}}{{^isEnum}}{{{defaultValue}}}{{/isEnum}}{{/isNumber}}{{#isNumber}}{{{defaultValue}}}.toDouble(){{/isNumber}}{{/defaultValue}}{{^defaultValue}} = null{{/defaultValue}}{{/required}}, {{/allParams}}configure: HttpRequestBuilder.() -> Unit): Flow<{{{vendorExtensions.x-streaming-return}}}> = flow {

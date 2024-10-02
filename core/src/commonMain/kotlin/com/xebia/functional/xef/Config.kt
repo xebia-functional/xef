@@ -23,13 +23,14 @@ data class Config(
     prettyPrint = false
     isLenient = true
     explicitNulls = false
-    classDiscriminator = "_type_"
+    classDiscriminator = TYPE_DISCRIMINATOR
   },
   val streamingPrefix: String = "data:",
   val streamingDelimiter: String = "data: [DONE]"
 ) {
   companion object {
     val DEFAULT = Config()
+    const val TYPE_DISCRIMINATOR = "_type_"
   }
 }
 

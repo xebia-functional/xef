@@ -9,5 +9,10 @@ import kotlinx.serialization.SerialInfo
 @OptIn(ExperimentalSerializationApi::class)
 @SerialInfo
 @Retention(AnnotationRetention.RUNTIME)
-@Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY, AnnotationTarget.FIELD)
+@Target(
+  AnnotationTarget.CLASS,
+  AnnotationTarget.PROPERTY,
+  AnnotationTarget.FIELD,
+  AnnotationTarget.FUNCTION
+)
 annotation class Description(val value: String)

@@ -4,12 +4,9 @@ import io.opentelemetry.api.OpenTelemetry
 import io.opentelemetry.api.common.AttributeKey
 import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator
 import io.opentelemetry.context.propagation.ContextPropagators
-import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogRecordExporter
 import io.opentelemetry.exporter.otlp.metrics.OtlpGrpcMetricExporter
 import io.opentelemetry.exporter.otlp.trace.OtlpGrpcSpanExporter
 import io.opentelemetry.sdk.OpenTelemetrySdk
-import io.opentelemetry.sdk.logs.SdkLoggerProvider
-import io.opentelemetry.sdk.logs.export.BatchLogRecordProcessor
 import io.opentelemetry.sdk.metrics.SdkMeterProvider
 import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader
 import io.opentelemetry.sdk.resources.Resource
@@ -50,19 +47,10 @@ data class OpenTelemetryConfig(
         .setResource(resource)
         .build()
 
-    val loggerProvider =
-      SdkLoggerProvider.builder()
-        .addLogRecordProcessor(
-          BatchLogRecordProcessor.builder(OtlpGrpcLogRecordExporter.builder().build()).build()
-        )
-        .setResource(resource)
-        .build()
-
     val openTelemetry =
       OpenTelemetrySdk.builder()
         .setTracerProvider(tracerProvider)
         .setMeterProvider(meterProvider)
-        .setLoggerProvider(loggerProvider)
         .setPropagators(ContextPropagators.create(W3CTraceContextPropagator.getInstance()))
         .buildAndRegisterGlobal()
 

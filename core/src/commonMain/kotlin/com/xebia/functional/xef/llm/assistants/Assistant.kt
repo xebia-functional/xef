@@ -1,7 +1,21 @@
 package com.xebia.functional.xef.llm.assistants
 
 import com.xebia.functional.openai.generated.api.Assistants
-import com.xebia.functional.openai.generated.model.*
+import com.xebia.functional.openai.generated.model.AssistantObject
+import com.xebia.functional.openai.generated.model.AssistantObjectToolsInner
+import com.xebia.functional.openai.generated.model.AssistantToolsCode
+import com.xebia.functional.openai.generated.model.AssistantToolsFileSearch
+import com.xebia.functional.openai.generated.model.AssistantToolsFunction
+import com.xebia.functional.openai.generated.model.CreateAssistantRequest
+import com.xebia.functional.openai.generated.model.CreateAssistantRequestModel
+import com.xebia.functional.openai.generated.model.CreateAssistantRequestToolResources
+import com.xebia.functional.openai.generated.model.CreateAssistantRequestToolResourcesCodeInterpreter
+import com.xebia.functional.openai.generated.model.CreateAssistantRequestToolResourcesFileSearch
+import com.xebia.functional.openai.generated.model.FunctionObject
+import com.xebia.functional.openai.generated.model.ModifyAssistantRequest
+import com.xebia.functional.openai.generated.model.ModifyAssistantRequestToolResources
+import com.xebia.functional.openai.generated.model.ModifyAssistantRequestToolResourcesCodeInterpreter
+import com.xebia.functional.openai.generated.model.ModifyAssistantRequestToolResourcesFileSearch
 import com.xebia.functional.xef.Config
 import com.xebia.functional.xef.OpenAI
 import com.xebia.functional.xef.llm.assistants.AssistantThread.Companion.defaultConfig
@@ -9,7 +23,6 @@ import com.xebia.functional.xef.llm.models.functions.buildJsonSchema
 import io.ktor.util.logging.*
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -50,18 +63,22 @@ class Assistant(
   suspend inline fun getToolRegistered(name: String, args: String): ToolOutput =
     try {
       val toolConfig = toolsConfig.firstOrNull { it.functionObject.name == name }
+      val (inputSerializer, outputSerializer) =
+        toolConfig?.serialization ?: error("Function $name not registered")
 
-      val toolSerializer = toolConfig?.serializers ?: error("Function $name not registered")
-      val input = Json.decodeFromString(toolSerializer.inputSerializer, args)
-
+      val input = inputSerializer.json.decodeFromString(inputSerializer.serializer, args)
       val tool: Tool<Any?, Any?> = toolConfig.tool as Tool<Any?, Any?>
 
-      val schema = buildJsonSchema(toolSerializer.outputSerializer.descriptor)
+      val schema = buildJsonSchema(outputSerializer.serializer.descriptor)
       val output: Any? = tool(input)
       val result =
-        Json.encodeToJsonElement(toolSerializer.outputSerializer as KSerializer<Any?>, output)
+        outputSerializer.json.encodeToJsonElement(
+          outputSerializer.serializer as KSerializer<Any?>,
+          output
+        )
       ToolOutput(schema, result)
     } catch (e: Exception) {
+      if (e is AssertionError) throw e
       val message = "Error calling to tool registered $name: ${e.message}"
       val logger = KtorSimpleLogger("Functions")
       logger.error(message, e)
@@ -81,6 +98,8 @@ class Assistant(
       tools: List<AssistantObjectToolsInner> = arrayListOf(),
       toolResources: CreateAssistantRequestToolResources? = null,
       metadata: JsonObject? = null,
+      temperature: Double? = null,
+      topP: Double? = null,
       toolsConfig: List<Tool.Companion.ToolConfig<*, *>> = emptyList(),
       config: Config = Config(),
       assistantsApi: Assistants = OpenAI(config, logRequests = false).assistants,
@@ -93,7 +112,9 @@ class Assistant(
           instructions = instructions,
           tools = tools,
           toolResources = toolResources,
-          metadata = metadata
+          metadata = metadata,
+          temperature = temperature,
+          topP = topP
         ),
         toolsConfig,
         config,
@@ -163,7 +184,7 @@ class Assistant(
                             functionObject.name,
                             functionObject.description ?: "",
                             functionObject.parameters?.let { el ->
-                              Json.encodeToString(JsonObject.serializer(), el)
+                              config.json.encodeToString(JsonObject.serializer(), el)
                             } ?: ""
                           )
                         } else {
@@ -178,6 +199,8 @@ class Assistant(
               }
             },
           toolResources = toolResourcesRequest,
+          temperature = parsed["temperature"]?.literalContentOrNull?.toDoubleOrNull(),
+          topP = parsed["top_p"]?.literalContentOrNull?.toDoubleOrNull(),
         )
       return if (assistantRequest.assistantId != null) {
         val assistant =
@@ -194,7 +217,7 @@ class Assistant(
             name = assistantRequest.name,
             description = assistantRequest.description,
             instructions = assistantRequest.instructions,
-            tools = assistantTools(assistantRequest),
+            tools = assistantTools(assistantRequest, config),
             toolResources =
               assistantRequest.toolResources?.let {
                 ModifyAssistantRequestToolResources(
@@ -208,7 +231,9 @@ class Assistant(
                     )
                 )
               },
-            metadata = null // assistantRequest.metadata
+            metadata = null, // assistantRequest.metadata
+            temperature = assistantRequest.temperature,
+            topP = assistantRequest.topP
           )
         )
       } else
@@ -219,12 +244,14 @@ class Assistant(
               name = assistantRequest.name,
               description = assistantRequest.description,
               instructions = assistantRequest.instructions,
-              tools = assistantTools(assistantRequest),
+              tools = assistantTools(assistantRequest, config),
               toolResources = assistantRequest.toolResources,
               metadata =
                 assistantRequest.metadata
                   ?.map { (k, v) -> k to JsonPrimitive(v) }
-                  ?.let { JsonObject(it.toMap()) }
+                  ?.let { JsonObject(it.toMap()) },
+              temperature = assistantRequest.temperature,
+              topP = assistantRequest.topP
             ),
           toolsConfig = toolsConfig,
           config = config,
@@ -233,7 +260,8 @@ class Assistant(
     }
 
     private fun assistantTools(
-      assistantRequest: AssistantRequest
+      assistantRequest: AssistantRequest,
+      config: Config
     ): List<AssistantObjectToolsInner> =
       assistantRequest.tools.orEmpty().map {
         when (it) {
@@ -253,7 +281,7 @@ class Assistant(
                   FunctionObject(
                     name = it.name,
                     parameters =
-                      Json.parseToJsonElement(it.parameters) as? JsonObject
+                      config.json.parseToJsonElement(it.parameters) as? JsonObject
                         ?: JsonObject(emptyMap()),
                     description = it.description
                   )

@@ -3,6 +3,7 @@ package com.xebia.functional.xef.llm.models
 import com.xebia.functional.openai.generated.model.CreateChatCompletionRequestModel
 import com.xebia.functional.openai.generated.model.CreateEmbeddingRequestModel
 import com.xebia.functional.tokenizer.ModelType
+import io.ktor.client.*
 
 fun CreateChatCompletionRequestModel.modelType(forFunctions: Boolean = false): ModelType {
   val stringValue = value

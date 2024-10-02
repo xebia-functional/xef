@@ -30,6 +30,7 @@ class TestChatApi(private val responses: Map<String, String> = emptyMap()) : Cha
                   content =
                     responses[createChatCompletionRequest.messages.last().contentAsString()]
                       ?: "fake-content",
+                  refusal = null,
                   toolCalls =
                     listOf(
                       ChatCompletionMessageToolCall(
@@ -37,7 +38,7 @@ class TestChatApi(private val responses: Map<String, String> = emptyMap()) : Cha
                         type = ChatCompletionMessageToolCall.Type.function,
                         function =
                           ChatCompletionMessageToolCallFunction(
-                            "fake-function-name",
+                            "Answer",
                             """{ "bar": "fake-answer" }"""
                           )
                       )
