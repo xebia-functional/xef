@@ -56,8 +56,7 @@ data class CachedToolConfig(
  *
  * Cache is stored in a [Map] of [CachedToolKey] to [CachedToolValue].
  *
- * Supports expiration policies using [CachedToolConfig]. Expiration happens during access to the
- * cache.
+ * Supports expiration policies using [CachedToolConfig].
  */
 abstract class CachedTool<Input, Output>(
   private val cache: Atomic<MutableMap<CachedToolKey<Input>, CachedToolValue<Output>>>,
