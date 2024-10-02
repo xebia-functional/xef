@@ -25,6 +25,8 @@ data class CachedToolConfig(
   val cacheExpirationPolicy: CacheExpirationPolicy,
   val cacheEvictionPolicy: CacheEvictionPolicy
 ) {
+
+  /** Policy to expire the entries in the cache, based on last access or last write time. */
   enum class CacheExpirationPolicy {
     /** Last access time is used to determine expiration */
     ACCESS,
@@ -32,18 +34,19 @@ data class CachedToolConfig(
     WRITE
   }
 
+  /** Policy to evict the expired entries from the cache, based on one or all expired entries. */
   enum class CacheEvictionPolicy {
     /** Removes the expired entry when found */
-    EVICT_SINGLE_EXPIRED,
+    SINGLE,
     /** Removes all expired entries when one expired entry found */
-    EVICT_ALL_EXPIRED
+    ALL
   }
 
   companion object {
     val Default =
       CachedToolConfig(
         timeCachePolicy = 1.days,
-        cacheEvictionPolicy = CacheEvictionPolicy.EVICT_ALL_EXPIRED,
+        cacheEvictionPolicy = CacheEvictionPolicy.ALL,
         cacheExpirationPolicy = CacheExpirationPolicy.WRITE
       )
   }
@@ -117,10 +120,8 @@ abstract class CachedTool<Input, Output>(
         if (output.isExpired()) {
           val updatedCache =
             when (config.cacheEvictionPolicy) {
-              CachedToolConfig.CacheEvictionPolicy.EVICT_SINGLE_EXPIRED ->
-                cachedToolInfo.apply { remove(input) }
-              CachedToolConfig.CacheEvictionPolicy.EVICT_ALL_EXPIRED ->
-                cachedToolInfo.filterExpired()
+              CachedToolConfig.CacheEvictionPolicy.SINGLE -> cachedToolInfo.apply { remove(input) }
+              CachedToolConfig.CacheEvictionPolicy.ALL -> cachedToolInfo.filterExpired()
             }
           Pair(updatedCache, null)
         } else {
