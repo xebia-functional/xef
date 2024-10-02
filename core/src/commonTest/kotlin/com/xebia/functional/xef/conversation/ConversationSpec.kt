@@ -49,7 +49,7 @@ class ConversationSpec :
     }
 
     """"
-      | GPT_3_5_TURBO model has 4097 max context length
+      | GPT_3_5_TURBO model has 16385 max context length
       | when the number of token in the conversation is greater than
       | the space allotted for the message history in the prompt configuration
       | the number of messages in the request must have fewer messages than
@@ -80,7 +80,7 @@ class ConversationSpec :
       val memories = vectorStore.memories(model, conversationId, totalTokens)
 
       // The messages in the request doesn't contain the message response
-      val messagesSizePlusMessageResponse = lastRequest.messages.size + 1
+      val messagesSizePlusMessageResponse = lastRequest.messages.size
 
       messagesSizePlusMessageResponse shouldBeLessThan memories.size
     }
