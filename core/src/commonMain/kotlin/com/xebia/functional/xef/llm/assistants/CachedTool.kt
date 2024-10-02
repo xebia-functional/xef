@@ -7,24 +7,44 @@ import kotlin.time.Duration.Companion.days
 
 data class CachedToolKey<K>(val value: K, val seed: String)
 
-data class CachedToolValue<V>(val value: V, val timestamp: Long)
+data class CachedToolValue<V>(val value: V, val accessTimestamp: Long, val writeTimestamp: Long) {
+  fun withAccessTimestamp() = copy(accessTimestamp = timeInMillis())
+
+  companion object {
+    fun <V> withActualResponse(response: V): CachedToolValue<V> =
+      CachedToolValue(
+        value = response,
+        accessTimestamp = timeInMillis(),
+        writeTimestamp = timeInMillis()
+      )
+  }
+}
 
 data class CachedToolConfig(
   val timeCachePolicy: Duration,
-  val cacheExpirationPolicy: CacheExpirationPolicy
+  val cacheExpirationPolicy: CacheExpirationPolicy,
+  val cacheEvictionPolicy: CacheEvictionPolicy
 ) {
   enum class CacheExpirationPolicy {
+    /** Last access time is used to determine expiration */
+    ACCESS,
+    /** Last write time is used to determine expiration */
+    WRITE
+  }
+
+  enum class CacheEvictionPolicy {
     /** Removes the expired entry when found */
-    REMOVE_SINGLE_EXPIRED,
+    EVICT_SINGLE_EXPIRED,
     /** Removes all expired entries when one expired entry found */
-    REMOVE_ALL_EXPIRED
+    EVICT_ALL_EXPIRED
   }
 
   companion object {
     val Default =
       CachedToolConfig(
         timeCachePolicy = 1.days,
-        cacheExpirationPolicy = CacheExpirationPolicy.REMOVE_ALL_EXPIRED
+        cacheEvictionPolicy = CacheEvictionPolicy.EVICT_ALL_EXPIRED,
+        cacheExpirationPolicy = CacheExpirationPolicy.WRITE
       )
   }
 }
@@ -79,7 +99,7 @@ abstract class CachedTool<Input, Output>(
 
   /**
    * Returns a snapshot of the cache as a [Map] of [Input] to [Output] filtered by instance [seed]
-   * and removing expired cache entries. Does not modify the cache.
+   * and removing expired cache entries with the given [config] policies. Does not modify the cache.
    *
    * @return the map of input to output.
    */
@@ -97,21 +117,24 @@ abstract class CachedTool<Input, Output>(
       cachedToolInfo[input]?.let { output ->
         if (output.isExpired()) {
           val updatedCache =
-            when (config.cacheExpirationPolicy) {
-              CachedToolConfig.CacheExpirationPolicy.REMOVE_SINGLE_EXPIRED ->
+            when (config.cacheEvictionPolicy) {
+              CachedToolConfig.CacheEvictionPolicy.EVICT_SINGLE_EXPIRED ->
                 cachedToolInfo.apply { remove(input) }
-              CachedToolConfig.CacheExpirationPolicy.REMOVE_ALL_EXPIRED ->
+              CachedToolConfig.CacheEvictionPolicy.EVICT_ALL_EXPIRED ->
                 cachedToolInfo.filterExpired()
             }
           Pair(updatedCache, null)
-        } else Pair(cachedToolInfo, output.value)
+        } else {
+          val updatedOutput = output.withAccessTimestamp()
+          Pair(cachedToolInfo, updatedOutput.value)
+        }
       } ?: Pair(cachedToolInfo, null)
     }
       ?: run {
         val response = block()
         if (shouldCacheOutput(input.value, response)) {
           cache.update { cachedToolInfo ->
-            cachedToolInfo[input] = CachedToolValue(response, timeInMillis())
+            cachedToolInfo[input] = CachedToolValue.withActualResponse(response)
             cachedToolInfo
           }
         }
@@ -121,8 +144,15 @@ abstract class CachedTool<Input, Output>(
   private fun MutableMap<CachedToolKey<Input>, CachedToolValue<Output>>.filterExpired() =
     this.filter { (_, value) -> !value.isExpired() }.toMutableMap()
 
-  private fun CachedToolValue<Output>.isExpired(): Boolean {
-    val lastTimeInCache = timeInMillis() - config.timeCachePolicy.inWholeMilliseconds
-    return lastTimeInCache > timestamp
-  }
+  private fun CachedToolValue<Output>.isExpired(): Boolean =
+    when (config.cacheExpirationPolicy) {
+      CachedToolConfig.CacheExpirationPolicy.ACCESS -> {
+        val lastTimeInCache = timeInMillis() - accessTimestamp
+        lastTimeInCache > config.timeCachePolicy.inWholeMilliseconds
+      }
+      CachedToolConfig.CacheExpirationPolicy.WRITE -> {
+        val lastTimeInCache = timeInMillis() - writeTimestamp
+        lastTimeInCache > config.timeCachePolicy.inWholeMilliseconds
+      }
+    }
 }
