@@ -102,6 +102,7 @@ suspend fun RunDelta.addMetrics(metric: Metric): RunDelta {
     is RunDelta.RunStepDelta,
     is RunDelta.RunSubmitToolOutputs,
     is RunDelta.ThreadCreated,
+    is RunDelta.Error,
     is RunDelta.Unknown -> {}
   }
   return this
