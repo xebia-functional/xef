@@ -134,15 +134,22 @@ sealed interface RunDelta {
   /** [RunDeltaEvent.thread_message_incomplete] */
   @JvmInline @Serializable value class MessageIncomplete(val message: MessageObject) : RunDelta
 
+  /** [RunDeltaEvent.error] */
+  @JvmInline
+  @Serializable
+  value class Error(val error: com.xebia.functional.openai.generated.model.Error) : RunDelta
+
   @JvmInline @Serializable value class Unknown(val event: ServerSentEvent) : RunDelta
 
   companion object {
+    private val typeExcludedCharactersRegex = "[._]".toRegex()
+
     fun fromServerSentEvent(serverEvent: ServerSentEvent): RunDelta {
       val data = serverEvent.data ?: error("Expected data in ServerSentEvent for RunDelta")
       val type = serverEvent.event ?: error("Expected event in ServerSentEvent for RunDelta")
       val event =
-        RunDeltaEvent.values().find {
-          type.replace(".", "").replace("_", "").equals(it.name, ignoreCase = true)
+        RunDeltaEvent.entries.find {
+          type.replace(typeExcludedCharactersRegex, "").equals(it.name, ignoreCase = true)
         }
       val json = Config.DEFAULT.json
       return when (event) {
@@ -190,7 +197,13 @@ sealed interface RunDelta {
           MessageCompleted(json.decodeFromJsonElement(MessageObject.serializer(), data))
         RunDeltaEvent.ThreadMessageIncomplete ->
           MessageIncomplete(json.decodeFromJsonElement(MessageObject.serializer(), data))
-        RunDeltaEvent.Error -> Unknown(serverEvent)
+        RunDeltaEvent.Error ->
+          Error(
+            json.decodeFromJsonElement(
+              com.xebia.functional.openai.generated.model.Error.serializer(),
+              data
+            )
+          )
         null -> Unknown(serverEvent)
       }
     }
