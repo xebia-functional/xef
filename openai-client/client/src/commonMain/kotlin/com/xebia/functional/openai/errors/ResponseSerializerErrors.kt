@@ -18,16 +18,18 @@ suspend fun HttpResponse.throwResponseSerializerError(
   title: String,
   cause: Throwable? = null
 ): Nothing {
-  val errorInfo = ResponseErrorInfo(
-    requestUrl = this.request.url.toString(),
-    requestMethod = this.request.method.value,
-    requestBody = extractRequestBody(this),
-    responseStatus = this.status.value,
-    responseHeaders = this.headers.toString(),
-    responseBody = this.bodyAsText()
-  )
+  val errorInfo =
+    ResponseErrorInfo(
+      requestUrl = this.request.url.toString(),
+      requestMethod = this.request.method.value,
+      requestBody = extractRequestBody(this),
+      responseStatus = this.status.value,
+      responseHeaders = this.headers.toString(),
+      responseBody = this.bodyAsText()
+    )
 
-  val message = """
+  val message =
+    """
     |$title
     |Request URL: ${errorInfo.requestUrl}
     |Request Method: ${errorInfo.requestMethod}
@@ -35,7 +37,8 @@ suspend fun HttpResponse.throwResponseSerializerError(
     |Response Status: ${errorInfo.responseStatus}
     |Response Headers: ${errorInfo.responseHeaders}
     |Response Body: ${errorInfo.responseBody}
-  """.trimMargin()
+  """
+      .trimMargin()
 
   throw ResponseSerializerError(message, cause, errorInfo)
 }
