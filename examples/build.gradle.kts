@@ -22,7 +22,6 @@ dependencies {
     implementation(projects.xefTokenizer)
     implementation(projects.xefReasoning)
     implementation(projects.xefOpentelemetry)
-    implementation(projects.xefMlflow)
     implementation(libs.suspendApp.core)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.logback)
