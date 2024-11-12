@@ -49,11 +49,10 @@ class ConversationSpec :
     }
 
     """"
-      | GPT_3_5_TURBO model has 4097 max context length
-      | when the number of token in the conversation is greater than
+      | GPT_3_5_TURBO model has 16388 max context length
+      | when the number of token in the conversation is less than
       | the space allotted for the message history in the prompt configuration
-      | the number of messages in the request must have fewer messages than
-      | the total number of messages in the conversation
+      | the request must send all messages in the conversation
       |""" {
       val messages = generateRandomMessages(50, 40, 60)
       val conversationId = ConversationId(UUID.generateUUID().toString())
@@ -82,7 +81,7 @@ class ConversationSpec :
       // The messages in the request doesn't contain the message response
       val messagesSizePlusMessageResponse = lastRequest.messages.size + 1
 
-      messagesSizePlusMessageResponse shouldBeLessThan memories.size
+      messagesSizePlusMessageResponse shouldBe memories.size
     }
 
     """"

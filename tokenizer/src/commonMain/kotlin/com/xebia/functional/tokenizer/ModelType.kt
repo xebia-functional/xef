@@ -48,6 +48,7 @@ sealed class ModelType(
     )
     val all: List<ModelType> = listOf(
       GPT_3_5_TURBO,
+      GPT_3_5_TURBO_0125,
       GPT_3_5_TURBO_0301,
       GPT_3_5_TURBO_0613,
       GPT_3_5_TURBO_FUNCTIONS,
@@ -103,7 +104,10 @@ sealed class ModelType(
   ) : ModelType(name, encodingType, maxContextLength)
 
   object GPT_3_5_TURBO :
-    ModelType("gpt-3.5-turbo", CL100K_BASE, 4097, tokensPerMessage = 4, tokensPerName = 0, tokenPadding = 5)
+    ModelType("gpt-3.5-turbo", CL100K_BASE, 16385, tokensPerMessage = 4, tokensPerName = 0, tokenPadding = 5)
+
+  object GPT_3_5_TURBO_0125 :
+    ModelType("gpt-3.5-turbo_0125", CL100K_BASE, 16385, tokensPerMessage = 4, tokensPerName = 0, tokenPadding = 5)
 
   object GPT_3_5_TURBO_0301 :
     ModelType("gpt-3.5-turbo-0301", CL100K_BASE, 4097, tokensPerMessage = 4, tokensPerName = 0, tokenPadding = 5)
