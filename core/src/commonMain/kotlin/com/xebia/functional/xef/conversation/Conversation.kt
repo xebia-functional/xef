@@ -16,18 +16,6 @@ constructor(
   val conversationId: ConversationId? = ConversationId(UUID.generateUUID().toString())
 ) {
 
-  @AiDsl
-  @JvmSynthetic
-  suspend fun addContext(vararg docs: String) {
-    store.addTexts(docs.toList())
-  }
-
-  @AiDsl
-  @JvmSynthetic
-  suspend fun addContext(docs: Iterable<String>): Unit {
-    store.addTexts(docs.toList())
-  }
-
   companion object {
 
     @JvmSynthetic
